@@ -9,8 +9,8 @@ A: Likely you forgot to use the 'new' keyword to allocate a map. Do:
 
 Q: Why am I getting "Could not create datasource. No plugin found for type ..."?
 
-A: Mapnik loaded datasources as runtime, and the node-mapnik bindings use the
-'mapnik-config' program from Mapnik trunk to find these paths as build time. If this
+A: Mapnik loads datasources at runtime, and the node-mapnik builds scripts leverage the
+'mapnik-config' program from Mapnik trunk to find these paths at build time. If this
 fails or you have custom plugins you can load them manually, see below.
 
 
