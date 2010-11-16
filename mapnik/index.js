@@ -1,6 +1,6 @@
 var mapnik = require('./_mapnik');
 var settings = require('./settings');
-
+var path = require('path');
 
 function warning(issue,manual_function)
 {
@@ -17,13 +17,13 @@ function warning(issue,manual_function)
     console.log(msg);
 }
 
-if (settings.paths.fonts) {
+if (settings.paths.fonts && path.existsSync(settings.paths.fonts)) {
    mapnik.register_fonts(settings.paths.fonts);
 } else {
    warning('fonts', 'register_fonts');
 }
 
-if (settings.paths.input_plugins) {
+if (settings.paths.input_plugins && path.existsSync(settings.paths.input_plugins)) {
    mapnik.register_datasources(settings.paths.input_plugins);
 } else {
    warning('fonts', 'register_datasources');

@@ -36,6 +36,8 @@ def configure(conf):
         # Note, working 'mapnik-config' is only available with mapnik >= r2378
         print 'NOTICE: searching for "mapnik-config" program, requires mapnik >= r2378'
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', mandatory=True)
+        # todo - check return value of popen other we can end up with
+        # return of 'Usage: mapnik-config [OPTION]'
         mapnik_libdir = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
         conf.env.append_value("LINKFLAGS_MAPNIK", mapnik_libdir)
         conf.env.append_value("LIB_MAPNIK", "mapnik2")

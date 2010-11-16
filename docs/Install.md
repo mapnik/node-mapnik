@@ -36,17 +36,21 @@
     $ cd node
     $ ./configure && make && make install
 
-## Build node-mapnik
+## Install node-mapnik
 
   Then build node-mapnik:
   
-    node-waf configure build install
+    $ node-waf configure build install
     
   Or use the make wrappers:
   
     ./configure
     make && make install
 
+  If you want to use a custom prefix do:
+  
+    $ node-waf --prefix=/opt/mapnik configure build instal
+  
 ## Alternative install with npm (http://npmjs.org/):
 
   Install npm:
