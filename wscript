@@ -36,11 +36,11 @@ def configure(conf):
         # Note, working 'mapnik-config' is only available with mapnik >= r2378
         print 'NOTICE: searching for "mapnik-config" program, requires mapnik >= r2378'
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', mandatory=True)
-        mapnik_libdir = popen("%s --libs" % mapnik_config).readline().strip()
-        conf.env.append_value("LIBPATH_MAPNIK", mapnik_libdir)
+        mapnik_libdir = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
+        conf.env.append_value("LINKFLAGS_MAPNIK", mapnik_libdir)
         conf.env.append_value("LIB_MAPNIK", "mapnik2")
         mapnik_includedir = popen("%s --cflags" % mapnik_config).readline().strip()
-        conf.env.append_value("CPPPATH_MAPNIK", mapnik_includedir)
+        conf.env.append_value("CXXFLAGS_MAPNIK", mapnik_includedir.split(' '))
         
         # settings for fonts and input plugins
         settings_dict['input_plugins'] = popen("%s --input-plugins" % mapnik_config).readline().strip()
