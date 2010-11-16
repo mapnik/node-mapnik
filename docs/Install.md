@@ -38,8 +38,10 @@
 
 ## Install node-mapnik
 
-  Then build node-mapnik:
-  
+  Then install node-mapnik:
+ 
+    $ git clone git://github.com/mapnik/node-mapnik.git
+    $ cd node-mapnik
     $ node-waf configure build install
     
   Or use the make wrappers:
@@ -49,7 +51,7 @@
 
   If you want to use a custom prefix do:
   
-    $ node-waf --prefix=/opt/mapnik configure build instal
+    $ node-waf --prefix=/opt/mapnik configure build install
   
 ## Alternative install with npm (http://npmjs.org/):
 
@@ -57,10 +59,9 @@
   
     $ curl http://npmjs.org/install.sh | sh
   
-  Install node:
+  Install node-mapnik:
     
-    $ cd node-mapnik
-    $ npm install .
+    $ npm install mapnik
 
 
 Any build failures, please post to https://github.com/mapnik/node-mapnik/issues.
