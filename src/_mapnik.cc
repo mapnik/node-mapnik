@@ -4,6 +4,7 @@
 // node
 #include <node.h>
 #include <node_buffer.h>
+#include <node_version.h>
 
 // mapnik
 #include <mapnik/map.hpp>
@@ -450,11 +451,13 @@ public:
     mapnik::agg_renderer<mapnik::image_32> ren(*baton->m->map_,im);
     ren.apply();
     std::string s = save_to_string(im, "png");
-    //char *buffer_data = Buffer::Data(buffer_obj);
-    //size_t buffer_length = Buffer::Length(buffer_obj);
     
+#if NODE_VERSION_AT_LEAST(0,3,0)
+    node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+#else
     node::Buffer *retbuf = Buffer::New(s.size());
     memcpy(retbuf->data(), s.data(), s.size());
+#endif
 
     baton->m->Unref();
 
@@ -486,8 +489,13 @@ public:
     // TODO - expose format
     std::string s = save_to_string(im, "png");
     //std::string ss = mapnik::save_to_string<mapnik::image_data_32>(im.data(),"png");
+    
+#if NODE_VERSION_AT_LEAST(0,3,0)
+    node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+#else
     node::Buffer *retbuf = Buffer::New(s.size());
     memcpy(retbuf->data(), s.data(), s.size());
+#endif
     return scope.Close(retbuf->handle_);
   }
 
