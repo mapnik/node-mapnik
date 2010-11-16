@@ -1,0 +1,26 @@
+{
+  "name"          : "mapnik",
+  "version"       : "0.1.0",
+  "main"          : "./mapnik",
+  "description"   : "C++ map rendering library for node",
+  "keywords"      : ["map", "graphics", "canvas", "tile"],
+  "url"           : "http://github.com/mapnik/node-mapnik",
+   "repositories" : [
+       {
+           "type" : "git",
+           "url"  : "git://github.com/mapnik/node-mapnik.git" 
+       } 
+   ],
+  "author"        : "Dane Springmeyer <dane@dbsgeo.com>",
+  "contributors"  : [],
+  "licenses"      : ["BSD"],
+  "dependencies"  : [],
+  "lib"           : "mapnik",
+   "directories"  : {
+       "lib" : "lib",
+       "examples" : "examples",
+       "src": "src"
+   },
+  "engines"       : { "node": ">= 0.2.0" },
+  "scripts"       : {"install": "node-waf configure build"}
+}
