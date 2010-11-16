@@ -59,4 +59,4 @@
     $ npm install .
 
 
-Any build failures, please post to github issues page.
+Any build failures, please post to https://github.com/mapnik/node-mapnik/issues.

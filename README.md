@@ -31,6 +31,7 @@
 ## Depends
 
   node (development headers)
+  
   mapnik (latest trunk)
 
 
