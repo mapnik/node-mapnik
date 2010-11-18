@@ -73,7 +73,7 @@ def configure(conf):
             conf.env.append_value("LIB_MAPNIK", "mapnik")
         
         # add path of mapnik lib
-        conf.env.append_value("LIBPATH_MAPNIK", "%s/%s" % (prefix,LIBDIR_SCHEMA)
+        conf.env.append_value("LIBPATH_MAPNIK", "%s/%s" % (prefix,LIBDIR_SCHEMA))
         ldflags = []
         if platform.uname()[0] == "Darwin":
             ldflags.append('-L/usr/X11/lib/')
