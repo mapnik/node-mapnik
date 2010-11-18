@@ -25,3 +25,12 @@ If you want to load custom input plugins you can use the function:
 And if you want to load custom fonts do:
 
     mapnik.register_fonts("/path/to/fonts/");
+
+
+Q: When trying to install node-mapnik I get:
+
+    node-waf -v configure build
+    make: node-waf: Command not found
+    make: *** [mapnik.node] Error 127
+
+A: node-waf is the build tool provided with a node install, make sure you have node installed

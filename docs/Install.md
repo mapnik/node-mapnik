@@ -5,11 +5,18 @@
 
   First you need the Mapnik library installed.
   
-  The build scripts are set up to use Mapnik2 >= r2378,
-  which is current Mapnik trunk as of Nov 15th, 2010.
+  The build scripts are set up to use Mapnik2 >= r2401,
+  which is current Mapnik trunk as of Nov 17th, 2010.
 
   Note: you can also customize the 'wscript' file (python code)
   to build against Mapnik 0.7.2.
+
+## Requirements
+
+  Mapnik compiled against libtool (ltdl) >= 2.x.x
+  Mapnik trunk >= 2401
+  Node >= 0.2
+
 
 ## More info
 
