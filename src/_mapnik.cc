@@ -6,6 +6,9 @@
 #include <node_buffer.h>
 #include <node_version.h>
 
+/* dlopen(), dlsym() */
+#include <dlfcn.h> 
+
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
@@ -534,6 +537,23 @@ public:
 
 Persistent<FunctionTemplate> Map::m_template;
 
+static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
+{
+  if (args.Length() != 1 || !args[0]->IsString())
+    ThrowException(Exception::TypeError(
+      String::New("first argument must be a path to a directory holding _mapnik.node")));
+  String::Utf8Value filename(args[0]->ToString());
+  void *handle = dlopen(*filename, RTLD_NOW|RTLD_GLOBAL);
+  if (handle == NULL) {
+      return False();
+  }
+  else
+  {
+      dlclose(handle);
+      return True();
+  }
+}
+
 static Handle<Value> register_datasources(const Arguments& args)
 {
   if (args.Length() != 1 || !args[0]->IsString())
@@ -707,6 +727,7 @@ extern "C" {
   static void init (Handle<Object> target)
   {
     // module level functions
+    NODE_SET_METHOD(target, "make_mapnik_symbols_visible", make_mapnik_symbols_visible);
     NODE_SET_METHOD(target, "register_datasources", register_datasources);
     NODE_SET_METHOD(target, "register_fonts", register_fonts);
     
