@@ -219,108 +219,117 @@ public:
     double tol;
     double z = 0;
     mapnik::CoordTransform tr = m->map_->view_transform();
-    
-    mapnik::projection dest(m->map_->srs());
-    mapnik::projection source(layer.srs());
-    mapnik::proj_transform prj_trans(source,dest);
-        
+
     const mapnik::box2d<double>&  e = m->map_->get_current_extent();
 
     double minx = e.minx();
     double miny = e.miny();
     double maxx = e.maxx();
     double maxy = e.maxy();
-        
-    prj_trans.backward(minx,miny,z);
-    prj_trans.backward(maxx,maxy,z);
-    tol = (maxx - minx) / m->map_->width() * 3;
-    mapnik::datasource_ptr ds = layer.datasource();
     
-    mapnik::featureset_ptr fs;
-
-    mapnik::memory_datasource cache;
-    mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
-    #if MAPNIK_VERSION >= 800
-        mapnik::query q(ds->envelope());
-    #else
-        mapnik::query q(ds->envelope(),1.0,1.0);
-    #endif
-
-    q.add_property_name(join_field);
-    fs = ds->features(q);
-
-    if (fs)
-    {   
-        mapnik::feature_ptr feature;
-        while ((feature = fs->next()))
-        {                  
-            cache.push(feature);
+    try
+    {
+        mapnik::projection dest(m->map_->srs());
+        mapnik::projection source(layer.srs());
+        mapnik::proj_transform prj_trans(source,dest);
+        prj_trans.backward(minx,miny,z);
+        prj_trans.backward(maxx,maxy,z);
+        
+        
+        tol = (maxx - minx) / m->map_->width() * 3;
+        mapnik::datasource_ptr ds = layer.datasource();
+        
+        mapnik::featureset_ptr fs;
+    
+        mapnik::memory_datasource cache;
+        mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
+        #if MAPNIK_VERSION >= 800
+            mapnik::query q(ds->envelope());
+        #else
+            mapnik::query q(ds->envelope(),1.0,1.0);
+        #endif
+    
+        q.add_property_name(join_field);
+        fs = ds->features(q);
+    
+        if (fs)
+        {   
+            mapnik::feature_ptr feature;
+            while ((feature = fs->next()))
+            {                  
+                cache.push(feature);
+            }
+        }
+        
+        for (unsigned y=0;y<tile_size;y=y+step)
+        {
+            for (unsigned x=0;x<tile_size;x=x+step)
+            {
+                //std::clog << "x: " << x << " y:" << y << "\n";
+                double x0 = x;
+                double y0 = y;
+                tr.backward(&x0,&y0);
+                prj_trans.backward(x0,y0,z);
+    
+                mapnik::box2d<double> box(x0,y0,x0,y0);
+                std::string val;
+                bool added = false;
+                mapnik::featureset_ptr fs_hit;
+                // 1.2 sec
+                //fs_hit = m->map_->query_point(layer_idx,x,y);
+                
+                // nothing
+                /*mapnik::featureset_ptr fs = ds->features_at_point(mapnik::coord2d(x,y));
+                if (fs) 
+                    fs_hit = mapnik::featureset_ptr(new mapnik::filter_featureset<mapnik::hit_test_filter>(fs,mapnik::hit_test_filter(x,y,tol)));
+                    
+                */
+    
+                // .7 sec
+                fs_hit = mapnik::featureset_ptr(new mapnik::memory_featureset(box, cache));
+                if (fs_hit)
+                {
+                    mapnik::feature_ptr fp = fs_hit->next();
+                    if (fp)
+                    {
+                        added = true;
+                        std::map<std::string,mapnik::value> const& fprops = fp->props();
+                        std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
+                        if (itr != fprops.end())
+                        {
+                            val = itr->second.to_string();
+                            //a->Set(x+y, String::New((const char*)itr->second.to_string().c_str()));
+                        }
+                        else
+                        {
+                            return ThrowException(Exception::Error(
+                               String::New("Invalid key!")));    
+                        }
+                        
+                    }
+                }
+                if (!added)
+                {
+                    val = "";
+                }
+                if (first)
+                {
+                    first = false;
+                }
+                if (!first && (val != prev))
+                {
+                    s << count << ":" << prev << "|";
+                    count = 0;
+                }
+                prev = val;
+                count++;
+            }
         }
     }
-    
-    for (unsigned y=0;y<tile_size;y=y+step)
+    catch (const mapnik::proj_init_error & ex )
     {
-        for (unsigned x=0;x<tile_size;x=x+step)
-        {
-            //std::clog << "x: " << x << " y:" << y << "\n";
-            double x0 = x;
-            double y0 = y;
-            tr.backward(&x0,&y0);
-            prj_trans.backward(x0,y0,z);
-
-            mapnik::box2d<double> box(x0,y0,x0,y0);
-            std::string val;
-            bool added = false;
-            mapnik::featureset_ptr fs_hit;
-            // 1.2 sec
-            //fs_hit = m->map_->query_point(layer_idx,x,y);
-            
-            // nothing
-            /*mapnik::featureset_ptr fs = ds->features_at_point(mapnik::coord2d(x,y));
-            if (fs) 
-                fs_hit = mapnik::featureset_ptr(new mapnik::filter_featureset<mapnik::hit_test_filter>(fs,mapnik::hit_test_filter(x,y,tol)));
-                
-            */
-
-            // .7 sec
-            fs_hit = mapnik::featureset_ptr(new mapnik::memory_featureset(box, cache));
-            if (fs_hit)
-            {
-                mapnik::feature_ptr fp = fs_hit->next();
-                if (fp)
-                {
-                    added = true;
-                    std::map<std::string,mapnik::value> const& fprops = fp->props();
-                    std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
-                    if (itr != fprops.end())
-                    {
-                        val = itr->second.to_string();
-                        //a->Set(x+y, String::New((const char*)itr->second.to_string().c_str()));
-                    }
-                    else
-                    {
-                        return ThrowException(Exception::Error(
-                           String::New("Invalid key!")));    
-                    }
-                    
-                }
-            }
-            if (!added)
-            {
-                val = "";
-            }
-            if (first)
-            {
-                first = false;
-            }
-            if (!first && (val != prev))
-            {
-                s << count << ":" << prev << "|";
-                count = 0;
-            }
-            prev = val;
-            count++;
-        }
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
     }
 
     return scope.Close(String::New(s.str().c_str()));
@@ -615,10 +624,17 @@ public:
     if (!(args.Length() > 0 && args[0]->IsString()))
       return ThrowException(Exception::TypeError(
         String::New("please provide a proj4 intialization string")));
-
-    Projection* p = new Projection(TOSTR(args[0]));
-    p->Wrap(args.This());
-    return args.This();
+    try
+    {
+        Projection* p = new Projection(TOSTR(args[0]));
+        p->Wrap(args.This());
+        return args.This();
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
   }
 
   static Handle<Value> forward(const Arguments& args)
