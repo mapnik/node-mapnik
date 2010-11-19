@@ -80,10 +80,13 @@ public:
 
     m_template = Persistent<FunctionTemplate>::New(t);
     m_template->InstanceTemplate()->SetInternalFieldCount(1);
+    //m_template->PrototypeTemplate()->SetNamedPropertyHandler(property);
     m_template->SetClassName(String::NewSymbol("Map"));
 
     NODE_SET_PROTOTYPE_METHOD(m_template, "load", load);
     NODE_SET_PROTOTYPE_METHOD(m_template, "resize", resize);
+    NODE_SET_PROTOTYPE_METHOD(m_template, "width", width);
+    NODE_SET_PROTOTYPE_METHOD(m_template, "height", height);
     NODE_SET_PROTOTYPE_METHOD(m_template, "buffer_size", buffer_size);
     NODE_SET_PROTOTYPE_METHOD(m_template, "generate_hit_grid", generate_hit_grid);
     NODE_SET_PROTOTYPE_METHOD(m_template, "extent", extent);
@@ -104,13 +107,13 @@ public:
 
   ~Map()
   {
-    //std::clog << "~Map\n";
-    // delete map_?
+    std::clog << "~Map\n";
+    //delete map_;
   }
 
   static Handle<Value> NewMap(const Arguments& args)
   {
-    HandleScope scope;
+    //HandleScope scope;
 
     if (!(args.Length() > 1 && args.Length() < 4))
       return ThrowException(Exception::TypeError(
@@ -127,6 +130,27 @@ public:
     return args.This();
   }
 
+  /*
+  static Handle<Value> property(Local<String> attr,
+      const AccessorInfo& name)
+  {
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(name.This());
+    std::string a = TOSTR(attr);
+    if (a == "width")
+    {
+        Local<Value> width = Integer::New(m->map_->width());
+        return scope.Close(width);
+    }
+    else if (a == "height")
+    {
+        Local<Value> width = Integer::New(m->map_->width());
+        return scope.Close(width);
+    }
+    return Undefined();
+  }
+  */
+        
   static Handle<Value> resize(const Arguments& args)
   {
     if (!args.Length() == 2)
@@ -140,6 +164,31 @@ public:
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
     return Undefined();
+  }
+
+
+  static Handle<Value> width(const Arguments& args)
+  {
+    HandleScope scope;
+    if (!args.Length() == 0)
+      return ThrowException(Exception::Error(
+        String::New("accepts no arguments")));
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Local<Value> width = Integer::New(m->map_->width());
+    return scope.Close(width);
+  }
+
+  static Handle<Value> height(const Arguments& args)
+  {
+    HandleScope scope;
+    if (!args.Length() == 0)
+      return ThrowException(Exception::Error(
+        String::New("accepts no arguments")));
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Local<Value> width = Integer::New(m->map_->height());
+    return scope.Close(width);
   }
 
   static Handle<Value> buffer_size(const Arguments& args)
@@ -173,7 +222,7 @@ public:
     }
     catch (const mapnik::config_error & ex )
     {
-      return ThrowException(Exception::TypeError(
+      return ThrowException(Exception::Error(
         String::New(ex.what())));
     }
     catch (...)
@@ -534,7 +583,7 @@ public:
     }
     catch (const mapnik::config_error & ex )
     {
-      return ThrowException(Exception::TypeError(
+      return ThrowException(Exception::Error(
         String::New(ex.what())));
     }
     catch (...)
