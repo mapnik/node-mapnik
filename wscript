@@ -31,7 +31,7 @@ def configure(conf):
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     settings_dict = {}
-    
+        
     if AUTOCONFIGURE:
         # Note, working 'mapnik-config' is only available with mapnik >= r2378
         print 'NOTICE: searching for "mapnik-config" program, requires mapnik >= r2378'
@@ -94,11 +94,11 @@ def configure(conf):
 
         # settings for fonts and input plugins
         if MAPNIK2:
-            settings_dict['input_plugins'] = "%s/%s/mapnik/input" % (prefix,LIBDIR_SCHEMA)
-            settings_dict['fonts'] = "%s/%s/mapnik/fonts" % (prefix,LIBDIR_SCHEMA)
+            settings_dict['input_plugins'] = "%s/%s/mapnik2/input" % (prefix,LIBDIR_SCHEMA)
+            settings_dict['fonts'] = "%s/%s/mapnik2/fonts" % (prefix,LIBDIR_SCHEMA)
         else:
-            settings_dict['input_plugins'] = "%s/lib/mapnik2/input" % prefix
-            settings_dict['fonts'] = "%s/lib/mapnik2/fonts" % prefix
+            settings_dict['input_plugins'] = "%s/lib/mapnik/input" % prefix
+            settings_dict['fonts'] = "%s/lib/mapnik/fonts" % prefix
 
     write_mapnik_settings(**settings_dict)
 
