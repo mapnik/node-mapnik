@@ -27,6 +27,9 @@
 #include <mapnik/memory_featureset.hpp>
 #include <mapnik/version.hpp>
 
+// boost
+#include <boost/shared_ptr.hpp>
+
 //#ifdef MAPNIK_THREADSAFE
 //#include <boost/thread/mutex.hpp>
 //#endif
@@ -60,10 +63,12 @@ using namespace v8;
                   String::New("Argument " #I " must be a function")));  \
   Local<Function> VAR = Local<Function>::Cast(args[I]);
 
+typedef boost::shared_ptr<mapnik::Map> map_ptr;
+
 class Map: ObjectWrap
 {
 private:
-  mapnik::Map* map_;
+  map_ptr map_;
 public:
 
   static Persistent<FunctionTemplate> m_template;
