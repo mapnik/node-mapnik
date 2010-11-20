@@ -1,6 +1,6 @@
 {
   "name"          : "mapnik",
-  "version"       : "0.1.1",
+  "version"       : "0.1.2",
   "main"          : "./mapnik",
   "description"   : "C++ map rendering library for node",
   "keywords"      : ["map", "graphics", "canvas", "tile"],
