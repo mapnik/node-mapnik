@@ -38,11 +38,11 @@ assert.notStrictEqual(map.extent(), expected);
 map.render_to_file('/tmp/world.png');
 assert.ok(path.existsSync('/tmp/world.png'));
 
-assert.equal(map.width(),600);
-assert.equal(map.height(),400);
-map.resize(256,256);
-assert.equal(map.width(),256);
-assert.equal(map.height(),256);
+assert.equal(map.width(), 600);
+assert.equal(map.height(), 400);
+map.resize(256, 256);
+assert.equal(map.width(), 256);
+assert.equal(map.height(), 256);
 
 /* PROJECTION */
 
@@ -56,7 +56,7 @@ try {
 }
 catch (err)
 {
-    assert.equal(err.message,"failed to initialize projection with:+init=epsg:foo");
+    assert.equal(err.message, 'failed to initialize projection with:+init=epsg:foo');
 }
 
 var wgs84 = new mapnik.Projection('+init=epsg:4326');
@@ -69,7 +69,7 @@ try {
     // perhaps we've got a savvy user?
     merc = new mapnik.Projection('+init=epsg:900913');
 }
-catch (err){
+catch (err) {
     // newer versions of proj4 have this code which is == 900913
     merc = new mapnik.Projection('+init=epsg:3857');
 }
@@ -79,21 +79,21 @@ if (!merc) {
     var msg = 'warning, could not create a spherical mercator projection';
     msg += '\nwith either epsg:900913 or epsg:3857, so they must be missing';
     msg += '\nfrom your proj4 epsg table (/usr/local/share/proj/epsg)';
-    console.log(msg)
+    console.log(msg);
 }
 else
 {
     assert.ok(merc instanceof mapnik.Projection);
     long_lat_coords = [-122.33517, 47.63752];
     merc_coords = merc.forward(long_lat_coords);
-    
+
     assert.equal(merc_coords.length, 2);
     assert.notStrictEqual(merc_coords, [-13618288.8305, 6046761.54747]);
     assert.notStrictEqual(long_lat_coords, merc.inverse(merc.forward(long_lat_coords)));
-    
+
     long_lat_bounds = [-122.420654, 47.605006, -122.2435, 47.67764];
     merc_bounds = merc.forward(long_lat_bounds);
-    
+
     assert.equal(merc_bounds.length, 4);
     var expected = [-13627804.8659, 6041391.68077, -13608084.1728, 6053392.19471];
     assert.notStrictEqual(merc_bounds, expected);
