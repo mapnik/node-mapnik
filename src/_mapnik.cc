@@ -80,7 +80,6 @@ public:
 
     m_template = Persistent<FunctionTemplate>::New(t);
     m_template->InstanceTemplate()->SetInternalFieldCount(1);
-    //m_template->PrototypeTemplate()->SetNamedPropertyHandler(property);
     m_template->SetClassName(String::NewSymbol("Map"));
 
     NODE_SET_PROTOTYPE_METHOD(m_template, "load", load);
@@ -95,6 +94,7 @@ public:
     NODE_SET_PROTOTYPE_METHOD(m_template, "render", render);
     NODE_SET_PROTOTYPE_METHOD(m_template, "render_to_string", render_to_string);
     NODE_SET_PROTOTYPE_METHOD(m_template, "render_to_file", render_to_file);
+    //m_template->PrototypeTemplate()->SetNamedPropertyHandler(property);
 
     target->Set(String::NewSymbol("Map"),m_template->GetFunction());
   }
@@ -113,7 +113,7 @@ public:
 
   static Handle<Value> NewMap(const Arguments& args)
   {
-    //HandleScope scope;
+    HandleScope scope;
 
     if (!(args.Length() > 1 && args.Length() < 4))
       return ThrowException(Exception::TypeError(
@@ -153,6 +153,8 @@ public:
         
   static Handle<Value> resize(const Arguments& args)
   {
+    HandleScope scope;
+
     if (!args.Length() == 2)
       return ThrowException(Exception::Error(
         String::New("Please provide width and height")));
@@ -193,6 +195,7 @@ public:
 
   static Handle<Value> buffer_size(const Arguments& args)
   {
+    HandleScope scope;
     if (!args.Length() == 1)
       return ThrowException(Exception::Error(
         String::New("Please provide a buffer_size")));
@@ -405,6 +408,7 @@ public:
 
   static Handle<Value> zoom_all(const Arguments& args)
   {
+    HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     m->map_->zoom_all();
     return Undefined();
@@ -412,6 +416,7 @@ public:
 
   static Handle<Value> zoom_to_box(const Arguments& args)
   {
+    HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     double minx;
@@ -498,6 +503,7 @@ public:
 
   static int EIO_render(eio_req *req)
   {
+    HandleScope scope;
     //map_baton_t *baton = static_cast<map_baton_t *>(req->data);
 
     return 0;
@@ -602,6 +608,7 @@ Persistent<FunctionTemplate> Map::m_template;
 
 static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
 {
+  HandleScope scope;
   if (args.Length() != 1 || !args[0]->IsString())
     ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory holding _mapnik.node")));
@@ -619,6 +626,7 @@ static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
 
 static Handle<Value> register_datasources(const Arguments& args)
 {
+  HandleScope scope;
   if (args.Length() != 1 || !args[0]->IsString())
     ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory of mapnik input plugins")));
@@ -629,6 +637,7 @@ static Handle<Value> register_datasources(const Arguments& args)
 
 static Handle<Value> register_fonts(const Arguments& args)
 {
+  HandleScope scope;
   if (args.Length() != 1 || !args[0]->IsString())
     ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory of fonts")));
