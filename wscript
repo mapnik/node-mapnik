@@ -1,7 +1,8 @@
 import Options
-from os import unlink, symlink, popen, uname
+from os import unlink, symlink, popen, uname, environ
 from os.path import exists
 from shutil import copy2 as copy
+from subprocess import call
 
 TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
@@ -31,8 +32,12 @@ def configure(conf):
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     settings_dict = {}
-        
+
     if AUTOCONFIGURE:
+        # attempt to use clang++ if available instead of g++
+        if call(['clang++','--version']) == 0:
+            environ['CXX'] = 'clang++'
+
         # Note, working 'mapnik-config' is only available with mapnik >= r2378
         print 'NOTICE: searching for "mapnik-config" program, requires mapnik >= r2378'
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', mandatory=True)
