@@ -25,8 +25,10 @@
   
   Prototype at this point, API will be frequently changing.
   
-  Developed on OS X (10.6), not yet tested on linux.
-
+  Developed on OS X (10.6)
+  
+  Also tested on Debian Squeeze and Centos 5.4.
+  
 
 ## Depends
 
