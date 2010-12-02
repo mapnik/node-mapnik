@@ -35,8 +35,10 @@ def configure(conf):
 
     if AUTOCONFIGURE:
         # attempt to use clang++ if available instead of g++
-        if call(['clang++','--version']) == 0:
-            environ['CXX'] = 'clang++'
+        try:
+            if call(['clang++','--version']) == 0:
+                environ['CXX'] = 'clang++'
+        except: pass
 
         # Note, working 'mapnik-config' is only available with mapnik >= r2378
         print 'NOTICE: searching for "mapnik-config" program, requires mapnik >= r2378'
