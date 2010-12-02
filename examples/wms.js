@@ -5,7 +5,7 @@ var mapnik = require('mapnik');
 var url = require('url');
 
 var port = 8000;
-var pool_size = 8;
+var pool_size = 2;
 var render_pool = [];
 
 var usage = 'usage: wms.js <stylesheet>';
@@ -42,7 +42,9 @@ http.createServer(function (request, response) {
   if (query && query.BBOX !== undefined){
       var bbox = query.BBOX.split(',');
       response.writeHead(200, {'Content-Type': 'image/png'});
-      response.end(get_map().render_to_string("png"));
+      var map = get_map();
+      map.zoom_to_box(bbox);
+      response.end(map.render_to_string("png"));
       /*get_map().render(bbox,function(image){
                  //console.log(image);
                  response.end(image);
