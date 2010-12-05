@@ -64,6 +64,7 @@ using namespace v8;
   Local<Function> VAR = Local<Function>::Cast(args[I]);
 
 typedef boost::shared_ptr<mapnik::Map> map_ptr;
+//typedef mapnik::Map * map_ptr;
 
 class Map: ObjectWrap
 {
@@ -454,6 +455,7 @@ public:
     Map *m;
     std::string format;
     mapnik::box2d<double> bbox;
+    std::string im_string;
     //boost::mutex mutex;
     Persistent<Function> cb;
   };
@@ -488,6 +490,13 @@ public:
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     map_baton_t *baton = new map_baton_t();
+
+    if (!baton) {
+      V8::LowMemoryNotification();
+      return ThrowException(Exception::Error(
+            String::New("Could not allocate enough memory")));
+    }
+  
     baton->m = m;
     baton->format = "png";
     baton->bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
@@ -503,9 +512,15 @@ public:
 
   static int EIO_render(eio_req *req)
   {
-    HandleScope scope;
-    //map_baton_t *baton = static_cast<map_baton_t *>(req->data);
-
+    //HandleScope scope;
+    // no handlescope here - will cause odd segfaults
+    map_baton_t *baton = static_cast<map_baton_t *>(req->data);
+    //boost::mutex::scoped_lock lock(baton->mutex);
+    baton->m->map_->zoom_to_box(baton->bbox);
+    mapnik::image_32 im(baton->m->map_->width(),baton->m->map_->height());
+    mapnik::agg_renderer<mapnik::image_32> ren(*baton->m->map_,im);
+    ren.apply();
+    baton->im_string = save_to_string(im, baton->format);
     return 0;
   }
 
@@ -514,26 +529,18 @@ public:
     HandleScope scope;
     map_baton_t *baton = static_cast<map_baton_t *>(req->data);
     ev_unref(EV_DEFAULT_UC);
-
-    Local<Value> argv[1];
-
-    //boost::mutex::scoped_lock lock(baton->mutex);
-    baton->m->map_->zoom_to_box(baton->bbox);
-    mapnik::image_32 im(baton->m->map_->width(),baton->m->map_->height());
-    mapnik::agg_renderer<mapnik::image_32> ren(*baton->m->map_,im);
-    ren.apply();
-    std::string s = save_to_string(im, "png");
-    
-#if NODE_VERSION_AT_LEAST(0,3,0)
-    node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
-#else
-    node::Buffer *retbuf = Buffer::New(s.size());
-    memcpy(retbuf->data(), s.data(), s.size());
-#endif
-
     baton->m->Unref();
 
-    argv[0] = *retbuf->handle_;
+    Local<Value> argv[1];
+    
+#if NODE_VERSION_AT_LEAST(0,3,0)
+    node::Buffer *retbuf = Buffer::New((char *)baton->im_string.data(),baton->im_string.size());
+#else
+    node::Buffer *retbuf = Buffer::New(baton->im_string.size());
+    memcpy(retbuf->data(), baton->im_string.data(), baton->im_string.size());
+#endif
+
+    argv[0] = Local<Value>::New(retbuf->handle_);
 
     TryCatch try_catch;
 
@@ -544,7 +551,6 @@ public:
     }
 
     baton->cb.Dispose();
-
     delete baton;
     scope.Close(retbuf->handle_);
     return 0;

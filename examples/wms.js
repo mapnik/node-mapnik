@@ -5,8 +5,11 @@ var mapnik = require('mapnik');
 var url = require('url');
 
 var port = 8000;
-var pool_size = 2;
+var pool_size = 10;
 var render_pool = [];
+var async_render = false;
+var use_map_pool = true;
+
 
 var usage = 'usage: wms.js <stylesheet>';
 
@@ -16,6 +19,7 @@ if (!stylesheet) {
    console.log(usage);
    process.exit(1);
 }
+
 
 for(i=0;i<pool_size;i++) {
     var map = new mapnik.Map(256,256);
@@ -27,6 +31,7 @@ for(i=0;i<pool_size;i++) {
 
 var next_map_ = 0;
 
+// http://journal.paul.querna.org/articles/2010/09/04/limiting-concurrency-node-js/
 function get_map()
 {
   //console.log('pulling map #'+next_map_+' from map pool');
@@ -42,14 +47,31 @@ http.createServer(function (request, response) {
   if (query && query.BBOX !== undefined){
       var bbox = query.BBOX.split(',');
       response.writeHead(200, {'Content-Type': 'image/png'});
-      var map = get_map();
-      map.zoom_to_box(bbox);
-      response.end(map.render_to_string("png"));
-      /*get_map().render(bbox,function(image){
-                 //console.log(image);
-                 response.end(image);
-      });
-      */ 
+      var map;
+      
+      if (use_map_pool) {
+          map = get_map();
+      }
+      else {
+          map = new mapnik.Map(256,256);
+          map.load(stylesheet);
+          map.buffer_size(128);
+      }
+
+      if (query.width !== undefined && query.height !== undefined){
+          map.resize(parseInt(query.width),parseInt(query.height));
+      }
+      
+      if (async_render) {
+          map.render(bbox,function(image){
+                     response.end(image);
+          });
+      }
+      else {
+          map.zoom_to_box(bbox);
+          response.end(map.render_to_string("png"));
+      }
+
   } else {
       response.writeHead(200, {
         'Content-Type':'text/plain'
@@ -57,5 +79,6 @@ http.createServer(function (request, response) {
       response.end("No BBOX provided!");
   }
 }).listen(port);
+
 
 console.log('Server running at http://127.0.0.1:' + port + '/');
