@@ -98,6 +98,8 @@ public:
     //m_template->PrototypeTemplate()->SetNamedPropertyHandler(property);
 
     target->Set(String::NewSymbol("Map"),m_template->GetFunction());
+    //eio_set_max_poll_reqs(10);
+    //eio_set_min_parallel(10);
   }
 
   Map(int width, int height) :
@@ -324,27 +326,31 @@ public:
             for (unsigned x=0;x<tile_size;x=x+step)
             {
                 //std::clog << "x: " << x << " y:" << y << "\n";
+                // .8 (avoid opening index) -> 1.2 sec unindexed
+                // .3 indexed
+                mapnik::featureset_ptr fs_hit = m->map_->query_map_point(layer_idx,x,y);
+
+                std::string val;
+                bool added = false;
+                
+                /*
                 double x0 = x;
                 double y0 = y;
                 tr.backward(&x0,&y0);
                 prj_trans.backward(x0,y0,z);
     
                 mapnik::box2d<double> box(x0,y0,x0,y0);
-                std::string val;
-                bool added = false;
                 mapnik::featureset_ptr fs_hit;
-                // 1.2 sec
-                //fs_hit = m->map_->query_point(layer_idx,x,y);
                 
                 // nothing
-                /*mapnik::featureset_ptr fs = ds->features_at_point(mapnik::coord2d(x,y));
+                mapnik::featureset_ptr fs = ds->features_at_point(mapnik::coord2d(x,y));
                 if (fs) 
                     fs_hit = mapnik::featureset_ptr(new mapnik::filter_featureset<mapnik::hit_test_filter>(fs,mapnik::hit_test_filter(x,y,tol)));
                     
                 */
     
                 // .7 sec
-                fs_hit = mapnik::featureset_ptr(new mapnik::memory_featureset(box, cache));
+                //fs_hit = mapnik::featureset_ptr(new mapnik::memory_featureset(box, cache));
                 if (fs_hit)
                 {
                     mapnik::feature_ptr fp = fs_hit->next();
@@ -464,6 +470,13 @@ public:
   {
     HandleScope scope;
 
+    /*
+    std::clog << "eio_nreqs" << eio_nreqs() << "\n";
+    std::clog << "eio_nready" << eio_nready() << "\n";
+    std::clog << "eio_npending" << eio_npending() << "\n";
+    std::clog << "eio_nthreads" << eio_nthreads() << "\n";
+    */
+    
     FUNCTION_ARG(1, cb);
 
     double minx;
