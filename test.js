@@ -3,7 +3,7 @@
 var mapnik = require('mapnik');
 var assert = require('assert');
 var path = require('path');
-
+var fs = require('fs');
 
 /* MAP */
 
@@ -28,6 +28,11 @@ assert.ok(path.existsSync('/tmp/nodemap.png'));
 
 // Test loading a sample world map
 map.load('./examples/stylesheet.xml');
+
+// Test loading a map from a string
+var style_string = fs.readFileSync('./examples/stylesheet.xml').toLocaleString();
+var base_url = './examples/'; // must end with trailing slash
+map.from_string(style_string,base_url);
 
 // test new extent based on active layers
 map.zoom_all();

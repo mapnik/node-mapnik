@@ -84,6 +84,7 @@ public:
     m_template->SetClassName(String::NewSymbol("Map"));
 
     NODE_SET_PROTOTYPE_METHOD(m_template, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(m_template, "from_string", from_string);
     NODE_SET_PROTOTYPE_METHOD(m_template, "resize", resize);
     NODE_SET_PROTOTYPE_METHOD(m_template, "width", width);
     NODE_SET_PROTOTYPE_METHOD(m_template, "height", height);
@@ -239,6 +240,43 @@ public:
     return Undefined();
   }
 
+  static Handle<Value> from_string(const Arguments& args)
+  {
+    HandleScope scope;
+    if (!args.Length() >= 1) {
+        return ThrowException(Exception::TypeError(
+        String::New("Accepts 2 arguments: map string and base_url")));
+    }
+
+    if (!args[0]->IsString())
+      return ThrowException(Exception::TypeError(
+        String::New("first argument must be a mapnik stylesheet string")));
+
+    if (!args[1]->IsString())
+      return ThrowException(Exception::TypeError(
+        String::New("second argument must be a base_url to interpret any relative path from")));
+        
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    std::string const& stylesheet = TOSTR(args[0]);
+    bool strict = false;
+    std::string const& base_url = TOSTR(args[1]);
+    try
+    {
+        mapnik::load_map_string(*m->map_,stylesheet,strict,base_url);
+    }
+    catch (const mapnik::config_error & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (...)
+    {
+      return ThrowException(Exception::TypeError(
+        String::New("something went wrong loading the map")));    
+    }
+    return Undefined();
+  }
+  
   static Handle<Value> generate_hit_grid(const Arguments& args)
   {
     HandleScope scope;
