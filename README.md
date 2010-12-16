@@ -46,6 +46,10 @@
     $ node-waf configure build install
     $ node test.js
 
+  Make sure the node modules is on your path:
+  
+    export NODE_PATH=/usr/local/lib/node/
+    
   For more details see 'docs/install.txt'
 
 

@@ -5,10 +5,17 @@ var mapnik   = require('mapnik')
   , http     = require('http')
   , url      = require('url')
   , tile   = 256
-  , port     = 8000
   , img      = 'google_point_8.png'
   , async_render = false;
 
+var usage = 'usage: app.js <port>';
+
+var port = process.ARGV[2];
+
+if (!port) {
+   console.log(usage);
+   process.exit(1);
+}
 
 // postgis table
 var table = 'points9';
@@ -27,6 +34,8 @@ var s = '<Map srs="' + merc + '">';
 s += '<Style name="style">';
 s += '<Rule>';
 s += '<PointSymbolizer file="google_point_8.png" allow_overlap="true" />';
+//s += '<PointSymbolizer file="point.svg" allow_overlap="true" />';
+//s += '<MarkersSymbolizer type="ellipse" fill="red" allow_overlap="true" placement="point"/>';
 s += '</Rule>';
 s += '</Style>';
 
@@ -83,7 +92,7 @@ http.createServer(function (request, response) {
       response.writeHead(200, {
         'Content-Type':'text/plain'
       });
-      response.end("No BBOX provided!");
+      response.end("no x,y,z provided");
   }
 }).listen(port);
 
