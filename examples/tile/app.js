@@ -50,6 +50,7 @@ ds += '<Parameter name="extent">-20005048.4188,-9039211.13765,19907487.2779,1709
 ds += '<Parameter name="geometry_field">the_geom</Parameter>';
 ds += '<Parameter name="srid">900913</Parameter>';
 ds += '<Parameter name="type">postgis</Parameter>';
+ds += '<Parameter name="user">postgres</Parameter>';
 ds += '<Parameter name="table">';
 ds += table;
 ds += '</Parameter>';
