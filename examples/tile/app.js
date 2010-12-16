@@ -51,6 +51,8 @@ ds += '<Parameter name="geometry_field">the_geom</Parameter>';
 ds += '<Parameter name="srid">900913</Parameter>';
 ds += '<Parameter name="type">postgis</Parameter>';
 ds += '<Parameter name="user">postgres</Parameter>';
+ds += '<Parameter name="initial_size">1</Parameter>';
+ds += '<Parameter name="max_size">1</Parameter>';
 ds += '<Parameter name="table">';
 ds += table;
 ds += '</Parameter>';
