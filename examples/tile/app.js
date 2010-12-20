@@ -4,7 +4,7 @@ var mapnik   = require('mapnik')
   , mercator = require('./sphericalmercator')
   , http     = require('http')
   , url      = require('url')
-  , tile   = 256
+  , tile     = 256
   , img      = 'google_point_8.png'
   , async_render = false;
 
@@ -20,7 +20,7 @@ if (!port) {
 // postgis table
 var table = 'points9';
 
-var merc = '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+var merc = '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +over';
 
 
 // here we build up map object using an XML string
