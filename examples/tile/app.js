@@ -76,7 +76,7 @@ http.createServer(function (request, response) {
 
       response.writeHead(200, {'Content-Type': 'image/png'});
 
-      var bbox = mercator.xyz_to_envelope(query.x, query.y, query.z, false)
+      var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false)
 
       map.from_string(s,'./')
       
