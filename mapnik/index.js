@@ -1,26 +1,26 @@
 var mapnik = require('./_mapnik');
-var settings = require('./settings');
+var _settings = require('./settings');
 var path = require('path');
 
-function warning(issue,manual_function)
+function warning(value, what)
 {
-    var msg = 'Warning: "' + __dirname + '/settings.js" is missing the default mapnik ';
-    msg += issue + ' path.\n';
-    msg += 'This indicates a configuration problem building node-mapnik against mapnik.\n';
+    var msg = 'Warning: node-mapnik initialization failed\n';
+    msg += 'in "' + __dirname + '/settings.js" ';
+    msg += what + '\n';
     msg += 'Auto-loading of ';
-    if (issue == 'fonts')
+    if (value == 'fonts')
         msg += 'DejaVu fonts';
-    else if (issue == 'plugins')
+    else if (value == 'plugins')
         msg += 'Datasource input plugins';
-    msg += ' will not be available...\n';
-    msg += 'Either rebuild node-mapnik or call mapnik.' + manual_function + '(/path/to/' + issue + ')';
+    msg += ' will not be available.\n';
+    msg += 'See the docs/FAQ on ideas for how to fix this issue.';
     console.log(msg);
 }
 
 // hack to force libmapnik symbols to be loaded with RTLD_NOW|RTLD_GLOBAL
 // so that datasource plugins will have access to symbols since node.cc (process.dlopen)
-// uses RTLD_LAZY in its call to dlopen and has no mechanism to set the RTLD_NOW flag
-// not needed on darwin because mapnik input plugins are directly linked to libmapnik
+// uses RTLD_LAZY in its call to dlopen and has no mechanism to set the RTLD_NOW flag.
+// Not needed on darwin because mapnik input plugins are directly linked to libmapnik
 if (process.platform != 'darwin') {
     var mapnik_node = path.join(__dirname,'_mapnik.node');
     if (!path.existsSync(mapnik_node))
@@ -32,16 +32,21 @@ if (process.platform != 'darwin') {
         console.log('Warning, attempt to pre-load mapnik symbols did not work, see FAQ for potential solutions');
 }
 
-if (settings.paths.fonts && path.existsSync(settings.paths.fonts)) {
-   mapnik.register_fonts(settings.paths.fonts);
+if (!_settings.paths.fonts) {
+    warning('fonts', 'the fonts path value is missing');
+} else if (!path.existsSync(_settings.paths.fonts)) {
+    warning('fonts', 'the fonts directory: "' + _settings.paths.fonts + '" does not exist');
 } else {
-   warning('fonts', 'register_fonts');
+    // TODO - warn if no fonts are successfully registered
+    mapnik.register_fonts(_settings.paths.fonts);
 }
 
-if (settings.paths.input_plugins && path.existsSync(settings.paths.input_plugins)) {
-   mapnik.register_datasources(settings.paths.input_plugins);
+if (!_settings.paths.input_plugins) {
+    warning('plugins', 'the datasource plugins (input) path value is missing');
+} else if (!path.existsSync(_settings.paths.input_plugins)) {
+    warning('plugins', 'the input_plugins directory: "' + _settings.paths.input_plugins + '" does not exist');
 } else {
-   warning('fonts', 'register_datasources');
+    mapnik.register_datasources(_settings.paths.input_plugins);
 }
 
 // push all C++ symbols into js module
