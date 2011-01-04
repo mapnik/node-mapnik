@@ -52,3 +52,6 @@ if (!_settings.paths.input_plugins) {
 // push all C++ symbols into js module
 for (var k in mapnik) { exports[k] = mapnik[k]; }
 
+// make settings available
+exports['settings'] = _settings;
+
