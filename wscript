@@ -1,8 +1,12 @@
-import Options
+import os
 from os import unlink, symlink, popen, uname, environ
 from os.path import exists
 from shutil import copy2 as copy
 from subprocess import call
+
+# node-wafadmin
+import Options
+import Utils
 
 TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
@@ -11,6 +15,7 @@ dest = 'mapnik/%s' % TARGET_FILE
 settings = 'mapnik/settings.js'
 
 # only works with Mapnik2/trunk..
+# make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
 AUTOCONFIGURE = True
 
 # this goes into a settings.js file beside the C++ _mapnik.node
@@ -24,32 +29,79 @@ module.exports.paths = {
 def write_mapnik_settings(fonts='',input_plugins=''):
     open(settings,'w').write(settings_template % (fonts,input_plugins))
 
+def ensure_min_mapnik_revision(conf,revision=2397):
+    # mapnik-config was basically written for node-mapnik
+    # so a variety of kinks mean that we need a very
+    # recent version for things to work properly
+    # http://trac.mapnik.org/log/trunk/utils/mapnik-config
+    
+    #TODO - if we require >=2503 then we can check return type not "Usage" string...
+    if popen("%s --libs" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage') \
+      or popen("%s --input-plugins" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage') \
+      or popen("%s --svn-revision" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage'):
+        Utils.pprint('YELLOW', 'mapnik-config version is too old, mapnik > %s is required for auto-configuring build' % revision)
+        conf.fatal('please upgrade to mapnik trunk')
+    
+    failed = False
+    found_ver = None
+    
+    try:
+        found_ver = int(popen("%s --svn-revision" % conf.env['MAPNIK_CONFIG']).readline().strip())
+        if not found_ver >= revision:
+            failed = True
+            print found_ver,revision
+        else:
+            Utils.pprint('GREEN', 'Sweet, found viable mapnik svn-revision r%s (via mapnik-config)' % (found_ver))
+    except Exception,e:
+        print e
+        failed = True
+    
+    if failed:
+        if found_ver:
+            msg = 'mapnik-config version is too old, mapnik > r%s is required for auto-configuring build, found only r%s' % (revision,found_ver)
+        else:
+            msg = 'mapnik-config version is too old, mapnik > r%s is required for auto-configuring build' % revision
+        
+        Utils.pprint('YELLOW', msg)
+        conf.fatal('please upgrade to mapnik trunk')
+
+
 def set_options(opt):
     opt.tool_options("compiler_cxx")
     #opt.add_option('-D', '--debug', action='store_true', default=False, dest='debug')
-
+    
 def configure(conf):
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     settings_dict = {}
 
+    # use mapnik-config to build against mapnik2/trunk
     if AUTOCONFIGURE:
-        # attempt to use clang++ if available instead of g++
-        try:
-            if call(['clang++','--version']) == 0:
-                environ['CXX'] = 'clang++'
-        except: pass
 
-        # Note, working 'mapnik-config' is only available with mapnik >= r2378
-        print 'NOTICE: searching for "mapnik-config" program, requires mapnik >= r2378'
-        mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', mandatory=True)
+        # future auto-support for mapnik frameworks..
+        path_list = environ.get('PATH', '').split(os.pathsep)
+        path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
+
+        mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
+        ensure_min_mapnik_revision(conf)
+        
         # todo - check return value of popen other we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
-        mapnik_libdir = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
-        conf.env.append_value("LINKFLAGS_MAPNIK", mapnik_libdir)
-        conf.env.append_value("LIB_MAPNIK", "mapnik2")
-        mapnik_includedir = popen("%s --cflags" % mapnik_config).readline().strip()
-        conf.env.append_value("CXXFLAGS_MAPNIK", mapnik_includedir.split(' '))
+        linkflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
+        #linkflags.append('-F/Library/')
+        #linkflags.append('-framework Mapnik')
+        #linkflags.append('-Z')
+
+        conf.env.append_value("LINKFLAGS", linkflags)
+        
+        # uneeded currently as second item from mapnik-config is -lmapnik2
+        #conf.env.append_value("LIB_MAPNIK", "mapnik2")
+        
+        cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
+        conf.env.append_value("CXXFLAGS_MAPNIK", cxxflags)
+        
+        #ldflags = []
+        #conf.env.append_value("LDFLAGS", ldflags)
         
         # settings for fonts and input plugins
         settings_dict['input_plugins'] = popen("%s --input-plugins" % mapnik_config).readline().strip()
@@ -111,7 +163,7 @@ def configure(conf):
 
 def build(bld):
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
-    obj.cxxflags = ["-DNDEBUG", "-O3", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline"]
+    obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline"]
     obj.target = TARGET
     obj.source = "src/%s.cc" % TARGET
     obj.uselib = "MAPNIK"
