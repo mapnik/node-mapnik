@@ -875,8 +875,15 @@ extern "C" {
     // Projection
     Projection::Init(target);    
     
-    // version
-    //target->Set(String::NewSymbol("version"), String::New("0.1.0"));
+    // node-mapnik version
+    target->Set(String::NewSymbol("version"), String::New("0.1.2"));
+    
+    // node
+    target->Set(String::NewSymbol("node_version"), String::New(NODE_VERSION));
+    
+    // mapnik
+    target->Set(String::NewSymbol("mapnik_version"), Integer::New(MAPNIK_VERSION));
+
   }
 
   NODE_MODULE(_mapnik, init);
