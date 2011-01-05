@@ -21,7 +21,7 @@ function warning(value, what)
 // so that datasource plugins will have access to symbols since node.cc (process.dlopen)
 // uses RTLD_LAZY in its call to dlopen and has no mechanism to set the RTLD_NOW flag.
 // Not needed on darwin because mapnik input plugins are directly linked to libmapnik
-if (process.platform != 'darwin') {
+if (process.platform === 'linux') {
     var mapnik_node = path.join(__dirname,'_mapnik.node');
     if (!path.existsSync(mapnik_node))
         console.log(mapnik_node + ' does not exist, loading plugins will fail on linux');
