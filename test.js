@@ -16,7 +16,8 @@ assert.ok(mapnik.settings.paths.input_plugins.length)
 /* ABI compatibility */
 
 // be strict/exact
-assert.ok(mapnik.node_version === process.version,'The node version "' + process.version + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.node_version + '"');
+// note process.versions == process.versions.node except the latter has the 'v' stripped
+assert.ok(mapnik.versions.node === process.versions.node,'The node version "' + process.versions.node + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.versions.node + '"');
 
 
 /* MAP */
