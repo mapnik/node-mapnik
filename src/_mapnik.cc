@@ -665,47 +665,6 @@ public:
 
 Persistent<FunctionTemplate> Map::m_template;
 
-static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
-{
-  HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsString())
-    ThrowException(Exception::TypeError(
-      String::New("first argument must be a path to a directory holding _mapnik.node")));
-  String::Utf8Value filename(args[0]->ToString());
-  void *handle = dlopen(*filename, RTLD_NOW|RTLD_GLOBAL);
-  if (handle == NULL) {
-      return False();
-  }
-  else
-  {
-      dlclose(handle);
-      return True();
-  }
-}
-
-static Handle<Value> register_datasources(const Arguments& args)
-{
-  HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsString())
-    ThrowException(Exception::TypeError(
-      String::New("first argument must be a path to a directory of mapnik input plugins")));
-  std::string const& path = TOSTR(args[0]);
-  mapnik::datasource_cache::instance()->register_datasources(path); 
-  return Undefined();
-}
-
-static Handle<Value> register_fonts(const Arguments& args)
-{
-  HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsString())
-    ThrowException(Exception::TypeError(
-      String::New("first argument must be a path to a directory of fonts")));
-  std::string const& path = TOSTR(args[0]);
-  mapnik::freetype_engine::register_fonts(path);
-  return Undefined();
-}
-
-
 
 class Projection: ObjectWrap
 {
@@ -859,6 +818,70 @@ public:
 
 Persistent<FunctionTemplate> Projection::p_template;
 
+static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
+{
+  HandleScope scope;
+  if (args.Length() != 1 || !args[0]->IsString())
+    ThrowException(Exception::TypeError(
+      String::New("first argument must be a path to a directory holding _mapnik.node")));
+  String::Utf8Value filename(args[0]->ToString());
+  void *handle = dlopen(*filename, RTLD_NOW|RTLD_GLOBAL);
+  if (handle == NULL) {
+      return False();
+  }
+  else
+  {
+      dlclose(handle);
+      return True();
+  }
+}
+
+static Handle<Value> register_datasources(const Arguments& args)
+{
+  HandleScope scope;
+  if (args.Length() != 1 || !args[0]->IsString())
+    ThrowException(Exception::TypeError(
+      String::New("first argument must be a path to a directory of mapnik input plugins")));
+  std::string const& path = TOSTR(args[0]);
+  mapnik::datasource_cache::instance()->register_datasources(path); 
+  return Undefined();
+}
+
+static Handle<Value> available_input_plugins(const Arguments& args)
+{
+    HandleScope scope;
+    std::vector<std::string> const& names = mapnik::datasource_cache::plugin_names();
+    Local<Array> a = Array::New(names.size());
+    for (unsigned i = 0; i < names.size(); ++i)
+    {
+        a->Set(i, String::New(names[i].c_str()));
+    }
+    return scope.Close(a);
+}
+
+static Handle<Value> register_fonts(const Arguments& args)
+{
+  HandleScope scope;
+  if (args.Length() != 1 || !args[0]->IsString())
+    ThrowException(Exception::TypeError(
+      String::New("first argument must be a path to a directory of fonts")));
+  std::string const& path = TOSTR(args[0]);
+  mapnik::freetype_engine::register_fonts(path);
+  return Undefined();
+}
+
+static Handle<Value> available_font_faces(const Arguments& args)
+{
+    HandleScope scope;
+    std::vector<std::string> const& names = mapnik::freetype_engine::face_names();
+    Local<Array> a = Array::New(names.size());
+    for (unsigned i = 0; i < names.size(); ++i)
+    {
+        a->Set(i, String::New(names[i].c_str()));
+    }
+    return scope.Close(a);
+}
+
 std::string format_version(int version)
 {
     std::ostringstream s;
@@ -874,7 +897,9 @@ extern "C" {
     // module level functions
     NODE_SET_METHOD(target, "make_mapnik_symbols_visible", make_mapnik_symbols_visible);
     NODE_SET_METHOD(target, "register_datasources", register_datasources);
+    NODE_SET_METHOD(target, "datasources", available_input_plugins);
     NODE_SET_METHOD(target, "register_fonts", register_fonts);
+    NODE_SET_METHOD(target, "fonts", available_font_faces);
     
     // clases
     
