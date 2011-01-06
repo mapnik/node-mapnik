@@ -900,9 +900,7 @@ extern "C" {
     NODE_SET_METHOD(target, "datasources", available_input_plugins);
     NODE_SET_METHOD(target, "register_fonts", register_fonts);
     NODE_SET_METHOD(target, "fonts", available_font_faces);
-    
-    // clases
-    
+        
     // Map
     Map::Init(target);
     
@@ -912,18 +910,15 @@ extern "C" {
     // node-mapnik version
     target->Set(String::NewSymbol("version"), String::New("0.1.2"));
     
-    // node
-    target->Set(String::NewSymbol("node_version"), String::New(NODE_VERSION));
-    
-    // mapnik
-    target->Set(String::NewSymbol("mapnik_version"), Integer::New(MAPNIK_VERSION));
-    target->Set(String::NewSymbol("mapnik_version_string"),
-        String::New(format_version(MAPNIK_VERSION).c_str()));
-
-    // boost 
-    target->Set(String::NewSymbol("boost_version"), Integer::New(BOOST_VERSION));
-    target->Set(String::NewSymbol("boost_version_string"),
-        String::New(format_version(BOOST_VERSION).c_str()));
+    // versions of deps
+    Local<Object> versions = Object::New();
+    versions->Set(String::NewSymbol("node"), String::New(NODE_VERSION+1));
+    versions->Set(String::NewSymbol("v8"), String::New(V8::GetVersion()));
+    versions->Set(String::NewSymbol("boost"), String::New(format_version(BOOST_VERSION).c_str()));
+    versions->Set(String::NewSymbol("boost_number"), Integer::New(BOOST_VERSION));
+    versions->Set(String::NewSymbol("mapnik"), String::New(format_version(MAPNIK_VERSION).c_str()));
+    versions->Set(String::NewSymbol("mapnik_number"), Integer::New(MAPNIK_VERSION));
+    target->Set(String::NewSymbol("versions"), versions);
 
   }
 
