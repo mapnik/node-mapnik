@@ -29,6 +29,8 @@
 
 // boost
 #include <boost/shared_ptr.hpp>
+#include <boost/version.hpp>
+
 
 //#ifdef MAPNIK_THREADSAFE
 //#include <boost/thread/mutex.hpp>
@@ -857,6 +859,13 @@ public:
 
 Persistent<FunctionTemplate> Projection::p_template;
 
+std::string format_version(int version)
+{
+    std::ostringstream s;
+    s << version/100000 << "." << version/100 % 1000  << "." << version % 100;
+    return s.str();
+}
+
 
 extern "C" {
 
@@ -883,6 +892,13 @@ extern "C" {
     
     // mapnik
     target->Set(String::NewSymbol("mapnik_version"), Integer::New(MAPNIK_VERSION));
+    target->Set(String::NewSymbol("mapnik_version_string"),
+        String::New(format_version(MAPNIK_VERSION).c_str()));
+
+    // boost 
+    target->Set(String::NewSymbol("boost_version"), Integer::New(BOOST_VERSION));
+    target->Set(String::NewSymbol("boost_version_string"),
+        String::New(format_version(BOOST_VERSION).c_str()));
 
   }
 
