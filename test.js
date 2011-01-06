@@ -5,6 +5,20 @@ var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
 
+/* settings */
+
+assert.ok(mapnik.settings)
+assert.ok(mapnik.settings.paths)
+assert.ok(mapnik.settings.paths.fonts.length)
+assert.ok(mapnik.settings.paths.input_plugins.length)
+
+
+/* ABI compatibility */
+
+// be strict/exact
+assert.ok(mapnik.node_version === process.version,'The node version "' + process.version + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.node_version + '"');
+
+
 /* MAP */
 
 // Test mapnik.Map object creation
