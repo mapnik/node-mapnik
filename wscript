@@ -1,4 +1,5 @@
 import os
+from glob import glob
 from os import unlink, symlink, popen, uname, environ
 from os.path import exists
 from shutil import copy2 as copy
@@ -167,11 +168,15 @@ def build(bld):
     obj.target = TARGET
     obj.source = "src/%s.cc" % TARGET
     obj.uselib = "MAPNIK"
-    bld.install_files('${PREFIX}/lib/node/mapnik/', 'mapnik/*')
+    files = glob('mapnik/*')
+    # loop to make sure we can install
+    # directories as well as files
+    for f in files:
+        if os.path.isdir(f):
+            bld.install_files('${PREFIX}/lib/node/%s' % f, '%s/*' % f)
+        else:
+            bld.install_files('${PREFIX}/lib/node/mapnik/', f)
 
-#def install(args,**kwargs):
-#    import pdb;pdb.set_trace()
-    
 def shutdown():
     if Options.commands['clean']:
         if exists(TARGET): unlink(TARGET)
