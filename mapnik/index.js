@@ -37,10 +37,11 @@ function warning(value, what)
 // uses RTLD_LAZY in its call to dlopen and has no mechanism to set the RTLD_NOW flag.
 // Not needed on darwin because mapnik input plugins are directly linked to libmapnik
 if (process.platform === 'linux') {
-    if (!path.existsSync(path.join(__dirname,_mapnik)))
+    var mapnik_node_path = path.join(__dirname,_mapnik);
+    if (!path.existsSync(mapnik_node_path))
         console.log(mapnik_node + ' does not exist, loading plugins will fail on linux');
     
-    var loaded = mapnik.make_mapnik_symbols_visible(mapnik_node);
+    var loaded = mapnik.make_mapnik_symbols_visible(mapnik_node_path);
     
     if (!loaded)
         console.log('Warning, attempt to pre-load mapnik symbols did not work, see FAQ for potential solutions');
