@@ -1,6 +1,21 @@
-var mapnik = require('./_mapnik');
 var _settings = require('./settings');
 var path = require('path');
+
+var mapnik;
+var _mapnik = './_mapnik.node';
+
+
+// standard build, pull unversioned _mapnik.node
+if ( path.existsSync(path.join(__dirname,_mapnik)) ) {
+    mapnik = require(_mapnik);
+}
+//_mapnik.node in versioned subfolder based on node version
+// it was compiled against (only currently used for packaging)
+else {
+    var version = process.versions.node.split('-')[0];
+    _mapnik = './' + version + '/_mapnik.node';
+    mapnik = require(_mapnik);
+}
 
 function warning(value, what)
 {
@@ -22,8 +37,7 @@ function warning(value, what)
 // uses RTLD_LAZY in its call to dlopen and has no mechanism to set the RTLD_NOW flag.
 // Not needed on darwin because mapnik input plugins are directly linked to libmapnik
 if (process.platform === 'linux') {
-    var mapnik_node = path.join(__dirname,'_mapnik.node');
-    if (!path.existsSync(mapnik_node))
+    if (!path.existsSync(path.join(__dirname,_mapnik)))
         console.log(mapnik_node + ' does not exist, loading plugins will fail on linux');
     
     var loaded = mapnik.make_mapnik_symbols_visible(mapnik_node);
