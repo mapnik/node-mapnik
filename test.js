@@ -96,6 +96,13 @@ assert.equal(last.REGION,150);
 assert.equal(last.SUBREGION,151);
 assert.equal(last.UN,643);
 
+// datasource meta data
+var described = map.describe_data();
+assert.notStrictEqual(described.world.extent, [ -20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473 ]);
+assert.equal(described.world.type,'vector');
+assert.equal(described.world.encoding,'utf-8');
+assert.equal(described.world.fields.FIPS,'String');
+assert.equal(described.world.fields.FIPS,'String');
 
 /* PROJECTION */
 
