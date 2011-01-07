@@ -80,6 +80,23 @@ assert.equal(lyr.name,'world');
 assert.equal(lyr.datasource.type,'shape');
 assert.equal(lyr.datasource.file,path.join(process.cwd(),'examples/data/world_merc.shp'));
 
+
+// features
+var features = map.features(0); // for first and only layer
+assert.equal(features.length,245);
+var last = features[244];
+assert.equal(last.AREA,1638094);
+assert.equal(last.FIPS,'RS');
+assert.equal(last.ISO2,'RU');
+assert.equal(last.LAT,61.988);
+assert.equal(last.LON,96.689);
+assert.equal(last.NAME,'Russia');
+assert.equal(last.POP2005,143953092);
+assert.equal(last.REGION,150);
+assert.equal(last.SUBREGION,151);
+assert.equal(last.UN,643);
+
+
 /* PROJECTION */
 
 // Test mapnik.Projection object creation

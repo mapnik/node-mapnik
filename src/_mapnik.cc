@@ -73,6 +73,7 @@ using namespace v8;
 typedef boost::shared_ptr<mapnik::Map> map_ptr;
 //typedef mapnik::Map * map_ptr;
 
+// adapted to work for both mapnik features and mapnik parameters
 struct params_to_object : public boost::static_visitor<>
 {
 public:
@@ -90,9 +91,21 @@ public:
         ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
     }
 
-    void operator () ( std::string val )
+    void operator () ( std::string const& val )
     {
         ds_->Set(String::NewSymbol(key_.c_str()), String::New(val.c_str()) );
+    }
+
+    void operator () ( UnicodeString const& val)
+    {
+        std::string buffer;
+        mapnik::to_utf8(val,buffer);
+        ds_->Set(String::NewSymbol(key_.c_str()), String::New(buffer.c_str()) );
+    }
+
+    void operator () ( mapnik::value_null const& val )
+    {
+        ds_->Set(String::NewSymbol(key_.c_str()), Undefined() );
     }
         
 private:
@@ -136,7 +149,7 @@ public:
     
     // temp hack to expose layer metadata
     NODE_SET_PROTOTYPE_METHOD(m_template, "layers", layers);
-    //NODE_SET_PROTOTYPE_METHOD(m_template, "features", features);
+    NODE_SET_PROTOTYPE_METHOD(m_template, "features", features);
     
     /*
     Local<Object> meta = Object::New();
@@ -160,8 +173,8 @@ public:
 
   ~Map()
   {
-    std::clog << "~Map\n";
-    //delete map_;
+    // std::clog << "~Map\n";
+    // release is handled by boost::shared_ptr
   }
 
   static Handle<Value> NewMap(const Arguments& args)
@@ -302,6 +315,78 @@ public:
 
   }
 
+  static Handle<Value> features(const Arguments& args)
+  {
+    HandleScope scope;
+
+    if (!args.Length() == 1)
+      return ThrowException(Exception::Error(
+        String::New("Please provide layer index")));
+
+    if (!args[0]->IsNumber())
+      return ThrowException(Exception::TypeError(
+        String::New("layer index must be an integer")));
+
+    unsigned index = args[0]->IntegerValue();
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    std::vector<mapnik::layer> const & layers = m->map_->layers();
+    
+    // TODO - we don't know features.length at this point
+    Local<Array> a = Array::New(0);
+    if ( index < layers.size())
+    {
+        mapnik::layer const& layer = layers[index];
+        mapnik::datasource_ptr ds = layer.datasource();
+        if (ds)
+        {
+        #if MAPNIK_VERSION >= 800
+            mapnik::query q(ds->envelope());
+        #else
+            mapnik::query q(ds->envelope(),1.0,1.0);
+        #endif
+
+            mapnik::layer_descriptor ld = ds->get_descriptor();
+            std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+            std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+            std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+            unsigned size=0;
+            while (itr != end)
+            {
+                q.add_property_name(itr->get_name());
+                ++itr;
+                ++size;
+            }
+
+            mapnik::featureset_ptr fs = ds->features(q);
+            if (fs)
+            {   
+                mapnik::feature_ptr fp;
+                int idx = 0;
+                while ((fp = fs->next()))
+                {
+                    std::map<std::string,mapnik::value> const& fprops = fp->props();
+                    Local<Object> feat = Object::New();
+                    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
+                    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
+                    for (; it != end; ++it)
+                    {
+                        params_to_object serializer( feat , it->first);
+                        // need to call base() since this is a mapnik::value
+                        // not a mapnik::value_holder
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
+                    a->Set(idx, feat);
+                    ++idx;
+                }
+            }
+        }
+    }
+
+    return scope.Close(a);
+
+  }
 
   static Handle<Value> clear(const Arguments& args)
   {
@@ -580,7 +665,7 @@ public:
                     count = 0;
                 }
                 prev = val;
-                count++;
+                ++count;
             }
         }
     }
@@ -819,11 +904,14 @@ public:
 
 Persistent<FunctionTemplate> Map::m_template;
 
+typedef boost::shared_ptr<mapnik::projection> proj_ptr;
+//typedef mapnik::projection* proj_ptr;
+
 
 class Projection: ObjectWrap
 {
 private:
-  mapnik::projection* projection_;
+  proj_ptr projection_;
 public:
 
   static Persistent<FunctionTemplate> p_template;
@@ -848,8 +936,8 @@ public:
 
   ~Projection()
   {
-    //std::clog << "~Projection\n";
-    // delete projection_?
+    // std::clog << "~Projection\n";
+    // release is handled by boost::shared_ptr
   }
 
   static Handle<Value> NewProjection(const Arguments& args)

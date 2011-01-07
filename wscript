@@ -98,6 +98,7 @@ def configure(conf):
         # uneeded currently as second item from mapnik-config is -lmapnik2
         #conf.env.append_value("LIB_MAPNIK", "mapnik2")
         
+        # TODO - too much potential pollution here, need to limit this upstream
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
         conf.env.append_value("CXXFLAGS_MAPNIK", cxxflags)
         
