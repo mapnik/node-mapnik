@@ -44,6 +44,10 @@ assert.ok(path.existsSync('/tmp/nodemap.png'));
 // Test loading a sample world map
 map.load('./examples/stylesheet.xml');
 
+// clear styles and layers from previous load to set up for another
+// otherwise layers are duplicated
+map.clear();
+
 // Test loading a map from a string
 var style_string = fs.readFileSync('./examples/stylesheet.xml').toLocaleString();
 var base_url = './examples/'; // must end with trailing slash
@@ -63,6 +67,18 @@ assert.equal(map.height(), 400);
 map.resize(256, 256);
 assert.equal(map.width(), 256);
 assert.equal(map.height(), 256);
+
+// layers
+var layers = map.layers();
+assert.equal(layers.length, 1,layers.length);
+lyr = layers[0];
+assert.equal(lyr.name,'world');
+assert.equal(lyr.srs,'+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+assert.equal(lyr.styles.length,1);
+assert.equal(lyr.styles[0],'style');
+assert.equal(lyr.name,'world');
+assert.equal(lyr.datasource.type,'shape');
+assert.equal(lyr.datasource.file,path.join(process.cwd(),'examples/data/world_merc.shp'));
 
 /* PROJECTION */
 

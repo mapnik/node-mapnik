@@ -12,6 +12,7 @@
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
+#include <mapnik/layer.hpp>
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 #include <mapnik/agg_renderer.hpp>
@@ -26,6 +27,7 @@
 #include <mapnik/memory_datasource.hpp>
 #include <mapnik/memory_featureset.hpp>
 #include <mapnik/version.hpp>
+#include <mapnik/params.hpp>
 
 // boost
 #include <boost/shared_ptr.hpp>
@@ -48,6 +50,7 @@
    #define height getHeight
    #define zoom_to_box zoomToBox
    #define image_32 Image32
+   #define layer Layer
    #define image_data_32 ImageData32
    #define box2d Envelope
    #define layer Layer
@@ -68,6 +71,35 @@ using namespace v8;
 typedef boost::shared_ptr<mapnik::Map> map_ptr;
 //typedef mapnik::Map * map_ptr;
 
+struct params_to_object : public boost::static_visitor<>
+{
+public:
+    params_to_object( Local<Object>& ds, std::string key):
+        ds_(ds),
+        key_(key) {}
+            
+    void operator () ( int val )
+    {
+        ds_->Set(String::NewSymbol(key_.c_str()), Integer::New(val) );
+    }
+        
+    void operator () ( double val )
+    {
+        ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
+    }
+
+    void operator () ( std::string val )
+    {
+        ds_->Set(String::NewSymbol(key_.c_str()), String::New(val.c_str()) );
+    }
+        
+private:
+    Local<Object>& ds_;
+    std::string& key_;
+
+};
+
+
 class Map: ObjectWrap
 {
 private:
@@ -86,6 +118,7 @@ public:
     m_template->SetClassName(String::NewSymbol("Map"));
 
     NODE_SET_PROTOTYPE_METHOD(m_template, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(m_template, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(m_template, "from_string", from_string);
     NODE_SET_PROTOTYPE_METHOD(m_template, "resize", resize);
     NODE_SET_PROTOTYPE_METHOD(m_template, "width", width);
@@ -98,6 +131,17 @@ public:
     NODE_SET_PROTOTYPE_METHOD(m_template, "render", render);
     NODE_SET_PROTOTYPE_METHOD(m_template, "render_to_string", render_to_string);
     NODE_SET_PROTOTYPE_METHOD(m_template, "render_to_file", render_to_file);
+    
+    // temp hack to expose layer metadata
+    NODE_SET_PROTOTYPE_METHOD(m_template, "layers", layers);
+    
+    /*
+    Local<Object> meta = Object::New();
+    meta->Set(String::NewSymbol("meta"), String::New(NODE_VERSION+1));
+    meta->Set(String::NewSymbol("names"), String::New(V8::GetVersion()));
+    m_template->PrototypeTemplate()->Set(String::NewSymbol("layers"), meta);
+    */
+        
     //m_template->PrototypeTemplate()->SetNamedPropertyHandler(property);
 
     target->Set(String::NewSymbol("Map"),m_template->GetFunction());
@@ -156,7 +200,113 @@ public:
     return Undefined();
   }
   */
+
+  static Handle<Value> layers(const Arguments& args)
+  {
+    HandleScope scope;
+
+    // todo - optimize by allowing indexing...
+    /*if (!args.Length() == 1)
+      return ThrowException(Exception::Error(
+        String::New("Please provide layer index")));
+
+    if (!args[0]->IsNumber())
+      return ThrowException(Exception::TypeError(
+        String::New("layer index must be an integer")));
+    */
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    std::vector<mapnik::Layer> const & layers = m->map_->layers();
+    Local<Array> a = Array::New(layers.size());
+
+    for (unsigned i = 0; i < layers.size(); ++i )
+    {
+        const mapnik::Layer & layer = layers[i];
+        Local<Object> meta = Object::New();
+        a->Set(i, meta);
+
+        if ( layer.name() != "" )
+        {
+            meta->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+        }
+
+        if ( layer.abstract() != "" )
+        {
+            meta->Set(String::NewSymbol("abstract"), String::New(layer.abstract().c_str()));
+        }
+
+        if ( layer.title() != "" )
+        {
+            meta->Set(String::NewSymbol("title"), String::New(layer.title().c_str()));
+        }
+
+        if ( layer.srs() != "" )
+        {
+            meta->Set(String::NewSymbol("srs"), String::New(layer.srs().c_str()));
+        }
+
+        if ( !layer.isActive())
+        {
+            meta->Set(String::NewSymbol("status"), Boolean::New(layer.isActive()));
+        }
         
+        if ( layer.clear_label_cache())
+        {        
+            meta->Set(String::NewSymbol("clear_label_cache"), Boolean::New(layer.clear_label_cache()));
+        }
+
+        if ( layer.getMinZoom() )
+        {
+            meta->Set(String::NewSymbol("minzoom"), Number::New(layer.getMinZoom()));
+        }
+
+        if ( layer.getMaxZoom() != std::numeric_limits<double>::max() )
+        {
+            meta->Set(String::NewSymbol("maxzoom"), Number::New(layer.getMaxZoom()));
+        }
+
+        if ( layer.isQueryable())
+        {
+            meta->Set(String::NewSymbol("queryable"), Boolean::New(layer.isQueryable()));
+        }
+
+        std::vector<std::string> const& style_names = layer.styles();
+        Local<Array> s = Array::New(style_names.size());
+        for (unsigned i = 0; i < style_names.size(); ++i)
+        {
+            s->Set(i, String::New(style_names[i].c_str()) );
+        }
+        
+        meta->Set(String::NewSymbol("styles"), s );
+
+        mapnik::datasource_ptr datasource = layer.datasource();
+        Local<Object> ds = Object::New();
+        meta->Set(String::NewSymbol("datasource"), ds );
+        if ( datasource )
+        {
+            mapnik::parameters::const_iterator it = datasource->params().begin();
+            mapnik::parameters::const_iterator end = datasource->params().end();
+            for (; it != end; ++it)
+            {
+                params_to_object serializer( ds , it->first);
+                boost::apply_visitor( serializer, it->second );
+            }
+        }
+    }
+    
+    return scope.Close(a);
+
+  }
+
+  static Handle<Value> clear(const Arguments& args)
+  {
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    m->map_->remove_all();
+    return Undefined();
+  }
+
   static Handle<Value> resize(const Arguments& args)
   {
     HandleScope scope;
