@@ -28,6 +28,8 @@
 #include <mapnik/memory_featureset.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>
+#include <mapnik/feature_layer_desc.hpp>
+
 
 // boost
 #include <boost/shared_ptr.hpp>
@@ -134,6 +136,7 @@ public:
     
     // temp hack to expose layer metadata
     NODE_SET_PROTOTYPE_METHOD(m_template, "layers", layers);
+    //NODE_SET_PROTOTYPE_METHOD(m_template, "features", features);
     
     /*
     Local<Object> meta = Object::New();
@@ -217,12 +220,12 @@ public:
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    std::vector<mapnik::Layer> const & layers = m->map_->layers();
+    std::vector<mapnik::layer> const & layers = m->map_->layers();
     Local<Array> a = Array::New(layers.size());
 
     for (unsigned i = 0; i < layers.size(); ++i )
     {
-        const mapnik::Layer & layer = layers[i];
+        const mapnik::layer & layer = layers[i];
         Local<Object> meta = Object::New();
         a->Set(i, meta);
 
@@ -298,6 +301,7 @@ public:
     return scope.Close(a);
 
   }
+
 
   static Handle<Value> clear(const Arguments& args)
   {
