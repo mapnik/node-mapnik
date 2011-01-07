@@ -150,6 +150,7 @@ public:
     // temp hack to expose layer metadata
     NODE_SET_PROTOTYPE_METHOD(m_template, "layers", layers);
     NODE_SET_PROTOTYPE_METHOD(m_template, "features", features);
+    NODE_SET_PROTOTYPE_METHOD(m_template, "describe_data", describe_data);
     
     /*
     Local<Object> meta = Object::New();
@@ -315,6 +316,97 @@ public:
 
   }
 
+  static Handle<Value> describe_data(const Arguments& args)
+  {
+    HandleScope scope;
+
+    // todo - optimize by allowing indexing...
+    /*if (!args.Length() == 1)
+      return ThrowException(Exception::Error(
+        String::New("Please provide layer index")));
+
+    if (!args[0]->IsNumber())
+      return ThrowException(Exception::TypeError(
+        String::New("layer index must be an integer")));
+    */
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    std::vector<mapnik::layer> const & layers = m->map_->layers();
+
+    Local<Object> meta = Object::New();
+
+    for (unsigned i = 0; i < layers.size(); ++i )
+    {
+        const mapnik::layer & layer = layers[i];
+        Local<Object> description = Object::New();
+        meta->Set(String::NewSymbol(layer.name().c_str()), description);
+
+        // todo collect active attributes in styles
+        /*
+        std::vector<std::string> const& style_names = layer.styles();
+        Local<Array> s = Array::New(style_names.size());
+        for (unsigned i = 0; i < style_names.size(); ++i)
+        {
+            s->Set(i, String::New(style_names[i].c_str()) );
+        }
+        meta->Set(String::NewSymbol("styles"), s );
+        */
+        
+        mapnik::datasource_ptr datasource = layer.datasource();
+        if ( datasource )
+        {
+            // type
+            if (datasource->type() == mapnik::datasource::Raster)
+            {
+                description->Set(String::NewSymbol("type"), String::New("raster"));
+            }
+            else //vector
+            {
+                description->Set(String::NewSymbol("type"), String::New("vector"));            
+            }
+            
+            // extent
+            Local<Array> a = Array::New(4);
+            mapnik::box2d<double> e = datasource->envelope();
+            a->Set(0, Number::New(e.minx()));
+            a->Set(1, Number::New(e.miny()));
+            a->Set(2, Number::New(e.maxx()));
+            a->Set(3, Number::New(e.maxy()));
+            description->Set(String::NewSymbol("extent"), a);
+
+            mapnik::layer_descriptor ld = datasource->get_descriptor();
+            
+            // encoding
+            description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
+            
+            // field names and types
+            Local<Object> fields = Object::New();
+            std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+            std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+            std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+            while (itr != end)
+            {
+                int field_type = itr->get_type();
+                std::string type("");
+                if (field_type == 1) type = "Number";
+                else if (field_type == 2) type = "Number";
+                else if (field_type == 3) type = "Number";
+                else if (field_type == 4) type = "String";
+                else if (field_type == 5) type = "Geometry";
+                else if (field_type == 6) type = "Mapnik Object";
+                fields->Set(String::NewSymbol(itr->get_name().c_str()),String::New(type.c_str()));
+                ++itr;
+            }
+            description->Set(String::NewSymbol("fields"), fields);    
+        }
+        // empty objects?
+    }
+    
+    return scope.Close(meta);
+
+  }
+  
   static Handle<Value> features(const Arguments& args)
   {
     HandleScope scope;
