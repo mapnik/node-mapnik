@@ -5,6 +5,7 @@ var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
 
+
 /* settings */
 
 assert.ok(mapnik.settings)
@@ -40,6 +41,14 @@ assert.notStrictEqual(map.extent(), [-1.0, -1.0, 0.0, 0.0]);
 // Test rendering a blank image
 map.render_to_file('/tmp/nodemap.png');
 assert.ok(path.existsSync('/tmp/nodemap.png'));
+
+// test async rendering
+map.render(map.extent(),function(buffer) {
+             fs.writeFileSync('/tmp/nodemap_async.png',buffer);
+             assert.ok(path.existsSync('/tmp/nodemap_async.png'));
+             assert.equal(fs.readFileSync('/tmp/nodemap.png').length,fs.readFileSync('/tmp/nodemap_async.png').length);
+          });
+
 
 // Test loading a sample world map
 map.load('./examples/stylesheet.xml');
@@ -102,7 +111,7 @@ assert.notStrictEqual(described.world.extent, [ -20037508.342789248, -8283343.69
 assert.equal(described.world.type,'vector');
 assert.equal(described.world.encoding,'utf-8');
 assert.equal(described.world.fields.FIPS,'String');
-assert.equal(described.world.fields.FIPS,'String');
+
 
 /* PROJECTION */
 

@@ -35,7 +35,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/version.hpp>
 
-
 //#ifdef MAPNIK_THREADSAFE
 //#include <boost/thread/mutex.hpp>
 //#endif
@@ -903,7 +902,28 @@ public:
     baton->m->map_->zoom_to_box(baton->bbox);
     mapnik::image_32 im(baton->m->map_->width(),baton->m->map_->height());
     mapnik::agg_renderer<mapnik::image_32> ren(*baton->m->map_,im);
-    ren.apply();
+    try
+    {
+      ren.apply();
+    }
+    catch (const mapnik::config_error & ex )
+    {
+      ev_unref(EV_DEFAULT_UC);
+      baton->m->Unref();
+      baton->cb.Dispose();
+      delete baton;
+      ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (...)
+    {
+      ev_unref(EV_DEFAULT_UC);
+      baton->m->Unref();
+      baton->cb.Dispose();
+      delete baton;
+      ThrowException(Exception::TypeError(
+        String::New("unknown exception happened while rendering the map, please submit a bug report")));    
+    }
     baton->im_string = save_to_string(im, baton->format);
     return 0;
   }
@@ -946,7 +966,20 @@ public:
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     mapnik::image_32 im(m->map_->width(),m->map_->height());
     mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
-    ren.apply();
+    try
+    {
+      ren.apply();
+    }
+    catch (const mapnik::config_error & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (...)
+    {
+      return ThrowException(Exception::TypeError(
+        String::New("unknown exception happened while rendering the map, please submit a bug report")));    
+    }
     
     // TODO - expose format
     std::string s = save_to_string(im, "png");
@@ -985,7 +1018,7 @@ public:
     catch (...)
     {
       return ThrowException(Exception::TypeError(
-        String::New("something went wrong loading the map")));    
+        String::New("unknown exception happened while rendering the map, please submit a bug report")));    
     }
 
     mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
