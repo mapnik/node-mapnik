@@ -1269,7 +1269,7 @@ static Handle<Value> register_fonts(const Arguments& args)
   }
 
   std::vector<std::string> const& names_after = mapnik::freetype_engine::face_names();
-  if (!names_after.size() > names_before.size())
+  if (names_after.size() == names_before.size())
       found = false;
  
   return scope.Close(Boolean::New(found));

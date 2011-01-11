@@ -135,6 +135,8 @@ exports.register_system_fonts = function() {
     }
 }
 
+exports.register_system_fonts();
+
 // push all C++ symbols into js module
 for (var k in mapnik) { exports[k] = mapnik[k]; }
 

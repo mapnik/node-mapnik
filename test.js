@@ -49,17 +49,14 @@ function oc(a)
 // make sure we have default fonts
 assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
 
-// load some system fonts if on os x
+// make sure system font was loaded
 if (process.platform == 'darwin') {
-    // recurse won't do anything special here...
-    assert.ok(mapnik.register_fonts('/System/Library/Fonts/',{recurse:true} ));
     assert.ok('Times Regular' in oc(mapnik.fonts()));
+    assert.ok(!mapnik.register_fonts('/System/Library/Fonts/',{recurse:true} ));
 }
 
-// will return true if fonts are found
-assert.ok(mapnik.register_system_fonts());
-
-// if we call again, we'll not register any new fonts, so this should return false
+// will return true if new fonts are found
+// but should return false as we now call at startup
 assert.ok(!mapnik.register_system_fonts());
 
 
