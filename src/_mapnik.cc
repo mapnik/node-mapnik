@@ -1205,13 +1205,18 @@ static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
 
 static Handle<Value> register_datasources(const Arguments& args)
 {
-  HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsString())
-    ThrowException(Exception::TypeError(
-      String::New("first argument must be a path to a directory of mapnik input plugins")));
-  std::string const& path = TOSTR(args[0]);
-  mapnik::datasource_cache::instance()->register_datasources(path); 
-  return Undefined();
+    HandleScope scope;
+    if (args.Length() != 1 || !args[0]->IsString())
+      ThrowException(Exception::TypeError(
+        String::New("first argument must be a path to a directory of mapnik input plugins")));
+
+    std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names(); 
+    std::string const& path = TOSTR(args[0]);
+    mapnik::datasource_cache::instance()->register_datasources(path); 
+    std::vector<std::string> const& names_after = mapnik::datasource_cache::plugin_names();
+    if (names_after.size() > names_before.size())
+        return scope.Close(Boolean::New(true));
+    return scope.Close(Boolean::New(false));
 }
 
 static Handle<Value> available_input_plugins(const Arguments& args)
@@ -1229,12 +1234,45 @@ static Handle<Value> available_input_plugins(const Arguments& args)
 static Handle<Value> register_fonts(const Arguments& args)
 {
   HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsString())
+  
+  if (!args.Length() >= 1 || !args[0]->IsString())
     ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory of fonts")));
-  std::string const& path = TOSTR(args[0]);
-  mapnik::freetype_engine::register_fonts(path);
-  return Undefined();
+
+  bool found = false;
+  
+  std::vector<std::string> const names_before = mapnik::freetype_engine::face_names();
+
+  // option hash
+  if (args.Length() == 2){
+    if (!args[1]->IsObject())
+      ThrowException(Exception::TypeError(
+        String::New("second argument is optional, but if provided must be an object, eg. { recurse:Boolean }")));
+
+      Local<Object> options = args[1]->ToObject();
+      if (options->Has(String::New("recurse")))
+      {
+          Local<Value> recurse_opt = options->Get(String::New("recurse"));
+          if (!recurse_opt->IsBoolean())
+            return ThrowException(Exception::TypeError(
+              String::New("'recurse' must be a Boolean")));
+          
+          bool recurse = recurse_opt->BooleanValue();
+          std::string const& path = TOSTR(args[0]);
+          found = mapnik::freetype_engine::register_fonts(path,recurse);
+      }
+  }
+  else
+  {
+      std::string const& path = TOSTR(args[0]);
+      found = mapnik::freetype_engine::register_fonts(path);
+  }
+
+  std::vector<std::string> const& names_after = mapnik::freetype_engine::face_names();
+  if (!names_after.size() > names_before.size())
+      found = false;
+ 
+  return scope.Close(Boolean::New(found));
 }
 
 static Handle<Value> available_font_faces(const Arguments& args)

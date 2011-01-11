@@ -64,6 +64,77 @@ if (!_settings.paths.input_plugins) {
     mapnik.register_datasources(_settings.paths.input_plugins);
 }
 
+
+exports.register_system_fonts = function() {
+    var num_faces = mapnik.fonts().length;
+    var dirs = [];
+
+  	// node process.version is based on tools/wafadmin/Utils.py
+  	// which pulls from python's sys.platform (uname)
+  	// this info taken from Tools/ccroot.py
+  	/*
+  	platforms = {
+  	'__linux__'   : 'linux',
+  	'__GNU__'     : 'hurd',
+  	'__FreeBSD__' : 'freebsd',
+  	'__NetBSD__'  : 'netbsd',
+  	'__OpenBSD__' : 'openbsd',
+  	'__sun'       : 'sunos',
+  	'__hpux'      : 'hpux',
+  	'__sgi'       : 'irix',
+  	'_AIX'        : 'aix',
+  	'__CYGWIN__'  : 'cygwin',
+  	'__MSYS__'    : 'msys',
+  	'_UWIN'       : 'uwin',
+  	'_WIN64'      : 'win32',
+  	'_WIN32'      : 'win32'
+  	}
+  	*/
+
+    // linux, bsd systems or solaris/opensolaris
+    if (process.platform == 'linux' || 
+       (process.platform.indexOf('bsd') != -1) ||
+       process.platform.indexOf('bsd') == 'sunos' ) {
+        dirs.push('/usr/share/fonts/truetype/');    
+        dirs.push('/usr/local/share/fonts/truetype/');
+        dirs.push(path.resolve('~/.fonts'));
+    }
+    
+    // macs
+    else if (process.platform == 'darwin') {
+        dirs.push('/Library/Fonts');
+        dirs.push('/System/Library/Fonts');    
+    }
+
+    else if (process.platform == 'win32') {
+       dirs.push(path.resolve('C:\Windows\Fonts'));
+    }
+    
+    // TODO mysys and cygwin
+    
+    var found = []
+    for (idx in dirs) {
+        var p = dirs[idx];
+        if (path.existsSync(p)) {
+                //console.log('looking for: ' + p);
+                if (mapnik.register_fonts(p))
+                    found.push(p);
+        } else {
+            //console.log('does not exist: ' + p);
+            dirs.splice(dirs.indexOf(p),1);
+        }
+    };
+    
+    if (mapnik.fonts().length == num_faces) {
+       //console.log('failed to register any new fonts, searched in: [' + dirs + ']');
+       return false;
+    }
+    else {
+       //console.log('registered system fonts in: [' + found + ']');
+       return true;
+    }
+}
+
 // push all C++ symbols into js module
 for (var k in mapnik) { exports[k] = mapnik[k]; }
 
