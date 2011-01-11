@@ -52,6 +52,7 @@ assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
 // make sure system font was loaded
 if (process.platform == 'darwin') {
     assert.ok('Times Regular' in oc(mapnik.fonts()));
+    // it should already be loaded so trying to register more should return false
     assert.ok(!mapnik.register_fonts('/System/Library/Fonts/',{recurse:true} ));
 }
 
