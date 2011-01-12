@@ -1,7 +1,7 @@
 {
   "name"          : "mapnik",
-  "version"       : "0.1.2",
-  "main"          : "./mapnik",
+  "version"       : "0.1.3-pre",
+  "main"          : "./lib/index.js",
   "description"   : "C++ map rendering library for node",
   "keywords"      : ["map", "graphics", "canvas", "tile"],
   "url"           : "http://github.com/mapnik/node-mapnik",
@@ -15,12 +15,14 @@
   "contributors"  : [],
   "licenses"      : ["BSD"],
   "dependencies"  : [],
-  "lib"           : "mapnik",
+   // seems uneeded
+   //"lib"           : "mapnik",
    "directories"  : {
-       "lib" : "lib",
+       // if "lib" is included below npm oddly puts things in a 'b' directory?
+       //"lib" : "lib",
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">= 0.2.0" },
-  "scripts"       : {"install": "node-waf configure build"}
+  "engines"       : { "node": ">= 0.2.4" },
+  "scripts"       : {"install": "node-waf -v configure build"}
 }

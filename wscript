@@ -12,8 +12,8 @@ import Utils
 TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
 built = 'build/default/%s' % TARGET_FILE
-dest = 'mapnik/%s' % TARGET_FILE
-settings = 'mapnik/settings.js'
+dest = 'lib/%s' % TARGET_FILE
+settings = 'lib/settings.js'
 
 # only works with Mapnik2/trunk..
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
@@ -89,6 +89,12 @@ def configure(conf):
         # todo - check return value of popen other we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
         linkflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
+
+        # add prefix to linkflags if it is unique
+        prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
+        if not '/usr/local' in prefix_lib:
+            linkflags.insert(0,'-L%s' % prefix_lib)
+
         #linkflags.append('-F/Library/')
         #linkflags.append('-framework Mapnik')
         #linkflags.append('-Z')
@@ -100,6 +106,12 @@ def configure(conf):
         
         # TODO - too much potential pollution here, need to limit this upstream
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
+
+        # add prefix to includes if it is unique
+        prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
+        if not '/usr/local' in prefix_inc:
+            cxxflags.insert(0,'-I%s' % prefix_inc)
+
         conf.env.append_value("CXXFLAGS_MAPNIK", cxxflags)
         
         #ldflags = []
@@ -165,16 +177,17 @@ def configure(conf):
 
 def build(bld):
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
-    obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline"]
+    obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
     obj.source = "src/%s.cc" % TARGET
     obj.uselib = "MAPNIK"
-    files = glob('mapnik/*')
+    files = glob('lib/*')
     # loop to make sure we can install
     # directories as well as files
     for f in files:
         if os.path.isdir(f):
-            bld.install_files('${PREFIX}/lib/node/%s' % f, '%s/*' % f)
+            path = f.replace('lib','mapnik')
+            bld.install_files('${PREFIX}/lib/node/%s' % path, '%s/*' % path)
         else:
             bld.install_files('${PREFIX}/lib/node/mapnik/', f)
 
