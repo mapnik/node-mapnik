@@ -1,10 +1,10 @@
 all: mapnik.node
 
 install: all
-	node-waf -v install
+	node-waf -v build install
 
 mapnik.node:
-	node-waf -v configure build
+	node-waf -v build
 
 clean:
 	node-waf -v clean distclean
