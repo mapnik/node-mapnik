@@ -22,7 +22,7 @@ else {
 /* assert ABI compatibility */
 // otherwise register_fonts will throw with:
 // "TypeError: first argument must be a path to a directory of fonts"
-assert.ok(mapnik.versions.node === process.versions.node,'The node version "' + process.versions.node + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.versions.node + '"');
+assert.ok(mapnik.versions.node === process.versions.node,'The running node version "' + process.versions.node + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.versions.node + '"');
 
 function warning(value, what)
 {
