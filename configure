@@ -1,1 +1,3 @@
-node-waf configure
+#!/bin/sh
+
+node-waf configure $@
