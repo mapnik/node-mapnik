@@ -90,18 +90,21 @@ Handle<Value> Map::New(const Arguments& args)
 {
   HandleScope scope;
 
-  if (!(args.Length() > 1 && args.Length() < 4))
-    return ThrowException(Exception::TypeError(
-      String::New("please provide Map width and height and optional srs")));
-
-  if (args.Length() == 2) {
+  if (args.Length() == 2)
+  {
       Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue());
       m->Wrap(args.This());
   }
-  else {
+  else if (args.Length() == 3)
+  {
       Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue(),TOSTR(args[2]));
       m->Wrap(args.This());
   }
+  else
+  {
+      return ThrowException(Exception::TypeError(
+        String::New("please provide Map width and height and optional srs")));  
+  } 
   return args.This();
 }
 
