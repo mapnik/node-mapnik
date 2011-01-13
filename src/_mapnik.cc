@@ -14,8 +14,8 @@
 
 // node-mapnik
 #include "mapnik_map.hpp"
-#include "mapnik_layer.hpp"
 #include "mapnik_projection.hpp"
+//#include "mapnik_layer.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
