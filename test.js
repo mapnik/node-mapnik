@@ -8,30 +8,30 @@ var fs = require('fs');
 
 /* settings */
 
-assert.ok(mapnik.settings)
-assert.ok(mapnik.settings.paths)
-assert.ok(mapnik.settings.paths.fonts.length)
-assert.ok(mapnik.settings.paths.input_plugins.length)
+assert.ok(mapnik.settings);
+assert.ok(mapnik.settings.paths);
+assert.ok(mapnik.settings.paths.fonts.length);
+assert.ok(mapnik.settings.paths.input_plugins.length);
 
 
 /* has version info */
 
-assert.ok(mapnik.versions)
-assert.ok(mapnik.versions.node)
-assert.ok(mapnik.versions.v8)
-assert.ok(mapnik.versions.mapnik)
-assert.ok(mapnik.versions.mapnik_number)
-assert.ok(mapnik.versions.boost)
-assert.ok(mapnik.versions.boost_number)
+assert.ok(mapnik.versions);
+assert.ok(mapnik.versions.node);
+assert.ok(mapnik.versions.v8);
+assert.ok(mapnik.versions.mapnik);
+assert.ok(mapnik.versions.mapnik_number);
+assert.ok(mapnik.versions.boost);
+assert.ok(mapnik.versions.boost_number);
 
 
 /* datasource "input_plugins" */
 
 // make sure we have some
-assert.ok(mapnik.datasources().length > 1)
+assert.ok(mapnik.datasources().length > 1);
 
 // reloading the default plugins path should return false as no more plugins are registered
-assert.ok(!mapnik.register_datasources(mapnik.settings.paths.input_plugins))
+assert.ok(!mapnik.register_datasources(mapnik.settings.paths.input_plugins));
 
 
 /* fonts */
@@ -39,9 +39,9 @@ assert.ok(!mapnik.register_datasources(mapnik.settings.paths.input_plugins))
 function oc(a)
 {
   var o = {};
-  for(var i=0;i<a.length;i++)
+  for (var i = 0; i < a.length; i++)
   {
-    o[a[i]]='';
+    o[a[i]] = '';
   }
   return o;
 }
@@ -53,7 +53,7 @@ assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
 if (process.platform == 'darwin') {
     assert.ok('Times Regular' in oc(mapnik.fonts()));
     // it should already be loaded so trying to register more should return false
-    assert.ok(!mapnik.register_fonts('/System/Library/Fonts/',{recurse:true} ));
+    assert.ok(!mapnik.register_fonts('/System/Library/Fonts/', {recurse: true}));
 }
 
 // will return true if new fonts are found
@@ -65,7 +65,7 @@ assert.ok(!mapnik.register_system_fonts());
 
 // be strict/exact
 // note process.versions == process.versions.node except the latter has the 'v' stripped
-assert.ok(mapnik.versions.node === process.versions.node,'The node version "' + process.versions.node + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.versions.node + '"');
+assert.ok(mapnik.versions.node === process.versions.node, 'The node version "' + process.versions.node + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.versions.node + '"');
 
 
 /* MAP */
@@ -90,8 +90,8 @@ map.render_to_file('/tmp/nodemap.png');
 assert.ok(path.existsSync('/tmp/nodemap.png'));
 
 // test async rendering
-map.render(map.extent(),function(buffer) {
-       fs.writeFile('/tmp/nodemap_async.png',buffer, function(err) {
+map.render(map.extent(), function(buffer) {
+       fs.writeFile('/tmp/nodemap_async.png', buffer, function(err) {
            if (err) throw err;
            assert.ok(path.existsSync('/tmp/nodemap_async.png'));
            // todo - not working right...
@@ -110,7 +110,7 @@ map.clear();
 // Test loading a map from a string
 var style_string = fs.readFileSync('./examples/stylesheet.xml').toLocaleString();
 var base_url = './examples/'; // must end with trailing slash
-map.from_string(style_string,base_url);
+map.from_string(style_string, base_url);
 
 // test new extent based on active layers
 map.zoom_all();
@@ -129,38 +129,38 @@ assert.equal(map.height(), 256);
 
 // layers
 var layers = map.layers();
-assert.equal(layers.length, 1,layers.length);
+assert.equal(layers.length, 1, layers.length);
 lyr = layers[0];
-assert.equal(lyr.name,'world');
-assert.equal(lyr.srs,'+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
-assert.equal(lyr.styles.length,1);
-assert.equal(lyr.styles[0],'style');
-assert.equal(lyr.name,'world');
-assert.equal(lyr.datasource.type,'shape');
-assert.equal(lyr.datasource.file,path.join(process.cwd(),'examples/data/world_merc.shp'));
+assert.equal(lyr.name, 'world');
+assert.equal(lyr.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+assert.equal(lyr.styles.length, 1);
+assert.equal(lyr.styles[0], 'style');
+assert.equal(lyr.name, 'world');
+assert.equal(lyr.datasource.type, 'shape');
+assert.equal(lyr.datasource.file, path.join(process.cwd(), 'examples/data/world_merc.shp'));
 
 
 // features
 var features = map.features(0); // for first and only layer
-assert.equal(features.length,245);
+assert.equal(features.length, 245);
 var last = features[244];
-assert.equal(last.AREA,1638094);
-assert.equal(last.FIPS,'RS');
-assert.equal(last.ISO2,'RU');
-assert.equal(last.LAT,61.988);
-assert.equal(last.LON,96.689);
-assert.equal(last.NAME,'Russia');
-assert.equal(last.POP2005,143953092);
-assert.equal(last.REGION,150);
-assert.equal(last.SUBREGION,151);
-assert.equal(last.UN,643);
+assert.equal(last.AREA, 1638094);
+assert.equal(last.FIPS, 'RS');
+assert.equal(last.ISO2, 'RU');
+assert.equal(last.LAT, 61.988);
+assert.equal(last.LON, 96.689);
+assert.equal(last.NAME, 'Russia');
+assert.equal(last.POP2005, 143953092);
+assert.equal(last.REGION, 150);
+assert.equal(last.SUBREGION, 151);
+assert.equal(last.UN, 643);
 
 // datasource meta data
 var described = map.describe_data();
-assert.notStrictEqual(described.world.extent, [ -20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473 ]);
-assert.equal(described.world.type,'vector');
-assert.equal(described.world.encoding,'utf-8');
-assert.equal(described.world.fields.FIPS,'String');
+assert.notStrictEqual(described.world.extent, [-20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473]);
+assert.equal(described.world.type, 'vector');
+assert.equal(described.world.encoding, 'utf-8');
+assert.equal(described.world.fields.FIPS, 'String');
 
 
 /* PROJECTION */
