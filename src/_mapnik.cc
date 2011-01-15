@@ -33,7 +33,7 @@ static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
 {
   HandleScope scope;
   if (args.Length() != 1 || !args[0]->IsString())
-    ThrowException(Exception::TypeError(
+    return ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory holding _mapnik.node")));
   String::Utf8Value filename(args[0]->ToString());
   void *handle = dlopen(*filename, RTLD_NOW|RTLD_GLOBAL);
@@ -51,7 +51,7 @@ static Handle<Value> register_datasources(const Arguments& args)
 {
     HandleScope scope;
     if (args.Length() != 1 || !args[0]->IsString())
-      ThrowException(Exception::TypeError(
+      return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a directory of mapnik input plugins")));
 
     std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names(); 
@@ -80,7 +80,7 @@ static Handle<Value> register_fonts(const Arguments& args)
   HandleScope scope;
   
   if (!args.Length() >= 1 || !args[0]->IsString())
-    ThrowException(Exception::TypeError(
+    return ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory of fonts")));
 
   bool found = false;
@@ -90,7 +90,7 @@ static Handle<Value> register_fonts(const Arguments& args)
   // option hash
   if (args.Length() == 2){
     if (!args[1]->IsObject())
-      ThrowException(Exception::TypeError(
+      return ThrowException(Exception::TypeError(
         String::New("second argument is optional, but if provided must be an object, eg. { recurse:Boolean }")));
 
       Local<Object> options = args[1]->ToObject();
