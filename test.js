@@ -12,10 +12,10 @@ assert.throws(function() {mapnik.Datasource('foo')});
 assert.throws(function() {mapnik.Datasource({'foo': 1})});
 assert.throws(function() {mapnik.Datasource({'type': 'foo'})});
 assert.throws(function() { mapnik.Datasource({'type': 'shape'}) });
-assert.ok(new mapnik.Datasource({'type': 'shape', 'file': './examples/data/world_merc.shp'}));
+assert.ok(new mapnik.Datasource({type: 'shape', file: './examples/data/world_merc.shp'}));
 
-var options = { 'type' : 'shape',
-                'file' : './examples/data/world_merc.shp'
+var options = { type : 'shape',
+                file : './examples/data/world_merc.shp'
               };
 
 var ds = new mapnik.Datasource(options);
