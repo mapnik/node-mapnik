@@ -1,10 +1,9 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
 var mapnik = require('mapnik');
 var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
-
 
 /* settings */
 
@@ -68,9 +67,18 @@ assert.ok(!mapnik.register_system_fonts());
 assert.ok(mapnik.versions.node === process.versions.node, 'The node version "' + process.versions.node + '" does not match the node version that node-mapnik was compiled against: "' + mapnik.versions.node + '"');
 
 
-/* MAP */
+/* Map */
 
 // Test mapnik.Map object creation
+
+// no 'new' keyword
+assert.throws(function() {mapnik.Map('foo')});
+// invalid args
+assert.throws(function() {new mapnik.Map()});
+assert.throws(function() {new mapnik.Map(1)});
+assert.throws(function() {new mapnik.Map('a', 'b', 'c')});
+assert.throws(function() {new mapnik.Map(new mapnik.Map(1, 1))});
+
 var Map = mapnik.Map;
 
 var map1 = new Map(256, 256);
@@ -81,6 +89,8 @@ var map = new mapnik.Map(600, 400);
 
 assert.ok(map instanceof mapnik.Map);
 assert.throws(function() {new mapnik.Map('foo')});
+
+assert.throws(function() {mapnik.Map('foo')});
 
 // test initial values
 assert.notStrictEqual(map.extent(), [-1.0, -1.0, 0.0, 0.0]);
@@ -163,7 +173,76 @@ assert.equal(described.world.encoding, 'utf-8');
 assert.equal(described.world.fields.FIPS, 'String');
 
 
-/* PROJECTION */
+/* Layer */
+
+// no 'new' keyword
+assert.throws(function() {mapnik.Layer('foo')});
+// invalid args
+assert.throws(function() {new mapnik.Layer()});
+assert.throws(function() {new mapnik.Layer(1)});
+assert.throws(function() {new mapnik.Layer('a', 'b', 'c')});
+assert.throws(function() {new mapnik.Layer(new mapnik.Layer('foo'))});
+
+// new layer
+var layer = new mapnik.Layer('foo', '+init=epsg:4326');
+assert.ok(layer.name, 'foo');
+assert.ok(layer.srs, '+init=epsg:4326');
+assert.ok(layer.styles, []);
+// TODO
+assert.ok(layer.datasource, {});
+
+// json representation
+var meta = layer.describe();
+assert.ok(meta.name, 'foo');
+assert.ok(meta.srs, '+init=epsg:4326');
+assert.ok(meta.styles, []);
+// TODO
+//assert.ok(meta.datasource,{});
+
+
+// actual map including layer with datasource
+var map = new mapnik.Map(256, 256);
+map.load('./examples/stylesheet.xml');
+
+// pull a copy out of the map into v8 land
+var layer = map.get_layer(0);
+assert.ok(layer.name, 'world');
+assert.ok(layer.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+assert.ok(layer.styles.length, 1);
+assert.ok(layer.styles[0], 'style');
+// TODO
+assert.ok(layer.datasource, {});
+
+// json representation
+var meta = layer.describe();
+assert.ok(meta.name, 'world');
+assert.ok(meta.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+assert.ok(meta.styles.length, 1);
+assert.ok(meta.styles[0], 'style');
+
+// make a change to layer, ensure it sticks
+layer.name = 'a';
+layer.styles = ['a'];
+layer.srs = '+init=epsg:4326';
+// TODO
+assert.throws(function() {layer.datasource = {}});
+
+// check for change, after adding to map
+// adding to map should release original layer
+// as a copy is made when added (I think)
+map.add_layer(layer);
+var added = map.layers()[1];
+// make sure the layer is an identical copy to what is on map
+assert.ok(added.name, layer.name);
+assert.ok(added.srs, layer.srs);
+assert.ok(added.styles.length, layer.styles.length);
+assert.ok(added.styles[0], layer.styles[0]);
+// TODO
+//assert.ok(added.datasource,layer.datasource);
+
+
+
+/* Projection */
 
 // Test mapnik.Projection object creation
 

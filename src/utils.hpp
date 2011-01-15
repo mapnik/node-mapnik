@@ -25,6 +25,9 @@
                   String::New("Argument " #I " must be a function")));  \
   Local<Function> VAR = Local<Function>::Cast(args[I]);
 
+#define ATTR(t, name, get, set) \
+  t->InstanceTemplate()->SetAccessor(String::NewSymbol(name), get, set);
+
 using namespace v8;
 using namespace node;
 

@@ -18,8 +18,7 @@ class Layer: public node::ObjectWrap {
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
-    static Handle<Value> New(mapnik::layer & lay_ref);    
-    //static Layer* New(layer_ptr l);    
+    static Handle<Value> New(mapnik::layer & lay_ref);
     static Handle<Value> describe(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> describe_data(const Arguments &args);
@@ -32,7 +31,7 @@ class Layer: public node::ObjectWrap {
                          
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);
-    Layer(layer_ptr l);
+    Layer();
     inline layer_ptr get() { return layer_; } 
 
   private:

@@ -6,6 +6,7 @@
 #include <node_object_wrap.h>
 
 #include <mapnik/map.hpp>
+#include "mapnik_layer.hpp"
 
 using namespace v8;
 using namespace node;
@@ -36,6 +37,9 @@ class Map: public node::ObjectWrap {
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> describe_data(const Arguments &args);
 
+    static Handle<Value> add_layer(const Arguments &args);
+    static Handle<Value> get_layer(const Arguments &args);
+        
     static int EIO_render(eio_req *req);
     static int EIO_render_follow(eio_req *req);
     

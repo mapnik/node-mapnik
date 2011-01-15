@@ -182,6 +182,7 @@ def build(bld):
     obj.source = "src/_mapnik.cc "
     obj.source += "src/mapnik_map.cpp "
     obj.source += "src/mapnik_projection.cpp "
+    obj.source += "src/mapnik_layer.cpp "
     obj.uselib = "MAPNIK"
     files = glob('lib/*')
     # loop to make sure we can install
