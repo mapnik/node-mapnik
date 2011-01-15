@@ -8,6 +8,7 @@
 #include <node.h>
 
 // mapnik
+#include <mapnik/layer.hpp>
 #include <mapnik/params.hpp>
 #include <mapnik/feature_layer_desc.hpp>
 
@@ -87,68 +88,65 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
     }
 }
 
-static void layer_data_as_json(Local<Object> description, const mapnik::layer & layer)
+static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
 {
 
-  // todo collect active attributes in styles
-  /*
-  std::vector<std::string> const& style_names = layer.styles();
-  Local<Array> s = Array::New(style_names.size());
-  for (unsigned i = 0; i < style_names.size(); ++i)
-  {
-      s->Set(i, String::New(style_names[i].c_str()) );
-  }
-  meta->Set(String::NewSymbol("styles"), s );
-  */
+    // todo collect active attributes in styles
+    /*
+    std::vector<std::string> const& style_names = layer.styles();
+    Local<Array> s = Array::New(style_names.size());
+    for (unsigned i = 0; i < style_names.size(); ++i)
+    {
+        s->Set(i, String::New(style_names[i].c_str()) );
+    }
+    meta->Set(String::NewSymbol("styles"), s );
+    */
   
-  mapnik::datasource_ptr datasource = layer.datasource();
-  if ( datasource )
-  {
-      // type
-      if (datasource->type() == mapnik::datasource::Raster)
-      {
-          description->Set(String::NewSymbol("type"), String::New("raster"));
-      }
-      else
-      {
-          description->Set(String::NewSymbol("type"), String::New("vector"));            
-      }
-      
-      // extent
-      Local<Array> a = Array::New(4);
-      mapnik::box2d<double> e = datasource->envelope();
-      a->Set(0, Number::New(e.minx()));
-      a->Set(1, Number::New(e.miny()));
-      a->Set(2, Number::New(e.maxx()));
-      a->Set(3, Number::New(e.maxy()));
-      description->Set(String::NewSymbol("extent"), a);
+    // type
+    if (ds->type() == mapnik::datasource::Raster)
+    {
+        description->Set(String::NewSymbol("type"), String::New("raster"));
+    }
+    else
+    {
+        description->Set(String::NewSymbol("type"), String::New("vector"));            
+    }
+    
+    // extent
+    Local<Array> a = Array::New(4);
+    mapnik::box2d<double> e = ds->envelope();
+    a->Set(0, Number::New(e.minx()));
+    a->Set(1, Number::New(e.miny()));
+    a->Set(2, Number::New(e.maxx()));
+    a->Set(3, Number::New(e.maxy()));
+    description->Set(String::NewSymbol("extent"), a);
 
-      mapnik::layer_descriptor ld = datasource->get_descriptor();
-      
-      // encoding
-      description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
-      
-      // field names and types
-      Local<Object> fields = Object::New();
-      std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-      std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-      std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-      while (itr != end)
-      {
-          int field_type = itr->get_type();
-          std::string type("");
-          if (field_type == 1) type = "Number";
-          else if (field_type == 2) type = "Number";
-          else if (field_type == 3) type = "Number";
-          else if (field_type == 4) type = "String";
-          else if (field_type == 5) type = "Geometry";
-          else if (field_type == 6) type = "Mapnik Object";
-          fields->Set(String::NewSymbol(itr->get_name().c_str()),String::New(type.c_str()));
-          ++itr;
-      }
-      description->Set(String::NewSymbol("fields"), fields);    
-  }
+    mapnik::layer_descriptor ld = ds->get_descriptor();
+    
+    // encoding
+    description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
+    
+    // field names and types
+    Local<Object> fields = Object::New();
+    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+    while (itr != end)
+    {
+        int field_type = itr->get_type();
+        std::string type("");
+        if (field_type == 1) type = "Number";
+        else if (field_type == 2) type = "Number";
+        else if (field_type == 3) type = "Number";
+        else if (field_type == 4) type = "String";
+        else if (field_type == 5) type = "Geometry";
+        else if (field_type == 6) type = "Mapnik Object";
+        fields->Set(String::NewSymbol(itr->get_name().c_str()),String::New(type.c_str()));
+        ++itr;
+    }
+    description->Set(String::NewSymbol("fields"), fields);
 }
+
 
 static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds)
 {

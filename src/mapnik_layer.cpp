@@ -234,7 +234,11 @@ Handle<Value> Layer::describe_data(const Arguments& args)
     HandleScope scope;
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
     Local<Object> description = Object::New();
-    layer_data_as_json(description,*l->layer_);
+    mapnik::datasource_ptr ds = l->layer_->datasource();
+    if (ds)
+    {
+        describe_datasource(description,ds);
+    }
     return scope.Close(description);
 }
 

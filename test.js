@@ -5,6 +5,39 @@ var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
 
+
+/* Datasource */
+
+assert.throws(function() {mapnik.Datasource('foo')});
+assert.throws(function() {mapnik.Datasource({'foo': 1})});
+assert.throws(function() {mapnik.Datasource({'type': 'foo'})});
+assert.throws(function() { mapnik.Datasource({'type': 'shape'}) });
+assert.ok(new mapnik.Datasource({'type': 'shape', 'file': './examples/data/world_merc.shp'}));
+
+var options = { 'type' : 'shape',
+                'file' : './examples/data/world_merc.shp'
+              };
+
+var ds = new mapnik.Datasource(options);
+var p = ds.parameters();
+assert.equal(p.type, options.type);
+assert.equal(p.file, options.file);
+process.exit();
+assert.ok(ds.describe());
+assert.ok(ds.features());
+
+/* TODO
+
+ - expose adding a mapnik.Datasource to a mapnik.Layer
+ - wrap Datasource contructor in factory for each 'type'
+
+ e.g.
+  Shapefile() // {type:'shape'}
+  PostGIS()   // {type:'postgis'}
+  OSM()       // {type:'osm'}
+
+*/
+
 /* settings */
 
 assert.ok(mapnik.settings);

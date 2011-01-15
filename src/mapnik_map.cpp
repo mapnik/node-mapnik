@@ -105,6 +105,7 @@ Handle<Value> Map::New(const Arguments& args)
                String::New("'width' and 'height' must be a integers")));
         Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue());
         m->Wrap(args.This());
+        return args.This();
     }
     else if (args.Length() == 3)
     {
@@ -113,6 +114,7 @@ Handle<Value> Map::New(const Arguments& args)
                String::New("'width' and 'height' must be a integers")));
         Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue(),TOSTR(args[2]));
         m->Wrap(args.This());
+        return args.This();
     }
     else
     {
@@ -224,7 +226,11 @@ Handle<Value> Map::describe_data(const Arguments& args)
     {
         const mapnik::layer & layer = layers[i];
         Local<Object> description = Object::New();
-        layer_data_as_json(description,layer);
+        mapnik::datasource_ptr ds = layer.datasource();
+        if (ds)
+        {
+            describe_datasource(description,ds);
+        }
         meta->Set(String::NewSymbol(layer.name().c_str()), description);
     }
     

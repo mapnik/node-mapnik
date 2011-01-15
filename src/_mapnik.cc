@@ -16,6 +16,7 @@
 #include "mapnik_map.hpp"
 #include "mapnik_projection.hpp"
 #include "mapnik_layer.hpp"
+#include "mapnik_datasource.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -158,6 +159,9 @@ extern "C" {
 
     // Layer
     Layer::Initialize(target);
+
+    // Datasource
+    Datasource::Initialize(target);
     
     // node-mapnik version
     target->Set(String::NewSymbol("version"), String::New("0.1.2"));
