@@ -1,0 +1,43 @@
+#ifndef __NODE_MAPNIK_LAYER_H__
+#define __NODE_MAPNIK_LAYER_H__
+
+#include <v8.h>
+#include <node.h>
+#include <node_object_wrap.h>
+
+#include <mapnik/layer.hpp>
+
+using namespace v8;
+using namespace node;
+
+typedef boost::shared_ptr<mapnik::layer> layer_ptr;
+
+class Layer: public node::ObjectWrap {
+  public:
+    static Persistent<FunctionTemplate> constructor;
+    static void Initialize(Handle<Object> target);
+    static Handle<Value> New(const Arguments &args);
+
+    static Handle<Value> New(mapnik::layer & lay_ref);    
+    //static Layer* New(layer_ptr l);    
+    static Handle<Value> describe(const Arguments &args);
+    static Handle<Value> features(const Arguments &args);
+    static Handle<Value> describe_data(const Arguments &args);
+
+    static Handle<Value> get_prop(Local<String> property,
+                         const AccessorInfo& info);
+    static void set_prop(Local<String> property,
+                         Local<Value> value,
+                         const AccessorInfo& info);
+                         
+    Layer(std::string const& name);
+    Layer(std::string const& name, std::string const& srs);
+    Layer(layer_ptr l);
+    inline layer_ptr get() { return layer_; } 
+
+  private:
+    ~Layer();
+    layer_ptr layer_;
+};
+
+#endif
