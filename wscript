@@ -81,7 +81,8 @@ def configure(conf):
 
         # future auto-support for mapnik frameworks..
         path_list = environ.get('PATH', '').split(os.pathsep)
-        path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
+        if os.path.exists('/Library/Frameworks/Mapnik.framework'):
+            path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
 
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
         ensure_min_mapnik_revision(conf)
@@ -106,6 +107,8 @@ def configure(conf):
         
         # TODO - too much potential pollution here, need to limit this upstream
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
+        if os.path.exists('/Library/Frameworks/Mapnik.framework'):
+            cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
 
         # add prefix to includes if it is unique
         prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
