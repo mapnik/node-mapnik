@@ -550,6 +550,24 @@ int Map::EIO_render(eio_req *req)
       ThrowException(Exception::Error(
         String::New(ex.what())));
     }
+    catch (const mapnik::datasource_exception & ex )
+    {
+      ev_unref(EV_DEFAULT_UC);
+      baton->m->Unref();
+      baton->cb.Dispose();
+      delete baton;
+      ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
+    {
+      ev_unref(EV_DEFAULT_UC);
+      baton->m->Unref();
+      baton->cb.Dispose();
+      delete baton;
+      ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
     catch (...)
     {
       ev_unref(EV_DEFAULT_UC);
@@ -605,7 +623,18 @@ Handle<Value> Map::render_to_string(const Arguments& args)
     {
       ren.apply();
     }
+    // proj_init_error
     catch (const mapnik::config_error & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
     {
       return ThrowException(Exception::Error(
         String::New(ex.what())));
@@ -646,6 +675,16 @@ Handle<Value> Map::render_to_file(const Arguments& args)
       ren.apply();
     }
     catch (const mapnik::config_error & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
     {
       return ThrowException(Exception::Error(
         String::New(ex.what())));
