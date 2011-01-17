@@ -1,6 +1,7 @@
 
 #include "utils.hpp"
 #include "mapnik_layer.hpp"
+#include "mapnik_datasource.hpp"
 #include "json_emitter.hpp"
 
 #include <node_buffer.h>
@@ -48,7 +49,7 @@ Layer::Layer() :
 
 Layer::~Layer()
 {
-     std::clog << "~node.Layer\n";
+    //std::clog << "~node.Layer\n";
     // release is handled by boost::shared_ptr
 }
 
@@ -74,10 +75,10 @@ Handle<Value> Layer::New(const Arguments& args)
     if (args[0]->IsExternal()) 
     { 
         //return ThrowException(String::New("No support yet for passing v8:External wrapper around C++ void*"));
-        std::clog << "external!\n";
+        //std::clog << "external!\n";
         Local<External> ext = Local<External>::Cast(args[0]);
-		    void* ptr = ext->Value();
-			  Layer* l =  static_cast<Layer*>(ptr);
+        void* ptr = ext->Value();
+        Layer* l =  static_cast<Layer*>(ptr);
         l->Wrap(args.This());
         return args.This();
     } 
@@ -154,14 +155,11 @@ Handle<Value> Layer::get_prop(Local<String> property,
         return scope.Close(s);  
     }
     else if (a == "datasource") {
-        //return ThrowException(Exception::Error(
-        //   String::New("Not yet implemented")));
-
-        // TODO - return mapnik.Datasource ?
-        
-        Local<Object> params = Object::New();
-        return scope.Close(params);
-        
+        mapnik::datasource_ptr ds = l->layer_->datasource();
+        if (ds)
+        {
+            return Datasource::New(ds);
+        }
     }
     return Undefined();
 }
@@ -175,44 +173,48 @@ void Layer::set_prop(Local<String> property,
     std::string a = TOSTR(property);
     if (a == "name")
     {
-        if (!value->IsString())
+        if (!value->IsString()) {
             ThrowException(Exception::Error(
                String::New("'name' must be a string")));
-        l->layer_->set_name(TOSTR(value));
+        } else {
+            l->layer_->set_name(TOSTR(value));
+        }
     }
     else if (a == "srs")
     {
-        if (!value->IsString())
+        if (!value->IsString()) {
             ThrowException(Exception::Error(
                String::New("'name' must be a string")));
-        l->layer_->set_srs(TOSTR(value));
+        } else {
+            l->layer_->set_srs(TOSTR(value));
+        }
     }
     else if (a == "styles")
     {
         if (!value->IsArray())
             ThrowException(Exception::Error(
                String::New("Must provide an array of style names")));
-        Local<Array> a = Local<Array>::Cast(value->ToObject());
-        // todo - how to check if cast worked?
-        uint32_t i = 0;
-        uint32_t a_length = a->Length();
-        while (i < a_length) {
-            l->layer_->add_style(TOSTR(a->Get(i)));
-            i++;
+        else {
+            Local<Array> a = Local<Array>::Cast(value->ToObject());
+            // todo - how to check if cast worked?
+            uint32_t i = 0;
+            uint32_t a_length = a->Length();
+            while (i < a_length) {
+                l->layer_->add_style(TOSTR(a->Get(i)));
+                i++;
+            }
         }
     }
     else if (a == "datasource")
     {
-        ThrowException(Exception::Error(
-           String::New("Not yet implemented")));
-  
-        /*
-        Local<Object> obj = args[0]->ToObject();
-        if (!Layer::constructor->HasInstance(obj))
-          return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
-        Layer *l = ObjectWrap::Unwrap<Layer>(obj);
-        //l->layer_->zoom_to_box(box);
-        */
+        Local<Object> obj = value->ToObject();
+        if (!Datasource::constructor->HasInstance(obj)) {
+            ThrowException(Exception::TypeError(String::New("mapnik.Datasource expected")));
+        } else {
+            Datasource *d = ObjectWrap::Unwrap<Datasource>(obj);
+            // TODO - addLayer should be add_layer in mapnik
+            l->layer_->set_datasource(d->get());
+        }
     }
 }
 

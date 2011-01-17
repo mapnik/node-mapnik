@@ -35,6 +35,18 @@ Handle<Value> Datasource::New(const Arguments& args)
 {
     HandleScope scope;
 
+    if (!args.IsConstructCall())
+        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+
+    if (args[0]->IsExternal()) 
+    { 
+        //std::clog << "external!\n";
+        Local<External> ext = Local<External>::Cast(args[0]);
+        void* ptr = ext->Value();
+        Datasource* d =  static_cast<Datasource*>(ptr);
+        d->Wrap(args.This());
+        return args.This();
+    } 
     if (!args.Length() == 1){
         return ThrowException(Exception::TypeError(
           String::New("accepts only one argument, an object of key:value datasource options")));
@@ -70,7 +82,7 @@ Handle<Value> Datasource::New(const Arguments& args)
         i++;
     }
 
-    datasource_ptr ds;
+    mapnik::datasource_ptr ds;
     try
     {
         ds = mapnik::datasource_cache::create(params, bind);
@@ -99,6 +111,15 @@ Handle<Value> Datasource::New(const Arguments& args)
     }
 
     return Undefined();
+}
+
+Handle<Value> Datasource::New(mapnik::datasource_ptr ds_ptr) {
+    HandleScope scope;
+    Datasource* d = new Datasource();
+    d->datasource_ = ds_ptr;
+    Handle<Value> ext = External::New(d);
+    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
+    return scope.Close(obj);
 }
 
 Handle<Value> Datasource::parameters(const Arguments& args)

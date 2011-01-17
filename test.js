@@ -14,17 +14,37 @@ assert.throws(function() {mapnik.Datasource({'type': 'foo'})});
 assert.throws(function() { mapnik.Datasource({'type': 'shape'}) });
 assert.ok(new mapnik.Datasource({type: 'shape', file: './examples/data/world_merc.shp'}));
 
-var options = { type : 'shape',
-                file : './examples/data/world_merc.shp'
+// datasource from shapefile
+var options = { type: 'shape',
+                file: './examples/data/world_merc.shp'
               };
-
 var ds = new mapnik.Datasource(options);
 var p = ds.parameters();
 assert.equal(p.type, options.type);
 assert.equal(p.file, options.file);
-process.exit();
-assert.ok(ds.describe());
 assert.ok(ds.features());
+var desc = ds.describe();
+assert.ok(desc);
+
+// same datasource but from json file (originally converted with ogr2ogr)
+var options2 = { type: 'ogr',
+                 file: './examples/data/world_merc.json',
+                 layer_by_index: 0
+               };
+var ds2 = new mapnik.Datasource(options);
+var p2 = ds.parameters();
+assert.equal(p2.type, options.type);
+assert.equal(p2.file, options.file);
+assert.ok(ds2.features());
+// make sure json datasource description
+// matches exactly the data read from shapefile
+var desc2 = ds2.describe();
+assert.equal(desc.length, desc2.length);
+assert.equal(desc.type, desc2.type);
+assert.equal(desc.encoding, desc2.encoding);
+assert.deepEqual(desc.extent, desc2.extent);
+assert.equal(desc.fields.length, desc2.fields.length);
+assert.equal(desc.fields.FIPS, desc2.fields.FIPS);
 
 /* TODO
 
@@ -126,7 +146,7 @@ assert.throws(function() {new mapnik.Map('foo')});
 assert.throws(function() {mapnik.Map('foo')});
 
 // test initial values
-assert.notStrictEqual(map.extent(), [-1.0, -1.0, 0.0, 0.0]);
+assert.deepEqual(map.extent(), [-1.0, -1.0, 0.0, 0.0]);
 
 // Test rendering a blank image
 map.render_to_file('/tmp/nodemap.png');
@@ -159,6 +179,8 @@ map.from_string(style_string, base_url);
 map.zoom_all();
 var expected = [-20037508.3428, -14996604.5082, 20037508.3428, 25078412.1774];
 assert.notStrictEqual(map.extent(), expected);
+//var expected_precise = [-20037508.342789248,-8317435.060598943,20037508.342789244,18399242.72978672];
+//assert.deepEqual(map.extent(), expected_precise);
 
 // Test rendering with actual data
 map.render_to_file('/tmp/world.png');
@@ -200,7 +222,7 @@ assert.equal(last.UN, 643);
 
 // datasource meta data
 var described = map.describe_data();
-assert.notStrictEqual(described.world.extent, [-20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473]);
+assert.deepEqual(described.world.extent, [-20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473]);
 assert.equal(described.world.type, 'vector');
 assert.equal(described.world.encoding, 'utf-8');
 assert.equal(described.world.fields.FIPS, 'String');
@@ -218,19 +240,20 @@ assert.throws(function() {new mapnik.Layer(new mapnik.Layer('foo'))});
 
 // new layer
 var layer = new mapnik.Layer('foo', '+init=epsg:4326');
-assert.ok(layer.name, 'foo');
-assert.ok(layer.srs, '+init=epsg:4326');
-assert.ok(layer.styles, []);
-// TODO
-assert.ok(layer.datasource, {});
+assert.equal(layer.name, 'foo');
+assert.equal(layer.srs, '+init=epsg:4326');
+assert.deepEqual(layer.styles, []);
+// will be empty/undefined
+assert.ok(!layer.datasource);
+layer.datasource = new mapnik.Datasource(options);
+assert.ok(layer.datasource instanceof mapnik.Datasource);
 
 // json representation
 var meta = layer.describe();
-assert.ok(meta.name, 'foo');
-assert.ok(meta.srs, '+init=epsg:4326');
-assert.ok(meta.styles, []);
-// TODO
-//assert.ok(meta.datasource,{});
+assert.equal(meta.name, 'foo');
+assert.equal(meta.srs, '+init=epsg:4326');
+assert.deepEqual(meta.styles, []);
+assert.deepEqual(meta.datasource, options);
 
 
 // actual map including layer with datasource
@@ -239,26 +262,24 @@ map.load('./examples/stylesheet.xml');
 
 // pull a copy out of the map into v8 land
 var layer = map.get_layer(0);
-assert.ok(layer.name, 'world');
-assert.ok(layer.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
-assert.ok(layer.styles.length, 1);
-assert.ok(layer.styles[0], 'style');
-// TODO
-assert.ok(layer.datasource, {});
+assert.equal(layer.name, 'world');
+assert.equal(layer.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+assert.equal(layer.styles.length, 1);
+assert.equal(layer.styles[0], 'style');
+assert.deepEqual(layer.datasource, {});
 
 // json representation
 var meta = layer.describe();
-assert.ok(meta.name, 'world');
-assert.ok(meta.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
-assert.ok(meta.styles.length, 1);
-assert.ok(meta.styles[0], 'style');
+assert.equal(meta.name, 'world');
+assert.equal(meta.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+assert.equal(meta.styles.length, 1);
+assert.deepEqual(meta.styles, ['style']);
 
 // make a change to layer, ensure it sticks
 layer.name = 'a';
 layer.styles = ['a'];
 layer.srs = '+init=epsg:4326';
-// TODO
-assert.throws(function() {layer.datasource = {}});
+layer.datasource = new mapnik.Datasource(options);
 
 // check for change, after adding to map
 // adding to map should release original layer
@@ -266,12 +287,11 @@ assert.throws(function() {layer.datasource = {}});
 map.add_layer(layer);
 var added = map.layers()[1];
 // make sure the layer is an identical copy to what is on map
-assert.ok(added.name, layer.name);
-assert.ok(added.srs, layer.srs);
-assert.ok(added.styles.length, layer.styles.length);
-assert.ok(added.styles[0], layer.styles[0]);
-// TODO
-//assert.ok(added.datasource,layer.datasource);
+assert.equal(added.name, layer.name);
+assert.equal(added.srs, layer.srs);
+assert.deepEqual(added.styles, layer.styles);
+assert.deepEqual(added.datasource, options);
+assert.deepEqual(added.datasource, new mapnik.Datasource(options).parameters());
 
 
 
