@@ -209,7 +209,6 @@ assert.deepEqual(meta.datasource, options);
 
 
 // actual map including layer with datasource
-var mapnik = require('mapnik')
 var map = new mapnik.Map(256, 256);
 map.load('./examples/stylesheet.xml');
 
