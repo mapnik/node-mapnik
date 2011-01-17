@@ -158,7 +158,7 @@ Handle<Value> Layer::get_prop(Local<String> property,
         mapnik::datasource_ptr ds = l->layer_->datasource();
         if (ds)
         {
-            return Datasource::New(ds);
+            return scope.Close(Datasource::New(ds));
         }
     }
     return Undefined();

@@ -159,7 +159,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
     if ( index < layers.size())
     {      
         //mapnik::layer & lay_ref = layers[index];
-        return Layer::New(layers[index]);
+        return scope.Close(Layer::New(layers[index]));
     }
     else
     {
