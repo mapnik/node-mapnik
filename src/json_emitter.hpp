@@ -145,6 +145,42 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         ++itr;
     }
     description->Set(String::NewSymbol("fields"), fields);
+    
+    // get first geometry type using naive first hit approach
+    // TODO proper approach --> https://trac.mapnik.org/ticket/701
+#if MAPNIK_VERSION >= 800
+    mapnik::query q(ds->envelope());
+#else
+    mapnik::query q(ds->envelope(),1.0,1.0);
+#endif
+
+    mapnik::featureset_ptr fs = ds->features(q);
+    description->Set(String::NewSymbol("geometry_type"), Undefined());
+
+    if (fs)
+    {   
+        mapnik::feature_ptr fp = fs->next();
+        if (fp) {
+
+            if (fp->num_geometries() > 0)
+            {
+                mapnik::geometry_type const& geom = fp->get_geometry(0);
+                mapnik::eGeomType g_type = geom.type();
+                if (g_type == mapnik::Point)
+                {
+                    description->Set(String::NewSymbol("geometry_type"), String::New("point"));
+                }
+                else if (g_type == mapnik::Polygon)
+                {
+                    description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));                
+                }
+                else if (g_type == mapnik::LineString)
+                {
+                    description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));                
+                }
+            }
+        }
+    }    
 }
 
 
