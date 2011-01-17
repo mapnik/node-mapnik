@@ -6,58 +6,6 @@ var path = require('path');
 var fs = require('fs');
 
 
-/* Datasource */
-
-assert.throws(function() {mapnik.Datasource('foo')});
-assert.throws(function() {mapnik.Datasource({'foo': 1})});
-assert.throws(function() {mapnik.Datasource({'type': 'foo'})});
-assert.throws(function() { mapnik.Datasource({'type': 'shape'}) });
-assert.ok(new mapnik.Datasource({type: 'shape', file: './examples/data/world_merc.shp'}));
-
-// datasource from shapefile
-var options = { type: 'shape',
-                file: './examples/data/world_merc.shp'
-              };
-var ds = new mapnik.Datasource(options);
-var p = ds.parameters();
-assert.equal(p.type, options.type);
-assert.equal(p.file, options.file);
-assert.ok(ds.features());
-var desc = ds.describe();
-assert.ok(desc);
-
-// same datasource but from json file (originally converted with ogr2ogr)
-var options2 = { type: 'ogr',
-                 file: './examples/data/world_merc.json',
-                 layer_by_index: 0
-               };
-var ds2 = new mapnik.Datasource(options);
-var p2 = ds.parameters();
-assert.equal(p2.type, options.type);
-assert.equal(p2.file, options.file);
-assert.ok(ds2.features());
-// make sure json datasource description
-// matches exactly the data read from shapefile
-var desc2 = ds2.describe();
-assert.equal(desc.length, desc2.length);
-assert.equal(desc.type, desc2.type);
-assert.equal(desc.encoding, desc2.encoding);
-assert.deepEqual(desc.extent, desc2.extent);
-assert.equal(desc.fields.length, desc2.fields.length);
-assert.equal(desc.fields.FIPS, desc2.fields.FIPS);
-
-/* TODO
-
- - expose adding a mapnik.Datasource to a mapnik.Layer
- - wrap Datasource contructor in factory for each 'type'
-
- e.g.
-  Shapefile() // {type:'shape'}
-  PostGIS()   // {type:'postgis'}
-  OSM()       // {type:'osm'}
-
-*/
-
 /* settings */
 
 assert.ok(mapnik.settings);
@@ -245,7 +193,11 @@ assert.equal(layer.srs, '+init=epsg:4326');
 assert.deepEqual(layer.styles, []);
 // will be empty/undefined
 assert.ok(!layer.datasource);
-layer.datasource = new mapnik.Datasource(options);
+var options = { type: 'shape',
+                file: './examples/data/world_merc.shp'
+              };
+var ds = new mapnik.Datasource(options);
+layer.datasource = ds;
 assert.ok(layer.datasource instanceof mapnik.Datasource);
 
 // json representation
@@ -257,6 +209,7 @@ assert.deepEqual(meta.datasource, options);
 
 
 // actual map including layer with datasource
+var mapnik = require('mapnik')
 var map = new mapnik.Map(256, 256);
 map.load('./examples/stylesheet.xml');
 
@@ -266,7 +219,11 @@ assert.equal(layer.name, 'world');
 assert.equal(layer.srs, '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
 assert.equal(layer.styles.length, 1);
 assert.equal(layer.styles[0], 'style');
+// datasource has no properties atm...
 assert.deepEqual(layer.datasource, {});
+// but it does have functions
+assert.deepEqual(layer.datasource.describe(), map.describe_data().world);
+
 
 // json representation
 var meta = layer.describe();
@@ -293,6 +250,57 @@ assert.deepEqual(added.styles, layer.styles);
 assert.deepEqual(added.datasource, options);
 assert.deepEqual(added.datasource, new mapnik.Datasource(options).parameters());
 
+
+
+/* Datasource */
+
+assert.throws(function() {mapnik.Datasource('foo')});
+assert.throws(function() {mapnik.Datasource({'foo': 1})});
+assert.throws(function() {mapnik.Datasource({'type': 'foo'})});
+assert.throws(function() { mapnik.Datasource({'type': 'shape'}) });
+assert.ok(new mapnik.Datasource({type: 'shape', file: './examples/data/world_merc.shp'}));
+
+// datasource from shapefile
+// options defined above
+var ds = new mapnik.Datasource(options);
+var p = ds.parameters();
+assert.equal(p.type, options.type);
+assert.equal(p.file, options.file);
+assert.ok(ds.features());
+var desc = ds.describe();
+assert.ok(desc);
+
+// same datasource but from json file (originally converted with ogr2ogr)
+var options2 = { type: 'ogr',
+                 file: './examples/data/world_merc.json',
+                 layer_by_index: 0
+               };
+var ds2 = new mapnik.Datasource(options);
+var p2 = ds.parameters();
+assert.equal(p2.type, options.type);
+assert.equal(p2.file, options.file);
+assert.ok(ds2.features());
+// make sure json datasource description
+// matches exactly the data read from shapefile
+var desc2 = ds2.describe();
+assert.equal(desc.length, desc2.length);
+assert.equal(desc.type, desc2.type);
+assert.equal(desc.encoding, desc2.encoding);
+assert.deepEqual(desc.extent, desc2.extent);
+assert.equal(desc.fields.length, desc2.fields.length);
+assert.equal(desc.fields.FIPS, desc2.fields.FIPS);
+
+
+/* TODO
+
+ - wrap Datasource contructor in factory for each 'type'
+
+ e.g.
+  Shapefile() // {type:'shape'}
+  PostGIS()   // {type:'postgis'}
+  OSM()       // {type:'osm'}
+
+*/
 
 
 /* Projection */
