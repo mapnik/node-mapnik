@@ -1,16 +1,16 @@
 all: mapnik.node
 
 install: all
-	node-waf -v build install
+	node-waf build install
 
 mapnik.node:
-	node-waf -v build
+	node-waf build
 
 clean:
-	node-waf -v clean distclean
+	node-waf clean distclean
 
 uninstall:
-	node-waf -v uninstall
+	node-waf uninstall
 
 test:
 	node test.js
