@@ -15,6 +15,10 @@
   "contributors"  : [],
   "licenses"      : ["BSD"],
   "dependencies"  : [],
+  "bin"           : { 
+       "mapnik-inspect.js" : "./bin/mapnik-inspect.js" 
+       "mapnik-render.js"  : "./bin/mapnik-render.js" 
+   },
    // seems uneeded
    //"lib"           : "mapnik",
    "directories"  : {
