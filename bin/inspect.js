@@ -2,33 +2,39 @@
 
 var path = require('path');
 
-var usage = 'usage:\n inspect.js <datasource> \n inspect.js <stylesheet>';
+var usage = 'usage:\n  inspect.js <datasource> (.shp|.json)';
+usage += '\n  inspect.js <stylesheet> (.xml)';
+usage += '\n  inspect.js <projection> (.prj)';
 
-var ds = process.ARGV[2];
-if (!ds) {
+var obj = process.ARGV[2];
+if (!obj) {
    console.log(usage);
    process.exit(1);
 }
 
-if (!path.existsSync(ds)) {
-    console.log(ds + ' does not exist');
+if (!path.existsSync(obj)) {
+    console.log(obj + ' does not exist');
     process.exit(1);
 }
 
 var mapnik = require('mapnik');
 
-if (/.shp$/.test(ds)) {
-    var opened = new mapnik.Datasource({type: 'shape', file: ds});
+if (/.shp$/.test(obj)) {
+    var opened = new mapnik.Datasource({type: 'shape', file: obj});
     console.log(opened.describe());
 }
-else if ((/.json$/.test(ds)) || (/.geojson$/.test(ds))) {
-    var opened = new mapnik.Datasource({type: 'ogr', file: ds, 'layer_by_index': 0});
+else if ((/.json$/.test(obj)) || (/.geojson$/.test(obj))) {
+    var opened = new mapnik.Datasource({type: 'ogr', file: obj, 'layer_by_index': 0});
     console.log(opened.describe());
 }
-else if (/.xml$/.test(ds)) {
+else if (/.xml$/.test(obj)) {
     var map = new mapnik.Map(1,1);
-    map.load(ds);
+    map.load(obj);
     console.log(map.layers());
+}
+else if (/.prj$/.test(obj)) {
+    var srs = require('srs');
+    console.log(srs.parse(obj));
 }
 else {
     console.log('only currently supports shapefiles and geojson datasources or mapnik xml');
