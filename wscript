@@ -19,9 +19,6 @@ settings = 'lib/settings.js'
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
 AUTOCONFIGURE = True
 
-# attempt to configure with cairo support
-CAIRO = True
-
 # this goes into a settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
@@ -91,22 +88,12 @@ def configure(conf):
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
         ensure_min_mapnik_revision(conf)
 
-        if CAIRO:
-            pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
-            if not pkg_config:
-                Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
-            else:
-                cmd = '%s cairomm-1.0' %  pkg_config
-                if not int(call(cmd.split(' '))) >= 0:
-                    Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
-                else:
-                    Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
-                    cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
-
-                
-        # todo - check return value of popen other we can end up with
+        # todo - check return value of popen otherwise we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
-        linkflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
+        all_ldflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')
+        
+        # only link to libmapnik, which should be in first two flags
+        linkflags = all_ldflags[:2]
 
         # add prefix to linkflags if it is unique
         prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
@@ -122,6 +109,21 @@ def configure(conf):
         # uneeded currently as second item from mapnik-config is -lmapnik2
         #conf.env.append_value("LIB_MAPNIK", "mapnik2")
         
+        if '-lcairo' in all_ldflags:
+            pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
+            if not pkg_config:
+                Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
+            else:
+                cmd = '%s cairomm-1.0' %  pkg_config
+                if not int(call(cmd.split(' '))) >= 0:
+                    Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
+                else:
+                    Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
+                    cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
+        else:
+            Utils.pprint('YELLOW','Notice: "mapnik-config --libs" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
+            
+
         # TODO - too much potential pollution here, need to limit this upstream
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
         if os.path.exists('/Library/Frameworks/Mapnik.framework'):
