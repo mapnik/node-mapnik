@@ -24,12 +24,16 @@
 //#include <mapnik/params.hpp>
 //#include <mapnik/feature_layer_desc.hpp>
 
+#if defined(HAVE_CAIRO)
+#include <mapnik/cairo_renderer.hpp>
+#endif
+
 #include <mapnik/version.hpp>
 
 #include "utils.hpp"
 #include "mapnik_map.hpp"
-#include "mapnik_layer.hpp"
 #include "json_emitter.hpp"
+#include "mapnik_layer.hpp"
 
 
 Persistent<FunctionTemplate> Map::constructor;
@@ -661,18 +665,68 @@ Handle<Value> Map::render_to_string(const Arguments& args)
 Handle<Value> Map::render_to_file(const Arguments& args)
 {
     HandleScope scope;
-    if (args.Length() != 1 || !args[0]->IsString())
+    if (!args.Length() >= 1 || !args[0]->IsString())
       return ThrowException(Exception::TypeError(
-        String::New("first argument must be a path to a mapnik stylesheet")));
+        String::New("first argument must be a path to a file to save")));
+
+    if (args.Length() > 2)
+      return ThrowException(Exception::TypeError(
+        String::New("accepts two arguments, a required path to a file, and an optional options object, eg. {format: 'pdf'}")));
+
+    std::string format("");
+    
+    if (args.Length() == 2){
+      if (!args[1]->IsObject())
+        return ThrowException(Exception::TypeError(
+          String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
+  
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(String::New("format")))
+        {
+            Local<Value> format_opt = options->Get(String::New("format"));
+            if (!format_opt->IsString())
+              return ThrowException(Exception::TypeError(
+                String::New("'format' must be a String")));
+            
+            format = TOSTR(format_opt);
+        }
+    }
         
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& output = TOSTR(args[0]);
-  
-    mapnik::image_32 im(m->map_->width(),m->map_->height());
-    mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
+    
+    if (format.empty()) {
+        format = mapnik::guess_type(output);
+        if (format == "<unknown>") {
+            std::ostringstream s("");
+            s << "unknown output extension for: " << output << "\n";
+            return ThrowException(Exception::Error(
+                String::New(s.str().c_str())));
+        }
+            
+    }
+    
     try
     {
-      ren.apply();
+
+        if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
+        {
+    #if defined(HAVE_CAIRO)
+            mapnik::save_to_cairo_file(*m->map_,output,format);
+    #else
+            std::ostringstream s("");
+            s << "Cairo backend is not available, cannot write to " << format << "\n";
+            return ThrowException(Exception::Error(
+              String::New(s.str().c_str())));
+    #endif
+        }
+        else 
+        {
+            mapnik::image_32 im(m->map_->width(),m->map_->height());
+            mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
+            ren.apply();
+            mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+        }
     }
     catch (const mapnik::config_error & ex )
     {
@@ -689,13 +743,17 @@ Handle<Value> Map::render_to_file(const Arguments& args)
       return ThrowException(Exception::Error(
         String::New(ex.what())));
     }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+      return ThrowException(Exception::Error(
+        String::New(ex.what())));
+    }
     catch (...)
     {
       return ThrowException(Exception::TypeError(
         String::New("unknown exception happened while rendering the map, please submit a bug report")));    
     }
   
-    mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
     return Undefined();
 }
 

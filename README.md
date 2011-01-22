@@ -52,6 +52,10 @@
     
   For more details see 'docs/install.txt'
 
+  Or you can install via npm:
+  
+    $ npm install mapnik
+
 
 ## Quick rendering test
 

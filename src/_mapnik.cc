@@ -26,6 +26,13 @@
 // boost
 #include <boost/version.hpp>
 
+
+// cairo
+
+#if defined(HAVE_CAIRO)
+#include <cairo-version.h>
+#endif
+
 using namespace node;
 using namespace v8;
 
@@ -174,8 +181,27 @@ extern "C" {
     versions->Set(String::NewSymbol("boost_number"), Integer::New(BOOST_VERSION));
     versions->Set(String::NewSymbol("mapnik"), String::New(format_version(MAPNIK_VERSION).c_str()));
     versions->Set(String::NewSymbol("mapnik_number"), Integer::New(MAPNIK_VERSION));
+    #if defined(HAVE_CAIRO)
+      std::ostringstream s;
+      s << CAIRO_VERSION_MAJOR << "." << CAIRO_VERSION_MINOR << "." << CAIRO_VERSION_MICRO;
+      versions->Set(String::NewSymbol("cairo"), String::New(s.str().c_str()));
+    #endif
     target->Set(String::NewSymbol("versions"), versions);
 
+    // built in support
+    Local<Object> supports = Object::New();
+    #if defined(HAVE_CAIRO)
+      supports->Set(String::NewSymbol("cairo"), Boolean::New(true));
+    #else
+      supports->Set(String::NewSymbol("cairo"), Boolean::New(false));
+    #endif
+    #if defined(HAVE_JPEG)
+      supports->Set(String::NewSymbol("jpeg"), Boolean::New(true));
+    #else
+      supports->Set(String::NewSymbol("jpeg"), Boolean::New(false));
+    #endif
+    target->Set(String::NewSymbol("supports"), supports);
+    
   }
 
   NODE_MODULE(_mapnik, init);

@@ -19,6 +19,9 @@ settings = 'lib/settings.js'
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
 AUTOCONFIGURE = True
 
+# attempt to configure with cairo support
+CAIRO = True
+
 # this goes into a settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
@@ -75,6 +78,7 @@ def configure(conf):
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     settings_dict = {}
+    cairo_cxxflags = []
 
     # use mapnik-config to build against mapnik2/trunk
     if AUTOCONFIGURE:
@@ -86,7 +90,20 @@ def configure(conf):
 
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
         ensure_min_mapnik_revision(conf)
-        
+
+        if CAIRO:
+            pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
+            if not pkg_config:
+                Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
+            else:
+                cmd = '%s cairomm-1.0' %  pkg_config
+                if not int(call(cmd.split(' '))) >= 0:
+                    Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
+                else:
+                    Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
+                    cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
+
+                
         # todo - check return value of popen other we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
         linkflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')[:2]
@@ -109,6 +126,11 @@ def configure(conf):
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
         if os.path.exists('/Library/Frameworks/Mapnik.framework'):
             cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
+        
+        # if cairo is available
+        if cairo_cxxflags:
+            cxxflags.append('-DHAVE_CAIRO')
+            cxxflags.extend(cairo_cxxflags)
 
         # add prefix to includes if it is unique
         prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
@@ -188,15 +210,13 @@ def build(bld):
     obj.source += "src/mapnik_layer.cpp "
     obj.source += "src/mapnik_datasource.cpp "
     obj.uselib = "MAPNIK"
-    files = glob('lib/*')
-    # loop to make sure we can install
-    # directories as well as files
-    for f in files:
-        if os.path.isdir(f):
-            path = f.replace('lib','mapnik')
-            bld.install_files('${PREFIX}/lib/node/%s' % path, '%s/*' % path)
-        else:
-            bld.install_files('${PREFIX}/lib/node/mapnik/', f)
+    # install 'mapnik' module
+    lib_dir = bld.path.find_dir('./lib')
+    bld.install_files('${PREFIX}/lib/node/mapnik', lib_dir.ant_glob('**/*'), cwd=lib_dir, relative_trick=True)
+    # install command line programs
+    bin_dir = bld.path.find_dir('./bin')
+    bld.install_files('${PREFIX}/bin', bin_dir.ant_glob('*'), cwd=bin_dir, relative_trick=True, chmod=0755)
+    
 
 def shutdown():
     if Options.commands['clean']:
