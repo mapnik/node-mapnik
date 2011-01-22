@@ -25,7 +25,10 @@ console.log(obj);
 
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
+    console.log('Description -->');
     console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0,1));
 }
 else if ((/.json$/.test(obj))
          || (/.geojson$/.test(obj))
@@ -38,7 +41,10 @@ else if ((/.json$/.test(obj))
          || (/.dbf$/.test(obj))
         ) {
     var opened = new mapnik.Datasource({type: 'ogr', file: obj, 'layer_by_index': 0});
+    console.log('Description -->');
     console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0,1));
 }
 else if (/.xml$/.test(obj)) {
     var map = new mapnik.Map(1,1);
