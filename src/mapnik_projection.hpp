@@ -5,6 +5,9 @@
 #include <node.h>
 #include <node_object_wrap.h>
 
+// boost
+#include <boost/shared_ptr.hpp>
+
 #include <mapnik/projection.hpp>
 
 using namespace v8;
@@ -30,3 +33,4 @@ class Projection: public node::ObjectWrap {
 };
 
 #endif
+

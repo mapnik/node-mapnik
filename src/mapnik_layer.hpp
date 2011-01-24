@@ -5,6 +5,9 @@
 #include <node.h>
 #include <node_object_wrap.h>
 
+// boost
+#include <boost/shared_ptr.hpp>
+
 #include <mapnik/layer.hpp>
 
 using namespace v8;

@@ -5,6 +5,9 @@
 #include <node.h>
 #include <node_object_wrap.h>
 
+// boost
+#include <boost/shared_ptr.hpp>
+
 #include <mapnik/map.hpp>
 #include "mapnik_layer.hpp"
 
