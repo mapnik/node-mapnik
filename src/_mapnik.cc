@@ -36,6 +36,19 @@
 using namespace node;
 using namespace v8;
 
+/**
+ * Optional notification that the embedder is idle.
+ * V8 uses the notification to reduce memory footprint.
+ * This call can be used repeatedly if the embedder remains idle.
+ * Returns true if the embedder should stop calling IdleNotification
+ * until real work has been done.  This indicates that V8 has done
+ * as much cleanup as it will be able to do.
+ */
+static Handle<Value> gc(const Arguments& args)
+{
+  HandleScope scope;
+  return scope.Close(Boolean::New(V8::IdleNotification()));
+}
 
 static Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
 {
@@ -157,6 +170,7 @@ extern "C" {
     NODE_SET_METHOD(target, "datasources", available_input_plugins);
     NODE_SET_METHOD(target, "register_fonts", register_fonts);
     NODE_SET_METHOD(target, "fonts", available_font_faces);
+    NODE_SET_METHOD(target, "gc", gc);
         
     // Map
     Map::Initialize(target);
