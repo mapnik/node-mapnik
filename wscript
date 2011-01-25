@@ -203,6 +203,7 @@ def configure(conf):
     write_mapnik_settings(**settings_dict)
 
 def build(bld):
+    Options.options.jobs = 1;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
