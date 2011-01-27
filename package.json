@@ -1,6 +1,6 @@
 {
   "name"          : "mapnik",
-  "version"       : "0.2.2",
+  "version"       : "0.2.3",
   "main"          : "./lib/index.js",
   "description"   : "C++ map rendering library for node",
   "keywords"      : ["map", "graphics", "canvas", "tile"],
@@ -8,16 +8,16 @@
    "repositories" : [
        {
            "type" : "git",
-           "url"  : "git://github.com/mapnik/node-mapnik.git" 
-       } 
+           "url"  : "git://github.com/mapnik/node-mapnik.git"
+       }
    ],
   "author"        : "Dane Springmeyer <dane@dbsgeo.com>",
   "contributors"  : [],
   "licenses"      : ["BSD"],
   "dependencies"  : [],
-  "bin"           : { 
-       "mapnik-inspect.js" : "./bin/mapnik-inspect.js" 
-       "mapnik-render.js"  : "./bin/mapnik-render.js" 
+  "bin"           : {
+       "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
+       "mapnik-render.js"  : "./bin/mapnik-render.js"
    },
    // seems uneeded
    //"lib"           : "mapnik",
