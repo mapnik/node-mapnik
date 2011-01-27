@@ -4,19 +4,24 @@
   Bindings to the [Mapnik](http://mapnik.org) tile rendering library for [node](http://nodejs.org).
   
     var mapnik = require('mapnik');
-    var express = require('express');
+    var http = require('http');
     
-    var app = express.createServer();
-        
-    app.get('/', function(req, res) {
+    var port = 8000;
+    
+    http.createServer(function (req, res) {
       var map = new mapnik.Map(256,256);
       map.load("./examples/stylesheet.xml");
       map.zoom_all();
-      res.contentType("tile.png");
-      res.send(map.render_to_string());      
-    });
-    
-    app.listen(8000);
+      map.render(map.extent(),"png",function(err,buffer){
+          if (err) {
+            res.writeHead(500, {'Content-Type':'text/plain'});
+            res.end(err.message);
+          } else {
+            res.writeHead(200, {'Content-Type':'image/png'});
+            res.end(buffer);
+          }
+      });
+    }).listen(port);
   
   For more see 'examples/'
 
@@ -27,14 +32,14 @@
   
   Developed on OS X (10.6)
   
-  Also tested on Debian Squeeze and Centos 5.4.
+  Tested on Debian Squeeze and Centos 5.4.
   
 
 ## Depends
 
   node (development headers)
   
-  mapnik (latest trunk)
+  mapnik (latest trunk >r2397)
 
 
 ## Installation
@@ -43,7 +48,9 @@
   
     $ git clone git://github.com/mapnik/node-mapnik.git
     $ cd node-mapnik
-    $ node-waf configure build install
+    $ ./configure
+    $ make
+    $ sudo make install
     $ node test.js
 
   Make sure the node modules is on your path:
@@ -69,11 +76,6 @@
 ## Examples
 
   See the 'examples/' folder for more usage examples.
-
-
-## In Action
-
-  See https://github.com/tmcw/tilelive.js
 
 
 ## License
