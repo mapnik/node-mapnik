@@ -43,8 +43,8 @@ class Map: public node::ObjectWrap {
     static Handle<Value> add_layer(const Arguments &args);
     static Handle<Value> get_layer(const Arguments &args);
         
-    static int EIO_render(eio_req *req);
-    static int EIO_render_follow(eio_req *req);
+    static int EIO_Render(eio_req *req);
+    static int EIO_AfterRender(eio_req *req);
     
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);

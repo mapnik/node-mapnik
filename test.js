@@ -101,7 +101,8 @@ map.render_to_file('/tmp/nodemap.png');
 assert.ok(path.existsSync('/tmp/nodemap.png'));
 
 // test async rendering
-map.render(map.extent(), function(buffer) {
+map.render(map.extent(),"png", function(err,buffer) {
+       if (err) throw err;
        fs.writeFile('/tmp/nodemap_async.png', buffer, function(err) {
            if (err) throw err;
            assert.ok(path.existsSync('/tmp/nodemap_async.png'));

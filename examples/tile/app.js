@@ -6,7 +6,7 @@ var mapnik   = require('mapnik')
   , url      = require('url')
   , tile     = 256
   , img      = 'google_point_8.png'
-  , async_render = false;
+  , async_render = true;
 
 var usage = 'usage: app.js <port>';
 
@@ -51,8 +51,8 @@ ds += '<Parameter name="geometry_field">the_geom</Parameter>';
 ds += '<Parameter name="srid">900913</Parameter>';
 ds += '<Parameter name="type">postgis</Parameter>';
 ds += '<Parameter name="user">postgres</Parameter>';
-ds += '<Parameter name="initial_size">1</Parameter>';
-ds += '<Parameter name="max_size">1</Parameter>';
+ds += '<Parameter name="initial_size">10</Parameter>';
+ds += '<Parameter name="max_size">10</Parameter>';
 ds += '<Parameter name="table">';
 ds += table;
 ds += '</Parameter>';
@@ -79,11 +79,18 @@ http.createServer(function (request, response) {
       var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false)
 
       map.from_string(s,'./')
+      //map.load('../../examples/stylesheet.xml')
       
-      //not yet safe for children
       if (async_render) {
-          map.render(bbox,function(image){
-                     response.end(image);
+          map.render(bbox,"png",function(err, image){
+              if (err) {
+                  response.writeHead(500, {
+                    'Content-Type':'text/plain'
+                  });
+                  response.end(err.message);
+              } else {
+                  response.end(image);          
+              }
           });
       }
       else {
