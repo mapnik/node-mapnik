@@ -6,6 +6,7 @@ var mapnik   = require('mapnik')
   , url      = require('url')
   , tile     = 256
   , img      = 'google_point_8.png'
+  , path     = require('path')
   , async_render = true;
 
 var usage = 'usage: app.js <port>';
@@ -20,15 +21,15 @@ if (!port) {
 // postgis table
 var table = 'points9';
 
-var merc = '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +over';
-
+//var merc = '+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +over';
+var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
 
 // here we build up map object using an XML string
 // in time I will expose the mapnik api to do be able
 // to do this in pure javascript...
 
 // map
-var s = '<Map srs="' + merc + '">';
+var s = '<Map buffer_size="128" srs="' + merc + '">';
 
 // style
 s += '<Style name="style">';
@@ -51,8 +52,8 @@ ds += '<Parameter name="geometry_field">the_geom</Parameter>';
 ds += '<Parameter name="srid">900913</Parameter>';
 ds += '<Parameter name="type">postgis</Parameter>';
 ds += '<Parameter name="user">postgres</Parameter>';
-ds += '<Parameter name="initial_size">10</Parameter>';
-ds += '<Parameter name="max_size">10</Parameter>';
+ds += '<Parameter name="initial_size">1</Parameter>';
+ds += '<Parameter name="max_size">1</Parameter>';
 ds += '<Parameter name="table">';
 ds += table;
 ds += '</Parameter>';
@@ -78,8 +79,9 @@ http.createServer(function (request, response) {
 
       var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false)
 
-      map.from_string(s,'./')
+      map.from_string(s,path.join(__dirname,'./'))
       //map.load('../../examples/stylesheet.xml')
+      //console.log(map.to_string());
       
       if (async_render) {
           map.render(bbox,"png",function(err, image){
