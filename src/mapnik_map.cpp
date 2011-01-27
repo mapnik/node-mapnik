@@ -556,7 +556,6 @@ int Map::EIO_Render(eio_req *req)
         ren.apply();
         closure->im_string = save_to_string(im, closure->format);
     }
-    /*
     catch (const mapnik::config_error & ex )
     {
         closure->error = true;
@@ -567,12 +566,21 @@ int Map::EIO_Render(eio_req *req)
         closure->error = true;
         closure->error_name = ex.what();
     }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
     catch (const std::runtime_error & ex )
     {
         closure->error = true;
         closure->error_name = ex.what();
     }
-    */
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
     catch (std::exception & ex)
     {
         closure->error = true;
