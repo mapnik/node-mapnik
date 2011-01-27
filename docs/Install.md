@@ -14,8 +14,8 @@
 ## Requirements
 
   Mapnik compiled against libtool (ltdl) >= 2.x.x
-  Mapnik trunk >= 2401
-  Node >= 0.2
+  Mapnik trunk > 2397
+  Node >= 0.2.4
 
 
 ## More info
@@ -43,6 +43,7 @@
     $ cd node
     $ ./configure && make && make install
 
+
 ## Install node-mapnik
 
   Then install node-mapnik:
@@ -54,11 +55,16 @@
   Or use the make wrappers:
   
     ./configure
-    make && make install
+    make && sudo make install
 
   If you want to use a custom prefix do:
   
     $ node-waf --prefix=/opt/mapnik configure build install
+  
+  or:
+
+    $ ./configure --prefix=/opt/mapnik make && sudo make install
+  
   
 ## Alternative install with npm (http://npmjs.org/):
 

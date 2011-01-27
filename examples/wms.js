@@ -70,8 +70,15 @@ http.createServer(function (request, response) {
       }
       
       if (async_render) {
-          map.render(bbox,function(image){
-                     response.end(image);
+          map.render(bbox,"png",function(err, image){
+              if (err) {
+                  response.writeHead(500, {
+                    'Content-Type':'text/plain'
+                  });
+                  response.end(err.message);
+              } else {
+                  response.end(image);          
+              }
           });
       }
       else {
