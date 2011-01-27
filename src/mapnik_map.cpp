@@ -632,45 +632,67 @@ int Map::EIO_AfterRender(eio_req *req)
 Handle<Value> Map::render_to_string(const Arguments& args)
 {
     HandleScope scope;
+
+    if (!args.Length() >= 1 || !args[0]->IsString())
+      return ThrowException(Exception::TypeError(
+        String::New("argument must be a format string")));
+
+    std::string format = TOSTR(args[0]);
+    
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    mapnik::image_32 im(m->map_->width(),m->map_->height());
-    mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
+    std::string s;
     try
     {
-      ren.apply();
+        mapnik::image_32 im(m->map_->width(),m->map_->height());
+        mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
+        ren.apply();
+        //std::string ss = mapnik::save_to_string<mapnik::image_data_32>(im.data(),"png");
+        s = save_to_string(im, format);
+
     }
-    // proj_init_error
     catch (const mapnik::config_error & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (const mapnik::datasource_exception & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (const std::runtime_error & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (...)
     {
-      return ThrowException(Exception::TypeError(
-        String::New("unknown exception happened while rendering the map, please submit a bug report")));    
+        return ThrowException(Exception::TypeError(
+          String::New("unknown exception happened while rendering the map, please submit a bug report")));    
     }
     
-    // TODO - expose format
-    std::string s = save_to_string(im, "png");
-    //std::string ss = mapnik::save_to_string<mapnik::image_data_32>(im.data(),"png");
+    #if NODE_VERSION_AT_LEAST(0,3,0)
+      node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+    #else
+      node::Buffer *retbuf = Buffer::New(s.size());
+      memcpy(retbuf->data(), s.data(), s.size());
+    #endif
     
-  #if NODE_VERSION_AT_LEAST(0,3,0)
-    node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
-  #else
-    node::Buffer *retbuf = Buffer::New(s.size());
-    memcpy(retbuf->data(), s.data(), s.size());
-  #endif
     return scope.Close(retbuf->handle_);
 }
 
@@ -714,8 +736,7 @@ Handle<Value> Map::render_to_file(const Arguments& args)
             s << "unknown output extension for: " << output << "\n";
             return ThrowException(Exception::Error(
                 String::New(s.str().c_str())));
-        }
-            
+        }      
     }
     
     try
@@ -742,30 +763,39 @@ Handle<Value> Map::render_to_file(const Arguments& args)
     }
     catch (const mapnik::config_error & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (const mapnik::datasource_exception & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (const std::runtime_error & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (const mapnik::ImageWriterException & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
     }
     catch (...)
     {
-      return ThrowException(Exception::TypeError(
-        String::New("unknown exception happened while rendering the map, please submit a bug report")));    
-    }
-  
+        return ThrowException(Exception::TypeError(
+          String::New("unknown exception happened while rendering the map, please submit a bug report")));    
+    }  
     return Undefined();
 }
 
