@@ -23,8 +23,10 @@ class Map: public node::ObjectWrap {
     static Handle<Value> New(const Arguments &args);
     
     static Handle<Value> load(const Arguments &args);
+    static Handle<Value> save(const Arguments &args);
     static Handle<Value> clear(const Arguments &args);
     static Handle<Value> from_string(const Arguments &args);
+    static Handle<Value> to_string(const Arguments &args);
     static Handle<Value> resize(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);

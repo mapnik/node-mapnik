@@ -11,6 +11,7 @@
 #include <mapnik/image_util.hpp>
 #include <mapnik/config_error.hpp>
 #include <mapnik/load_map.hpp>
+#include <mapnik/save_map.hpp>
 #include <mapnik/query.hpp>
 
 // careful, missing include gaurds: http://trac.mapnik.org/changeset/2516 
@@ -50,8 +51,10 @@ void Map::Initialize(Handle<Object> target) {
     constructor->SetClassName(String::NewSymbol("Map"));
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "from_string", from_string);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "to_string", to_string);
     NODE_SET_PROTOTYPE_METHOD(constructor, "resize", resize);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
@@ -373,6 +376,20 @@ Handle<Value> Map::load(const Arguments& args)
     return Undefined();
 }
 
+Handle<Value> Map::save(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() != 1 || !args[0]->IsString())
+      return ThrowException(Exception::TypeError(
+        String::New("first argument must be a path to map.xml to save")));
+        
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    std::string const& filename = TOSTR(args[0]);
+    bool explicit_defaults = false;
+    mapnik::save_map(*m->map_,filename,explicit_defaults);
+    return Undefined();
+}
+
 Handle<Value> Map::from_string(const Arguments& args)
 {
     HandleScope scope;
@@ -410,6 +427,14 @@ Handle<Value> Map::from_string(const Arguments& args)
     return Undefined();
 }
 
+Handle<Value> Map::to_string(const Arguments& args)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    bool explicit_defaults = false;
+    std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
+    return scope.Close(String::New(map_string.c_str()));
+}
 
 Handle<Value> Map::extent(const Arguments& args)
 {
