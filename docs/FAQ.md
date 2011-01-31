@@ -50,3 +50,11 @@ Q: When trying to install node-mapnik I get:
     make: *** [mapnik.node] Error 127
 
 A: node-waf is the build tool provided with a node install, make sure you have node installed
+
+Q: I get a compile error like:
+
+    [1/6] cxx: src/_mapnik.cc -> build/default/src/_mapnik_1.o
+    ../src/_mapnik.cc:240: error: expected constructor, destructor, or type conversion before '(' token
+    ../src/_mapnik.cc:184: warning: 'void init(v8::Handle<v8::Object>)' defined but not used
+
+A: Your node version is too old, upgrade to at least node 0.2.4
