@@ -5,6 +5,9 @@
 #include "utils.hpp"
 #include "json_emitter.hpp"
 
+// stl
+#include <exception>
+
 Persistent<FunctionTemplate> Datasource::constructor;
 
 void Datasource::Initialize(Handle<Object> target) {
@@ -101,6 +104,16 @@ Handle<Value> Datasource::New(const Arguments& args)
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
+    }
+    catch (const std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened, please file bug")));
     }
     if (ds)
     {
