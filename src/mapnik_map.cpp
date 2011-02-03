@@ -54,7 +54,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "from_string", from_string);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "to_string", to_string);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "to_string", toString);
     NODE_SET_PROTOTYPE_METHOD(constructor, "resize", resize);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
@@ -606,7 +606,7 @@ int Map::EIO_Render(eio_req *req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-    catch (std::exception & ex)
+    catch (const std::exception & ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
