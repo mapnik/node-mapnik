@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var mapnik   = require('mapnik')
-  , mercator = require('./sphericalmercator')
+  , mercator = require('mapnik/sphericalmercator')
   , http     = require('http')
   , url      = require('url')
   , tile     = 256
