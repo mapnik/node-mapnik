@@ -1,4 +1,5 @@
 build
+.notes.txt
 .lock-wscript
 .DS_Store
 lib/_mapnik.node
