@@ -163,12 +163,24 @@ Handle<Value> Datasource::features(const Arguments& args)
 {
 
     HandleScope scope;
+
+    unsigned first = 0;
+    unsigned last = 0;
+    // we are slicing
+    if (args.Length() == 2)
+    {
+        if (!args[0]->IsNumber() || !args[1]->IsNumber())
+            return ThrowException(Exception::Error(
+               String::New("Index of 'first' and 'last' feature must be an integer")));
+        first = args[0]->IntegerValue();
+        last = args[1]->IntegerValue();
+    }
   
     Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
   
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
-    datasource_features(a,d->datasource_);
+    datasource_features(a,d->datasource_,first,last);
 
     return scope.Close(a);
 }

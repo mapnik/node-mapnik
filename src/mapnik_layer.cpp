@@ -248,6 +248,19 @@ Handle<Value> Layer::features(const Arguments& args)
 {
 
     HandleScope scope;
+
+    unsigned first = 0;
+    unsigned last = 0;
+    // we are slicing
+    if (args.Length() == 2)
+    {
+        if (!args[0]->IsNumber() || !args[1]->IsNumber())
+            return ThrowException(Exception::Error(
+               String::New("Index of 'first' and 'last' feature must be an integer")));
+        first = args[0]->IntegerValue();
+        last = args[1]->IntegerValue();
+    }
+
   
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
   
@@ -256,7 +269,7 @@ Handle<Value> Layer::features(const Arguments& args)
     mapnik::datasource_ptr ds = l->layer_->datasource();
     if (ds)
     {
-        datasource_features(a,ds);
+        datasource_features(a,ds,first,last);
     }
   
     return scope.Close(a);

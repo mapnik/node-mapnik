@@ -169,6 +169,11 @@ assert.equal(last.REGION, 150);
 assert.equal(last.SUBREGION, 151);
 assert.equal(last.UN, 643);
 
+// feature slicing, just just what you want
+var three_features = map.features(0,0,2); // for first and only layer
+assert.equal(three_features.length, 3);
+
+
 // datasource meta data
 var described = map.describe_data();
 assert.deepEqual(described.world.extent, [-20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473]);

@@ -253,13 +253,26 @@ Handle<Value> Map::features(const Arguments& args)
 {
     HandleScope scope;
   
-    if (!args.Length() == 1)
+    if (!args.Length() >= 1)
       return ThrowException(Exception::Error(
         String::New("Please provide layer index")));
   
     if (!args[0]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("layer index must be an integer")));
+
+    unsigned first = 0;
+    unsigned last = 0;
+    
+    // we are slicing
+    if (args.Length() == 3)
+    {
+        if (!args[1]->IsNumber() || !args[2]->IsNumber())
+            return ThrowException(Exception::Error(
+               String::New("Index of 'first' and 'last' feature must be an integer")));
+        first = args[1]->IntegerValue();
+        last = args[2]->IntegerValue();
+    }
   
     unsigned index = args[0]->IntegerValue();
   
@@ -275,7 +288,7 @@ Handle<Value> Map::features(const Arguments& args)
         mapnik::datasource_ptr ds = layer.datasource();
         if (ds)
         {
-            datasource_features(a,ds);
+            datasource_features(a,ds,first,last);
         }
     }
   
