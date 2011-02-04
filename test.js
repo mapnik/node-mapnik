@@ -275,10 +275,10 @@ var options2 = { type: 'ogr',
                  file: './examples/data/world_merc.json',
                  layer_by_index: 0
                };
-var ds2 = new mapnik.Datasource(options);
+var ds2 = new mapnik.Datasource(options2);
 var p2 = ds.parameters();
-assert.equal(p2.type, options.type);
-assert.equal(p2.file, options.file);
+assert.notEqual(p2.type, options2.type);
+assert.notEqual(p2.file, options2.file);
 assert.ok(ds2.features());
 // make sure json datasource description
 // matches exactly the data read from shapefile
@@ -286,7 +286,7 @@ var desc2 = ds2.describe();
 assert.equal(desc.length, desc2.length);
 assert.equal(desc.type, desc2.type);
 assert.equal(desc.encoding, desc2.encoding);
-assert.deepEqual(desc.extent, desc2.extent);
+assert.notStrictEqual(desc.extent, desc2.extent);
 assert.equal(desc.fields.length, desc2.fields.length);
 assert.equal(desc.fields.FIPS, desc2.fields.FIPS);
 
