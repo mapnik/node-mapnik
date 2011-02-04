@@ -29,9 +29,13 @@ Handle<Value> Projection::New(const Arguments& args)
 {
   HandleScope scope;
 
-  if (!(args.Length() > 0 && args[0]->IsString()))
-    return ThrowException(Exception::TypeError(
-      String::New("please provide a proj4 intialization string")));
+    if (!args.IsConstructCall())
+        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+
+  if (!args.Length() > 0 || !args[0]->IsString()) {
+      return ThrowException(Exception::TypeError(
+        String::New("please provide a proj4 intialization string")));
+  }
   try
   {
       Projection* p = new Projection(TOSTR(args[0]));
