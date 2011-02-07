@@ -184,7 +184,7 @@ void Layer::set_prop(Local<String> property,
     {
         if (!value->IsString()) {
             ThrowException(Exception::Error(
-               String::New("'name' must be a string")));
+               String::New("'srs' must be a string")));
         } else {
             l->layer_->set_srs(TOSTR(value));
         }
@@ -208,8 +208,8 @@ void Layer::set_prop(Local<String> property,
     else if (a == "datasource")
     {
         Local<Object> obj = value->ToObject();
-        if (!Datasource::constructor->HasInstance(obj)) {
-            ThrowException(Exception::TypeError(String::New("mapnik.Datasource expected")));
+        if (value->IsNull() || value->IsUndefined() || !Datasource::constructor->HasInstance(obj)) {
+            ThrowException(Exception::TypeError(String::New("mapnik.Datasource instance expected")));
         } else {
             Datasource *d = ObjectWrap::Unwrap<Datasource>(obj);
             // TODO - addLayer should be add_layer in mapnik
