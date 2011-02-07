@@ -66,6 +66,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "render", render);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_to_string", render_to_string);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_to_file", render_to_file);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scale_denominator);
 
     // layer access
     NODE_SET_PROTOTYPE_METHOD(constructor, "add_layer", add_layer);
@@ -75,7 +76,10 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "layers", layers);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe_data", describe_data);
-            
+
+    // properties
+    ATTR(constructor, "srs", get_prop, set_prop);
+
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
     //eio_set_max_poll_reqs(10);
     //eio_set_min_parallel(10);
@@ -135,10 +139,40 @@ Handle<Value> Map::New(const Arguments& args)
     return Undefined();
 }
 
+Handle<Value> Map::get_prop(Local<String> property,
+                         const AccessorInfo& info)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(info.This());
+    std::string a = TOSTR(property);
+    if (a == "srs")
+        return scope.Close(String::New(m->map_->srs().c_str()));
+    return Undefined();
+}
+
+void Map::set_prop(Local<String> property,
+                         Local<Value> value,
+                         const AccessorInfo& info)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(info.Holder());
+    std::string a = TOSTR(property);
+    if (a == "srs")
+    {
+        if (!value->IsString()) {
+            ThrowException(Exception::Error(
+               String::New("'srs' must be a string")));
+        } else {
+            m->map_->set_srs(TOSTR(value));
+        }
+    }
+
+}
+
 Handle<Value> Map::add_layer(const Arguments &args) {
     HandleScope scope;
     Local<Object> obj = args[0]->ToObject();
-    if (!Layer::constructor->HasInstance(obj))
+    if (args[0]->IsNull() || args[0]->IsUndefined() || !Layer::constructor->HasInstance(obj))
       return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
     Layer *l = ObjectWrap::Unwrap<Layer>(obj);
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -447,6 +481,13 @@ Handle<Value> Map::to_string(const Arguments& args)
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
     return scope.Close(String::New(map_string.c_str()));
+}
+
+Handle<Value> Map::scale_denominator(const Arguments& args)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    return scope.Close(Number::New(m->map_->scale_denominator()));
 }
 
 Handle<Value> Map::extent(const Arguments& args)

@@ -41,9 +41,16 @@ class Map: public node::ObjectWrap {
     static Handle<Value> layers(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> describe_data(const Arguments &args);
+    static Handle<Value> scale_denominator(const Arguments &args);
 
     static Handle<Value> add_layer(const Arguments &args);
     static Handle<Value> get_layer(const Arguments &args);
+
+    static Handle<Value> get_prop(Local<String> property,
+                         const AccessorInfo& info);
+    static void set_prop(Local<String> property,
+                         Local<Value> value,
+                         const AccessorInfo& info);
         
     static int EIO_Render(eio_req *req);
     static int EIO_AfterRender(eio_req *req);
