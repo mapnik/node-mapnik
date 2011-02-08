@@ -75,6 +75,9 @@ def set_options(opt):
     #opt.add_option('-D', '--debug', action='store_true', default=False, dest='debug')
     
 def configure(conf):
+    global AUTOCONFIGURE
+    global HAS_OSX_FRAMEWORK
+    
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     settings_dict = {}
