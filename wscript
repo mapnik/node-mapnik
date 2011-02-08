@@ -19,6 +19,8 @@ settings = 'lib/settings.js'
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
 AUTOCONFIGURE = True
 
+HAS_OSX_FRAMEWORK = False
+
 # this goes into a settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
@@ -84,6 +86,7 @@ def configure(conf):
         path_list = environ.get('PATH', '').split(os.pathsep)
         if os.path.exists('/Library/Frameworks/Mapnik.framework'):
             path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
+            HAS_OSX_FRAMEWORK = True
 
         mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
         ensure_min_mapnik_revision(conf)
@@ -110,16 +113,24 @@ def configure(conf):
         #conf.env.append_value("LIB_MAPNIK", "mapnik2")
         
         if '-lcairo' in all_ldflags:
-            pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
-            if not pkg_config:
-                Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
+            
+            if HAS_OSX_FRAMEWORK:
+                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairomm-1.0')
+                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairo')
+                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/sigc++-2.0')
+                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/unix/lib/sigc++-2.0/include/')
+                Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
             else:
-                cmd = '%s cairomm-1.0' %  pkg_config
-                if not int(call(cmd.split(' '))) >= 0:
-                    Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
+                pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
+                if not pkg_config:
+                    Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
                 else:
-                    Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
-                    cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
+                    cmd = '%s cairomm-1.0' %  pkg_config
+                    if not int(call(cmd.split(' '))) >= 0:
+                        Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
+                    else:
+                        Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
+                        cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
         else:
             Utils.pprint('YELLOW','Notice: "mapnik-config --libs" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
             
