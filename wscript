@@ -118,7 +118,7 @@ def configure(conf):
         
         if '-lcairo' in all_ldflags:
             
-            if HAS_OSX_FRAMEWORK:
+            if HAS_OSX_FRAMEWORK and os.path.exists('/Library/Frameworks/Mapnik.framework/Headers/cairo'):
                 # prep for this specific install of mapnik 1.0: http://dbsgeo.com/downloads/#mapnik200
                 cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairomm-1.0')
                 cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairo')
