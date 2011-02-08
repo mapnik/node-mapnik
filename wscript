@@ -19,6 +19,7 @@ settings = 'lib/settings.js'
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
 AUTOCONFIGURE = True
 
+# detect this install: http://dbsgeo.com/downloads/#mapnik200
 HAS_OSX_FRAMEWORK = False
 
 # this goes into a settings.js file beside the C++ _mapnik.node
@@ -115,10 +116,12 @@ def configure(conf):
         if '-lcairo' in all_ldflags:
             
             if HAS_OSX_FRAMEWORK:
+                # prep for this specific install of mapnik 1.0: http://dbsgeo.com/downloads/#mapnik200
                 cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairomm-1.0')
                 cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairo')
                 cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/sigc++-2.0')
-                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/unix/lib/sigc++-2.0/include/')
+                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/unix/lib/sigc++-2.0/include')
+                cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers') #fontconfig
                 Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
             else:
                 pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
