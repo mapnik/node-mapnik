@@ -903,7 +903,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     unsigned int step = args[1]->NumberValue();
     std::string  const& join_field = TOSTR(args[2]);
     unsigned int tile_size = m->map_->width();
-    
+
     UChar codepoint = 31; // Last ASCII control char.
     unsigned int length = 256 / step;
     std::vector<UnicodeString::UnicodeString> strings(length);
@@ -914,9 +914,9 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     int32_t row;
     int32_t col;
 
-    typedef std::map<std::string, UChar> keymap;
-    keymap keys;
-    keymap::const_iterator pos;
+    std::map<std::string, UChar> keys;
+    std::map<std::string, UChar>::const_iterator pos;
+    std::vector<std::string> key_order;
 
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     
@@ -1023,7 +1023,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
                         
                     }
                 }
-                
+
                 // Find out the UChar value associated with the val
                 // If it doesn't exist, create a new one and add it to the map
                 pos = keys.find(val);
@@ -1036,6 +1036,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
                     else if (codepoint == 92) ++codepoint; // Skip backslash
 
                     keys[val] = codepoint;
+                    key_order.push_back(val);
                     strings[row].setCharAt(col, codepoint);
                 }
                 else
@@ -1061,15 +1062,15 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     {
         grid_a->Set(i, String::New(strings[i].getBuffer(), length));
     }
-    
+
     // Create the key array.
     Local<Array> keys_a = Array::New(keys.size());
-    keymap::const_iterator end = keys.end(); 
-    for (pos = keys.begin(), i = 0; pos != end; ++pos, ++i)
+    std::vector<std::string>::iterator it;
+    for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
     {
-        keys_a->Set(i, String::New(pos->first.c_str()));
+        keys_a->Set(i, String::New((*it).c_str()));
     }
-    
+
     // Create the return hash.
     Local<Object> json = Object::New();
     json->Set(String::NewSymbol("grid"), grid_a);
