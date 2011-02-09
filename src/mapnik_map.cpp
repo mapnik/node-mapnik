@@ -906,13 +906,13 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
 
     UChar codepoint = 31; // Last ASCII control char.
     unsigned int length = 256 / step;
-    std::vector<UnicodeString::UnicodeString> strings(length);
-    for (unsigned int i = 0; i < length; ++i)
-    {
-        strings[i] = UnicodeString::UnicodeString(length, 0, length);
-    }
-    int32_t row;
-    int32_t col;
+
+    // The exact string length:
+    //   +3: length + two quotes and a comma
+    //   +1: we don't need the last comma, but we need [ and ]
+    unsigned int len = length * (length + 3) + 1;
+
+    UnicodeString::UnicodeString str(len, 0, len);
 
     std::map<std::string, UChar> keys;
     std::map<std::string, UChar>::const_iterator pos;
@@ -972,10 +972,11 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         }
         */
         
-        row = 0;
+        int32_t index = 0;
+        str.setCharAt(index++, (UChar)'[');
         for (unsigned y=0;y<tile_size;y=y+step)
         {
-            col = 0;
+            str.setCharAt(index++, (UChar)'"');
             for (unsigned x=0;x<tile_size;x=x+step)
             {
                 //std::clog << "x: " << x << " y:" << y << "\n";
@@ -1037,17 +1038,19 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
 
                     keys[val] = codepoint;
                     key_order.push_back(val);
-                    strings[row].setCharAt(col, codepoint);
+                    str.setCharAt(index++, codepoint);
                 }
                 else
                 {
-                    strings[row].setCharAt(col, pos->second);
+                    str.setCharAt(index++, pos->second);
                 }
 
-                ++col;
             }
-            ++row;
+            str.setCharAt(index++, (UChar)'"');
+            str.setCharAt(index++, (UChar)',');
         }
+        // Overwrite the last comma.
+        str.setCharAt(index - 1, (UChar)']');
     }
     catch (const mapnik::proj_init_error & ex )
     {
@@ -1055,17 +1058,10 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         String::New(ex.what())));
     }
 
-    // Create the grid array.
-    unsigned int i;
-    Local<Array> grid_a = Array::New(length);
-    for (i = 0; i < length; ++i)
-    {
-        grid_a->Set(i, String::New(strings[i].getBuffer(), length));
-    }
-
     // Create the key array.
     Local<Array> keys_a = Array::New(keys.size());
     std::vector<std::string>::iterator it;
+    unsigned int i;
     for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
     {
         keys_a->Set(i, String::New((*it).c_str()));
@@ -1073,7 +1069,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
 
     // Create the return hash.
     Local<Object> json = Object::New();
-    json->Set(String::NewSymbol("grid"), grid_a);
+    json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
     json->Set(String::NewSymbol("keys"), keys_a);
 
     return scope.Close(json);
