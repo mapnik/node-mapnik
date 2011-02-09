@@ -14,6 +14,9 @@
 #include <mapnik/save_map.hpp>
 #include <mapnik/query.hpp>
 
+// icu
+#include <unicode/unistr.h>
+
 // careful, missing include gaurds: http://trac.mapnik.org/changeset/2516 
 //#include <mapnik/filter_featureset.hpp>
 
@@ -900,15 +903,21 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     unsigned int step = args[1]->NumberValue();
     std::string  const& join_field = TOSTR(args[2]);
     unsigned int tile_size = m->map_->width();
-  
-    //Local<Array> a = Array::New(step*tile_size*step);
     
-    std::string prev("");
-    std::string next("");
-    unsigned int count(0);
-    bool first = true;
-    std::ostringstream s("");
-  
+    UChar codepoint = 31; // Last ASCII control char.
+    unsigned int length = 256 / step;
+    std::vector<UnicodeString::UnicodeString> strings(length);
+    for (unsigned int i = 0; i < length; ++i)
+    {
+        strings[i] = UnicodeString::UnicodeString(length, 0, length);
+    }
+    int32_t row;
+    int32_t col;
+
+    typedef std::map<std::string, UChar> keymap;
+    keymap keys;
+    keymap::const_iterator pos;
+
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     
     if (!layer_idx < layers.size())
@@ -963,8 +972,10 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         }
         */
         
+        row = 0;
         for (unsigned y=0;y<tile_size;y=y+step)
         {
+            col = 0;
             for (unsigned x=0;x<tile_size;x=x+step)
             {
                 //std::clog << "x: " << x << " y:" << y << "\n";
@@ -972,8 +983,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
                 // .3 indexed
                 mapnik::featureset_ptr fs_hit = m->map_->query_map_point(layer_idx,x,y);
   
-                std::string val;
-                bool added = false;
+                std::string val = "";
                 
                 /*
                 double x0 = x;
@@ -998,7 +1008,6 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
                     mapnik::feature_ptr fp = fs_hit->next();
                     if (fp)
                     {
-                        added = true;
                         std::map<std::string,mapnik::value> const& fprops = fp->props();
                         std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
                         if (itr != fprops.end())
@@ -1014,22 +1023,29 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
                         
                     }
                 }
-                if (!added)
+                
+                // Find out the UChar value associated with the val
+                // If it doesn't exist, create a new one and add it to the map
+                pos = keys.find(val);
+                if (pos == keys.end())
                 {
-                    val = "";
+                    // Create a new entry for this key. Skip the codepoints that
+                    // can't be encoded directly in JSON.
+                    ++codepoint;
+                    if (codepoint == 34) ++codepoint;      // Skip "
+                    else if (codepoint == 92) ++codepoint; // Skip backslash
+
+                    keys[val] = codepoint;
+                    strings[row].setCharAt(col, codepoint);
                 }
-                if (first)
+                else
                 {
-                    first = false;
+                    strings[row].setCharAt(col, pos->second);
                 }
-                if (!first && (val != prev))
-                {
-                    s << count << ":" << prev << "|";
-                    count = 0;
-                }
-                prev = val;
-                ++count;
+
+                ++col;
             }
+            ++row;
         }
     }
     catch (const mapnik::proj_init_error & ex )
@@ -1037,6 +1053,27 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
       return ThrowException(Exception::Error(
         String::New(ex.what())));
     }
-  
-    return scope.Close(String::New(s.str().c_str()));
+
+    // Create the grid array.
+    unsigned int i;
+    Local<Array> grid_a = Array::New(length);
+    for (i = 0; i < length; ++i)
+    {
+        grid_a->Set(i, String::New(strings[i].getBuffer(), length));
+    }
+    
+    // Create the key array.
+    Local<Array> keys_a = Array::New(keys.size());
+    keymap::const_iterator end = keys.end(); 
+    for (pos = keys.begin(), i = 0; pos != end; ++pos, ++i)
+    {
+        keys_a->Set(i, String::New(pos->first.c_str()));
+    }
+    
+    // Create the return hash.
+    Local<Object> json = Object::New();
+    json->Set(String::NewSymbol("grid"), grid_a);
+    json->Set(String::NewSymbol("keys"), keys_a);
+
+    return scope.Close(json);
 }
