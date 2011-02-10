@@ -1052,10 +1052,40 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         // Overwrite the last comma.
         str.setCharAt(index - 1, (UChar)']');
     }
+    catch (const mapnik::config_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
     catch (const mapnik::proj_init_error & ex )
     {
-      return ThrowException(Exception::Error(
-        String::New(ex.what())));
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("Unknown error occured, please file bug")));
     }
 
     // Create the key array.
