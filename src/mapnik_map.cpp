@@ -899,7 +899,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
            String::New("layer join_field must be a string")));
   
     // need cast from double to int
-    unsigned int layer_idx = args[0]->NumberValue();
+    std::size_t layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
     unsigned int step = args[1]->NumberValue();
     std::string  const& join_field = TOSTR(args[2]);
     unsigned int tile_size = m->map_->width();
@@ -919,11 +919,16 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     std::vector<std::string> key_order;
 
     std::vector<mapnik::layer> const& layers = m->map_->layers();
+    std::size_t layer_num = layers.size();
     
-    if (!layer_idx < layers.size())
+    if (layer_idx >= layer_num) {
+        std::ostringstream s;
+        s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
+          << layers.size() << "' layers are in map";
         return ThrowException(Exception::Error(
-           String::New("layer idx not valid")));
-  
+           String::New(s.str().c_str())));
+    }
+    
     mapnik::layer const& layer = layers[layer_idx];    
     double tol;
     double z = 0;
