@@ -929,6 +929,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
            String::New(s.str().c_str())));
     }
     
+    /*
     mapnik::layer const& layer = layers[layer_idx];    
     double tol;
     double z = 0;
@@ -936,13 +937,16 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
   
     const mapnik::box2d<double>&  e = m->map_->get_current_extent();
   
+    
     double minx = e.minx();
     double miny = e.miny();
     double maxx = e.maxx();
     double maxy = e.maxy();
+    */
     
     try
     {
+        /*
         mapnik::projection dest(m->map_->srs());
         mapnik::projection source(layer.srs());
         mapnik::proj_transform prj_trans(source,dest);
@@ -956,15 +960,17 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         //mapnik::featureset_ptr fs;
     
         //mapnik::memory_datasource cache;
+        
         mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
         #if MAPNIK_VERSION >= 800
-            mapnik::query q(ds->envelope());
+            mapnik::query q(bbox);
         #else
-            mapnik::query q(ds->envelope(),1.0,1.0);
+            mapnik::query q(bbox,1.0,1.0);
         #endif
     
         q.add_property_name(join_field);
         mapnik::featureset_ptr fs = ds->features(q);
+        */
     
         /*
         if (fs)
