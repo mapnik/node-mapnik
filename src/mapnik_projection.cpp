@@ -6,7 +6,7 @@ Persistent<FunctionTemplate> Projection::constructor;
 void Projection::Initialize(Handle<Object> target) {
 
     HandleScope scope;
-  
+
     constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Projection::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Projection"));
@@ -57,7 +57,7 @@ Handle<Value> Projection::forward(const Arguments& args)
   if (!args.Length() == 1)
     return ThrowException(Exception::Error(
       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-  else 
+  else
   {
       if (!args[0]->IsArray())
           return ThrowException(Exception::Error(
@@ -93,7 +93,7 @@ Handle<Value> Projection::forward(const Arguments& args)
       else
           return ThrowException(Exception::Error(
              String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-      
+
   }
 }
 
@@ -105,7 +105,7 @@ Handle<Value> Projection::inverse(const Arguments& args)
   if (!args.Length() == 1)
     return ThrowException(Exception::Error(
       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-  else 
+  else
   {
       if (!args[0]->IsArray())
           return ThrowException(Exception::Error(
@@ -141,7 +141,7 @@ Handle<Value> Projection::inverse(const Arguments& args)
       else
           return ThrowException(Exception::Error(
              String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-      
+
   }
 }
-  
+

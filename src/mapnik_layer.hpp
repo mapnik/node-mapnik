@@ -31,11 +31,11 @@ class Layer: public node::ObjectWrap {
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
-                         
+
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);
     Layer();
-    inline layer_ptr get() { return layer_; } 
+    inline layer_ptr get() { return layer_; }
 
   private:
     ~Layer();

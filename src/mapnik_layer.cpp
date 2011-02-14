@@ -15,7 +15,7 @@ Persistent<FunctionTemplate> Layer::constructor;
 void Layer::Initialize(Handle<Object> target) {
 
     HandleScope scope;
-  
+
     constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Layer::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Layer"));
@@ -56,10 +56,10 @@ Layer::~Layer()
 Handle<Value> Layer::New(const Arguments& args)
 {
     HandleScope scope;
-  
+
     if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
-      
+
     /*
     if (args.Length() > 0) {
         Local<Object> obj = args[0]->ToObject();
@@ -68,12 +68,12 @@ Handle<Value> Layer::New(const Arguments& args)
           // segfault
           l->Wrap(obj);
           return obj;
-        }  
+        }
     }
     */
 
-    if (args[0]->IsExternal()) 
-    { 
+    if (args[0]->IsExternal())
+    {
         //return ThrowException(String::New("No support yet for passing v8:External wrapper around C++ void*"));
         //std::clog << "external!\n";
         Local<External> ext = Local<External>::Cast(args[0]);
@@ -81,7 +81,7 @@ Handle<Value> Layer::New(const Arguments& args)
         Layer* l =  static_cast<Layer*>(ptr);
         l->Wrap(args.This());
         return args.This();
-    } 
+    }
 
     if (args.Length() == 1)
     {
@@ -108,10 +108,10 @@ Handle<Value> Layer::New(const Arguments& args)
         return ThrowException(Exception::TypeError(
           String::New("please provide Layer name and optional srs")));
     }
-    
+
     //return args.This();
     return Undefined();
-    
+
 }
 
 /*
@@ -152,7 +152,7 @@ Handle<Value> Layer::get_prop(Local<String> property,
         {
             s->Set(i, String::New(style_names[i].c_str()) );
         }
-        return scope.Close(s);  
+        return scope.Close(s);
     }
     else if (a == "datasource") {
         mapnik::datasource_ptr ds = l->layer_->datasource();
@@ -222,12 +222,12 @@ void Layer::set_prop(Local<String> property,
 Handle<Value> Layer::describe(const Arguments& args)
 {
     HandleScope scope;
-  
+
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
-  
+
     Local<Object> description = Object::New();
     layer_as_json(description,*l->layer_);
-    
+
     return scope.Close(description);
 }
 
@@ -261,9 +261,9 @@ Handle<Value> Layer::features(const Arguments& args)
         last = args[1]->IntegerValue();
     }
 
-  
+
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
-  
+
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
     mapnik::datasource_ptr ds = l->layer_->datasource();
@@ -271,7 +271,7 @@ Handle<Value> Layer::features(const Arguments& args)
     {
         datasource_features(a,ds,first,last);
     }
-  
+
     return scope.Close(a);
 }
 

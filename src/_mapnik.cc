@@ -7,7 +7,7 @@
 #include <node_version.h>
 
 /* dlopen(), dlsym() */
-#include <dlfcn.h> 
+#include <dlfcn.h>
 
 // boost
 #include "utils.hpp"
@@ -75,9 +75,9 @@ static Handle<Value> register_datasources(const Arguments& args)
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a directory of mapnik input plugins")));
 
-    std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names(); 
+    std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names();
     std::string const& path = TOSTR(args[0]);
-    mapnik::datasource_cache::instance()->register_datasources(path); 
+    mapnik::datasource_cache::instance()->register_datasources(path);
     std::vector<std::string> const& names_after = mapnik::datasource_cache::plugin_names();
     if (names_after.size() > names_before.size())
         return scope.Close(Boolean::New(true));
@@ -99,13 +99,13 @@ static Handle<Value> available_input_plugins(const Arguments& args)
 static Handle<Value> register_fonts(const Arguments& args)
 {
   HandleScope scope;
-  
+
   if (!args.Length() >= 1 || !args[0]->IsString())
     return ThrowException(Exception::TypeError(
       String::New("first argument must be a path to a directory of fonts")));
 
   bool found = false;
-  
+
   std::vector<std::string> const names_before = mapnik::freetype_engine::face_names();
 
   // option hash
@@ -121,7 +121,7 @@ static Handle<Value> register_fonts(const Arguments& args)
           if (!recurse_opt->IsBoolean())
             return ThrowException(Exception::TypeError(
               String::New("'recurse' must be a Boolean")));
-          
+
           bool recurse = recurse_opt->BooleanValue();
           std::string const& path = TOSTR(args[0]);
           found = mapnik::freetype_engine::register_fonts(path,recurse);
@@ -136,7 +136,7 @@ static Handle<Value> register_fonts(const Arguments& args)
   std::vector<std::string> const& names_after = mapnik::freetype_engine::face_names();
   if (names_after.size() == names_before.size())
       found = false;
- 
+
   return scope.Close(Boolean::New(found));
 }
 
@@ -171,10 +171,10 @@ extern "C" {
     NODE_SET_METHOD(target, "register_fonts", register_fonts);
     NODE_SET_METHOD(target, "fonts", available_font_faces);
     NODE_SET_METHOD(target, "gc", gc);
-        
+
     // Map
     Map::Initialize(target);
-    
+
     // Projection
     Projection::Initialize(target);
 
@@ -183,10 +183,10 @@ extern "C" {
 
     // Datasource
     Datasource::Initialize(target);
-    
+
     // node-mapnik version
     target->Set(String::NewSymbol("version"), String::New("0.2.8"));
-    
+
     // versions of deps
     Local<Object> versions = Object::New();
     versions->Set(String::NewSymbol("node"), String::New(NODE_VERSION+1));
@@ -215,7 +215,7 @@ extern "C" {
       supports->Set(String::NewSymbol("jpeg"), Boolean::New(false));
     #endif
     target->Set(String::NewSymbol("supports"), supports);
-    
+
   }
 
   NODE_MODULE(_mapnik, init);

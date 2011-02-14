@@ -20,7 +20,7 @@ class Projection: public node::ObjectWrap {
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
-    
+
     static Handle<Value> inverse(const Arguments& args);
     static Handle<Value> forward(const Arguments& args);
 

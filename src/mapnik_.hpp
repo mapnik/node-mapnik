@@ -15,7 +15,7 @@ class •: public node::ObjectWrap {
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
-    
+
     •(std::string const& name);
     •(std::string const& name, std::string const& srs);
 

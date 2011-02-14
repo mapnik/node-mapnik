@@ -5,7 +5,7 @@ Persistent<FunctionTemplate> •::constructor;
 void •::Initialize(Handle<Object> target) {
 
     HandleScope scope;
-  
+
     constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(•::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("•"));

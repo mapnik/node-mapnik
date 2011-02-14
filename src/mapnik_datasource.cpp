@@ -13,7 +13,7 @@ Persistent<FunctionTemplate> Datasource::constructor;
 void Datasource::Initialize(Handle<Object> target) {
 
     HandleScope scope;
-  
+
     constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Datasource::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Datasource"));
@@ -41,26 +41,26 @@ Handle<Value> Datasource::New(const Arguments& args)
     if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
 
-    if (args[0]->IsExternal()) 
-    { 
+    if (args[0]->IsExternal())
+    {
         //std::clog << "external!\n";
         Local<External> ext = Local<External>::Cast(args[0]);
         void* ptr = ext->Value();
         Datasource* d =  static_cast<Datasource*>(ptr);
         d->Wrap(args.This());
         return args.This();
-    } 
+    }
     if (!args.Length() == 1){
         return ThrowException(Exception::TypeError(
           String::New("accepts only one argument, an object of key:value datasource options")));
     }
-    
+
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
           String::New("must provide an object, eg {type: 'shape', file : 'world.shp'}")));
 
     Local<Object> options = args[0]->ToObject();
-    
+
     // TODO - maybe validate in js?
 
     bool bind=true;
@@ -70,7 +70,7 @@ Handle<Value> Datasource::New(const Arguments& args)
         if (!bind_opt->IsBoolean())
           return ThrowException(Exception::TypeError(
             String::New("'bind' must be a Boolean")));
-        
+
         bind = bind_opt->BooleanValue();
     }
 
@@ -175,9 +175,9 @@ Handle<Value> Datasource::features(const Arguments& args)
         first = args[0]->IntegerValue();
         last = args[1]->IntegerValue();
     }
-  
+
     Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
-  
+
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
     datasource_features(a,d->datasource_,first,last);

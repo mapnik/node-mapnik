@@ -38,12 +38,12 @@ public:
     params_to_object( Local<Object>& ds, std::string key):
         ds_(ds),
         key_(key) {}
-            
+
     void operator () ( int val )
     {
         ds_->Set(String::NewSymbol(key_.c_str()), Integer::New(val) );
     }
-        
+
     void operator () ( double val )
     {
         ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
@@ -65,7 +65,7 @@ public:
     {
         ds_->Set(String::NewSymbol(key_.c_str()), Undefined() );
     }
-        
+
 private:
     Local<Object>& ds_;
     std::string& key_;

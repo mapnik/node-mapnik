@@ -21,7 +21,7 @@ class Map: public node::ObjectWrap {
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
-    
+
     static Handle<Value> load(const Arguments &args);
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> clear(const Arguments &args);

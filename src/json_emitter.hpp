@@ -43,9 +43,9 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
     {
         meta->Set(String::NewSymbol("status"), Boolean::New(layer.isActive()));
     }
-    
+
     if ( layer.clear_label_cache())
-    {        
+    {
         meta->Set(String::NewSymbol("clear_label_cache"), Boolean::New(layer.clear_label_cache()));
     }
 
@@ -70,7 +70,7 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
     {
         s->Set(i, String::New(style_names[i].c_str()) );
     }
-    
+
     meta->Set(String::NewSymbol("styles"), s );
 
     mapnik::datasource_ptr datasource = layer.datasource();
@@ -101,7 +101,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     }
     meta->Set(String::NewSymbol("styles"), s );
     */
-  
+
     // type
     if (ds->type() == mapnik::datasource::Raster)
     {
@@ -109,9 +109,9 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     }
     else
     {
-        description->Set(String::NewSymbol("type"), String::New("vector"));            
+        description->Set(String::NewSymbol("type"), String::New("vector"));
     }
-    
+
     // extent
     Local<Array> a = Array::New(4);
     mapnik::box2d<double> e = ds->envelope();
@@ -122,10 +122,10 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     description->Set(String::NewSymbol("extent"), a);
 
     mapnik::layer_descriptor ld = ds->get_descriptor();
-    
+
     // encoding
     description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
-    
+
     // field names and types
     Local<Object> fields = Object::New();
     std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
@@ -145,7 +145,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         ++itr;
     }
     description->Set(String::NewSymbol("fields"), fields);
-    
+
     // get first geometry type using naive first hit approach
     // TODO proper approach --> https://trac.mapnik.org/ticket/701
 #if MAPNIK_VERSION >= 800
@@ -158,7 +158,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     description->Set(String::NewSymbol("geometry_type"), Undefined());
 
     if (fs)
-    {   
+    {
         mapnik::feature_ptr fp = fs->next();
         if (fp) {
 
@@ -172,15 +172,15 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                 }
                 else if (g_type == mapnik::Polygon)
                 {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));                
+                    description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
                 }
                 else if (g_type == mapnik::LineString)
                 {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));                
+                    description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
                 }
             }
         }
-    }    
+    }
 }
 
 
@@ -207,7 +207,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
 
     mapnik::featureset_ptr fs = ds->features(q);
     if (fs)
-    {   
+    {
         mapnik::feature_ptr fp;
         unsigned idx = 0;
         while ((fp = fs->next()))

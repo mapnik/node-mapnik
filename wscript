@@ -38,17 +38,17 @@ def ensure_min_mapnik_revision(conf,revision=2397):
     # so a variety of kinks mean that we need a very
     # recent version for things to work properly
     # http://trac.mapnik.org/log/trunk/utils/mapnik-config
-    
+
     #TODO - if we require >=2503 then we can check return type not "Usage" string...
     if popen("%s --libs" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage') \
       or popen("%s --input-plugins" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage') \
       or popen("%s --svn-revision" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage'):
         Utils.pprint('YELLOW', 'mapnik-config version is too old, mapnik > %s is required for auto-configuring build' % revision)
         conf.fatal('please upgrade to mapnik trunk')
-    
+
     failed = False
     found_ver = None
-    
+
     try:
         found_ver = int(popen("%s --svn-revision" % conf.env['MAPNIK_CONFIG']).readline().strip())
         if not found_ver >= revision:
@@ -59,13 +59,13 @@ def ensure_min_mapnik_revision(conf,revision=2397):
     except Exception,e:
         print e
         failed = True
-    
+
     if failed:
         if found_ver:
             msg = 'mapnik-config version is too old, mapnik > r%s is required for auto-configuring build, found only r%s' % (revision,found_ver)
         else:
             msg = 'mapnik-config version is too old, mapnik > r%s is required for auto-configuring build' % revision
-        
+
         Utils.pprint('YELLOW', msg)
         conf.fatal('please upgrade to mapnik trunk')
 
@@ -73,11 +73,11 @@ def ensure_min_mapnik_revision(conf,revision=2397):
 def set_options(opt):
     opt.tool_options("compiler_cxx")
     #opt.add_option('-D', '--debug', action='store_true', default=False, dest='debug')
-    
+
 def configure(conf):
     global AUTOCONFIGURE
     global HAS_OSX_FRAMEWORK
-    
+
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     settings_dict = {}
@@ -98,7 +98,7 @@ def configure(conf):
         # todo - check return value of popen otherwise we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
         all_ldflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')
-        
+
         # only link to libmapnik, which should be in first two flags
         linkflags = all_ldflags[:2]
 
@@ -112,12 +112,12 @@ def configure(conf):
         #linkflags.append('-Z')
 
         conf.env.append_value("LINKFLAGS", linkflags)
-        
+
         # uneeded currently as second item from mapnik-config is -lmapnik2
         #conf.env.append_value("LIB_MAPNIK", "mapnik2")
-        
+
         if '-lcairo' in all_ldflags:
-            
+
             if HAS_OSX_FRAMEWORK and os.path.exists('/Library/Frameworks/Mapnik.framework/Headers/cairo'):
                 # prep for this specific install of mapnik 1.0: http://dbsgeo.com/downloads/#mapnik200
                 cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairomm-1.0')
@@ -139,13 +139,13 @@ def configure(conf):
                         cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
         else:
             Utils.pprint('YELLOW','Notice: "mapnik-config --libs" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
-            
+
 
         # TODO - too much potential pollution here, need to limit this upstream
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
         if os.path.exists('/Library/Frameworks/Mapnik.framework'):
             cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
-        
+
         # if cairo is available
         if cairo_cxxflags:
             cxxflags.append('-DHAVE_CAIRO')
@@ -157,23 +157,23 @@ def configure(conf):
             cxxflags.insert(0,'-I%s' % prefix_inc)
 
         conf.env.append_value("CXXFLAGS_MAPNIK", cxxflags)
-        
+
         #ldflags = []
         #conf.env.append_value("LDFLAGS", ldflags)
-        
+
         # settings for fonts and input plugins
         settings_dict['input_plugins'] = popen("%s --input-plugins" % mapnik_config).readline().strip()
         settings_dict['fonts'] = popen("%s --fonts" % mapnik_config).readline().strip()
-        
+
     else:
-        
+
         prefix = "/usr/local"
-        
+
         import platform
         if platform.dist()[0] in ('Ubuntu','debian'):
             LIBDIR_SCHEMA='lib'
         elif platform.uname()[4] == 'x86_64' and platform.system() == 'Linux':
-            LIBDIR_SCHEMA='lib64' 
+            LIBDIR_SCHEMA='lib64'
         elif platform.uname()[4] == 'ppc64':
             LIBDIR_SCHEMA='lib64'
         else:
@@ -181,14 +181,14 @@ def configure(conf):
 
         MAPNIK2 = False
         # manual configure of Mapnik 0.7.x, as only trunk provides a mapnik-config
-        
+
         # mapnik 0.7.x
         if MAPNIK2:
             # libmapnik2
             conf.env.append_value("LIB_MAPNIK", "mapnik2")
         else:
             conf.env.append_value("LIB_MAPNIK", "mapnik")
-        
+
         # add path of mapnik lib
         conf.env.append_value("LIBPATH_MAPNIK", "%s/%s" % (prefix,LIBDIR_SCHEMA))
         ldflags = []
@@ -199,10 +199,10 @@ def configure(conf):
         #   pass #libs.append('-L/usr/X11/lib/','-libicuuc')
         if ldflags:
             conf.env.append_value("LDFLAGS", ldflags)
-        
+
         # add path of mapnik headers
         conf.env.append_value("CPPPATH_MAPNIK", "%s/include" % prefix)
-        
+
         # add paths for freetype, boost, icu, as needed
         cxxflags = popen("freetype-config --cflags").readline().strip().split(' ')
         cxxflags.append('-I/usr/include')
@@ -236,7 +236,7 @@ def build(bld):
     # install command line programs
     bin_dir = bld.path.find_dir('./bin')
     bld.install_files('${PREFIX}/bin', bin_dir.ant_glob('*'), cwd=bin_dir, relative_trick=True, chmod=0755)
-    
+
 
 def shutdown():
     if Options.commands['clean']:

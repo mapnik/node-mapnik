@@ -17,7 +17,7 @@
 // icu
 #include <unicode/unistr.h>
 
-// careful, missing include gaurds: http://trac.mapnik.org/changeset/2516 
+// careful, missing include gaurds: http://trac.mapnik.org/changeset/2516
 //#include <mapnik/filter_featureset.hpp>
 
 // not currently used...
@@ -48,7 +48,7 @@ Persistent<FunctionTemplate> Map::constructor;
 void Map::Initialize(Handle<Object> target) {
 
     HandleScope scope;
-  
+
     constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Map::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Map"));
@@ -87,7 +87,7 @@ void Map::Initialize(Handle<Object> target) {
     //eio_set_max_poll_reqs(10);
     //eio_set_min_parallel(10);
 }
-      
+
 Map::Map(int width, int height) :
   ObjectWrap(),
   map_(new mapnik::Map(width,height)) {}
@@ -105,16 +105,16 @@ Map::~Map()
 Handle<Value> Map::New(const Arguments& args)
 {
     HandleScope scope;
-  
+
     if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
 
     // accept a reference or v8:External?
-    if (args[0]->IsExternal()) 
-    { 
+    if (args[0]->IsExternal())
+    {
         return ThrowException(String::New("No support yet for passing v8:External wrapper around C++ void*"));
-    } 
-  
+    }
+
     if (args.Length() == 2)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
@@ -136,7 +136,7 @@ Handle<Value> Map::New(const Arguments& args)
     else
     {
         return ThrowException(Exception::Error(
-          String::New("please provide Map width and height and optional srs")));  
+          String::New("please provide Map width and height and optional srs")));
     }
     //return args.This();
     return Undefined();
@@ -187,24 +187,24 @@ Handle<Value> Map::add_layer(const Arguments &args) {
 Handle<Value> Map::get_layer(const Arguments& args)
 {
     HandleScope scope;
-  
+
     if (!args.Length() == 1)
       return ThrowException(Exception::Error(
         String::New("Please provide layer index")));
-  
+
     if (!args[0]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("layer index must be an integer")));
-  
+
     unsigned index = args[0]->IntegerValue();
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-  
+
     std::vector<mapnik::layer> & layers = m->map_->layers();
-    
+
     // TODO - we don't know features.length at this point
     if ( index < layers.size())
-    {      
+    {
         //mapnik::layer & lay_ref = layers[index];
         return scope.Close(Layer::New(layers[index]));
     }
@@ -221,22 +221,22 @@ Handle<Value> Map::get_layer(const Arguments& args)
 Handle<Value> Map::layers(const Arguments& args)
 {
     HandleScope scope;
-  
+
     // todo - optimize by allowing indexing...
     /*if (!args.Length() == 1)
       return ThrowException(Exception::Error(
         String::New("Please provide layer index")));
-  
+
     if (!args[0]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("layer index must be an integer")));
     */
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-  
+
     std::vector<mapnik::layer> const & layers = m->map_->layers();
     Local<Array> a = Array::New(layers.size());
-  
+
     for (unsigned i = 0; i < layers.size(); ++i )
     {
         const mapnik::layer & layer = layers[i];
@@ -244,7 +244,7 @@ Handle<Value> Map::layers(const Arguments& args)
         layer_as_json(meta,layer);
         a->Set(i, meta);
     }
-    
+
     return scope.Close(a);
 
 }
@@ -252,23 +252,23 @@ Handle<Value> Map::layers(const Arguments& args)
 Handle<Value> Map::describe_data(const Arguments& args)
 {
     HandleScope scope;
-  
+
     // todo - optimize by allowing indexing...
     /*if (!args.Length() == 1)
       return ThrowException(Exception::Error(
         String::New("Please provide layer index")));
-  
+
     if (!args[0]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("layer index must be an integer")));
     */
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-  
+
     std::vector<mapnik::layer> const & layers = m->map_->layers();
-  
+
     Local<Object> meta = Object::New();
-  
+
     for (unsigned i = 0; i < layers.size(); ++i )
     {
         const mapnik::layer & layer = layers[i];
@@ -280,7 +280,7 @@ Handle<Value> Map::describe_data(const Arguments& args)
         }
         meta->Set(String::NewSymbol(layer.name().c_str()), description);
     }
-    
+
     return scope.Close(meta);
 
 }
@@ -289,18 +289,18 @@ Handle<Value> Map::describe_data(const Arguments& args)
 Handle<Value> Map::features(const Arguments& args)
 {
     HandleScope scope;
-  
+
     if (!args.Length() >= 1)
       return ThrowException(Exception::Error(
         String::New("Please provide layer index")));
-  
+
     if (!args[0]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("layer index must be an integer")));
 
     unsigned first = 0;
     unsigned last = 0;
-    
+
     // we are slicing
     if (args.Length() == 3)
     {
@@ -310,13 +310,13 @@ Handle<Value> Map::features(const Arguments& args)
         first = args[1]->IntegerValue();
         last = args[2]->IntegerValue();
     }
-  
+
     unsigned index = args[0]->IntegerValue();
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-  
+
     std::vector<mapnik::layer> const & layers = m->map_->layers();
-    
+
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
     if ( index < layers.size())
@@ -328,7 +328,7 @@ Handle<Value> Map::features(const Arguments& args)
             datasource_features(a,ds,first,last);
         }
     }
-  
+
     return scope.Close(a);
 
 }
@@ -344,15 +344,15 @@ Handle<Value> Map::clear(const Arguments& args)
 Handle<Value> Map::resize(const Arguments& args)
 {
     HandleScope scope;
-  
+
     if (!args.Length() == 2)
       return ThrowException(Exception::Error(
         String::New("Please provide width and height")));
-  
+
     if (!args[0]->IsNumber() || !args[1]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("width and height must be integers")));
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
     return Undefined();
@@ -365,7 +365,7 @@ Handle<Value> Map::width(const Arguments& args)
     if (!args.Length() == 0)
       return ThrowException(Exception::Error(
         String::New("accepts no arguments")));
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     Local<Value> width = Integer::New(m->map_->width());
     return scope.Close(width);
@@ -377,7 +377,7 @@ Handle<Value> Map::height(const Arguments& args)
     if (!args.Length() == 0)
       return ThrowException(Exception::Error(
         String::New("accepts no arguments")));
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     Local<Value> width = Integer::New(m->map_->height());
     return scope.Close(width);
@@ -389,11 +389,11 @@ Handle<Value> Map::buffer_size(const Arguments& args)
     if (!args.Length() == 1)
       return ThrowException(Exception::Error(
         String::New("Please provide a buffer_size")));
-  
+
     if (!args[0]->IsNumber())
       return ThrowException(Exception::TypeError(
         String::New("buffer_size must be an integer")));
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     m->map_->set_buffer_size(args[0]->IntegerValue());
     return Undefined();
@@ -405,7 +405,7 @@ Handle<Value> Map::load(const Arguments& args)
     if (args.Length() != 1 || !args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a mapnik stylesheet")));
-        
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& stylesheet = TOSTR(args[0]);
     bool strict = false;
@@ -421,7 +421,7 @@ Handle<Value> Map::load(const Arguments& args)
     catch (...)
     {
       return ThrowException(Exception::TypeError(
-        String::New("something went wrong loading the map")));    
+        String::New("something went wrong loading the map")));
     }
     return Undefined();
 }
@@ -432,7 +432,7 @@ Handle<Value> Map::save(const Arguments& args)
     if (args.Length() != 1 || !args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to map.xml to save")));
-        
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& filename = TOSTR(args[0]);
     bool explicit_defaults = false;
@@ -447,15 +447,15 @@ Handle<Value> Map::from_string(const Arguments& args)
         return ThrowException(Exception::TypeError(
         String::New("Accepts 2 arguments: map string and base_url")));
     }
-  
+
     if (!args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a mapnik stylesheet string")));
-  
+
     if (!args[1]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("second argument must be a base_url to interpret any relative path from")));
-        
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& stylesheet = TOSTR(args[0]);
     bool strict = false;
@@ -472,7 +472,7 @@ Handle<Value> Map::from_string(const Arguments& args)
     catch (...)
     {
       return ThrowException(Exception::TypeError(
-        String::New("something went wrong loading the map")));    
+        String::New("something went wrong loading the map")));
     }
     return Undefined();
 }
@@ -497,7 +497,7 @@ Handle<Value> Map::extent(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    
+
     Local<Array> a = Array::New(4);
     mapnik::box2d<double> e = m->map_->get_current_extent();
     a->Set(0, Number::New(e.minx()));
@@ -519,12 +519,12 @@ Handle<Value> Map::zoom_to_box(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-  
+
     double minx;
     double miny;
     double maxx;
     double maxy;
-  
+
     if (args.Length() == 1)
     {
         if (!args[0]->IsArray())
@@ -535,8 +535,8 @@ Handle<Value> Map::zoom_to_box(const Arguments& args)
         miny = a->Get(1)->NumberValue();
         maxx = a->Get(2)->NumberValue();
         maxy = a->Get(3)->NumberValue();
-        
-    }   
+
+    }
     else if (args.Length() != 4)
       return ThrowException(Exception::Error(
         String::New("Must provide 4 arguments: minx,miny,maxx,maxy")));
@@ -561,11 +561,10 @@ typedef struct {
     Persistent<Function> cb;
 } closure_t;
 
-
 Handle<Value> Map::render(const Arguments& args)
 {
     HandleScope scope;
-  
+
     /*
     std::clog << "eio_nreqs" << eio_nreqs() << "\n";
     std::clog << "eio_nready" << eio_nready() << "\n";
@@ -576,7 +575,7 @@ Handle<Value> Map::render(const Arguments& args)
     if (args.Length() < 3)
         return ThrowException(Exception::TypeError(
           String::New("requires three arguments, a extent array, a format, and a callback")));
-    
+
     // extent array
     if (!args[0]->IsArray())
         return ThrowException(Exception::TypeError(
@@ -600,7 +599,7 @@ Handle<Value> Map::render(const Arguments& args)
     }
 
     closure_t *closure = new closure_t();
-  
+
     if (!closure) {
       V8::LowMemoryNotification();
       return ThrowException(Exception::Error(
@@ -611,7 +610,7 @@ Handle<Value> Map::render(const Arguments& args)
     double miny = a->Get(1)->NumberValue();
     double maxx = a->Get(2)->NumberValue();
     double maxy = a->Get(3)->NumberValue();
-  
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     closure->m = m;
@@ -628,7 +627,7 @@ Handle<Value> Map::render(const Arguments& args)
 int Map::EIO_Render(eio_req *req)
 {
     closure_t *closure = static_cast<closure_t *>(req->data);
-    
+
     // zoom to
     closure->m->map_->zoom_to_box(closure->bbox);
     try
@@ -684,7 +683,7 @@ int Map::EIO_AfterRender(eio_req *req)
     ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
-  
+
     if (closure->error) {
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
@@ -704,7 +703,7 @@ int Map::EIO_AfterRender(eio_req *req)
     if (try_catch.HasCaught()) {
       FatalException(try_catch);
     }
-    
+
     closure->m->Unref();
     closure->cb.Dispose();
     delete closure;
@@ -720,7 +719,7 @@ Handle<Value> Map::render_to_string(const Arguments& args)
         String::New("argument must be a format string")));
 
     std::string format = TOSTR(args[0]);
-    
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string s;
     try
@@ -765,16 +764,16 @@ Handle<Value> Map::render_to_string(const Arguments& args)
     catch (...)
     {
         return ThrowException(Exception::TypeError(
-          String::New("unknown exception happened while rendering the map, please submit a bug report")));    
+          String::New("unknown exception happened while rendering the map, please submit a bug report")));
     }
-    
+
     #if NODE_VERSION_AT_LEAST(0,3,0)
       node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
     #else
       node::Buffer *retbuf = Buffer::New(s.size());
       memcpy(retbuf->data(), s.data(), s.size());
     #endif
-    
+
     return scope.Close(retbuf->handle_);
 }
 
@@ -790,12 +789,12 @@ Handle<Value> Map::render_to_file(const Arguments& args)
         String::New("accepts two arguments, a required path to a file, and an optional options object, eg. {format: 'pdf'}")));
 
     std::string format("");
-    
+
     if (args.Length() == 2){
       if (!args[1]->IsObject())
         return ThrowException(Exception::TypeError(
           String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
-  
+
         Local<Object> options = args[1]->ToObject();
         if (options->Has(String::New("format")))
         {
@@ -803,14 +802,14 @@ Handle<Value> Map::render_to_file(const Arguments& args)
             if (!format_opt->IsString())
               return ThrowException(Exception::TypeError(
                 String::New("'format' must be a String")));
-            
+
             format = TOSTR(format_opt);
         }
     }
-        
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& output = TOSTR(args[0]);
-    
+
     if (format.empty()) {
         format = mapnik::guess_type(output);
         if (format == "<unknown>") {
@@ -818,9 +817,9 @@ Handle<Value> Map::render_to_file(const Arguments& args)
             s << "unknown output extension for: " << output << "\n";
             return ThrowException(Exception::Error(
                 String::New(s.str().c_str())));
-        }      
+        }
     }
-    
+
     try
     {
 
@@ -835,7 +834,7 @@ Handle<Value> Map::render_to_file(const Arguments& args)
               String::New(s.str().c_str())));
     #endif
         }
-        else 
+        else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
@@ -876,8 +875,8 @@ Handle<Value> Map::render_to_file(const Arguments& args)
     catch (...)
     {
         return ThrowException(Exception::TypeError(
-          String::New("unknown exception happened while rendering the map, please submit a bug report")));    
-    }  
+          String::New("unknown exception happened while rendering the map, please submit a bug report")));
+    }
     return Undefined();
 }
 
@@ -963,7 +962,7 @@ int Map::EIO_GenerateHitGrid(eio_req *req)
 
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     std::size_t layer_num = layers.size();
-    
+
     if (layer_idx >= layer_num) {
         std::ostringstream s;
         s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
@@ -972,22 +971,22 @@ int Map::EIO_GenerateHitGrid(eio_req *req)
         closure->error_name = s.str();
         return 0;
     }
-    
+
     /*
-    mapnik::layer const& layer = layers[layer_idx];    
+    mapnik::layer const& layer = layers[layer_idx];
     double tol;
     double z = 0;
     mapnik::CoordTransform tr = m->map_->view_transform();
-  
+
     const mapnik::box2d<double>&  e = m->map_->get_current_extent();
-  
-    
+
+
     double minx = e.minx();
     double miny = e.miny();
     double maxx = e.maxx();
     double maxy = e.maxy();
     */
-    
+
     try
     {
         /*
@@ -996,37 +995,37 @@ int Map::EIO_GenerateHitGrid(eio_req *req)
         mapnik::proj_transform prj_trans(source,dest);
         prj_trans.backward(minx,miny,z);
         prj_trans.backward(maxx,maxy,z);
-        
-        
+
+
         tol = (maxx - minx) / m->map_->width() * 3;
         mapnik::datasource_ptr ds = layer.datasource();
-        
+
         //mapnik::featureset_ptr fs;
-    
+
         //mapnik::memory_datasource cache;
-        
+
         mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
         #if MAPNIK_VERSION >= 800
             mapnik::query q(bbox);
         #else
             mapnik::query q(bbox,1.0,1.0);
         #endif
-    
+
         q.add_property_name(join_field);
         mapnik::featureset_ptr fs = ds->features(q);
         */
-    
+
         /*
         if (fs)
-        {   
+        {
             mapnik::feature_ptr feature;
             while ((feature = fs->next()))
-            {                  
+            {
                 cache.push(feature);
             }
         }
         */
-        
+
         int32_t index = 0;
         str.setCharAt(index++, (UChar)'[');
         for (unsigned y=0;y<tile_size;y=y+step)
@@ -1038,25 +1037,25 @@ int Map::EIO_GenerateHitGrid(eio_req *req)
                 // .8 (avoid opening index) -> 1.2 sec unindexed
                 // .3 indexed
                 mapnik::featureset_ptr fs_hit = m->map_->query_map_point(layer_idx,x,y);
-  
+
                 std::string val = "";
-                
+
                 /*
                 double x0 = x;
                 double y0 = y;
                 tr.backward(&x0,&y0);
                 prj_trans.backward(x0,y0,z);
-    
+
                 mapnik::box2d<double> box(x0,y0,x0,y0);
                 mapnik::featureset_ptr fs_hit;
-                
+
                 // nothing
                 mapnik::featureset_ptr fs = ds->features_at_point(mapnik::coord2d(x,y));
-                if (fs) 
+                if (fs)
                     fs_hit = mapnik::featureset_ptr(new mapnik::filter_featureset<mapnik::hit_test_filter>(fs,mapnik::hit_test_filter(x,y,tol)));
-                    
+
                 */
-    
+
                 // .7 sec
                 //fs_hit = mapnik::featureset_ptr(new mapnik::memory_featureset(box, cache));
                 if (fs_hit)
@@ -1077,7 +1076,7 @@ int Map::EIO_GenerateHitGrid(eio_req *req)
                             closure->error_name = "Invalid key!";
                             return 0;
                         }
-                        
+
                     }
                 }
 
