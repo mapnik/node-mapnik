@@ -51,10 +51,13 @@ class Map: public node::ObjectWrap {
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
-        
+
     static int EIO_Render(eio_req *req);
     static int EIO_AfterRender(eio_req *req);
-    
+
+    static int EIO_GenerateHitGrid(eio_req *req);
+    static int EIO_AfterGenerateHitGrid(eio_req *req);
+
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
 

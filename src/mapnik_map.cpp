@@ -881,27 +881,70 @@ Handle<Value> Map::render_to_file(const Arguments& args)
     return Undefined();
 }
 
+
+typedef struct {
+    Map *m;
+    std::size_t layer_idx;
+    unsigned int step;
+    std::string join_field;
+    bool error;
+    std::string error_name;
+    Persistent<Object> json;
+    Persistent<Function> cb;
+} generate_hit_grid_t;
+
 Handle<Value> Map::generate_hit_grid(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-  
-    if (args.Length() != 3)
+
+    if (args.Length() != 4)
       return ThrowException(Exception::Error(
-        String::New("please provide layer idx, step, join_field")));
-  
+        String::New("please provide layer idx, step, join_field, and callback")));
+
     if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
         return ThrowException(Exception::TypeError(
            String::New("layer idx and step must be integers")));
-  
+
     if ((!args[2]->IsString()))
         return ThrowException(Exception::TypeError(
            String::New("layer join_field must be a string")));
-  
-    // need cast from double to int
-    std::size_t layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
-    unsigned int step = args[1]->NumberValue();
-    std::string  const& join_field = TOSTR(args[2]);
+
+    // function callback
+    if (!args[3]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("fourth argument must be a callback function")));
+
+    generate_hit_grid_t *closure = new generate_hit_grid_t();
+
+    if (!closure) {
+    V8::LowMemoryNotification();
+    return ThrowException(Exception::Error(
+        String::New("Could not allocate enough memory")));
+    }
+
+    closure->m = m;
+    closure->layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
+    closure->step = args[1]->NumberValue();
+    closure->join_field = TOSTR(args[2]);
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[3]));
+
+    eio_custom(EIO_GenerateHitGrid, EIO_PRI_DEFAULT, EIO_AfterGenerateHitGrid, closure);
+    ev_ref(EV_DEFAULT_UC);
+    m->Ref();
+    return Undefined();
+}
+
+int Map::EIO_GenerateHitGrid(eio_req *req)
+{
+    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+
+    Map* m = closure->m;
+    std::size_t layer_idx = closure->layer_idx;
+    unsigned int step = closure->step;
+    std::string  const& join_field = closure->join_field;
+
     unsigned int tile_size = m->map_->width();
 
     UChar codepoint = 31; // Last ASCII control char.
@@ -925,8 +968,9 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         std::ostringstream s;
         s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
           << layers.size() << "' layers are in map";
-        return ThrowException(Exception::Error(
-           String::New(s.str().c_str())));
+        closure->error = true;
+        closure->error_name = s.str();
+        return 0;
     }
     
     /*
@@ -1029,8 +1073,9 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
                         }
                         else
                         {
-                            return ThrowException(Exception::Error(
-                               String::New("Invalid key!")));    
+                            closure->error = true;
+                            closure->error_name = "Invalid key!";
+                            return 0;
                         }
                         
                     }
@@ -1065,53 +1110,88 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     }
     catch (const mapnik::config_error & ex )
     {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
+        closure->error = true;
+        closure->error_name = ex.what();
     }
     catch (const mapnik::datasource_exception & ex )
     {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
+        closure->error = true;
+        closure->error_name = ex.what();
     }
     catch (const mapnik::proj_init_error & ex )
     {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
+        closure->error = true;
+        closure->error_name = ex.what();
     }
     catch (const std::runtime_error & ex )
     {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
+        closure->error = true;
+        closure->error_name = ex.what();
     }
     catch (const mapnik::ImageWriterException & ex )
     {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
+        closure->error = true;
+        closure->error_name = ex.what();
     }
     catch (const std::exception & ex)
     {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
+        closure->error = true;
+        closure->error_name = ex.what();
     }
     catch (...)
     {
-        return ThrowException(Exception::Error(
-          String::New("Unknown error occured, please file bug")));
+        closure->error = true;
+        closure->error_name = "Unknown error occured, please file bug";
     }
 
-    // Create the key array.
-    Local<Array> keys_a = Array::New(keys.size());
-    std::vector<std::string>::iterator it;
-    unsigned int i;
-    for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+    if (!closure->error)
     {
-        keys_a->Set(i, String::New((*it).c_str()));
+        HandleScope scope;
+
+        // Create the key array.
+        Local<Array> keys_a = Array::New(keys.size());
+        std::vector<std::string>::iterator it;
+        unsigned int i;
+        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        {
+            keys_a->Set(i, String::New((*it).c_str()));
+        }
+
+        // Create the return hash.
+        closure->json = Persistent<Object>::New(Object::New());
+        closure->json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
+        closure->json->Set(String::NewSymbol("keys"), keys_a);
     }
 
-    // Create the return hash.
-    Local<Object> json = Object::New();
-    json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
-    json->Set(String::NewSymbol("keys"), keys_a);
+    return 0;
+}
 
-    return scope.Close(json);
+int Map::EIO_AfterGenerateHitGrid(eio_req *req)
+{
+    HandleScope scope;
+
+    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+    ev_unref(EV_DEFAULT_UC);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        // TODO - add more attributes
+        // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->json) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    closure->m->Unref();
+    closure->cb.Dispose();
+    closure->json.Dispose();
+    delete closure;
+    return 0;
 }
