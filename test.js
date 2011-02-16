@@ -115,14 +115,13 @@ map.render(map.extent(),"png", function(err,buffer) {
 // Test loading a sample world map
 map.load('./examples/stylesheet.xml');
 
-// duplication layers so we can test slicing below
-map.load('./examples/stylesheet.xml');
-map.load('./examples/stylesheet.xml');
-map.load('./examples/stylesheet.xml');
-
 // test hit grid
 map.zoom_all();
-map.generate_hit_grid(3, 4, 'FIPS');
+map.generate_hit_grid(0, 4, 'FIPS', function(err, grid) {
+    //console.log(err);
+    //console.log(grid);
+});
+
 // TODO - test result
 
 // clear styles and layers from previous load to set up for another
