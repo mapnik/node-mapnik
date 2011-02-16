@@ -115,15 +115,6 @@ map.render(map.extent(),"png", function(err,buffer) {
 // Test loading a sample world map
 map.load('./examples/stylesheet.xml');
 
-// test hit grid
-map.zoom_all();
-map.generate_hit_grid(0, 4, 'FIPS', function(err, grid) {
-    //console.log(err);
-    //console.log(grid);
-});
-
-// TODO - test result
-
 // clear styles and layers from previous load to set up for another
 // otherwise layers are duplicated
 map.clear();
@@ -372,5 +363,21 @@ else
     assert.notStrictEqual(merc_bounds, expected);
     assert.notStrictEqual(long_lat_bounds, merc.inverse(merc.forward(long_lat_bounds)));
 }
+
+// Async tests
+
+var map_async = new mapnik.Map(256,256);
+map_async.load('./examples/stylesheet.xml');
+
+// duplicate layers to test indexing
+map_async.load('./examples/stylesheet.xml');
+map_async.load('./examples/stylesheet.xml');
+
+// test hit grid
+map_async.zoom_all();
+map_async.generate_hit_grid(2, 4, 'FIPS', function(err, grid) {
+    assert.ok(!err);
+    assert.ok(grid);
+});
 
 console.log('All tests pass...');
