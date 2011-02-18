@@ -364,6 +364,14 @@ else
     assert.notStrictEqual(long_lat_bounds, merc.inverse(merc.forward(long_lat_bounds)));
 }
 
+// grid render
+
+var map_grid = new mapnik.Map(256,256);
+map_grid.load('./examples/stylesheet.xml');
+map_grid.zoom_all()
+var grid = map_grid.render_grid(0,4,'FIPS')
+assert.ok(grid);
+
 // Async tests
 
 var map_async = new mapnik.Map(256,256);
