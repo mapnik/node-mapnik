@@ -920,17 +920,8 @@ Handle<Value> Map::render_grid(const Arguments& args)
            String::New(s.str().c_str())));
     }
 
-    UChar codepoint = 31;
-    unsigned int length = 256 / step;
-    unsigned int len = length * (length + 3) + 1;
-    UnicodeString::UnicodeString str(len, 0, len);
-    std::map<std::string, UChar> keys;
-    std::map<std::string, UChar>::const_iterator pos;
-    std::vector<std::string> key_order;
-
     mapnik::layer const& layer = layers[layer_idx];
 
-    double tol;
     double z = 0;
     mapnik::CoordTransform tr = m->map_->view_transform();
     const mapnik::box2d<double>&  e = m->map_->get_current_extent();
@@ -943,7 +934,6 @@ Handle<Value> Map::render_grid(const Arguments& args)
     mapnik::proj_transform prj_trans(source,dest);
     prj_trans.backward(minx,miny,z);
     prj_trans.backward(maxx,maxy,z);
-    tol = (maxx - minx) / m->map_->width() * 3;
     mapnik::datasource_ptr ds = layer.datasource();
     mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
     #if MAPNIK_VERSION >= 800
@@ -955,22 +945,40 @@ Handle<Value> Map::render_grid(const Arguments& args)
     mapnik::featureset_ptr fs = ds->features(q);
     typedef mapnik::coord_transform2<mapnik::CoordTransform,mapnik::geometry_type> path_type;
 
-    std::ostringstream s("");
+
+    agg::grid_value feature_id = 1;
+    std::map<agg::grid_value, std::string> feature_keys;
+    std::map<agg::grid_value, std::string>::const_iterator feature_pos;
+
+    std::map<std::string, UChar> keys;
+    std::map<std::string, UChar>::const_iterator key_pos;
+    std::vector<std::string> key_order;
+    UChar codepoint = 31;
+    unsigned int length = 256 / step;
+    unsigned int len = length * (length + 3) + 1;
+    UnicodeString::UnicodeString str(len, 0, len);
+
     if (fs)
     {
 
         unsigned int width = m->map_->width();
         unsigned int height = m->map_->width();
-        unsigned int* buf = new unsigned int[width * height];
+        agg::grid_value* buf = new agg::grid_value[width * height];
         agg::grid_rendering_buffer renbuf(buf, width, height, width);
         agg::grid_renderer<agg::span_grid> ren_grid(renbuf);
         agg::grid_rasterizer ras_grid;
-        ren_grid.clear(0);
+        
+        agg::grid_value no_hit = 0;
+        std::string no_hit_val = "";
+        feature_keys[no_hit] = no_hit_val;
+        ren_grid.clear(no_hit);
 
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
         {
             ras_grid.reset();
+            ++feature_id;
+            
             for (unsigned i=0;i<feature->num_geometries();++i)
             {
                 mapnik::geometry_type const& geom=feature->get_geometry(i);
@@ -983,7 +991,6 @@ Handle<Value> Map::render_grid(const Arguments& args)
             }
 
             std::string val = "";
-            
             std::map<std::string,mapnik::value> const& fprops = feature->props();
             std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
             if (itr != fprops.end())
@@ -991,39 +998,17 @@ Handle<Value> Map::render_grid(const Arguments& args)
                 val = itr->second.to_string();
             }
 
-            pos = keys.find(val);
-            if (pos == keys.end())
+            feature_pos = feature_keys.find(feature_id);
+            if (feature_pos == feature_keys.end())
             {
-                // Create a new entry for this key. Skip the codepoints that
-                // can't be encoded directly in JSON.
-                ++codepoint;
-                if (codepoint == 34) ++codepoint;      // Skip "
-                else if (codepoint == 92) ++codepoint; // Skip backslash
-            
-                keys[val] = codepoint;
-                key_order.push_back(val);
+                feature_keys[feature_id] = val;
             }
             
-            ras_grid.render(ren_grid, codepoint);
+            ras_grid.render(ren_grid, feature_id);
 
         }
         
-
-/*
-        s << "{ \"grid\":\n[\n";
-        for (unsigned y = 0; y < renbuf.height(); y=y+step)
-        {
-            str.setCharAt(index++, (UChar)'"');
-            agg::grid_value* row = renbuf.row(y);
-            s << "\"";
-            for (unsigned x = 0; x < renbuf.width(); x=x+step)
-            {
-                s << row[x];
-            }
-            s << "\",\n";
-        }
-        s << "]\n}";
-*/
+        // resample and utf-ize the grid
         int32_t index = 0;
         str.setCharAt(index++, (UChar)'[');
         for (unsigned y = 0; y < renbuf.height(); y=y+step)
@@ -1032,17 +1017,36 @@ Handle<Value> Map::render_grid(const Arguments& args)
             agg::grid_value* row = renbuf.row(y);
             for (unsigned x = 0; x < renbuf.width(); x=x+step)
             {
-                agg::grid_value val = row[x];
-                if (val == 0)
-                  str.setCharAt(index++, (UChar)' ');
-                else
-                  str.setCharAt(index++, row[x]);
+                agg::grid_value id = row[x];
+                feature_pos = feature_keys.find(id);
+                if (feature_pos != feature_keys.end())
+                {
+                    std::string val = feature_pos->second;
+                    key_pos = keys.find(val);
+                    if (key_pos == keys.end())
+                    {
+                        // Create a new entry for this key. Skip the codepoints that
+                        // can't be encoded directly in JSON.
+                        ++codepoint;
+                        if (codepoint == 34) ++codepoint;      // Skip "
+                        else if (codepoint == 92) ++codepoint; // Skip backslash
+                    
+                        keys[val] = codepoint;
+                        key_order.push_back(val);
+                        str.setCharAt(index++, codepoint);
+                    }
+                    else
+                    {
+                        str.setCharAt(index++, key_pos->second);
+                    }
+
+                }
+                // else, shouldn't get here...
             }
             str.setCharAt(index++, (UChar)'"');
             str.setCharAt(index++, (UChar)',');
         }
         str.setCharAt(index - 1, (UChar)']');
-
 
         delete buf;
     }
