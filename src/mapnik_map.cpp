@@ -17,6 +17,9 @@
 // icu
 #include <unicode/unistr.h>
 
+// ellipse drawing
+#include <math.h>
+
 
 
 // careful, missing include gaurds: http://trac.mapnik.org/changeset/2516
@@ -935,6 +938,10 @@ Handle<Value> Map::render_grid(const Arguments& args)
     prj_trans.backward(minx,miny,z);
     prj_trans.backward(maxx,maxy,z);
     mapnik::datasource_ptr ds = layer.datasource();
+    //if (ds->type() == datasource::Raster ) 
+    //   throw
+    
+    // TODO - clip bbox by layer extent
     mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
     #if MAPNIK_VERSION >= 800
         mapnik::query q(bbox);
@@ -982,12 +989,31 @@ Handle<Value> Map::render_grid(const Arguments& args)
             for (unsigned i=0;i<feature->num_geometries();++i)
             {
                 mapnik::geometry_type const& geom=feature->get_geometry(i);
-                //if (geom.num_points() > 2)
-                //{
-                    path_type path(tr,geom,prj_trans);
+                if (geom.num_points() == 1)
+                {
 
+                    double x;
+                    double y;
+                    double z=0;
+                    geom.label_position(&x, &y);
+                    prj_trans.backward(x,y,z);
+                    tr.forward(&x,&y);
+                    int rx = 10; // arbitary pixel width
+                    int ry = 10; // arbitary pixel height
+                    ras_grid.move_to_d(x + rx, y);
+                    int i;
+                    int approximation_steps = 360;
+                    for(i = 1; i < approximation_steps; i++)
+                    {
+                        double a = double(i) * 3.1415926 / 180.0;
+                        ras_grid.line_to_d(x + cos(a) * rx, y + sin(a) * ry);
+                    }
+                }
+                else
+                {
+                    path_type path(tr,geom,prj_trans);
                     ras_grid.add_path(path);
-                //}
+                }
             }
 
             std::string val = "";
