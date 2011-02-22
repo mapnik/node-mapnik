@@ -58,8 +58,8 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
-    //NODE_SET_PROTOTYPE_METHOD(constructor, "generate_hit_grid", generate_hit_grid);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
+    // private method as this will soon be removed (when functionality lands in mapnik core)
+    NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
@@ -1172,12 +1172,6 @@ int Map::EIO_RenderGrid(eio_req *req)
         closure->error_name = "Unknown error occured, please file bug";
     }
 
-    /*if (!closure->error)
-    {
-        closure->data = str.getBuffer();
-        closure->len = len;
-    }*/
-
     return 0;
 
 }
@@ -1208,12 +1202,8 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
 
         // Create the return hash.
         Local<Object> json = Object::New();
-        //std::string buffer;
-        //mapnik::to_utf8(str,buffer);
-        //std::clog << "len: " << len << " length: " << str.length() << " buf: " << buffer << "\n";
         json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
         json->Set(String::NewSymbol("keys"), keys_a);
-        //closure->json = Persistent<Object>::New(json);
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
@@ -1224,243 +1214,7 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
 
     closure->m->Unref();
     closure->cb.Dispose();
-    //closure->json.Dispose();
-    //scope.Close(closure->json);
-    //free(closure->data);
     delete closure;
     
     return 0;
 }
-
-/*
-Handle<Value> Map::generate_hit_grid(const Arguments& args)
-{
-    HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    if (args.Length() != 4)
-      return ThrowException(Exception::Error(
-        String::New("please provide layer idx, step, join_field, and callback")));
-
-    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer idx and step must be integers")));
-
-    if ((!args[2]->IsString()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer join_field must be a string")));
-
-    // function callback
-    if (!args[3]->IsFunction())
-        return ThrowException(Exception::TypeError(
-                  String::New("fourth argument must be a callback function")));
-
-    grid_t *closure = new grid_t();
-
-    if (!closure) {
-        V8::LowMemoryNotification();
-        return ThrowException(Exception::Error(
-            String::New("Could not allocate enough memory")));
-    }
-
-    closure->m = m;
-    closure->layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
-    closure->step = args[1]->NumberValue();
-    closure->join_field = TOSTR(args[2]);
-    closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[3]));
-
-    eio_custom(EIO_GenerateHitGrid, EIO_PRI_DEFAULT, EIO_AfterGenerateHitGrid, closure);
-    ev_ref(EV_DEFAULT_UC);
-    m->Ref();
-    return Undefined();
-}
-
-int Map::EIO_GenerateHitGrid(eio_req *req)
-{
-    grid_t *closure = static_cast<grid_t *>(req->data);
-
-    Map* m = closure->m;
-    std::size_t layer_idx = closure->layer_idx;
-    unsigned int step = closure->step;
-    std::string  const& join_field = closure->join_field;
-
-    unsigned int tile_size = m->map_->width();
-
-    UChar codepoint = 31; // Last ASCII control char.
-    unsigned int length = 256 / step;
-
-    // The exact string length:
-    //   +3: length + two quotes and a comma
-    //   +1: we don't need the last comma, but we need [ and ]
-    unsigned int len = length * (length + 3) + 1;
-
-    UnicodeString::UnicodeString str(len, 0, len);
-
-    std::map<std::string, UChar> keys;
-    std::map<std::string, UChar>::const_iterator pos;
-    std::vector<std::string> key_order;
-
-    std::vector<mapnik::layer> const& layers = m->map_->layers();
-    std::size_t layer_num = layers.size();
-
-    if (layer_idx >= layer_num) {
-        std::ostringstream s;
-        s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
-          << layers.size() << "' layers are in map";
-        closure->error = true;
-        closure->error_name = s.str();
-        return 0;
-    }
-
-
-    try
-    {
-        int32_t index = 0;
-        str.setCharAt(index++, (UChar)'[');
-        for (unsigned y=0;y<tile_size;y=y+step)
-        {
-            str.setCharAt(index++, (UChar)'"');
-            for (unsigned x=0;x<tile_size;x=x+step)
-            {
-                mapnik::featureset_ptr fs_hit = m->map_->query_map_point(layer_idx,x,y);
-
-                std::string val = "";
-
-                if (fs_hit)
-                {
-                    mapnik::feature_ptr fp = fs_hit->next();
-                    if (fp)
-                    {
-                        std::map<std::string,mapnik::value> const& fprops = fp->props();
-                        std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
-                        if (itr != fprops.end())
-                        {
-                            val = itr->second.to_string();
-                            //a->Set(x+y, String::New((const char*)itr->second.to_string().c_str()));
-                        }
-                        else
-                        {
-                            closure->error = true;
-                            closure->error_name = "Invalid key!";
-                            return 0;
-                        }
-
-                    }
-                }
-
-                // Find out the UChar value associated with the val
-                // If it doesn't exist, create a new one and add it to the map
-                pos = keys.find(val);
-                if (pos == keys.end())
-                {
-                    // Create a new entry for this key. Skip the codepoints that
-                    // can't be encoded directly in JSON.
-                    ++codepoint;
-                    if (codepoint == 34) ++codepoint;      // Skip "
-                    else if (codepoint == 92) ++codepoint; // Skip backslash
-
-                    keys[val] = codepoint;
-                    key_order.push_back(val);
-                    str.setCharAt(index++, codepoint);
-                }
-                else
-                {
-                    str.setCharAt(index++, pos->second);
-                }
-
-            }
-            str.setCharAt(index++, (UChar)'"');
-            str.setCharAt(index++, (UChar)',');
-        }
-        // Overwrite the last comma.
-        str.setCharAt(index - 1, (UChar)']');
-    }
-    catch (const mapnik::config_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const std::runtime_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const std::exception & ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "Unknown error occured, please file bug";
-    }
-
-    if (!closure->error)
-    {
-        HandleScope scope;
-
-        // Create the key array.
-        Local<Array> keys_a = Array::New(keys.size());
-        std::vector<std::string>::iterator it;
-        unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
-        {
-            keys_a->Set(i, String::New((*it).c_str()));
-        }
-
-        // Create the return hash.
-        closure->json = Persistent<Object>::New(Object::New());
-        closure->json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
-        closure->json->Set(String::NewSymbol("keys"), keys_a);
-    }
-
-    return 0;
-}
-
-int Map::EIO_AfterGenerateHitGrid(eio_req *req)
-{
-    HandleScope scope;
-
-    grid_t *closure = static_cast<grid_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
-
-    TryCatch try_catch;
-
-    if (closure->error) {
-        // TODO - add more attributes
-        // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-    } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->json) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-    }
-
-    if (try_catch.HasCaught()) {
-      FatalException(try_catch);
-    }
-
-    closure->m->Unref();
-    closure->cb.Dispose();
-    closure->json.Dispose();
-    delete closure;
-    return 0;
-}
-*/

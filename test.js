@@ -364,34 +364,17 @@ else
     assert.notStrictEqual(long_lat_bounds, merc.inverse(merc.forward(long_lat_bounds)));
 }
 
-// grid render
+// Async tests
 
 var map_grid = new mapnik.Map(256,256);
 map_grid.load('./examples/stylesheet.xml');
 map_grid.zoom_all()
 
-map_grid.render_grid(0, 4, 'FIPS', function(err, grid) {
+map_grid._render_grid(0, 4, 'FIPS', function(err, grid) {
     assert.ok(!err);
     assert.ok(grid);
     fs.writeFileSync('/tmp/gridded.json',JSON.stringify(grid));
 });
 
-// Async tests
-
-/*
-var map_async = new mapnik.Map(256,256);
-map_async.load('./examples/stylesheet.xml');
-
-// duplicate layers to test indexing
-map_async.load('./examples/stylesheet.xml');
-map_async.load('./examples/stylesheet.xml');
-
-// test hit grid
-map_async.zoom_all();
-map_async.generate_hit_grid(2, 4, 'FIPS', function(err, grid) {
-    assert.ok(!err);
-    assert.ok(grid);
-});
-*/
 
 console.log('All tests pass...');
