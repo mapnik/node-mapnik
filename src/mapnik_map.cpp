@@ -53,7 +53,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "from_string", from_string);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", to_string);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toXML", to_string);
     NODE_SET_PROTOTYPE_METHOD(constructor, "resize", resize);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
