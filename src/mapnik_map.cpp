@@ -15,23 +15,11 @@
 #include <mapnik/query.hpp>
 #include <mapnik/ctrans.hpp>
 // icu
+//#include <mapnik/value.hpp>
 #include <unicode/unistr.h>
 
 // ellipse drawing
 #include <math.h>
-
-
-
-// careful, missing include gaurds: http://trac.mapnik.org/changeset/2516
-//#include <mapnik/filter_featureset.hpp>
-
-// not currently used...
-//#include <mapnik/color_factory.hpp>
-//#include <mapnik/hit_test_filter.hpp>
-//#include <mapnik/memory_datasource.hpp>
-//#include <mapnik/memory_featureset.hpp>
-//#include <mapnik/params.hpp>
-//#include <mapnik/feature_layer_desc.hpp>
 
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_renderer.hpp>
@@ -70,7 +58,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "generate_hit_grid", generate_hit_grid);
+    //NODE_SET_PROTOTYPE_METHOD(constructor, "generate_hit_grid", generate_hit_grid);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
@@ -895,57 +883,13 @@ typedef struct {
     std::size_t layer_idx;
     unsigned int step;
     std::string join_field;
+    UnicodeString::UnicodeString ustr;
     bool error;
     std::string error_name;
-    Persistent<Object> json;
+    std::map<std::string, UChar> keys;
+    std::vector<std::string> key_order;
     Persistent<Function> cb;
-} generate_hit_grid_t;
-
-
-Handle<Value> Map::render_grid(const Arguments& args)
-{
-    HandleScope scope;
-
-    if (!args.Length() >= 4)
-      return ThrowException(Exception::Error(
-        String::New("please provide layer idx, step, join_field, and callback")));
-
-    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer idx and step must be integers")));
-
-    if ((!args[2]->IsString()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer join_field must be a string")));
-
-    // function callback
-    if (!args[args.Length()-1]->IsFunction())
-        return ThrowException(Exception::TypeError(
-                  String::New("last argument must be a callback function")));
-
-    generate_hit_grid_t *closure = new generate_hit_grid_t();
-
-    if (!closure) {
-        V8::LowMemoryNotification();
-        return ThrowException(Exception::Error(
-            String::New("Could not allocate enough memory")));
-    }
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    closure->m = m;
-    closure->layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
-    closure->step = args[1]->NumberValue();
-    closure->join_field = TOSTR(args[2]);
-    closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
-
-    eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
-    ev_ref(EV_DEFAULT_UC);
-    m->Ref();
-    return Undefined();
-
-}
+} grid_t;
 
 void grid2utf(agg::grid_rendering_buffer& renbuf, 
     UnicodeString::UnicodeString& str,
@@ -958,7 +902,7 @@ void grid2utf(agg::grid_rendering_buffer& renbuf,
     str.setCharAt(index++, (UChar)'[');
     std::map<std::string, UChar>::const_iterator key_pos;
     std::map<agg::grid_value, std::string>::const_iterator feature_pos;
-    
+
     for (unsigned y = 0; y < renbuf.height(); ++y)
     {
         str.setCharAt(index++, (UChar)'"');
@@ -998,14 +942,70 @@ void grid2utf(agg::grid_rendering_buffer& renbuf,
     str.setCharAt(index - 1, (UChar)']');
 }
 
+Handle<Value> Map::render_grid(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (!args.Length() >= 4)
+      return ThrowException(Exception::Error(
+        String::New("please provide layer idx, step, join_field, and callback")));
+
+    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
+        return ThrowException(Exception::TypeError(
+           String::New("layer idx and step must be integers")));
+
+    if ((!args[2]->IsString()))
+        return ThrowException(Exception::TypeError(
+           String::New("layer join_field must be a string")));
+
+    // function callback
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+
+    grid_t *closure = new grid_t();
+
+    if (!closure) {
+        V8::LowMemoryNotification();
+        return ThrowException(Exception::Error(
+            String::New("Could not allocate enough memory")));
+    }
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    
+    if (!(m->map_->width() == m->map_->height()))
+    {
+        return ThrowException(Exception::Error(
+                  String::New("Map width and height do not match, this function requires a square tile")));
+    }
+
+    closure->m = m;
+    closure->layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
+    closure->step = args[1]->NumberValue();
+    closure->join_field = TOSTR(args[2]);
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+    // The exact string length:
+    //   +3: length + two quotes and a comma
+    //   +1: we don't need the last comma, but we need [ and ]
+    unsigned int width = m->map_->width()/closure->step;
+    unsigned int len = width * (width + 3) + 1;
+    closure->ustr = UnicodeString::UnicodeString(len, 0, len);
+
+    eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
+    ev_ref(EV_DEFAULT_UC);
+    m->Ref();
+    return Undefined();
+
+}
+
 
 int Map::EIO_RenderGrid(eio_req *req)
 {
 
-    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+    grid_t *closure = static_cast<grid_t *>(req->data);
 
-    Map* m = closure->m;
-    std::vector<mapnik::layer> const& layers = m->map_->layers();
+    std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
     std::size_t layer_num = layers.size();
     unsigned int layer_idx = closure->layer_idx;
 
@@ -1023,20 +1023,11 @@ int Map::EIO_RenderGrid(eio_req *req)
     unsigned int step = closure->step;
     std::string const& join_field = closure->join_field;
 
-    unsigned int width = m->map_->width()/step;
-    unsigned int height = m->map_->height()/step;
-    const mapnik::box2d<double>&  e = m->map_->get_current_extent();
+    unsigned int width = closure->m->map_->width()/step;
+    unsigned int height = closure->m->map_->height()/step;
+    
+    const mapnik::box2d<double>&  e = closure->m->map_->get_current_extent();
     mapnik::CoordTransform tr = mapnik::CoordTransform(width,height,e);
-
-    std::map<std::string, UChar> keys;
-    std::vector<std::string> key_order;
-    unsigned int length = 256 / step;
-
-    // The exact string length:
-    //   +3: length + two quotes and a comma
-    //   +1: we don't need the last comma, but we need [ and ]
-    unsigned int len = length * (length + 3) + 1;
-    UnicodeString::UnicodeString str(len, 0, len);
 
     try
     {
@@ -1046,14 +1037,17 @@ int Map::EIO_RenderGrid(eio_req *req)
         double miny = e.miny();
         double maxx = e.maxx();
         double maxy = e.maxy();
-        mapnik::projection dest(m->map_->srs());
+        mapnik::projection dest(closure->m->map_->srs());
         mapnik::projection source(layer.srs());
         mapnik::proj_transform prj_trans(source,dest);
         prj_trans.backward(minx,miny,z);
         prj_trans.backward(maxx,maxy,z);
         mapnik::datasource_ptr ds = layer.datasource();
-        //if (ds->type() == datasource::Raster ) 
-        //   throw
+        if (ds->type() == mapnik::datasource::Raster ) {
+            closure->error = true;
+            closure->error_name = "Raster layers are not yet supported";
+            return 0;
+        }
         
         // TODO - clip bbox by layer extent
         mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
@@ -1137,7 +1131,7 @@ int Map::EIO_RenderGrid(eio_req *req)
             }
             
             // resample and utf-ize the grid
-            grid2utf(renbuf,str,keys,key_order,feature_keys);
+            grid2utf(renbuf,closure->ustr,closure->keys,closure->key_order,feature_keys);
             delete buf;
         }
 
@@ -1178,24 +1172,11 @@ int Map::EIO_RenderGrid(eio_req *req)
         closure->error_name = "Unknown error occured, please file bug";
     }
 
-    if (!closure->error)
+    /*if (!closure->error)
     {
-        HandleScope scope;
-
-        // Create the key array.
-        Local<Array> keys_a = Array::New(keys.size());
-        std::vector<std::string>::iterator it;
-        unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
-        {
-            keys_a->Set(i, String::New((*it).c_str()));
-        }
-
-        // Create the return hash.
-        closure->json = Persistent<Object>::New(Object::New());
-        closure->json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
-        closure->json->Set(String::NewSymbol("keys"), keys_a);
-    }
+        closure->data = str.getBuffer();
+        closure->len = len;
+    }*/
 
     return 0;
 
@@ -1206,7 +1187,7 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
 {
     HandleScope scope;
 
-    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+    grid_t *closure = static_cast<grid_t *>(req->data);
     ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
@@ -1217,7 +1198,23 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->json) };
+        Local<Array> keys_a = Array::New(closure->keys.size());
+        std::vector<std::string>::iterator it;
+        unsigned int i;
+        for (it = closure->key_order.begin(), i = 0; it < closure->key_order.end(); ++it, ++i)
+        {
+            keys_a->Set(i, String::New((*it).c_str()));
+        }
+
+        // Create the return hash.
+        Local<Object> json = Object::New();
+        //std::string buffer;
+        //mapnik::to_utf8(str,buffer);
+        //std::clog << "len: " << len << " length: " << str.length() << " buf: " << buffer << "\n";
+        json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
+        json->Set(String::NewSymbol("keys"), keys_a);
+        //closure->json = Persistent<Object>::New(json);
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
@@ -1227,11 +1224,15 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
 
     closure->m->Unref();
     closure->cb.Dispose();
-    closure->json.Dispose();
+    //closure->json.Dispose();
+    //scope.Close(closure->json);
+    //free(closure->data);
     delete closure;
+    
     return 0;
 }
 
+/*
 Handle<Value> Map::generate_hit_grid(const Arguments& args)
 {
     HandleScope scope;
@@ -1254,7 +1255,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
         return ThrowException(Exception::TypeError(
                   String::New("fourth argument must be a callback function")));
 
-    generate_hit_grid_t *closure = new generate_hit_grid_t();
+    grid_t *closure = new grid_t();
 
     if (!closure) {
         V8::LowMemoryNotification();
@@ -1277,7 +1278,7 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
 
 int Map::EIO_GenerateHitGrid(eio_req *req)
 {
-    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+    grid_t *closure = static_cast<grid_t *>(req->data);
 
     Map* m = closure->m;
     std::size_t layer_idx = closure->layer_idx;
@@ -1437,7 +1438,7 @@ int Map::EIO_AfterGenerateHitGrid(eio_req *req)
 {
     HandleScope scope;
 
-    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+    grid_t *closure = static_cast<grid_t *>(req->data);
     ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
@@ -1462,3 +1463,4 @@ int Map::EIO_AfterGenerateHitGrid(eio_req *req)
     delete closure;
     return 0;
 }
+*/

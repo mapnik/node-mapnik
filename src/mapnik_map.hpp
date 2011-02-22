@@ -32,7 +32,7 @@ class Map: public node::ObjectWrap {
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> buffer_size(const Arguments &args);
-    static Handle<Value> generate_hit_grid(const Arguments &args);
+    //static Handle<Value> generate_hit_grid(const Arguments &args);
     static Handle<Value> extent(const Arguments &args);
     static Handle<Value> zoom_all(const Arguments &args);
     static Handle<Value> zoom_to_box(const Arguments &args);
@@ -60,8 +60,8 @@ class Map: public node::ObjectWrap {
     static int EIO_RenderGrid(eio_req *req);
     static int EIO_AfterRenderGrid(eio_req *req);
     
-    static int EIO_GenerateHitGrid(eio_req *req);
-    static int EIO_AfterGenerateHitGrid(eio_req *req);
+    //static int EIO_GenerateHitGrid(eio_req *req);
+    //static int EIO_AfterGenerateHitGrid(eio_req *req);
 
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
