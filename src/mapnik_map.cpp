@@ -885,6 +885,7 @@ typedef struct {
     std::string join_field;
     UnicodeString::UnicodeString ustr;
     bool error;
+    bool include_features;
     std::string error_name;
     std::map<std::string, UChar> keys;
     std::map<std::string, std::map<std::string, mapnik::value> > features;
@@ -959,6 +960,15 @@ Handle<Value> Map::render_grid(const Arguments& args)
         return ThrowException(Exception::TypeError(
            String::New("layer join_field must be a string")));
 
+    bool include_features = false;
+
+    if ((args.Length() > 4)) {
+        if (!args[3]->IsBoolean())
+            return ThrowException(Exception::TypeError(
+               String::New("option to include feature data must be a boolean")));
+        include_features = args[3]->BooleanValue();
+    }
+    
     // function callback
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
@@ -992,6 +1002,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     closure->layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
     closure->step = args[1]->NumberValue();
     closure->join_field = TOSTR(args[2]);
+    closure->include_features = include_features;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
     // The exact string length:
@@ -1066,19 +1077,24 @@ int Map::EIO_RenderGrid(eio_req *req)
             mapnik::query q(bbox,1.0,1.0);
         #endif
 
-        mapnik::layer_descriptor ld = ds->get_descriptor();
-        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-        unsigned size=0;
-        while (itr != end)
+        if (closure->include_features) {
+            mapnik::layer_descriptor ld = ds->get_descriptor();
+            std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+            std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+            std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+            unsigned size=0;
+            while (itr != end)
+            {
+                q.add_property_name(itr->get_name());
+                ++itr;
+                ++size;
+            }
+        }
+        else
         {
-            q.add_property_name(itr->get_name());
-            ++itr;
-            ++size;
+            q.add_property_name(join_field);
         }
 
-        //q.add_property_name(join_field);
         mapnik::featureset_ptr fs = ds->features(q);
         typedef mapnik::coord_transform2<mapnik::CoordTransform,mapnik::geometry_type> path_type;
     
@@ -1146,7 +1162,8 @@ int Map::EIO_RenderGrid(eio_req *req)
                 if (feature_pos == feature_keys.end())
                 {
                     feature_keys[feature_id] = val;
-                    closure->features[val] = fprops;
+                    if (closure->include_features && (val != ""))
+                        closure->features[val] = fprops;
                 }
                 
                 ras_grid.render(ren_grid, feature_id);
@@ -1224,26 +1241,26 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         }
 
         Local<Object> data = Object::New();
-        typedef std::map<std::string, std::map<std::string, mapnik::value> >::const_iterator const_style_iterator;
-        const_style_iterator fprops = closure->features.begin();
-        const_style_iterator end = closure->features.end();
-        for (; fprops != end; ++fprops)
-        {
-            //std::map<std::string,mapnik::value> const& fprops = it->props();
-            Local<Object> feat = Object::New();
-            std::map<std::string,mapnik::value>::const_iterator it = fprops->second.begin();
-            std::map<std::string,mapnik::value>::const_iterator end = fprops->second.end();
-            for (; it != end; ++it)
+        if (closure->include_features) {
+            typedef std::map<std::string, std::map<std::string, mapnik::value> >::const_iterator const_style_iterator;
+            const_style_iterator fprops = closure->features.begin();
+            const_style_iterator end = closure->features.end();
+            for (; fprops != end; ++fprops)
             {
-                params_to_object serializer( feat , it->first);
-                // need to call base() since this is a mapnik::value
-                // not a mapnik::value_holder
-                boost::apply_visitor( serializer, it->second.base() );
+                //std::map<std::string,mapnik::value> const& fprops = it->props();
+                Local<Object> feat = Object::New();
+                std::map<std::string,mapnik::value>::const_iterator it = fprops->second.begin();
+                std::map<std::string,mapnik::value>::const_iterator end = fprops->second.end();
+                for (; it != end; ++it)
+                {
+                    params_to_object serializer( feat , it->first);
+                    // need to call base() since this is a mapnik::value
+                    // not a mapnik::value_holder
+                    boost::apply_visitor( serializer, it->second.base() );
+                }
+                data->Set(String::NewSymbol(fprops->first.c_str()), feat);
             }
-            data->Set(String::NewSymbol(fprops->first.c_str()), feat);
         }
-        
-        
         
         // Create the return hash.
         Local<Object> json = Object::New();
