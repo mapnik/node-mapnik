@@ -973,10 +973,18 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     
-    if (!(m->map_->width() == m->map_->height()))
+    unsigned int w = m->map_->width();
+    
+    if (!(w == m->map_->height()))
     {
         return ThrowException(Exception::Error(
                   String::New("Map width and height do not match, this function requires a square tile")));
+    }
+    
+    // http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+    if (!(w && !(w & (w - 1)))) {
+        return ThrowException(Exception::Error(
+            String::New("Map width and height must be a power of two")));    
     }
 
     closure->m = m;
@@ -988,7 +996,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     // The exact string length:
     //   +3: length + two quotes and a comma
     //   +1: we don't need the last comma, but we need [ and ]
-    unsigned int width = m->map_->width()/closure->step;
+    unsigned int width = w/closure->step;
     unsigned int len = width * (width + 3) + 1;
     closure->ustr = UnicodeString::UnicodeString(len, 0, len);
 
