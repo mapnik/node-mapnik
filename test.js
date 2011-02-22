@@ -369,8 +369,12 @@ else
 var map_grid = new mapnik.Map(256,256);
 map_grid.load('./examples/stylesheet.xml');
 map_grid.zoom_all()
-var grid = map_grid.render_grid(0,4,'FIPS')
-assert.ok(grid);
+
+map_grid.render_grid(0, 4, 'FIPS', function(err, grid) {
+    assert.ok(!err);
+    assert.ok(grid);
+    fs.writeFileSync('/tmp/gridded.json',JSON.stringify(grid));
+});
 
 // Async tests
 

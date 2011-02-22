@@ -11,6 +11,7 @@
 #include <mapnik/map.hpp>
 #include "mapnik_layer.hpp"
 
+
 using namespace v8;
 using namespace node;
 
@@ -56,6 +57,9 @@ class Map: public node::ObjectWrap {
     static int EIO_Render(eio_req *req);
     static int EIO_AfterRender(eio_req *req);
 
+    static int EIO_RenderGrid(eio_req *req);
+    static int EIO_AfterRenderGrid(eio_req *req);
+    
     static int EIO_GenerateHitGrid(eio_req *req);
     static int EIO_AfterGenerateHitGrid(eio_req *req);
 

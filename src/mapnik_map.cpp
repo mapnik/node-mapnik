@@ -890,211 +890,6 @@ Handle<Value> Map::render_to_file(const Arguments& args)
 }
 
 
-Handle<Value> Map::render_grid(const Arguments& args)
-{
-    HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    if (args.Length() != 3)
-      return ThrowException(Exception::Error(
-        String::New("please provide layer idx, step, join_field")));
-
-    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer idx and step must be integers")));
-
-    if ((!args[2]->IsString()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer join_field must be a string")));
-
-    std:: size_t layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
-    unsigned int step = args[1]->NumberValue();
-    std::string join_field = TOSTR(args[2]);
-
-
-    std::vector<mapnik::layer> const& layers = m->map_->layers();
-    std::size_t layer_num = layers.size();
-
-    if (layer_idx >= layer_num) {
-        std::ostringstream s;
-        s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
-          << layers.size() << "' layers are in map";
-        return ThrowException(Exception::TypeError(
-           String::New(s.str().c_str())));
-    }
-
-    mapnik::layer const& layer = layers[layer_idx];
-
-    double z = 0;
-    mapnik::CoordTransform tr = m->map_->view_transform();
-    const mapnik::box2d<double>&  e = m->map_->get_current_extent();
-    double minx = e.minx();
-    double miny = e.miny();
-    double maxx = e.maxx();
-    double maxy = e.maxy();
-    mapnik::projection dest(m->map_->srs());
-    mapnik::projection source(layer.srs());
-    mapnik::proj_transform prj_trans(source,dest);
-    prj_trans.backward(minx,miny,z);
-    prj_trans.backward(maxx,maxy,z);
-    mapnik::datasource_ptr ds = layer.datasource();
-    //if (ds->type() == datasource::Raster ) 
-    //   throw
-    
-    // TODO - clip bbox by layer extent
-    mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
-    #if MAPNIK_VERSION >= 800
-        mapnik::query q(bbox);
-    #else
-        mapnik::query q(bbox,1.0,1.0);
-    #endif
-    q.add_property_name(join_field);
-    mapnik::featureset_ptr fs = ds->features(q);
-    typedef mapnik::coord_transform2<mapnik::CoordTransform,mapnik::geometry_type> path_type;
-
-
-    agg::grid_value feature_id = 1;
-    std::map<agg::grid_value, std::string> feature_keys;
-    std::map<agg::grid_value, std::string>::const_iterator feature_pos;
-
-    std::map<std::string, UChar> keys;
-    std::map<std::string, UChar>::const_iterator key_pos;
-    std::vector<std::string> key_order;
-    UChar codepoint = 31;
-    unsigned int length = 256 / step;
-    unsigned int len = length * (length + 3) + 1;
-    UnicodeString::UnicodeString str(len, 0, len);
-
-    if (fs)
-    {
-
-        unsigned int width = m->map_->width();
-        unsigned int height = m->map_->width();
-        agg::grid_value* buf = new agg::grid_value[width * height];
-        agg::grid_rendering_buffer renbuf(buf, width, height, width);
-        agg::grid_renderer<agg::span_grid> ren_grid(renbuf);
-        agg::grid_rasterizer ras_grid;
-        
-        agg::grid_value no_hit = 0;
-        std::string no_hit_val = "";
-        feature_keys[no_hit] = no_hit_val;
-        ren_grid.clear(no_hit);
-
-        mapnik::feature_ptr feature;
-        while ((feature = fs->next()))
-        {
-            ras_grid.reset();
-            ++feature_id;
-            
-            for (unsigned i=0;i<feature->num_geometries();++i)
-            {
-                mapnik::geometry_type const& geom=feature->get_geometry(i);
-                if (geom.num_points() == 1)
-                {
-
-                    double x;
-                    double y;
-                    double z=0;
-                    geom.label_position(&x, &y);
-                    prj_trans.backward(x,y,z);
-                    tr.forward(&x,&y);
-                    int rx = 10; // arbitary pixel width
-                    int ry = 10; // arbitary pixel height
-                    ras_grid.move_to_d(x + rx, y);
-                    int i;
-                    int approximation_steps = 360;
-                    for(i = 1; i < approximation_steps; i++)
-                    {
-                        double a = double(i) * 3.1415926 / 180.0;
-                        ras_grid.line_to_d(x + cos(a) * rx, y + sin(a) * ry);
-                    }
-                }
-                else
-                {
-                    path_type path(tr,geom,prj_trans);
-                    ras_grid.add_path(path);
-                }
-            }
-
-            std::string val = "";
-            std::map<std::string,mapnik::value> const& fprops = feature->props();
-            std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
-            if (itr != fprops.end())
-            {
-                val = itr->second.to_string();
-            }
-
-            feature_pos = feature_keys.find(feature_id);
-            if (feature_pos == feature_keys.end())
-            {
-                feature_keys[feature_id] = val;
-            }
-            
-            ras_grid.render(ren_grid, feature_id);
-
-        }
-        
-        // resample and utf-ize the grid
-        int32_t index = 0;
-        str.setCharAt(index++, (UChar)'[');
-        for (unsigned y = 0; y < renbuf.height(); y=y+step)
-        {
-            str.setCharAt(index++, (UChar)'"');
-            agg::grid_value* row = renbuf.row(y);
-            for (unsigned x = 0; x < renbuf.width(); x=x+step)
-            {
-                agg::grid_value id = row[x];
-                feature_pos = feature_keys.find(id);
-                if (feature_pos != feature_keys.end())
-                {
-                    std::string val = feature_pos->second;
-                    key_pos = keys.find(val);
-                    if (key_pos == keys.end())
-                    {
-                        // Create a new entry for this key. Skip the codepoints that
-                        // can't be encoded directly in JSON.
-                        ++codepoint;
-                        if (codepoint == 34) ++codepoint;      // Skip "
-                        else if (codepoint == 92) ++codepoint; // Skip backslash
-                    
-                        keys[val] = codepoint;
-                        key_order.push_back(val);
-                        str.setCharAt(index++, codepoint);
-                    }
-                    else
-                    {
-                        str.setCharAt(index++, key_pos->second);
-                    }
-
-                }
-                // else, shouldn't get here...
-            }
-            str.setCharAt(index++, (UChar)'"');
-            str.setCharAt(index++, (UChar)',');
-        }
-        str.setCharAt(index - 1, (UChar)']');
-
-        delete buf;
-    }
-
-
-    Local<Array> keys_a = Array::New(keys.size());
-    std::vector<std::string>::iterator it;
-    unsigned int i;
-    for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
-    {
-        keys_a->Set(i, String::New((*it).c_str()));
-    }
-
-
-    Local<Object> json = Object::New();
-    json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
-    json->Set(String::NewSymbol("keys"), keys_a);
-
-    return scope.Close(json);
-}
-
-
 typedef struct {
     Map *m;
     std::size_t layer_idx;
@@ -1105,6 +900,337 @@ typedef struct {
     Persistent<Object> json;
     Persistent<Function> cb;
 } generate_hit_grid_t;
+
+
+Handle<Value> Map::render_grid(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (!args.Length() >= 4)
+      return ThrowException(Exception::Error(
+        String::New("please provide layer idx, step, join_field, and callback")));
+
+    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
+        return ThrowException(Exception::TypeError(
+           String::New("layer idx and step must be integers")));
+
+    if ((!args[2]->IsString()))
+        return ThrowException(Exception::TypeError(
+           String::New("layer join_field must be a string")));
+
+    // function callback
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+
+    generate_hit_grid_t *closure = new generate_hit_grid_t();
+
+    if (!closure) {
+        V8::LowMemoryNotification();
+        return ThrowException(Exception::Error(
+            String::New("Could not allocate enough memory")));
+    }
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    closure->m = m;
+    closure->layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
+    closure->step = args[1]->NumberValue();
+    closure->join_field = TOSTR(args[2]);
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+
+    eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
+    ev_ref(EV_DEFAULT_UC);
+    m->Ref();
+    return Undefined();
+
+}
+
+void grid2utf(agg::grid_rendering_buffer& renbuf, 
+    UnicodeString::UnicodeString& str,
+    std::map<std::string, UChar>& keys,
+    std::vector<std::string>& key_order,
+    std::map<agg::grid_value, std::string>& feature_keys)
+{
+    UChar codepoint = 31;
+    int32_t index = 0;
+    str.setCharAt(index++, (UChar)'[');
+    std::map<std::string, UChar>::const_iterator key_pos;
+    std::map<agg::grid_value, std::string>::const_iterator feature_pos;
+    
+    for (unsigned y = 0; y < renbuf.height(); ++y)
+    {
+        str.setCharAt(index++, (UChar)'"');
+        agg::grid_value* row = renbuf.row(y);
+        for (unsigned x = 0; x < renbuf.width(); ++x)
+        {
+            agg::grid_value id = row[x];
+  
+            feature_pos = feature_keys.find(id);
+            if (feature_pos != feature_keys.end())
+            {
+                std::string val = feature_pos->second;
+                key_pos = keys.find(val);
+                if (key_pos == keys.end())
+                {
+                    // Create a new entry for this key. Skip the codepoints that
+                    // can't be encoded directly in JSON.
+                    ++codepoint;
+                    if (codepoint == 34) ++codepoint;      // Skip "
+                    else if (codepoint == 92) ++codepoint; // Skip backslash
+                
+                    keys[val] = codepoint;
+                    key_order.push_back(val);
+                    str.setCharAt(index++, codepoint);
+                }
+                else
+                {
+                    str.setCharAt(index++, key_pos->second);
+                }
+    
+            }
+            // else, shouldn't get here...
+        }
+        str.setCharAt(index++, (UChar)'"');
+        str.setCharAt(index++, (UChar)',');
+    }
+    str.setCharAt(index - 1, (UChar)']');
+}
+
+
+int Map::EIO_RenderGrid(eio_req *req)
+{
+
+    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+
+    Map* m = closure->m;
+    std::vector<mapnik::layer> const& layers = m->map_->layers();
+    std::size_t layer_num = layers.size();
+    unsigned int layer_idx = closure->layer_idx;
+
+    if (layer_idx >= layer_num) {
+        std::ostringstream s;
+        s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
+          << layers.size() << "' layers are in map";
+        closure->error = true;
+        closure->error_name = s.str();
+        return 0;
+    }
+
+    mapnik::layer const& layer = layers[layer_idx];
+
+    unsigned int step = closure->step;
+    std::string const& join_field = closure->join_field;
+
+    unsigned int width = m->map_->width()/step;
+    unsigned int height = m->map_->height()/step;
+    const mapnik::box2d<double>&  e = m->map_->get_current_extent();
+    mapnik::CoordTransform tr = mapnik::CoordTransform(width,height,e);
+
+    std::map<std::string, UChar> keys;
+    std::vector<std::string> key_order;
+    unsigned int length = 256 / step;
+
+    // The exact string length:
+    //   +3: length + two quotes and a comma
+    //   +1: we don't need the last comma, but we need [ and ]
+    unsigned int len = length * (length + 3) + 1;
+    UnicodeString::UnicodeString str(len, 0, len);
+
+    try
+    {
+
+        double z = 0;
+        double minx = e.minx();
+        double miny = e.miny();
+        double maxx = e.maxx();
+        double maxy = e.maxy();
+        mapnik::projection dest(m->map_->srs());
+        mapnik::projection source(layer.srs());
+        mapnik::proj_transform prj_trans(source,dest);
+        prj_trans.backward(minx,miny,z);
+        prj_trans.backward(maxx,maxy,z);
+        mapnik::datasource_ptr ds = layer.datasource();
+        //if (ds->type() == datasource::Raster ) 
+        //   throw
+        
+        // TODO - clip bbox by layer extent
+        mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
+        #if MAPNIK_VERSION >= 800
+            mapnik::query q(bbox);
+        #else
+            mapnik::query q(bbox,1.0,1.0);
+        #endif
+        q.add_property_name(join_field);
+        mapnik::featureset_ptr fs = ds->features(q);
+        typedef mapnik::coord_transform2<mapnik::CoordTransform,mapnik::geometry_type> path_type;
+    
+        agg::grid_value feature_id = 1;
+        std::map<agg::grid_value, std::string> feature_keys;
+        std::map<agg::grid_value, std::string>::const_iterator feature_pos;
+        
+        if (fs)
+        {
+            agg::grid_value* buf = new agg::grid_value[width * height];
+            agg::grid_rendering_buffer renbuf(buf, width, height, width);
+            agg::grid_renderer<agg::span_grid> ren_grid(renbuf);
+            agg::grid_rasterizer ras_grid;
+            
+            agg::grid_value no_hit = 0;
+            std::string no_hit_val = "";
+            feature_keys[no_hit] = no_hit_val;
+            ren_grid.clear(no_hit);
+    
+            mapnik::feature_ptr feature;
+            while ((feature = fs->next()))
+            {
+                ras_grid.reset();
+                ++feature_id;
+                
+                for (unsigned i=0;i<feature->num_geometries();++i)
+                {
+                    mapnik::geometry_type const& geom=feature->get_geometry(i);
+                    if (geom.num_points() == 1)
+                    {
+    
+                        double x;
+                        double y;
+                        double z=0;
+                        int i;
+                        int approximation_steps = 360;
+                        geom.label_position(&x, &y);
+                        prj_trans.backward(x,y,z);
+                        tr.forward(&x,&y);
+                        int rx = 10; // arbitary pixel width
+                        int ry = 10; // arbitary pixel height
+                        ras_grid.move_to_d(x + rx, y);
+                        for(i = 1; i < approximation_steps; i++)
+                        {
+                            double a = double(i) * 3.1415926 / 180.0;
+                            ras_grid.line_to_d(x + cos(a) * rx, y + sin(a) * ry);
+                        }
+                    }
+                    else
+                    {
+                        path_type path(tr,geom,prj_trans);
+                        ras_grid.add_path(path);
+                    }
+                }
+    
+                std::string val = "";
+                std::map<std::string,mapnik::value> const& fprops = feature->props();
+                std::map<std::string,mapnik::value>::const_iterator const& itr = fprops.find(join_field);
+                if (itr != fprops.end())
+                {
+                    val = itr->second.to_string();
+                }
+    
+                feature_pos = feature_keys.find(feature_id);
+                if (feature_pos == feature_keys.end())
+                {
+                    feature_keys[feature_id] = val;
+                }
+                
+                ras_grid.render(ren_grid, feature_id);
+    
+            }
+            
+            // resample and utf-ize the grid
+            grid2utf(renbuf,str,keys,key_order,feature_keys);
+            delete buf;
+        }
+
+    }
+    catch (const mapnik::config_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const std::runtime_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "Unknown error occured, please file bug";
+    }
+
+    if (!closure->error)
+    {
+        HandleScope scope;
+
+        // Create the key array.
+        Local<Array> keys_a = Array::New(keys.size());
+        std::vector<std::string>::iterator it;
+        unsigned int i;
+        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        {
+            keys_a->Set(i, String::New((*it).c_str()));
+        }
+
+        // Create the return hash.
+        closure->json = Persistent<Object>::New(Object::New());
+        closure->json->Set(String::NewSymbol("grid"), String::New(str.getBuffer(), len));
+        closure->json->Set(String::NewSymbol("keys"), keys_a);
+    }
+
+    return 0;
+
+}
+
+
+int Map::EIO_AfterRenderGrid(eio_req *req)
+{
+    HandleScope scope;
+
+    generate_hit_grid_t *closure = static_cast<generate_hit_grid_t *>(req->data);
+    ev_unref(EV_DEFAULT_UC);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        // TODO - add more attributes
+        // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->json) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    closure->m->Unref();
+    closure->cb.Dispose();
+    closure->json.Dispose();
+    delete closure;
+    return 0;
+}
 
 Handle<Value> Map::generate_hit_grid(const Arguments& args)
 {
@@ -1131,9 +1257,9 @@ Handle<Value> Map::generate_hit_grid(const Arguments& args)
     generate_hit_grid_t *closure = new generate_hit_grid_t();
 
     if (!closure) {
-    V8::LowMemoryNotification();
-    return ThrowException(Exception::Error(
-        String::New("Could not allocate enough memory")));
+        V8::LowMemoryNotification();
+        return ThrowException(Exception::Error(
+            String::New("Could not allocate enough memory")));
     }
 
     closure->m = m;
