@@ -3,7 +3,7 @@
 
 #include "mapnik_datasource.hpp"
 #include "utils.hpp"
-#include "json_emitter.hpp"
+#include "ds_emitter.hpp"
 
 // stl
 #include <exception>

@@ -2,7 +2,8 @@
 #include "utils.hpp"
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
-#include "json_emitter.hpp"
+#include "ds_emitter.hpp"
+#include "layer_emitter.hpp"
 
 //#include <node_buffer.h>
 #include <node_version.h>

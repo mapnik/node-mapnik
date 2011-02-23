@@ -32,7 +32,8 @@
 
 #include "utils.hpp"
 #include "mapnik_map.hpp"
-#include "json_emitter.hpp"
+#include "ds_emitter.hpp"
+#include "layer_emitter.hpp"
 #include "mapnik_layer.hpp"
 #include "grid/grid.h"
 #include "grid/renderer.h"
