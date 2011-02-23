@@ -1077,6 +1077,8 @@ int Map::EIO_RenderGrid(eio_req *req)
             mapnik::query q(bbox,1.0,1.0);
         #endif
 
+        bool matched_join_field = false;
+        
         if (closure->include_features) {
             mapnik::layer_descriptor ld = ds->get_descriptor();
             std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
@@ -1085,6 +1087,9 @@ int Map::EIO_RenderGrid(eio_req *req)
             unsigned size=0;
             while (itr != end)
             {
+                std::string name = itr->get_name();
+                if (name == join_field)
+                    matched_join_field = true;
                 q.add_property_name(itr->get_name());
                 ++itr;
                 ++size;
@@ -1093,6 +1098,14 @@ int Map::EIO_RenderGrid(eio_req *req)
         else
         {
             q.add_property_name(join_field);
+        }
+
+        if (!matched_join_field) {
+            closure->error = true;
+            std::ostringstream s("");
+            s << "join_field: '" << join_field << "' is not a valid attribute name";
+            closure->error_name = s.str();
+            return 0;
         }
 
         mapnik::featureset_ptr fs = ds->features(q);
@@ -1119,10 +1132,11 @@ int Map::EIO_RenderGrid(eio_req *req)
             {
                 ras_grid.reset();
                 ++feature_id;
-                
+ 
                 for (unsigned i=0;i<feature->num_geometries();++i)
                 {
                     mapnik::geometry_type const& geom=feature->get_geometry(i);
+                    mapnik::eGeomType g_type = geom.type();
                     if (geom.num_points() == 1)
                     {
     
@@ -1145,8 +1159,14 @@ int Map::EIO_RenderGrid(eio_req *req)
                     }
                     else
                     {
-                        path_type path(tr,geom,prj_trans);
-                        ras_grid.add_path(path);
+                        if (g_type == mapnik::LineString) {
+                            path_type path(tr,geom,prj_trans);
+                            ras_grid.add_path(path);
+                        }
+                        else {
+                            path_type path(tr,geom,prj_trans);
+                            ras_grid.add_path(path);
+                        }
                     }
                 }
     
