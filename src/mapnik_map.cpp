@@ -1079,9 +1079,10 @@ int Map::EIO_RenderGrid(eio_req *req)
             mapnik::query q(bbox,1.0,1.0);
         #endif
 
-        bool matched_join_field = false;
+        
         
         if (closure->include_features) {
+            bool matched_join_field = false;
             mapnik::layer_descriptor ld = ds->get_descriptor();
             std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
             std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
@@ -1096,18 +1097,18 @@ int Map::EIO_RenderGrid(eio_req *req)
                 ++itr;
                 ++size;
             }
+            if (!matched_join_field) {
+                closure->error = true;
+                std::ostringstream s("");
+                s << "join_field: '" << join_field << "' is not a valid attribute name";
+                closure->error_name = s.str();
+                return 0;
+            }
+
         }
         else
         {
             q.add_property_name(join_field);
-        }
-
-        if (!matched_join_field) {
-            closure->error = true;
-            std::ostringstream s("");
-            s << "join_field: '" << join_field << "' is not a valid attribute name";
-            closure->error_name = s.str();
-            return 0;
         }
 
         mapnik::featureset_ptr fs = ds->features(q);
