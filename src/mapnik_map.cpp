@@ -1148,12 +1148,12 @@ int Map::EIO_RenderGrid(eio_req *req)
                         double y;
                         double z=0;
                         int i;
-                        int approximation_steps = 360;
                         geom.label_position(&x, &y);
                         prj_trans.backward(x,y,z);
                         tr.forward(&x,&y);
-                        int rx = 10; // arbitary pixel width
-                        int ry = 10; // arbitary pixel height
+                        int approximation_steps = 360;
+                        int rx = 10/step; // arbitary pixel width
+                        int ry = 10/step; // arbitary pixel height
                         ras_grid.move_to_d(x + rx, y);
                         for(i = 1; i < approximation_steps; i++)
                         {
