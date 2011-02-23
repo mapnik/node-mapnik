@@ -6,7 +6,7 @@
 #include "renderer.h"
 
 
-namespace agg
+namespace agg_grid
 {
 
     typedef unsigned int grid_value;

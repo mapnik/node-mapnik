@@ -34,8 +34,10 @@
 #include "mapnik_map.hpp"
 #include "json_emitter.hpp"
 #include "mapnik_layer.hpp"
-#include "grid.h"
-#include "renderer.h"
+#include "grid/grid.h"
+#include "grid/renderer.h"
+#include "agg/agg_conv_stroke.h"
+
 
 
 
@@ -893,25 +895,25 @@ typedef struct {
     Persistent<Function> cb;
 } grid_t;
 
-void grid2utf(agg::grid_rendering_buffer& renbuf, 
+void grid2utf(agg_grid::grid_rendering_buffer& renbuf, 
     UnicodeString::UnicodeString& str,
     std::map<std::string, UChar>& keys,
     std::vector<std::string>& key_order,
-    std::map<agg::grid_value, std::string>& feature_keys)
+    std::map<agg_grid::grid_value, std::string>& feature_keys)
 {
     UChar codepoint = 31;
     int32_t index = 0;
     str.setCharAt(index++, (UChar)'[');
     std::map<std::string, UChar>::const_iterator key_pos;
-    std::map<agg::grid_value, std::string>::const_iterator feature_pos;
+    std::map<agg_grid::grid_value, std::string>::const_iterator feature_pos;
 
     for (unsigned y = 0; y < renbuf.height(); ++y)
     {
         str.setCharAt(index++, (UChar)'"');
-        agg::grid_value* row = renbuf.row(y);
+        agg_grid::grid_value* row = renbuf.row(y);
         for (unsigned x = 0; x < renbuf.width(); ++x)
         {
-            agg::grid_value id = row[x];
+            agg_grid::grid_value id = row[x];
   
             feature_pos = feature_keys.find(id);
             if (feature_pos != feature_keys.end())
@@ -1111,18 +1113,18 @@ int Map::EIO_RenderGrid(eio_req *req)
         mapnik::featureset_ptr fs = ds->features(q);
         typedef mapnik::coord_transform2<mapnik::CoordTransform,mapnik::geometry_type> path_type;
     
-        agg::grid_value feature_id = 1;
-        std::map<agg::grid_value, std::string> feature_keys;
-        std::map<agg::grid_value, std::string>::const_iterator feature_pos;
+        agg_grid::grid_value feature_id = 1;
+        std::map<agg_grid::grid_value, std::string> feature_keys;
+        std::map<agg_grid::grid_value, std::string>::const_iterator feature_pos;
         
         if (fs)
         {
-            agg::grid_value* buf = new agg::grid_value[width * height];
-            agg::grid_rendering_buffer renbuf(buf, width, height, width);
-            agg::grid_renderer<agg::span_grid> ren_grid(renbuf);
-            agg::grid_rasterizer ras_grid;
+            agg_grid::grid_value* buf = new agg_grid::grid_value[width * height];
+            agg_grid::grid_rendering_buffer renbuf(buf, width, height, width);
+            agg_grid::grid_renderer<agg_grid::span_grid> ren_grid(renbuf);
+            agg_grid::grid_rasterizer ras_grid;
             
-            agg::grid_value no_hit = 0;
+            agg_grid::grid_value no_hit = 0;
             std::string no_hit_val = "";
             feature_keys[no_hit] = no_hit_val;
             ren_grid.clear(no_hit);
@@ -1161,7 +1163,8 @@ int Map::EIO_RenderGrid(eio_req *req)
                     {
                         if (g_type == mapnik::LineString) {
                             path_type path(tr,geom,prj_trans);
-                            ras_grid.add_path(path);
+                            agg::conv_stroke<path_type>  stroke(path);
+                            ras_grid.add_path(stroke);
                         }
                         else {
                             path_type path(tr,geom,prj_trans);

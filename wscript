@@ -145,7 +145,7 @@ def configure(conf):
         cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
         if os.path.exists('/Library/Frameworks/Mapnik.framework'):
             cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
-
+        
         # if cairo is available
         if cairo_cxxflags:
             cxxflags.append('-DHAVE_CAIRO')
@@ -225,7 +225,7 @@ def build(bld):
     obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
     obj.source = "src/_mapnik.cc "
-    obj.source += "src/renderer.cpp "
+    obj.source += "src/grid/renderer.cpp "
     obj.source += "src/mapnik_map.cpp "
     obj.source += "src/mapnik_projection.cpp "
     obj.source += "src/mapnik_layer.cpp "

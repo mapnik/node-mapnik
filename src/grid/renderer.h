@@ -22,7 +22,7 @@
 #include <string.h>
 //#include <iostream>
 
-namespace agg
+namespace agg_grid
 {
     //------------------------------------------------------------------------
     typedef signed char    int8;

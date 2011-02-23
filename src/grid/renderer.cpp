@@ -37,7 +37,7 @@
 #include "renderer.h"
 
 
-namespace agg
+namespace agg_grid
 {
 
 
