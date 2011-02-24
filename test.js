@@ -101,7 +101,7 @@ map.render_to_file('/tmp/nodemap.png');
 assert.ok(path.existsSync('/tmp/nodemap.png'));
 
 // test async rendering
-map.render(map.extent(),"png", function(err,buffer) {
+map.render(map.extent(), 'png', function(err,buffer) {
        if (err) throw err;
        fs.writeFile('/tmp/nodemap_async.png', buffer, function(err) {
            if (err) throw err;
@@ -170,7 +170,7 @@ assert.equal(last.SUBREGION, 151);
 assert.equal(last.UN, 643);
 
 // feature slicing, just just what you want
-var three_features = map.features(0,0,2); // for first and only layer
+var three_features = map.features(0, 0, 2); // for first and only layer
 assert.equal(three_features.length, 3);
 
 
@@ -366,14 +366,14 @@ else
 
 // Async tests
 
-var map_grid = new mapnik.Map(256,256);
+var map_grid = new mapnik.Map(256, 256);
 map_grid.load('./examples/stylesheet.xml');
-map_grid.zoom_all()
+map_grid.zoom_all();
 
 map_grid._render_grid(0, 4, 'FIPS', function(err, grid) {
     assert.ok(!err);
     assert.ok(grid);
-    fs.writeFileSync('/tmp/gridded.json',JSON.stringify(grid));
+    fs.writeFileSync('/tmp/gridded.json', JSON.stringify(grid));
 });
 
 
