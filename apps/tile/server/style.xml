@@ -1,7 +1,0 @@
-<Map>
-<Style name="style">
-  <Rule>
-    <PointSymbolizer file="google_point_8.png" allow_overlap="true" />
-  </Rule>
-</Style>
-</Map>
