@@ -28,10 +28,10 @@ if (!port) {
 }
 
 
-for(i=0;i<pool_size;i++) {
-    var map = new mapnik.Map(256,256);
+for (i = 0; i < pool_size; i++) {
+    var map = new mapnik.Map(256, 256);
     map.load(stylesheet);
-    console.log('adding new map to pool: '+ i)
+    console.log('adding new map to pool: ' + i);
     map.buffer_size(128);
     render_pool[i] = map;
 }
@@ -49,48 +49,48 @@ function get_map()
   return map;
 }
 
-http.createServer(function (request, response) {
-  var query = url.parse(request.url,true).query;
-  if (query && query.BBOX !== undefined){
+http.createServer(function(request, response) {
+  var query = url.parse(request.url, true).query;
+  if (query && query.BBOX !== undefined) {
       var bbox = query.BBOX.split(',');
       response.writeHead(200, {'Content-Type': 'image/png'});
       var map;
-      
+
       if (use_map_pool) {
           map = get_map();
       }
       else {
-          map = new mapnik.Map(256,256);
+          map = new mapnik.Map(256, 256);
           map.load(stylesheet);
           map.buffer_size(128);
       }
 
-      if (query.width !== undefined && query.height !== undefined){
-          map.resize(parseInt(query.width),parseInt(query.height));
+      if (query.width !== undefined && query.height !== undefined) {
+          map.resize(parseInt(query.width), parseInt(query.height));
       }
-      
+
       if (async_render) {
-          map.render(bbox,"png",function(err, image){
+          map.render(bbox, 'png', function(err, image) {
               if (err) {
                   response.writeHead(500, {
-                    'Content-Type':'text/plain'
+                    'Content-Type': 'text/plain'
                   });
                   response.end(err.message);
               } else {
-                  response.end(image);          
+                  response.end(image);
               }
           });
       }
       else {
           map.zoom_to_box(bbox);
-          response.end(map.render_to_string("png"));
+          response.end(map.render_to_string('png'));
       }
 
   } else {
       response.writeHead(200, {
-        'Content-Type':'text/plain'
+        'Content-Type': 'text/plain'
       });
-      response.end("No BBOX provided!");
+      response.end('No BBOX provided!');
   }
 }).listen(port);
 

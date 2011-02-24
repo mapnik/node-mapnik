@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-var mapnik   = require('mapnik')
+var mapnik = require('mapnik')
   , mercator = require('mapnik/sphericalmercator')
-  , http     = require('http')
-  , url      = require('url')
-  , tile     = 256
-  , img      = 'google_point_8.png'
-  , path     = require('path')
+  , http = require('http')
+  , url = require('url')
+  , tile = 256
+  , img = 'google_point_8.png'
+  , path = require('path')
   , async_render = true;
 
 var usage = 'usage: app.js <port>';
@@ -29,14 +29,14 @@ var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_
 // to do this in pure javascript...
 
 // map
-var s = '<Map buffer_size="128" srs="' + merc + '">';
+var s = '<Map buffer-size="128" srs="' + merc + '">';
 
 // style
 s += '<Style name="style">';
 s += '<Rule>';
-s += '<PointSymbolizer file="google_point_8.png" allow_overlap="true" />';
-//s += '<PointSymbolizer file="point.svg" allow_overlap="true" />';
-//s += '<MarkersSymbolizer type="ellipse" fill="red" allow_overlap="true" placement="point"/>';
+s += '<PointSymbolizer file="point.png" allow-overlap="true" />';
+//s += '<PointSymbolizer file="point.svg" allow-overlap="true" />';
+//s += '<MarkersSymbolizer type="ellipse" fill="red" allow-overlap="true" placement="point"/>';
 s += '</Rule>';
 s += '</Style>';
 
@@ -58,14 +58,14 @@ ds += '<Parameter name="table">';
 ds += table;
 ds += '</Parameter>';
 ds += '</Datasource>';
-            
+
 s += ds + '</Layer>';
 s += '</Map>';
 
 
-http.createServer(function (request, response) {
+http.createServer(function(request, response) {
 
-  var query = url.parse(request.url,true).query;
+  var query = url.parse(request.url, true).query;
 
   if (query &&
       query.x !== undefined &&
@@ -73,38 +73,38 @@ http.createServer(function (request, response) {
       query.z !== undefined
       ) {
 
-      var map = new mapnik.Map(tile,tile);
+      var map = new mapnik.Map(tile, tile);
 
       response.writeHead(200, {'Content-Type': 'image/png'});
 
-      var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false)
+      var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false);
 
-      map.from_string(s,path.join(__dirname,'./'))
+      map.from_string(s, path.join(__dirname, './'));
       //map.load('../../examples/stylesheet.xml')
       //console.log(map.to_string());
-      
+
       if (async_render) {
-          map.render(bbox,"png",function(err, image){
+          map.render(bbox, 'png', function(err, image) {
               if (err) {
                   response.writeHead(500, {
-                    'Content-Type':'text/plain'
+                    'Content-Type': 'text/plain'
                   });
                   response.end(err.message);
               } else {
-                  response.end(image);          
+                  response.end(image);
               }
           });
       }
       else {
           map.zoom_to_box(bbox);
-          response.end(map.render_to_string("png"));
+          response.end(map.render_to_string('png'));
       }
 
   } else {
       response.writeHead(200, {
-        'Content-Type':'text/plain'
+        'Content-Type': 'text/plain'
       });
-      response.end("no x,y,z provided");
+      response.end('no x,y,z provided');
   }
 }).listen(port);
 

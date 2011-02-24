@@ -18,11 +18,11 @@ if (!image) {
    process.exit(1);
 }
 
-var map = new mapnik.Map(600,400);
+var map = new mapnik.Map(600, 400);
 
 map.load(stylesheet);
 map.zoom_all();
 map.render_to_file(image);
 
-console.log('rendered map to '+image);
+console.log('rendered map to ' + image);
 child_process.exec('open ' + image);
