@@ -1065,15 +1065,16 @@ int Map::EIO_RenderGrid(eio_req *req)
     unsigned int height = closure->m->map_->height()/step;
     
     const mapnik::box2d<double>&  ext = closure->m->map_->get_current_extent();
+    //const mapnik::box2d<double>&  ext = closure->m->map_->get_buffered_extent();
     mapnik::CoordTransform tr = mapnik::CoordTransform(width,height,ext);
 
     try
     {
 
-        double z = 0;
-        mapnik::projection dest(closure->m->map_->srs());
-        mapnik::projection source(layer.srs());
-        mapnik::proj_transform prj_trans(source,dest);
+        //double z = 0;
+        mapnik::projection proj0(closure->m->map_->srs());
+        mapnik::projection proj1(layer.srs());
+        mapnik::proj_transform prj_trans(proj0,proj1);
 
 
         mapnik::box2d<double> layer_ext = layer.envelope();
@@ -1088,6 +1089,9 @@ int Map::EIO_RenderGrid(eio_req *req)
         prj_trans.backward(lx1,ly1,lz1);
         if ( lx0 > ext.maxx() || lx1 < ext.minx() || ly0 > ext.maxy() || ly1 < ext.miny() )
         {
+            //closure->error = true;
+            //closure->error_name = "Layer does not interesect with map";
+            //std::clog << "bbox of " << layer.name() << " does not intersect map, skipping\n";
             return 0;
         }
         
@@ -1106,8 +1110,6 @@ int Map::EIO_RenderGrid(eio_req *req)
         #else
             mapnik::query q(bbox,1.0,1.0);
         #endif
-
-        
         
         if (closure->include_features) {
             bool matched_join_field = false;
