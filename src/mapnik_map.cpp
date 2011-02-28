@@ -1043,37 +1043,64 @@ int Map::EIO_RenderGrid(eio_req *req)
 
     mapnik::layer const& layer = layers[layer_idx];
 
+    mapnik::datasource_ptr ds = layer.datasource();
+    
+    if (!ds) {
+        closure->error = true;
+        closure->error_name = "Layer does not have a Datasource";
+        return 0;
+    
+    }
+    
+    if (ds->type() == mapnik::datasource::Raster ) {
+        closure->error = true;
+        closure->error_name = "Raster layers are not yet supported";
+        return 0;
+    }
+
     unsigned int step = closure->step;
     std::string const& join_field = closure->join_field;
 
     unsigned int width = closure->m->map_->width()/step;
     unsigned int height = closure->m->map_->height()/step;
     
-    const mapnik::box2d<double>&  e = closure->m->map_->get_current_extent();
-    mapnik::CoordTransform tr = mapnik::CoordTransform(width,height,e);
+    const mapnik::box2d<double>&  ext = closure->m->map_->get_current_extent();
+    mapnik::CoordTransform tr = mapnik::CoordTransform(width,height,ext);
 
     try
     {
 
         double z = 0;
-        double minx = e.minx();
-        double miny = e.miny();
-        double maxx = e.maxx();
-        double maxy = e.maxy();
         mapnik::projection dest(closure->m->map_->srs());
         mapnik::projection source(layer.srs());
         mapnik::proj_transform prj_trans(source,dest);
-        prj_trans.backward(minx,miny,z);
-        prj_trans.backward(maxx,maxy,z);
-        mapnik::datasource_ptr ds = layer.datasource();
-        if (ds->type() == mapnik::datasource::Raster ) {
-            closure->error = true;
-            closure->error_name = "Raster layers are not yet supported";
+
+
+        mapnik::box2d<double> layer_ext = layer.envelope();
+           
+        double lx0 = layer_ext.minx();
+        double ly0 = layer_ext.miny();
+        double lz0 = 0.0;
+        double lx1 = layer_ext.maxx();
+        double ly1 = layer_ext.maxy();
+        double lz1 = 0.0;
+        prj_trans.backward(lx0,ly0,lz0);
+        prj_trans.backward(lx1,ly1,lz1);
+        if ( lx0 > ext.maxx() || lx1 < ext.minx() || ly0 > ext.maxy() || ly1 < ext.miny() )
+        {
             return 0;
         }
         
-        // TODO - clip bbox by layer extent
-        mapnik::box2d<double> bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
+        // clip query bbox
+        lx0 = std::max(ext.minx(),lx0);
+        ly0 = std::max(ext.miny(),ly0);
+        lx1 = std::min(ext.maxx(),lx1);
+        ly1 = std::min(ext.maxy(),ly1);
+        
+        prj_trans.forward(lx0,ly0,lz0);
+        prj_trans.forward(lx1,ly1,lz1);
+        mapnik::box2d<double> bbox(lx0,ly0,lx1,ly1);
+
         #if MAPNIK_VERSION >= 800
             mapnik::query q(bbox);
         #else
