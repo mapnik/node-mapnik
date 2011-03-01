@@ -12,21 +12,15 @@
        }
    ],
   "author"        : "Dane Springmeyer <dane@dbsgeo.com>",
-  "contributors"  : [],
   "licenses"      : ["BSD"],
-  "dependencies"  : [],
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
        "mapnik-render.js"  : "./bin/mapnik-render.js"
    },
-   // seems uneeded
-   //"lib"           : "mapnik",
    "directories"  : {
-       // if "lib" is included below npm oddly puts things in a 'b' directory?
-       //"lib" : "lib",
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">= 0.2.4" },
+  "engines"       : { "node": ">= 0.4.1" },
   "scripts"       : {"install": "node-waf -v configure build"}
 }
