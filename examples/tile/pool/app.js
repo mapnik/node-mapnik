@@ -49,51 +49,78 @@ var aquire = function(id,options,callback) {
    );
 };
 
+var parseXYZ = function(req,callback) {
+    matches = req.url.match(/(\d+)/g);
+    if (matches && matches.length == 3) {
+        try {
+            callback(null,
+               { z: parseInt(matches[0]),
+                 x: parseInt(matches[1]),
+                 y: parseInt(matches[2])
+               });
+        } catch (err) {
+            callback(err,null);
+        }
+    } else {
+          var query = url.parse(req.url, true).query;
+          if (query &&
+                query.x !== undefined &&
+                query.y !== undefined &&
+                query.z !== undefined) {
+             try {
+             callback(null,
+               { z: parseInt(query.z),
+                 x: parseInt(query.x),
+                 y: parseInt(query.y)
+               }
+             );
+             } catch (err) {
+                 callback(err,null);
+             }
+          } else {
+              callback("no x,y,z provided",null);
+          }
+    }
+}
 
 http.createServer(function(req, res) {
+    parseXYZ(req,function(err,params) {
+        if (err) {
+            res.writeHead(500, {
+              'Content-Type': 'text/plain'
+            });
+            res.end(err);
+        } else {
+            aquire(stylesheet, {},function(err,map) {
+      
+                if (err) {
+                    res.writeHead(500, {
+                      'Content-Type': 'text/plain'
+                    });
+                    res.end(err.message);
+                } else {
+                    // bbox for x,y,z
+                    var bbox = mercator.xyz_to_envelope(params.x, params.y, params.z, false);
+      
+                    map.render(bbox, 'png', function(err, buffer) {
+                        maps.release(stylesheet, map);
+                        if (err) {
+                            res.writeHead(500, {
+                              'Content-Type': 'text/plain'
+                            });
+                            res.end(err.message);
+                        } else {
+                            res.writeHead(200, {
+                              'Content-Type': 'image/png'
+                            });
+                            res.end(buffer);
+                        }
+                    });
+                }
+            });
+        }
+    })
 
-  var query = url.parse(req.url, true).query;
-
-  if (query &&
-      query.x !== undefined &&
-      query.y !== undefined &&
-      query.z !== undefined
-      ) {
-
-      aquire(stylesheet, {},function(err,map) {
-
-          if (err) {
-              res.writeHead(500, {
-                'Content-Type': 'text/plain'
-              });
-              res.end(err.message);
-          } else {
-              // bbox for x,y,z
-              var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false);
-
-              map.render(bbox, 'png', function(err, buffer) {
-                  maps.release(stylesheet, map);
-                  if (err) {
-                      res.writeHead(500, {
-                        'Content-Type': 'text/plain'
-                      });
-                      res.end(err.message);
-                  } else {
-                      res.writeHead(200, {
-                        'Content-Type': 'image/png'
-                      });
-                      res.end(buffer);
-                  }
-              });
-          }
-      });
-  
-  } else {
-      res.writeHead(200, {
-        'Content-Type': 'text/plain'
-      });
-      res.end('no x,y,z provided');
-  }
 }).listen(port);
 
 
