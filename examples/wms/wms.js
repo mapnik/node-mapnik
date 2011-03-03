@@ -49,11 +49,11 @@ function get_map()
   return map;
 }
 
-http.createServer(function(request, response) {
-  var query = url.parse(request.url, true).query;
+http.createServer(function(req, res) {
+  var query = url.parse(req.url, true).query;
   if (query && query.BBOX !== undefined) {
       var bbox = query.BBOX.split(',');
-      response.writeHead(200, {'Content-Type': 'image/png'});
+      res.writeHead(200, {'Content-Type': 'image/png'});
       var map;
 
       if (use_map_pool) {
@@ -72,25 +72,25 @@ http.createServer(function(request, response) {
       if (async_render) {
           map.render(bbox, 'png', function(err, image) {
               if (err) {
-                  response.writeHead(500, {
+                  res.writeHead(500, {
                     'Content-Type': 'text/plain'
                   });
-                  response.end(err.message);
+                  res.end(err.message);
               } else {
-                  response.end(image);
+                  res.end(image);
               }
           });
       }
       else {
           map.zoom_to_box(bbox);
-          response.end(map.render_to_string('png'));
+          res.end(map.render_to_string('png'));
       }
 
   } else {
-      response.writeHead(200, {
+      res.writeHead(200, {
         'Content-Type': 'text/plain'
       });
-      response.end('No BBOX provided!');
+      res.end('No BBOX provided!');
   }
 }).listen(port);
 

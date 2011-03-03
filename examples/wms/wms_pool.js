@@ -50,9 +50,9 @@ var aquire = function(id,options,callback) {
 };
 
 
-http.createServer(function(request, response) {
-  var query = url.parse(request.url.toLowerCase(), true).query;
-  response.writeHead(500, {
+http.createServer(function(req, res) {
+  var query = url.parse(req.url.toLowerCase(), true).query;
+  res.writeHead(500, {
     'Content-Type': 'text/plain'
   });
   if (query &&
@@ -65,17 +65,17 @@ http.createServer(function(request, response) {
       options.size = 50;
       aquire(stylesheet, {}, function(err,map) {
           if (err) {
-              response.end(err.message);
+              res.end(err.message);
           } else {
               map.render(bbox, 'png', function(err, buffer) {
                   maps.release(stylesheet, map);
                   if (err) {
-                      response.end(err.message);
+                      res.end(err.message);
                   } else {
-                      response.writeHead(200, {
+                      res.writeHead(200, {
                         'Content-Type': 'image/png'
                       });
-                      response.end(buffer);
+                      res.end(buffer);
                   }
               });
           }
@@ -83,7 +83,7 @@ http.createServer(function(request, response) {
       });
   }
   else {
-    response.end('something was not provided!');
+    res.end('something was not provided!');
   }
 }).listen(port);
 
