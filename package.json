@@ -1,6 +1,6 @@
 {
   "name"          : "mapnik",
-  "version"       : "0.2.10",
+  "version"       : "0.2.11",
   "main"          : "./lib/index.js",
   "description"   : "C++ map rendering library for node",
   "keywords"      : ["map", "graphics", "canvas", "tile"],
@@ -23,6 +23,6 @@
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">= 0.2.4" },
+  "engines"       : { "node": ">= 0.2.3" },
   "scripts"       : {"install": "node-waf -v configure build"}
 }
