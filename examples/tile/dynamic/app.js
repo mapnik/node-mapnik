@@ -63,9 +63,9 @@ s += ds + '</Layer>';
 s += '</Map>';
 
 
-http.createServer(function(request, response) {
+http.createServer(function(req, res) {
 
-  var query = url.parse(request.url, true).query;
+  var query = url.parse(req.url, true).query;
 
   if (query &&
       query.x !== undefined &&
@@ -75,7 +75,7 @@ http.createServer(function(request, response) {
 
       var map = new mapnik.Map(tile, tile);
 
-      response.writeHead(200, {'Content-Type': 'image/png'});
+      res.writeHead(200, {'Content-Type': 'image/png'});
 
       var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false);
 
@@ -86,25 +86,25 @@ http.createServer(function(request, response) {
       if (async_render) {
           map.render(bbox, 'png', function(err, image) {
               if (err) {
-                  response.writeHead(500, {
+                  res.writeHead(500, {
                     'Content-Type': 'text/plain'
                   });
-                  response.end(err.message);
+                  res.end(err.message);
               } else {
-                  response.end(image);
+                  res.end(image);
               }
           });
       }
       else {
           map.zoom_to_box(bbox);
-          response.end(map.render_to_string('png'));
+          res.end(map.render_to_string('png'));
       }
 
   } else {
-      response.writeHead(200, {
+      res.writeHead(200, {
         'Content-Type': 'text/plain'
       });
-      response.end('no x,y,z provided');
+      res.end('no x,y,z provided');
   }
 }).listen(port);
 
