@@ -27,6 +27,7 @@
 
 // stl
 #include <exception>
+#include <set>
 
 #include <mapnik/version.hpp>
 
@@ -499,7 +500,7 @@ Handle<Value> Map::extent(const Arguments& args)
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     Local<Array> a = Array::New(4);
-    mapnik::box2d<double> e = m->map_->get_current_extent();
+    mapnik::box2d<double> const& e = m->map_->get_current_extent();
     a->Set(0, Number::New(e.minx()));
     a->Set(1, Number::New(e.miny()));
     a->Set(2, Number::New(e.maxx()));
@@ -511,7 +512,44 @@ Handle<Value> Map::zoom_all(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    m->map_->zoom_all();
+    try {
+      m->map_->zoom_all();
+    }
+    catch (const mapnik::config_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::TypeError(
+          String::New("Unknown exception happened while zooming, please submit a bug report")));
+    }
     return Undefined();
 }
 
@@ -889,6 +927,7 @@ typedef struct {
     UnicodeString::UnicodeString ustr;
     bool error;
     bool include_features;
+    std::set<std::string> property_names;
     std::string error_name;
     std::map<std::string, UChar> keys;
     std::map<std::string, std::map<std::string, mapnik::value> > features;
@@ -953,7 +992,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
     if (!args.Length() >= 4)
       return ThrowException(Exception::Error(
-        String::New("please provide layer idx, step, join_field, and callback")));
+        String::New("please provide layer idx, step, join_field, field_names, and callback")));
 
     if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
         return ThrowException(Exception::TypeError(
@@ -970,6 +1009,24 @@ Handle<Value> Map::render_grid(const Arguments& args)
             return ThrowException(Exception::TypeError(
                String::New("option to include feature data must be a boolean")));
         include_features = args[3]->BooleanValue();
+    }
+
+    std::set<std::string> property_names;
+    if ((args.Length() > 5)) {
+        if (!args[4]->IsArray())
+            return ThrowException(Exception::TypeError(
+               String::New("option to restrict to certain field names must be an array")));
+        Local<Array> a = Local<Array>::Cast(args[4]);
+
+        uint32_t i = 0;
+        uint32_t a_length = a->Length();
+        while (i < a_length) {
+            Local<Value> name = a->Get(i);
+            if (name->IsString()){
+                property_names.insert(TOSTR(name));
+            }
+            i++;
+        }
     }
     
     // function callback
@@ -1006,6 +1063,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     closure->step = args[1]->NumberValue();
     closure->join_field = TOSTR(args[2]);
     closure->include_features = include_features;
+    closure->property_names = property_names;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
     // The exact string length:
@@ -1118,12 +1176,23 @@ int Map::EIO_RenderGrid(eio_req *req)
             std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
             std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
             unsigned size=0;
+            bool selected_attr = !closure->property_names.empty();
             while (itr != end)
             {
                 std::string name = itr->get_name();
-                if (name == join_field)
+                if (name == join_field) {
                     matched_join_field = true;
-                q.add_property_name(itr->get_name());
+                    q.add_property_name(name);
+                }
+                else if (selected_attr) {
+                    bool requested = (closure->property_names.find(name) != closure->property_names.end());
+                    if (requested) {
+                        q.add_property_name(name);
+                    }
+                }
+                else {
+                    q.add_property_name(name);
+                }
                 ++itr;
                 ++size;
             }
@@ -1307,10 +1376,13 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
                 std::map<std::string,mapnik::value>::const_iterator end = fprops->second.end();
                 for (; it != end; ++it)
                 {
-                    params_to_object serializer( feat , it->first);
-                    // need to call base() since this is a mapnik::value
-                    // not a mapnik::value_holder
-                    boost::apply_visitor( serializer, it->second.base() );
+                    if (it->first != closure->join_field)
+                    {
+                        params_to_object serializer( feat , it->first);
+                        // need to call base() since this is a mapnik::value
+                        // not a mapnik::value_holder
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
                 }
                 data->Set(String::NewSymbol(fprops->first.c_str()), feat);
             }
