@@ -155,7 +155,15 @@ Handle<Value> Datasource::describe(const Arguments& args)
     HandleScope scope;
     Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
     Local<Object> description = Object::New();
-    describe_datasource(description,d->datasource_);
+    try {
+        describe_datasource(description,d->datasource_);
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+
     return scope.Close(description);
 }
 
