@@ -1376,13 +1376,10 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
                 std::map<std::string,mapnik::value>::const_iterator end = fprops->second.end();
                 for (; it != end; ++it)
                 {
-                    if (it->first != closure->join_field)
-                    {
-                        params_to_object serializer( feat , it->first);
-                        // need to call base() since this is a mapnik::value
-                        // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, it->second.base() );
-                    }
+                    params_to_object serializer( feat , it->first);
+                    // need to call base() since this is a mapnik::value
+                    // not a mapnik::value_holder
+                    boost::apply_visitor( serializer, it->second.base() );
                 }
                 data->Set(String::NewSymbol(fprops->first.c_str()), feat);
             }
