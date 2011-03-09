@@ -432,6 +432,11 @@ namespace agg_grid
                             r.render(m_scanline, c);
                             m_scanline.reset_spans();
                         }
+                        if (x < 0 || y < 0)
+                        {
+                            std::clog << "warning: alignment issue, skipping grid generation\n";
+                            break;
+                        }
                         m_scanline.add_cell(x, y, 0);
                     }
                     x++;

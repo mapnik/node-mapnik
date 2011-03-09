@@ -1239,7 +1239,7 @@ int Map::EIO_RenderGrid(eio_req *req)
                 {
                     mapnik::geometry_type const& geom=feature->get_geometry(i);
                     mapnik::eGeomType g_type = geom.type();
-                    if (geom.num_points() == 1)
+                    if (g_type == mapnik::Point)
                     {
     
                         double x;
@@ -1249,6 +1249,8 @@ int Map::EIO_RenderGrid(eio_req *req)
                         geom.label_position(&x, &y);
                         prj_trans.backward(x,y,z);
                         tr.forward(&x,&y);
+                        if (x < 0 || y < 0)
+                            std::clog << "warning: invalid point values being rendered: " << x << " " << y << "\n";
                         int approximation_steps = 360;
                         int rx = 10/step; // arbitary pixel width
                         int ry = 10/step; // arbitary pixel height
@@ -1259,7 +1261,7 @@ int Map::EIO_RenderGrid(eio_req *req)
                             ras_grid.line_to_d(x + cos(a) * rx, y + sin(a) * ry);
                         }
                     }
-                    else
+                    else if (geom.num_points() > 1)
                     {
                         if (g_type == mapnik::LineString) {
                             path_type path(tr,geom,prj_trans);
