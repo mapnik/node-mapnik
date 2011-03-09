@@ -434,7 +434,7 @@ namespace agg_grid
                         }
                         if (x < 0 || y < 0)
                         {
-                            std::clog << "warning: alignment issue, skipping grid generation\n";
+                            //std::clog << "warning: alignment issue, skipping grid generation\n";
                             break;
                         }
                         m_scanline.add_cell(x, y, 0);
