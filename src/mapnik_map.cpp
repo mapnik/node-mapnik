@@ -1366,22 +1366,26 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         Local<Object> data = Object::New();
         if (closure->include_features) {
             typedef std::map<std::string, std::map<std::string, mapnik::value> >::const_iterator const_style_iterator;
-            const_style_iterator fprops = closure->features.begin();
-            const_style_iterator end = closure->features.end();
-            for (; fprops != end; ++fprops)
+            const_style_iterator feat_itr = closure->features.begin();
+            const_style_iterator feat_end = closure->features.end();
+            for (; feat_itr != feat_end; ++feat_itr)
             {
-                //std::map<std::string,mapnik::value> const& fprops = it->props();
-                Local<Object> feat = Object::New();
-                std::map<std::string,mapnik::value>::const_iterator it = fprops->second.begin();
-                std::map<std::string,mapnik::value>::const_iterator end = fprops->second.end();
-                for (; it != end; ++it)
-                {
-                    params_to_object serializer( feat , it->first);
-                    // need to call base() since this is a mapnik::value
-                    // not a mapnik::value_holder
-                    boost::apply_visitor( serializer, it->second.base() );
+                std::map<std::string,mapnik::value> props = feat_itr->second;
+                std::string join_value = props[closure->join_field].to_string();
+                // only serialize features visible in the grid
+                if(std::find(closure->key_order.begin(), closure->key_order.end(), join_value) != closure->key_order.end()) {
+                    Local<Object> feat = Object::New();
+                    std::map<std::string,mapnik::value>::const_iterator it = props.begin();
+                    std::map<std::string,mapnik::value>::const_iterator end = props.end();
+                    for (; it != end; ++it)
+                    {
+                        params_to_object serializer( feat , it->first);
+                        // need to call base() since this is a mapnik::value
+                        // not a mapnik::value_holder
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
+                    data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
                 }
-                data->Set(String::NewSymbol(fprops->first.c_str()), feat);
             }
         }
         
