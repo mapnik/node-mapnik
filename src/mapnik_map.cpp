@@ -1247,10 +1247,11 @@ int Map::EIO_RenderGrid(eio_req *req)
                         double z=0;
                         int i;
                         geom.label_position(&x, &y);
+                        // TODO - check return of proj_trans
                         prj_trans.backward(x,y,z);
                         tr.forward(&x,&y);
-                        if (x < 0 || y < 0)
-                            std::clog << "warning: invalid point values being rendered: " << x << " " << y << "\n";
+                        //if (x < 0 || y < 0)
+                        //    std::clog << "warning: invalid point values being rendered: " << x << " " << y << "\n";
                         int approximation_steps = 360;
                         int rx = 10/step; // arbitary pixel width
                         int ry = 10/step; // arbitary pixel height
