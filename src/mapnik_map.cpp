@@ -927,6 +927,7 @@ typedef struct {
     UnicodeString::UnicodeString ustr;
     bool error;
     bool include_features;
+    bool grid_initialized;
     std::set<std::string> property_names;
     std::string error_name;
     std::map<std::string, UChar> keys;
@@ -1065,6 +1066,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     closure->include_features = include_features;
     closure->property_names = property_names;
     closure->error = false;
+    closure->grid_initialized = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
     // The exact string length:
     //   +3: length + two quotes and a comma
@@ -1297,6 +1299,7 @@ int Map::EIO_RenderGrid(eio_req *req)
             }
             
             // resample and utf-ize the grid
+            closure->grid_initialized = true;
             grid2utf(renbuf,closure->ustr,closure->keys,closure->key_order,feature_keys);
             delete buf;
         }
@@ -1394,7 +1397,12 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         
         // Create the return hash.
         Local<Object> json = Object::New();
-        json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
+        if (closure->grid_initialized) {
+            json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
+        }
+        else {
+            json->Set(String::NewSymbol("grid"), Array::New());
+        }
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), data);
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
