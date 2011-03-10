@@ -17,6 +17,7 @@
 #include "mapnik_projection.hpp"
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
+#include "mapnik_featureset.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -183,6 +184,9 @@ extern "C" {
 
     // Datasource
     Datasource::Initialize(target);
+
+    // Featureset
+    Featureset::Initialize(target);
 
     // node-mapnik version
     target->Set(String::NewSymbol("version"), String::New("0.2.12"));

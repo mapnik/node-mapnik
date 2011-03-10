@@ -2,6 +2,7 @@
 #include <mapnik/datasource_cache.hpp>
 
 #include "mapnik_datasource.hpp"
+#include "mapnik_featureset.hpp"
 #include "utils.hpp"
 #include "ds_emitter.hpp"
 
@@ -22,6 +23,7 @@ void Datasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "get_featureset", get_featureset);
 
     target->Set(String::NewSymbol("Datasource"),constructor->GetFunction());
 }
@@ -191,4 +193,31 @@ Handle<Value> Datasource::features(const Arguments& args)
     datasource_features(a,d->datasource_,first,last);
 
     return scope.Close(a);
+}
+
+Handle<Value> Datasource::get_featureset(const Arguments& args)
+{
+
+    HandleScope scope;
+
+    Datasource* ds = ObjectWrap::Unwrap<Datasource>(args.This());
+
+    mapnik::query q(ds->datasource_->envelope());
+    mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
+    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+    while (itr != end)
+    {
+        q.add_property_name(itr->get_name());
+        ++itr;
+    }
+
+    mapnik::featureset_ptr fs = ds->datasource_->features(q);
+    if (fs)
+    {
+        return scope.Close(Featureset::New(fs));
+    }
+
+    return Undefined();
 }
