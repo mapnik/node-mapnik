@@ -92,8 +92,12 @@ def configure(conf):
             path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
             HAS_OSX_FRAMEWORK = True
 
-        mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
-        ensure_min_mapnik_revision(conf)
+        mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list)
+        if not mapnik_config:
+            conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik Trunk (future Mapnik 2.0 release) provides this tool, and therefore node-mapnik requires Mapnik trunk.\n\nSee http://trac.mapnik.org/wiki/Mapnik2 for more info.\n')
+            
+        # this breaks with git cloned mapnik repos, so skip it
+        #ensure_min_mapnik_revision(conf)
 
         # todo - check return value of popen otherwise we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
