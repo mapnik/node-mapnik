@@ -31,6 +31,9 @@
 
 #include <mapnik/version.hpp>
 
+//boost
+#include <boost/utility.hpp>
+
 #include "utils.hpp"
 #include "mapnik_map.hpp"
 #include "ds_emitter.hpp"
@@ -38,6 +41,7 @@
 #include "mapnik_layer.hpp"
 #include "grid/grid.h"
 #include "grid/renderer.h"
+#include "grid/grid_buffer.h"
 #include "agg/agg_conv_stroke.h"
 
 
@@ -1083,6 +1087,8 @@ Handle<Value> Map::render_grid(const Arguments& args)
 }
 
 
+struct rasterizer :  agg_grid::grid_rasterizer, boost::noncopyable {};
+
 int Map::EIO_RenderGrid(eio_req *req)
 {
 
@@ -1119,7 +1125,7 @@ int Map::EIO_RenderGrid(eio_req *req)
     }
 
     unsigned int step = closure->step;
-    std::string const& join_field = closure->join_field;
+    std::string join_field = closure->join_field;
 
     unsigned int width = closure->m->map_->width()/step;
     unsigned int height = closure->m->map_->height()/step;
@@ -1221,10 +1227,11 @@ int Map::EIO_RenderGrid(eio_req *req)
         
         if (fs)
         {
-            agg_grid::grid_value* buf = new agg_grid::grid_value[width * height];
-            agg_grid::grid_rendering_buffer renbuf(buf, width, height, width);
+            
+            grid_buffer pixmap_(width,height);
+            agg_grid::grid_rendering_buffer renbuf(pixmap_.getData(), width, height, width);
             agg_grid::grid_renderer<agg_grid::span_grid> ren_grid(renbuf);
-            agg_grid::grid_rasterizer ras_grid;
+            rasterizer ras_grid;
             
             agg_grid::grid_value no_hit = 0;
             std::string no_hit_val = "";
@@ -1250,7 +1257,9 @@ int Map::EIO_RenderGrid(eio_req *req)
                         int i;
                         geom.label_position(&x, &y);
                         // TODO - check return of proj_trans
-                        prj_trans.backward(x,y,z);
+                        bool ok = prj_trans.backward(x,y,z);
+                        //if (!ok)
+                        //    std::clog << "warning proj_trans failed\n";
                         tr.forward(&x,&y);
                         //if (x < 0 || y < 0)
                         //    std::clog << "warning: invalid point values being rendered: " << x << " " << y << "\n";
@@ -1301,7 +1310,6 @@ int Map::EIO_RenderGrid(eio_req *req)
             // resample and utf-ize the grid
             closure->grid_initialized = true;
             grid2utf(renbuf,closure->ustr,closure->keys,closure->key_order,feature_keys);
-            delete buf;
         }
 
     }
