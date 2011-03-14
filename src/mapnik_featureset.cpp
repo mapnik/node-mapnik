@@ -47,6 +47,16 @@ Handle<Value> Featureset::New(const Arguments& args)
 Handle<Value> Featureset::next(const Arguments& args)
 {
     HandleScope scope;
+    
+    bool include_extent = false;
+    
+    if ((args.Length() > 0)) {
+        if (!args[0]->IsBoolean())
+            return ThrowException(Exception::TypeError(
+               String::New("option to include extent must be a boolean")));
+        include_extent = args[0]->BooleanValue();
+    }
+
     Featureset* fs = ObjectWrap::Unwrap<Featureset>(args.This());
 
     // TODO - allow filtering which fields are returned
@@ -61,6 +71,15 @@ Handle<Value> Featureset::next(const Arguments& args)
             {
                 params_to_object serializer( feat , it->first);
                 boost::apply_visitor( serializer, it->second.base() );
+            }
+            if (include_extent) {
+                Local<Array> a = Array::New(4);
+                mapnik::box2d<double> const& e = fp->envelope();
+                a->Set(0, Number::New(e.minx()));
+                a->Set(1, Number::New(e.miny()));
+                a->Set(2, Number::New(e.maxx()));
+                a->Set(3, Number::New(e.maxy()));
+                feat->Set(String::NewSymbol("_extent"),a);
             }
             return scope.Close(feat);
         }
