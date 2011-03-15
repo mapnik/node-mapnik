@@ -51,6 +51,7 @@ public:
 
     void operator () ( std::string const& val )
     {
+        
         ds_->Set(String::NewSymbol(key_.c_str()), String::New(val.c_str()) );
     }
 
@@ -68,8 +69,37 @@ public:
 
 private:
     Local<Object>& ds_;
-    std::string& key_;
+    std::string key_;
 };
 
+struct value_converter: public boost::static_visitor<Local<Value> >
+{
+    Local<Value> operator () ( int val ) const
+    {
+        return Integer::New(val);
+    }
 
+    Local<Value> operator () ( double val ) const
+    {
+        return Number::New(val);
+    }
+
+    Local<Value> operator () ( std::string const& val ) const
+    {
+        
+        return String::New(val.c_str());
+    }
+
+    Local<Value> operator () ( UnicodeString const& val) const
+    {
+        std::string buffer;
+        mapnik::to_utf8(val,buffer);
+        return String::New(buffer.c_str());
+    }
+
+    Local<Value> operator () ( mapnik::value_null const& val ) const
+    {
+        return String::New("");//Undefined();
+    }
+};
 #endif

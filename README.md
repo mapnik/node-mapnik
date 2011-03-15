@@ -40,6 +40,8 @@
   node (development headers)
   
   mapnik (latest trunk >r2397)
+  
+  node-pool for some examples (npm install generic-pool)
 
 
 ## Installation

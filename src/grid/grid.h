@@ -326,13 +326,27 @@ namespace agg_grid
             if(is_move_to(cmd)) 
             {
                 //std::clog << "move_to x: " << x << " y: " << y << "\n";
-                move_to_d(x, y);
+                if (x < 0 || y < 0)
+                {
+                    //std::clog << "move_to_d - warning: alignment issue, skipping grid generation\n";
+                }
+                else
+                {
+                    move_to_d(x, y);
+                }
             }
             else 
             if(is_vertex(cmd))
             {
                 //std::clog << "line_to x: " << x << " y: " << y << "\n";
-                line_to_d(x, y);
+                if (x < 0 || y < 0)
+                {
+                    //std::clog << "line_to_d - warning: alignment issue, skipping grid generation\n";
+                }
+                else
+                {
+                    line_to_d(x, y);
+                }
             }
             /*else
             if(is_close(cmd))
@@ -432,6 +446,11 @@ namespace agg_grid
                             r.render(m_scanline, c);
                             m_scanline.reset_spans();
                         }
+                        if (x < 0 || y < 0)
+                        {
+                            //std::clog << "warning: alignment issue, skipping grid generation\n";
+                            break;
+                        }
                         m_scanline.add_cell(x, y, 0);
                     }
                     x++;
@@ -448,6 +467,11 @@ namespace agg_grid
                         {
                             r.render(m_scanline, c);
                             m_scanline.reset_spans();
+                        }
+                        if (x < 0 || y < 0)
+                        {
+                            //std::clog << "warning: alignment issue, skipping grid generation\n";
+                            break;
                         }
                         m_scanline.add_span(x, y, 
                                             cur_cell->x - x, 

@@ -89,7 +89,7 @@ http.createServer(function(req, res) {
             res.writeHead(500, {
               'Content-Type': 'text/plain'
             });
-            res.end(err);
+            res.end(err.message);
         } else {
             aquire(stylesheet, {},function(err,map) {
       

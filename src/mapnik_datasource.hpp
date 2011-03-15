@@ -20,6 +20,8 @@ class Datasource: public node::ObjectWrap {
     static Handle<Value> describe(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
 
+    static Handle<Value> get_featureset(const Arguments &args);
+
     Datasource();
     inline mapnik::datasource_ptr get() { return datasource_; }
 

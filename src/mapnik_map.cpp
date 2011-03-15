@@ -27,8 +27,12 @@
 
 // stl
 #include <exception>
+#include <set>
 
 #include <mapnik/version.hpp>
+
+//boost
+#include <boost/utility.hpp>
 
 #include "utils.hpp"
 #include "mapnik_map.hpp"
@@ -37,6 +41,7 @@
 #include "mapnik_layer.hpp"
 #include "grid/grid.h"
 #include "grid/renderer.h"
+#include "grid/grid_buffer.h"
 #include "agg/agg_conv_stroke.h"
 
 
@@ -499,7 +504,7 @@ Handle<Value> Map::extent(const Arguments& args)
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     Local<Array> a = Array::New(4);
-    mapnik::box2d<double> e = m->map_->get_current_extent();
+    mapnik::box2d<double> const& e = m->map_->get_current_extent();
     a->Set(0, Number::New(e.minx()));
     a->Set(1, Number::New(e.miny()));
     a->Set(2, Number::New(e.maxx()));
@@ -511,7 +516,44 @@ Handle<Value> Map::zoom_all(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    m->map_->zoom_all();
+    try {
+      m->map_->zoom_all();
+    }
+    catch (const mapnik::config_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::TypeError(
+          String::New("Unknown exception happened while zooming, please submit a bug report")));
+    }
     return Undefined();
 }
 
@@ -889,6 +931,8 @@ typedef struct {
     UnicodeString::UnicodeString ustr;
     bool error;
     bool include_features;
+    bool grid_initialized;
+    std::set<std::string> property_names;
     std::string error_name;
     std::map<std::string, UChar> keys;
     std::map<std::string, std::map<std::string, mapnik::value> > features;
@@ -953,7 +997,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
     if (!args.Length() >= 4)
       return ThrowException(Exception::Error(
-        String::New("please provide layer idx, step, join_field, and callback")));
+        String::New("please provide layer idx, step, join_field, field_names, and callback")));
 
     if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
         return ThrowException(Exception::TypeError(
@@ -970,6 +1014,24 @@ Handle<Value> Map::render_grid(const Arguments& args)
             return ThrowException(Exception::TypeError(
                String::New("option to include feature data must be a boolean")));
         include_features = args[3]->BooleanValue();
+    }
+
+    std::set<std::string> property_names;
+    if ((args.Length() > 5)) {
+        if (!args[4]->IsArray())
+            return ThrowException(Exception::TypeError(
+               String::New("option to restrict to certain field names must be an array")));
+        Local<Array> a = Local<Array>::Cast(args[4]);
+
+        uint32_t i = 0;
+        uint32_t a_length = a->Length();
+        while (i < a_length) {
+            Local<Value> name = a->Get(i);
+            if (name->IsString()){
+                property_names.insert(TOSTR(name));
+            }
+            i++;
+        }
     }
     
     // function callback
@@ -1006,7 +1068,9 @@ Handle<Value> Map::render_grid(const Arguments& args)
     closure->step = args[1]->NumberValue();
     closure->join_field = TOSTR(args[2]);
     closure->include_features = include_features;
+    closure->property_names = property_names;
     closure->error = false;
+    closure->grid_initialized = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
     // The exact string length:
     //   +3: length + two quotes and a comma
@@ -1022,6 +1086,8 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
 }
 
+
+struct rasterizer :  agg_grid::grid_rasterizer, boost::noncopyable {};
 
 int Map::EIO_RenderGrid(eio_req *req)
 {
@@ -1059,7 +1125,7 @@ int Map::EIO_RenderGrid(eio_req *req)
     }
 
     unsigned int step = closure->step;
-    std::string const& join_field = closure->join_field;
+    std::string join_field = closure->join_field;
 
     unsigned int width = closure->m->map_->width()/step;
     unsigned int height = closure->m->map_->height()/step;
@@ -1118,12 +1184,23 @@ int Map::EIO_RenderGrid(eio_req *req)
             std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
             std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
             unsigned size=0;
+            bool selected_attr = !closure->property_names.empty();
             while (itr != end)
             {
                 std::string name = itr->get_name();
-                if (name == join_field)
+                if (name == join_field) {
                     matched_join_field = true;
-                q.add_property_name(itr->get_name());
+                    q.add_property_name(name);
+                }
+                else if (selected_attr) {
+                    bool requested = (closure->property_names.find(name) != closure->property_names.end());
+                    if (requested) {
+                        q.add_property_name(name);
+                    }
+                }
+                else {
+                    q.add_property_name(name);
+                }
                 ++itr;
                 ++size;
             }
@@ -1150,10 +1227,11 @@ int Map::EIO_RenderGrid(eio_req *req)
         
         if (fs)
         {
-            agg_grid::grid_value* buf = new agg_grid::grid_value[width * height];
-            agg_grid::grid_rendering_buffer renbuf(buf, width, height, width);
+            
+            grid_buffer pixmap_(width,height);
+            agg_grid::grid_rendering_buffer renbuf(pixmap_.getData(), width, height, width);
             agg_grid::grid_renderer<agg_grid::span_grid> ren_grid(renbuf);
-            agg_grid::grid_rasterizer ras_grid;
+            rasterizer ras_grid;
             
             agg_grid::grid_value no_hit = 0;
             std::string no_hit_val = "";
@@ -1170,7 +1248,7 @@ int Map::EIO_RenderGrid(eio_req *req)
                 {
                     mapnik::geometry_type const& geom=feature->get_geometry(i);
                     mapnik::eGeomType g_type = geom.type();
-                    if (geom.num_points() == 1)
+                    if (g_type == mapnik::Point)
                     {
     
                         double x;
@@ -1178,8 +1256,13 @@ int Map::EIO_RenderGrid(eio_req *req)
                         double z=0;
                         int i;
                         geom.label_position(&x, &y);
-                        prj_trans.backward(x,y,z);
+                        // TODO - check return of proj_trans
+                        bool ok = prj_trans.backward(x,y,z);
+                        //if (!ok)
+                        //    std::clog << "warning proj_trans failed\n";
                         tr.forward(&x,&y);
+                        //if (x < 0 || y < 0)
+                        //    std::clog << "warning: invalid point values being rendered: " << x << " " << y << "\n";
                         int approximation_steps = 360;
                         int rx = 10/step; // arbitary pixel width
                         int ry = 10/step; // arbitary pixel height
@@ -1190,7 +1273,7 @@ int Map::EIO_RenderGrid(eio_req *req)
                             ras_grid.line_to_d(x + cos(a) * rx, y + sin(a) * ry);
                         }
                     }
-                    else
+                    else if (geom.num_points() > 1)
                     {
                         if (g_type == mapnik::LineString) {
                             path_type path(tr,geom,prj_trans);
@@ -1225,8 +1308,8 @@ int Map::EIO_RenderGrid(eio_req *req)
             }
             
             // resample and utf-ize the grid
+            closure->grid_initialized = true;
             grid2utf(renbuf,closure->ustr,closure->keys,closure->key_order,feature_keys);
-            delete buf;
         }
 
     }
@@ -1297,28 +1380,37 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         Local<Object> data = Object::New();
         if (closure->include_features) {
             typedef std::map<std::string, std::map<std::string, mapnik::value> >::const_iterator const_style_iterator;
-            const_style_iterator fprops = closure->features.begin();
-            const_style_iterator end = closure->features.end();
-            for (; fprops != end; ++fprops)
+            const_style_iterator feat_itr = closure->features.begin();
+            const_style_iterator feat_end = closure->features.end();
+            for (; feat_itr != feat_end; ++feat_itr)
             {
-                //std::map<std::string,mapnik::value> const& fprops = it->props();
-                Local<Object> feat = Object::New();
-                std::map<std::string,mapnik::value>::const_iterator it = fprops->second.begin();
-                std::map<std::string,mapnik::value>::const_iterator end = fprops->second.end();
-                for (; it != end; ++it)
-                {
-                    params_to_object serializer( feat , it->first);
-                    // need to call base() since this is a mapnik::value
-                    // not a mapnik::value_holder
-                    boost::apply_visitor( serializer, it->second.base() );
+                std::map<std::string,mapnik::value> props = feat_itr->second;
+                std::string join_value = props[closure->join_field].to_string();
+                // only serialize features visible in the grid
+                if(std::find(closure->key_order.begin(), closure->key_order.end(), join_value) != closure->key_order.end()) {
+                    Local<Object> feat = Object::New();
+                    std::map<std::string,mapnik::value>::const_iterator it = props.begin();
+                    std::map<std::string,mapnik::value>::const_iterator end = props.end();
+                    for (; it != end; ++it)
+                    {
+                        params_to_object serializer( feat , it->first);
+                        // need to call base() since this is a mapnik::value
+                        // not a mapnik::value_holder
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
+                    data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
                 }
-                data->Set(String::NewSymbol(fprops->first.c_str()), feat);
             }
         }
         
         // Create the return hash.
         Local<Object> json = Object::New();
-        json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
+        if (closure->grid_initialized) {
+            json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
+        }
+        else {
+            json->Set(String::NewSymbol("grid"), Array::New());
+        }
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), data);
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };

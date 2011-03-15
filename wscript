@@ -92,8 +92,12 @@ def configure(conf):
             path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
             HAS_OSX_FRAMEWORK = True
 
-        mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list, mandatory=True)
-        ensure_min_mapnik_revision(conf)
+        mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list)
+        if not mapnik_config:
+            conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik Trunk (future Mapnik 2.0 release) provides this tool, and therefore node-mapnik requires Mapnik trunk.\n\nSee http://trac.mapnik.org/wiki/Mapnik2 for more info.\n')
+            
+        # this breaks with git cloned mapnik repos, so skip it
+        #ensure_min_mapnik_revision(conf)
 
         # todo - check return value of popen otherwise we can end up with
         # return of 'Usage: mapnik-config [OPTION]'
@@ -222,7 +226,7 @@ def configure(conf):
 def build(bld):
     Options.options.jobs = 1;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
-    obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-DBOOST_SPIRIT_THREADSAFE", "-DMAPNIK_THREADSAFE","-ansi","-finline-functions","-Wno-inline","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
+    obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-ansi","-finline-functions","-Wno-inline","-DHAVE_JPEG","-DBOOST_SPIRIT_THREADSAFE","-DMAPNIK_THREADSAFE","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
     obj.source = "src/_mapnik.cc "
     obj.source += "src/grid/renderer.cpp "
@@ -230,6 +234,7 @@ def build(bld):
     obj.source += "src/mapnik_projection.cpp "
     obj.source += "src/mapnik_layer.cpp "
     obj.source += "src/mapnik_datasource.cpp "
+    obj.source += "src/mapnik_featureset.cpp "
     obj.uselib = "MAPNIK"
     # install 'mapnik' module
     lib_dir = bld.path.find_dir('./lib')
