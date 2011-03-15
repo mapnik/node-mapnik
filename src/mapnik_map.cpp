@@ -941,20 +941,18 @@ typedef struct {
 } grid_t;
 
 void grid2utf(agg_grid::grid_rendering_buffer& renbuf, 
-    UnicodeString::UnicodeString& str,
-    std::map<std::string, UChar>& keys,
-    std::vector<std::string>& key_order,
+    grid_t* closure,
     std::map<agg_grid::grid_value, std::string>& feature_keys)
 {
     UChar codepoint = 31;
     int32_t index = 0;
-    str.setCharAt(index++, (UChar)'[');
+    closure->ustr.setCharAt(index++, (UChar)'[');
     std::map<std::string, UChar>::const_iterator key_pos;
     std::map<agg_grid::grid_value, std::string>::const_iterator feature_pos;
 
     for (unsigned y = 0; y < renbuf.height(); ++y)
     {
-        str.setCharAt(index++, (UChar)'"');
+        closure->ustr.setCharAt(index++, (UChar)'"');
         agg_grid::grid_value* row = renbuf.row(y);
         for (unsigned x = 0; x < renbuf.width(); ++x)
         {
@@ -964,8 +962,8 @@ void grid2utf(agg_grid::grid_rendering_buffer& renbuf,
             if (feature_pos != feature_keys.end())
             {
                 std::string val = feature_pos->second;
-                key_pos = keys.find(val);
-                if (key_pos == keys.end())
+                key_pos = closure->keys.find(val);
+                if (key_pos == closure->keys.end())
                 {
                     // Create a new entry for this key. Skip the codepoints that
                     // can't be encoded directly in JSON.
@@ -973,22 +971,22 @@ void grid2utf(agg_grid::grid_rendering_buffer& renbuf,
                     if (codepoint == 34) ++codepoint;      // Skip "
                     else if (codepoint == 92) ++codepoint; // Skip backslash
                 
-                    keys[val] = codepoint;
-                    key_order.push_back(val);
-                    str.setCharAt(index++, codepoint);
+                    closure->keys[val] = codepoint;
+                    closure->key_order.push_back(val);
+                    closure->ustr.setCharAt(index++, codepoint);
                 }
                 else
                 {
-                    str.setCharAt(index++, key_pos->second);
+                    closure->ustr.setCharAt(index++, key_pos->second);
                 }
     
             }
             // else, shouldn't get here...
         }
-        str.setCharAt(index++, (UChar)'"');
-        str.setCharAt(index++, (UChar)',');
+        closure->ustr.setCharAt(index++, (UChar)'"');
+        closure->ustr.setCharAt(index++, (UChar)',');
     }
-    str.setCharAt(index - 1, (UChar)']');
+    closure->ustr.setCharAt(index - 1, (UChar)']');
 }
 
 Handle<Value> Map::render_grid(const Arguments& args)
@@ -1309,7 +1307,7 @@ int Map::EIO_RenderGrid(eio_req *req)
             
             // resample and utf-ize the grid
             closure->grid_initialized = true;
-            grid2utf(renbuf,closure->ustr,closure->keys,closure->key_order,feature_keys);
+            grid2utf(renbuf, closure, feature_keys);
         }
 
     }
