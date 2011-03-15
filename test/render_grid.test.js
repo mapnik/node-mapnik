@@ -1,9 +1,8 @@
-var mapnik = require('../lib');
+var mapnik = require('mapnik');
 var assert = require('assert');
 var fs = require('fs');
-var util = require('util');
 
-exports['test grid rendering'] = function(beforeExit) {
+exports['test simple_grid rendering'] = function(beforeExit) {
     var rendered = false;
     var reference = fs.readFileSync('./test/support/simple_grid.json', 'utf8');
 
