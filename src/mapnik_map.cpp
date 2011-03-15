@@ -928,7 +928,8 @@ typedef struct {
     std::size_t layer_idx;
     unsigned int step;
     std::string join_field;
-    UnicodeString::UnicodeString ustr;
+    uint16_t* grid;
+    int grid_length;
     bool error;
     bool include_features;
     bool grid_initialized;
@@ -944,15 +945,17 @@ void grid2utf(agg_grid::grid_rendering_buffer& renbuf,
     grid_t* closure,
     std::map<agg_grid::grid_value, std::string>& feature_keys)
 {
-    UChar codepoint = 31;
+    uint16_t codepoint = 31;
     int32_t index = 0;
-    closure->ustr.setCharAt(index++, (UChar)'[');
+
+    closure->grid[index++] = (uint16_t)'[';
+
     std::map<std::string, UChar>::const_iterator key_pos;
     std::map<agg_grid::grid_value, std::string>::const_iterator feature_pos;
 
     for (unsigned y = 0; y < renbuf.height(); ++y)
     {
-        closure->ustr.setCharAt(index++, (UChar)'"');
+        closure->grid[index++] = (uint16_t)'"';
         agg_grid::grid_value* row = renbuf.row(y);
         for (unsigned x = 0; x < renbuf.width(); ++x)
         {
@@ -973,20 +976,20 @@ void grid2utf(agg_grid::grid_rendering_buffer& renbuf,
                 
                     closure->keys[val] = codepoint;
                     closure->key_order.push_back(val);
-                    closure->ustr.setCharAt(index++, codepoint);
+                    closure->grid[index++] = codepoint;
                 }
                 else
                 {
-                    closure->ustr.setCharAt(index++, key_pos->second);
+                    closure->grid[index++] = (uint16_t)key_pos->second;
                 }
     
             }
             // else, shouldn't get here...
         }
-        closure->ustr.setCharAt(index++, (UChar)'"');
-        closure->ustr.setCharAt(index++, (UChar)',');
+        closure->grid[index++] = (uint16_t)'"';
+        closure->grid[index++] = (uint16_t)',';
     }
-    closure->ustr.setCharAt(index - 1, (UChar)']');
+    closure->grid[index++] = (uint16_t)']';
 }
 
 Handle<Value> Map::render_grid(const Arguments& args)
@@ -1070,12 +1073,13 @@ Handle<Value> Map::render_grid(const Arguments& args)
     closure->error = false;
     closure->grid_initialized = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+
     // The exact string length:
     //   +3: length + two quotes and a comma
     //   +1: we don't need the last comma, but we need [ and ]
     unsigned int width = w/closure->step;
-    unsigned int len = width * (width + 3) + 1;
-    closure->ustr = UnicodeString::UnicodeString(len, 0, len);
+    closure->grid_length = width * (width + 3) + 1;
+    closure->grid = new uint16_t[closure->grid_length];
 
     eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
     ev_ref(EV_DEFAULT_UC);
@@ -1404,7 +1408,7 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         // Create the return hash.
         Local<Object> json = Object::New();
         if (closure->grid_initialized) {
-            json->Set(String::NewSymbol("grid"), String::New(closure->ustr.getBuffer(),closure->ustr.length()));
+            json->Set(String::NewSymbol("grid"), String::New(closure->grid, closure->grid_length));
         }
         else {
             json->Set(String::NewSymbol("grid"), Array::New());
