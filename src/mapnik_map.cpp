@@ -1257,7 +1257,8 @@ int Map::EIO_RenderGrid(eio_req *req)
                         int i;
                         geom.label_position(&x, &y);
                         // TODO - check return of proj_trans
-                        bool ok = prj_trans.backward(x,y,z);
+                        prj_trans.backward(x,y,z);
+                        //bool ok = prj_trans.backward(x,y,z);
                         //if (!ok)
                         //    std::clog << "warning proj_trans failed\n";
                         tr.forward(&x,&y);
