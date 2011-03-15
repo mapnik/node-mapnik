@@ -1,3 +1,6 @@
 [submodule "node_modules/tilelive.js"]
 	path = node_modules/tilelive.js
 	url = git@github.com:mapbox/tilelive.js.git
+[submodule "node_modules/step"]
+	path = node_modules/step
+	url = https://github.com/creationix/step.git
