@@ -989,7 +989,7 @@ void grid2utf(agg_grid::grid_rendering_buffer& renbuf,
         closure->grid[index++] = (uint16_t)'"';
         closure->grid[index++] = (uint16_t)',';
     }
-    closure->grid[index++] = (uint16_t)']';
+    closure->grid[index - 1] = (uint16_t)']';
 }
 
 Handle<Value> Map::render_grid(const Arguments& args)
