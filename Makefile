@@ -12,5 +12,5 @@ clean:
 uninstall:
 	node-waf uninstall
 
-test:
+test: all
 	node test.js
