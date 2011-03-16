@@ -1,14 +1,14 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.1 Lite 
+// Anti-Grain Geometry - Version 2.1 Lite
 // Copyright (C) 2002-2003 Maxim Shemanarev (McSeem)
 //
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
+// Permission to copy, use, modify, sell and distribute this software
+// is granted provided this copyright notice appears in all copies.
 // This software is provided "as is" without express or implied
 // warranty, and with no claim as to its suitability for any purpose.
 //
-// The author gratefully acknowleges the support of David Turner, 
-// Robert Wilhelm, and Werner Lemberg - the authors of the FreeType 
+// The author gratefully acknowleges the support of David Turner,
+// Robert Wilhelm, and Werner Lemberg - the authors of the FreeType
 // libray - in producing this work. See http://www.freetype.org for details.
 //
 //----------------------------------------------------------------------------
@@ -25,36 +25,38 @@
 namespace agg_grid
 {
     //------------------------------------------------------------------------
-    typedef signed char    int8;
-    typedef unsigned char  int8u;
-    typedef signed short   int16;
-    typedef unsigned short int16u;
-    typedef signed int     int32;
-    typedef unsigned int   int32u;
+    typedef signed char         int8;
+    typedef unsigned char       int8u;
+    typedef signed short        int16;
+    typedef unsigned short      int16u;
+    typedef signed int          int32;
+    typedef unsigned int        int32u;
+    typedef signed long long    int64;
+    typedef unsigned long long  int64u;
 
 
     //========================================================================
     //
     // This class is used to transfer data from class outline (or a similar one)
-    // to the rendering buffer. It's organized very simple. The class stores 
-    // information of horizontal spans to render it into a pixel-map buffer. 
-    // Each span has initial X, length, and an array of bytes that determine the 
-    // alpha-values for each pixel. So, the restriction of using this class is 256 
+    // to the rendering buffer. It's organized very simple. The class stores
+    // information of horizontal spans to render it into a pixel-map buffer.
+    // Each span has initial X, length, and an array of bytes that determine the
+    // alpha-values for each pixel. So, the restriction of using this class is 256
     // levels of Anti-Aliasing, which is quite enough for any practical purpose.
-    // Before using this class you should know the minimal and maximal pixel 
+    // Before using this class you should know the minimal and maximal pixel
     // coordinates of your scanline. The protocol of using is:
     // 1. reset(min_x, max_x)
-    // 2. add_cell() / add_span() - accumulate scanline. You pass Y-coordinate 
-    //    into these functions in order to make scanline know the last Y. Before 
+    // 2. add_cell() / add_span() - accumulate scanline. You pass Y-coordinate
+    //    into these functions in order to make scanline know the last Y. Before
     //    calling add_cell() / add_span() you should check with method is_ready(y)
-    //    if the last Y has changed. It also checks if the scanline is not empty. 
+    //    if the last Y has changed. It also checks if the scanline is not empty.
     //    When forming one scanline the next X coordinate must be always greater
     //    than the last stored one, i.e. it works only with ordered coordinates.
-    // 3. If the current scanline is_ready() you should render it and then call 
+    // 3. If the current scanline is_ready() you should render it and then call
     //    reset_spans() before adding new cells/spans.
-    //    
+    //
     // 4. Rendering:
-    // 
+    //
     // Scanline provides an iterator class that allows you to extract
     // the spans and the cover values for each pixel. Be aware that clipping
     // has not been done yet, so you should perform it yourself.
@@ -62,7 +64,7 @@ namespace agg_grid
     //-------------------------------------------------------------------------
     //
     // int base_x = sl.base_x();          // base X. Should be added to the span's X
-    //                                    // "sl" is a const reference to the 
+    //                                    // "sl" is a const reference to the
     //                                    // scanline passed in.
     //
     // int y = sl.y();                    // Y-coordinate of the scanline
@@ -72,10 +74,10 @@ namespace agg_grid
     // ************************************
     //
     // scanline::iterator span(sl);
-    // 
-    // unsigned char* row = m_rbuf->row(y); // The the address of the beginning 
+    //
+    // unsigned char* row = m_rbuf->row(y); // The the address of the beginning
     //                                      // of the current row
-    // 
+    //
     // unsigned num_spans = sl.num_spans(); // Number of spans. It's guaranteed that
     //                                      // num_spans is always greater than 0.
     //
@@ -87,7 +89,7 @@ namespace agg_grid
     //
     //     int num_pix = span.num_pix();        // Number of pixels of the span.
     //                                          // Always greater than 0, still we
-    //                                          // shoud use "int" instead of 
+    //                                          // shoud use "int" instead of
     //                                          // "unsigned" because it's more
     //                                          // convenient for clipping
     //
@@ -97,22 +99,22 @@ namespace agg_grid
     //     **************************************
     //
     //     unsigned char* dst = row + x;  // Calculate the start address of the row.
-    //                                    // In this case we assume a simple 
+    //                                    // In this case we assume a simple
     //                                    // grayscale image 1-byte per pixel.
     //     do
     //     {
-    //         *dst++ = *covers++;        // Hypotetical rendering. 
+    //         *dst++ = *covers++;        // Hypotetical rendering.
     //     }
     //     while(--num_pix);
-    // } 
+    // }
     // while(--num_spans);  // num_spans cannot be 0, so this loop is quite safe
     //------------------------------------------------------------------------
     //
     // The question is: why should we accumulate the whole scanline when we
     // could render just separate spans when they're ready?
-    // That's because using the scaline is in general faster. When is consists 
+    // That's because using the scaline is in general faster. When is consists
     // of more than one span the conditions for the processor cash system
-    // are better, because switching between two different areas of memory 
+    // are better, because switching between two different areas of memory
     // (that can be large ones) occures less frequently.
     //------------------------------------------------------------------------
     class scanline
@@ -156,9 +158,9 @@ namespace agg_grid
         void     reset(int min_x, int max_x, int dx=0, int dy=0);
 
         void     reset_spans();
-        void     add_cell(int x, int y, unsigned cover);
-        void     add_span(int x, int y, unsigned len, unsigned cover);
-        int      is_ready(int y) const;
+        void     add_cell(int32u x, int32u y, unsigned cover);
+        void     add_span(int32u x, int32u y, unsigned len, unsigned cover);
+        int      is_ready(int32u y) const;
         int      base_x()    const { return m_min_x + m_dx;  }
         int      y()         const { return m_last_y + m_dy; }
         unsigned num_spans() const { return m_num_spans;     }
@@ -186,8 +188,8 @@ namespace agg_grid
     //------------------------------------------------------------------------
     inline void scanline::reset_spans()
     {
-        m_last_x        = 0x7FFF;
-        m_last_y        = 0x7FFF;
+        m_last_x        = 0x7FFFFFFF;
+        m_last_y        = 0x7FFFFFFF;
         m_cur_count     = m_counts;
         m_cur_start_ptr = m_start_ptrs;
         m_num_spans     = 0;
@@ -195,7 +197,7 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    inline void scanline::add_cell(int x, int y, unsigned cover)
+    inline void scanline::add_cell(int32u x, int32u y, unsigned cover)
     {
         x -= m_min_x;
         m_covers[x] = (unsigned char)cover;
@@ -215,7 +217,7 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    inline int scanline::is_ready(int y) const
+    inline int scanline::is_ready(int32u y) const
     {
         return m_num_spans && (y ^ m_last_y);
     }
@@ -223,8 +225,8 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    // These constants determine the subpixel accuracy, to be more precise, 
-    // the number of bits of the fractional part of the coordinates. 
+    // These constants determine the subpixel accuracy, to be more precise,
+    // the number of bits of the fractional part of the coordinates.
     // The possible coordinate capacity in bits can be calculated by formula:
     // sizeof(int) * 8 - poly_base_shift * 2, i.e, for 32-bit integers and
     // 8-bits fractional part the capacity is 16 bits or [-32768...32767].
@@ -235,7 +237,7 @@ namespace agg_grid
         poly_base_size  = 1 << poly_base_shift,
         poly_base_mask  = poly_base_size - 1
     };
-    
+
     //------------------------------------------------------------------------
     inline int poly_coord(double c)
     {
@@ -243,19 +245,19 @@ namespace agg_grid
     }
 
     //------------------------------------------------------------------------
-    // A pixel cell. There're no constructors defined and it was done 
-    // intentionally in order to avoid extra overhead when allocating an 
+    // A pixel cell. There're no constructors defined and it was done
+    // intentionally in order to avoid extra overhead when allocating an
     // array of cells.
     struct cell
     {
-        int16 x;
-        int16 y;
-        int   packed_coord;
-        int   cover;
-        int   area;
+        int32u x;
+        int32u y;
+        int64u packed_coord;
+        int    cover;
+        int    area;
 
-        void set(int x, int y, int c, int a);
-        void set_coord(int x, int y);
+        void set(int32u x, int32u y, int c, int a);
+        void set_coord(int32u x, int32u y);
         void set_cover(int c, int a);
         void add_cover(int c, int a);
     };
@@ -303,7 +305,7 @@ namespace agg_grid
         void render_scanline(int ey, int x1, int y1, int x2, int y2);
         void render_line(int x1, int y1, int x2, int y2);
         void allocate_block();
-        
+
         static void qsort_cells(cell** start, unsigned num);
 
     private:
@@ -334,10 +336,10 @@ namespace agg_grid
         fill_non_zero,
         fill_even_odd
     };
-    
 
 
-    
+
+
 }
 
 

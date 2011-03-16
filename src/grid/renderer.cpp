@@ -1,14 +1,14 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.1 Lite 
+// Anti-Grain Geometry - Version 2.1 Lite
 // Copyright (C) 2002-2003 Maxim Shemanarev (McSeem)
 //
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
+// Permission to copy, use, modify, sell and distribute this software
+// is granted provided this copyright notice appears in all copies.
 // This software is provided "as is" without express or implied
 // warranty, and with no claim as to its suitability for any purpose.
 //
-// The author gratefully acknowleges the support of David Turner, 
-// Robert Wilhelm, and Werner Lemberg - the authors of the FreeType 
+// The author gratefully acknowleges the support of David Turner,
+// Robert Wilhelm, and Werner Lemberg - the authors of the FreeType
 // libray - in producing this work. See http://www.freetype.org for details.
 //
 //----------------------------------------------------------------------------
@@ -19,17 +19,17 @@
 //
 // Class outline - implementation.
 //
-// Initially the rendering algorithm was designed by David Turner and the 
-// other authors of the FreeType library - see the above notice. I nearly 
-// created a similar renderer, but still I was far from David's work. 
-// I completely redesigned the original code and adapted it for Anti-Grain 
-// ideas. Two functions - render_line and render_scanline are the core of 
+// Initially the rendering algorithm was designed by David Turner and the
+// other authors of the FreeType library - see the above notice. I nearly
+// created a similar renderer, but still I was far from David's work.
+// I completely redesigned the original code and adapted it for Anti-Grain
+// ideas. Two functions - render_line and render_scanline are the core of
 // the algorithm - they calculate the exact coverage of each pixel cell
-// of the polygon. I left these functions almost as is, because there's 
+// of the polygon. I left these functions almost as is, because there's
 // no way to improve the perfection - hats off to David and his group!
 //
-// All other code is very different from the original. 
-// 
+// All other code is very different from the original.
+//
 //----------------------------------------------------------------------------
 
 
@@ -42,8 +42,8 @@ namespace agg_grid
 
 
 
-    
-    
+
+
     //========================================================================
 
     //------------------------------------------------------------------------
@@ -61,8 +61,8 @@ namespace agg_grid
           m_max_len(0),
           m_dx(0),
           m_dy(0),
-          m_last_x(0x7FFF),
-          m_last_y(0x7FFF),
+          m_last_x(0x7FFFFFFF),
+          m_last_y(0x7FFFFFFF),
           m_covers(0),
           m_start_ptrs(0),
           m_counts(0),
@@ -89,8 +89,8 @@ namespace agg_grid
         }
         m_dx            = dx;
         m_dy            = dy;
-        m_last_x        = 0x7FFF;
-        m_last_y        = 0x7FFF;
+        m_last_x        = 0x7FFFFFFF;
+        m_last_y        = 0x7FFFFFFF;
         m_min_x         = min_x;
         m_cur_count     = m_counts;
         m_cur_start_ptr = m_start_ptrs;
@@ -99,7 +99,7 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    void scanline::add_span(int x, int y, unsigned num, unsigned cover)
+    void scanline::add_span(int32u x, int32u y, unsigned num, unsigned cover)
     {
         x -= m_min_x;
 
@@ -141,19 +141,19 @@ namespace agg_grid
     }
 
     //------------------------------------------------------------------------
-    inline void cell::set_coord(int cx, int cy)
+    inline void cell::set_coord(int32u cx, int32u cy)
     {
-        x = int16(cx);
-        y = int16(cy);
-        packed_coord = (cy << 16) + cx;
+        x = cx;
+        y = cy;
+        packed_coord = ((int64u)cy << 32) + cx;
     }
 
     //------------------------------------------------------------------------
-    inline void cell::set(int cx, int cy, int c, int a)
+    inline void cell::set(int32u cx, int32u cy, int c, int a)
     {
-        x = int16(cx);
-        y = int16(cy);
-        packed_coord = (cy << 16) + cx;
+        x = cx;
+        y = cy;
+        packed_coord = ((int64u)cy << 32) + cx;
         cover = c;
         area = a;
     }
@@ -195,16 +195,16 @@ namespace agg_grid
         m_max_y(-0x7FFFFFFF),
         m_flags(sort_required)
     {
-        m_cur_cell.set(0x7FFF, 0x7FFF, 0, 0);
+        m_cur_cell.set(0x7FFFFFFF, 0x7FFFFFFF, 0, 0);
     }
 
 
     //------------------------------------------------------------------------
     void outline::reset()
-    { 
-        m_num_cells = 0; 
+    {
+        m_num_cells = 0;
         m_cur_block = 0;
-        m_cur_cell.set(0x7FFF, 0x7FFF, 0, 0);
+        m_cur_cell.set(0x7FFFFFFF, 0x7FFFFFFF, 0, 0);
         m_flags |= sort_required;
         m_flags &= ~not_closed;
         m_min_x =  0x7FFFFFFF;
@@ -257,7 +257,7 @@ namespace agg_grid
     //------------------------------------------------------------------------
     inline void outline::set_cur_cell(int x, int y)
     {
-        if(m_cur_cell.packed_coord != (y << 16) + x)
+        if(m_cur_cell.packed_coord != ((int64u)y << 32) + x)
         {
             add_cur_cell();
             m_cur_cell.set(x, y, 0, 0);
@@ -390,7 +390,7 @@ namespace agg_grid
 
         //Vertical line - we have to calculate start and end cells,
         //and then - the common values of the area and coverage for
-        //all cells of the line. We know exactly there's only one 
+        //all cells of the line. We know exactly there's only one
         //cell, so, we don't have to call render_scanline().
         incr  = 1;
         if(dx == 0)
@@ -555,7 +555,7 @@ namespace agg_grid
     void outline::qsort_cells(cell** start, unsigned num)
     {
         cell**  stack[80];
-        cell*** top; 
+        cell*** top;
         cell**  limit;
         cell**  base;
 
@@ -580,7 +580,7 @@ namespace agg_grid
                 i = base + 1;
                 j = limit - 1;
 
-                // now ensure that *i <= *base <= *j 
+                // now ensure that *i <= *base <= *j
                 if(less_than(j, i))
                 {
                     swap_cells(i, j);
@@ -679,7 +679,7 @@ namespace agg_grid
         {
             cell_ptr = *block_ptr++;
             i = cell_block_size;
-            while(i--) 
+            while(i--)
             {
                 *sorted_ptr++ = cell_ptr++;
             }
@@ -687,7 +687,7 @@ namespace agg_grid
 
         cell_ptr = *block_ptr++;
         i = m_num_cells & cell_block_mask;
-        while(i--) 
+        while(i--)
         {
             *sorted_ptr++ = cell_ptr++;
         }
