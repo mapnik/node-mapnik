@@ -923,7 +923,7 @@ Handle<Value> Map::render_to_file(const Arguments& args)
 }
 
 
-typedef struct {
+struct grid_t {
     Map *m;
     std::size_t layer_idx;
     unsigned int step;
@@ -939,7 +939,17 @@ typedef struct {
     std::map<std::string, std::map<std::string, mapnik::value> > features;
     std::vector<std::string> key_order;
     Persistent<Function> cb;
-} grid_t;
+
+    grid_t() : m(NULL), grid(NULL) {
+    }
+
+    ~grid_t() {
+        if (grid) {
+            delete grid;
+            grid = NULL;
+        }
+    }
+};
 
 void grid2utf(agg_grid::grid_rendering_buffer& renbuf, 
     grid_t* closure,
