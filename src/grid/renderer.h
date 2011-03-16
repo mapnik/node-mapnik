@@ -25,14 +25,12 @@
 namespace agg_grid
 {
     //------------------------------------------------------------------------
-    typedef signed char         int8;
-    typedef unsigned char       int8u;
-    typedef signed short        int16;
-    typedef unsigned short      int16u;
-    typedef signed int          int32;
-    typedef unsigned int        int32u;
-    typedef signed long long    int64;
-    typedef unsigned long long  int64u;
+    typedef signed char    int8;
+    typedef unsigned char  int8u;
+    typedef signed short   int16;
+    typedef unsigned short int16u;
+    typedef signed int     int32;
+    typedef unsigned int   int32u;
 
 
     //========================================================================
@@ -158,9 +156,9 @@ namespace agg_grid
         void     reset(int min_x, int max_x, int dx=0, int dy=0);
 
         void     reset_spans();
-        void     add_cell(int32u x, int32u y, unsigned cover);
-        void     add_span(int32u x, int32u y, unsigned len, unsigned cover);
-        int      is_ready(int32u y) const;
+        void     add_cell(int x, int y, unsigned cover);
+        void     add_span(int x, int y, unsigned len, unsigned cover);
+        int      is_ready(int y) const;
         int      base_x()    const { return m_min_x + m_dx;  }
         int      y()         const { return m_last_y + m_dy; }
         unsigned num_spans() const { return m_num_spans;     }
@@ -188,8 +186,8 @@ namespace agg_grid
     //------------------------------------------------------------------------
     inline void scanline::reset_spans()
     {
-        m_last_x        = 0x7FFFFFFF;
-        m_last_y        = 0x7FFFFFFF;
+        m_last_x        = 0x7FFF;
+        m_last_y        = 0x7FFF;
         m_cur_count     = m_counts;
         m_cur_start_ptr = m_start_ptrs;
         m_num_spans     = 0;
@@ -197,7 +195,7 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    inline void scanline::add_cell(int32u x, int32u y, unsigned cover)
+    inline void scanline::add_cell(int x, int y, unsigned cover)
     {
         x -= m_min_x;
         m_covers[x] = (unsigned char)cover;
@@ -217,7 +215,7 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    inline int scanline::is_ready(int32u y) const
+    inline int scanline::is_ready(int y) const
     {
         return m_num_spans && (y ^ m_last_y);
     }
@@ -250,14 +248,14 @@ namespace agg_grid
     // array of cells.
     struct cell
     {
-        int32u x;
-        int32u y;
-        int64u packed_coord;
-        int    cover;
-        int    area;
+        int16 x;
+        int16 y;
+        int   packed_coord;
+        int   cover;
+        int   area;
 
-        void set(int32u x, int32u y, int c, int a);
-        void set_coord(int32u x, int32u y);
+        void set(int x, int y, int c, int a);
+        void set_coord(int x, int y);
         void set_cover(int c, int a);
         void add_cover(int c, int a);
     };
