@@ -945,7 +945,7 @@ struct grid_t {
 
     ~grid_t() {
         if (grid) {
-            delete grid;
+            delete[] grid;
             grid = NULL;
         }
     }
