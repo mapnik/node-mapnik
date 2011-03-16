@@ -405,7 +405,7 @@ namespace agg_grid
             {
                 const cell* start_cell = cur_cell;
 
-                int64u coord  = cur_cell->packed_coord;
+                int coord  = cur_cell->packed_coord;
                 x = cur_cell->x;
                 y = cur_cell->y;
 
@@ -491,7 +491,7 @@ namespace agg_grid
             {
                 const cell* start_cell = cur_cell;
     
-                int64u coord  = cur_cell->packed_coord;
+                int coord  = cur_cell->packed_coord;
                 x = cur_cell->x;
                 y = cur_cell->y;
     
