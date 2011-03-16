@@ -61,8 +61,8 @@ namespace agg_grid
           m_max_len(0),
           m_dx(0),
           m_dy(0),
-          m_last_x(0x7FFF),
-          m_last_y(0x7FFF),
+          m_last_x(0x7FFFFFFF),
+          m_last_y(0x7FFFFFFF),
           m_covers(0),
           m_start_ptrs(0),
           m_counts(0),
@@ -89,8 +89,8 @@ namespace agg_grid
         }
         m_dx            = dx;
         m_dy            = dy;
-        m_last_x        = 0x7FFF;
-        m_last_y        = 0x7FFF;
+        m_last_x        = 0x7FFFFFFF;
+        m_last_y        = 0x7FFFFFFF;
         m_min_x         = min_x;
         m_cur_count     = m_counts;
         m_cur_start_ptr = m_start_ptrs;
@@ -99,7 +99,7 @@ namespace agg_grid
 
 
     //------------------------------------------------------------------------
-    void scanline::add_span(int x, int y, unsigned num, unsigned cover)
+    void scanline::add_span(int32u x, int32u y, unsigned num, unsigned cover)
     {
         x -= m_min_x;
 
@@ -141,19 +141,19 @@ namespace agg_grid
     }
 
     //------------------------------------------------------------------------
-    inline void cell::set_coord(int cx, int cy)
+    inline void cell::set_coord(int32u cx, int32u cy)
     {
-        x = int16(cx);
-        y = int16(cy);
-        packed_coord = (cy << 16) + cx;
+        x = cx;
+        y = cy;
+        packed_coord = ((int64u)cy << 32) + cx;
     }
 
     //------------------------------------------------------------------------
-    inline void cell::set(int cx, int cy, int c, int a)
+    inline void cell::set(int32u cx, int32u cy, int c, int a)
     {
-        x = int16(cx);
-        y = int16(cy);
-        packed_coord = (cy << 16) + cx;
+        x = cx;
+        y = cy;
+        packed_coord = ((int64u)cy << 32) + cx;
         cover = c;
         area = a;
     }
@@ -195,7 +195,7 @@ namespace agg_grid
         m_max_y(-0x7FFFFFFF),
         m_flags(sort_required)
     {
-        m_cur_cell.set(0x7FFF, 0x7FFF, 0, 0);
+        m_cur_cell.set(0x7FFFFFFF, 0x7FFFFFFF, 0, 0);
     }
 
 
@@ -204,7 +204,7 @@ namespace agg_grid
     {
         m_num_cells = 0;
         m_cur_block = 0;
-        m_cur_cell.set(0x7FFF, 0x7FFF, 0, 0);
+        m_cur_cell.set(0x7FFFFFFF, 0x7FFFFFFF, 0, 0);
         m_flags |= sort_required;
         m_flags &= ~not_closed;
         m_min_x =  0x7FFFFFFF;
@@ -257,7 +257,7 @@ namespace agg_grid
     //------------------------------------------------------------------------
     inline void outline::set_cur_cell(int x, int y)
     {
-        if(m_cur_cell.packed_coord != (y << 16) + x)
+        if(m_cur_cell.packed_coord != ((int64u)y << 32) + x)
         {
             add_cur_cell();
             m_cur_cell.set(x, y, 0, 0);
