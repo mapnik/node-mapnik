@@ -12,5 +12,16 @@ clean:
 uninstall:
 	node-waf uninstall
 
-test:
-	node test.js
+test-tmp:
+	@rm -rf test/tmp
+	@mkdir -p test/tmp
+
+ifndef only
+test: all test-tmp
+	expresso -I lib test/*.test.js
+else
+test: all test-tmp
+	expresso -I lib test/${only}.test.js
+endif
+
+.PHONY: test
