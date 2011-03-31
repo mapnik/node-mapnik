@@ -5,7 +5,10 @@ var mapnik = require('mapnik')
   , mappool = require('mapnik/pool')
   , http = require('http')
   , url = require('url');
-  
+
+
+var TMS_SCHEME = false;
+
 // create a pool of 10 maps
 // this allows us to manage concurrency under high load
 var maps = mappool.create(5);
@@ -53,10 +56,15 @@ var parseXYZ = function(req,callback) {
     matches = req.url.match(/(\d+)/g);
     if (matches && matches.length == 3) {
         try {
+            var x = parseInt(matches[1]);
+            var y = parseInt(matches[2]);
+            var z = parseInt(matches[0]);
+            if (TMS_SCHEME)
+                y = (Math.pow(2,z)-1) - y;
             callback(null,
-               { z: parseInt(matches[0]),
-                 x: parseInt(matches[1]),
-                 y: parseInt(matches[2])
+               { z: z,
+                 x: x,
+                 y: y
                });
         } catch (err) {
             callback(err,null);
