@@ -222,5 +222,5 @@ extern "C" {
 
   }
 
-  NODE_MODULE(_mapnik, init);
+  NODE_MODULE(_mapnik, init)
 }
