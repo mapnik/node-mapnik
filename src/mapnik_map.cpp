@@ -1220,6 +1220,14 @@ int Map::EIO_RenderGrid(eio_req *req)
                 closure->error = true;
                 std::ostringstream s("");
                 s << "join_field: '" << join_field << "' is not a valid attribute name";
+                s << "\nValid fields are:";
+                itr = desc.begin();
+                end = desc.end();
+                while (itr != end)
+                {
+                    s << " " << itr->get_name();
+                    ++itr;
+                }
                 closure->error_name = s.str();
                 return 0;
             }
