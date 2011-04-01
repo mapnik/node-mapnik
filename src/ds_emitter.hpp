@@ -83,27 +83,47 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
 
     mapnik::featureset_ptr fs = ds->features(q);
     description->Set(String::NewSymbol("geometry_type"), Undefined());
+    description->Set(String::NewSymbol("has_features"), Boolean::New(false));
 
     if (fs)
     {
         mapnik::feature_ptr fp = fs->next();
         if (fp) {
 
+            description->Set(String::NewSymbol("has_features"), Boolean::New(true));
             if (fp->num_geometries() > 0)
             {
                 mapnik::geometry_type const& geom = fp->get_geometry(0);
                 mapnik::eGeomType g_type = geom.type();
-                if (g_type == mapnik::Point)
+                switch (g_type)
                 {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("point"));
-                }
-                else if (g_type == mapnik::Polygon)
-                {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
-                }
-                else if (g_type == mapnik::LineString)
-                {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
+                    case mapnik::Point:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("point"));
+                       break;
+  
+                    case mapnik::MultiPoint:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("multipoint"));
+                       break;
+                       
+                    case mapnik::Polygon:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
+                       break;
+  
+                    case mapnik::MultiPolygon:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("multipolygon"));
+                       break;
+
+                    case mapnik::LineString:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
+                       break;
+  
+                    case mapnik::MultiLineString:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("multilinestring"));
+                       break;
+                       
+                    default:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("unknown"));
+                       break;
                 }
             }
         }
