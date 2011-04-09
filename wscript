@@ -228,7 +228,8 @@ def build(bld):
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-ansi","-finline-functions","-Wno-inline","-DHAVE_JPEG","-DBOOST_SPIRIT_THREADSAFE","-DMAPNIK_THREADSAFE","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
-    obj.source = "src/_mapnik.cc "
+    obj.source = "src/mapnik_js_datasource.cpp "
+    obj.source += "src/_mapnik.cc "
     obj.source += "src/grid/renderer.cpp "
     obj.source += "src/mapnik_map.cpp "
     obj.source += "src/mapnik_projection.cpp "
