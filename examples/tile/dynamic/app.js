@@ -36,7 +36,7 @@ s += '<Style name="style">';
 s += '<Rule>';
 s += '<PointSymbolizer file="point.png" allow-overlap="true" />';
 //s += '<PointSymbolizer file="point.svg" allow-overlap="true" />';
-//s += '<MarkersSymbolizer type="ellipse" fill="red" allow-overlap="true" placement="point"/>';
+//s += '<MarkersSymbolizer marker-type="ellipse" fill="red" allow-overlap="true" placement="point"/>';
 s += '</Rule>';
 s += '</Style>';
 
