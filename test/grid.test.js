@@ -2,11 +2,17 @@ var util = require('util');
 var assert = require('assert');
 var Step = require('step');
 var helper = require('./support/helper');
-var TileBatch = require('tilelive.js').TileBatch;
 
 
 exports['test batch rendering'] = function(beforeExit) {
     var finished = false;
+    try {
+        var TileBatch = require('tilelive.js').TileBatch;
+    } catch (err) {
+        console.log('tilelive.js not installed, skipping batch rendering test');
+        finished=true;
+        return;
+    }
     var stylesheet = './examples/stylesheet.xml';
     var layer_idx = 0;
     var join_field = 'FIPS';
