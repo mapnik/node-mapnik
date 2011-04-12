@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-
 /*
 Example of streaming features into Mapnik using a
 javascript callback that leverages experimental javascript
@@ -10,14 +9,12 @@ datasource support - this interface will likely change!
 var mapnik = require('mapnik');
 var sys = require('fs');
 var path = require('path');
-var child_process = require('child_process');
-
 var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
 
 // map with just a style
 // eventually the api will support adding styles in javascript
 var s = '<Map srs="' + merc + '">';
-s += '<Style name="style">';
+s += '<Style name="points">';
 s += ' <Rule>';
 s += '  <Filter>[POP2005]&gt;200000000</Filter>';
 s += '  <MarkersSymbolizer marker-type="ellipse" fill="red" width="10" allow-overlap="true" placement="point"/>';
@@ -38,7 +35,7 @@ var map = new mapnik.Map(256,256);
 map.from_string(s,'.');
 
 // go get some arbitrary data that we can stream
-var shp = path.join(__dirname,'./data/world_merc');
+var shp = path.join(__dirname,'../data/world_merc');
 
 var ds = new mapnik.Datasource({
     type: 'shape',
@@ -85,7 +82,7 @@ var ds = new mapnik.JSDatasource(options,next);
 // contruct a mapnik layer dynamically
 var l = new mapnik.Layer('test');
 l.srs = map.srs;
-l.styles = ["style"];
+l.styles = ["points"];
 
 // add our custom datasource
 l.datasource = ds;
