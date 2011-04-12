@@ -2,8 +2,7 @@ var url = require('url')
 
 module.exports.parseXYZ = function(req, TMS_SCHEME, callback) {
   
-    // FIXME: also matches non TMS requests. Else is never called.
-    matches = req.url.match(/(\d+)/g);
+    matches = req.url.match(/(\d+)\/(\d+)\/(\d+)/g);
     if (matches && matches.length == 3) {
         try {
             var x = parseInt(matches[1]);
