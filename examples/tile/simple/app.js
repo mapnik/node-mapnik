@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // This example shows how to use node-mapnik with the 
-// connect http server to serve map tiles to protovis
+// connect http server to serve map tiles to polymaps
 // client. Also logs tile render speed
 //
 // expected output at zoom 0: http://goo.gl/cyGwo

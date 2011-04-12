@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // This example shows how to use node-mapnik with tilelive.js
-// to render serve map tiles to protovis client
+// to render serve map tiles to polymaps client
 //
 // expected output at zoom 0: http://goo.gl/cyGwo
 
