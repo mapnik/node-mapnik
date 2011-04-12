@@ -2,7 +2,7 @@
 
 // This example shows how to use node-mapnik with the 
 // connect http server to serve map tiles to protovis
-// client
+// client. Also logs tile render speed
 //
 // expected output at zoom 0: http://goo.gl/cyGwo
 

@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+// This example shows how to use node-mapnik with the 
+// connect http server to serve map tiles to protovis
+// client. Also logs tile render speed
+//
+// expected output at zoom 0: http://goo.gl/cyGwo
+
 var mapnik = require('mapnik')
   , mercator = require('mapnik/sphericalmercator')
   , mappool = require('mapnik/pool')
@@ -8,11 +14,10 @@ var mapnik = require('mapnik')
 
 var TMS_SCHEME = false;
 
-// create a pool of 10 maps
-// this allows us to manage concurrency under high load
+// create a pool of 5 maps to manage concurrency under load
 var maps = mappool.create(5);
 
-var usage = 'usage: app.js <stylesheet> <port>';
+var usage = 'usage: app.js <stylesheet> <port>\ndemo:  app.js ../../stylesheet.xml 8000';
 
 var stylesheet = process.ARGV[2];
 
