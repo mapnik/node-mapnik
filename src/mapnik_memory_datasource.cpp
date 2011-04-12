@@ -26,7 +26,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "get_featureset", get_featureset);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(constructor, "add", add);
 
     target->Set(String::NewSymbol("MemoryDatasource"),constructor->GetFunction());
@@ -176,7 +176,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
     return scope.Close(a);
 }
 
-Handle<Value> MemoryDatasource::get_featureset(const Arguments& args)
+Handle<Value> MemoryDatasource::featureset(const Arguments& args)
 {
 
     HandleScope scope;

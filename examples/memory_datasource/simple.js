@@ -36,7 +36,7 @@ var ds = new mapnik.Datasource({
 });
 
 // get the featureset that exposes lazy next() iterator
-var featureset = ds.get_featureset();
+var featureset = ds.featureset();
 
 var mem_datasource = new mapnik.MemoryDatasource(
     {'extent':'-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'}

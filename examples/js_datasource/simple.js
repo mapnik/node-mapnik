@@ -46,7 +46,7 @@ var ds = new mapnik.Datasource({
 });
 
 // get the featureset that exposes lazy next() iterator
-var featureset = ds.get_featureset();
+var featureset = ds.featureset();
 
 // now construct a callback based javascript datasource
 var options = {

@@ -193,7 +193,7 @@ exports['test map datasource'] = function() {
     assert.deepEqual(layer.datasource.describe(), map.describe_data().world);
 
     // test fetching one featureset using efficient next() iterator
-    var featureset = layer.datasource.get_featureset();
+    var featureset = layer.datasource.featureset();
 
     // get one feature
     var feature = featureset.next();

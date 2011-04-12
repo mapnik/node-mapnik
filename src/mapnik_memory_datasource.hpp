@@ -20,7 +20,7 @@ class MemoryDatasource: public node::ObjectWrap {
     static Handle<Value> parameters(const Arguments &args);
     static Handle<Value> describe(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
-    static Handle<Value> get_featureset(const Arguments &args);
+    static Handle<Value> featureset(const Arguments &args);
     static Handle<Value> add(const Arguments &args);
 
     MemoryDatasource();
