@@ -1,4 +1,0 @@
-echo 'now launch: nginx `pwd`/nginx.conf'
-CMD="./app.js "
-$CMD 8091 &
-$CMD 8092
