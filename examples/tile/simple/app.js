@@ -22,21 +22,21 @@ var server = connect.createServer(
 , connect.static(__dirname + '/public/')
 , connect.router(function(app){
     
-    // TILE REQUEST URL
+    // Tile request url
     app.get('/:x/:y/:z', function(req, res, next){      
 
       try {
-        // CALCULATE BBOX FOR RENDER STEP
+        // calculate the bounding box for each tile
         var bbox = mercator.xyz_to_envelope(parseInt(req.params.x),
                                             parseInt(req.params.y),
                                             parseInt(req.params.z), false);
       
-        // CREATE MAP
+        // create map
         var map = new mapnik.Map(256, 256, mercator.srs);
         map.load(path.join(__dirname, '../../stylesheet.xml'));
         map.zoom_all();
                   
-        // RENDER MAP AS PNG
+        // render map
         map.render(bbox, 'png', function(err, buffer) {
           if (err) {
             throw err;
