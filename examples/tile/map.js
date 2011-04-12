@@ -16,4 +16,4 @@ map.add(po.image()
     
 // local tile server
 map.add(po.image()
-    .url(po.url("http://localhost:8000/?x={X}&y={Y}&z={Z}")));
+    .url(po.url("http://localhost:8000/?z={Z}&x={X}&y={Y}")));

@@ -4,8 +4,7 @@ var mapnik = require('mapnik')
   , mercator = require('mapnik/sphericalmercator')
   , mappool = require('mapnik/pool')
   , http = require('http')
-  , url = require('url');
-
+  , util = require('../lib/utility.js');
 
 var TMS_SCHEME = false;
 
@@ -52,47 +51,9 @@ var aquire = function(id,options,callback) {
    );
 };
 
-var parseXYZ = function(req,callback) {
-    matches = req.url.match(/(\d+)/g);
-    if (matches && matches.length == 3) {
-        try {
-            var x = parseInt(matches[1]);
-            var y = parseInt(matches[2]);
-            var z = parseInt(matches[0]);
-            if (TMS_SCHEME)
-                y = (Math.pow(2,z)-1) - y;
-            callback(null,
-               { z: z,
-                 x: x,
-                 y: y
-               });
-        } catch (err) {
-            callback(err,null);
-        }
-    } else {
-          var query = url.parse(req.url, true).query;
-          if (query &&
-                query.x !== undefined &&
-                query.y !== undefined &&
-                query.z !== undefined) {
-             try {
-             callback(null,
-               { z: parseInt(query.z),
-                 x: parseInt(query.x),
-                 y: parseInt(query.y)
-               }
-             );
-             } catch (err) {
-                 callback(err,null);
-             }
-          } else {
-              callback("no x,y,z provided",null);
-          }
-    }
-}
 
 http.createServer(function(req, res) {
-    parseXYZ(req,function(err,params) {
+    util.parseXYZ(req, TMS_SCHEME, function(err,params) {
         if (err) {
             res.writeHead(500, {
               'Content-Type': 'text/plain'
