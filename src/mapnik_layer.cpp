@@ -3,6 +3,7 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_js_datasource.hpp"
+#include "mapnik_memory_datasource.hpp"
 #include "ds_emitter.hpp"
 #include "layer_emitter.hpp"
 
@@ -211,7 +212,7 @@ void Layer::set_prop(Local<String> property,
     {
         Local<Object> obj = value->ToObject();
         if (value->IsNull() || value->IsUndefined()) {
-            ThrowException(Exception::TypeError(String::New("mapnik.Datasource or mapnik.JSDatasource instance expected")));
+            ThrowException(Exception::TypeError(String::New("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected")));
         } else {
             if (Datasource::constructor->HasInstance(obj)) {
                 JSDatasource *d = ObjectWrap::Unwrap<JSDatasource>(obj);
@@ -224,9 +225,15 @@ void Layer::set_prop(Local<String> property,
                 // TODO - addLayer should be add_layer in mapnik
                 l->layer_->set_datasource(d->get());
             }
+            else if (MemoryDatasource::constructor->HasInstance(obj))
+            {
+                MemoryDatasource *d = ObjectWrap::Unwrap<MemoryDatasource>(obj);
+                // TODO - addLayer should be add_layer in mapnik
+                l->layer_->set_datasource(d->get());
+            }
             else
             {
-                ThrowException(Exception::TypeError(String::New("mapnik.Datasource or mapnik.JSDatasource instance expected")));
+                ThrowException(Exception::TypeError(String::New("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected")));
             }
         }
     }
