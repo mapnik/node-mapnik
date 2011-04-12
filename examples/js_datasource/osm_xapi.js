@@ -1,10 +1,14 @@
 #!/usr/bin/env node
-
-/*
-Example of streaming feature showing DC pub locations from OSM XAPI live datasource
-
-TODO: add roads and labels from XAPI 
-*/
+ 
+// Example of streaming feature showing DC pub locations 
+// using OSM XAPI live datasource via Yahoo Pipes
+// 
+// TODO: add roads and labels from XAPI 
+//
+// dependencies:
+// 
+// * node-mapnik
+// * node-get
 
 var mapnik = require('mapnik');
 var sys = require('fs');

@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
-/*
-Example of streaming feature showing last 30 days of global earthquakes 
-from the USGS earthquake data feed
-*/
+// Example of streaming feature showing last 30 days of global earthquakes 
+// from the USGS earthquake data feed
+// 
+// dependencies:
+// 
+// * node-mapnik
+// * node-get
 
 var mapnik = require('mapnik');
 var sys = require('fs');
