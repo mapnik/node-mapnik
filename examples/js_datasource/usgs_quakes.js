@@ -8,8 +8,14 @@
 // * node-mapnik
 // * node-get
 
-// WARNING - mapnik.JSDatasource cannot be used with the async mapnik.render() (will hang)
-// and only will work with mapnik.render_to_string() or mapnik.render_to_file()
+/*
+NOTE - maps using mapnik.JSDatasource can only be rendered with
+mapnik.render_to_string() or mapnik.render_to_file() as the javascript
+callback only works if the rendering happens in the main thread.
+
+If you want async rendering using mapnik.render() then use the
+mapnik.MemoryDatasource instead of mapnik.JSDatasource.
+*/
 
 var mapnik = require('mapnik');
 var sys = require('fs');
