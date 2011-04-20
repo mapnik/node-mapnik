@@ -15,6 +15,11 @@
 #include <mapnik/query.hpp>
 #include <mapnik/ctrans.hpp>
 
+#include <mapnik/config.hpp>
+#ifdef MAPNIK_SUPPORTS_GRID_RENDERER
+#define HAVE_GRID
+#endif
+
 // renderers
 #include <mapnik/agg_renderer.hpp>
 
