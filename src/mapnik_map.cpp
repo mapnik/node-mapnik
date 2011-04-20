@@ -1003,7 +1003,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     unsigned int grid_height = m->map_->height()/step;
 
     closure->grid_ptr = boost::shared_ptr<mapnik::grid>(
-                new mapnik::grid(grid_width,grid_height,closure->join_field)
+                new mapnik::grid(grid_width,grid_height,closure->join_field,step)
             );
 
     if ((args.Length() > 5)) {
