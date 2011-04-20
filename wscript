@@ -82,6 +82,7 @@ def configure(conf):
     conf.check_tool("node_addon")
     settings_dict = {}
     cairo_cxxflags = []
+    grid_cxxflags = []
 
     # use mapnik-config to build against mapnik2/trunk
     if AUTOCONFIGURE:
@@ -154,6 +155,10 @@ def configure(conf):
         if cairo_cxxflags:
             cxxflags.append('-DHAVE_CAIRO')
             cxxflags.extend(cairo_cxxflags)
+        
+        grid_cxxflags = True
+        if grid_cxxflags:
+            cxxflags.append('-DHAVE_GRID')
 
         # add prefix to includes if it is unique
         prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
