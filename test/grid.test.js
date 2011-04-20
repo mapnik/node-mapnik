@@ -7,7 +7,7 @@ var helper = require('./support/helper');
 exports['test batch rendering'] = function(beforeExit) {
     var finished = false;
     try {
-        var TileBatch = require('tilelive.js').TileBatch;
+        var TileBatch = require('tilelive').TileBatch;
     } catch (err) {
         console.log('tilelive.js not installed, skipping batch rendering test');
         finished=true;
