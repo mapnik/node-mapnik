@@ -156,10 +156,6 @@ def configure(conf):
             cxxflags.append('-DHAVE_CAIRO')
             cxxflags.extend(cairo_cxxflags)
         
-        grid_cxxflags = True
-        if grid_cxxflags:
-            cxxflags.append('-DHAVE_GRID')
-
         # add prefix to includes if it is unique
         prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
         if not '/usr/local' in prefix_inc:
