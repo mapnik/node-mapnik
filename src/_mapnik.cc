@@ -26,6 +26,9 @@
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 
+// provides MAPNIK_SUPPORTS_GRID_RENDERER
+#include <mapnik/config.hpp>
+
 // boost
 #include <boost/version.hpp>
 
@@ -225,6 +228,11 @@ extern "C" {
       supports->Set(String::NewSymbol("jpeg"), Boolean::New(true));
     #else
       supports->Set(String::NewSymbol("jpeg"), Boolean::New(false));
+    #endif
+    #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
+      supports->Set(String::NewSymbol("grid"), Boolean::New(true));
+    #else
+      supports->Set(String::NewSymbol("grid"), Boolean::New(false));
     #endif
     target->Set(String::NewSymbol("supports"), supports);
 

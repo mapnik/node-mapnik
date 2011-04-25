@@ -15,15 +15,12 @@
 #include <mapnik/query.hpp>
 #include <mapnik/ctrans.hpp>
 
-#include <mapnik/config.hpp>
-#ifdef MAPNIK_SUPPORTS_GRID_RENDERER
-#define HAVE_GRID
-#endif
-
 // renderers
 #include <mapnik/agg_renderer.hpp>
 
-#if defined(HAVE_GRID)
+// provides MAPNIK_SUPPORTS_GRID_RENDERER
+#include <mapnik/config.hpp>
+#if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
 #include <mapnik/grid/grid_renderer.hpp>
 #else
 #include "grid/grid.h"
@@ -71,7 +68,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
-#if defined(HAVE_GRID)
+#if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
     // TODO - remove _
     NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
 #else
@@ -932,7 +929,7 @@ Handle<Value> Map::render_to_file(const Arguments& args)
     return Undefined();
 }
 
-#if defined(HAVE_GRID)
+#if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
 
 struct grid_t {
     Map *m;
