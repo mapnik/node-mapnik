@@ -82,6 +82,7 @@ def configure(conf):
     conf.check_tool("node_addon")
     settings_dict = {}
     cairo_cxxflags = []
+    grid_cxxflags = []
 
     # use mapnik-config to build against mapnik2/trunk
     if AUTOCONFIGURE:
@@ -154,7 +155,7 @@ def configure(conf):
         if cairo_cxxflags:
             cxxflags.append('-DHAVE_CAIRO')
             cxxflags.extend(cairo_cxxflags)
-
+        
         # add prefix to includes if it is unique
         prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
         if not '/usr/local' in prefix_inc:
@@ -230,6 +231,8 @@ def build(bld):
     obj.target = TARGET
     obj.source = "src/_mapnik.cc "
     obj.source += "src/grid/renderer.cpp "
+    obj.source += "src/mapnik_js_datasource.cpp "
+    obj.source += "src/mapnik_memory_datasource.cpp "
     obj.source += "src/mapnik_map.cpp "
     obj.source += "src/mapnik_projection.cpp "
     obj.source += "src/mapnik_layer.cpp "

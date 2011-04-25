@@ -18,6 +18,8 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
+#include "mapnik_js_datasource.hpp"
+#include "mapnik_memory_datasource.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -188,6 +190,12 @@ extern "C" {
     // Featureset
     Featureset::Initialize(target);
 
+    // JSDatasource
+    JSDatasource::Initialize(target);
+
+    // MemoryDatasource
+    MemoryDatasource::Initialize(target);
+
     // node-mapnik version
     target->Set(String::NewSymbol("version"), String::New("0.2.13"));
 
@@ -222,5 +230,5 @@ extern "C" {
 
   }
 
-  NODE_MODULE(_mapnik, init);
+  NODE_MODULE(_mapnik, init)
 }

@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+// This example shows how to use node-mapnik with the 
+// basic node http server
+//
+// expected output: http://goo.gl/cyGwo
+
+
 var mapnik = require('mapnik');
 var http = require('http');
 var path = require('path');
@@ -8,7 +14,7 @@ var port = 8000;
 
 http.createServer(function(req, res) {
   var map = new mapnik.Map(256, 256);
-  map.load(path.join(__dirname, './stylesheet.xml'));
+  map.load(path.join(__dirname, '../stylesheet.xml'));
   map.zoom_all();
   map.render(map.extent(), 'png', function(err,buffer) {
       if (err) {
@@ -20,3 +26,5 @@ http.createServer(function(req, res) {
       }
   });
 }).listen(port);
+
+console.log("server running on port " + port);

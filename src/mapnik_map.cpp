@@ -3,10 +3,10 @@
 #include <node_version.h>
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/layer.hpp>
-#include <mapnik/agg_renderer.hpp>
 #include <mapnik/filter_factory.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/config_error.hpp>
@@ -14,12 +14,25 @@
 #include <mapnik/save_map.hpp>
 #include <mapnik/query.hpp>
 #include <mapnik/ctrans.hpp>
-// icu
-//#include <mapnik/value.hpp>
-#include <unicode/unistr.h>
 
+#include <mapnik/config.hpp>
+#ifdef MAPNIK_SUPPORTS_GRID_RENDERER
+#define HAVE_GRID
+#endif
+
+// renderers
+#include <mapnik/agg_renderer.hpp>
+
+#if defined(HAVE_GRID)
+#include <mapnik/grid/grid_renderer.hpp>
+#else
+#include "grid/grid.h"
+#include "grid/renderer.h"
+#include "grid/grid_buffer.h"
+#include "agg/agg_conv_stroke.h"
 // ellipse drawing
 #include <math.h>
+#endif
 
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_renderer.hpp>
@@ -29,23 +42,15 @@
 #include <exception>
 #include <set>
 
-#include <mapnik/version.hpp>
 
 //boost
-#include <boost/utility.hpp>
+//#include <boost/utility.hpp>
 
 #include "utils.hpp"
 #include "mapnik_map.hpp"
 #include "ds_emitter.hpp"
 #include "layer_emitter.hpp"
 #include "mapnik_layer.hpp"
-#include "grid/grid.h"
-#include "grid/renderer.h"
-#include "grid/grid_buffer.h"
-#include "agg/agg_conv_stroke.h"
-
-
-
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -66,8 +71,13 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
+#if defined(HAVE_GRID)
+    // TODO - remove _
+    NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
+#else
     // private method as this will soon be removed (when functionality lands in mapnik core)
     NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
+#endif
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
@@ -922,6 +932,357 @@ Handle<Value> Map::render_to_file(const Arguments& args)
     return Undefined();
 }
 
+#if defined(HAVE_GRID)
+
+struct grid_t {
+    Map *m;
+    boost::shared_ptr<mapnik::grid> grid_ptr;
+    std::size_t layer_idx;
+    std::string join_field;
+    uint32_t num_fields;
+    int size;
+    bool error;
+    std::string error_name;
+    bool include_features;
+    Persistent<Function> cb;
+    bool grid_initialized;
+};
+
+Handle<Value> Map::render_grid(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (!args.Length() >= 4)
+      return ThrowException(Exception::Error(
+        String::New("please provide layer idx, join_field, step, field_names, and callback")));
+
+    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
+        return ThrowException(Exception::TypeError(
+           String::New("layer idx and step must be integers")));
+
+    // TODO - match python argument order
+    std::size_t layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
+    unsigned int step = args[1]->NumberValue();
+
+    if ((!args[2]->IsString()))
+        return ThrowException(Exception::TypeError(
+           String::New("layer join_field must be a string")));
+    
+    std::string join_field = TOSTR(args[2]);
+
+    // function callback
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+
+    grid_t *closure = new grid_t();
+
+    if (!closure) {
+        V8::LowMemoryNotification();
+        return ThrowException(Exception::Error(
+            String::New("Could not allocate enough memory")));
+    }
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    
+    /*    
+    // http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+    if (!(w && !(w & (w - 1)))) {
+        return ThrowException(Exception::Error(
+            String::New("Map width and height must be a power of two")));    
+    }*/
+
+    closure->m = m;
+    closure->layer_idx = layer_idx;
+    closure->join_field = join_field;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+    closure->num_fields = 0;
+    
+    unsigned int grid_width = m->map_->width()/step;
+    unsigned int grid_height = m->map_->height()/step;
+
+    closure->grid_ptr = boost::shared_ptr<mapnik::grid>(
+                new mapnik::grid(grid_width,grid_height,closure->join_field,step)
+            );
+
+    if ((args.Length() > 5)) {
+        if (!args[4]->IsArray())
+            return ThrowException(Exception::TypeError(
+               String::New("option to restrict to certain field names must be an array")));
+        Local<Array> a = Local<Array>::Cast(args[4]);
+
+        uint32_t i = 0;
+        closure->num_fields = a->Length();
+        while (i < closure->num_fields) {
+            Local<Value> name = a->Get(i);
+            if (name->IsString()){
+                closure->grid_ptr->add_property_name(TOSTR(name));
+            }
+            i++;
+        }
+    }
+
+    eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
+    ev_ref(EV_DEFAULT_UC);
+    m->Ref();
+    return Undefined();
+
+}
+
+
+int Map::EIO_RenderGrid(eio_req *req)
+{
+
+    grid_t *closure = static_cast<grid_t *>(req->data);
+
+    std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
+    std::size_t layer_num = layers.size();
+    unsigned int layer_idx = closure->layer_idx;
+
+    if (layer_idx >= layer_num) {
+        std::ostringstream s;
+        s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
+          << layers.size() << "' layers are in map";
+        closure->error = true;
+        closure->error_name = s.str();
+        return 0;
+    }
+
+    // copy property names
+    std::set<std::string> attributes = closure->grid_ptr->property_names();
+
+    std::string const& join_field = closure->join_field;
+    
+    if (join_field == closure->grid_ptr->id_name_) 
+    {
+        // TODO - should feature.id() be a first class attribute?
+        if (attributes.find(join_field) != attributes.end())
+        {
+            attributes.erase(join_field);
+        }
+    }
+    else if (attributes.find(join_field) == attributes.end())
+    {
+        attributes.insert(join_field);
+    }
+
+    try
+    {
+        mapnik::grid_renderer<mapnik::grid> ren(*closure->m->map_,*closure->grid_ptr,1.0,0,0);
+        mapnik::layer const& layer = layers[closure->layer_idx];
+        ren.apply(layer,attributes);
+    
+    }
+    catch (const mapnik::config_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const std::runtime_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "Unknown error occured, please file bug";
+    }
+
+    return 0;
+
+}
+
+void grid2utf(mapnik::grid const& grid, 
+    Local<Array>& l,
+    std::vector<mapnik::grid::lookup_type>& key_order)
+{
+    mapnik::grid::data_type const& data = grid.data();
+    mapnik::grid::feature_key_type const& feature_keys = grid.get_feature_keys();
+    mapnik::grid::key_type keys;
+    mapnik::grid::key_type::const_iterator key_pos;
+    mapnik::grid::feature_key_type::const_iterator feature_pos;
+    uint16_t codepoint = 31;
+    uint16_t row_idx = 0;
+
+    for (unsigned y = 0; y < data.height(); ++y)
+    {
+        uint16_t idx = 0;
+        boost::scoped_array<uint16_t> line(new uint16_t[data.width()]);
+        mapnik::grid::value_type const* row = data.getRow(y);
+        for (unsigned x = 0; x < data.width(); ++x)
+        {
+            feature_pos = feature_keys.find(row[x]);
+            if (feature_pos != feature_keys.end())
+            {
+                mapnik::grid::lookup_type const& val = feature_pos->second;
+                key_pos = keys.find(val);
+                if (key_pos == keys.end())
+                {
+                    // Create a new entry for this key. Skip the codepoints that
+                    // can't be encoded directly in JSON.
+                    ++codepoint;
+                    if (codepoint == 34) ++codepoint;      // Skip "
+                    else if (codepoint == 92) ++codepoint; // Skip backslash
+                
+                    keys[val] = codepoint;
+                    key_order.push_back(val);
+                    line[idx++] = static_cast<uint16_t>(codepoint);
+                }
+                else
+                {
+                    line[idx++] = static_cast<uint16_t>(key_pos->second);
+                }
+            }
+            // else, shouldn't get here...
+        }
+        l->Set(row_idx, String::New(line.get(),data.width()));
+        ++row_idx;
+    }
+}
+
+
+void write_features(mapnik::grid::feature_type const& g_features,
+    Local<Object>& feature_data,
+    std::vector<mapnik::grid::lookup_type> const& key_order,
+    std::string const& join_field,
+    std::set<std::string> const& attributes)
+{
+    mapnik::grid::feature_type::const_iterator feat_itr = g_features.begin();
+    mapnik::grid::feature_type::const_iterator feat_end = g_features.end();
+    bool include_join_field = (attributes.find(join_field) != attributes.end());
+    for (; feat_itr != feat_end; ++feat_itr)
+    {
+        std::map<std::string,mapnik::value> const& props = feat_itr->second;
+        std::map<std::string,mapnik::value>::const_iterator const& itr = props.find(join_field);
+        if (itr != props.end())
+        {
+            mapnik::grid::lookup_type const& join_value = itr->second.to_string();
+    
+            // only serialize features visible in the grid
+            if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end()) {
+                Local<Object> feat = Object::New();
+                std::map<std::string,mapnik::value>::const_iterator it = props.begin();
+                std::map<std::string,mapnik::value>::const_iterator end = props.end();
+                bool found = false;
+                for (; it != end; ++it)
+                {
+                    std::string const& key = it->first;
+                    if (key == join_field) {
+                        // drop join_field unless requested
+                        if (include_join_field) {
+                            found = true;
+                            params_to_object serializer( feat , it->first);
+                            boost::apply_visitor( serializer, it->second.base() );
+                        }
+                    }
+                    else
+                    {
+                        found = true;
+                        params_to_object serializer( feat , it->first);
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
+                }
+                if (found)
+                {
+                    feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
+                }
+            }
+        }
+        else
+        {
+            std::clog << "should not get here: join_field '" << join_field << "' not found in grid feature properties\n";
+        }
+    }
+}
+
+int Map::EIO_AfterRenderGrid(eio_req *req)
+{
+    HandleScope scope;
+
+    grid_t *closure = static_cast<grid_t *>(req->data);
+    ev_unref(EV_DEFAULT_UC);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        // TODO - add more attributes
+        // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        // convert buffer to utf and gather key order
+        Local<Array> grid_array = Array::New();
+        std::vector<mapnik::grid::lookup_type> key_order;
+        grid2utf(*closure->grid_ptr,grid_array,key_order);
+    
+        // convert key order to proper javascript array
+        Local<Array> keys_a = Array::New(key_order.size());
+        std::vector<std::string>::iterator it;
+        unsigned int i;
+        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        {
+            keys_a->Set(i, String::New((*it).c_str()));
+        }
+    
+        // gather feature data
+        Local<Object> feature_data = Object::New();
+        if (closure->num_fields > 0) {
+            mapnik::grid::feature_type const& g_features = closure->grid_ptr->get_grid_features();
+            write_features(g_features,
+                           feature_data,
+                           key_order,
+                           closure->join_field,
+                           closure->grid_ptr->property_names());
+        }
+        
+        // Create the return hash.
+        Local<Object> json = Object::New();
+        json->Set(String::NewSymbol("grid"), grid_array);
+        json->Set(String::NewSymbol("keys"), keys_a);
+        json->Set(String::NewSymbol("data"), feature_data);
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    closure->m->Unref();
+    closure->cb.Dispose();
+    delete closure;
+    
+    return 0;
+}
+
+#else
+
+
+
+// Old, local implementation
+
 
 struct grid_t {
     Map *m;
@@ -1220,6 +1581,14 @@ int Map::EIO_RenderGrid(eio_req *req)
                 closure->error = true;
                 std::ostringstream s("");
                 s << "join_field: '" << join_field << "' is not a valid attribute name";
+                s << "\nValid fields are:";
+                itr = desc.begin();
+                end = desc.end();
+                while (itr != end)
+                {
+                    s << " " << itr->get_name();
+                    ++itr;
+                }
                 closure->error_name = s.str();
                 return 0;
             }
@@ -1269,7 +1638,8 @@ int Map::EIO_RenderGrid(eio_req *req)
                         int i;
                         geom.label_position(&x, &y);
                         // TODO - check return of proj_trans
-                        bool ok = prj_trans.backward(x,y,z);
+                        prj_trans.backward(x,y,z);
+                        //bool ok = prj_trans.backward(x,y,z);
                         //if (!ok)
                         //    std::clog << "warning proj_trans failed\n";
                         tr.forward(&x,&y);
@@ -1439,3 +1809,5 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
     
     return 0;
 }
+
+#endif

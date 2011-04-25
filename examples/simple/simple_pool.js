@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+// This example shows how to use (generic-pool) node-pool with mapnik 
+// to maintain a pool of renderers
+//
+// expected output: http://goo.gl/cyGwo
+
 var http = require('http');
 var mapnik = require('mapnik');
 var mappool = require('mapnik/pool');
@@ -11,7 +16,7 @@ var maps = mappool.create(10);
 
 var port = 8000;
 
-var stylesheet = path.join(__dirname, './stylesheet.xml');
+var stylesheet = path.join(__dirname, '../stylesheet.xml');
 
 var aquire = function(id,options,callback) {
     methods = {
@@ -37,7 +42,6 @@ var aquire = function(id,options,callback) {
 };
 
 http.createServer(function(req, res) {
-
   aquire(stylesheet, {},function(err,map) {
       if (err) {
           res.writeHead(500, {
@@ -65,3 +69,5 @@ http.createServer(function(req, res) {
       }
   });
 }).listen(port);
+
+console.log("server running on port " + port);

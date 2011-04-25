@@ -83,27 +83,48 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
 
     mapnik::featureset_ptr fs = ds->features(q);
     description->Set(String::NewSymbol("geometry_type"), Undefined());
+    description->Set(String::NewSymbol("has_features"), Boolean::New(false));
 
     if (fs)
     {
         mapnik::feature_ptr fp = fs->next();
         if (fp) {
 
+            description->Set(String::NewSymbol("has_features"), Boolean::New(true));
             if (fp->num_geometries() > 0)
             {
                 mapnik::geometry_type const& geom = fp->get_geometry(0);
                 mapnik::eGeomType g_type = geom.type();
-                if (g_type == mapnik::Point)
+                switch (g_type)
                 {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("point"));
-                }
-                else if (g_type == mapnik::Polygon)
-                {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
-                }
-                else if (g_type == mapnik::LineString)
-                {
-                    description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
+                    case mapnik::Point:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("point"));
+                       break;
+  
+                    // enable if we can be sure Mapnik >= r2624 is available
+                    //case mapnik::MultiPoint:
+                    //   description->Set(String::NewSymbol("geometry_type"), String::New("multipoint"));
+                    //   break;
+                       
+                    case mapnik::Polygon:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
+                       break;
+  
+                    //case mapnik::MultiPolygon:
+                    //   description->Set(String::NewSymbol("geometry_type"), String::New("multipolygon"));
+                    //   break;
+
+                    case mapnik::LineString:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
+                       break;
+  
+                    //case mapnik::MultiLineString:
+                    //   description->Set(String::NewSymbol("geometry_type"), String::New("multilinestring"));
+                    //   break;
+                       
+                    default:
+                       description->Set(String::NewSymbol("geometry_type"), String::New("unknown"));
+                       break;
                 }
             }
         }
@@ -124,12 +145,10 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
     std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
     std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
     std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-    unsigned size=0;
     while (itr != end)
     {
         q.add_property_name(itr->get_name());
         ++itr;
-        ++size;
     }
 
     mapnik::featureset_ptr fs = ds->features(q);
@@ -151,6 +170,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
 		                // not a mapnik::value_holder
 		                boost::apply_visitor( serializer, it->second.base() );
 		            }
+
 		            a->Set(idx, feat);
             }
             ++idx;
@@ -158,5 +178,123 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
     }
 }
 
+/*
+// start, limit
+static void datasource_stats(Local<Object> stats, mapnik::datasource_ptr ds, unsigned first, unsigned last)
+{
+    // TODO 
+    // for strings, collect first 15 unique
+    // allow options to specific which fields
 
+#if MAPNIK_VERSION >= 800
+    mapnik::query q(ds->envelope());
+#else
+    mapnik::query q(ds->envelope(),1.0,1.0);
+#endif
+
+    mapnik::layer_descriptor ld = ds->get_descriptor();
+    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+    Local<Object> fields = Object::New();
+    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+    unsigned int size = 0;
+    typedef std::vector<mapnik::value> vals;
+    std::map<std::string, vals > values;
+    //Local<Object> values = Object::New();
+    while (itr != end)
+    {
+        q.add_property_name(itr->get_name());
+        Local<Object> field_hash = Object::New();
+        int field_type = itr->get_type();
+        std::string type("");
+        if (field_type == 1) type = "Number";
+        else if (field_type == 2) type = "Number";
+        else if (field_type == 3) type = "Number";
+        else if (field_type == 4) type = "String";
+        else if (field_type == 5) type = "Geometry";
+        else if (field_type == 6) type = "Mapnik Object";
+        field_hash->Set(String::NewSymbol("type"),String::New(type.c_str()));
+        fields->Set(String::NewSymbol(itr->get_name().c_str()),field_hash);
+        //values->Set(String::NewSymbol(itr->get_name().c_str()),Local<Array>::New());
+        ++itr;
+        ++size;
+    }
+    stats->Set(String::NewSymbol("fields"), fields);
+
+    // todo - ability to get mapnik features without also parseing geometries
+    mapnik::featureset_ptr fs = ds->features(q);
+    unsigned idx = 0;
+    if (fs)
+    {
+        mapnik::feature_ptr fp;
+        typedef std::map<std::string,mapnik::value> properties;
+        properties min_prop;
+        properties max_prop;
+        first = true;
+        while ((fp = fs->next()))
+        {
+            ++idx;
+            properties const& fprops = fp->props();
+            properties::const_iterator it;
+            properties::const_iterator end;
+            if (first){
+                first = false;
+                it = fprops.begin();
+                end = fprops.end();
+                for (; it != end; ++it)
+                {
+                    min_prop[it->first] = it->second;
+                    max_prop[it->first] = it->second;
+                    vals& v = values[it->first];
+                    if(std::find(v.begin(), v.end(), it->second) == v.end()) {
+                        v.push_back(it->second);
+                    }
+                }
+            }
+            else
+            {
+                it = fprops.begin();
+                end = fprops.end();
+                for (; it != end; ++it)
+                {
+                    vals& v = values[it->first];
+                    if(std::find(v.begin(), v.end(), it->second) == v.end()) {
+                        v.push_back(it->second);
+                        if (it->second > max_prop[it->first])
+                            max_prop[it->first] = it->second;
+                            
+                        if (it->second < min_prop[it->first])
+                            min_prop[it->first] = it->second;
+                    }
+                }
+            }
+        }
+        
+        Local<Array> names = fields->GetPropertyNames();
+        uint32_t i = 0;
+        uint32_t a_length = names->Length();
+        while (i < a_length) {
+            Local<Value> name = names->Get(i)->ToString();
+            Local<Object> hash = fields->Get(name)->ToObject();
+            std::string key = TOSTR(name);
+            params_to_object serializer_min(hash, "min");
+            boost::apply_visitor( serializer_min, min_prop[key].base() );
+            params_to_object serializer_max(hash, "max");
+            boost::apply_visitor( serializer_max, max_prop[key].base() );
+            vals& v = values[key];
+            unsigned int num_vals = v.size();
+            Local<Array> a = Array::New(num_vals);
+            for (unsigned j = 0; j < num_vals; ++j)
+            {
+                a->Set(j, boost::apply_visitor(value_converter(),v[j].base()) );
+            }
+            hash->Set(String::NewSymbol("values"),a);
+            i++;
+        }
+        
+    }
+    
+    stats->Set(String::NewSymbol("count"), Number::New(idx));
+}
+*/
 #endif

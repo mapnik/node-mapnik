@@ -1,16 +1,23 @@
 #!/usr/bin/env node
 
+// This example shows how to use node-mapnik with the 
+// connect http server to serve map tiles to polymaps
+// client. Also logs tile render speed
+//
+// expected output at zoom 0: http://goo.gl/cyGwo
+
 var mapnik = require('mapnik')
   , mercator = require('mapnik/sphericalmercator')
   , mappool = require('mapnik/pool')
   , http = require('http')
-  , url = require('url');
-  
-// create a pool of 10 maps
-// this allows us to manage concurrency under high load
+  , util = require('../lib/utility.js');
+
+var TMS_SCHEME = false;
+
+// create a pool of 5 maps to manage concurrency under load
 var maps = mappool.create(5);
 
-var usage = 'usage: app.js <stylesheet> <port>';
+var usage = 'usage: app.js <stylesheet> <port>\ndemo:  app.js ../../stylesheet.xml 8000';
 
 var stylesheet = process.ARGV[2];
 
@@ -49,42 +56,9 @@ var aquire = function(id,options,callback) {
    );
 };
 
-var parseXYZ = function(req,callback) {
-    matches = req.url.match(/(\d+)/g);
-    if (matches && matches.length == 3) {
-        try {
-            callback(null,
-               { z: parseInt(matches[0]),
-                 x: parseInt(matches[1]),
-                 y: parseInt(matches[2])
-               });
-        } catch (err) {
-            callback(err,null);
-        }
-    } else {
-          var query = url.parse(req.url, true).query;
-          if (query &&
-                query.x !== undefined &&
-                query.y !== undefined &&
-                query.z !== undefined) {
-             try {
-             callback(null,
-               { z: parseInt(query.z),
-                 x: parseInt(query.x),
-                 y: parseInt(query.y)
-               }
-             );
-             } catch (err) {
-                 callback(err,null);
-             }
-          } else {
-              callback("no x,y,z provided",null);
-          }
-    }
-}
 
 http.createServer(function(req, res) {
-    parseXYZ(req,function(err,params) {
+    util.parseXYZ(req, TMS_SCHEME, function(err,params) {
         if (err) {
             res.writeHead(500, {
               'Content-Type': 'text/plain'

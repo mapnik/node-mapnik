@@ -23,7 +23,7 @@ void Datasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "get_featureset", get_featureset);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
 
     target->Set(String::NewSymbol("Datasource"),constructor->GetFunction());
 }
@@ -195,7 +195,7 @@ Handle<Value> Datasource::features(const Arguments& args)
     return scope.Close(a);
 }
 
-Handle<Value> Datasource::get_featureset(const Arguments& args)
+Handle<Value> Datasource::featureset(const Arguments& args)
 {
 
     HandleScope scope;
