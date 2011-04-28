@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
 var mapnik = require('mapnik');
 var path = require('path');
 var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
@@ -50,7 +51,7 @@ while (feat = featureset.next(true)) {
     var y = (feat._extent[1]+feat._extent[3])/2;
     mem_datasource.add({ 'x'          : x,
                          'y'          : y,
-                         'properties' : { 'NAME':feat.NAME,'POP2005':feat.POP2005 }
+                         'properties' : { 'feat_id':feat.__id__, 'NAME':feat.NAME,'POP2005':feat.POP2005 }
                        });
 }
 
@@ -75,4 +76,14 @@ map.zoom_all();
 // render it! You should see a bunch of red and blue points reprenting
 map.render_to_file('memory_points.png');
 
-console.log('rendered to memory_points.png!' );
+map._render_grid(
+    0,
+    4,
+    'feat_id',
+    true,
+    ['POP2005','NAME','feat_id'], function(err, data) {
+        if (err) throw err;
+        fs.writeFileSync('memory_points.json',JSON.stringify(data));
+    });
+    
+console.log('rendered to memory_points.png and memory_points.json' );
