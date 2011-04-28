@@ -229,7 +229,7 @@ extern "C" {
     #else
       supports->Set(String::NewSymbol("jpeg"), Boolean::New(false));
     #endif
-    #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
+    #if defined(_MAPNIK_SUPPORTS_GRID_RENDERER)
       supports->Set(String::NewSymbol("grid"), Boolean::New(true));
     #else
       supports->Set(String::NewSymbol("grid"), Boolean::New(false));
