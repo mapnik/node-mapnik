@@ -13,7 +13,7 @@ TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
 built = 'build/default/%s' % TARGET_FILE
 dest = 'lib/%s' % TARGET_FILE
-settings = 'lib/settings.js'
+settings = 'lib/mapnik_settings.js'
 
 # only works with Mapnik2/trunk..
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
@@ -22,7 +22,7 @@ AUTOCONFIGURE = True
 # detect this install: http://dbsgeo.com/downloads/#mapnik200
 HAS_OSX_FRAMEWORK = False
 
-# this goes into a settings.js file beside the C++ _mapnik.node
+# this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
     'fonts': '%s',
