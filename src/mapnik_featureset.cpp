@@ -72,6 +72,10 @@ Handle<Value> Featureset::next(const Arguments& args)
                 params_to_object serializer( feat , it->first);
                 boost::apply_visitor( serializer, it->second.base() );
             }
+            
+            // add feature id
+            feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
+            
             if (include_extent) {
                 Local<Array> a = Array::New(4);
                 mapnik::box2d<double> const& e = fp->envelope();

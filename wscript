@@ -13,7 +13,7 @@ TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
 built = 'build/default/%s' % TARGET_FILE
 dest = 'lib/%s' % TARGET_FILE
-settings = 'lib/settings.js'
+settings = 'lib/mapnik_settings.js'
 
 # only works with Mapnik2/trunk..
 # make False to guess at Mapnik 0.7.x configuration (your mileage may vary)
@@ -22,13 +22,18 @@ AUTOCONFIGURE = True
 # detect this install: http://dbsgeo.com/downloads/#mapnik200
 HAS_OSX_FRAMEWORK = False
 
-# this goes into a settings.js file beside the C++ _mapnik.node
+# this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
     'fonts': '%s',
     'input_plugins': '%s',
 };
 """
+
+# number of parallel compile jobs
+jobs=1
+if os.environ.has_key('JOBS'):
+  jobs = int(os.environ['JOBS'])
 
 def write_mapnik_settings(fonts='',input_plugins=''):
     open(settings,'w').write(settings_template % (fonts,input_plugins))
@@ -225,7 +230,7 @@ def configure(conf):
     write_mapnik_settings(**settings_dict)
 
 def build(bld):
-    Options.options.jobs = 1;
+    Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-ansi","-finline-functions","-Wno-inline","-DHAVE_JPEG","-DBOOST_SPIRIT_THREADSAFE","-DMAPNIK_THREADSAFE","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET

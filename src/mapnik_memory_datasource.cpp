@@ -261,6 +261,8 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                                 double dub_val = value->NumberValue();
                                 boost::put(*feature,TOSTR(name),dub_val);
                             }
+                        } else {
+                            std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                         }
                         i++;
                     }

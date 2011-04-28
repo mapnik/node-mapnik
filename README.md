@@ -32,16 +32,18 @@
   
   Developed on OS X (10.6)
   
-  Tested on Debian Squeeze and Centos 5.4.
+  Tested on Debian Squeeze, Ubuntu Maverick, and Centos 5.4.
   
 
 ## Depends
 
-  node (development headers)
+  node (development headers) >= v0.2.3
   
   mapnik (latest trunk >r2397)
   
   node-pool for some examples (npm install generic-pool)
+  
+  expresso and >= node v0.4.x for tests (npm install expresso)
 
 
 ## Installation
@@ -53,7 +55,6 @@
     $ ./configure
     $ make
     $ sudo make install
-    $ node test.js
 
   Make sure the node modules is on your path:
   
@@ -61,7 +62,7 @@
     
   For more details see 'docs/install.txt'
 
-  Or you can install via npm:
+  Or you can also install via npm:
   
     $ npm install mapnik
 
@@ -72,13 +73,25 @@
   
   From the source checkout root do:
   
-    $ examples/render.js examples/stylesheet.xml map.png
+    $ ./examples/simple/render.js ./examples/stylesheet.xml map.png
 
   
 ## Examples
 
   See the 'examples/' folder for more usage examples.
 
+## Tests
+
+  To run the expresso tests first install expresso and step.
+  
+     $ npm install expresso
+     $ npm install step
+  
+  Then run:
+  
+    $ make test
+
+  If [tilelive.js](https://github.com/mapbox/tilelive.js/) is installed batch mbtiles generation will also be tested.
 
 ## License
 

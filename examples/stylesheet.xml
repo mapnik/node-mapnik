@@ -14,6 +14,7 @@
         <Datasource>
             <Parameter name="file">data/world_merc.shp</Parameter>
             <Parameter name="type">shape</Parameter>
+            <Parameter name="encoding">iso-8859-1</Parameter>
         </Datasource>
     </Layer>
 

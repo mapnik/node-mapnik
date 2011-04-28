@@ -15,15 +15,12 @@
 #include <mapnik/query.hpp>
 #include <mapnik/ctrans.hpp>
 
-#include <mapnik/config.hpp>
-#ifdef MAPNIK_SUPPORTS_GRID_RENDERER
-#define HAVE_GRID
-#endif
-
 // renderers
 #include <mapnik/agg_renderer.hpp>
 
-#if defined(HAVE_GRID)
+// provides MAPNIK_SUPPORTS_GRID_RENDERER
+#include <mapnik/config.hpp>
+#if defined(_MAPNIK_SUPPORTS_GRID_RENDERER)
 #include <mapnik/grid/grid_renderer.hpp>
 #else
 #include "grid/grid.h"
@@ -42,9 +39,8 @@
 #include <exception>
 #include <set>
 
-
-//boost
-//#include <boost/utility.hpp>
+// boost
+#include <boost/foreach.hpp>
 
 #include "utils.hpp"
 #include "mapnik_map.hpp"
@@ -71,7 +67,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
-#if defined(HAVE_GRID)
+#if defined(_MAPNIK_SUPPORTS_GRID_RENDERER)
     // TODO - remove _
     NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
 #else
@@ -205,29 +201,55 @@ Handle<Value> Map::get_layer(const Arguments& args)
 
     if (!args.Length() == 1)
       return ThrowException(Exception::Error(
-        String::New("Please provide layer index")));
-
-    if (!args[0]->IsNumber())
-      return ThrowException(Exception::TypeError(
-        String::New("layer index must be an integer")));
-
-    unsigned index = args[0]->IntegerValue();
+        String::New("Please provide layer name or index")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
     std::vector<mapnik::layer> & layers = m->map_->layers();
 
-    // TODO - we don't know features.length at this point
-    if ( index < layers.size())
+    Local<Value> layer = args[0];
+    if (layer->IsNumber())
     {
-        //mapnik::layer & lay_ref = layers[index];
-        return scope.Close(Layer::New(layers[index]));
+        unsigned int index = args[0]->IntegerValue();
+
+        if (index < layers.size())
+        {
+            return scope.Close(Layer::New(layers[index]));
+        }
+        else
+        {
+          return ThrowException(Exception::TypeError(
+            String::New("invalid layer index")));
+        }    
+    }
+    else if (layer->IsString())
+    {
+        bool found = false;
+        unsigned int idx(0);
+        std::string const & layer_name = TOSTR(layer);
+        BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+        {
+            if (lyr.name() == layer_name)
+            {
+                found = true;
+                return scope.Close(Layer::New(layers[idx]));
+            }
+            ++idx; 
+        }
+        if (!found) 
+        {
+            std::ostringstream s;
+            s << "Layer name '" << layer_name << "' not found";
+            return ThrowException(Exception::TypeError(
+              String::New(s.str().c_str())));
+        }
+    
     }
     else
     {
-      return ThrowException(Exception::TypeError(
-        String::New("invalid layer index")));
+        return ThrowException(Exception::TypeError(
+           String::New("first argument must be either a layer name(string) or layer index (integer)")));
     }
+
     return Undefined();
 
 }
@@ -932,12 +954,13 @@ Handle<Value> Map::render_to_file(const Arguments& args)
     return Undefined();
 }
 
-#if defined(HAVE_GRID)
+#if defined(_MAPNIK_SUPPORTS_GRID_RENDERER)
 
 struct grid_t {
     Map *m;
     boost::shared_ptr<mapnik::grid> grid_ptr;
     std::size_t layer_idx;
+    std::string layer_name;
     std::string join_field;
     uint32_t num_fields;
     int size;
@@ -952,35 +975,49 @@ Handle<Value> Map::render_grid(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >= 4)
+    if (!args.Length() >= 2)
       return ThrowException(Exception::Error(
-        String::New("please provide layer idx, join_field, step, field_names, and callback")));
+        String::New("please provide layer name or index, options, and callback")));
 
-    if ((!args[0]->IsNumber() || !args[1]->IsNumber()))
+    // make sure layer name is a string
+    Local<Value> layer = args[0];
+    if (! (layer->IsString() || layer->IsNumber()) )
         return ThrowException(Exception::TypeError(
-           String::New("layer idx and step must be integers")));
+           String::New("first argument must be either a layer name(string) or layer index (integer)")));
 
-    // TODO - match python argument order
-    std::size_t layer_idx = static_cast<std::size_t>(args[0]->NumberValue());
-    unsigned int step = args[1]->NumberValue();
-
-    if ((!args[2]->IsString()))
-        return ThrowException(Exception::TypeError(
-           String::New("layer join_field must be a string")));
-    
-    std::string join_field = TOSTR(args[2]);
-
-    // function callback
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
                   String::New("last argument must be a callback function")));
 
-    grid_t *closure = new grid_t();
+    // ensure options object
+    if (!args[1]->IsObject())
+        return ThrowException(Exception::TypeError(
+          String::New("options must be an object, eg {key: '__id__', resolution : 4, fields: ['name']}")));
+    
+    Local<Object> options = args[1]->ToObject();
 
-    if (!closure) {
-        V8::LowMemoryNotification();
-        return ThrowException(Exception::Error(
-            String::New("Could not allocate enough memory")));
+    std::string join_field("__id__");
+    Local<String> param = String::New("key");
+    if (options->Has(param))
+    {
+        Local<Value> param_val = options->Get(param);
+        if (!param_val->IsString())
+          return ThrowException(Exception::TypeError(
+            String::New("'key' must be a string")));
+        join_field = TOSTR(param_val);
+    }
+
+    unsigned int step(4);
+    param = String::New("resolution");
+    if (options->Has(param))
+    {
+        Local<Value> param_val = options->Get(param);
+        if (!param_val->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("'resolution' must be an integer")));
+        step = param_val->IntegerValue();
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -992,11 +1029,24 @@ Handle<Value> Map::render_grid(const Arguments& args)
             String::New("Map width and height must be a power of two")));    
     }*/
 
+    grid_t *closure = new grid_t();
+
+    if (!closure) {
+        V8::LowMemoryNotification();
+        return ThrowException(Exception::Error(
+            String::New("Could not allocate enough memory")));
+    }
+
+    if (layer->IsString()) {
+        closure->layer_name = TOSTR(layer);
+    } else if (layer->IsNumber()) {
+        closure->layer_idx = static_cast<std::size_t>(layer->NumberValue());
+    }
+
     closure->m = m;
-    closure->layer_idx = layer_idx;
     closure->join_field = join_field;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     closure->num_fields = 0;
     
     unsigned int grid_width = m->map_->width()/step;
@@ -1006,12 +1056,14 @@ Handle<Value> Map::render_grid(const Arguments& args)
                 new mapnik::grid(grid_width,grid_height,closure->join_field,step)
             );
 
-    if ((args.Length() > 5)) {
-        if (!args[4]->IsArray())
-            return ThrowException(Exception::TypeError(
-               String::New("option to restrict to certain field names must be an array")));
-        Local<Array> a = Local<Array>::Cast(args[4]);
-
+    param = String::New("fields");
+    if (options->Has(param))
+    {
+        Local<Value> param_val = options->Get(param);
+        if (!param_val->IsArray())
+          return ThrowException(Exception::TypeError(
+            String::New("'fields' must be an array of strings")));
+        Local<Array> a = Local<Array>::Cast(param_val);
         uint32_t i = 0;
         closure->num_fields = a->Length();
         while (i < closure->num_fields) {
@@ -1037,16 +1089,43 @@ int Map::EIO_RenderGrid(eio_req *req)
     grid_t *closure = static_cast<grid_t *>(req->data);
 
     std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
-    std::size_t layer_num = layers.size();
-    unsigned int layer_idx = closure->layer_idx;
-
-    if (layer_idx >= layer_num) {
-        std::ostringstream s;
-        s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
-          << layers.size() << "' layers are in map";
-        closure->error = true;
-        closure->error_name = s.str();
-        return 0;
+    
+    if (!closure->layer_name.empty()) {
+        bool found = false;
+        unsigned int idx(0);
+        std::string const & layer_name = closure->layer_name;
+        BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+        {
+            if (lyr.name() == layer_name)
+            {
+                found = true;
+                closure->layer_idx = idx;
+                break;
+            }
+            ++idx; 
+        }
+        if (!found) 
+        {
+            std::ostringstream s;
+            s << "Layer name '" << layer_name << "' not found";
+            closure->error = true;
+            closure->error_name = s.str();
+            return 0;
+        }
+    }
+    else 
+    {
+        std::size_t layer_num = layers.size();
+        std::size_t layer_idx = closure->layer_idx;
+    
+        if (layer_idx >= layer_num) {
+            std::ostringstream s;
+            s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
+              << layers.size() << "' layers are in map";
+            closure->error = true;
+            closure->error_name = s.str();
+            return 0;
+        }    
     }
 
     // copy property names
@@ -1197,7 +1276,7 @@ void write_features(mapnik::grid::feature_type const& g_features,
                             boost::apply_visitor( serializer, it->second.base() );
                         }
                     }
-                    else
+                    else if ( (attributes.find(key) != attributes.end()) )
                     {
                         found = true;
                         params_to_object serializer( feat , it->first);
