@@ -1637,8 +1637,10 @@ int Map::EIO_RenderGrid(eio_req *req)
             std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
             unsigned size=0;
             bool selected_attr = !closure->property_names.empty();
+            bool has_attributes = false;
             while (itr != end)
             {
+                has_attributes = true; // memory_datasource will not report fields because it does not know them
                 std::string name = itr->get_name();
                 if (name == join_field) {
                     matched_join_field = true;
@@ -1657,19 +1659,23 @@ int Map::EIO_RenderGrid(eio_req *req)
                 ++size;
             }
             if (!matched_join_field) {
-                closure->error = true;
-                std::ostringstream s("");
-                s << "join_field: '" << join_field << "' is not a valid attribute name";
-                s << "\nValid fields are:";
-                itr = desc.begin();
-                end = desc.end();
-                while (itr != end)
-                {
-                    s << " " << itr->get_name();
-                    ++itr;
+                if (!has_attributes) {
+                    q.add_property_name(join_field);
+                } else {
+                    closure->error = true;
+                    std::ostringstream s("");
+                    s << "join_field: '" << join_field << "' is not a valid attribute name";
+                    s << "\nValid fields are:";
+                    itr = desc.begin();
+                    end = desc.end();
+                    while (itr != end)
+                    {
+                        s << " " << itr->get_name();
+                        ++itr;
+                    }
+                    closure->error_name = s.str();
+                    return 0;
                 }
-                closure->error_name = s.str();
-                return 0;
             }
 
         }
