@@ -30,6 +30,11 @@ module.exports.paths = {
 };
 """
 
+# number of parallel compile jobs
+jobs=1
+if os.environ.has_key('JOBS'):
+  jobs = int(os.environ['JOBS'])
+
 def write_mapnik_settings(fonts='',input_plugins=''):
     open(settings,'w').write(settings_template % (fonts,input_plugins))
 
@@ -225,7 +230,7 @@ def configure(conf):
     write_mapnik_settings(**settings_dict)
 
 def build(bld):
-    Options.options.jobs = 1;
+    Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-DNDEBUG", "-O3", "-g", "-Wall", "-ansi","-finline-functions","-Wno-inline","-DHAVE_JPEG","-DBOOST_SPIRIT_THREADSAFE","-DMAPNIK_THREADSAFE","-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
