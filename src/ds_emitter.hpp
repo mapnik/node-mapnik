@@ -159,19 +159,22 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
         while ((fp = fs->next()))
         {
             if  ((idx >= first) && (idx <= last || last == 0)) {
-		            std::map<std::string,mapnik::value> const& fprops = fp->props();
-		            Local<Object> feat = Object::New();
-		            std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-		            std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-		            for (; it != end; ++it)
-		            {
-		                params_to_object serializer( feat , it->first);
-		                // need to call base() since this is a mapnik::value
-		                // not a mapnik::value_holder
-		                boost::apply_visitor( serializer, it->second.base() );
-		            }
+                std::map<std::string,mapnik::value> const& fprops = fp->props();
+                Local<Object> feat = Object::New();
+                std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
+                std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
+                for (; it != end; ++it)
+                {
+                    params_to_object serializer( feat , it->first);
+                    // need to call base() since this is a mapnik::value
+                    // not a mapnik::value_holder
+                    boost::apply_visitor( serializer, it->second.base() );
+                }
 
-		            a->Set(idx, feat);
+                // add feature id
+                feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
+    
+                a->Set(idx, feat);
             }
             ++idx;
         }
