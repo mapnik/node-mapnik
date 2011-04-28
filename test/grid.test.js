@@ -2,6 +2,7 @@ var util = require('util');
 var assert = require('assert');
 var Step = require('step');
 var helper = require('./support/helper');
+var mapnik = require('mapnik');
 
 
 exports['test batch rendering'] = function(beforeExit) {
@@ -14,8 +15,13 @@ exports['test batch rendering'] = function(beforeExit) {
         return;
     }
     var stylesheet = './examples/stylesheet.xml';
-    var layer_idx = 0;
-    var join_field = 'FIPS';
+    if (mapnik.supports.grid) {
+        var layer_name = "world";
+        var key_name = '__id__';
+    } else {
+        var layer_name = 0;
+        var key_name = 'FIPS';    
+    }
     var mbtile_file = helper.filename('mbtiles');
 
     var batch = new TileBatch({
@@ -28,13 +34,15 @@ exports['test batch rendering'] = function(beforeExit) {
             20037500
         ],
         format: 'png',
-        minzoom: 12,
-        maxzoom: 14,
+        minzoom: 0,
+        maxzoom: 5,
         datasource: stylesheet,
         language: 'xml',
         interactivity: {
-            key_name: join_field,
-            layer: layer_idx
+            layer: layer_name,
+            key: key_name,
+            resolution: 4,
+            fields: [key_name,"NAME"]
         },
         metadata: {
             name: mbtile_file,
@@ -42,7 +50,7 @@ exports['test batch rendering'] = function(beforeExit) {
             description: mbtile_file,
             version: '1.1',
             formatter: 'function(options, data) { '
-                + 'return "<strong>" + data.'+ join_field + ' + "</strong><br/>"'
+                + 'return "<strong>" + data.NAME + "</strong><br/>"'
                 + '}'
         }
     });
@@ -82,7 +90,7 @@ exports['test batch rendering'] = function(beforeExit) {
                         }
                         
                         if (!tiles) {
-                            console.log('finished ' + err + ' ' + tiles);
+                            console.log('finished rendering tiles');
                             return end(err, tiles);
                         }
                         render();
@@ -92,18 +100,17 @@ exports['test batch rendering'] = function(beforeExit) {
             render();
         },
         function(err) {
-            console.log('finish');
             if (err) throw err;
             batch.finish(this);
         },
         function(err) {
-            console.log('done');
             if (err) throw err;
             finished = true;
         }
     );
     
     beforeExit(function() {
+        console.log('done rendering to: ' + mbtile_file);
         assert.ok(finished);
     })
 };

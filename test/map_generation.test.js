@@ -130,7 +130,8 @@ exports['test map features'] = function() {
         POP2005: 143953092,
         REGION: 150,
         SUBREGION: 151,
-        UN: 643
+        UN: 643,
+        __id__:245
     });
 
     // feature slicing, just what you want
@@ -147,7 +148,8 @@ exports['test map features'] = function() {
             POP2005: 83039,
             REGION: 19,
             SUBREGION: 29,
-            UN: 28
+            UN: 28,
+            __id__:1
         },
         {
             AREA: 238174,
@@ -160,7 +162,8 @@ exports['test map features'] = function() {
             POP2005: 32854159,
             REGION: 2,
             SUBREGION: 15,
-            UN: 12
+            UN: 12,
+            __id__:2
         },
         {
             AREA: 8260,
@@ -173,7 +176,8 @@ exports['test map features'] = function() {
             POP2005: 8352021,
             REGION: 142,
             SUBREGION: 145,
-            UN: 31
+            UN: 31,
+            __id__:3
         }
     ]);
 };
@@ -215,6 +219,7 @@ exports['test map datasource'] = function() {
         REGION: 19,
         SUBREGION: 29,
         UN: 28,
+        __id__:1
     });
 
     // loop over all of them to ensure the proper feature count

@@ -45,7 +45,8 @@ exports['test datasource'] = function() {
         POP2005: 143953092,
         REGION: 150,
         SUBREGION: 151,
-        UN: 643
+        UN: 643,
+        __id__: 245
     });
 
     assert.deepEqual(ds.describe(), {
@@ -102,7 +103,8 @@ exports['test JSON datasource'] = function() {
         POP2005: 143953092,
         REGION: 150,
         SUBREGION: 151,
-        UN: 643
+        UN: 643,
+        __id__: 245-1 // shapefiles start count a 1, but ogr datasources start at 0
     });
 
     assert.deepEqual(ds.describe(), {
