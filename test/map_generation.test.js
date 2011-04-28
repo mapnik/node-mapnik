@@ -183,14 +183,20 @@ exports['test map datasource'] = function() {
     var described = map.describe_data();
     assert.deepEqual(described.world.extent, [-20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473]);
     assert.equal(described.world.type, 'vector');
-    assert.equal(described.world.encoding, 'utf-8');
+    assert.equal(described.world.encoding, 'iso-8859-1');
     assert.equal(described.world.fields.FIPS, 'String');
 
+    // get layer by index
     var layer = map.get_layer(0);
     assert.deepEqual(layer.datasource, {});
 
+    // get layer by name
+    var layer_same = map.get_layer("world");
+    assert.deepEqual(layer_same.datasource, {});
+
     // but it does have functions
     assert.deepEqual(layer.datasource.describe(), map.describe_data().world);
+    assert.deepEqual(layer.datasource.describe(), layer_same.datasource.describe());
 
     // test fetching one featureset using efficient next() iterator
     var featureset = layer.datasource.featureset();
