@@ -17,7 +17,7 @@ exports['test batch rendering'] = function(beforeExit) {
     var stylesheet = './examples/stylesheet.xml';
     if (mapnik.supports.grid) {
         var layer_name = "world";
-        var key_name = '__id__';
+        var key_name = 'FIPS';
     } else {
         var layer_name = 0;
         var key_name = 'FIPS';    
