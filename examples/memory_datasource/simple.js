@@ -76,14 +76,24 @@ map.zoom_all();
 // render it! You should see a bunch of red and blue points reprenting
 map.render_to_file('memory_points.png');
 
-map._render_grid(
-    0,
-    4,
-    'feat_id',
-    true,
-    ['POP2005','NAME','feat_id'], function(err, data) {
-        if (err) throw err;
-        fs.writeFileSync('memory_points.json',JSON.stringify(data));
-    });
-    
+if (mapnik.supports.grid) {
+    var options = { resolution:4,
+                    key:'feat_id',
+                    fields: ['POP2005','NAME','feat_id']
+                  };
+    map.render_grid(0,options,function(err, data) {
+                          if (err) throw err;
+                          fs.writeFileSync('memory_points.json',JSON.stringify(data));
+                          });
+} else {
+    map._render_grid(
+        0,
+        4,
+        'feat_id',
+        true,
+        ['POP2005','NAME','feat_id'], function(err, data) {
+            if (err) throw err;
+            fs.writeFileSync('memory_points.json',JSON.stringify(data));
+        });
+}
 console.log('rendered to memory_points.png and memory_points.json' );
