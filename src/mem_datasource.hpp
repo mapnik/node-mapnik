@@ -87,7 +87,7 @@ class js_featureset : public mapnik::Featureset, private boost::noncopyable
 public:
     js_featureset( const mapnik::query& q, const js_datasource* ds)
         : q_(q),
-          count_(0),
+          feature_id_(1),
           tr_(new mapnik::transcoder("utf-8")),
           ds_(ds),
           obj_(Object::New())
@@ -130,7 +130,8 @@ public:
                         {
                             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
                             pt->move_to(x->NumberValue(),y->NumberValue());
-                            mapnik::feature_ptr feature(new mapnik::Feature(count_));
+                            mapnik::feature_ptr feature(new mapnik::Feature(feature_id_));
+                            ++feature_id_;
                             feature->add_geometry(pt);
                             if (obj->Has(String::New("properties")))
                             {
@@ -164,7 +165,6 @@ public:
                                     }
                                 }
                             }
-                            ++count_;
                             return feature;                
                         }
                     }
@@ -177,7 +177,7 @@ public:
         
 private:
     mapnik::query const& q_;
-    unsigned int count_;
+    unsigned int feature_id_;
     boost::scoped_ptr<mapnik::transcoder> tr_;
     const js_datasource* ds_;
     Local<Object> obj_;

@@ -35,7 +35,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
 MemoryDatasource::MemoryDatasource() :
   ObjectWrap(),
   datasource_(),
-  count_(0),
+  feature_id_(1),
   tr_(new mapnik::transcoder("utf8")) {}
 
 MemoryDatasource::~MemoryDatasource()
@@ -232,7 +232,8 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
             pt->move_to(x->NumberValue(),y->NumberValue());
-            mapnik::feature_ptr feature(new mapnik::Feature(d->count_));
+            mapnik::feature_ptr feature(new mapnik::Feature(d->feature_id_));
+            ++(d->feature_id_);
             feature->add_geometry(pt);
             if (obj->Has(String::New("properties")))
             {
@@ -270,7 +271,6 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
             }
             mapnik::memory_datasource *cache = dynamic_cast<mapnik::memory_datasource *>(d->datasource_.get());
             cache->push(feature);
-            ++(d->count_);
         }
     }
     return scope.Close(Boolean::New(false));
