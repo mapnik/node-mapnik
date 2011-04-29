@@ -68,10 +68,9 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
 #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
-    // TODO - remove _
-    NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
 #else
-    // private method as this will soon be removed (when functionality lands in mapnik core)
+    // private method as this will soon be removed
     NODE_SET_PROTOTYPE_METHOD(constructor, "_render_grid", render_grid);
 #endif
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);

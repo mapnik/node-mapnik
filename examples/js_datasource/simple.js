@@ -15,10 +15,6 @@ If you want async rendering using mapnik.render() then use the
 mapnik.MemoryDatasource instead of mapnik.JSDatasource.
 */
 
-
-cannot be used with the async mapnik.render() (will hang)
-// and only will work with mapnik.render_to_string() or mapnik.render_to_file()
-
 var mapnik = require('mapnik');
 var sys = require('fs');
 var path = require('path');
