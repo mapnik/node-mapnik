@@ -40,7 +40,7 @@ exports['test batch rendering'] = function(beforeExit) {
         language: 'xml',
         interactivity: {
             layer: layer_name,
-            key: key_name,
+            key_name: key_name,
             resolution: 4,
             fields: [key_name,"NAME"]
         },

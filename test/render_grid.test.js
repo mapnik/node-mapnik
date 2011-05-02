@@ -14,7 +14,7 @@ exports['test simple_grid rendering'] = function(beforeExit) {
                        "key":"__id__",
                        "fields": ["NAME"]
                       };
-        map_grid._render_grid("world", options, function(err, grid) {
+        map_grid.render_grid("world", options, function(err, grid) {
             rendered = true;
             assert.ok(!err);
             assert.equal(JSON.stringify(grid), reference);
