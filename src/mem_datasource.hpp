@@ -110,7 +110,7 @@ public:
         HandleScope scope;
         
         TryCatch try_catch;
-        Local<Value> argv[2] = { Integer::New(count_), obj_ };
+        Local<Value> argv[2] = { Integer::New(feature_id_), obj_ };
         Local<Value> val = ds_->cb_->Call(Context::GetCurrent()->Global(), 2, argv);
         if (try_catch.HasCaught()) {
             FatalException(try_catch);
