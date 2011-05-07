@@ -9,7 +9,7 @@ var Map = mapnik.Map;
 var base_url = './examples/'; // must end with trailing slash
 var style_string = fs.readFileSync(base_url + 'stylesheet.xml', 'utf8');
 var map = new Map(600, 400);
-map.from_string(style_string, base_url);
+map.fromStringSync(style_string, {strict:true,base:base_url});
 map.zoom_all();
 
 exports['test map generation'] = function(beforeExit) {

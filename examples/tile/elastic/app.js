@@ -67,77 +67,86 @@ http.createServer(function(req, res) {
       res.writeHead(200, {'Content-Type': 'image/png'});
 
       var bbox = mercator.xyz_to_envelope(parseInt(query.x), parseInt(query.y), parseInt(query.z), false);
-      map.from_string(s, './');
+      map.fromString(s,
+          {strict:true,base:'./'},
+          function (err, map) {
+              if (err) {
+                  res.writeHead(500, {
+                    'Content-Type': 'text/plain'
+                  });
+                  res.end(err.message);
+              }
 
-      var options = {
-          extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
-      };
-
-      var mem_ds = new mapnik.MemoryDatasource(options);
-
-      var el_query = {
-         "size": 100,
-         "query" : {
-             "match_all" : {}
-         },
-          "filter" : {
-              "geo_bounding_box" : {
-                  "project.location" : {
-                      "top_left" : {
-                          "lat" : bbox[3],
-                          "lon" : bbox[0]
-                      },
-                      "bottom_right" : {
-                          "lat" : bbox[1],
-                          "lon" : bbox[2]
+              var options = {
+                  extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
+              };
+        
+              var mem_ds = new mapnik.MemoryDatasource(options);
+        
+              var el_query = {
+                 "size": 100,
+                 "query" : {
+                     "match_all" : {}
+                 },
+                  "filter" : {
+                      "geo_bounding_box" : {
+                          "project.location" : {
+                              "top_left" : {
+                                  "lat" : bbox[3],
+                                  "lon" : bbox[0]
+                              },
+                              "bottom_right" : {
+                                  "lat" : bbox[1],
+                                  "lon" : bbox[2]
+                              }
+                          }
                       }
                   }
               }
-          }
-      }
-      
-      search(el_query, function(result) {
-          if (!result.hits.hits) {
-                res.writeHead(500, {
-                  'Content-Type': 'text/plain'
-                });
-                res.end('no elastic search results');
-          } else {
-              //console.log(JSON.stringify(result.facets, null, 2));
-              //console.log(result.took + 'ms / ' + result.hits.total + ' results');
-              result.hits.hits.forEach( function(hit) {
-                     var x = hit._source.project.location.lon;
-                     var y = hit._source.project.location.lat;
-                     var name = hit._source.project.name;
-                     var pop2005 = hit._source.project.pop2005;
-                     //console.log('x: ' + x + ' y: ' + y);
-                     mem_ds.add({ 'x' : x,
-                                  'y' : y,
-                                  'properties' : { 'NAME':name,'pop2005':pop2005 }
-                                 });
-              });
-        
-              var l = new mapnik.Layer('test');
-              l.srs = map.srs;
-              l.styles = ["style"];
-              l.datasource = mem_ds;
-              map.add_layer(l);
-              map.render(bbox, 'png', function(err, buffer) {
-                  if (err) {
-                      res.writeHead(500, {
-                        'Content-Type': 'text/plain'
-                      });
-                      res.end(err.message);
+              
+              search(el_query, function(result) {
+                  if (!result.hits.hits) {
+                        res.writeHead(500, {
+                          'Content-Type': 'text/plain'
+                        });
+                        res.end('no elastic search results');
                   } else {
-                      res.writeHead(200, {
-                        'Content-Type': 'image/png'
+                      //console.log(JSON.stringify(result.facets, null, 2));
+                      //console.log(result.took + 'ms / ' + result.hits.total + ' results');
+                      result.hits.hits.forEach( function(hit) {
+                             var x = hit._source.project.location.lon;
+                             var y = hit._source.project.location.lat;
+                             var name = hit._source.project.name;
+                             var pop2005 = hit._source.project.pop2005;
+                             //console.log('x: ' + x + ' y: ' + y);
+                             mem_ds.add({ 'x' : x,
+                                          'y' : y,
+                                          'properties' : { 'NAME':name,'pop2005':pop2005 }
+                                         });
                       });
-                      res.end(buffer);
+                
+                      var l = new mapnik.Layer('test');
+                      l.srs = map.srs;
+                      l.styles = ["style"];
+                      l.datasource = mem_ds;
+                      map.add_layer(l);
+                      map.render(bbox, 'png', function(err, buffer) {
+                          if (err) {
+                              res.writeHead(500, {
+                                'Content-Type': 'text/plain'
+                              });
+                              res.end(err.message);
+                          } else {
+                              res.writeHead(200, {
+                                'Content-Type': 'image/png'
+                              });
+                              res.end(buffer);
+                          }
+                      });
                   }
               });
-          }
-      });
-
+          }          
+      );
   } else {
       res.writeHead(200, {
         'Content-Type': 'text/plain'

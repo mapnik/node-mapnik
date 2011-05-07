@@ -41,7 +41,7 @@ s += '</Map>';
 
 // create map object
 var map = new mapnik.Map(256,256);
-map.from_string(s,'.');
+map.fromStringSync(s,{strict:true,base:'.'});
 
 // go get some arbitrary data that we can stream
 var shp = path.join(__dirname,'../data/world_merc');

@@ -23,15 +23,20 @@ class Map: public node::ObjectWrap {
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
+    static Handle<Value> loadSync(const Arguments &args);
     static Handle<Value> load(const Arguments &args);
     static int EIO_Load(eio_req *req);
     static int EIO_AfterLoad(eio_req *req);
 
-    static Handle<Value> loadSync(const Arguments &args);
+    static Handle<Value> fromStringSync(const Arguments &args);
+    static Handle<Value> fromString(const Arguments &args);
+    static int EIO_FromString(eio_req *req);
+    static int EIO_AfterFromString(eio_req *req);
+
     static Handle<Value> save(const Arguments &args);
-    static Handle<Value> clear(const Arguments &args);
-    static Handle<Value> from_string(const Arguments &args);
     static Handle<Value> to_string(const Arguments &args);
+
+    static Handle<Value> clear(const Arguments &args);
     static Handle<Value> resize(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);

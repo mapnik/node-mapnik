@@ -40,7 +40,7 @@ s += '</Map>';
 var map  = new mapnik.Map(800,600);
 var merc = new mapnik.Projection('+init=epsg:3857');
 map.loadSync(path.join(__dirname, '../stylesheet.xml'));
-map.from_string(s,'.');
+map.fromStringSync(s);
 
 // Pubs around Washington DC - using the OSM XAPI from Mapquest (http://open.mapquestapi.com/xapi/)) 
 // XML munged into json using Yahoo pipes
