@@ -8,7 +8,7 @@ datasource support
 
 /*
 NOTE - maps using mapnik.JSDatasource can only be rendered with
-mapnik.render_to_string() or mapnik.render_to_file() as the javascript
+mapnik.renderSync() or mapnik.renderFileSync() as the javascript
 callback only works if the rendering happens in the main thread.
 
 If you want async rendering using mapnik.render() then use the
@@ -103,6 +103,6 @@ map.add_layer(l);
 map.zoom_all();
 
 // render it! You should see a bunch of red and blue points reprenting
-map.render_to_file('js_points.png');
+map.renderFileSync('js_points.png');
 
 console.log('rendered to js_points.png!' );

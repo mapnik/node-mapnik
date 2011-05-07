@@ -83,7 +83,7 @@ http.createServer(function(req, res) {
       }
       else {
           map.zoom_to_box(bbox);
-          res.end(map.render_to_string('png'));
+          res.end(map.renderSync('png'));
       }
 
   } else {

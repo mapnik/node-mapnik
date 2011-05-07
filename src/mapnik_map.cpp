@@ -60,20 +60,18 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toXML", to_string);
     NODE_SET_PROTOTYPE_METHOD(constructor, "resize", resize);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
+
 #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
     NODE_SET_PROTOTYPE_METHOD(constructor, "renderLayerSync", renderLayerSync);
 #endif
-    NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
+
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render", render);
     NODE_SET_PROTOTYPE_METHOD(constructor, "renderSync", renderSync);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "render_to_file", render_to_file);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scale_denominator);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "renderFileSync", renderFileSync);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scaleDenominator);
 
     // layer access
     NODE_SET_PROTOTYPE_METHOD(constructor, "add_layer", add_layer);
@@ -86,6 +84,10 @@ void Map::Initialize(Handle<Object> target) {
 
     // properties
     ATTR(constructor, "srs", get_prop, set_prop);
+    ATTR(constructor, "width", get_prop, set_prop);
+    ATTR(constructor, "height", get_prop, set_prop);
+    ATTR(constructor, "bufferSize", get_prop, set_prop);
+    ATTR(constructor, "extent", get_prop, set_prop);
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
     //eio_set_max_poll_reqs(10);
@@ -171,8 +173,25 @@ Handle<Value> Map::get_prop(Local<String> property,
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(info.This());
     std::string a = TOSTR(property);
-    if (a == "srs")
+    if(a == "extent") {
+        Local<Array> a = Array::New(4);
+        mapnik::box2d<double> const& e = m->map_->get_current_extent();
+        a->Set(0, Number::New(e.minx()));
+        a->Set(1, Number::New(e.miny()));
+        a->Set(2, Number::New(e.maxx()));
+        a->Set(3, Number::New(e.maxy()));
+        return scope.Close(a);
+    }
+    else if (a == "srs")
         return scope.Close(String::New(m->map_->srs().c_str()));
+    else if(a == "bufferSize")
+        return scope.Close(Integer::New(m->map_->buffer_size()));
+    else if(a == "width")
+        return scope.Close(Integer::New(m->map_->width()));
+    else if(a == "height")
+        return scope.Close(Integer::New(m->map_->height()));
+    // TODO - expose mapnik.Color
+    //else if(a == "backgroundColor")
     return Undefined();
 }
 
@@ -183,7 +202,26 @@ void Map::set_prop(Local<String> property,
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
-    if (a == "srs")
+    if(a == "extent") {
+        if (!value->IsArray()) {
+            ThrowException(Exception::Error(
+               String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
+        } else {
+            Local<Array> a = Local<Array>::Cast(value);
+            if (!a->Length() == 4) {
+                ThrowException(Exception::Error(
+                   String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
+            } else {
+                double minx = a->Get(0)->NumberValue();
+                double miny = a->Get(1)->NumberValue();
+                double maxx = a->Get(2)->NumberValue();
+                double maxy = a->Get(3)->NumberValue();
+                mapnik::box2d<double> box(minx,miny,maxx,maxy);
+                m->map_->zoom_to_box(box);
+            }
+        }
+    }
+    else if (a == "srs")
     {
         if (!value->IsString()) {
             ThrowException(Exception::Error(
@@ -192,7 +230,37 @@ void Map::set_prop(Local<String> property,
             m->map_->set_srs(TOSTR(value));
         }
     }
+    else if(a == "bufferSize") {
+        if (!value->IsNumber()) {
+            ThrowException(Exception::Error(
+               String::New("Must provide an integer bufferSize")));
+        } else {
+            m->map_->set_buffer_size(value->IntegerValue());
+        }
+    }
+    else if(a == "width") {
+        if (!value->IsNumber()) {
+            ThrowException(Exception::Error(
+               String::New("Must provide an integer width")));
+        } else {
+            m->map_->set_width(value->IntegerValue());
+        }
+    }
+    else if(a == "height") {
+        if (!value->IsNumber()) {
+            ThrowException(Exception::Error(
+               String::New("Must provide an integer height")));
+        } else {
+            m->map_->set_height(value->IntegerValue());
+        }
+    }
+}
 
+Handle<Value> Map::scaleDenominator(const Arguments& args)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    return scope.Close(Number::New(m->map_->scale_denominator()));
 }
 
 Handle<Value> Map::add_layer(const Arguments &args) {
@@ -413,45 +481,6 @@ Handle<Value> Map::resize(const Arguments& args)
 }
 
 
-Handle<Value> Map::width(const Arguments& args)
-{
-    HandleScope scope;
-    if (!args.Length() == 0)
-      return ThrowException(Exception::Error(
-        String::New("accepts no arguments")));
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    Local<Value> width = Integer::New(m->map_->width());
-    return scope.Close(width);
-}
-
-Handle<Value> Map::height(const Arguments& args)
-{
-    HandleScope scope;
-    if (!args.Length() == 0)
-      return ThrowException(Exception::Error(
-        String::New("accepts no arguments")));
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    Local<Value> width = Integer::New(m->map_->height());
-    return scope.Close(width);
-}
-
-Handle<Value> Map::buffer_size(const Arguments& args)
-{
-    HandleScope scope;
-    if (!args.Length() == 1)
-      return ThrowException(Exception::Error(
-        String::New("Please provide a buffer_size")));
-
-    if (!args[0]->IsNumber())
-      return ThrowException(Exception::TypeError(
-        String::New("buffer_size must be an integer")));
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    m->map_->set_buffer_size(args[0]->IntegerValue());
-    return Undefined();
-}
 
 typedef struct {
     Map *m;
@@ -852,27 +881,6 @@ Handle<Value> Map::to_string(const Arguments& args)
     return scope.Close(String::New(map_string.c_str()));
 }
 
-Handle<Value> Map::scale_denominator(const Arguments& args)
-{
-    HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    return scope.Close(Number::New(m->map_->scale_denominator()));
-}
-
-Handle<Value> Map::extent(const Arguments& args)
-{
-    HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    Local<Array> a = Array::New(4);
-    mapnik::box2d<double> const& e = m->map_->get_current_extent();
-    a->Set(0, Number::New(e.minx()));
-    a->Set(1, Number::New(e.miny()));
-    a->Set(2, Number::New(e.maxx()));
-    a->Set(3, Number::New(e.maxy()));
-    return scope.Close(a);
-}
-
 Handle<Value> Map::zoom_all(const Arguments& args)
 {
     HandleScope scope;
@@ -1269,7 +1277,6 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
     return Undefined();
 }
 
-
 Handle<Value> Map::renderSync(const Arguments& args)
 {
     HandleScope scope;
@@ -1337,7 +1344,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
     return scope.Close(retbuf->handle_);
 }
 
-Handle<Value> Map::render_to_file(const Arguments& args)
+Handle<Value> Map::renderFileSync(const Arguments& args)
 {
     HandleScope scope;
     if (!args.Length() >= 1 || !args[0]->IsString())

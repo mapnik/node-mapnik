@@ -74,7 +74,7 @@ map.add_layer(l);
 map.zoom_all();
 
 // render it! You should see a bunch of red and blue points reprenting
-map.render_to_file('memory_points.png');
+map.renderFileSync('memory_points.png');
 
 if (mapnik.supports.grid) {
     var options = { resolution:4,

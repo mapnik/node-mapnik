@@ -38,22 +38,17 @@ class Map: public node::ObjectWrap {
 
     static Handle<Value> clear(const Arguments &args);
     static Handle<Value> resize(const Arguments &args);
-    static Handle<Value> width(const Arguments &args);
-    static Handle<Value> height(const Arguments &args);
-    static Handle<Value> buffer_size(const Arguments &args);
-    static Handle<Value> extent(const Arguments &args);
     static Handle<Value> zoom_all(const Arguments &args);
     static Handle<Value> zoom_to_box(const Arguments &args);
     static Handle<Value> render(const Arguments &args);
-    static Handle<Value> render_to_string(const Arguments &args);
-    static Handle<Value> render_to_file(const Arguments &args);
+    static Handle<Value> renderSync(const Arguments &args);
+    static Handle<Value> renderFileSync(const Arguments &args);
+    static Handle<Value> renderLayerSync(const Arguments &args);
     static Handle<Value> layers(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> describe_data(const Arguments &args);
-    static Handle<Value> scale_denominator(const Arguments &args);
+    static Handle<Value> scaleDenominator(const Arguments &args);
     static Handle<Value> render_grid(const Arguments &args);
-    static Handle<Value> renderSync(const Arguments &args);
-    static Handle<Value> renderLayerSync(const Arguments &args);
 
     static Handle<Value> add_layer(const Arguments &args);
     static Handle<Value> get_layer(const Arguments &args);

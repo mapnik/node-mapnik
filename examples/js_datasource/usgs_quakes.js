@@ -10,7 +10,7 @@
 
 /*
 NOTE - maps using mapnik.JSDatasource can only be rendered with
-mapnik.render_to_string() or mapnik.render_to_file() as the javascript
+mapnik.renderSync() or mapnik.renderFileSync() as the javascript
 callback only works if the rendering happens in the main thread.
 
 If you want async rendering using mapnik.render() then use the
@@ -87,7 +87,7 @@ dl.asString(function(err,str){
   map.zoom_all();
 
   // render it! You should see a bunch of red and blue points reprenting
-  map.render_to_file('quakes.png');
+  map.renderFileSync('quakes.png');
 
   console.log('rendered to quakes.png' );
 });

@@ -27,7 +27,7 @@ exports['test map generation'] = function(beforeExit) {
     assert.ok(map instanceof Map);
 
     // test initial values
-    assert.deepEqual(map.extent(), [ 0, 0, -1, -1 ]);
+    assert.deepEqual(map.extent, [ 0, 0, -1, -1 ]);
 };
 
 exports['test synchronous map rendering'] = function(beforeExit) {
@@ -36,7 +36,7 @@ exports['test synchronous map rendering'] = function(beforeExit) {
 
     // Test rendering a blank image
     var filename = helper.filename();
-    map.render_to_file(filename);
+    map.renderFileSync(filename);
     assert.ok(path.existsSync(filename));
     assert.equal(helper.md5File(filename), 'ef33223235b26c782736c88933b35331');
 };
@@ -46,7 +46,7 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
     var map = new Map(600, 400);
     assert.ok(map instanceof Map);
 
-    map.render(map.extent(), 'png', function(err, buffer) {
+    map.render(map.extent, 'png', function(err, buffer) {
         completed = true;
         assert.ok(!err);
         assert.equal(helper.md5(buffer), 'ef33223235b26c782736c88933b35331');
@@ -59,8 +59,11 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
 
 exports['test loading a stylesheet'] = function(beforeExit) {
     var map = new Map(600, 400);
-
+    
+    assert.equal(map.width, 600);
+    assert.equal(map.height, 400);
     assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+    assert.equal(map.bufferSize, 0);
 
     // Test loading a sample world map
     map.loadSync('./examples/stylesheet.xml');
@@ -82,27 +85,27 @@ exports['test loading a stylesheet'] = function(beforeExit) {
 
 exports['test rendering with actual data'] = function(beforeExit) {
     var filename = helper.filename();
-    map.render_to_file(filename);
+    map.renderFileSync(filename);
     assert.ok(path.existsSync(filename));
     assert.equal(helper.md5File(filename), 'aaf71787e4d5dcbab3c964192038f465');
 };
 
 exports['test map extents'] = function() {
     var expected = [-20037508.3428, -14996604.5082, 20037508.3428, 25078412.1774];
-    assert.notStrictEqual(map.extent(), expected);
+    assert.notStrictEqual(map.extent, expected);
 
     var expected_precise = [-20037508.342789248,-8317435.060598943,20037508.342789244,18399242.72978672];
-    assert.deepEqual(map.extent(), expected_precise);
+    assert.deepEqual(map.extent, expected_precise);
 };
 
 exports['test resizing map'] = function() {
     var map = new Map(600, 400);
 
-    assert.equal(map.width(), 600);
-    assert.equal(map.height(), 400);
+    assert.equal(map.width, 600);
+    assert.equal(map.height, 400);
     map.resize(256, 256);
-    assert.equal(map.width(), 256);
-    assert.equal(map.height(), 256);
+    assert.equal(map.width, 256);
+    assert.equal(map.height, 256);
 };
 
 exports['test map layers'] = function() {
