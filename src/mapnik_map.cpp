@@ -88,6 +88,7 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "height", get_prop, set_prop);
     ATTR(constructor, "bufferSize", get_prop, set_prop);
     ATTR(constructor, "extent", get_prop, set_prop);
+    ATTR(constructor, "maximumExtent", get_prop, set_prop);
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
     //eio_set_max_poll_reqs(10);
@@ -182,6 +183,17 @@ Handle<Value> Map::get_prop(Local<String> property,
         a->Set(3, Number::New(e.maxy()));
         return scope.Close(a);
     }
+    else if(a == "maximumExtent") {
+        Local<Array> a = Array::New(4);
+        boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
+        if (!e)
+            return Undefined();
+        a->Set(0, Number::New(e->minx()));
+        a->Set(1, Number::New(e->miny()));
+        a->Set(2, Number::New(e->maxx()));
+        a->Set(3, Number::New(e->maxy()));
+        return scope.Close(a);
+    }
     else if (a == "srs")
         return scope.Close(String::New(m->map_->srs().c_str()));
     else if(a == "bufferSize")
@@ -202,22 +214,25 @@ void Map::set_prop(Local<String> property,
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
-    if(a == "extent") {
+    if(a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
             ThrowException(Exception::Error(
                String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
         } else {
-            Local<Array> a = Local<Array>::Cast(value);
-            if (!a->Length() == 4) {
+            Local<Array> arr = Local<Array>::Cast(value);
+            if (!arr->Length() == 4) {
                 ThrowException(Exception::Error(
                    String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
             } else {
-                double minx = a->Get(0)->NumberValue();
-                double miny = a->Get(1)->NumberValue();
-                double maxx = a->Get(2)->NumberValue();
-                double maxy = a->Get(3)->NumberValue();
+                double minx = arr->Get(0)->NumberValue();
+                double miny = arr->Get(1)->NumberValue();
+                double maxx = arr->Get(2)->NumberValue();
+                double maxy = arr->Get(3)->NumberValue();
                 mapnik::box2d<double> box(minx,miny,maxx,maxy);
-                m->map_->zoom_to_box(box);
+                if(a == "extent")
+                    m->map_->zoom_to_box(box);
+                else
+                    m->map_->set_maximum_extent(box);
             }
         }
     }
