@@ -64,6 +64,7 @@ exports['test loading a stylesheet'] = function(beforeExit) {
     assert.equal(map.height, 400);
     assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
     assert.equal(map.bufferSize, 0);
+    assert.equal(map.maximumExtent, undefined);
 
     // Test loading a sample world map
     map.loadSync('./examples/stylesheet.xml');
@@ -98,7 +99,7 @@ exports['test map extents'] = function() {
     assert.deepEqual(map.extent, expected_precise);
 };
 
-exports['test resizing map'] = function() {
+exports['test setting map properties'] = function() {
     var map = new Map(600, 400);
 
     assert.equal(map.width, 600);
@@ -106,6 +107,17 @@ exports['test resizing map'] = function() {
     map.resize(256, 256);
     assert.equal(map.width, 256);
     assert.equal(map.height, 256);
+
+    map.width = 100;
+    map.height = 100;
+    assert.equal(map.width, 100);
+    assert.equal(map.height, 100);
+    
+    // TODO - need to expose aspect_fix_mode
+    //assert.equal(map.maximumExtent,undefined)
+    //map.maximumExtent = map.extent;
+    //assert.equal(map.maximumExtent,map.extent)
+    
 };
 
 exports['test map layers'] = function() {
