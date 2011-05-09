@@ -32,6 +32,7 @@
 
 // boost
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp> 
 
 #include "utils.hpp"
 #include "js_grid_utils.hpp"
@@ -97,12 +98,12 @@ void Map::Initialize(Handle<Object> target) {
 
 Map::Map(int width, int height) :
   ObjectWrap(),
-  map_(new mapnik::Map(width,height)),
+  map_(boost::make_shared<mapnik::Map>(width,height)),
   in_use_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
   ObjectWrap(),
-  map_(new mapnik::Map(width,height,srs)),
+  map_(boost::make_shared<mapnik::Map>(width,height,srs)),
   in_use_(0) {}
 
 Map::~Map()
@@ -1564,9 +1565,11 @@ Handle<Value> Map::render_grid(const Arguments& args)
     unsigned int grid_width = m->map_->width()/step;
     unsigned int grid_height = m->map_->height()/step;
 
-    closure->grid_ptr = boost::shared_ptr<mapnik::grid>(
-                new mapnik::grid(grid_width,grid_height,closure->join_field,step)
-            );
+    closure->grid_ptr = boost::make_shared<mapnik::grid>(
+                                            grid_width,
+                                            grid_height,
+                                            closure->join_field,
+                                            step);
 
     param = String::New("fields");
     if (options->Has(param))

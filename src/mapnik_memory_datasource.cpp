@@ -1,9 +1,10 @@
 
-//#include <mapnik/datasource_cache.hpp>
-#include <mapnik/memory_datasource.hpp>
+// mapnik
 #include <mapnik/unicode.hpp>
-#include "mapnik_memory_datasource.hpp"
+#include <mapnik/feature_factory.hpp>
+#include <mapnik/memory_datasource.hpp>
 
+#include "mapnik_memory_datasource.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
@@ -11,6 +12,9 @@
 
 // stl
 #include <exception>
+
+// boost
+#include <boost/make_shared.hpp> 
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -95,10 +99,9 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
 
     
     //memory_datasource cache;
-    mapnik::datasource_ptr ds(new mapnik::memory_datasource());
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
-    d->datasource_ = ds;
+    d->datasource_ = boost::make_shared<mapnik::memory_datasource>();
     return args.This();
 
     return Undefined();
@@ -232,7 +235,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
             pt->move_to(x->NumberValue(),y->NumberValue());
-            mapnik::feature_ptr feature(new mapnik::Feature(d->feature_id_));
+            mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
             ++(d->feature_id_);
             feature->add_geometry(pt);
             if (obj->Has(String::New("properties")))

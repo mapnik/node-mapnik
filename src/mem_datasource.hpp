@@ -1,5 +1,5 @@
-#ifndef __NODE_MAPNIK_MEM_Datasource_H__
-#define __NODE_MAPNIK_MEM_Datasource_H__
+#ifndef __NODE_MAPNIK_MEM_DATASOURCE_H__
+#define __NODE_MAPNIK_MEM_DATASOURCE_H__
 
 #include <v8.h>
 #include <node.h>
@@ -8,17 +8,22 @@
 using namespace v8;
 using namespace node;
 
-#include <mapnik/params.hpp>
-#include <mapnik/datasource.hpp>
+// mapnik
 #include <mapnik/box2d.hpp>
 #include <mapnik/query.hpp>
-//#include <mapnik/unicode.hpp>
-//#include <mapnik/feature_factory.hpp> // TODO remove
-#include <vector>
+#include <mapnik/params.hpp>
+#include <mapnik/sql_utils.hpp>
+#include <mapnik/datasource.hpp>
+#include <mapnik/feature_factory.hpp>
+
+// boost
 #include <boost/utility.hpp>
 #include <boost/scoped_ptr.hpp>
+
+// stl
+#include <vector>
 #include <algorithm>
-#include <mapnik/sql_utils.hpp>
+
 
 
 class js_datasource : public mapnik::datasource
@@ -130,7 +135,7 @@ public:
                         {
                             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
                             pt->move_to(x->NumberValue(),y->NumberValue());
-                            mapnik::feature_ptr feature(new mapnik::Feature(feature_id_));
+                            mapnik::feature_ptr feature(mapnik::feature_factory::create(feature_id_));
                             ++feature_id_;
                             feature->add_geometry(pt);
                             if (obj->Has(String::New("properties")))
@@ -202,4 +207,4 @@ mapnik::featureset_ptr js_datasource::features_at_point(mapnik::coord2d const& p
     return mapnik::featureset_ptr();
 }
 
-#endif
+#endif // __NODE_MAPNIK_MEM_DATASOURCE_H__

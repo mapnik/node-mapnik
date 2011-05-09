@@ -1,3 +1,6 @@
+// boost
+#include <boost/make_shared.hpp>
+
 #include "mapnik_projection.hpp"
 #include "utils.hpp"
 
@@ -19,7 +22,7 @@ void Projection::Initialize(Handle<Object> target) {
 
 Projection::Projection(std::string const& name) :
   ObjectWrap(),
-  projection_(new mapnik::projection(name)) {}
+  projection_(boost::make_shared<mapnik::projection>(name)) {}
 
 Projection::~Projection()
 {
