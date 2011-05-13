@@ -18,11 +18,10 @@ if (!port) {
 
 var elastic_port = 9200
 
-var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
 
 // map with just a style
 // eventually the api will support adding styles in javascript
-var s = '<Map srs="' + merc + '" buffer-size="128">';
+var s = '<Map srs="' + mercator.proj4 + '" buffer-size="128">';
 s += '<Style name="style">';
 s += ' <Rule>';
 s += '  <MarkersSymbolizer marker-type="ellipse" fill="red" width="5" allow-overlap="true" placement="point"/>';
