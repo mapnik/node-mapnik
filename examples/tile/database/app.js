@@ -35,8 +35,8 @@ http.createServer(function(req, res) {
       res.end(err.message);
     } else {
       try {        
-        var map     = new mapnik.Map(256, 256, mercator.srs);                
-        var layer   = new mapnik.Layer('tile', mercator.srs);
+        var map     = new mapnik.Map(256, 256, mercator.proj4);                
+        var layer   = new mapnik.Layer('tile', mercator.proj4);
         var postgis = new mapnik.Datasource(postgis_settings);
         var bbox    = mercator.xyz_to_envelope(parseInt(params.x),
                                                parseInt(params.y),

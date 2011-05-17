@@ -136,9 +136,12 @@ Handle<Value> Map::New(const Arguments& args)
     }
     else if (args.Length() == 3)
     {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsString())
+        if (!args[0]->IsNumber() || !args[1]->IsNumber())
             return ThrowException(Exception::Error(
                String::New("'width' and 'height' must be a integers")));
+        if (!args[2]->IsString())
+            return ThrowException(Exception::Error(
+               String::New("'srs' value must be a string")));            
         Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue(),TOSTR(args[2]));
         m->Wrap(args.This());
         return args.This();

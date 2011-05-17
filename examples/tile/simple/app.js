@@ -32,7 +32,7 @@ var server = connect.createServer(
                                             parseInt(req.params.z), false);
       
         // create map
-        var map = new mapnik.Map(256, 256, mercator.srs);
+        var map = new mapnik.Map(256, 256, mercator.proj4);
         map.load(path.join(__dirname, '../../stylesheet.xml'));
         map.zoom_all();
                   
