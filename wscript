@@ -246,10 +246,10 @@ def build(bld):
     obj.uselib = "MAPNIK"
     # install 'mapnik' module
     lib_dir = bld.path.find_dir('./lib')
-    bld.install_files('${PREFIX}/lib/node/mapnik', lib_dir.ant_glob('**/*'), cwd=lib_dir, relative_trick=True)
+    bld.install_files('${LIBPATH_NODE}/node/mapnik', lib_dir.ant_glob('**/*'), cwd=lib_dir, relative_trick=True)
     # install command line programs
     bin_dir = bld.path.find_dir('./bin')
-    bld.install_files('${PREFIX}/bin', bin_dir.ant_glob('*'), cwd=bin_dir, relative_trick=True, chmod=0755)
+    bld.install_files('${PREFIX_NODE}/bin', bin_dir.ant_glob('*'), cwd=bin_dir, relative_trick=True, chmod=0755)
 
 
 def shutdown():
