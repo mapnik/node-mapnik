@@ -62,9 +62,14 @@ class Map: public node::ObjectWrap {
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
 
+    void acquire();
+    void release();
+    int active() const;
+
   private:
     ~Map();
     map_ptr map_;
+    int in_use_;
 };
 
 #endif

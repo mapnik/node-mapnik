@@ -100,16 +100,32 @@ void Map::Initialize(Handle<Object> target) {
 
 Map::Map(int width, int height) :
   ObjectWrap(),
-  map_(new mapnik::Map(width,height)) {}
+  map_(new mapnik::Map(width,height)),
+  in_use_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
   ObjectWrap(),
-  map_(new mapnik::Map(width,height,srs)) {}
+  map_(new mapnik::Map(width,height,srs)),
+  in_use_(0) {}
 
 Map::~Map()
 {
     // std::clog << "~Map(node)\n";
     // release is handled by boost::shared_ptr
+}
+
+void Map::acquire() {
+    //std::cerr << "acquiring!!\n";
+    ++in_use_;
+}
+
+void Map::release() {
+    //std::cerr << "releasing!!\n";
+    --in_use_;
+}
+
+int Map::active() const {
+    return in_use_;
 }
 
 Handle<Value> Map::New(const Arguments& args)
@@ -640,6 +656,18 @@ typedef struct {
 Handle<Value> Map::render(const Arguments& args)
 {
     HandleScope scope;
+    
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    if (m->active() != 0) {
+        std::ostringstream s;
+        s << "render: this map appears to be in use by "
+          << m->active()
+          << " other thread(s) which is not allowed."
+          << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
+        return ThrowException(Exception::Error(
+          String::New(s.str().c_str())));
+    }
 
     /*
     std::clog << "eio_nreqs" << eio_nreqs() << "\n";
@@ -687,7 +715,6 @@ Handle<Value> Map::render(const Arguments& args)
     double maxx = a->Get(2)->NumberValue();
     double maxy = a->Get(3)->NumberValue();
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     closure->m = m;
     closure->format = TOSTR(args[1]);
@@ -696,6 +723,7 @@ Handle<Value> Map::render(const Arguments& args)
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
     eio_custom(EIO_Render, EIO_PRI_DEFAULT, EIO_AfterRender, closure);
     ev_ref(EV_DEFAULT_UC);
+    m->acquire();
     m->Ref();
     return Undefined();
 }
@@ -780,6 +808,7 @@ int Map::EIO_AfterRender(eio_req *req)
       FatalException(try_catch);
     }
 
+    closure->m->release();
     closure->m->Unref();
     closure->cb.Dispose();
     delete closure;
@@ -977,6 +1006,18 @@ Handle<Value> Map::render_grid(const Arguments& args)
 {
     HandleScope scope;
 
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    if (m->active() != 0) {
+        std::ostringstream s;
+        s << "render_grid: this map appears to be in use by "
+          << m->active()
+          << " other thread(s) which is not allowed."
+          << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
+        return ThrowException(Exception::Error(
+          String::New(s.str().c_str())));
+    }
+
     if (!args.Length() >= 2)
       return ThrowException(Exception::Error(
         String::New("please provide layer name or index, options, and callback")));
@@ -1022,7 +1063,6 @@ Handle<Value> Map::render_grid(const Arguments& args)
         step = param_val->IntegerValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
     
     /*    
     // http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
@@ -1079,6 +1119,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
     eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
     ev_ref(EV_DEFAULT_UC);
+    m->acquire();
     m->Ref();
     return Undefined();
 
@@ -1153,7 +1194,6 @@ int Map::EIO_RenderGrid(eio_req *req)
         mapnik::grid_renderer<mapnik::grid> ren(*closure->m->map_,*closure->grid_ptr,1.0,0,0);
         mapnik::layer const& layer = layers[closure->layer_idx];
         ren.apply(layer,attributes);
-    
     }
     catch (const mapnik::config_error & ex )
     {
@@ -1351,10 +1391,10 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
       FatalException(try_catch);
     }
 
+    closure->m->release();
     closure->m->Unref();
     closure->cb.Dispose();
     delete closure;
-    
     return 0;
 }
 
