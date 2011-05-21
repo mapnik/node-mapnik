@@ -659,7 +659,7 @@ Handle<Value> Map::render(const Arguments& args)
     
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    if (m->active() != 0) {
+    /*if (m->active() != 0) {
         std::ostringstream s;
         s << "render: this map appears to be in use by "
           << m->active()
@@ -667,7 +667,7 @@ Handle<Value> Map::render(const Arguments& args)
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
         return ThrowException(Exception::Error(
           String::New(s.str().c_str())));
-    }
+    }*/
 
     /*
     std::clog << "eio_nreqs" << eio_nreqs() << "\n";
@@ -1008,7 +1008,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    if (m->active() != 0) {
+    /*if (m->active() != 0) {
         std::ostringstream s;
         s << "render_grid: this map appears to be in use by "
           << m->active()
@@ -1016,7 +1016,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
         return ThrowException(Exception::Error(
           String::New(s.str().c_str())));
-    }
+    }*/
 
     if (!args.Length() >= 2)
       return ThrowException(Exception::Error(
