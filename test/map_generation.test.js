@@ -71,7 +71,7 @@ exports['test loading a stylesheet'] = function(beforeExit) {
     assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
     assert.deepEqual(layers[0].styles, ['style']);
     assert.equal(layers[0].datasource.type, 'shape');
-    assert.equal(layers[0].datasource.file, path.join(process.cwd(), 'examples/data/world_merc.shp'));
+    assert.equal(path.normalize(layers[0].datasource.file), path.normalize(path.join(process.cwd(), 'examples/data/world_merc.shp')));
 
     // clear styles and layers from previous load to set up for another
     // otherwise layers are duplicated
@@ -112,7 +112,7 @@ exports['test map layers'] = function() {
     assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
     assert.deepEqual(layers[0].styles, ['style']);
     assert.equal(layers[0].datasource.type, 'shape');
-    assert.equal(layers[0].datasource.file, path.join(process.cwd(), 'examples/data/world_merc.shp'));
+    assert.equal(path.normalize(layers[0].datasource.file), path.normalize(path.join(process.cwd(), 'examples/data/world_merc.shp')));
 };
 
 exports['test map features'] = function() {
