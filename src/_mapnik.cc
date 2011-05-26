@@ -232,6 +232,7 @@ extern "C" {
     #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
       supports->Set(String::NewSymbol("grid"), Boolean::New(true));
     #else
+      #warning("you are building against a version of mapnik without grid_renderer support, upgrading is highly recommended")
       supports->Set(String::NewSymbol("grid"), Boolean::New(false));
     #endif
     target->Set(String::NewSymbol("supports"), supports);

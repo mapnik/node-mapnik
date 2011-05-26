@@ -500,24 +500,26 @@ Handle<Value> Map::from_string(const Arguments& args)
     HandleScope scope;
     if (!args.Length() >= 1) {
         return ThrowException(Exception::TypeError(
-        String::New("Accepts 2 arguments: map string and base_url")));
+        String::New("Accepts 2 arguments: map string and base_path")));
     }
 
     if (!args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a mapnik stylesheet string")));
 
-    if (!args[1]->IsString())
-      return ThrowException(Exception::TypeError(
-        String::New("second argument must be a base_url to interpret any relative path from")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& stylesheet = TOSTR(args[0]);
     bool strict = false;
-    std::string const& base_url = TOSTR(args[1]);
+
+    //std::string base_path = "";
+    
+    if (args.Length() == 2 && args[1]->IsString())
+        base_path = TOSTR(args[1]);
+
     try
     {
-        mapnik::load_map_string(*m->map_,stylesheet,strict,base_url);
+        mapnik::load_map_string(*m->map_,stylesheet,strict,base_path);
     }
     catch (const mapnik::config_error & ex )
     {
@@ -659,15 +661,16 @@ Handle<Value> Map::render(const Arguments& args)
     
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    /*if (m->active() != 0) {
+    if (m->active() != 0) {
         std::ostringstream s;
         s << "render: this map appears to be in use by "
           << m->active()
           << " other thread(s) which is not allowed."
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
-        return ThrowException(Exception::Error(
-          String::New(s.str().c_str())));
-    }*/
+        std::cerr << s.str() << "\n";
+        //return ThrowException(Exception::Error(
+          //String::New(s.str().c_str())));
+    }
 
     /*
     std::clog << "eio_nreqs" << eio_nreqs() << "\n";
@@ -1008,15 +1011,16 @@ Handle<Value> Map::render_grid(const Arguments& args)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    /*if (m->active() != 0) {
+    if (m->active() != 0) {
         std::ostringstream s;
         s << "render_grid: this map appears to be in use by "
           << m->active()
           << " other thread(s) which is not allowed."
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
-        return ThrowException(Exception::Error(
-          String::New(s.str().c_str())));
-    }*/
+        std::cerr << s.str() << "\n";
+        //return ThrowException(Exception::Error(
+        //  String::New(s.str().c_str())));
+    }
 
     if (!args.Length() >= 2)
       return ThrowException(Exception::Error(
