@@ -500,7 +500,7 @@ Handle<Value> Map::from_string(const Arguments& args)
     HandleScope scope;
     if (!args.Length() >= 1) {
         return ThrowException(Exception::TypeError(
-        String::New("Accepts 2 arguments: map string and base_path")));
+        String::New("Accepts 2 arguments: map string and optional base_path")));
     }
 
     if (!args[0]->IsString())
@@ -512,10 +512,11 @@ Handle<Value> Map::from_string(const Arguments& args)
     std::string const& stylesheet = TOSTR(args[0]);
     bool strict = false;
 
-    //std::string base_path = "";
+    std::string base_path = "";
     
-    if (args.Length() == 2 && args[1]->IsString())
+    if (args.Length() >= 1 && args[1]->IsString()) {
         base_path = TOSTR(args[1]);
+    }
 
     try
     {
