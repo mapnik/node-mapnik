@@ -13,7 +13,7 @@
 //#include <mapnik/feature_layer_desc.hpp>
 
 using namespace v8;
-using namespace node;
+//using namespace node;
 
 static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
 {

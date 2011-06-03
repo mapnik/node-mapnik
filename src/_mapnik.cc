@@ -20,6 +20,7 @@
 #include "mapnik_featureset.hpp"
 #include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
+#include "mapnik_image.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -181,6 +182,9 @@ extern "C" {
     // Map
     Map::Initialize(target);
 
+    // MemoryDatasource
+    Image::Initialize(target);
+
     // Projection
     Projection::Initialize(target);
 
@@ -200,7 +204,7 @@ extern "C" {
     MemoryDatasource::Initialize(target);
 
     // node-mapnik version
-    target->Set(String::NewSymbol("version"), String::New("0.3.1"));
+    target->Set(String::NewSymbol("version"), String::New("0.4.0"));
 
     // versions of deps
     Local<Object> versions = Object::New();
@@ -232,7 +236,7 @@ extern "C" {
     #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
       supports->Set(String::NewSymbol("grid"), Boolean::New(true));
     #else
-      #warning("you are building against a version of mapnik without grid_renderer support, upgrading is highly recommended")
+      #warning("you are building against a version of mapnik2 without grid_renderer support, upgrading to at least >= r2898 of mapnik trunk/mapnik2 is required for grid rendering support")
       supports->Set(String::NewSymbol("grid"), Boolean::New(false));
     #endif
     target->Set(String::NewSymbol("supports"), supports);
