@@ -6,7 +6,6 @@
 // mapnik
 #include <mapnik/image_util.hpp>
 #include <mapnik/graphics.hpp>
-#include <mapnik/png_io.hpp>
 #include <mapnik/image_reader.hpp>
 
 #include "mapnik_image.hpp"
