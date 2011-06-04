@@ -1240,7 +1240,7 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         // convert buffer to utf and gather key order
         Local<Array> grid_array = Array::New();
         std::vector<mapnik::grid::lookup_type> key_order;
-        node_mapnik::grid2utf(*closure->grid_ptr,grid_array,key_order);
+        node_mapnik::grid2utf<mapnik::grid>(*closure->grid_ptr,grid_array,key_order);
     
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(key_order.size());
@@ -1254,12 +1254,11 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (closure->num_fields > 0) {
-            mapnik::grid::feature_type const& g_features = closure->grid_ptr->get_grid_features();
-            node_mapnik::write_features(g_features,
+            node_mapnik::write_features<mapnik::grid>(*closure->grid_ptr,
                            feature_data,
-                           key_order,
-                           closure->join_field,
-                           closure->grid_ptr->property_names());
+                           key_order
+                           /*closure->join_field,
+                           closure->grid_ptr->property_names()*/);
         }
         
         // Create the return hash.

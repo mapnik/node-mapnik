@@ -175,15 +175,16 @@ def build(bld):
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-O3", "-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.target = TARGET
-    obj.source = "src/_mapnik.cc "
-    obj.source += "src/mapnik_map.cpp "
-    obj.source += "src/mapnik_image.cpp "
-    obj.source += "src/mapnik_js_datasource.cpp "
-    obj.source += "src/mapnik_memory_datasource.cpp "
-    obj.source += "src/mapnik_projection.cpp "
-    obj.source += "src/mapnik_layer.cpp "
-    obj.source += "src/mapnik_datasource.cpp "
-    obj.source += "src/mapnik_featureset.cpp "
+    obj.source =  ["src/node_mapnik.cpp",
+                   "src/mapnik_map.cpp",
+                   "src/mapnik_image.cpp",
+                   "src/mapnik_js_datasource.cpp",
+                   "src/mapnik_memory_datasource.cpp",
+                   "src/mapnik_projection.cpp",
+                   "src/mapnik_layer.cpp",
+                   "src/mapnik_datasource.cpp",
+                   "src/mapnik_featureset.cpp"
+                  ]
     obj.uselib = "MAPNIK"
     # install 'mapnik' module
     lib_dir = bld.path.find_dir('./lib')
