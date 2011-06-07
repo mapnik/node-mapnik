@@ -213,7 +213,37 @@ Handle<Value> Datasource::featureset(const Arguments& args)
         ++itr;
     }
 
-    mapnik::featureset_ptr fs = ds->datasource_->features(q);
+    mapnik::featureset_ptr fs;
+    try
+    {
+        fs = ds->datasource_->features(q);
+    }
+    catch (const mapnik::config_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const std::runtime_error & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (const std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened, please file bug")));
+    }
+
     if (fs)
     {
         return scope.Close(Featureset::New(fs));
