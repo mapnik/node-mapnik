@@ -39,7 +39,7 @@ s += '</Map>';
 // create map object with base map
 var map  = new mapnik.Map(800,600);
 var merc = new mapnik.Projection('+init=epsg:3857');
-map.load(path.join(__dirname, '../stylesheet.xml'));
+map.loadSync(path.join(__dirname, '../stylesheet.xml'));
 map.from_string(s,'.');
 
 // Pubs around Washington DC - using the OSM XAPI from Mapquest (http://open.mapquestapi.com/xapi/)) 

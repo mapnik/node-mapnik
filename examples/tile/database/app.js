@@ -46,18 +46,20 @@ http.createServer(function(req, res) {
         layer.styles     = ['point'];
         
         map.buffer_size(50);
-        map.load('point_vector.xml'); // load style
-        map.add_layer(layer);
-
-        // console.log(map.toXML()); // Debug settings
-        
-        map.render(bbox, 'png', function(err, buffer) {
-          if (err) {
-            throw err;
-          } else {
-            res.writeHead(200, {'Content-Type': 'image/png'});
-            res.end(buffer);            
-          }
+        map.load('point_vector.xml', {strict:true}, function(err,map) {
+            if (err) throw err;
+            map.add_layer(layer);
+    
+            // console.log(map.toXML()); // Debug settings
+            
+            map.render(bbox, 'png', function(err, buffer) {
+              if (err) {
+                throw err;
+              } else {
+                res.writeHead(200, {'Content-Type': 'image/png'});
+                res.end(buffer);            
+              }
+            });
         });
       }
       catch (err) {        

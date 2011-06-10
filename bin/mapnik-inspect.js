@@ -48,7 +48,7 @@ else if ((/.json$/.test(obj))
 }
 else if (/.xml$/.test(obj)) {
     var map = new mapnik.Map(1,1);
-    map.load(obj);
+    map.loadSync(obj);
     console.log(map.layers());
 }
 else if (/.prj$/.test(obj)) {

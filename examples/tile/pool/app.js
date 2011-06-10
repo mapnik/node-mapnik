@@ -34,14 +34,14 @@ if (!port) {
 }
 
 var aquire = function(id,options,callback) {
-    methods = {
+    var methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                // catch problem loading map
-                try { obj.load(id) }
-                catch (err) { callback(err, null) }
-                if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                cb(obj);
+                obj.load(id,{strict:true},function(err,obj) {
+                    if (err) callback(err,null);
+                    if (options.buffer_size) obj.buffer_size(options.buffer_size);
+                    cb(obj)
+                })
             },
             destroy: function(obj) {
                 obj.clear();
@@ -65,8 +65,7 @@ http.createServer(function(req, res) {
             });
             res.end(err.message);
         } else {
-            aquire(stylesheet, {},function(err,map) {
-      
+            aquire(stylesheet, {}, function(err, map) {
                 if (err) {
                     res.writeHead(500, {
                       'Content-Type': 'text/plain'
@@ -74,7 +73,7 @@ http.createServer(function(req, res) {
                     res.end(err.message);
                 } else {
                     // bbox for x,y,z
-                    var bbox = mercator.xyz_to_envelope(params.x, params.y, params.z, false);
+                    var bbox = mercator.xyz_to_envelope(params.x, params.y, params.z, TMS_SCHEME);
       
                     map.render(bbox, 'png', function(err, buffer) {
                         maps.release(stylesheet, map);

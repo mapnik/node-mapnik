@@ -22,11 +22,11 @@ var aquire = function(id,options,callback) {
     methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                // catch problem loading map
-                try { obj.load(id) }
-                catch (err) { callback(err, null) }
-                if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                cb(obj);
+                obj.load(id,{strict:true},function(err,obj) {
+                    if (err) callback(err,null);
+                    if (options.buffer_size) obj.buffer_size(options.buffer_size);
+                    cb(obj)
+                })
             },
             destroy: function(obj) {
                 obj.clear();

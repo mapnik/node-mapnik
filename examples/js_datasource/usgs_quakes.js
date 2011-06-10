@@ -45,7 +45,7 @@ s += '</Map>';
 // create map object with base map
 var map  = new mapnik.Map(800,600);
 var merc = new mapnik.Projection('+init=epsg:3857');
-map.load(path.join(__dirname, '../stylesheet.xml'));
+map.loadSync(path.join(__dirname, '../stylesheet.xml'));
 map.from_string(s,'.');
 
 // Latest 30 days of earthquakes > 2.5 from USGS (http://earthquake.usgs.gov/earthquakes/catalogs/) 

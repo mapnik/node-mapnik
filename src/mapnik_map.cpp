@@ -53,6 +53,7 @@ void Map::Initialize(Handle<Object> target) {
     constructor->SetClassName(String::NewSymbol("Map"));
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "loadSync", loadSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "from_string", from_string);
@@ -451,7 +452,145 @@ Handle<Value> Map::buffer_size(const Arguments& args)
     return Undefined();
 }
 
+typedef struct {
+    Map *m;
+    std::string stylesheet;
+    bool strict;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} load_closure_t;
+
+
 Handle<Value> Map::load(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (!args.Length() >= 2)
+      return ThrowException(Exception::Error(
+        String::New("please provide a stylesheet path, options, and callback")));
+
+    // ensure stylesheet path is a string
+    Local<Value> stylesheet = args[0];
+    if (!stylesheet->IsString())
+        return ThrowException(Exception::TypeError(
+           String::New("first argument must be a path to a mapnik stylesheet")));
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+
+    // ensure options object
+    if (!args[1]->IsObject())
+        return ThrowException(Exception::TypeError(
+          String::New("options must be an object, eg {strict: true}")));
+
+    Local<Object> options = args[1]->ToObject();
+
+    bool strict = false;
+    Local<String> param = String::New("strict");
+    if (options->Has(param))
+    {
+        Local<Value> param_val = options->Get(param);
+        if (!param_val->IsBoolean())
+          return ThrowException(Exception::TypeError(
+            String::New("'strict' must be a Boolean")));
+        strict = param_val->BooleanValue();
+    }
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    load_closure_t *closure = new load_closure_t();
+    
+    closure->stylesheet = TOSTR(stylesheet);
+    closure->m = m;
+    closure->strict = strict;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    eio_custom(EIO_Load, EIO_PRI_DEFAULT, EIO_AfterLoad, closure);
+    ev_ref(EV_DEFAULT_UC);
+    m->Ref();
+    
+    return Undefined();
+}
+
+int Map::EIO_Load(eio_req *req)
+{
+    load_closure_t *closure = static_cast<load_closure_t *>(req->data);
+
+    try
+    {
+        mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict);
+    }
+    catch (const mapnik::config_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::datasource_exception & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::proj_init_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const std::runtime_error & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const mapnik::ImageWriterException & ex )
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (const std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
+    }
+    return 0;
+}
+
+int Map::EIO_AfterLoad(eio_req *req)
+{
+    HandleScope scope;
+
+    load_closure_t *closure = static_cast<load_closure_t *>(req->data);
+    ev_unref(EV_DEFAULT_UC);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    closure->m->Unref();
+    closure->cb.Dispose();
+    delete closure;
+    return 0;
+}
+
+
+Handle<Value> Map::loadSync(const Arguments& args)
 {
     HandleScope scope;
     if (args.Length() != 1 || !args[0]->IsString())

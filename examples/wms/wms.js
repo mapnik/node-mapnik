@@ -30,7 +30,7 @@ if (!port) {
 
 for (i = 0; i < pool_size; i++) {
     var map = new mapnik.Map(256, 256);
-    map.load(stylesheet);
+    map.loadSync(stylesheet);
     console.log('adding new map to pool: ' + i);
     map.buffer_size(128);
     render_pool[i] = map;
@@ -88,9 +88,9 @@ http.createServer(function(req, res) {
 
   } else {
       res.writeHead(200, {
-        'Content-Type': 'text/plain'
+        'Content-Type': 'text/html'
       });
-      res.end('No BBOX provided!');
+      res.end('No BBOX provided! Try a request like <a href="http://127.0.0.1:' + port + '/?BBOX=-20037508.34,-5009377.085697313,-5009377.08569731,15028131.25709193">this</a>');
   }
 }).listen(port);
 

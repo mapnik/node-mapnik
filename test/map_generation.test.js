@@ -63,7 +63,7 @@ exports['test loading a stylesheet'] = function(beforeExit) {
     assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
 
     // Test loading a sample world map
-    map.load('./examples/stylesheet.xml');
+    map.loadSync('./examples/stylesheet.xml');
 
     var layers = map.layers();
     assert.equal(layers.length, 1);

@@ -25,7 +25,7 @@ if (!image) {
 
 var map = new mapnik.Map(600, 400);
 
-map.load(stylesheet);
+map.loadSync(stylesheet);
 map.zoom_all();
 map.render_to_file(image);
 
