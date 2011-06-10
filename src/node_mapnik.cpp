@@ -21,6 +21,7 @@
 #include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
+#include "mapnik_grid.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -190,6 +191,9 @@ extern "C" {
 
     // Layer
     Layer::Initialize(target);
+
+    // Layer
+    Grid::Initialize(target);
 
     // Datasource
     Datasource::Initialize(target);

@@ -39,6 +39,8 @@
 #include "ds_emitter.hpp"
 #include "layer_emitter.hpp"
 #include "mapnik_layer.hpp"
+#include "mapnik_image.hpp"
+#include "mapnik_grid.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -61,12 +63,13 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "buffer_size", buffer_size);
 #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "renderLayerSync", renderLayerSync);
 #endif
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render", render);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "render_to_string", render_to_string);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "renderSync", renderSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_to_file", render_to_file);
     NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scale_denominator);
 
@@ -192,6 +195,11 @@ void Map::set_prop(Local<String> property,
 
 Handle<Value> Map::add_layer(const Arguments &args) {
     HandleScope scope;
+
+    if (!args[0]->IsObject())
+      return ThrowException(Exception::TypeError(
+        String::New("mapnik.Layer expected")));
+
     Local<Object> obj = args[0]->ToObject();
     if (args[0]->IsNull() || args[0]->IsUndefined() || !Layer::constructor->HasInstance(obj))
       return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
@@ -808,7 +816,150 @@ int Map::EIO_AfterRender(eio_req *req)
     return 0;
 }
 
-Handle<Value> Map::render_to_string(const Arguments& args)
+
+Handle<Value> Map::renderLayerSync(const Arguments& args)
+{
+    HandleScope scope;
+
+    if ((!args.Length() >= 1) || (!args[0]->IsObject())) {
+      return ThrowException(Exception::TypeError(
+        String::New("requires a mapnik.Grid to be passed as first argument")));
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    if (args[0]->IsNull() || args[0]->IsUndefined())
+      return ThrowException(Exception::TypeError(String::New("mapnik.Grid expected")));
+
+    if (!Grid::constructor->HasInstance(obj))
+      return ThrowException(Exception::TypeError(String::New("mapnik.Grid expected")));
+      
+    std::size_t layer_idx = 0;
+    
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    std::vector<mapnik::layer> const& layers = m->map_->layers();
+
+    if (args.Length() >= 2) {
+        
+        Local<Value> layer_id = args[1];
+        
+        if (layer_id->IsString()) {
+            bool found = false;
+            unsigned int idx(0);
+            std::string const & layer_name = TOSTR(layer_id);
+            BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+            {
+                if (lyr.name() == layer_name)
+                {
+                    found = true;
+                    layer_idx = idx;
+                    break;
+                }
+                ++idx; 
+            }
+            if (!found) 
+            {
+                std::ostringstream s;
+                s << "Layer name '" << layer_name << "' not found";
+                return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+            }
+        } else if (layer_id->IsNumber()) {
+            layer_idx = layer_id->IntegerValue();
+            std::size_t layer_num = layers.size();
+        
+            if (layer_idx >= layer_num) {
+                std::ostringstream s;
+                s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
+                  << layers.size() << "' layers are in map";
+                return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+            }    
+        } else {
+            return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
+        }
+    }    
+    
+    Grid *g = ObjectWrap::Unwrap<Grid>(obj);
+
+    // defaults
+    double scale_factor = 1;
+    
+    if (args.Length() >= 3) {
+    
+        if (!args[2]->IsObject())
+            return ThrowException(Exception::TypeError(
+              String::New("optional second argument must be an options object")));
+    
+        Local<Object> options = args[2]->ToObject();
+
+        if (options->Has(String::New("fields"))) {
+
+            Local<Value> param_val = options->Get(String::New("fields"));
+            if (!param_val->IsArray())
+              return ThrowException(Exception::TypeError(
+                String::New("option 'fields' must be an array of strings")));
+            Local<Array> a = Local<Array>::Cast(param_val);
+            uint32_t i = 0;
+            int num_fields = a->Length();
+            while (i < num_fields) {
+                Local<Value> name = a->Get(i);
+                if (name->IsString()){
+                    g->get()->add_property_name(TOSTR(name));
+                }
+                i++;
+            }
+
+        }
+        
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+              return ThrowException(Exception::TypeError(
+                String::New("optional arg 'scale' must be a number")));
+
+            scale_factor = bind_opt->NumberValue();
+        }
+    }
+
+    try
+    {
+        // copy property names
+        std::set<std::string> attributes = g->get()->property_names();
+        
+        std::string join_field = g->get()->get_key();
+        if (join_field == g->get()->id_name_) 
+        {
+            // TODO - should feature.id() be a first class attribute?
+            if (attributes.find(join_field) != attributes.end())
+            {
+                attributes.erase(join_field);
+            }
+        }
+        else if (attributes.find(join_field) == attributes.end())
+        {
+            attributes.insert(join_field);
+        }
+
+        mapnik::grid_renderer<mapnik::grid> ren(*m->map_,*g->get());
+        mapnik::layer const& layer = layers[layer_idx];
+        ren.apply(layer,attributes);
+    
+    }
+    catch (std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::TypeError(
+          String::New("unknown exception happened while rendering the map, please submit a bug report")));
+    }
+
+    return Undefined();
+}
+
+
+Handle<Value> Map::renderSync(const Arguments& args)
 {
     HandleScope scope;
 

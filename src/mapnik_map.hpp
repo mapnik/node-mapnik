@@ -43,6 +43,8 @@ class Map: public node::ObjectWrap {
     static Handle<Value> describe_data(const Arguments &args);
     static Handle<Value> scale_denominator(const Arguments &args);
     static Handle<Value> render_grid(const Arguments &args);
+    static Handle<Value> renderSync(const Arguments &args);
+    static Handle<Value> renderLayerSync(const Arguments &args);
 
     static Handle<Value> add_layer(const Arguments &args);
     static Handle<Value> get_layer(const Arguments &args);
