@@ -22,6 +22,7 @@ class Image: public node::ObjectWrap {
 
     Image(unsigned int width, unsigned int height);
     Image(image_ptr this_);
+    inline image_ptr get() { return this_; }
 
   private:
     ~Image();
