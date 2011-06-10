@@ -7,6 +7,8 @@
 // mapnik
 #include <mapnik/grid/grid.hpp>
 
+#include "utils.hpp"
+
 using namespace v8;
 using namespace node;
 
@@ -65,7 +67,6 @@ static void grid2utf(T const& grid_type,
 
 // requires mapnik >= r2957
 
-/*
 template <typename T>
 static void grid2utf(T const& grid_type, 
     Local<Array>& l,
@@ -116,7 +117,7 @@ static void grid2utf(T const& grid_type,
         ++row_idx;
     }
 }
-*/
+
 
 template <typename T>
 static void write_features(T const& grid_type,
