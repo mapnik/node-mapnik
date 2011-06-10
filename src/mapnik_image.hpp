@@ -17,7 +17,7 @@ class Image: public node::ObjectWrap {
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
-    static Handle<Value> toString(const Arguments &args);
+    static Handle<Value> encode(const Arguments &args);
     static Handle<Value> open(const Arguments &args);
 
     Image(unsigned int width, unsigned int height);

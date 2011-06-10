@@ -24,7 +24,7 @@ void Image::Initialize(Handle<Object> target) {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Image"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
 
     NODE_SET_METHOD(constructor->GetFunction(),
                   "open",
@@ -118,27 +118,41 @@ Handle<Value> Image::open(const Arguments& args)
 }
 
 
-Handle<Value> Image::toString(const Arguments& args)
+Handle<Value> Image::encode(const Arguments& args)
 {
     HandleScope scope;
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     
+    std::string format = "png8"; //default to 256 colors
+    
+    // accept custom format
+    if (args.Length() >= 1){
+        if (!args[0]->IsString())
+          return ThrowException(Exception::TypeError(
+            String::New("first arg, 'format' must be a string")));
+        format = TOSTR(args[0]);
+    }
+    
     try {
-        std::string s = save_to_string(*(im->this_), "png8");
-    #if NODE_VERSION_AT_LEAST(0,3,0)
+        std::string s = save_to_string(*(im->this_), format);
+        #if NODE_VERSION_AT_LEAST(0,3,0)
         node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
-    #else
+        #else
         node::Buffer *retbuf = Buffer::New(s.size());
         memcpy(retbuf->data(), s.data(), s.size());
-    #endif
-    
+        #endif
         return scope.Close(retbuf->handle_);
     }
     catch (std::exception & ex)
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened when encoding image: please file bug report")));    
     }
 
 }
