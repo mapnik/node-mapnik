@@ -86,7 +86,6 @@ exports['test JSON datasource'] = function() {
     };
 
     var ds = new mapnik.Datasource(options);
-    var ds = new mapnik.Datasource(options);
     assert.ok(ds);
     assert.deepEqual(ds.parameters(), options);
 
