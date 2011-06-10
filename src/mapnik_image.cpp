@@ -125,15 +125,15 @@ Handle<Value> Image::toString(const Arguments& args)
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     
     try {
-    std::string s = save_to_string(*(im->this_), "png8");
-#if NODE_VERSION_AT_LEAST(0,3,0)
-    node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
-#else
-    node::Buffer *retbuf = Buffer::New(s.size());
-    memcpy(retbuf->data(), s.data(), s.size());
-#endif
-
-    return scope.Close(retbuf->handle_);
+        std::string s = save_to_string(*(im->this_), "png8");
+    #if NODE_VERSION_AT_LEAST(0,3,0)
+        node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+    #else
+        node::Buffer *retbuf = Buffer::New(s.size());
+        memcpy(retbuf->data(), s.data(), s.size());
+    #endif
+    
+        return scope.Close(retbuf->handle_);
     }
     catch (std::exception & ex)
     {
