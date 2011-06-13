@@ -3,7 +3,7 @@
 var path = require('path');
 
 var usage = 'usage:';
-usage += '\n  mapnik-inspect.js <datasource> (.shp|.json|.geojson|.kml|.sqlite|.gml|.vrt|.csv)';
+usage += '\n  mapnik-inspect.js <datasource> (.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
 usage += '\n  mapnik-inspect.js <stylesheet> (.xml)';
 usage += '\n  mapnik-inspect.js <projection> (.prj)';
 usage += '\n  mapnik-inspect.js <zipfile> (.zip)';
@@ -25,6 +25,13 @@ console.log(obj);
 
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
+    console.log('Description -->');
+    console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0,1));
+}
+else if (/.osm$/.test(obj)) {
+    var opened = new mapnik.Datasource({type: 'osm', file: obj});
     console.log('Description -->');
     console.log(opened.describe());
     console.log('First feature --> ');
