@@ -88,26 +88,26 @@ Handle<Value> Image::open(const Arguments& args)
     }
   
     try {
-    std::string filename = TOSTR(args[0]);
-    boost::optional<std::string> type = mapnik::type_from_filename(filename);
-    if (type)
-    {
-        std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
-        if (reader.get())
+        std::string filename = TOSTR(args[0]);
+        boost::optional<std::string> type = mapnik::type_from_filename(filename);
+        if (type)
         {
-            boost::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
-            reader->read(0,0,image_ptr->data());
-            Image* im = new Image(image_ptr);
-            //im->this_ = image_ptr;
-            Handle<Value> ext = External::New(im);
-            Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-            return scope.Close(obj);
+            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            if (reader.get())
+            {
+                boost::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+                reader->read(0,0,image_ptr->data());
+                Image* im = new Image(image_ptr);
+                //im->this_ = image_ptr;
+                Handle<Value> ext = External::New(im);
+                Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
+                return scope.Close(obj);
+            }
+            return ThrowException(Exception::TypeError(String::New(
+                    ("Failed to load: " + filename).c_str())));
         }
         return ThrowException(Exception::TypeError(String::New(
-                ("Failed to load: " + filename).c_str())));
-    }
-    return ThrowException(Exception::TypeError(String::New(
-            ("Unsupported image format:" + filename).c_str())));
+                ("Unsupported image format:" + filename).c_str())));
     }
     catch (std::exception & ex)
     {

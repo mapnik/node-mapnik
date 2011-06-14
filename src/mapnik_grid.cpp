@@ -89,6 +89,7 @@ Handle<Value> Grid::New(const Arguments& args)
         
                 key = TOSTR(bind_opt);
             }
+            // TODO - remove, deprecated
             if (options->Has(String::New("resolution"))) {
                 Local<Value> bind_opt = options->Get(String::New("resolution"));
                 if (!bind_opt->IsNumber())
@@ -221,7 +222,6 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
     
             add_features = bind_opt->BooleanValue();
         }
-
     }
     
     try {

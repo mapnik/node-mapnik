@@ -176,7 +176,15 @@ Handle<Value> Datasource::features(const Arguments& args)
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
-    node_mapnik::datasource_features(a,d->datasource_,first,last);
+    try
+    {
+        node_mapnik::datasource_features(a,d->datasource_,first,last);
+    }
+    catch (const std::exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
 
     return scope.Close(a);
 }

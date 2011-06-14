@@ -263,7 +263,15 @@ Handle<Value> Layer::describe_data(const Arguments& args)
     mapnik::datasource_ptr ds = l->layer_->datasource();
     if (ds)
     {
-        node_mapnik::describe_datasource(description,ds);
+        try
+        {
+            node_mapnik::describe_datasource(description,ds);
+        }
+        catch (const std::exception & ex )
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
     }
     return scope.Close(description);
 }

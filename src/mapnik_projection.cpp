@@ -45,7 +45,7 @@ Handle<Value> Projection::New(const Arguments& args)
       p->Wrap(args.This());
       return args.This();
   }
-  catch (const mapnik::proj_init_error & ex )
+  catch (const std::exception & ex)
   {
     return ThrowException(Exception::Error(
       String::New(ex.what())));

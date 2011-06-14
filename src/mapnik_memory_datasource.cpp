@@ -142,7 +142,7 @@ Handle<Value> MemoryDatasource::describe(const Arguments& args)
         try {
             node_mapnik::describe_datasource(description,d->datasource_);
         }
-        catch (const mapnik::datasource_exception & ex )
+        catch (const std::exception & ex)
         {
             return ThrowException(Exception::Error(
               String::New(ex.what())));
@@ -172,8 +172,17 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
-    if (d->datasource_) {
-        node_mapnik::datasource_features(a,d->datasource_,first,last);
+    if (d->datasource_)
+    {
+        try
+        {
+            node_mapnik::datasource_features(a,d->datasource_,first,last);
+        }
+        catch (const std::exception & ex )
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
     }
     
     return scope.Close(a);

@@ -91,21 +91,6 @@ Handle<Value> JSDatasource::New(const Arguments& args)
         ds = mapnik::datasource_ptr(new js_datasource(params,bind,args[args.Length()-1]));
         
     }
-    catch (const mapnik::config_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const std::runtime_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
