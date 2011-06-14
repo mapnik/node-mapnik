@@ -15,6 +15,8 @@
 using namespace v8;
 using namespace node;
 
+namespace node_mapnik {
+
 static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
 {
 
@@ -165,7 +167,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                 std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
                 for (; it != end; ++it)
                 {
-                    params_to_object serializer( feat , it->first);
+                    node_mapnik::params_to_object serializer( feat , it->first);
                     // need to call base() since this is a mapnik::value
                     // not a mapnik::value_holder
                     boost::apply_visitor( serializer, it->second.base() );
@@ -280,9 +282,9 @@ static void datasource_stats(Local<Object> stats, mapnik::datasource_ptr ds, uns
             Local<Value> name = names->Get(i)->ToString();
             Local<Object> hash = fields->Get(name)->ToObject();
             std::string key = TOSTR(name);
-            params_to_object serializer_min(hash, "min");
+            node_mapnik::params_to_object serializer_min(hash, "min");
             boost::apply_visitor( serializer_min, min_prop[key].base() );
-            params_to_object serializer_max(hash, "max");
+            node_mapnik::params_to_object serializer_max(hash, "max");
             boost::apply_visitor( serializer_max, max_prop[key].base() );
             vals& v = values[key];
             unsigned int num_vals = v.size();
@@ -300,4 +302,7 @@ static void datasource_stats(Local<Object> stats, mapnik::datasource_ptr ds, uns
     stats->Set(String::NewSymbol("count"), Number::New(idx));
 }
 */
+
+}
+
 #endif

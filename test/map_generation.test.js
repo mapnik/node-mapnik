@@ -45,10 +45,12 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
     var completed = false;
     var map = new Map(600, 400);
     assert.ok(map instanceof Map);
-
-    map.render(map.extent, 'png', function(err, buffer) {
+    map.zoom_to_box(map.extent);
+    var im = new mapnik.Image(map.width,map.height)
+    map.render(im, {scale:1}, function(err, image) {
         completed = true;
         assert.ok(!err);
+        var buffer = im.encode('png');
         assert.equal(helper.md5(buffer), 'ef33223235b26c782736c88933b35331');
     });
 

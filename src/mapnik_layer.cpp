@@ -250,7 +250,7 @@ Handle<Value> Layer::describe(const Arguments& args)
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
 
     Local<Object> description = Object::New();
-    layer_as_json(description,*l->layer_);
+    node_mapnik::layer_as_json(description,*l->layer_);
 
     return scope.Close(description);
 }
@@ -263,7 +263,7 @@ Handle<Value> Layer::describe_data(const Arguments& args)
     mapnik::datasource_ptr ds = l->layer_->datasource();
     if (ds)
     {
-        describe_datasource(description,ds);
+        node_mapnik::describe_datasource(description,ds);
     }
     return scope.Close(description);
 }
@@ -293,7 +293,7 @@ Handle<Value> Layer::features(const Arguments& args)
     mapnik::datasource_ptr ds = l->layer_->datasource();
     if (ds)
     {
-        datasource_features(a,ds,first,last);
+        node_mapnik::datasource_features(a,ds,first,last);
     }
 
     return scope.Close(a);

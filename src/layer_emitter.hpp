@@ -15,6 +15,8 @@
 using namespace v8;
 //using namespace node;
 
+namespace node_mapnik {
+
 static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
 {
 
@@ -81,10 +83,11 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
         mapnik::parameters::const_iterator end = datasource->params().end();
         for (; it != end; ++it)
         {
-            params_to_object serializer( ds , it->first);
+            node_mapnik::params_to_object serializer( ds , it->first);
             boost::apply_visitor( serializer, it->second );
         }
     }
 }
 
+}
 #endif

@@ -31,6 +31,8 @@
 using namespace v8;
 using namespace node;
 
+namespace node_mapnik {
+
 // adapted to work for both mapnik features and mapnik parameters
 struct params_to_object : public boost::static_visitor<>
 {
@@ -102,4 +104,6 @@ struct value_converter: public boost::static_visitor<Local<Value> >
         return String::New("");//Undefined();
     }
 };
+
+}
 #endif

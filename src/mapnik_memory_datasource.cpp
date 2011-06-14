@@ -126,7 +126,7 @@ Handle<Value> MemoryDatasource::parameters(const Arguments& args)
         mapnik::parameters::const_iterator end = d->datasource_->params().end();
         for (; it != end; ++it)
         {
-            params_to_object serializer( ds , it->first);
+            node_mapnik::params_to_object serializer( ds , it->first);
             boost::apply_visitor( serializer, it->second );
         }
     }
@@ -140,7 +140,7 @@ Handle<Value> MemoryDatasource::describe(const Arguments& args)
     Local<Object> description = Object::New();
     if (d->datasource_) {
         try {
-            describe_datasource(description,d->datasource_);
+            node_mapnik::describe_datasource(description,d->datasource_);
         }
         catch (const mapnik::datasource_exception & ex )
         {
@@ -173,7 +173,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
     if (d->datasource_) {
-        datasource_features(a,d->datasource_,first,last);
+        node_mapnik::datasource_features(a,d->datasource_,first,last);
     }
     
     return scope.Close(a);

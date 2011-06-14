@@ -69,7 +69,7 @@ Handle<Value> Featureset::next(const Arguments& args)
             std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
             for (; it != end; ++it)
             {
-                params_to_object serializer( feat , it->first);
+                node_mapnik::params_to_object serializer( feat , it->first);
                 boost::apply_visitor( serializer, it->second.base() );
             }
             

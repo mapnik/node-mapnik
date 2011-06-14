@@ -3,17 +3,7 @@
 #include <node_version.h>
 
 // mapnik
-#include <mapnik/version.hpp>
-#include <mapnik/map.hpp>
-#include <mapnik/projection.hpp>
-#include <mapnik/layer.hpp>
-#include <mapnik/filter_factory.hpp>
-#include <mapnik/image_util.hpp>
-#include <mapnik/config_error.hpp>
-#include <mapnik/load_map.hpp>
-#include <mapnik/save_map.hpp>
-#include <mapnik/query.hpp>
-#include <mapnik/ctrans.hpp>
+
 // provides MAPNIK_SUPPORTS_GRID_RENDERER
 #include <mapnik/config.hpp>
 
@@ -25,6 +15,18 @@
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_renderer.hpp>
 #endif
+
+#include <mapnik/version.hpp>
+#include <mapnik/map.hpp>
+#include <mapnik/projection.hpp>
+#include <mapnik/layer.hpp>
+#include <mapnik/filter_factory.hpp>
+#include <mapnik/image_util.hpp>
+#include <mapnik/config_error.hpp>
+#include <mapnik/load_map.hpp>
+#include <mapnik/save_map.hpp>
+#include <mapnik/query.hpp>
+#include <mapnik/ctrans.hpp>
 
 // stl
 #include <exception>
@@ -66,12 +68,12 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
     NODE_SET_PROTOTYPE_METHOD(constructor, "renderLayerSync", renderLayerSync);
 #endif
-
-    NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
     NODE_SET_PROTOTYPE_METHOD(constructor, "render", render);
     NODE_SET_PROTOTYPE_METHOD(constructor, "renderSync", renderSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "renderFileSync", renderFileSync);
+
+    NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
     NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scaleDenominator);
 
     // layer access
@@ -379,7 +381,7 @@ Handle<Value> Map::layers(const Arguments& args)
     {
         const mapnik::layer & layer = layers[i];
         Local<Object> meta = Object::New();
-        layer_as_json(meta,layer);
+        node_mapnik::layer_as_json(meta,layer);
         a->Set(i, meta);
     }
 
@@ -414,7 +416,7 @@ Handle<Value> Map::describe_data(const Arguments& args)
         mapnik::datasource_ptr ds = layer.datasource();
         if (ds)
         {
-            describe_datasource(description,ds);
+            node_mapnik::describe_datasource(description,ds);
         }
         meta->Set(String::NewSymbol(layer.name().c_str()), description);
     }
@@ -463,7 +465,7 @@ Handle<Value> Map::features(const Arguments& args)
         mapnik::datasource_ptr ds = layer.datasource();
         if (ds)
         {
-            datasource_features(a,ds,first,last);
+            node_mapnik::datasource_features(a,ds,first,last);
         }
     }
 
@@ -495,7 +497,6 @@ Handle<Value> Map::resize(const Arguments& args)
     m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
     return Undefined();
 }
-
 
 
 typedef struct {
@@ -569,31 +570,6 @@ int Map::EIO_Load(eio_req *req)
     try
     {
         mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict);
-    }
-    catch (const mapnik::config_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const std::runtime_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
     }
     catch (const std::exception & ex)
     {
@@ -808,31 +784,6 @@ int Map::EIO_FromString(eio_req *req)
     {
         mapnik::load_map_string(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_url);
     }
-    catch (const mapnik::config_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const std::runtime_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
     catch (const std::exception & ex)
     {
         closure->error = true;
@@ -904,32 +855,7 @@ Handle<Value> Map::zoom_all(const Arguments& args)
     try {
       m->map_->zoom_all();
     }
-    catch (const mapnik::config_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const std::runtime_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (std::exception & ex)
+    catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
@@ -980,11 +906,12 @@ Handle<Value> Map::zoom_to_box(const Arguments& args)
 
 typedef struct {
     Map *m;
-    std::string format;
-    mapnik::box2d<double> bbox;
+    Image *im;
     bool error;
+    double scale_factor;
+    unsigned offset_x;
+    unsigned offset_y;
     std::string error_name;
-    std::string im_string;
     Persistent<Function> cb;
 } closure_t;
 
@@ -1012,50 +939,73 @@ Handle<Value> Map::render(const Arguments& args)
     std::clog << "eio_nthreads" << eio_nthreads() << "\n";
     */
 
-    if (args.Length() < 3)
-        return ThrowException(Exception::TypeError(
-          String::New("requires three arguments, a extent array, a format, and a callback")));
+    if ((!args.Length() >= 1) || (!args[0]->IsObject())) {
+      return ThrowException(Exception::TypeError(
+        String::New("requires a mapnik.Image to be passed as first argument")));
+    }
 
-    // extent array
-    if (!args[0]->IsArray())
-        return ThrowException(Exception::TypeError(
-           String::New("first argument must be an extent array of: [minx,miny,maxx,maxy]")));
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined())
+      return ThrowException(Exception::TypeError(String::New("mapnik.Image expected")));
 
-    // format
-    if (!args[1]->IsString())
+    if (!Image::constructor->HasInstance(obj))
+      return ThrowException(Exception::TypeError(String::New("mapnik.Image expected")));
+
+    if (args.Length() < 2)
         return ThrowException(Exception::TypeError(
-           String::New("second argument must be an format string")));
+          String::New("requires at least two arguments, a mapnik.Image, and a callback")));
 
     // function callback
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
                   String::New("last argument must be a callback function")));
 
-    Local<Array> a = Local<Array>::Cast(args[0]);
-    uint32_t a_length = a->Length();
-    if (!a_length  == 4) {
-        return ThrowException(Exception::TypeError(
-           String::New("first argument must be 4 item array of: [minx,miny,maxx,maxy]")));
-    }
-
     closure_t *closure = new closure_t();
 
-    if (!closure) {
-      V8::LowMemoryNotification();
-      return ThrowException(Exception::Error(
-            String::New("Could not allocate enough memory")));
+    // defaults
+    closure->scale_factor = 1.0;
+    closure->offset_x = 0;
+    closure->offset_y = 0;
+    
+    if (args.Length() > 2) {
+        // options object
+        if (!args[1]->IsObject())
+            return ThrowException(Exception::TypeError(
+               String::New("optional second argument must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+              return ThrowException(Exception::TypeError(
+                String::New("optional arg 'scale' must be a number")));
+
+            closure->scale_factor = bind_opt->NumberValue();
+        }
+
+        if (options->Has(String::New("offset_x"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_x"));
+            if (!bind_opt->IsNumber())
+              return ThrowException(Exception::TypeError(
+                String::New("optional arg 'offset_x' must be a number")));
+
+            closure->offset_x = bind_opt->NumberValue();
+        }
+
+        if (options->Has(String::New("offset_y"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_y"));
+            if (!bind_opt->IsNumber())
+              return ThrowException(Exception::TypeError(
+                String::New("optional arg 'offset_y' must be a number")));
+
+            closure->offset_y = bind_opt->NumberValue();
+        }
     }
 
-    double minx = a->Get(0)->NumberValue();
-    double miny = a->Get(1)->NumberValue();
-    double maxx = a->Get(2)->NumberValue();
-    double maxy = a->Get(3)->NumberValue();
-
-
     closure->m = m;
-    closure->format = TOSTR(args[1]);
+    closure->im = ObjectWrap::Unwrap<Image>(obj);
     closure->error = false;
-    closure->bbox = mapnik::box2d<double>(minx,miny,maxx,maxy);
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
     eio_custom(EIO_Render, EIO_PRI_DEFAULT, EIO_AfterRender, closure);
     ev_ref(EV_DEFAULT_UC);
@@ -1068,39 +1018,14 @@ int Map::EIO_Render(eio_req *req)
 {
     closure_t *closure = static_cast<closure_t *>(req->data);
 
-    // zoom to
-    closure->m->map_->zoom_to_box(closure->bbox);
     try
     {
-        mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-        mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im);
+        mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,
+                *closure->im->get(),
+                closure->scale_factor,
+                closure->offset_x,
+                closure->offset_y);
         ren.apply();
-        closure->im_string = save_to_string(im, closure->format);
-    }
-    catch (const mapnik::config_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const std::runtime_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
     }
     catch (const std::exception & ex)
     {
@@ -1125,18 +1050,10 @@ int Map::EIO_AfterRender(eio_req *req)
     TryCatch try_catch;
 
     if (closure->error) {
-        // TODO - add more attributes
-        // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
         Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     } else {
-        #if NODE_VERSION_AT_LEAST(0,3,0)
-          node::Buffer *retbuf = Buffer::New((char *)closure->im_string.data(),closure->im_string.size());
-        #else
-          node::Buffer *retbuf = Buffer::New(closure->im_string.size());
-          memcpy(retbuf->data(), closure->im_string.data(), closure->im_string.size());
-        #endif
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
@@ -1279,7 +1196,7 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
         ren.apply(layer,attributes);
     
     }
-    catch (std::exception & ex)
+    catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
@@ -1310,36 +1227,10 @@ Handle<Value> Map::renderSync(const Arguments& args)
         mapnik::image_32 im(m->map_->width(),m->map_->height());
         mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
         ren.apply();
-        //std::string ss = mapnik::save_to_string<mapnik::image_data_32>(im.data(),"png");
         s = save_to_string(im, format);
 
     }
-    catch (const mapnik::config_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const std::runtime_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (std::exception & ex)
+    catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
@@ -1425,32 +1316,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
         }
     }
-    catch (const mapnik::config_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const std::runtime_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (std::exception & ex)
+    catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
@@ -1667,31 +1533,6 @@ int Map::EIO_RenderGrid(eio_req *req)
         mapnik::grid_renderer<mapnik::grid> ren(*closure->m->map_,*closure->grid_ptr,1.0,0,0);
         mapnik::layer const& layer = layers[closure->layer_idx];
         ren.apply(layer,attributes);
-    }
-    catch (const mapnik::config_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::proj_init_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const std::runtime_error & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-    catch (const mapnik::ImageWriterException & ex )
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
     }
     catch (const std::exception & ex)
     {
