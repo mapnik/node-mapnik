@@ -13,15 +13,15 @@ uninstall:
 	node-waf uninstall
 
 test-tmp:
-	@rm -rf test/tmp
-	@mkdir -p test/tmp
+	@rm -rf tests/tmp
+	@mkdir -p tests/tmp
 
 ifndef only
 test: test-tmp
-	expresso -I lib test/*.test.js
+	@expresso -I lib tests/*.test.js
 else
 test: test-tmp
-	expresso -I lib test/${only}.test.js
+	@expresso -I lib tests/${only}.test.js
 endif
 
 .PHONY: test
