@@ -34,18 +34,28 @@ class Map: public node::ObjectWrap {
     static int EIO_FromString(eio_req *req);
     static int EIO_AfterFromString(eio_req *req);
 
-    static Handle<Value> renderSync(const Arguments &args);
+    // async rendering
     static Handle<Value> render(const Arguments &args);
-    static int EIO_Render(eio_req *req);
-    static int EIO_AfterRender(eio_req *req);
-
-    // TODO - need sync version
-    static Handle<Value> render_grid(const Arguments &args);
+    static int EIO_RenderImage(eio_req *req);
+    static int EIO_AfterRenderImage(eio_req *req);
     static int EIO_RenderGrid(eio_req *req);
     static int EIO_AfterRenderGrid(eio_req *req);
 
+    static Handle<Value> renderFile(const Arguments &args);
+    static int EIO_RenderFile(eio_req *req);
+    static int EIO_AfterRenderFile(eio_req *req);
+
+    // sync rendering
+    static Handle<Value> renderSync(const Arguments &args);
     static Handle<Value> renderFileSync(const Arguments &args);
+
+
+    // TODO - deprecated, remove
     static Handle<Value> renderLayerSync(const Arguments &args);
+    static Handle<Value> render_grid(const Arguments &args);
+    static int EIO_RenderGrid2(eio_req *req);
+    static int EIO_AfterRenderGrid2(eio_req *req);
+
 
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> to_string(const Arguments &args);
@@ -68,8 +78,6 @@ class Map: public node::ObjectWrap {
                          Local<Value> value,
                          const AccessorInfo& info);
 
-
-    
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
 
