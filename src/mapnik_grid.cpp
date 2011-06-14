@@ -79,7 +79,7 @@ Handle<Value> Grid::New(const Arguments& args)
             if (!args[2]->IsObject())
               return ThrowException(Exception::TypeError(
                 String::New("optional third arg must be an options object")));
-            Local<Object> options = args[1]->ToObject();
+            Local<Object> options = args[2]->ToObject();
             
             if (options->Has(String::New("key"))) {
                 Local<Value> bind_opt = options->Get(String::New("key"));
