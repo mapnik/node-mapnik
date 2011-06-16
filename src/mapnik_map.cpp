@@ -1024,7 +1024,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
         eio_custom(EIO_RenderImage, EIO_PRI_DEFAULT, EIO_AfterRenderImage, closure);
 
-    } else if (Grid::constructor->HasInstance(obj) /* TODO - || GridView::constructor->HasInstance(obj) */) {
+    } else if (Grid::constructor->HasInstance(obj)) {
 
         Grid * g = ObjectWrap::Unwrap<Grid>(obj);
 
@@ -1259,6 +1259,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     HandleScope scope;
     
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    // TODO
     return Undefined();
 }
 
