@@ -35,7 +35,7 @@ Handle<Value> JSDatasource::New(const Arguments& args)
 
     if (args[0]->IsExternal())
     {
-        std::clog << "external!\n";
+        //std::clog << "external!\n";
         Local<External> ext = Local<External>::Cast(args[0]);
         void* ptr = ext->Value();
         JSDatasource* d =  static_cast<JSDatasource*>(ptr);

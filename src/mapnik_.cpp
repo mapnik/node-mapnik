@@ -1,4 +1,7 @@
+#include "utils.hpp"
 #include "mapnik_•.hpp"
+
+#include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> •::constructor;
 
@@ -15,7 +18,7 @@ void •::Initialize(Handle<Object> target) {
 
 •::•(std::string const& name) :
   ObjectWrap(),
-  this_(new mapnik::•(name)) {}
+  this_(boost::make_shared<mapnik::•>(name)) {}
 
 •::~•()
 {
@@ -23,5 +26,5 @@ void •::Initialize(Handle<Object> target) {
 
 Handle<Value> •::New(const Arguments& args)
 {
-  HandleScope scope;
+    HandleScope scope;
 }

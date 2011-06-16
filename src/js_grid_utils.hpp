@@ -124,7 +124,7 @@ static void write_features(T const& grid_type,
     Local<Object>& feature_data,
     std::vector<typename T::lookup_type> const& key_order)
 {
-    std::string const& key = grid_type.get_join_field(); // get_key();
+    std::string const& key = grid_type.get_key(); // get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     typename T::feature_type::const_iterator feat_itr = g_features.begin();

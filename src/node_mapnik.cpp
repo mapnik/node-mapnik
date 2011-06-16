@@ -8,6 +8,7 @@
 
 // node-mapnik
 #include "mapnik_map.hpp"
+#include "mapnik_color.hpp"
 #include "mapnik_fonts.hpp"
 #include "mapnik_plugins.hpp"
 #include "mapnik_projection.hpp"
@@ -17,7 +18,9 @@
 #include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
+#include "mapnik_image_view.hpp"
 #include "mapnik_grid.hpp"
+#include "mapnik_grid_view.hpp"
 #include "utils.hpp"
 
 // mapnik
@@ -70,31 +73,18 @@ extern "C" {
     NODE_SET_METHOD(target, "fonts", node_mapnik::available_font_faces);
     NODE_SET_METHOD(target, "gc", gc);
 
-    // Map
+    // Classes
     Map::Initialize(target);
-
-    // MemoryDatasource
+    Color::Initialize(target);
     Image::Initialize(target);
-
-    // Projection
+    ImageView::Initialize(target);
     Projection::Initialize(target);
-
-    // Layer
     Layer::Initialize(target);
-
-    // Layer
     Grid::Initialize(target);
-
-    // Datasource
+    GridView::Initialize(target);
     Datasource::Initialize(target);
-
-    // Featureset
     Featureset::Initialize(target);
-
-    // JSDatasource
     JSDatasource::Initialize(target);
-
-    // MemoryDatasource
     MemoryDatasource::Initialize(target);
 
     // node-mapnik version

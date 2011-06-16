@@ -18,7 +18,17 @@ class Image: public node::ObjectWrap {
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
+    static Handle<Value> width(const Arguments &args);
+    static Handle<Value> height(const Arguments &args);
+    static Handle<Value> view(const Arguments &args);
     static Handle<Value> open(const Arguments &args);
+    static Handle<Value> save(const Arguments &args);
+
+    static Handle<Value> get_prop(Local<String> property,
+                         const AccessorInfo& info);
+    static void set_prop(Local<String> property,
+                         Local<Value> value,
+                         const AccessorInfo& info);
 
     Image(unsigned int width, unsigned int height);
     Image(image_ptr this_);

@@ -6,8 +6,11 @@
 // mapnik
 #include <mapnik/image_data.hpp>
 
+// boost
+#include <boost/make_shared.hpp>
 
 #include "mapnik_grid.hpp"
+#include "mapnik_grid_view.hpp"
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
 
@@ -27,6 +30,7 @@ void Grid::Initialize(Handle<Object> target) {
     // methods
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "fields", fields);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "view", view);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
 
@@ -38,7 +42,7 @@ void Grid::Initialize(Handle<Object> target) {
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
   ObjectWrap(),
-  this_(new mapnik::grid(width,height,key,resolution)) {}
+  this_(boost::make_shared<mapnik::grid>(width,height,key,resolution)) {}
 
 Grid::Grid(grid_ptr this_) :
   ObjectWrap(),
@@ -99,7 +103,6 @@ Handle<Value> Grid::New(const Arguments& args)
                 resolution = bind_opt->IntegerValue();
             }
         }
-        
         
         Grid* g = new Grid(args[0]->IntegerValue(),args[1]->IntegerValue(),key,resolution);
         g->Wrap(args.This());
@@ -261,5 +264,22 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
         return ThrowException(Exception::Error(
           String::New(ex.what())));
     }
-
 }
+
+Handle<Value> Grid::view(const Arguments& args)
+{
+    HandleScope scope;
+
+    if ( (!args.Length() == 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
+        return ThrowException(Exception::TypeError(
+          String::New("requires 4 integer arguments: x, y, width, height")));
+    
+    unsigned x = args[0]->IntegerValue();
+    unsigned y = args[1]->IntegerValue();
+    unsigned w = args[2]->IntegerValue();
+    unsigned h = args[3]->IntegerValue();
+
+    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    return scope.Close(GridView::New(g->get(),x,y,w,h));
+}
+

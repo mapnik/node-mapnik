@@ -177,8 +177,11 @@ def build(bld):
     obj.target = TARGET
     obj.source =  ["src/node_mapnik.cpp",
                    "src/mapnik_map.cpp",
+                   "src/mapnik_color.cpp",
                    "src/mapnik_image.cpp",
+                   "src/mapnik_image_view.cpp",
                    "src/mapnik_grid.cpp",
+                   "src/mapnik_grid_view.cpp",
                    "src/mapnik_js_datasource.cpp",
                    "src/mapnik_memory_datasource.cpp",
                    "src/mapnik_projection.cpp",
