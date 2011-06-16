@@ -291,7 +291,7 @@ Handle<Value> Map::add_layer(const Arguments &args) {
         String::New("mapnik.Layer expected")));
 
     Local<Object> obj = args[0]->ToObject();
-    if (args[0]->IsNull() || args[0]->IsUndefined() || !Layer::constructor->HasInstance(obj))
+    if (obj->IsNull() || obj->IsUndefined() || !Layer::constructor->HasInstance(obj))
       return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
     Layer *l = ObjectWrap::Unwrap<Layer>(obj);
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -1086,7 +1086,7 @@ Handle<Value> Map::render(const Arguments& args)
                 String::New("option 'fields' must be an array of strings")));
             Local<Array> a = Local<Array>::Cast(param_val);
             uint32_t i = 0;
-            int num_fields = a->Length();
+            uint32_t num_fields = a->Length();
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
@@ -1356,7 +1356,7 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
                 String::New("option 'fields' must be an array of strings")));
             Local<Array> a = Local<Array>::Cast(param_val);
             uint32_t i = 0;
-            int num_fields = a->Length();
+            uint32_t num_fields = a->Length();
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
