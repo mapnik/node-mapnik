@@ -9,6 +9,7 @@
 // node-mapnik
 #include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
+#include "mapnik_feature.hpp"
 #include "mapnik_fonts.hpp"
 #include "mapnik_plugins.hpp"
 #include "mapnik_projection.hpp"
@@ -76,6 +77,7 @@ extern "C" {
     // Classes
     Map::Initialize(target);
     Color::Initialize(target);
+    Feature::Initialize(target);
     Image::Initialize(target);
     ImageView::Initialize(target);
     Projection::Initialize(target);

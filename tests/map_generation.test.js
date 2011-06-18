@@ -219,33 +219,6 @@ exports['test map datasource'] = function() {
     assert.deepEqual(layer.datasource.describe(), map.describe_data().world);
     assert.deepEqual(layer.datasource.describe(), layer_same.datasource.describe());
 
-    // test fetching one featureset using efficient next() iterator
-    var featureset = layer.datasource.featureset();
-
-    // get one feature
-    var feature = featureset.next();
-    assert.deepEqual(feature, {
-        AREA: 44,
-        FIPS: 'AC',
-        ISO2: 'AG',
-        ISO3: 'ATG',
-        LAT: 17.078,
-        LON: -61.783,
-        NAME: 'Antigua and Barbuda',
-        POP2005: 83039,
-        REGION: 19,
-        SUBREGION: 29,
-        UN: 28,
-        __id__:1
-    });
-
-    // loop over all of them to ensure the proper feature count
-    var count = 1;
-    while (feature = featureset.next()) {
-        count++;
-    }
-    assert.equal(count, 245);
-
     var options = {
         type: 'shape',
         file: './examples/data/world_merc.shp'

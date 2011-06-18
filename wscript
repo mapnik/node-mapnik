@@ -178,6 +178,7 @@ def build(bld):
     obj.source =  ["src/node_mapnik.cpp",
                    "src/mapnik_map.cpp",
                    "src/mapnik_color.cpp",
+                   "src/mapnik_feature.cpp",
                    "src/mapnik_image.cpp",
                    "src/mapnik_image_view.cpp",
                    "src/mapnik_grid.cpp",

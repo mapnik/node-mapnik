@@ -97,14 +97,11 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
         i++;
     }
 
-    
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
     d->datasource_ = boost::make_shared<mapnik::memory_datasource>();
     return args.This();
-
-    return Undefined();
 }
 
 Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
