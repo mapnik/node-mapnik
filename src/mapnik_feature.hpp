@@ -25,10 +25,12 @@ class Feature: public node::ObjectWrap {
     static Handle<Value> id(const Arguments &args);
     static Handle<Value> extent(const Arguments &args);
     static Handle<Value> attributes(const Arguments &args);
-    // todo - how to allow altering of attributes
-    // add_geometry
-    // num_geometries
-    // get_geometry
+    static Handle<Value> addGeometry(const Arguments &args);
+    static Handle<Value> numGeometries(const Arguments &args);
+
+    // todo
+    // how to allow altering of attributes
+    // expose get_geometry
     Feature(mapnik::feature_ptr f);
     Feature(int id);
     inline mapnik::feature_ptr get() { return this_; }

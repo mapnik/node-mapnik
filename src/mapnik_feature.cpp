@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "mapnik_feature.hpp"
+#include "mapnik_geometry.hpp"
 
 // mapnik
 #include <mapnik/feature_factory.hpp>
@@ -19,6 +20,8 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "id", id);
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "attributes", attributes);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addGeometry", addGeometry);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "numGeometries", numGeometries);
     target->Set(String::NewSymbol("Feature"),constructor->GetFunction());
 }
 
@@ -113,4 +116,55 @@ Handle<Value> Feature::attributes(const Arguments& args)
     
     return scope.Close(feat);
 }
+
+Handle<Value> Feature::numGeometries(const Arguments& args)
+{
+    HandleScope scope;
+    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    return scope.Close(Integer::New(fp->get()->num_geometries()));
+}
+
+// TODO void?
+Handle<Value> Feature::addGeometry(const Arguments& args)
+{
+    HandleScope scope;
+
+    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+
+    if (args.Length() >= 1 ) {
+        Local<Value> value = args[0];
+        if (value->IsNull() || value->IsUndefined()) {
+            return ThrowException(Exception::TypeError(String::New("mapnik.Geometry instance expected")));
+        } else {
+            Local<Object> obj = value->ToObject();
+            if (Geometry::constructor->HasInstance(obj)) {
+                Geometry* g = ObjectWrap::Unwrap<Geometry>(obj);
+            
+                try
+                {
+                    std::auto_ptr<mapnik::geometry_type> geom_ptr = g->get();
+                    if (geom_ptr.get()) {
+                        fp->get()->add_geometry(geom_ptr.get());
+                        geom_ptr.release();
+                    } else {
+                        return ThrowException(Exception::Error(
+                          String::New("empty geometry!")));
+                    }
+                }
+                catch (const std::exception & ex )
+                {
+                    return ThrowException(Exception::Error(
+                      String::New(ex.what())));
+                }
+                catch (...) {
+                    return ThrowException(Exception::Error(
+                      String::New("Unknown exception happended - please report bug")));
+                }
+            }
+        }
+    }
+
+    return Undefined();
+}
+
 
