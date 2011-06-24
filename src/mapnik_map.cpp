@@ -658,7 +658,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     bool strict = false;
     std::string base_path("");
 
-    if (!args.Length() >= 1) {
+    if (args.Length() >= 2) {
         // ensure options object
         if (!args[1]->IsObject())
             return ThrowException(Exception::TypeError(
