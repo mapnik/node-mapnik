@@ -10,7 +10,7 @@ var base_url = './examples/'; // must end with trailing slash
 var style_string = fs.readFileSync(base_url + 'stylesheet.xml', 'utf8');
 var map = new Map(600, 400);
 map.fromStringSync(style_string, {strict:true,base:base_url});
-map.zoom_all();
+map.zoomAll();
 
 exports['test map generation'] = function(beforeExit) {
     // no 'new' keyword
@@ -45,7 +45,7 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
     var completed = false;
     var map = new Map(600, 400);
     assert.ok(map instanceof Map);
-    map.zoom_to_box(map.extent);
+    map.extent = map.extent;
     var im = new mapnik.Image(map.width,map.height)
     map.render(im, {scale:1}, function(err, image) {
         completed = true;

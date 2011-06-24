@@ -82,7 +82,7 @@ dl.asString(function(err,str){
   tr = merc.forward([-76.88708389844298, 38.9534635955426])
   
   //minx,miny,maxx,maxy
-  map.zoom_to_box(bl[0],bl[1],tr[0],tr[1]);
+  map.extent = (bl[0],bl[1],tr[0],tr[1]);
 
   // render it! You should see a bunch of red and blue points reprenting
   map.renderFileSync('dc_pubs.png');

@@ -62,8 +62,8 @@ class Map: public node::ObjectWrap {
 
     static Handle<Value> clear(const Arguments &args);
     static Handle<Value> resize(const Arguments &args);
-    static Handle<Value> zoom_all(const Arguments &args);
-    static Handle<Value> zoom_to_box(const Arguments &args);
+    static Handle<Value> zoomAll(const Arguments &args);
+    static Handle<Value> zoomToBox(const Arguments &args);
     static Handle<Value> layers(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> describe_data(const Arguments &args);

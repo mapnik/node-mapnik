@@ -14,7 +14,7 @@ var mapnik = require('mapnik')
 app.get('/', function(req, res) {
   var map = new mapnik.Map(256, 256);
   map.loadSync(path.join(__dirname, '../stylesheet.xml'));
-  map.zoom_all();
+  map.zoomAll();
   map.render(map.extent(), 'png', function(err,buffer) {
       if (err) {       
         res.contentType('.txt');

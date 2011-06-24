@@ -12,7 +12,7 @@ exports['test simple_grid rendering'] = function(beforeExit) {
     var map_grid = new mapnik.Map(256, 256);
     map_grid.load(stylesheet, {strict: true}, function(err,map) {
         if (err) throw err;
-        map.zoom_all();
+        map.zoomAll();
         var options = {'layer': 0,
                        'fields': ['NAME']
                       };

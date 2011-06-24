@@ -36,7 +36,7 @@ var server = connect.createServer(
         // create map
         var map = new mapnik.Map(256, 256, mercator.proj4);
         map.load(stylesheet, {strict:true}, function(err, map) {
-            map.zoom_all();
+            map.zoomAll();
                       
             // render map
             map.render(bbox, 'png', function(err, buffer) {

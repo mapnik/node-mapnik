@@ -84,7 +84,7 @@ dl.asString(function(err,str){
   map.add_layer(l);
 
   // zoom to the extent of the new layer (pulled from options since otherwise we cannot know)
-  map.zoom_all();
+  map.zoomAll();
 
   // render it! You should see a bunch of red and blue points reprenting
   map.renderFileSync('quakes.png');

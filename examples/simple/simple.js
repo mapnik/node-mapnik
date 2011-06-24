@@ -15,7 +15,7 @@ var port = 8000;
 http.createServer(function(req, res) {
   var map = new mapnik.Map(256, 256);
   map.loadSync(path.join(__dirname, '../stylesheet.xml'));
-  map.zoom_all();
+  map.zoomAll();
   map.render(map.extent(), 'png', function(err,buffer) {
       if (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'});

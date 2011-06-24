@@ -74,8 +74,8 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "render_grid", render_grid);
     NODE_SET_PROTOTYPE_METHOD(constructor, "renderLayerSync", renderLayerSync);
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_all", zoom_all);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "zoom_to_box", zoom_to_box);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "zoomAll", zoomAll);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "zoomToBox", zoomToBox); //setExtent
     NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scaleDenominator);
 
     // layer access
@@ -850,7 +850,7 @@ Handle<Value> Map::to_string(const Arguments& args)
     return scope.Close(String::New(map_string.c_str()));
 }
 
-Handle<Value> Map::zoom_all(const Arguments& args)
+Handle<Value> Map::zoomAll(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -870,7 +870,7 @@ Handle<Value> Map::zoom_all(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> Map::zoom_to_box(const Arguments& args)
+Handle<Value> Map::zoomToBox(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -1017,6 +1017,7 @@ Handle<Value> Map::render(const Arguments& args)
         image_baton_t *closure = new image_baton_t();
         closure->m = m;
         closure->im = ObjectWrap::Unwrap<Image>(obj);
+        closure->im->_ref();
         closure->scale_factor = scale_factor;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
@@ -1099,6 +1100,7 @@ Handle<Value> Map::render(const Arguments& args)
         grid_baton_t *closure = new grid_baton_t();
         closure->m = m;
         closure->g = g;
+        closure->g->_ref();
         closure->layer_idx = layer_idx;
         closure->scale_factor = scale_factor;
         closure->offset_x = offset_x;
@@ -1194,6 +1196,7 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
 
     closure->m->release();
     closure->m->Unref();
+    closure->g->_unref();
     closure->cb.Dispose();
     delete closure;
     return 0;
@@ -1248,6 +1251,7 @@ int Map::EIO_AfterRenderImage(eio_req *req)
 
     closure->m->release();
     closure->m->Unref();
+    closure->im->_unref();
     closure->cb.Dispose();
     delete closure;
     return 0;

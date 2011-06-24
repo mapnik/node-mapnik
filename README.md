@@ -17,7 +17,7 @@
                   res.writeHead(500, {'Content-Type':'text/plain'});
                   res.end(err.message);
               }
-              map.zoom_all();
+              map.zoomAll();
               map.render(map.extent(),"png",function(err,buffer){
                 if (err) {
                   res.writeHead(500, {'Content-Type':'text/plain'});

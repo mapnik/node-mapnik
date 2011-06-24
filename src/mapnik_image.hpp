@@ -29,6 +29,8 @@ class Image: public node::ObjectWrap {
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
+    void _ref() { Ref(); }
+    void _unref() { Unref(); }
 
     Image(unsigned int width, unsigned int height);
     Image(image_ptr this_);

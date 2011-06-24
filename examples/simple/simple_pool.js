@@ -50,7 +50,7 @@ http.createServer(function(req, res) {
           res.end(err.message);
       } else {
           // zoom to full extent
-          map.zoom_all();
+          map.zoomAll();
           // real example we would pass a bbox
           map.render(map.extent(), 'png', function(err, buffer) {
               maps.release(stylesheet, map);

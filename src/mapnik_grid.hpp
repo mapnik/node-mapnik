@@ -29,6 +29,8 @@ class Grid: public node::ObjectWrap {
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
+    void _ref() { Ref(); }
+    void _unref() { Unref(); }
 
     Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution);
     Grid(grid_ptr this_);
