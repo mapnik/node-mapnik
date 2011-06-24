@@ -24,7 +24,7 @@ exports['test features'] = function() {
         POP2005: 83039,
         REGION: 19,
         SUBREGION: 29,
-        UN: 28,
+        UN: 28
     });
 
     // loop over all of them to ensure the proper feature count
