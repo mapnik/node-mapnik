@@ -16,13 +16,14 @@ http.createServer(function(req, res) {
   var map = new mapnik.Map(256, 256);
   map.loadSync(path.join(__dirname, '../stylesheet.xml'));
   map.zoomAll();
-  map.render(map.extent(), 'png', function(err,buffer) {
+  var im = new mapnik.Image(map.width,map.height);
+  map.render(im, function(err,im) {
       if (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end(err.message);
       } else {
         res.writeHead(200, {'Content-Type': 'image/png'});
-        res.end(buffer);
+        res.end(im.encode('png'));
       }
   });
 }).listen(port);

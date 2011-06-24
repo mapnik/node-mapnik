@@ -47,8 +47,10 @@ map.fromStringSync(s);
 var dl = new get("http://pipes.yahoo.com/pipes/pipe.run?_id=313bef20b9a083d22241c59211b04a91&_render=json")
 dl.asString(function(err,str){
   // Loop through pub list
-  // WARNING - this API will change!
-  var pubs = JSON.parse(str).value.items[0].node;
+  var items = JSON.parse(str).value.items;
+  if (!items.length >= 1)
+      throw new Error("whoops looks like the data changed upstream and this demo no longer works");
+  var pubs = items[0].node;
   var pub;
   var next = function() {
       while (pub = pubs.pop()) {

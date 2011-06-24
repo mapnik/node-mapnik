@@ -26,7 +26,7 @@ s += '</Map>';
 
 // create map object
 var map = new mapnik.Map(256,256);
-map.from_string(s,'.');
+map.fromStringSync(s);
 
 // go get some arbitrary data that we can stream
 var shp = path.join(__dirname,'../data/world_merc');
@@ -45,13 +45,15 @@ var mem_datasource = new mapnik.MemoryDatasource(
 
 // build up memory datasource
 while (feat = featureset.next(true)) {
+    var e = feat.extent();
     // center longitude of polygon bbox
-    var x = (feat._extent[0]+feat._extent[2])/2;
+    var x = (e[0]+e[2])/2;
     // center latitude of polygon bbox
-    var y = (feat._extent[1]+feat._extent[3])/2;
+    var y = (e[1]+e[3])/2;
+    var attr = feat.attributes();
     mem_datasource.add({ 'x'          : x,
                          'y'          : y,
-                         'properties' : { 'feat_id':feat.__id__, 'NAME':feat.NAME,'POP2005':feat.POP2005 }
+                         'properties' : { 'feat_id':feat.id(), 'NAME':attr.NAME,'POP2005':attr.POP2005 }
                        });
 }
 
@@ -76,24 +78,15 @@ map.zoomAll();
 // render it! You should see a bunch of red and blue points reprenting
 map.renderFileSync('memory_points.png');
 
-if (mapnik.supports.grid) {
-    var options = { resolution:4,
-                    key:'feat_id',
-                    fields: ['POP2005','NAME','feat_id']
-                  };
-    map.render_grid(0,options,function(err, data) {
-                          if (err) throw err;
-                          fs.writeFileSync('memory_points.json',JSON.stringify(data));
-                          });
-} else {
-    map._render_grid(
-        0,
-        4,
-        'feat_id',
-        true,
-        ['POP2005','NAME','feat_id'], function(err, data) {
-            if (err) throw err;
-            fs.writeFileSync('memory_points.json',JSON.stringify(data));
-        });
-}
+var options = {
+    layer:0,
+    fields: ['POP2005','NAME','feat_id']
+    };
+
+var grid = new mapnik.Grid(map.width,map.height,{key:'feat_id'});
+map.render(grid,options,function(err, grid) {
+    if (err) throw err;
+    fs.writeFileSync('memory_points.json',JSON.stringify(grid.encode('utf',{resolution:4})));
+});
+
 console.log('rendered to memory_points.png and memory_points.json' );

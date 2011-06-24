@@ -130,7 +130,9 @@ http.createServer(function(req, res) {
                       l.styles = ["style"];
                       l.datasource = mem_ds;
                       map.add_layer(l);
-                      map.render(bbox, 'png', function(err, buffer) {
+                      map.extent = bbox;
+                      var im = new mapnik.Image(map.width,map.height);
+                      map.render(im, function(err, im) {
                           if (err) {
                               res.writeHead(500, {
                                 'Content-Type': 'text/plain'
@@ -140,7 +142,7 @@ http.createServer(function(req, res) {
                               res.writeHead(200, {
                                 'Content-Type': 'image/png'
                               });
-                              res.end(buffer);
+                              res.end(im.encode('png'));
                           }
                       });
                   }

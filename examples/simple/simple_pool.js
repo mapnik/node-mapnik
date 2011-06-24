@@ -52,7 +52,8 @@ http.createServer(function(req, res) {
           // zoom to full extent
           map.zoomAll();
           // real example we would pass a bbox
-          map.render(map.extent(), 'png', function(err, buffer) {
+          var im = new mapnik.Image(map.width,map.height);
+          map.render(im, function(err, im) {
               maps.release(stylesheet, map);
               if (err) {
                   res.writeHead(500, {
@@ -63,7 +64,7 @@ http.createServer(function(req, res) {
                   res.writeHead(200, {
                     'Content-Type': 'image/png'
                   });
-                  res.end(buffer);
+                  res.end(im.encode('png'));
               }
           });
       }

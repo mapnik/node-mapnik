@@ -32,7 +32,6 @@ for (i = 0; i < pool_size; i++) {
     var map = new mapnik.Map(256, 256);
     map.loadSync(stylesheet);
     console.log('adding new map to pool: ' + i);
-    map.buffer_size(128);
     render_pool[i] = map;
 }
 
@@ -50,9 +49,9 @@ function get_map()
 }
 
 http.createServer(function(req, res) {
-  var query = url.parse(req.url, true).query;
-  if (query && query.BBOX !== undefined) {
-      var bbox = query.BBOX.split(',');
+  var query = url.parse(req.url.toLowerCase(), true).query
+  if (query && query.bbox !== undefined) {
+      var bbox = query.bbox.split(',');
       res.writeHead(200, {'Content-Type': 'image/png'});
       var map;
 
@@ -61,8 +60,7 @@ http.createServer(function(req, res) {
       }
       else {
           map = new mapnik.Map(256, 256);
-          map.load(stylesheet);
-          map.buffer_size(128);
+          map.loadSync(stylesheet);
       }
 
       if (query.width !== undefined && query.height !== undefined) {
@@ -70,14 +68,17 @@ http.createServer(function(req, res) {
       }
 
       if (async_render) {
-          map.render(bbox, 'png', function(err, image) {
+          var im = new mapnik.Image(map.width,map.height);
+          map.bufferSize = 128;
+          map.extent = bbox;
+          map.render(im, function(err, im) {
               if (err) {
                   res.writeHead(500, {
                     'Content-Type': 'text/plain'
                   });
                   res.end(err.message);
               } else {
-                  res.end(image);
+                  res.end(im.encode('png'));
               }
           });
       }
@@ -90,7 +91,7 @@ http.createServer(function(req, res) {
       res.writeHead(200, {
         'Content-Type': 'text/html'
       });
-      res.end('No BBOX provided! Try a request like <a href="http://127.0.0.1:' + port + '/?BBOX=-20037508.34,-5009377.085697313,-5009377.08569731,15028131.25709193">this</a>');
+      res.end('No bbox provided! Try a request like <a href="http://127.0.0.1:' + port + '/?BBOX=-20037508.34,-5009377.085697313,-5009377.08569731,15028131.25709193">this</a>');
   }
 }).listen(port);
 

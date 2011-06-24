@@ -36,16 +36,17 @@ var server = connect.createServer(
         // create map
         var map = new mapnik.Map(256, 256, mercator.proj4);
         map.load(stylesheet, {strict:true}, function(err, map) {
-            map.zoomAll();
                       
             // render map
-            map.render(bbox, 'png', function(err, buffer) {
+            var im = new mapnik.Image(map.width,map.height);
+            map.extent = bbox;
+            map.render(im, function(err, im) {
               if (err) {
                 throw err;
               } else {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'image/png');        
-                res.end(buffer);            
+                res.end(im.encode('png'));            
               }
             });
         });

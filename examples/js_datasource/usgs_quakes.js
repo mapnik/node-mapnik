@@ -46,7 +46,7 @@ s += '</Map>';
 var map  = new mapnik.Map(800,600);
 var merc = new mapnik.Projection('+init=epsg:3857');
 map.loadSync(path.join(__dirname, '../stylesheet.xml'));
-map.from_string(s,'.');
+map.fromStringSync(s);
 
 // Latest 30 days of earthquakes > 2.5 from USGS (http://earthquake.usgs.gov/earthquakes/catalogs/) 
 // CSV munged into json using Yahoo pipes

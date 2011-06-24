@@ -32,7 +32,7 @@ var aquire = function(id,options,callback) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
                 obj.load(id,{strict:true},function(err,obj) {
                     if (err) callback(err,null);
-                    if (options.buffer_size) obj.buffer_size(options.buffer_size);
+                    if (options.bufferSize) obj.bufferSize = options.bufferSize;
                     cb(obj)
                 })
             },
@@ -55,19 +55,16 @@ http.createServer(function(req, res) {
   res.writeHead(500, {
     'Content-Type': 'text/plain'
   });
-  if (query &&
-      (query.bbox !== undefined) &&
-      (query.width !== undefined) &&
-      (query.height !== undefined)) {
+  if (query && query.bbox !== undefined) {
 
       var bbox = query.bbox.split(',');
-      var options = {width: parseInt(query.width), height: parseInt(query.height)};
-      options.size = 50;
       aquire(stylesheet, {}, function(err,map) {
           if (err) {
               res.end(err.message);
           } else {
-              map.render(bbox, 'png', function(err, buffer) {
+              var im = new mapnik.Image(map.width,map.height);
+              map.extent = bbox;
+              map.render(im,function(err, im) {
                   maps.release(stylesheet, map);
                   if (err) {
                       res.end(err.message);
@@ -75,15 +72,17 @@ http.createServer(function(req, res) {
                       res.writeHead(200, {
                         'Content-Type': 'image/png'
                       });
-                      res.end(buffer);
+                      res.end(im.encode('png'));
                   }
               });
           }
 
       });
-  }
-  else {
-    res.end('something was not provided!');
+  } else {
+      res.writeHead(200, {
+        'Content-Type': 'text/html'
+      });
+      res.end('No BBOX provided! Try a request like <a href="http://127.0.0.1:' + port + '/?bbox=-20037508.34,-5009377.085697313,-5009377.08569731,15028131.25709193">this</a>');
   }
 }).listen(port);
 
