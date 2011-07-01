@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var path = require('path');
+var fs = require('fs');
 
 var usage = 'usage:';
 usage += '\n  mapnik-inspect.js <datasource> (.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
@@ -60,7 +61,11 @@ else if (/.xml$/.test(obj)) {
 }
 else if (/.prj$/.test(obj)) {
     var srs = require('srs');
-    console.log(srs.parse(obj));
+    var string = fs.readFileSync(obj).toString();
+    var srs_obj = srs.parse(string);
+    if (!srs_obj.proj4)
+       srs_obj = srs.parse('ESRI::' + string);
+    console.log(srs_obj);
 }
 else if (/.zip$/.test(obj)) {
     var zip = require('zipfile');
