@@ -17,13 +17,10 @@ var mapnik = require('mapnik')
   , TMS_SCHEME = false;
 
 var postgis_settings = {
-  'dbname'          : 'YOUR DATABASE',
-  'table'           : 'YOUR TABLE',
+  'dbname'          : 'test2',
+  'table'           : 'world_merc',
   'user'            : 'postgres',
-  'host'            : '127.0.0.1',
   'type'            : 'postgis',
-  'geometry_field'  : 'YOUR GEOMETRY FIELD (normally the_geom)',
-  'srid'            : 'YOUR GEOMETRY SRID (web mercator is 3785)',
   'extent'          : '-20005048.4188,-9039211.13765,19907487.2779,17096598.5401',  //change this if not merc  
   'max_size'        : 1    
 };
@@ -45,19 +42,21 @@ http.createServer(function(req, res) {
         layer.datasource = postgis;
         layer.styles     = ['point'];
         
-        map.buffer_size(50);
-        map.load('point_vector.xml', {strict:true}, function(err,map) {
+        map.bufferSize = 64;
+        map.load(path.join(__dirname,'point_vector.xml'), {strict:true}, function(err,map) {
             if (err) throw err;
             map.add_layer(layer);
     
             // console.log(map.toXML()); // Debug settings
             
-            map.render(bbox, 'png', function(err, buffer) {
+            map.extent = bbox;
+            var im = new mapnik.Image(map.width,map.height);
+            map.render(im, function(err, im) {
               if (err) {
                 throw err;
               } else {
                 res.writeHead(200, {'Content-Type': 'image/png'});
-                res.end(buffer);            
+                res.end(im.encode('png'));
               }
             });
         });

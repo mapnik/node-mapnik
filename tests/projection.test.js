@@ -8,8 +8,8 @@ exports['test projection creation'] = function() {
         /failed to initialize projection with:\+init=epsg:foo/);
     assert.throws(function() { new mapnik.Projection('+proj +foo'); },
         /failed to initialize projection with:\+proj \+foo/);
-    
-    
+
+
     var wgs84 = new mapnik.Projection('+init=epsg:4326');
     assert.ok(wgs84 instanceof mapnik.Projection);
 };

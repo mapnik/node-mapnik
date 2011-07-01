@@ -75,12 +75,14 @@ var feat;
 var next = function() {
     while (feat = featureset.next(true)) {
         // center longitude of polygon bbox
-        var x = (feat._extent[0]+feat._extent[2])/2;
+        var e = feat.extent();
+        var x = (e[0]+e[2])/2;
         // center latitude of polygon bbox
-        var y = (feat._extent[1]+feat._extent[3])/2;
+        var y = (e[1]+e[3])/2;
+        var attr = feat.attributes();
         return { 'x'          : x,
                  'y'          : y,
-                 'properties' : { 'NAME':feat.NAME,'POP2005':feat.POP2005 }
+                 'properties' : { 'NAME':attr.NAME,'POP2005':attr.POP2005 }
                };
     }
 }

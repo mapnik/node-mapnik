@@ -646,42 +646,47 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     HandleScope scope;
     if (!args.Length() >= 1) {
         return ThrowException(Exception::TypeError(
-        String::New("Accepts 2 arguments: stylesheet string and options")));
+        String::New("Accepts 2 arguments: stylesheet string and an optional options")));
     }
 
     if (!args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a mapnik stylesheet string")));
 
-    // ensure options object
-    if (!args[1]->IsObject())
-        return ThrowException(Exception::TypeError(
-          String::New("options must be an object, eg {strict: true, base: \".\"'}")));
 
-    Local<Object> options = args[1]->ToObject();
-
+    // defaults
     bool strict = false;
-    Local<String> param = String::New("strict");
-    if (options->Has(param))
-    {
-        Local<Value> param_val = options->Get(param);
-        if (!param_val->IsBoolean())
-          return ThrowException(Exception::TypeError(
-            String::New("'strict' must be a Boolean")));
-        strict = param_val->BooleanValue();
-    }
-
     std::string base_path("");
-    param = String::New("base");
-    if (options->Has(param))
-    {
-        Local<Value> param_val = options->Get(param);
-        if (!param_val->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("'base' must be a string representing a filesystem path")));
-        base_path = TOSTR(param_val);
-    }
 
+    if (args.Length() >= 2) {
+        // ensure options object
+        if (!args[1]->IsObject())
+            return ThrowException(Exception::TypeError(
+              String::New("options must be an object, eg {strict: true, base: \".\"'}")));
+    
+        Local<Object> options = args[1]->ToObject();
+    
+        Local<String> param = String::New("strict");
+        if (options->Has(param))
+        {
+            Local<Value> param_val = options->Get(param);
+            if (!param_val->IsBoolean())
+              return ThrowException(Exception::TypeError(
+                String::New("'strict' must be a Boolean")));
+            strict = param_val->BooleanValue();
+        }
+    
+        param = String::New("base");
+        if (options->Has(param))
+        {
+            Local<Value> param_val = options->Get(param);
+            if (!param_val->IsString())
+              return ThrowException(Exception::TypeError(
+                String::New("'base' must be a string representing a filesystem path")));
+            base_path = TOSTR(param_val);
+        }
+    }
+    
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     std::string const& stylesheet = TOSTR(args[0]);

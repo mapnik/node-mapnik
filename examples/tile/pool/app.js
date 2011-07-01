@@ -75,7 +75,9 @@ http.createServer(function(req, res) {
                     // bbox for x,y,z
                     var bbox = mercator.xyz_to_envelope(params.x, params.y, params.z, TMS_SCHEME);
       
-                    map.render(bbox, 'png', function(err, buffer) {
+                    map.extent = bbox;
+                    var im = new mapnik.Image(map.width,map.height);
+                    map.render(im, function(err, im) {
                         maps.release(stylesheet, map);
                         if (err) {
                             res.writeHead(500, {
@@ -86,7 +88,7 @@ http.createServer(function(req, res) {
                             res.writeHead(200, {
                               'Content-Type': 'image/png'
                             });
-                            res.end(buffer);
+                            res.end(im.encode('png'));
                         }
                     });
                 }
