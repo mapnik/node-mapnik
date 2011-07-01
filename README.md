@@ -92,8 +92,8 @@
 
   To run the expresso tests first install expresso and step.
   
-     $ npm install -g expresso
-     $ npm install -g step
+    $ npm install -g expresso
+    $ npm install -g step
   
   Then run:
   
