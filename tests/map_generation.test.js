@@ -48,15 +48,12 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
     map.extent = map.extent;
     var im = new mapnik.Image(map.width, map.height);
     map.render(im, {scale: 1}, function(err, image) {
-        completed = true;
+        assert.ok(image);
         assert.ok(!err);
         var buffer = im.encode('png');
         //assert.equal(helper.md5(buffer), 'ef33223235b26c782736c88933b35331');
     });
 
-    beforeExit(function() {
-        assert.ok(completed);
-    });
 };
 
 exports['test loading a stylesheet'] = function(beforeExit) {
