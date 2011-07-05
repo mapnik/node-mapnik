@@ -8,8 +8,7 @@ exports['test color creation'] = function(beforeExit) {
     // invalid args
     assert.throws(function() { new mapnik.Color(); });
     assert.throws(function() { new mapnik.Color(1); });
-    // todo - fix mapnik upstream to actually throw
-    //assert.throws(function() { new mapnik.Color('foo'); });
+    assert.throws(function() { new mapnik.Color('foo'); });
 
     var c = new mapnik.Color('green');
     assert.equal(c.r, 0);
