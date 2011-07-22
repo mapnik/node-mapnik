@@ -52,7 +52,21 @@ Handle<Value> Featureset::next(const Arguments& args)
     Featureset* fs = ObjectWrap::Unwrap<Featureset>(args.This());
 
     if (fs->this_) {
-        mapnik::feature_ptr fp = fs->this_->next();
+        mapnik::feature_ptr fp;
+        try
+        {
+             fp = fs->this_->next();
+        }
+        catch (const std::exception & ex)
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
+        catch (...)
+        {
+            return ThrowException(Exception::Error(
+              String::New("unknown exception happened when accessing a feature with next(), please file bug")));
+        }
         if (fp) {
             return scope.Close(Feature::New(fp));
         }

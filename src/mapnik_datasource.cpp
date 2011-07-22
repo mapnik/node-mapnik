@@ -151,6 +151,11 @@ Handle<Value> Datasource::describe(const Arguments& args)
         return ThrowException(Exception::Error(
           String::New(ex.what())));
     }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened describing datasource, please file bug")));
+    }
 
     return scope.Close(description);
 }
@@ -185,6 +190,11 @@ Handle<Value> Datasource::features(const Arguments& args)
         return ThrowException(Exception::Error(
           String::New(ex.what())));
     }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened slicing datasource, please file bug")));
+    }
 
     return scope.Close(a);
 }
@@ -196,20 +206,20 @@ Handle<Value> Datasource::featureset(const Arguments& args)
 
     Datasource* ds = ObjectWrap::Unwrap<Datasource>(args.This());
 
-    mapnik::query q(ds->datasource_->envelope());
-    mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
-    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-    while (itr != end)
-    {
-        q.add_property_name(itr->get_name());
-        ++itr;
-    }
-
     mapnik::featureset_ptr fs;
     try
     {
+        mapnik::query q(ds->datasource_->envelope());
+        mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
+        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+        while (itr != end)
+        {
+            q.add_property_name(itr->get_name());
+            ++itr;
+        }
+        
         fs = ds->datasource_->features(q);
     }
     catch (const std::exception & ex)
@@ -220,7 +230,7 @@ Handle<Value> Datasource::featureset(const Arguments& args)
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+          String::New("unknown exception happened getting featureset, please file bug")));
     }
 
     if (fs)
