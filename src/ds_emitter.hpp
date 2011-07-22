@@ -19,116 +19,130 @@ namespace node_mapnik {
 
 static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
 {
-
-    // todo collect active attributes in styles
-    /*
-    std::vector<std::string> const& style_names = layer.styles();
-    Local<Array> s = Array::New(style_names.size());
-    for (unsigned i = 0; i < style_names.size(); ++i)
+    try
     {
-        s->Set(i, String::New(style_names[i].c_str()) );
-    }
-    meta->Set(String::NewSymbol("styles"), s );
-    */
-
-    // type
-    if (ds->type() == mapnik::datasource::Raster)
-    {
-        description->Set(String::NewSymbol("type"), String::New("raster"));
-    }
-    else
-    {
-        description->Set(String::NewSymbol("type"), String::New("vector"));
-    }
-
-    // extent
-    Local<Array> a = Array::New(4);
-    mapnik::box2d<double> e = ds->envelope();
-    a->Set(0, Number::New(e.minx()));
-    a->Set(1, Number::New(e.miny()));
-    a->Set(2, Number::New(e.maxx()));
-    a->Set(3, Number::New(e.maxy()));
-    description->Set(String::NewSymbol("extent"), a);
-
-    mapnik::layer_descriptor ld = ds->get_descriptor();
-
-    // encoding
-    description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
-
-    // field names and types
-    Local<Object> fields = Object::New();
-    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-    while (itr != end)
-    {
-        int field_type = itr->get_type();
-        std::string type("");
-        if (field_type == 1) type = "Number";
-        else if (field_type == 2) type = "Number";
-        else if (field_type == 3) type = "Number";
-        else if (field_type == 4) type = "String";
-        else if (field_type == 5) type = "Geometry";
-        else if (field_type == 6) type = "Mapnik Object";
-        fields->Set(String::NewSymbol(itr->get_name().c_str()),String::New(type.c_str()));
-        ++itr;
-    }
-    description->Set(String::NewSymbol("fields"), fields);
-
-    // get first geometry type using naive first hit approach
-    // TODO proper approach --> https://trac.mapnik.org/ticket/701
-#if MAPNIK_VERSION >= 800
-    mapnik::query q(ds->envelope());
-#else
-    mapnik::query q(ds->envelope(),1.0,1.0);
-#endif
-
-    mapnik::featureset_ptr fs = ds->features(q);
-    description->Set(String::NewSymbol("geometry_type"), Undefined());
-    description->Set(String::NewSymbol("has_features"), Boolean::New(false));
-
-    if (fs)
-    {
-        mapnik::feature_ptr fp = fs->next();
-        if (fp) {
-
-            description->Set(String::NewSymbol("has_features"), Boolean::New(true));
-            if (fp->num_geometries() > 0)
-            {
-                mapnik::geometry_type const& geom = fp->get_geometry(0);
-                mapnik::eGeomType g_type = geom.type();
-                switch (g_type)
+        // todo collect active attributes in styles
+        /*
+        std::vector<std::string> const& style_names = layer.styles();
+        Local<Array> s = Array::New(style_names.size());
+        for (unsigned i = 0; i < style_names.size(); ++i)
+        {
+            s->Set(i, String::New(style_names[i].c_str()) );
+        }
+        meta->Set(String::NewSymbol("styles"), s );
+        */
+    
+        // type
+        if (ds->type() == mapnik::datasource::Raster)
+        {
+            description->Set(String::NewSymbol("type"), String::New("raster"));
+        }
+        else
+        {
+            description->Set(String::NewSymbol("type"), String::New("vector"));
+        }
+    
+        // extent
+        Local<Array> a = Array::New(4);
+        mapnik::box2d<double> e = ds->envelope();
+        a->Set(0, Number::New(e.minx()));
+        a->Set(1, Number::New(e.miny()));
+        a->Set(2, Number::New(e.maxx()));
+        a->Set(3, Number::New(e.maxy()));
+        description->Set(String::NewSymbol("extent"), a);
+    
+        mapnik::layer_descriptor ld = ds->get_descriptor();
+    
+        // encoding
+        description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
+    
+        // field names and types
+        Local<Object> fields = Object::New();
+        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+        while (itr != end)
+        {
+            unsigned field_type = itr->get_type();
+            std::string type("");
+            if (field_type == mapnik::Integer) type = "Number";
+            else if (field_type == mapnik::Float) type = "Number";
+            else if (field_type == mapnik::Double) type = "Number";
+            else if (field_type == mapnik::String) type = "String";
+            else if (field_type == mapnik::Boolean) type = "Boolean";
+            else if (field_type == mapnik::Geometry) type = "Geometry";
+            else if (field_type == mapnik::Object) type = "Object";
+            else type = "Unknown";
+            fields->Set(String::NewSymbol(itr->get_name().c_str()),String::New(type.c_str()));
+            ++itr;
+        }
+        description->Set(String::NewSymbol("fields"), fields);
+    
+        // get first geometry type using naive first hit approach
+        // TODO proper approach --> https://trac.mapnik.org/ticket/701
+    #if MAPNIK_VERSION >= 800
+        mapnik::query q(ds->envelope());
+    #else
+        mapnik::query q(ds->envelope(),1.0,1.0);
+    #endif
+    
+        mapnik::featureset_ptr fs = ds->features(q);
+        description->Set(String::NewSymbol("geometry_type"), Undefined());
+        description->Set(String::NewSymbol("has_features"), Boolean::New(false));
+    
+        if (fs)
+        {
+            mapnik::feature_ptr fp = fs->next();
+            if (fp) {
+    
+                description->Set(String::NewSymbol("has_features"), Boolean::New(true));
+                if (fp->num_geometries() > 0)
                 {
-                    case mapnik::Point:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("point"));
-                       break;
-  
-                    case mapnik::MultiPoint:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("multipoint"));
-                       break;
-                       
-                    case mapnik::Polygon:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
-                       break;
-  
-                    case mapnik::MultiPolygon:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("multipolygon"));
-                       break;
-
-                    case mapnik::LineString:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
-                       break;
-  
-                    case mapnik::MultiLineString:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("multilinestring"));
-                       break;
-                       
-                    default:
-                       description->Set(String::NewSymbol("geometry_type"), String::New("unknown"));
-                       break;
+                    mapnik::geometry_type const& geom = fp->get_geometry(0);
+                    mapnik::eGeomType g_type = geom.type();
+                    switch (g_type)
+                    {
+                        case mapnik::Point:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("point"));
+                           break;
+      
+                        case mapnik::MultiPoint:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("multipoint"));
+                           break;
+                           
+                        case mapnik::Polygon:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
+                           break;
+      
+                        case mapnik::MultiPolygon:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("multipolygon"));
+                           break;
+    
+                        case mapnik::LineString:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
+                           break;
+      
+                        case mapnik::MultiLineString:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("multilinestring"));
+                           break;
+                           
+                        default:
+                           description->Set(String::NewSymbol("geometry_type"), String::New("unknown"));
+                           break;
+                    }
                 }
             }
         }
+    }
+    catch (const std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened when calling describe_datasource, please file bug")));
     }
 }
 
@@ -136,50 +150,64 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
 static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsigned first, unsigned last)
 {
 
-#if MAPNIK_VERSION >= 800
-    mapnik::query q(ds->envelope());
-#else
-    mapnik::query q(ds->envelope(),1.0,1.0);
-#endif
-
-    mapnik::layer_descriptor ld = ds->get_descriptor();
-    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-    while (itr != end)
+    try
     {
-        q.add_property_name(itr->get_name());
-        ++itr;
-    }
-
-    mapnik::featureset_ptr fs = ds->features(q);
-    if (fs)
-    {
-        mapnik::feature_ptr fp;
-        unsigned idx = 0;
-        while ((fp = fs->next()))
-        {
-            if  ((idx >= first) && (idx <= last || last == 0)) {
-                std::map<std::string,mapnik::value> const& fprops = fp->props();
-                Local<Object> feat = Object::New();
-                std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-                std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-                for (; it != end; ++it)
-                {
-                    node_mapnik::params_to_object serializer( feat , it->first);
-                    // need to call base() since this is a mapnik::value
-                    // not a mapnik::value_holder
-                    boost::apply_visitor( serializer, it->second.base() );
-                }
-
-                // add feature id
-                feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
+    #if MAPNIK_VERSION >= 800
+        mapnik::query q(ds->envelope());
+    #else
+        mapnik::query q(ds->envelope(),1.0,1.0);
+    #endif
     
-                a->Set(idx, feat);
+        mapnik::layer_descriptor ld = ds->get_descriptor();
+        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+        while (itr != end)
+        {
+            q.add_property_name(itr->get_name());
+            ++itr;
+        }
+    
+        mapnik::featureset_ptr fs = ds->features(q);
+        if (fs)
+        {
+            mapnik::feature_ptr fp;
+            unsigned idx = 0;
+            while ((fp = fs->next()))
+            {
+                if  ((idx >= first) && (idx <= last || last == 0)) {
+                    std::map<std::string,mapnik::value> const& fprops = fp->props();
+                    Local<Object> feat = Object::New();
+                    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
+                    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
+                    for (; it != end; ++it)
+                    {
+                        node_mapnik::params_to_object serializer( feat , it->first);
+                        // need to call base() since this is a mapnik::value
+                        // not a mapnik::value_holder
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
+    
+                    // add feature id
+                    feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
+        
+                    a->Set(idx, feat);
+                }
+                ++idx;
             }
-            ++idx;
         }
     }
+    catch (const std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened when calling datasource_features, please file bug")));
+    }
+
 }
 
 /*
