@@ -136,12 +136,12 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     }
     catch (const std::exception & ex)
     {
-        return ThrowException(Exception::Error(
+        ThrowException(Exception::Error(
           String::New(ex.what())));
     }
     catch (...)
     {
-        return ThrowException(Exception::Error(
+        ThrowException(Exception::Error(
           String::New("unknown exception happened when calling describe_datasource, please file bug")));
     }
 }
@@ -199,12 +199,12 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
     }
     catch (const std::exception & ex)
     {
-        return ThrowException(Exception::Error(
+        ThrowException(Exception::Error(
           String::New(ex.what())));
     }
     catch (...)
     {
-        return ThrowException(Exception::Error(
+        ThrowException(Exception::Error(
           String::New("unknown exception happened when calling datasource_features, please file bug")));
     }
 
