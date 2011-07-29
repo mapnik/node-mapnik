@@ -48,7 +48,7 @@
 
   node (development headers) >= v0.2.3
   
-  mapnik 2.0 / (latest trunk >= r3023)
+  mapnik 2.0 / (latest trunk >= r3055)
   
   node-pool for some examples (npm install -g generic-pool)
   

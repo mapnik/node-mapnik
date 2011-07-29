@@ -77,6 +77,20 @@ static inline Handle<Value> available_font_faces(const Arguments& args)
     return scope.Close(a);
 }
 
+static inline Handle<Value> available_font_files(const Arguments& args)
+{
+    HandleScope scope;
+    std::map<std::string,std::string> const& mapping = mapnik::freetype_engine::get_mapping();
+    Local<Object> obj = Object::New();
+    std::map<std::string,std::string>::const_iterator itr;
+    for (itr = mapping.begin();itr!=mapping.end();++itr)
+    {
+        obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.c_str()));
+    }
+    return scope.Close(obj);
+}
+
+
 }
 
 #endif // __NODE_MAPNIK_FONTS_H__

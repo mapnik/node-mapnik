@@ -34,7 +34,7 @@ if os.environ.has_key('JOBS'):
 def write_mapnik_settings(fonts='',input_plugins=''):
     open(settings,'w').write(settings_template % (fonts,input_plugins))
 
-def ensure_min_mapnik_revision(conf,revision=2397):
+def ensure_min_mapnik_revision(conf,revision=3055):
     # mapnik-config was basically written for node-mapnik
     # so a variety of kinks mean that we need a very
     # recent version for things to work properly
