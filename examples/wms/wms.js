@@ -78,7 +78,7 @@ http.createServer(function(req, res) {
                   });
                   res.end(err.message);
               } else {
-                  res.end(im.encode('png'));
+                  res.end(im.encodeSync('png'));
               }
           });
       }

@@ -13,7 +13,7 @@ var im = new mapnik.Image(256,256)
 
 http.createServer(function(req, res) {
     res.writeHead(200, {'Content-Type': 'image/png'});
-    res.end(im.encode("png8"));
+    res.end(im.encodeSync("png8"));
 }).listen(port);
 
 console.log("server running on port " + port);

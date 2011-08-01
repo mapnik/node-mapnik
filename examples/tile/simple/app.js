@@ -46,7 +46,7 @@ var server = connect.createServer(
               } else {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'image/png');        
-                res.end(im.encode('png'));            
+                res.end(im.encodeSync('png'));
               }
             });
         });

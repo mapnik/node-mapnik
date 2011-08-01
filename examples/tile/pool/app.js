@@ -88,7 +88,7 @@ http.createServer(function(req, res) {
                             res.writeHead(200, {
                               'Content-Type': 'image/png'
                             });
-                            res.end(im.encode('png'));
+                            res.end(im.encodeSync('png'));
                         }
                     });
                 }

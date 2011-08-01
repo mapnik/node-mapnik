@@ -21,7 +21,7 @@ app.get('/', function(req, res) {
         res.contentType('.txt');
         res.send(err.message);
       } else {
-        res.send(im.encode('png'), {'Content-Type': 'image/png'});
+        res.send(im.encodeSync('png'), {'Content-Type': 'image/png'});
       }
   });
 })
