@@ -50,7 +50,7 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
     map.render(im, {scale: 1}, function(err, image) {
         assert.ok(image);
         assert.ok(!err);
-        var buffer = im.encode('png');
+        var buffer = im.encodeSync('png');
         //assert.equal(helper.md5(buffer), 'ef33223235b26c782736c88933b35331');
     });
 

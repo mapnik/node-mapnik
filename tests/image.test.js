@@ -24,7 +24,7 @@ exports['test images'] = function(beforeExit) {
     assert.ok(v instanceof mapnik.ImageView);
     assert.equal(v.width(), 256);
     assert.equal(v.height(), 256);
-    assert.equal(im.encode().length, v.encode().length);
+    assert.equal(im.encodeSync().length, v.encodeSync().length);
 
     im.save('tests/tmp/image.png');
 
@@ -34,6 +34,6 @@ exports['test images'] = function(beforeExit) {
     assert.equal(im2.width(), 256);
     assert.equal(im2.height(), 256);
 
-    assert.equal(im.encode().length, im2.encode().length);
+    assert.equal(im.encodeSync().length, im2.encodeSync().length);
 
 };
