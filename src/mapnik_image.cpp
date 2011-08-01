@@ -30,6 +30,7 @@ void Image::Initialize(Handle<Object> target) {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Image"));
 
+    NODE_SET_PROTOTYPE_METHOD(constructor, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "view", view);
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
@@ -178,7 +179,7 @@ Handle<Value> Image::open(const Arguments& args)
 
 }
 
-Handle<Value> Image::encode(const Arguments& args)
+Handle<Value> Image::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
@@ -212,9 +213,107 @@ Handle<Value> Image::encode(const Arguments& args)
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened when encoding image: please file bug report")));    
+          String::New("unknown exception happened when encoding image: please file bug report")));
+    }
+}
+
+typedef struct {
+    Image* im;
+    boost::shared_ptr<mapnik::image_32> image;
+    std::string format;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+    std::string result;
+} encode_image_baton_t;
+
+Handle<Value> Image::encode(const Arguments& args)
+{
+    HandleScope scope;
+
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+
+    std::string format = "png8"; //default to 256 colors
+
+    // accept custom format
+    if (args.Length() >= 1){
+        if (!args[0]->IsString())
+          return ThrowException(Exception::TypeError(
+            String::New("first arg, 'format' must be a string")));
+        format = TOSTR(args[0]);
     }
 
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+
+    encode_image_baton_t *closure = new encode_image_baton_t();
+
+    closure->im = im;
+    closure->image = im->this_;
+    closure->format = format;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    eio_custom(EIO_Encode, EIO_PRI_DEFAULT, EIO_AfterEncode, closure);
+    ev_ref(EV_DEFAULT_UC);
+    im->Ref();
+
+    return Undefined();
+}
+
+int Image::EIO_Encode(eio_req* req)
+{
+    encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
+
+    try {
+        closure->result = save_to_string(*(closure->image), closure->format);
+    }
+    catch (std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "unknown exception happened when encoding image: please file bug report";
+    }
+    return 0;
+}
+
+int Image::EIO_AfterEncode(eio_req* req)
+{
+    HandleScope scope;
+
+    encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
+    ev_unref(EV_DEFAULT_UC);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        #if NODE_VERSION_AT_LEAST(0,3,0)
+        node::Buffer *retbuf = Buffer::New((char*)closure->result.data(),closure->result.size());
+        #else
+        node::Buffer *retbuf = Buffer::New(closure->result.size());
+        memcpy(retbuf->data(), closure->result.data(), closure->result.size());
+        #endif
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    closure->im->Unref();
+    closure->cb.Dispose();
+    delete closure;
+    return 0;
 }
 
 Handle<Value> Image::view(const Arguments& args)

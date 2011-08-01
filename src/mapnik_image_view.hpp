@@ -21,7 +21,12 @@ class ImageView: public node::ObjectWrap {
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> New(boost::shared_ptr<mapnik::image_32> image_ptr,
           unsigned x,unsigned y, unsigned w, unsigned h);
+
+    static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
+    static int EIO_Encode(eio_req *req);
+    static int EIO_AfterEncode(eio_req *req);
+
     //static Handle<Value> view(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);

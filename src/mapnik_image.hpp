@@ -17,7 +17,12 @@ class Image: public node::ObjectWrap {
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
+
+    static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
+    static int EIO_Encode(eio_req *req);
+    static int EIO_AfterEncode(eio_req *req);
+
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> view(const Arguments &args);
