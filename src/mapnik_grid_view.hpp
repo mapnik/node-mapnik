@@ -20,6 +20,7 @@ class GridView: public node::ObjectWrap {
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> New(boost::shared_ptr<mapnik::grid> grid_ptr,
           unsigned x,unsigned y, unsigned w, unsigned h);
+    static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);

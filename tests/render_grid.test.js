@@ -20,20 +20,20 @@ exports['test simple_grid rendering'] = function(beforeExit) {
         map.render(grid, options, function(err, grid) {
             rendered = true;
             assert.ok(!err);
-            grid_utf = grid.encode('utf', {resolution: 4});
+            grid_utf = grid.encodeSync('utf', {resolution: 4});
             //fs.writeFileSync('./tests/support/grid2_.json',JSON.stringify(grid_utf))
             assert.equal(JSON.stringify(grid_utf), reference);
 
             // pull an identical view and compare it to original grid
             var gv = grid.view(0, 0, 256, 256);
-            gv_utf = gv.encode('utf', {resolution: 4});
+            gv_utf = gv.encodeSync('utf', {resolution: 4});
             assert.equal(JSON.stringify(gv_utf), reference);
 
             // pull a subsetted view (greenland basically)
             var gv2 = grid.view(64, 64, 64, 64);
             assert.equal(gv2.width(), 64);
             assert.equal(gv2.height(), 64);
-            gv_utf2 = gv2.encode('utf', {resolution: 4});
+            gv_utf2 = gv2.encodeSync('utf', {resolution: 4});
             //fs.writeFileSync('./tests/support/grid_view.json',JSON.stringify(gv_utf2),'utf8')
             assert.equal(JSON.stringify(gv_utf2), reference_view);
 

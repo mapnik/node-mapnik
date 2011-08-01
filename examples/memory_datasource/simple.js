@@ -86,7 +86,7 @@ var options = {
 var grid = new mapnik.Grid(map.width,map.height,{key:'feat_id'});
 map.render(grid,options,function(err, grid) {
     if (err) throw err;
-    fs.writeFileSync('memory_points.json',JSON.stringify(grid.encode('utf',{resolution:4})));
+    fs.writeFileSync('memory_points.json',JSON.stringify(grid.encodeSync('utf',{resolution:4})));
 });
 
 console.log('rendered to memory_points.png and memory_points.json' );

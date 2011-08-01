@@ -26,6 +26,7 @@ void GridView::Initialize(Handle<Object> target) {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("GridView"));
 
+    NODE_SET_PROTOTYPE_METHOD(constructor, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
@@ -95,7 +96,7 @@ Handle<Value> GridView::height(const Arguments& args)
 }
 
 
-Handle<Value> GridView::encode(const Arguments& args)
+Handle<Value> GridView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
@@ -181,4 +182,104 @@ Handle<Value> GridView::encode(const Arguments& args)
           String::New(ex.what())));
     }
 
+}
+
+Handle<Value> GridView::encode(const Arguments& args)
+{
+    HandleScope scope;
+
+    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+
+    // defaults
+    std::string format("utf");
+    unsigned int resolution = 4;
+    bool add_features = true;
+
+    // accept custom format
+    if (args.Length() >= 1){
+        if (!args[0]->IsString())
+          return ThrowException(Exception::TypeError(
+            String::New("first arg, 'format' must be a string")));
+        format = TOSTR(args[0]);
+    }
+
+    // options hash
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("resolution")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("resolution"));
+            if (!bind_opt->IsNumber())
+              return ThrowException(Exception::TypeError(
+                String::New("'resolution' must be an Integer")));
+
+            resolution = bind_opt->IntegerValue();
+        }
+
+        if (options->Has(String::New("features")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("features"));
+            if (!bind_opt->IsBoolean())
+              return ThrowException(Exception::TypeError(
+                String::New("'features' must be an Boolean")));
+
+            add_features = bind_opt->BooleanValue();
+        }
+    }
+
+    // ensure callback is a function
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+    Local<Function> callback = Local<Function>::Cast(args[args.Length()-1]);
+
+    try {
+
+        Local<Array> grid_array = Array::New();
+        std::vector<mapnik::grid_view::lookup_type> key_order;
+        node_mapnik::grid2utf<mapnik::grid_view>(*g->get(),grid_array,key_order,resolution);
+
+        // convert key order to proper javascript array
+        Local<Array> keys_a = Array::New(key_order.size());
+        std::vector<std::string>::iterator it;
+        unsigned int i;
+        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        {
+            keys_a->Set(i, String::New((*it).c_str()));
+        }
+
+        // gather feature data
+        Local<Object> feature_data = Object::New();
+        if (add_features) {
+            node_mapnik::write_features<mapnik::grid_view>(*g->get(),
+                           feature_data,
+                           key_order
+                           );
+        }
+
+        // Create the return hash.
+        Local<Object> json = Object::New();
+        json->Set(String::NewSymbol("grid"), grid_array);
+        json->Set(String::NewSymbol("keys"), keys_a);
+        json->Set(String::NewSymbol("data"), feature_data);
+
+        TryCatch try_catch;
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
+        callback->Call(Context::GetCurrent()->Global(), 2, argv);
+        if (try_catch.HasCaught()) {
+            FatalException(try_catch);
+        }
+    }
+    catch (std::exception & ex)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(ex.what())) };
+        callback->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+
+    return scope.Close(Undefined());
 }
