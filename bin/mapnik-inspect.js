@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 var path = require('path');
+var fs = require('fs');
 
 var usage = 'usage:';
-usage += '\n  mapnik-inspect.js <datasource> (.shp|.json|.geojson|.kml|.sqlite|.gml|.vrt|.csv)';
+usage += '\n  mapnik-inspect.js <datasource> (.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
 usage += '\n  mapnik-inspect.js <stylesheet> (.xml)';
 usage += '\n  mapnik-inspect.js <projection> (.prj)';
 usage += '\n  mapnik-inspect.js <zipfile> (.zip)';
@@ -30,6 +31,13 @@ if (/.shp$/.test(obj)) {
     console.log('First feature --> ');
     console.log(opened.features().slice(0,1));
 }
+else if (/.osm$/.test(obj)) {
+    var opened = new mapnik.Datasource({type: 'osm', file: obj});
+    console.log('Description -->');
+    console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0,1));
+}
 else if ((/.json$/.test(obj))
          || (/.geojson$/.test(obj))
          || (/.kml$/.test(obj))
@@ -48,12 +56,16 @@ else if ((/.json$/.test(obj))
 }
 else if (/.xml$/.test(obj)) {
     var map = new mapnik.Map(1,1);
-    map.load(obj);
+    map.loadSync(obj);
     console.log(map.layers());
 }
 else if (/.prj$/.test(obj)) {
     var srs = require('srs');
-    console.log(srs.parse(obj));
+    var string = fs.readFileSync(obj).toString();
+    var srs_obj = srs.parse(string);
+    if (!srs_obj.proj4)
+       srs_obj = srs.parse('ESRI::' + string);
+    console.log(srs_obj);
 }
 else if (/.zip$/.test(obj)) {
     var zip = require('zipfile');

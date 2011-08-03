@@ -13,16 +13,19 @@ var mapnik = require('mapnik')
 
 app.get('/', function(req, res) {
   var map = new mapnik.Map(256, 256);
-  map.load(path.join(__dirname, '../stylesheet.xml'));
-  map.zoom_all();
-  map.render(map.extent(), 'png', function(err,buffer) {
+  map.loadSync(path.join(__dirname, '../stylesheet.xml'));
+  map.zoomAll();
+  var im = new mapnik.Image(map.width,map.height);
+  map.render(im, function(err,im) {
       if (err) {       
         res.contentType('.txt');
         res.send(err.message);
       } else {
-        res.send(buffer, {'Content-Type': 'image/png'});
+        res.send(im.encodeSync('png'), {'Content-Type': 'image/png'});
       }
   });
-}).listen(port);
+})
+
+app.listen(port);
 
 console.log("server running on port " + port);

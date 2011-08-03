@@ -22,11 +22,11 @@ var aquire = function(id,options,callback) {
     methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                // catch problem loading map
-                try { obj.load(id) }
-                catch (err) { callback(err, null) }
-                if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                cb(obj);
+                obj.load(id,{strict:true},function(err,obj) {
+                    if (err) callback(err,null);
+                    if (options.buffer_size) obj.buffer_size(options.buffer_size);
+                    cb(obj)
+                })
             },
             destroy: function(obj) {
                 obj.clear();
@@ -50,9 +50,10 @@ http.createServer(function(req, res) {
           res.end(err.message);
       } else {
           // zoom to full extent
-          map.zoom_all();
+          map.zoomAll();
           // real example we would pass a bbox
-          map.render(map.extent(), 'png', function(err, buffer) {
+          var im = new mapnik.Image(map.width,map.height);
+          map.render(im, function(err, im) {
               maps.release(stylesheet, map);
               if (err) {
                   res.writeHead(500, {
@@ -63,7 +64,7 @@ http.createServer(function(req, res) {
                   res.writeHead(200, {
                     'Content-Type': 'image/png'
                   });
-                  res.end(buffer);
+                  res.end(im.encodeSync('png'));
               }
           });
       }

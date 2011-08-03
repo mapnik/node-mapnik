@@ -5,6 +5,12 @@
 #include <node.h>
 #include <node_object_wrap.h>
 
+// mapnik
+#include <mapnik/•.hpp>
+
+// boost
+#include <boost/shared_ptr.hpp>
+
 using namespace v8;
 using namespace node;
 

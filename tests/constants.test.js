@@ -2,7 +2,7 @@ var mapnik = require('mapnik');
 var assert = require('assert');
 var fs = require('fs');
 
-exports['test conpstants'] = function(beforeExit) {
+exports['test constants'] = function(beforeExit) {
     assert.ok(mapnik.settings);
     assert.ok(mapnik.settings.paths);
     assert.ok(mapnik.settings.paths.fonts.length);
@@ -23,5 +23,5 @@ exports['test conpstants'] = function(beforeExit) {
     assert.ok(mapnik.versions.boost_number);
 
     // make sure we have some
-    assert.ok(mapnik.datasources().length > 1);
+    assert.ok(mapnik.datasources().length > 0);
 };

@@ -29,7 +29,7 @@ class MemoryDatasource: public node::ObjectWrap {
   private:
     ~MemoryDatasource();
     mapnik::datasource_ptr datasource_;
-    unsigned int count_;
+    unsigned int feature_id_;
     boost::scoped_ptr<mapnik::transcoder> tr_;
 };
 

@@ -10,6 +10,9 @@
 //#include <node_buffer.h>
 #include <node_version.h>
 
+// boost
+#include <boost/make_shared.hpp>
+
 // mapnik
 #include <mapnik/layer.hpp>
 
@@ -39,11 +42,11 @@ void Layer::Initialize(Handle<Object> target) {
 
 Layer::Layer(std::string const& name) :
   ObjectWrap(),
-  layer_(new mapnik::layer(name)) {}
+  layer_(boost::make_shared<mapnik::layer>(name)) {}
 
 Layer::Layer(std::string const& name, std::string const& srs) :
   ObjectWrap(),
-  layer_(new mapnik::layer(name,srs)) {}
+  layer_(boost::make_shared<mapnik::layer>(name,srs)) {}
 
 Layer::Layer() :
   ObjectWrap(),
@@ -132,7 +135,7 @@ Handle<Value> Layer::New(mapnik::layer & lay_ref) {
     HandleScope scope;
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
-    l->layer_ = layer_ptr(new mapnik::layer(lay_ref));
+    l->layer_ = boost::make_shared<mapnik::layer>(lay_ref);
     Handle<Value> ext = External::New(l);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
@@ -247,7 +250,7 @@ Handle<Value> Layer::describe(const Arguments& args)
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
 
     Local<Object> description = Object::New();
-    layer_as_json(description,*l->layer_);
+    node_mapnik::layer_as_json(description,*l->layer_);
 
     return scope.Close(description);
 }
@@ -260,7 +263,15 @@ Handle<Value> Layer::describe_data(const Arguments& args)
     mapnik::datasource_ptr ds = l->layer_->datasource();
     if (ds)
     {
-        describe_datasource(description,ds);
+        try
+        {
+            node_mapnik::describe_datasource(description,ds);
+        }
+        catch (const std::exception & ex )
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
     }
     return scope.Close(description);
 }
@@ -290,7 +301,7 @@ Handle<Value> Layer::features(const Arguments& args)
     mapnik::datasource_ptr ds = l->layer_->datasource();
     if (ds)
     {
-        datasource_features(a,ds,first,last);
+        node_mapnik::datasource_features(a,ds,first,last);
     }
 
     return scope.Close(a);

@@ -1,9 +1,10 @@
 
-//#include <mapnik/datasource_cache.hpp>
-#include <mapnik/memory_datasource.hpp>
+// mapnik
 #include <mapnik/unicode.hpp>
-#include "mapnik_memory_datasource.hpp"
+#include <mapnik/feature_factory.hpp>
+#include <mapnik/memory_datasource.hpp>
 
+#include "mapnik_memory_datasource.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
@@ -11,6 +12,9 @@
 
 // stl
 #include <exception>
+
+// boost
+#include <boost/make_shared.hpp> 
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -35,7 +39,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
 MemoryDatasource::MemoryDatasource() :
   ObjectWrap(),
   datasource_(),
-  count_(0),
+  feature_id_(1),
   tr_(new mapnik::transcoder("utf8")) {}
 
 MemoryDatasource::~MemoryDatasource()
@@ -93,15 +97,11 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
         i++;
     }
 
-    
     //memory_datasource cache;
-    mapnik::datasource_ptr ds(new mapnik::memory_datasource());
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
-    d->datasource_ = ds;
+    d->datasource_ = boost::make_shared<mapnik::memory_datasource>();
     return args.This();
-
-    return Undefined();
 }
 
 Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
@@ -123,7 +123,7 @@ Handle<Value> MemoryDatasource::parameters(const Arguments& args)
         mapnik::parameters::const_iterator end = d->datasource_->params().end();
         for (; it != end; ++it)
         {
-            params_to_object serializer( ds , it->first);
+            node_mapnik::params_to_object serializer( ds , it->first);
             boost::apply_visitor( serializer, it->second );
         }
     }
@@ -137,9 +137,9 @@ Handle<Value> MemoryDatasource::describe(const Arguments& args)
     Local<Object> description = Object::New();
     if (d->datasource_) {
         try {
-            describe_datasource(description,d->datasource_);
+            node_mapnik::describe_datasource(description,d->datasource_);
         }
-        catch (const mapnik::datasource_exception & ex )
+        catch (const std::exception & ex)
         {
             return ThrowException(Exception::Error(
               String::New(ex.what())));
@@ -169,8 +169,17 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
-    if (d->datasource_) {
-        datasource_features(a,d->datasource_,first,last);
+    if (d->datasource_)
+    {
+        try
+        {
+            node_mapnik::datasource_features(a,d->datasource_,first,last);
+        }
+        catch (const std::exception & ex )
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
     }
     
     return scope.Close(a);
@@ -232,7 +241,8 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
             pt->move_to(x->NumberValue(),y->NumberValue());
-            mapnik::feature_ptr feature(new mapnik::Feature(d->count_));
+            mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
+            ++(d->feature_id_);
             feature->add_geometry(pt);
             if (obj->Has(String::New("properties")))
             {
@@ -270,7 +280,6 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
             }
             mapnik::memory_datasource *cache = dynamic_cast<mapnik::memory_datasource *>(d->datasource_.get());
             cache->push(feature);
-            ++(d->count_);
         }
     }
     return scope.Close(Boolean::New(false));

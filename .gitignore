@@ -2,5 +2,6 @@ build
 .notes.txt
 .lock-wscript
 .DS_Store
+tests/tmp
 lib/_mapnik.node
-lib/settings.js
+lib/mapnik_settings.js

@@ -10,7 +10,7 @@
 
 /*
 NOTE - maps using mapnik.JSDatasource can only be rendered with
-mapnik.render_to_string() or mapnik.render_to_file() as the javascript
+mapnik.renderSync() or mapnik.renderFileSync() as the javascript
 callback only works if the rendering happens in the main thread.
 
 If you want async rendering using mapnik.render() then use the
@@ -21,7 +21,7 @@ var mapnik = require('mapnik');
 var sys = require('fs');
 var path = require('path');
 var get = require('node-get');
-var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
+var merc = require('mapnik/sphericalmercator').proj4;
 
 // map with just a style
 // eventually the api will support adding styles in javascript
@@ -45,8 +45,8 @@ s += '</Map>';
 // create map object with base map
 var map  = new mapnik.Map(800,600);
 var merc = new mapnik.Projection('+init=epsg:3857');
-map.load(path.join(__dirname, '../stylesheet.xml'));
-map.from_string(s,'.');
+map.loadSync(path.join(__dirname, '../stylesheet.xml'));
+map.fromStringSync(s);
 
 // Latest 30 days of earthquakes > 2.5 from USGS (http://earthquake.usgs.gov/earthquakes/catalogs/) 
 // CSV munged into json using Yahoo pipes
@@ -84,10 +84,10 @@ dl.asString(function(err,str){
   map.add_layer(l);
 
   // zoom to the extent of the new layer (pulled from options since otherwise we cannot know)
-  map.zoom_all();
+  map.zoomAll();
 
   // render it! You should see a bunch of red and blue points reprenting
-  map.render_to_file('quakes.png');
+  map.renderFileSync('quakes.png');
 
   console.log('rendered to quakes.png' );
 });

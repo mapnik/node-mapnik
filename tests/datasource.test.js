@@ -45,7 +45,8 @@ exports['test datasource'] = function() {
         POP2005: 143953092,
         REGION: 150,
         SUBREGION: 151,
-        UN: 643
+        UN: 643,
+        __id__: 245
     });
 
     assert.deepEqual(ds.describe(), {
@@ -85,7 +86,6 @@ exports['test JSON datasource'] = function() {
     };
 
     var ds = new mapnik.Datasource(options);
-    var ds = new mapnik.Datasource(options);
     assert.ok(ds);
     assert.deepEqual(ds.parameters(), options);
 
@@ -102,7 +102,8 @@ exports['test JSON datasource'] = function() {
         POP2005: 143953092,
         REGION: 150,
         SUBREGION: 151,
-        UN: 643
+        UN: 643,
+        __id__: 245
     });
 
     assert.deepEqual(ds.describe(), {

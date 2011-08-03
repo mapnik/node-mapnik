@@ -12,7 +12,7 @@
 
 /*
 NOTE - maps using mapnik.JSDatasource can only be rendered with
-mapnik.render_to_string() or mapnik.render_to_file() as the javascript
+mapnik.renderSync() or mapnik.renderFileSync() as the javascript
 callback only works if the rendering happens in the main thread.
 
 If you want async rendering using mapnik.render() then use the
@@ -23,7 +23,8 @@ var mapnik = require('mapnik');
 var sys = require('fs');
 var path = require('path');
 var get = require('node-get');
-var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
+var merc = require('mapnik/sphericalmercator').proj4;
+
 
 // map with just a style
 // eventually the api will support adding styles in javascript
@@ -38,16 +39,18 @@ s += '</Map>';
 // create map object with base map
 var map  = new mapnik.Map(800,600);
 var merc = new mapnik.Projection('+init=epsg:3857');
-map.load(path.join(__dirname, '../stylesheet.xml'));
-map.from_string(s,'.');
+map.loadSync(path.join(__dirname, '../stylesheet.xml'));
+map.fromStringSync(s);
 
 // Pubs around Washington DC - using the OSM XAPI from Mapquest (http://open.mapquestapi.com/xapi/)) 
 // XML munged into json using Yahoo pipes
 var dl = new get("http://pipes.yahoo.com/pipes/pipe.run?_id=313bef20b9a083d22241c59211b04a91&_render=json")
 dl.asString(function(err,str){
   // Loop through pub list
-  // WARNING - this API will change!
-  var pubs = JSON.parse(str).value.items[0].node;
+  var items = JSON.parse(str).value.items;
+  if (!items.length >= 1)
+      throw new Error("whoops looks like the data changed upstream and this demo no longer works");
+  var pubs = items[0].node;
   var pub;
   var next = function() {
       while (pub = pubs.pop()) {
@@ -81,10 +84,10 @@ dl.asString(function(err,str){
   tr = merc.forward([-76.88708389844298, 38.9534635955426])
   
   //minx,miny,maxx,maxy
-  map.zoom_to_box(bl[0],bl[1],tr[0],tr[1]);
+  map.extent = (bl[0],bl[1],tr[0],tr[1]);
 
   // render it! You should see a bunch of red and blue points reprenting
-  map.render_to_file('dc_pubs.png');
+  map.renderFileSync('dc_pubs.png');
 
   console.log('rendered to dc_pubs.png' );
 });

@@ -22,9 +22,9 @@ var mapnik = require('mapnik');
 
 function renderMap(stylesheet, image) {
     var map = new mapnik.Map(600, 400);
-    map.load(stylesheet);
-    map.zoom_all();
-    map.render_to_file(image);
+    map.loadSync(stylesheet);
+    map.zoomAll();
+    map.renderFileSync(image);
     child_process.exec('open ' + image);
 }
 

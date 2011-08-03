@@ -1,27 +1,27 @@
 all: mapnik.node
 
 install: all
-	node-waf build install
+	@node-waf build install
 
 mapnik.node:
-	node-waf build
+	@node-waf build
 
 clean:
-	node-waf clean distclean
+	@node-waf clean distclean
 
 uninstall:
-	node-waf uninstall
+	@node-waf uninstall
 
 test-tmp:
-	@rm -rf test/tmp
-	@mkdir -p test/tmp
+	@rm -rf tests/tmp
+	@mkdir -p tests/tmp
 
 ifndef only
-test: all test-tmp
-	expresso -I lib test/*.test.js
+test: test-tmp
+	@expresso -I lib tests/*.test.js
 else
-test: all test-tmp
-	expresso -I lib test/${only}.test.js
+test: test-tmp
+	@expresso -I lib tests/${only}.test.js
 endif
 
 .PHONY: test

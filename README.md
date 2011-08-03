@@ -7,20 +7,34 @@
     var http = require('http');
     
     var port = 8000;
+    var stylesheet = './examples/stylesheet.xml';
     
-    http.createServer(function (req, res) {
-      var map = new mapnik.Map(256,256);
-      map.load("./examples/stylesheet.xml");
-      map.zoom_all();
-      map.render(map.extent(),"png",function(err,buffer){
+    http.createServer(function(req, res) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      var map = new mapnik.Map(256, 256);
+      map.load(stylesheet,
+        function(err,map) {
           if (err) {
-            res.writeHead(500, {'Content-Type':'text/plain'});
-            res.end(err.message);
-          } else {
-            res.writeHead(200, {'Content-Type':'image/png'});
-            res.end(buffer);
+              res.end(err.message);
           }
-      });
+          map.zoomAll();
+          var im = new mapnik.Image(256, 256);
+          map.render(im, function(err,im) {
+            if (err) {
+                res.end(err.message);
+            } else {
+                im.encode('png', function(err,buffer) {
+                    if (err) {
+                        res.end(err.message);
+                    } else {
+                        res.writeHead(200, {'Content-Type': 'image/png'});
+                        res.end(buffer);
+                    }
+                });
+            }
+          });
+       }
+      );
     }).listen(port);
   
   For more see 'examples/'
@@ -32,18 +46,20 @@
   
   Developed on OS X (10.6)
   
-  Tested on Debian Squeeze, Ubuntu Maverick, and Centos 5.4.
+  Tested on Debian Squeeze, Ubuntu Maverick/Natty, and Centos 5.4.
   
 
 ## Depends
 
   node (development headers) >= v0.2.3
   
-  mapnik (latest trunk >r2397)
+  mapnik 2.0 / (latest trunk >= r3055)
   
-  node-pool for some examples (npm install generic-pool)
+  node-pool for some examples (npm install -g generic-pool)
   
   expresso and >= node v0.4.x for tests (npm install expresso)
+  
+  npm >= 1.0 (if you use npm to install deps)
 
 
 ## Installation
@@ -56,15 +72,11 @@
     $ make
     $ sudo make install
 
-  Make sure the node modules is on your path:
-  
-    export NODE_PATH=/usr/local/lib/node/
-    
   For more details see 'docs/install.txt'
 
   Or you can also install via npm:
   
-    $ npm install mapnik
+    $ npm install -g mapnik
 
 
 ## Quick rendering test
@@ -80,18 +92,18 @@
 
   See the 'examples/' folder for more usage examples.
 
+
 ## Tests
 
   To run the expresso tests first install expresso and step.
   
-     $ npm install expresso
-     $ npm install step
+    $ npm install -g expresso
+    $ npm install -g step
   
   Then run:
   
     $ make test
 
-  If [tilelive.js](https://github.com/mapbox/tilelive.js/) is installed batch mbtiles generation will also be tested.
 
 ## License
 

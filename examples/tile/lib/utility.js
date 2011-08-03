@@ -19,23 +19,27 @@ module.exports.parseXYZ = function(req, TMS_SCHEME, callback) {
             callback(err,null);
         }
     } else {
-          var query = url.parse(req.url, true).query;
-          if (query &&
-                query.x !== undefined &&
-                query.y !== undefined &&
-                query.z !== undefined) {
-             try {
-             callback(null,
-               { z: parseInt(query.z),
-                 x: parseInt(query.x),
-                 y: parseInt(query.y)
-               }
-             );
-             } catch (err) {
-                 callback(err,null);
-             }
-          } else {
-              callback("no x,y,z provided",null);
+          try {
+              var query = url.parse(req.url, true).query;
+              if (query &&
+                    query.x !== undefined &&
+                    query.y !== undefined &&
+                    query.z !== undefined) {
+                 try {
+                 callback(null,
+                   { z: parseInt(query.z),
+                     x: parseInt(query.x),
+                     y: parseInt(query.y)
+                   }
+                 );
+                 } catch (err) {
+                     callback(err,null);
+                 }
+              } else {
+                  callback(new Error("no x,y,z provided"),null);
+              }
+          } catch (err) {
+              callback(err,null);
           }
     }
 }

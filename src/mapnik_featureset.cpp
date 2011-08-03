@@ -1,4 +1,5 @@
 #include "mapnik_featureset.hpp"
+#include "mapnik_feature.hpp"
 #include "utils.hpp"
 
 Persistent<FunctionTemplate> Featureset::constructor;
@@ -48,44 +49,26 @@ Handle<Value> Featureset::next(const Arguments& args)
 {
     HandleScope scope;
     
-    bool include_extent = false;
-    
-    if ((args.Length() > 0)) {
-        if (!args[0]->IsBoolean())
-            return ThrowException(Exception::TypeError(
-               String::New("option to include extent must be a boolean")));
-        include_extent = args[0]->BooleanValue();
-    }
-
     Featureset* fs = ObjectWrap::Unwrap<Featureset>(args.This());
 
-    // TODO - allow filtering which fields are returned
     if (fs->this_) {
-        mapnik::feature_ptr fp = fs->this_->next();
+        mapnik::feature_ptr fp;
+        try
+        {
+             fp = fs->this_->next();
+        }
+        catch (const std::exception & ex)
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
+        catch (...)
+        {
+            return ThrowException(Exception::Error(
+              String::New("unknown exception happened when accessing a feature with next(), please file bug")));
+        }
         if (fp) {
-            std::map<std::string,mapnik::value> const& fprops = fp->props();
-            Local<Object> feat = Object::New();
-            std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-            std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-            for (; it != end; ++it)
-            {
-                params_to_object serializer( feat , it->first);
-                boost::apply_visitor( serializer, it->second.base() );
-            }
-            
-            // add feature id
-            feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
-            
-            if (include_extent) {
-                Local<Array> a = Array::New(4);
-                mapnik::box2d<double> const& e = fp->envelope();
-                a->Set(0, Number::New(e.minx()));
-                a->Set(1, Number::New(e.miny()));
-                a->Set(2, Number::New(e.maxx()));
-                a->Set(3, Number::New(e.maxy()));
-                feat->Set(String::NewSymbol("_extent"),a);
-            }
-            return scope.Close(feat);
+            return scope.Close(Feature::New(fp));
         }
     }
     return Undefined();

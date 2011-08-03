@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
 var mapnik = require('mapnik');
 var path = require('path');
-var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
+var merc = require('mapnik/sphericalmercator').proj4;
 
 // map with just a style
 // eventually the api will support adding styles in javascript
@@ -25,7 +26,7 @@ s += '</Map>';
 
 // create map object
 var map = new mapnik.Map(256,256);
-map.from_string(s,'.');
+map.fromStringSync(s);
 
 // go get some arbitrary data that we can stream
 var shp = path.join(__dirname,'../data/world_merc');
@@ -44,13 +45,15 @@ var mem_datasource = new mapnik.MemoryDatasource(
 
 // build up memory datasource
 while (feat = featureset.next(true)) {
+    var e = feat.extent();
     // center longitude of polygon bbox
-    var x = (feat._extent[0]+feat._extent[2])/2;
+    var x = (e[0]+e[2])/2;
     // center latitude of polygon bbox
-    var y = (feat._extent[1]+feat._extent[3])/2;
+    var y = (e[1]+e[3])/2;
+    var attr = feat.attributes();
     mem_datasource.add({ 'x'          : x,
                          'y'          : y,
-                         'properties' : { 'NAME':feat.NAME,'POP2005':feat.POP2005 }
+                         'properties' : { 'feat_id':feat.id(), 'NAME':attr.NAME,'POP2005':attr.POP2005 }
                        });
 }
 
@@ -70,9 +73,20 @@ l.datasource = mem_datasource;
 map.add_layer(l);
 
 // zoom to the extent of the new layer (pulled from options since otherwise we cannot know)
-map.zoom_all();
+map.zoomAll();
 
 // render it! You should see a bunch of red and blue points reprenting
-map.render_to_file('memory_points.png');
+map.renderFileSync('memory_points.png');
 
-console.log('rendered to memory_points.png!' );
+var options = {
+    layer:0,
+    fields: ['POP2005','NAME','feat_id']
+    };
+
+var grid = new mapnik.Grid(map.width,map.height,{key:'feat_id'});
+map.render(grid,options,function(err, grid) {
+    if (err) throw err;
+    fs.writeFileSync('memory_points.json',JSON.stringify(grid.encodeSync('utf',{resolution:4})));
+});
+
+console.log('rendered to memory_points.png and memory_points.json' );

@@ -8,21 +8,17 @@ datasource support
 
 /*
 NOTE - maps using mapnik.JSDatasource can only be rendered with
-mapnik.render_to_string() or mapnik.render_to_file() as the javascript
+mapnik.renderSync() or mapnik.renderFileSync() as the javascript
 callback only works if the rendering happens in the main thread.
 
 If you want async rendering using mapnik.render() then use the
 mapnik.MemoryDatasource instead of mapnik.JSDatasource.
 */
 
-
-cannot be used with the async mapnik.render() (will hang)
-// and only will work with mapnik.render_to_string() or mapnik.render_to_file()
-
 var mapnik = require('mapnik');
 var sys = require('fs');
 var path = require('path');
-var merc = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over';
+var merc = require('mapnik/sphericalmercator').proj4;
 
 // map with just a style
 // eventually the api will support adding styles in javascript
@@ -45,7 +41,7 @@ s += '</Map>';
 
 // create map object
 var map = new mapnik.Map(256,256);
-map.from_string(s,'.');
+map.fromStringSync(s,{strict:true,base:'.'});
 
 // go get some arbitrary data that we can stream
 var shp = path.join(__dirname,'../data/world_merc');
@@ -79,12 +75,14 @@ var feat;
 var next = function() {
     while (feat = featureset.next(true)) {
         // center longitude of polygon bbox
-        var x = (feat._extent[0]+feat._extent[2])/2;
+        var e = feat.extent();
+        var x = (e[0]+e[2])/2;
         // center latitude of polygon bbox
-        var y = (feat._extent[1]+feat._extent[3])/2;
+        var y = (e[1]+e[3])/2;
+        var attr = feat.attributes();
         return { 'x'          : x,
                  'y'          : y,
-                 'properties' : { 'NAME':feat.NAME,'POP2005':feat.POP2005 }
+                 'properties' : { 'NAME':attr.NAME,'POP2005':attr.POP2005 }
                };
     }
 }
@@ -104,9 +102,9 @@ l.datasource = ds;
 map.add_layer(l);
 
 // zoom to the extent of the new layer (pulled from options since otherwise we cannot know)
-map.zoom_all();
+map.zoomAll();
 
 // render it! You should see a bunch of red and blue points reprenting
-map.render_to_file('js_points.png');
+map.renderFileSync('js_points.png');
 
 console.log('rendered to js_points.png!' );

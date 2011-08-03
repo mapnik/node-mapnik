@@ -92,21 +92,6 @@ Handle<Value> Datasource::New(const Arguments& args)
     {
         ds = mapnik::datasource_cache::create(params, bind);
     }
-    catch (const mapnik::config_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const mapnik::datasource_exception & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
-    catch (const std::runtime_error & ex )
-    {
-        return ThrowException(Exception::Error(
-          String::New(ex.what())));
-    }
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
@@ -146,7 +131,7 @@ Handle<Value> Datasource::parameters(const Arguments& args)
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
     for (; it != end; ++it)
     {
-        params_to_object serializer( ds , it->first);
+        node_mapnik::params_to_object serializer( ds , it->first);
         boost::apply_visitor( serializer, it->second );
     }
     return scope.Close(ds);
@@ -157,13 +142,19 @@ Handle<Value> Datasource::describe(const Arguments& args)
     HandleScope scope;
     Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
     Local<Object> description = Object::New();
-    try {
-        describe_datasource(description,d->datasource_);
+    try
+    {
+        node_mapnik::describe_datasource(description,d->datasource_);
     }
-    catch (const mapnik::datasource_exception & ex )
+    catch (const std::exception & ex )
     {
         return ThrowException(Exception::Error(
           String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened describing datasource, please file bug")));
     }
 
     return scope.Close(description);
@@ -190,7 +181,20 @@ Handle<Value> Datasource::features(const Arguments& args)
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
-    datasource_features(a,d->datasource_,first,last);
+    try
+    {
+        node_mapnik::datasource_features(a,d->datasource_,first,last);
+    }
+    catch (const std::exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened slicing datasource, please file bug")));
+    }
 
     return scope.Close(a);
 }
@@ -202,18 +206,33 @@ Handle<Value> Datasource::featureset(const Arguments& args)
 
     Datasource* ds = ObjectWrap::Unwrap<Datasource>(args.This());
 
-    mapnik::query q(ds->datasource_->envelope());
-    mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
-    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-    while (itr != end)
+    mapnik::featureset_ptr fs;
+    try
     {
-        q.add_property_name(itr->get_name());
-        ++itr;
+        mapnik::query q(ds->datasource_->envelope());
+        mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
+        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+        while (itr != end)
+        {
+            q.add_property_name(itr->get_name());
+            ++itr;
+        }
+        
+        fs = ds->datasource_->features(q);
+    }
+    catch (const std::exception & ex)
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened getting featureset, please file bug")));
     }
 
-    mapnik::featureset_ptr fs = ds->datasource_->features(q);
     if (fs)
     {
         return scope.Close(Featureset::New(fs));
