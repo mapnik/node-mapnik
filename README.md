@@ -7,28 +7,33 @@
     var http = require('http');
     
     var port = 8000;
-    var stylesheet = "./examples/stylesheet.xml";
+    var stylesheet = './examples/stylesheet.xml';
     
-    http.createServer(function (req, res) {
-      var map = new mapnik.Map(256,256);
+    http.createServer(function(req, res) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      var map = new mapnik.Map(256, 256);
       map.load(stylesheet,
-          function(err,map) {
-              if (err) {
-                  res.writeHead(500, {'Content-Type':'text/plain'});
-                  res.end(err.message);
-              }
-              map.zoomAll();
-              map.render(map.extent(),"png",function(err,buffer){
-                if (err) {
-                  res.writeHead(500, {'Content-Type':'text/plain'});
-                  res.end(err.message);
-                } else {
-                  res.writeHead(200, {'Content-Type':'image/png'});
-                  res.end(buffer);
-                }
-              });
-
-         }
+        function(err,map) {
+          if (err) {
+              res.end(err.message);
+          }
+          map.zoomAll();
+          var im = new mapnik.Image(256, 256);
+          map.render(im, function(err,im) {
+            if (err) {
+                res.end(err.message);
+            } else {
+                im.encode('png', function(err,buffer) {
+                    if (err) {
+                        res.end(err.message);
+                    } else {
+                        res.writeHead(200, {'Content-Type': 'image/png'});
+                        res.end(buffer);
+                    }
+                });
+            }
+          });
+       }
       );
     }).listen(port);
   
@@ -41,7 +46,7 @@
   
   Developed on OS X (10.6)
   
-  Tested on Debian Squeeze, Ubuntu Maverick, and Centos 5.4.
+  Tested on Debian Squeeze, Ubuntu Maverick/Natty, and Centos 5.4.
   
 
 ## Depends
