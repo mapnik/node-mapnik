@@ -190,7 +190,9 @@ def build(bld):
     Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-O3", "-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
-    #obj.linkflags = ['']
+    # uncomment the next line to remove '-undefined dynamic_lookup' 
+    # in order to review linker errors (v8, libev/eio references can be ignored)
+    #obj.env['LINKFLAGS_MACBUNDLE'] = ['-bundle']
     obj.target = TARGET
     obj.source =  ["src/node_mapnik.cpp",
                    "src/mapnik_map.cpp",
