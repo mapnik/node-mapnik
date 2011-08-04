@@ -118,7 +118,7 @@ def configure(conf):
     linkflags = []
     if os.environ.has_key('LINKFLAGS'):
         linkflags.extend(os.environ['LINKFLAGS'].split(' '))
-    linkflags.extend(all_ldflags[:2])
+    #linkflags.extend(all_ldflags[:2])
     
     # add prefix to linkflags if it is unique
     prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
@@ -128,7 +128,7 @@ def configure(conf):
     conf.env.append_value("LINKFLAGS", linkflags)
 
     # unneeded currently as second item from mapnik-config is -lmapnik2
-    #conf.env.append_value("LIB_MAPNIK", "mapnik2")
+    conf.env.append_value("LIB_MAPNIK", "mapnik2")
 
     if '-lcairo' in all_ldflags:
 
@@ -140,17 +140,6 @@ def configure(conf):
             cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/unix/lib/sigc++-2.0/include')
             cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers') #fontconfig
             Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
-        else:
-            pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
-            if not pkg_config:
-                Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
-            else:
-                cmd = '%s cairomm-1.0' %  pkg_config
-                if not int(call(cmd.split(' '))) >= 0:
-                    Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
-                else:
-                    Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
-                    cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
     else:
         Utils.pprint('YELLOW','Notice: "mapnik-config --libs" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
 
