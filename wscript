@@ -176,12 +176,12 @@ def configure(conf):
     if os.environ.has_key('MAPNIK_INPUT_PLUGINS'):
         settings_dict['input_plugins'] =  os.environ['MAPNIK_INPUT_PLUGINS']
     else:
-        settings_dict['input_plugins'] = '%s' % popen("%s --input-plugins" % mapnik_config).readline().strip()
+        settings_dict['input_plugins'] = '\'%s\'' % popen("%s --input-plugins" % mapnik_config).readline().strip()
 
     if os.environ.has_key('MAPNIK_FONTS'):
         settings_dict['fonts'] =  os.environ['MAPNIK_FONTS']
     else:
-        settings_dict['fonts'] = '%s' % popen("%s --fonts" % mapnik_config).readline().strip()
+        settings_dict['fonts'] = '\'%s\'' % popen("%s --fonts" % mapnik_config).readline().strip()
 
 
     write_mapnik_settings(**settings_dict)
