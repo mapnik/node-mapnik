@@ -1,4 +1,5 @@
 import os
+import sys
 from glob import glob
 from os import unlink, symlink, popen, uname, environ
 from os.path import exists
@@ -21,8 +22,8 @@ HAS_OSX_FRAMEWORK = False
 # this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
-    'fonts': '%s',
-    'input_plugins': '%s',
+    'fonts': %s,
+    'input_plugins': %s
 };
 """
 
@@ -31,7 +32,10 @@ jobs=1
 if os.environ.has_key('JOBS'):
   jobs = int(os.environ['JOBS'])
 
-def write_mapnik_settings(fonts='',input_plugins=''):
+def write_mapnik_settings(fonts='undefined',input_plugins='undefined'):
+    global settings_template
+    if '__dirname' in fonts or '__dirname' in input_plugins:
+        settings_template = "var path = require('path');\n" + settings_template
     open(settings,'w').write(settings_template % (fonts,input_plugins))
 
 def ensure_min_mapnik_revision(conf,revision=3055):
@@ -80,6 +84,8 @@ def configure(conf):
 
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
+    if sys.platform == 'darwin':
+        conf.check_tool('osx')
     settings_dict = {}
     cairo_cxxflags = []
     grid_cxxflags = []
@@ -102,8 +108,11 @@ def configure(conf):
     all_ldflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')
 
     # only link to libmapnik, which should be in first two flags
-    linkflags = all_ldflags[:2]
-
+    linkflags = []
+    if os.environ.has_key('LINKFLAGS'):
+        linkflags.extend(os.environ['LINKFLAGS'].split(' '))
+    linkflags.extend(all_ldflags[:2])
+    
     # add prefix to linkflags if it is unique
     prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
     if not '/usr/local' in prefix_lib:
@@ -164,8 +173,15 @@ def configure(conf):
     #conf.env.append_value("LDFLAGS", ldflags)
 
     # settings for fonts and input plugins
-    settings_dict['input_plugins'] = popen("%s --input-plugins" % mapnik_config).readline().strip()
-    settings_dict['fonts'] = popen("%s --fonts" % mapnik_config).readline().strip()
+    if os.environ.has_key('MAPNIK_INPUT_PLUGINS'):
+        settings_dict['input_plugins'] =  os.environ['MAPNIK_INPUT_PLUGINS']
+    else:
+        settings_dict['input_plugins'] = '%s' % popen("%s --input-plugins" % mapnik_config).readline().strip()
+
+    if os.environ.has_key('MAPNIK_FONTS'):
+        settings_dict['fonts'] =  os.environ['MAPNIK_FONTS']
+    else:
+        settings_dict['fonts'] = '%s' % popen("%s --fonts" % mapnik_config).readline().strip()
 
 
     write_mapnik_settings(**settings_dict)
@@ -174,6 +190,7 @@ def build(bld):
     Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-O3", "-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
+    #obj.linkflags = ['']
     obj.target = TARGET
     obj.source =  ["src/node_mapnik.cpp",
                    "src/mapnik_map.cpp",
