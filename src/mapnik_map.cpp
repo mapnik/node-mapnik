@@ -1267,9 +1267,11 @@ Handle<Value> Map::renderFile(const Arguments& args)
 {
     HandleScope scope;
     
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    //Map* m = ObjectWrap::Unwrap<Map>(args.This());
     // TODO
-    return Undefined();
+    return ThrowException(Exception::Error(
+        String::New("sorry! renderFile async is not yet implemented")));
+    //return Undefined();
 }
 
 int Map::EIO_RenderFile(eio_req *req)
