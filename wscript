@@ -92,9 +92,16 @@ def configure(conf):
 
     # future auto-support for mapnik frameworks..
     path_list = environ.get('PATH', '').split(os.pathsep)
-    if os.path.exists('/Library/Frameworks/Mapnik.framework'):
-        path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
+    
+    # if user is not setting LINKFLAGS (custom compile) detect and auto-configure
+    # against the Mapnik.Framework installer
+    framework_path = '/Library/Frameworks/Mapnik.framework/Programs'
+    if not os.environ.has_key('LINKFLAGS') and os.path.exists('/Library/Frameworks/Mapnik.framework'):
+        path_list.append(framework_path)
         HAS_OSX_FRAMEWORK = True
+    else:
+        if framework_path in path_list:
+            path_list.remove(framework_path)
 
     mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list)
     if not mapnik_config:
@@ -117,10 +124,6 @@ def configure(conf):
     prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
     if not '/usr/local' in prefix_lib:
         linkflags.insert(0,'-L%s' % prefix_lib)
-
-    #linkflags.append('-F/Library/')
-    #linkflags.append('-framework Mapnik')
-    #linkflags.append('-Z')
 
     conf.env.append_value("LINKFLAGS", linkflags)
 
@@ -154,7 +157,7 @@ def configure(conf):
 
     # TODO - too much potential pollution here, need to limit this upstream
     cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
-    if os.path.exists('/Library/Frameworks/Mapnik.framework'):
+    if HAS_OSX_FRAMEWORK:
         cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
     
     # if cairo is available
