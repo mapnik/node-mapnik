@@ -118,7 +118,9 @@ def configure(conf):
     linkflags = []
     if os.environ.has_key('LINKFLAGS'):
         linkflags.extend(os.environ['LINKFLAGS'].split(' '))
-    #linkflags.extend(all_ldflags[:2])
+    
+    # put on the path the first -L to where libmapnik2 should be
+    linkflags.extend(all_ldflags[:1])
     
     # add prefix to linkflags if it is unique
     prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
