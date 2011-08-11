@@ -41,6 +41,7 @@ else if (/.osm$/.test(obj)) {
 else if ((/.json$/.test(obj))
          || (/.geojson$/.test(obj))
          || (/.kml$/.test(obj))
+         || (/.sqlite$/.test(obj))
          || (/.sqlite3$/.test(obj))
          || (/.db$/.test(obj))
          || (/.gml$/.test(obj))
