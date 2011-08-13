@@ -132,7 +132,10 @@ def configure(conf):
     # unneeded currently as second item from mapnik-config is -lmapnik2
     conf.env.append_value("LIB_MAPNIK", "mapnik2")
 
-    if '-lcairo' in all_ldflags:
+    # TODO - too much potential pollution here, need to limit this upstream
+    cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
+
+    if '-lcairo' in all_ldflags or '-DHAVE_CAIRO' in cxxflags:
 
         if HAS_OSX_FRAMEWORK and os.path.exists('/Library/Frameworks/Mapnik.framework/Headers/cairo'):
             # prep for this specific install of mapnik 1.0: http://dbsgeo.com/downloads/#mapnik200
@@ -143,11 +146,9 @@ def configure(conf):
             cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers') #fontconfig
             Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
     else:
-        Utils.pprint('YELLOW','Notice: "mapnik-config --libs" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
+        Utils.pprint('YELLOW','Notice: "mapnik-config --libs" or "mapnik-config --cflags"" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
 
 
-    # TODO - too much potential pollution here, need to limit this upstream
-    cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
     if HAS_OSX_FRAMEWORK:
         cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
     

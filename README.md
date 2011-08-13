@@ -53,9 +53,11 @@
 
   node (development headers) >= v0.2.3
   
-  mapnik 2.0 / (latest trunk >= r3055)
+  mapnik 2.0 / (latest trunk >= r3126)
   
   node-pool for some examples (npm install -g generic-pool)
+ 
+  node-sphericalmercator for some examples (npm install -g sphericalmercator)
   
   expresso and >= node v0.4.x for tests (npm install expresso)
   
