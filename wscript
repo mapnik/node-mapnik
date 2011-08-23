@@ -181,6 +181,9 @@ def configure(conf):
 
     write_mapnik_settings(**settings_dict)
 
+def clean(bld):
+    pass # to avoid red warning from waf of "nothing to clean"
+
 def build(bld):
     Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
