@@ -146,7 +146,7 @@ def configure(conf):
             cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers') #fontconfig
             Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
     else:
-        Utils.pprint('YELLOW','Notice: "mapnik-config --libs" or "mapnik-config --cflags"" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
+        Utils.pprint('YELLOW','Notice: "mapnik-config --libs" or "mapnik-config --cflags" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
 
 
     if HAS_OSX_FRAMEWORK:
