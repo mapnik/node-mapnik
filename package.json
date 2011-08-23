@@ -1,20 +1,27 @@
 {
   "name"          : "mapnik",
-  "version"       : "0.5.3",
-  "main"          : "./lib/mapnik.js",
-  "description"   : "C++ map rendering library for node",
-  "keywords"      : ["map", "graphics", "canvas", "tile"],
+  "description"   : "Tile rendering library for node",
   "url"           : "http://github.com/mapnik/node-mapnik",
+  "version"       : "0.5.4",
+  "main"          : "./lib/mapnik.js",
+  "keywords"      : ["map", "graphics", "canvas", "tile", "mapnik", "carto"],
    "repositories" : [
        {
            "type" : "git",
            "url"  : "git://github.com/mapnik/node-mapnik.git"
        }
    ],
-  "author"        : "Dane Springmeyer <dane@dbsgeo.com>",
-  "contributors"  : [],
-  "licenses"      : ["BSD"],
+  "author": {
+      "name"  : "Dane Springmeyer",
+      "url"   : "http://mapbox.com/",
+      "email" : "dane@dbsgeo.com"
+   },
+  "contributors"  : ["Konstantin Käfer"],
+  "licenses"      : [{"type": "BSD"}],
   "dependencies"  : {},
+  "devDependencies": {
+    "expresso": "0.8.x"
+   },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
        "mapnik-render.js"  : "./bin/mapnik-render.js"
@@ -24,5 +31,9 @@
        "src": "src"
    },
   "engines"       : { "node": ">= 0.2.3" },
-  "scripts"       : {"install": "node-waf -v configure build"}
+  "scripts"       : {"install": "node-waf -v configure build"},
+  "scripts": {
+      "pretest" : "npm install --dev",
+      "test"    : "make test"
+  }
 }
