@@ -1,10 +1,20 @@
 all: mapnik.node
 
+NPROCS:=1
+OS:=$(shell uname -s)
+
+ifeq ($(OS),Linux)
+	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
+endif
+ifeq ($(OS),Darwin)
+	NPROCS:=$(shell sysctl -n hw.ncpu)
+endif
+
 install: all
 	@node-waf build install
 
 mapnik.node:
-	@node-waf build
+	@node-waf build -j $(NPROCS)
 
 clean:
 	@node-waf clean distclean

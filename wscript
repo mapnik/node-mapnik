@@ -27,11 +27,6 @@ module.exports.paths = {
 };
 """
 
-# number of parallel compile jobs
-jobs=1
-if os.environ.has_key('JOBS'):
-  jobs = int(os.environ['JOBS'])
-
 def write_mapnik_settings(fonts='undefined',input_plugins='undefined'):
     global settings_template
     if '__dirname' in fonts or '__dirname' in input_plugins:
@@ -185,7 +180,7 @@ def clean(bld):
     pass # to avoid red warning from waf of "nothing to clean"
 
 def build(bld):
-    Options.options.jobs = jobs;
+    #Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-O3", "-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     # uncomment the next line to remove '-undefined dynamic_lookup' 
