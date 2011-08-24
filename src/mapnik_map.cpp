@@ -1000,7 +1000,7 @@ Handle<Value> Map::render(const Arguments& args)
               return ThrowException(Exception::TypeError(
                 String::New("optional arg 'offset_x' must be a number")));
 
-            offset_x = bind_opt->NumberValue();
+            offset_x = bind_opt->IntegerValue();
         }
 
         if (options->Has(String::New("offset_y"))) {
@@ -1009,7 +1009,7 @@ Handle<Value> Map::render(const Arguments& args)
               return ThrowException(Exception::TypeError(
                 String::New("optional arg 'offset_y' must be a number")));
 
-            offset_y = bind_opt->NumberValue();
+            offset_y = bind_opt->IntegerValue();
         }
     }
 
