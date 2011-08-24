@@ -971,8 +971,8 @@ Handle<Value> Map::render(const Arguments& args)
 
     // defaults
     double scale_factor = 1.0;
-    double offset_x = 0;
-    double offset_y = 0;
+    unsigned offset_x = 0;
+    unsigned offset_y = 0;
     
     Local<Object> options;
     
