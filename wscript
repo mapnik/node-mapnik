@@ -200,6 +200,7 @@ def build(bld):
                    "src/mapnik_grid_view.cpp",
                    "src/mapnik_js_datasource.cpp",
                    "src/mapnik_memory_datasource.cpp",
+                   "src/mapnik_palette.cpp",
                    "src/mapnik_projection.cpp",
                    "src/mapnik_layer.cpp",
                    "src/mapnik_datasource.cpp",

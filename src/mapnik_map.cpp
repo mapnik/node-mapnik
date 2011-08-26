@@ -44,6 +44,7 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
+#include "mapnik_palette.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -1475,13 +1476,14 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a file to save")));
 
-    if (args.Length() > 2)
+    if (args.Length() > 3)
       return ThrowException(Exception::TypeError(
-        String::New("accepts two arguments, a required path to a file, and an optional options object, eg. {format: 'pdf'}")));
+        String::New("accepts three arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}, and an optional Palette object")));
 
-    std::string format("");
+    std::string format = "png8";
+    palette_ptr palette;
 
-    if (args.Length() == 2){
+    if (args.Length() >= 2){
       if (!args[1]->IsObject())
         return ThrowException(Exception::TypeError(
           String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
@@ -1496,6 +1498,17 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
             format = TOSTR(format_opt);
         }
+    }
+    if (args.Length() >= 3) {
+        if (!args[2]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("mapnik.Palette expected as second arg")));
+
+        Local<Object> obj = args[2]->ToObject();
+        if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+          return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
+        palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -1530,7 +1543,11 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             mapnik::image_32 im(m->map_->width(),m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
             ren.apply();
-            mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+            if (palette.get()) {
+                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
+            } else {
+                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+            }
         }
     }
     catch (const std::exception & ex)

@@ -13,6 +13,7 @@
 #include "mapnik_feature.hpp"
 #include "mapnik_fonts.hpp"
 #include "mapnik_plugins.hpp"
+#include "mapnik_palette.hpp"
 #include "mapnik_projection.hpp"
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
@@ -83,6 +84,7 @@ extern "C" {
     Feature::Initialize(target);
     Image::Initialize(target);
     ImageView::Initialize(target);
+    Palette::Initialize(target);
     Projection::Initialize(target);
     Layer::Initialize(target);
     Grid::Initialize(target);
