@@ -18,9 +18,9 @@ void Palette::Initialize(Handle<Object> target) {
     target->Set(String::NewSymbol("Palette"),constructor->GetFunction());
 }
 
-Palette::Palette(std::string const& palette) :
+Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
   ObjectWrap(),
-  palette_(boost::make_shared<mapnik::rgba_palette>(palette)) {}
+  palette_(boost::make_shared<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }
@@ -33,6 +33,7 @@ Handle<Value> Palette::New(const Arguments& args) {
     }
 
     std::string palette;
+    mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
     if (args.Length() >= 1) {
         if (args[0]->IsString()) {
             palette = std::string(TOSTR(args[0]));
@@ -42,6 +43,13 @@ Handle<Value> Palette::New(const Arguments& args) {
             palette = std::string(Buffer::Data(obj), Buffer::Length(obj));
         }
     }
+    if (args.Length() >= 2) {
+        if (args[0]->IsString()) {
+            std::string obj = std::string(TOSTR(args[1]));
+            if (obj == "rgb") type = mapnik::rgba_palette::PALETTE_RGB;
+            else if (obj == "ACT") type = mapnik::rgba_palette::PALETTE_ACT;
+        }
+    }
 
     if (!palette.length()) {
         return ThrowException(Exception::TypeError(
@@ -49,7 +57,7 @@ Handle<Value> Palette::New(const Arguments& args) {
     }
 
     try {
-        Palette* p = new Palette(palette);
+        Palette* p = new Palette(palette, type);
         p->Wrap(args.This());
         return args.This();
     }

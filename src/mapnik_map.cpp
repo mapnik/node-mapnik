@@ -1437,6 +1437,18 @@ Handle<Value> Map::renderSync(const Arguments& args)
         String::New("argument must be a format string")));
 
     std::string format = TOSTR(args[0]);
+    palette_ptr palette;
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("mapnik.Palette expected as second arg")));
+
+        Local<Object> obj = args[1]->ToObject();
+        if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+          return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
+        palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+    }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string s;
@@ -1445,7 +1457,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
         mapnik::image_32 im(m->map_->width(),m->map_->height());
         mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
         ren.apply();
-        s = save_to_string(im, format);
+        s = save_to_string(im, format, *palette);
 
     }
     catch (const std::exception & ex)

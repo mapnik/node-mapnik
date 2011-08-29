@@ -19,7 +19,7 @@ class Palette: public node::ObjectWrap {
   public:
     static Persistent<FunctionTemplate> constructor;
 
-    explicit Palette(std::string const& palette);
+    explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
