@@ -44,10 +44,10 @@ Handle<Value> Palette::New(const Arguments& args) {
         }
     }
     if (args.Length() >= 2) {
-        if (args[0]->IsString()) {
+        if (args[1]->IsString()) {
             std::string obj = std::string(TOSTR(args[1]));
             if (obj == "rgb") type = mapnik::rgba_palette::PALETTE_RGB;
-            else if (obj == "ACT") type = mapnik::rgba_palette::PALETTE_ACT;
+            else if (obj == "act") type = mapnik::rgba_palette::PALETTE_ACT;
         }
     }
 
