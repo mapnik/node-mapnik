@@ -1555,11 +1555,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             mapnik::image_32 im(m->map_->width(),m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
             ren.apply();
-            if (palette.get()) {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
-            } else {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
-            }
+            mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
         }
     }
     catch (const std::exception & ex)
