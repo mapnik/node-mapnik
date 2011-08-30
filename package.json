@@ -30,10 +30,10 @@
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">= 0.2.3" },
-  "scripts"       : {"install": "node-waf -v configure build"},
-  "scripts": {
+  "engines"       : { "node": ">=0.2.4 <0.5" },
+  "scripts"       : {
+      "install" : "node-waf -v configure build",
       "pretest" : "npm install --dev",
       "test"    : "make test"
-  }
+   }
 }
