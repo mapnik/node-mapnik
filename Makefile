@@ -34,4 +34,7 @@ test: test-tmp
 	@if test -e "node_modules/expresso/"; then ./node_modules/expresso/bin/expresso -I lib tests/${only}.test.js; else expresso -I lib tests/${only}.test.js; fi;
 endif
 
+lint:
+	./node_modules/.bin/jshint lib/*js --config=jshint.json
+
 .PHONY: test
