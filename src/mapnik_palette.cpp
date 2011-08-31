@@ -36,7 +36,8 @@ Handle<Value> Palette::New(const Arguments& args) {
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
     if (args.Length() >= 1) {
         if (args[0]->IsString()) {
-            palette = std::string(TOSTR(args[0]));
+            String::Utf8Value obj(args[0]->ToString());
+            palette = std::string(*obj, obj.length());
         }
         else if (Buffer::HasInstance(args[0])) {
             Local<Object> obj = args[0]->ToObject();
