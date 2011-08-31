@@ -23,6 +23,9 @@ class Palette: public node::ObjectWrap {
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
+    static Handle<Value> ToString(const Arguments& args);
+    static Handle<Value> ToBuffer(const Arguments& args);
+
     inline palette_ptr palette() { return palette_; }
   private:
     ~Palette();

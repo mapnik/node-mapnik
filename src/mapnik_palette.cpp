@@ -1,10 +1,15 @@
 // boost
 #include <boost/make_shared.hpp>
 
+// node-mapnik
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
 
+// node
 #include <node_buffer.h>
+
+// stl
+#include <vector>
 
 Persistent<FunctionTemplate> Palette::constructor;
 
@@ -15,7 +20,10 @@ void Palette::Initialize(Handle<Object> target) {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Palette"));
 
-    target->Set(String::NewSymbol("Palette"),constructor->GetFunction());
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", ToString);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toBuffer", ToBuffer);
+
+    target->Set(String::NewSymbol("Palette"), constructor->GetFunction());
 }
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
@@ -36,7 +44,7 @@ Handle<Value> Palette::New(const Arguments& args) {
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
     if (args.Length() >= 1) {
         if (args[0]->IsString()) {
-            String::Utf8Value obj(args[0]->ToString());
+            String::AsciiValue obj(args[0]->ToString());
             palette = std::string(*obj, obj.length());
         }
         else if (Buffer::HasInstance(args[0])) {
@@ -65,4 +73,56 @@ Handle<Value> Palette::New(const Arguments& args) {
     catch (const std::exception & ex) {
         return ThrowException(Exception::Error(String::New(ex.what())));
     }
+}
+
+Handle<Value> Palette::ToString(const Arguments& args)
+{
+    HandleScope scope;
+    palette_ptr p = ObjectWrap::Unwrap<Palette>(args.This())->palette_;
+
+    const std::vector<mapnik::rgb>& colors = p->palette();
+    unsigned length = colors.size();
+    const std::vector<unsigned>& alpha = p->alphaTable();
+    unsigned alphaLength = alpha.size();
+
+    std::ostringstream str("");
+    str << "[Palette " << length;
+    if (length == 1) str << " color";
+    else str << " colors";
+
+    str << std::hex << std::setfill('0');
+
+    for (unsigned i = 0; i < length; i++) {
+        str << " #";
+        str << std::setw(2) << (unsigned)colors[i].r;
+        str << std::setw(2) << (unsigned)colors[i].g;
+        str << std::setw(2) << (unsigned)colors[i].b;
+        if (i < alphaLength) str << std::setw(2) << alpha[i];
+    }
+
+    str << "]";
+    return scope.Close(String::New(str.str().c_str()));
+}
+
+Handle<Value> Palette::ToBuffer(const Arguments& args)
+{
+    HandleScope scope;
+
+    palette_ptr p = ObjectWrap::Unwrap<Palette>(args.This())->palette_;
+
+    const std::vector<mapnik::rgb>& colors = p->palette();
+    unsigned length = colors.size();
+    const std::vector<unsigned>& alpha = p->alphaTable();
+    unsigned alphaLength = alpha.size();
+
+    char palette[256 * 4];
+    for (unsigned i = 0, pos = 0; i < length; i++) {
+        palette[pos++] = colors[i].r;
+        palette[pos++] = colors[i].g;
+        palette[pos++] = colors[i].b;
+        palette[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
+    }
+
+    Buffer *buffer = Buffer::New(palette, length * 4);
+    return scope.Close(buffer->handle_);
 }
