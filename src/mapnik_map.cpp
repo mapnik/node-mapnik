@@ -44,6 +44,7 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
+#include "mapnik_palette.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -1436,6 +1437,30 @@ Handle<Value> Map::renderSync(const Arguments& args)
         String::New("argument must be a format string")));
 
     std::string format = TOSTR(args[0]);
+    palette_ptr palette;
+
+    // options hash
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("palette"));
+            if (!bind_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                  String::New("mapnik.Palette expected as second arg")));
+
+            Local<Object> obj = bind_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+    }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string s;
@@ -1444,7 +1469,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
         mapnik::image_32 im(m->map_->width(),m->map_->height());
         mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
         ren.apply();
-        s = save_to_string(im, format);
+        s = save_to_string(im, format, *palette);
 
     }
     catch (const std::exception & ex)
@@ -1477,11 +1502,12 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
     if (args.Length() > 2)
       return ThrowException(Exception::TypeError(
-        String::New("accepts two arguments, a required path to a file, and an optional options object, eg. {format: 'pdf'}")));
+        String::New("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}")));
 
-    std::string format("");
+    std::string format = "png8";
+    palette_ptr palette;
 
-    if (args.Length() == 2){
+    if (args.Length() >= 2){
       if (!args[1]->IsObject())
         return ThrowException(Exception::TypeError(
           String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
@@ -1496,6 +1522,21 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
             format = TOSTR(format_opt);
         }
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -1530,7 +1571,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             mapnik::image_32 im(m->map_->width(),m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
             ren.apply();
-            mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+            mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
         }
     }
     catch (const std::exception & ex)
