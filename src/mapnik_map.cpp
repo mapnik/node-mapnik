@@ -1467,6 +1467,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
+        V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
         mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
         ren.apply();
         s = save_to_string(im, format, *palette);
@@ -1569,6 +1570,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
+            V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
             ren.apply();
             mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);

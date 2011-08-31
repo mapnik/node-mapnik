@@ -50,11 +50,15 @@ void Image::Initialize(Handle<Object> target) {
 
 Image::Image(unsigned int width, unsigned int height) :
   ObjectWrap(),
-  this_(boost::make_shared<mapnik::image_32>(width,height)) {}
+  this_(boost::make_shared<mapnik::image_32>(width,height)) {
+      V8::AdjustAmountOfExternalAllocatedMemory(4 * width * height);
+  }
 
 Image::Image(image_ptr this_) :
   ObjectWrap(),
-  this_(this_) {}
+  this_(this_) {
+      V8::AdjustAmountOfExternalAllocatedMemory(4 * this_->width() * this_->height());
+  }
 
 Image::~Image()
 {
