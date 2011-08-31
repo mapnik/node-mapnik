@@ -37,7 +37,9 @@ exports['test palette rendering'] = function(beforeExit) {
 
     // Test rendering a blank image
     var filename = helper.filename();
-    map.renderFileSync(filename, {}, pal);
+    var buffer = map.renderSync("png", {palette:pal});
+    assert.ok(buffer.length < 7000);
+    map.renderFileSync(filename, {palette:pal});
     var stat = fs.statSync(filename);
     assert.ok(stat.size < 7000);
 };

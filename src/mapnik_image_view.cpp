@@ -116,16 +116,28 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
+
+    // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
           return ThrowException(Exception::TypeError(
-            String::New("mapnik.Palette expected as second arg")));
+            String::New("optional second arg must be an options object")));
 
-        Local<Object> obj = args[1]->ToObject();
-        if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-          return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+        Local<Object> options = args[1]->ToObject();
 
-        palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
     }
     
     try {
@@ -178,16 +190,28 @@ Handle<Value> ImageView::encode(const Arguments& args)
             String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
-    if (args.Length() > 2) {
+
+    // options hash
+    if (args.Length() >= 2) {
         if (!args[1]->IsObject())
           return ThrowException(Exception::TypeError(
-            String::New("mapnik.Palette expected as second arg")));
+            String::New("optional second arg must be an options object")));
 
-        Local<Object> obj = args[1]->ToObject();
-        if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-          return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+        Local<Object> options = args[1]->ToObject();
 
-        palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
     }
 
     // ensure callback is a function

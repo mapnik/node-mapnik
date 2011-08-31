@@ -1438,16 +1438,28 @@ Handle<Value> Map::renderSync(const Arguments& args)
 
     std::string format = TOSTR(args[0]);
     palette_ptr palette;
+
+    // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
           return ThrowException(Exception::TypeError(
-            String::New("mapnik.Palette expected as second arg")));
+            String::New("optional second arg must be an options object")));
 
-        Local<Object> obj = args[1]->ToObject();
-        if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-          return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+        Local<Object> options = args[1]->ToObject();
 
-        palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("palette"));
+            if (!bind_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                  String::New("mapnik.Palette expected as second arg")));
+
+            Local<Object> obj = bind_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -1488,9 +1500,9 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a file to save")));
 
-    if (args.Length() > 3)
+    if (args.Length() > 2)
       return ThrowException(Exception::TypeError(
-        String::New("accepts three arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}, and an optional Palette object")));
+        String::New("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}")));
 
     std::string format = "png8";
     palette_ptr palette;
@@ -1510,17 +1522,21 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
             format = TOSTR(format_opt);
         }
-    }
-    if (args.Length() >= 3) {
-        if (!args[2]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("mapnik.Palette expected as second arg")));
 
-        Local<Object> obj = args[2]->ToObject();
-        if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-          return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
 
-        palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
