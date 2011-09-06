@@ -2,7 +2,7 @@
   "name"          : "mapnik",
   "description"   : "Tile rendering library for node",
   "url"           : "http://github.com/mapnik/node-mapnik",
-  "version"       : "0.5.4",
+  "version"       : "0.5.5",
   "main"          : "./lib/mapnik.js",
   "keywords"      : ["map", "graphics", "canvas", "tile", "mapnik", "carto"],
    "repositories" : [
