@@ -1470,8 +1470,14 @@ Handle<Value> Map::renderSync(const Arguments& args)
         V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
         mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
         ren.apply();
-        s = save_to_string(im, format, *palette);
 
+        if (palette.get())
+        {
+            s = save_to_string(im, format, *palette);
+        }
+        else {
+            s = save_to_string(im, format);
+        }
     }
     catch (const std::exception & ex)
     {
@@ -1573,7 +1579,14 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
             ren.apply();
-            mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
+
+            if (palette.get())
+            {
+                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
+            }
+            else {
+                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+            }
         }
     }
     catch (const std::exception & ex)

@@ -141,7 +141,15 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
     }
     
     try {
-        std::string s = mapnik::save_to_string(*(im->this_), format, *palette);
+        std::string s;
+        if (palette.get())
+        {
+            s = save_to_string(*(im->this_), format, *palette);
+        }
+        else {
+            s = save_to_string(*(im->this_), format);
+        }
+
         #if NODE_VERSION_AT_LEAST(0,3,0)
         node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
         #else
@@ -240,7 +248,14 @@ int ImageView::EIO_Encode(eio_req* req)
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
 
     try {
-        closure->result = mapnik::save_to_string(*(closure->image), closure->format, *closure->palette);
+        if (closure->palette.get())
+        {
+            closure->result = save_to_string(*(closure->image), closure->format, *closure->palette);
+        }
+        else
+        {
+            closure->result = save_to_string(*(closure->image), closure->format);
+        }
     }
     catch (std::exception & ex)
     {
