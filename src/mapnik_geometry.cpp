@@ -30,9 +30,11 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiPolygon);
 
     // This *must* go after the ATTR setting
+    /*
     NODE_SET_METHOD(constructor->GetFunction(),
                   "fromWKT",
                   Geometry::fromWKT);
+    */
 
     target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
 }
@@ -72,7 +74,7 @@ Handle<Value> Geometry::fromWKT(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >=1)
+    /*if (!args.Length() >=1)
         return ThrowException(Exception::Error(
           String::New("must provide a WKT string")));
     
@@ -87,7 +89,10 @@ Handle<Value> Geometry::fromWKT(const Arguments& args)
     } else {
         return ThrowException(Exception::Error(
           String::New("failed to parse WKT string")));
-    }
+    }*/
+    return ThrowException(Exception::Error(
+      String::New("mapnik.Geometry.from_wkt() is currently disabled until mapnik trunk api settles out")));
+    
 }
 
 Handle<Value> Geometry::extent(const Arguments& args)
