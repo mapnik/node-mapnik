@@ -35,5 +35,59 @@ exports['test images'] = function(beforeExit) {
     assert.equal(im2.height(), 256);
 
     assert.equal(im.encodeSync().length, im2.encodeSync().length);
+    
+    var im_blank = new Image(4,4);
+    assert.equal(im_blank.painted(),false);
+    assert.equal(im_blank.background,undefined);
+    
+    var m = new mapnik.Map(4,4);
+
+    m.render(im_blank,{},function(err,im_blank) {
+        assert.equal(im_blank.painted(),false);
+        assert.equal(im_blank.background,undefined);
+    });
+
+    var im_blank2 = new Image(4,4);
+    assert.equal(im_blank2.painted(),false);
+    assert.equal(im_blank2.background,undefined);
+
+    var m2 = new mapnik.Map(4,4);
+    
+    m2.background = new mapnik.Color('green');
+    m2.render(im_blank2,{},function(err,im_blank2) {
+        assert.equal(im_blank2.painted(),false);
+        assert.ok(im_blank2.background);
+    });
+
+
+    var im_blank3 = new Image(4,4);
+    assert.equal(im_blank3.painted(),false);
+    assert.equal(im_blank3.background,undefined);
+
+    var m3 = new mapnik.Map(4,4);
+    var s = '<Map>';
+    s += '<Style name="points">';
+    s += ' <Rule>';
+    s += '  <PointSymbolizer />';
+    s += ' </Rule>';
+    s += '</Style>';
+    s += '</Map>';
+    m3.fromStringSync(s);
+
+    var mem_datasource = new mapnik.MemoryDatasource({'extent':'-180,-90,180,90'});
+    mem_datasource.add({ 'x':0, 'y':0 });
+    mem_datasource.add({ 'x':1, 'y':1 });
+    mem_datasource.add({ 'x':2, 'y':2 });
+    mem_datasource.add({ 'x':3, 'y':3 });
+    var l = new mapnik.Layer('test');
+    l.srs = m3.srs;
+    l.styles = ["points"];
+    l.datasource = mem_datasource;
+    m3.add_layer(l);
+    m3.zoomAll();    
+    m3.render(im_blank3,{},function(err,im_blank3) {
+        assert.equal(im_blank3.painted(),true);
+        assert.equal(im_blank3.background,undefined);
+    });
 
 };

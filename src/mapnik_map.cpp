@@ -34,7 +34,9 @@
 
 // boost
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp> 
+#include <boost/make_shared.hpp>
+#include <boost/optional/optional.hpp>
+
 
 #include "utils.hpp"
 #include "js_grid_utils.hpp"
@@ -45,6 +47,7 @@
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
 #include "mapnik_palette.hpp"
+#include "mapnik_color.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -95,6 +98,7 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "bufferSize", get_prop, set_prop);
     ATTR(constructor, "extent", get_prop, set_prop);
     ATTR(constructor, "maximumExtent", get_prop, set_prop);
+    ATTR(constructor, "background", get_prop, set_prop);
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
     //eio_set_max_poll_reqs(10);
@@ -200,16 +204,21 @@ Handle<Value> Map::get_prop(Local<String> property,
         a->Set(3, Number::New(e->maxy()));
         return scope.Close(a);
     }
-    else if (a == "srs")
-        return scope.Close(String::New(m->map_->srs().c_str()));
-    else if(a == "bufferSize")
-        return scope.Close(Integer::New(m->map_->buffer_size()));
     else if(a == "width")
         return scope.Close(Integer::New(m->map_->width()));
     else if(a == "height")
         return scope.Close(Integer::New(m->map_->height()));
-    // TODO - expose mapnik.Color
-    //else if(a == "backgroundColor")
+    else if (a == "srs")
+        return scope.Close(String::New(m->map_->srs().c_str()));
+    else if(a == "bufferSize")
+        return scope.Close(Integer::New(m->map_->buffer_size()));
+    else if (a == "background") {
+        boost::optional<mapnik::color> c = m->map_->background();
+        if (c)
+            return scope.Close(Color::New(*c));
+        else
+            return Undefined();
+    }
     return Undefined();
 }
 
@@ -251,7 +260,7 @@ void Map::set_prop(Local<String> property,
             m->map_->set_srs(TOSTR(value));
         }
     }
-    else if(a == "bufferSize") {
+    else if (a == "bufferSize") {
         if (!value->IsNumber()) {
             ThrowException(Exception::Error(
                String::New("Must provide an integer bufferSize")));
@@ -259,7 +268,7 @@ void Map::set_prop(Local<String> property,
             m->map_->set_buffer_size(value->IntegerValue());
         }
     }
-    else if(a == "width") {
+    else if (a == "width") {
         if (!value->IsNumber()) {
             ThrowException(Exception::Error(
                String::New("Must provide an integer width")));
@@ -267,7 +276,7 @@ void Map::set_prop(Local<String> property,
             m->map_->set_width(value->IntegerValue());
         }
     }
-    else if(a == "height") {
+    else if (a == "height") {
         if (!value->IsNumber()) {
             ThrowException(Exception::Error(
                String::New("Must provide an integer height")));
@@ -275,6 +284,18 @@ void Map::set_prop(Local<String> property,
             m->map_->set_height(value->IntegerValue());
         }
     }
+    else if (a == "background") {
+        if (!value->IsObject())
+            ThrowException(Exception::TypeError(
+              String::New("mapnik.Color expected")));
+    
+        Local<Object> obj = value->ToObject();
+        if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
+            ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
+        Color *c = ObjectWrap::Unwrap<Color>(obj);
+        m->map_->set_background(*c->get());
+    }
+
 }
 
 Handle<Value> Map::scaleDenominator(const Arguments& args)

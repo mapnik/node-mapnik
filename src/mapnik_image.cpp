@@ -10,6 +10,7 @@
 
 // boost
 #include <boost/make_shared.hpp>
+#include <boost/optional/optional.hpp>
 
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
@@ -37,6 +38,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -104,7 +106,11 @@ Handle<Value> Image::get_prop(Local<String> property,
     Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "background") {
-        return scope.Close(Color::New(im->get()->get_background()));
+        boost::optional<mapnik::color> c = im->get()->get_background();
+        if (c)
+            return scope.Close(Color::New(*c));
+        else
+            return Undefined();
     }
     return Undefined();
 }
@@ -129,6 +135,14 @@ void Image::set_prop(Local<String> property,
     }
 }
 
+
+Handle<Value> Image::painted(const Arguments& args)
+{
+    HandleScope scope;
+
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    return scope.Close(Boolean::New(im->get()->painted()));
+}
 
 Handle<Value> Image::width(const Arguments& args)
 {
