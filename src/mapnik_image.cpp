@@ -204,7 +204,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
     palette_ptr palette;
     
     // accept custom format
@@ -286,7 +286,7 @@ Handle<Value> Image::encode(const Arguments& args)
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
 
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
     palette_ptr palette;
 
     // accept custom format

@@ -106,7 +106,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
     
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
     palette_ptr palette;
     
     // accept custom format
@@ -188,7 +188,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
 
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
 
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
     palette_ptr palette;
 
     // accept custom format

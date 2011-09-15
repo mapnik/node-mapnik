@@ -1532,7 +1532,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
       return ThrowException(Exception::TypeError(
         String::New("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}")));
 
-    std::string format = "png8";
+    std::string format = "png";
     palette_ptr palette;
 
     if (args.Length() >= 2){
