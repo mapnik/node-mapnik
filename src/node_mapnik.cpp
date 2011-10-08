@@ -40,6 +40,8 @@
 #include <cairo-version.h>
 #endif
 
+namespace node_mapnik {
+
 using namespace node;
 using namespace v8;
 
@@ -66,7 +68,7 @@ static std::string format_version(int version)
 
 extern "C" {
 
-  static void init (Handle<Object> target)
+  static void InitMapnik (Handle<Object> target)
   {
     // module level functions
     NODE_SET_METHOD(target, "make_mapnik_symbols_visible", node_mapnik::make_mapnik_symbols_visible);
@@ -134,5 +136,8 @@ extern "C" {
 
   }
 
-  NODE_MODULE(_mapnik, init)
 }
+
+} // namespace node_mapnik
+
+NODE_MODULE(_mapnik, node_mapnik::InitMapnik)
