@@ -171,6 +171,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 }
 
 typedef struct {
+    uv_work_t request;
     ImageView* im;
     boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > image;
     std::string format;
@@ -229,21 +230,20 @@ Handle<Value> ImageView::encode(const Arguments& args)
                   String::New("last argument must be a callback function")));
 
     encode_image_baton_t *closure = new encode_image_baton_t();
-
+    closure->request.data = closure;
     closure->im = im;
     closure->image = im->this_;
     closure->format = format;
     closure->palette = palette;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    eio_custom(EIO_Encode, EIO_PRI_DEFAULT, EIO_AfterEncode, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
     im->Ref();
 
     return Undefined();
 }
 
-int ImageView::EIO_Encode(eio_req* req)
+void ImageView::EIO_Encode(uv_work_t* req)
 {
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
 
@@ -267,15 +267,13 @@ int ImageView::EIO_Encode(eio_req* req)
         closure->error = true;
         closure->error_name = "unknown exception happened when encoding image: please file bug report";
     }
-    return 0;
 }
 
-int ImageView::EIO_AfterEncode(eio_req* req)
+void ImageView::EIO_AfterEncode(uv_work_t* req)
 {
     HandleScope scope;
 
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -300,7 +298,6 @@ int ImageView::EIO_AfterEncode(eio_req* req)
     closure->im->Unref();
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 
 
