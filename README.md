@@ -3,6 +3,7 @@
       
   Bindings to the [Mapnik](http://mapnik.org) tile rendering library for [node](http://nodejs.org).
   
+```js
     var mapnik = require('mapnik');
     var http = require('http');
     
@@ -36,7 +37,8 @@
        }
       );
     }).listen(port);
-  
+```
+
   For more see 'examples/'
 
 
