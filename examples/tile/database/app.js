@@ -16,13 +16,13 @@ var mapnik = require('mapnik')
   , port = 8000
   , TMS_SCHEME = false;
 
+// change this to fit your db connection and settings
 var postgis_settings = {
   'dbname'          : 'test2',
   'table'           : 'world_merc',
   'user'            : 'postgres',
   'type'            : 'postgis',
-  'extent'          : '-20005048.4188,-9039211.13765,19907487.2779,17096598.5401',  //change this if not merc  
-  'max_size'        : 1    
+  'extent'          : '-20005048.4188,-9039211.13765,19907487.2779,17096598.5401',  //change this if not merc 
 };
 
 http.createServer(function(req, res) {
