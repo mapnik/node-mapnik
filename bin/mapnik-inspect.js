@@ -32,6 +32,7 @@ if (/.shp$/.test(obj)) {
     console.log(opened.features().slice(0,1));
 }
 else if ((/.csv$/.test(obj))
+        || (/.tsv$/.test(obj)) // google refine output .tsv for tab-separated files
         || (/.txt$/.test(obj))) {
     var opened = new mapnik.Datasource({type: 'csv', file: obj});
     console.log('Description -->');
