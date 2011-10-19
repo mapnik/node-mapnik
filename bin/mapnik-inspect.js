@@ -38,7 +38,7 @@ else if ((/.csv$/.test(obj))
     console.log('Description -->');
     console.log(opened.describe());
     console.log('First feature --> ');
-    console.log(opened.features().slice(0,1));
+    console.log(opened.features().slice(0,5));
 }
 else if (/.osm$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'osm', file: obj});
