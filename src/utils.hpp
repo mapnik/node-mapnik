@@ -46,6 +46,11 @@ public:
         ds_->Set(String::NewSymbol(key_.c_str()), Integer::New(val) );
     }
 
+    void operator () ( bool val )
+    {
+        ds_->Set(String::NewSymbol(key_.c_str()), Boolean::New(val) );
+    }
+
     void operator () ( double val )
     {
         ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
