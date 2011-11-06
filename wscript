@@ -12,7 +12,7 @@ import Utils
 
 TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
-built = 'build/default/%s' % TARGET_FILE
+built = 'build/Release/%s' % TARGET_FILE
 dest = 'lib/%s' % TARGET_FILE
 settings = 'lib/mapnik_settings.js'
 
