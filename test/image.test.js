@@ -26,9 +26,9 @@ exports['test images'] = function(beforeExit) {
     assert.equal(v.height(), 256);
     assert.equal(im.encodeSync().length, v.encodeSync().length);
 
-    im.save('tests/tmp/image.png');
+    im.save('test/tmp/image.png');
 
-    var im2 = new Image.open('tests/tmp/image.png');
+    var im2 = new Image.open('test/tmp/image.png');
     assert.ok(im2 instanceof Image);
 
     assert.equal(im2.width(), 256);
