@@ -649,7 +649,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
     {
         mapnik::load_map(*m->map_,stylesheet,strict);
     }
-    catch (const mapnik::config_error & ex )
+    catch (const std::exception & ex)
     {
       return ThrowException(Exception::Error(
         String::New(ex.what())));
@@ -716,7 +716,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     {
         mapnik::load_map_string(*m->map_,stylesheet,strict,base_path);
     }
-    catch (const mapnik::config_error & ex )
+    catch (const std::exception & ex)
     {
       return ThrowException(Exception::Error(
         String::New(ex.what())));

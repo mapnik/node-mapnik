@@ -31,6 +31,15 @@ if (/.shp$/.test(obj)) {
     console.log('First feature --> ');
     console.log(opened.features().slice(0,1));
 }
+else if ((/.csv$/.test(obj))
+        || (/.tsv$/.test(obj)) // google refine output .tsv for tab-separated files
+        || (/.txt$/.test(obj))) {
+    var opened = new mapnik.Datasource({type: 'csv', file: obj});
+    console.log('Description -->');
+    console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0,5));
+}
 else if (/.osm$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'osm', file: obj});
     console.log('Description -->');
@@ -46,7 +55,6 @@ else if ((/.json$/.test(obj))
          || (/.db$/.test(obj))
          || (/.gml$/.test(obj))
          || (/.vrt$/.test(obj))
-         || (/.csv$/.test(obj))
          || (/.dbf$/.test(obj))
         ) {
     var opened = new mapnik.Datasource({type: 'ogr', file: obj, 'layer_by_index': 0});
