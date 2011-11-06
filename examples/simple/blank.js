@@ -9,7 +9,7 @@ var path = require('path');
 // and highlights zlib/inflate bottleneck (compare "png" format to "png8")
 var port = 8000;
 
-var im = new mapnik.Image(256,256)
+var im = new mapnik.Image(256,256);
 
 http.createServer(function(req, res) {
     res.writeHead(200, {'Content-Type': 'image/png'});

@@ -35,6 +35,6 @@ test: test-tmp
 endif
 
 lint:
-	./node_modules/.bin/jshint lib/*js --config=jshint.json
+	./node_modules/.bin/jshint lib/*js bin/*js --config=jshint.json
 
 .PHONY: test

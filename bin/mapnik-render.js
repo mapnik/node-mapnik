@@ -33,7 +33,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
         var carto = require('carto');
         new carto.Renderer({
             filename: stylesheet,
-            local_data_dir: path.dirname(stylesheet),
+            local_data_dir: path.dirname(stylesheet)
         }).render(fs.readFileSync(stylesheet, 'utf-8'), function(err, output) {
             if (err) {
                 if (Array.isArray(err)) {
@@ -51,7 +51,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
             }
         });
     } catch(e) {
-        console.log('Carto is required to render .mml files.')
+        console.log('Carto is required to render .mml files.');
         process.exit(1);
     }
 } else {

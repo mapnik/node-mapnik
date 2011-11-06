@@ -25,8 +25,8 @@ var aquire = function(id,options,callback) {
                 obj.load(id,{strict:true},function(err,obj) {
                     if (err) callback(err,null);
                     if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                    cb(obj)
-                })
+                    cb(obj);
+                });
             },
             destroy: function(obj) {
                 obj.clear();
