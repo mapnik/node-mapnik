@@ -19,14 +19,14 @@ var maps = mappool.create(5);
 
 var usage = 'usage: app.js <stylesheet> <port>\ndemo:  app.js ../../stylesheet.xml 8000';
 
-var stylesheet = process.ARGV[2];
+var stylesheet = process.argv[2];
 
 if (!stylesheet) {
    console.log(usage);
    process.exit(1);
 }
 
-var port = process.ARGV[3];
+var port = process.argv[3];
 
 if (!port) {
    console.log(usage);

@@ -9,7 +9,7 @@ var mapnik = require('mapnik')
 
 var usage = 'usage: app.js <port>';
 
-var port = process.ARGV[2];
+var port = process.argv[2];
 
 if (!port) {
    console.log(usage);

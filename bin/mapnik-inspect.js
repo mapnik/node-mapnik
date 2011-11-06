@@ -9,7 +9,7 @@ usage += '\n  mapnik-inspect.js <stylesheet> (.xml)';
 usage += '\n  mapnik-inspect.js <projection> (.prj)';
 usage += '\n  mapnik-inspect.js <zipfile> (.zip)';
 
-var obj = process.ARGV[2];
+var obj = process.argv[2];
 if (!obj) {
    console.log(usage);
    process.exit(1);

@@ -13,14 +13,14 @@ var use_map_pool = true;
 
 var usage = 'usage: wms.js <stylesheet> <port>';
 
-var stylesheet = process.ARGV[2];
+var stylesheet = process.argv[2];
 
 if (!stylesheet) {
    console.log(usage);
    process.exit(1);
 }
 
-var port = process.ARGV[3];
+var port = process.argv[3];
 
 if (!port) {
    console.log(usage);
