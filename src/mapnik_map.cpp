@@ -164,7 +164,7 @@ Handle<Value> Map::New(const Arguments& args)
                String::New("'width' and 'height' must be a integers")));
         if (!args[2]->IsString())
             return ThrowException(Exception::Error(
-               String::New("'srs' value must be a string")));            
+               String::New("'srs' value must be a string")));
         Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue(),TOSTR(args[2]));
         m->Wrap(args.This());
         return args.This();
@@ -288,7 +288,7 @@ void Map::set_prop(Local<String> property,
         if (!value->IsObject())
             ThrowException(Exception::TypeError(
               String::New("mapnik.Color expected")));
-    
+
         Local<Object> obj = value->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
@@ -346,7 +346,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
         {
           return ThrowException(Exception::TypeError(
             String::New("invalid layer index")));
-        }    
+        }
     }
     else if (layer->IsString())
     {
@@ -360,16 +360,16 @@ Handle<Value> Map::get_layer(const Arguments& args)
                 found = true;
                 return scope.Close(Layer::New(layers[idx]));
             }
-            ++idx; 
+            ++idx;
         }
-        if (!found) 
+        if (!found)
         {
             std::ostringstream s;
             s << "Layer name '" << layer_name << "' not found";
             return ThrowException(Exception::TypeError(
               String::New(s.str().c_str())));
         }
-    
+
     }
     else
     {
@@ -574,7 +574,7 @@ Handle<Value> Map::load(const Arguments& args)
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     load_image_baton_t *closure = new load_image_baton_t();
-    
+
     closure->stylesheet = TOSTR(stylesheet);
     closure->m = m;
     closure->strict = strict;
@@ -583,7 +583,7 @@ Handle<Value> Map::load(const Arguments& args)
     eio_custom(EIO_Load, EIO_PRI_DEFAULT, EIO_AfterLoad, closure);
     ev_ref(EV_DEFAULT_UC);
     m->Ref();
-    
+
     return Undefined();
 }
 
@@ -685,9 +685,9 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
         if (!args[1]->IsObject())
             return ThrowException(Exception::TypeError(
               String::New("options must be an object, eg {strict: true, base: \".\"'}")));
-    
+
         Local<Object> options = args[1]->ToObject();
-    
+
         Local<String> param = String::New("strict");
         if (options->Has(param))
         {
@@ -697,7 +697,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
                 String::New("'strict' must be a Boolean")));
             strict = param_val->BooleanValue();
         }
-    
+
         param = String::New("base");
         if (options->Has(param))
         {
@@ -708,7 +708,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
             base_path = TOSTR(param_val);
         }
     }
-    
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     std::string const& stylesheet = TOSTR(args[0]);
@@ -792,7 +792,7 @@ Handle<Value> Map::fromString(const Arguments& args)
             String::New("'base' must be a string representing a filesystem path")));
         closure->base_url = TOSTR(param_val);
     }
-    
+
     closure->stylesheet = TOSTR(stylesheet);
     closure->m = m;
     closure->strict = strict;
@@ -801,7 +801,7 @@ Handle<Value> Map::fromString(const Arguments& args)
     eio_custom(EIO_FromString, EIO_PRI_DEFAULT, EIO_AfterFromString, closure);
     ev_ref(EV_DEFAULT_UC);
     m->Ref();
-    
+
     return Undefined();
 }
 
@@ -960,13 +960,13 @@ typedef struct {
 Handle<Value> Map::render(const Arguments& args)
 {
     HandleScope scope;
-    
+
     // ensure at least 2 args
     if (!args.Length() >= 2) {
         return ThrowException(Exception::TypeError(
           String::New("requires at least two arguments, a renderable mapnik object, and a callback")));
     }
-    
+
     // ensure renderable object
     if (!args[0]->IsObject()) {
         return ThrowException(Exception::TypeError(
@@ -988,16 +988,16 @@ Handle<Value> Map::render(const Arguments& args)
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
         std::cerr << s.str() << "\n";
     }
-    
+
     // parse options
 
     // defaults
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    
+
     Local<Object> options;
-    
+
     if (args.Length() > 2) {
 
         // options object
@@ -1057,13 +1057,13 @@ Handle<Value> Map::render(const Arguments& args)
         Grid * g = ObjectWrap::Unwrap<Grid>(obj);
 
         std::size_t layer_idx = 0;
-        
+
         // grid requires special options for now
         if (!options->Has(String::New("layer"))) {
             return ThrowException(Exception::TypeError(
               String::New("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)")));
         } else {
-                    
+
             std::vector<mapnik::layer> const& layers = m->map_->layers();
 
             Local<Value> layer_id = options->Get(String::New("layer"));
@@ -1083,9 +1083,9 @@ Handle<Value> Map::render(const Arguments& args)
                         layer_idx = idx;
                         break;
                     }
-                    ++idx; 
+                    ++idx;
                 }
-                if (!found) 
+                if (!found)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
@@ -1094,13 +1094,13 @@ Handle<Value> Map::render(const Arguments& args)
             } else if (layer_id->IsNumber()) {
                 layer_idx = layer_id->IntegerValue();
                 std::size_t layer_num = layers.size();
-            
+
                 if (layer_idx >= layer_num) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
                       << layers.size() << "' layers are in map";
                     return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
-                }    
+                }
             } else {
                 return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
             }
@@ -1135,8 +1135,8 @@ Handle<Value> Map::render(const Arguments& args)
         closure->error = false;
         closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
         eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
-    
-    // TODO - canvas 
+
+    // TODO - canvas
     } else {
         return ThrowException(Exception::TypeError(String::New("renderable mapnik object expected")));
     }
@@ -1153,14 +1153,14 @@ int Map::EIO_RenderGrid(eio_req *req)
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
 
     std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
-    
+
     try
     {
         // copy property names
         std::set<std::string> attributes = closure->g->get()->property_names();
-        
+
         std::string join_field = closure->g->get()->get_key();
-        if (join_field == closure->g->get()->id_name_) 
+        if (join_field == closure->g->get()->id_name_)
         {
             // TODO - should feature.id() be a first class attribute?
             if (attributes.find(join_field) != attributes.end())
@@ -1180,7 +1180,7 @@ int Map::EIO_RenderGrid(eio_req *req)
                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
         ren.apply(layer,attributes);
-    
+
     }
     catch (const std::exception & ex)
     {
@@ -1282,28 +1282,180 @@ int Map::EIO_AfterRenderImage(eio_req *req)
     closure->cb.Dispose();
     delete closure;
     return 0;
+
 }
 
+typedef struct {
+    Map *m;
+    std::string format;
+    std::string output;
+    palette_ptr palette;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} render_file_baton_t;
 
 Handle<Value> Map::renderFile(const Arguments& args)
 {
     HandleScope scope;
-    
-    //Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    // TODO
-    return ThrowException(Exception::Error(
-        String::New("sorry! renderFile async is not yet implemented")));
-    //return Undefined();
+
+    if (!args.Length() >= 1 || !args[0]->IsString())
+      return ThrowException(Exception::TypeError(
+        String::New("first argument must be a path to a file to save")));
+
+    std::string format = "png";
+    palette_ptr palette;
+
+    Local<Value> callback = args[args.Length()-1];
+
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                    String::New("last argument must be a callback function")));
+
+    if (!args[1]->IsFunction() && args[1]->IsObject()) {
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(String::New("format")))
+        {
+            Local<Value> format_opt = options->Get(String::New("format"));
+            if (!format_opt->IsString())
+              return ThrowException(Exception::TypeError(
+                String::New("'format' must be a String")));
+
+            format = TOSTR(format_opt);
+        }
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+
+    } else if (!args[1]->IsFunction()) {
+        return ThrowException(Exception::TypeError(
+                    String::New("optional argument must be an object")));
+    }
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    std::string const& output = TOSTR(args[0]);
+
+    //maybe do this in the async part?
+    if (format.empty()) {
+        format = mapnik::guess_type(output);
+        if (format == "<unknown>") {
+            std::ostringstream s("");
+            s << "unknown output extension for: " << output << "\n";
+            return ThrowException(Exception::Error(
+                String::New(s.str().c_str())));
+        }
+    }
+
+    if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
+#if defined(HAVE_CAIRO)
+#else
+        std::ostringstream s("");
+        s << "Cairo backend is not available, cannot write to " << format << "\n";
+        return ThrowException(Exception::Error(
+          String::New(s.str().c_str())));
+#endif
+    } else {
+
+    }
+
+
+
+    render_file_baton_t *closure = new render_file_baton_t();
+
+    closure->m = m;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+
+    closure->format = format;
+    closure->palette = palette;
+    closure->output = output;
+
+    eio_custom(EIO_RenderFile, EIO_PRI_DEFAULT, EIO_AfterRenderFile, closure);
+    ev_ref(EV_DEFAULT_UC);
+    m->Ref();
+
+    return Undefined();
+
 }
 
 int Map::EIO_RenderFile(eio_req *req)
 {
+    render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
+
+    try
+    {
+        if(closure->format == "pdf" || closure->format == "svg" || closure->format == "ps" || closure->format == "ARGB32" || closure->format == "RGB24") {
+#if defined(HAVE_CAIRO)
+            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
+#else
+
+#endif
+        }
+        else
+        {
+            mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
+            V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
+            mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im);
+            ren.apply();
+
+            if (closure->palette.get()) {
+                mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output,*closure->palette);
+            } else {
+                mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output);
+            }
+        }
+    }
+    catch (const std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "unknown exception happend while rendering image to file,\n this should not happen, please submit a bug report";
+    }
     return 0;
 }
 
 int Map::EIO_AfterRenderFile(eio_req *req)
 {
     HandleScope scope;
+
+    render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
+    ev_unref(EV_DEFAULT_UC);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(),1, argv);
+    } else {
+        Local<Value> argv[1] = { Local<Value>::New(Null()) };
+        closure->cb->Call(Context::GetCurrent()->Global(),1, argv);
+    }
+
+
+
+    if (try_catch.HasCaught()) {
+        FatalException(try_catch);
+    }
+
+    closure->m->release();
+    closure->m->Unref();
+    closure->cb.Dispose();
+    delete closure;
 
     return 0;
 }
@@ -1323,17 +1475,17 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
 
     if (!Grid::constructor->HasInstance(obj))
       return ThrowException(Exception::TypeError(String::New("mapnik.Grid expected")));
-      
+
     std::size_t layer_idx = 0;
-    
+
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
     if (args.Length() >= 2) {
-        
+
         Local<Value> layer_id = args[1];
-        
+
         if (layer_id->IsString()) {
             bool found = false;
             unsigned int idx(0);
@@ -1346,9 +1498,9 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
                     layer_idx = idx;
                     break;
                 }
-                ++idx; 
+                ++idx;
             }
-            if (!found) 
+            if (!found)
             {
                 std::ostringstream s;
                 s << "Layer name '" << layer_name << "' not found";
@@ -1357,29 +1509,29 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
         } else if (layer_id->IsNumber()) {
             layer_idx = layer_id->IntegerValue();
             std::size_t layer_num = layers.size();
-        
+
             if (layer_idx >= layer_num) {
                 std::ostringstream s;
                 s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
                   << layers.size() << "' layers are in map";
                 return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
-            }    
+            }
         } else {
             return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
         }
-    }    
-    
+    }
+
     Grid *g = ObjectWrap::Unwrap<Grid>(obj);
 
     // defaults
     double scale_factor = 1;
-    
+
     if (args.Length() >= 3) {
-    
+
         if (!args[2]->IsObject())
             return ThrowException(Exception::TypeError(
               String::New("optional second argument must be an options object")));
-    
+
         Local<Object> options = args[2]->ToObject();
 
         if (options->Has(String::New("fields"))) {
@@ -1400,7 +1552,7 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
             }
 
         }
-        
+
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
             if (!bind_opt->IsNumber())
@@ -1415,9 +1567,9 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
     {
         // copy property names
         std::set<std::string> attributes = g->get()->property_names();
-        
+
         std::string join_field = g->get()->get_key();
-        if (join_field == g->get()->id_name_) 
+        if (join_field == g->get()->id_name_)
         {
             // TODO - should feature.id() be a first class attribute?
             if (attributes.find(join_field) != attributes.end())
@@ -1433,7 +1585,7 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
         mapnik::grid_renderer<mapnik::grid> ren(*m->map_,*g->get());
         mapnik::layer const& layer = layers[layer_idx];
         ren.apply(layer,attributes);
-    
+
     }
     catch (const std::exception & ex)
     {
@@ -1478,7 +1630,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
             Local<Object> obj = bind_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
               return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
-    
+
             palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
@@ -1557,11 +1709,11 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             if (!format_opt->IsObject())
               return ThrowException(Exception::TypeError(
                 String::New("'palette' must be an object")));
-            
+
             Local<Object> obj = format_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
               return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
-    
+
             palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
 
@@ -1675,7 +1827,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     if (!args[1]->IsObject())
         return ThrowException(Exception::TypeError(
           String::New("options must be an object, eg {key: '__id__', resolution : 4, fields: ['name']}")));
-    
+
     Local<Object> options = args[1]->ToObject();
 
     std::string join_field("__id__");
@@ -1719,7 +1871,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     closure->num_fields = 0;
-    
+
     unsigned int grid_width = m->map_->width()/step;
     unsigned int grid_height = m->map_->height()/step;
 
@@ -1763,7 +1915,7 @@ int Map::EIO_RenderGrid2(eio_req *req)
     grid_t *closure = static_cast<grid_t *>(req->data);
 
     std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
-    
+
     if (!closure->layer_name.empty()) {
         bool found = false;
         unsigned int idx(0);
@@ -1776,9 +1928,9 @@ int Map::EIO_RenderGrid2(eio_req *req)
                 closure->layer_idx = idx;
                 break;
             }
-            ++idx; 
+            ++idx;
         }
-        if (!found) 
+        if (!found)
         {
             std::ostringstream s;
             s << "Layer name '" << layer_name << "' not found";
@@ -1787,11 +1939,11 @@ int Map::EIO_RenderGrid2(eio_req *req)
             return 0;
         }
     }
-    else 
+    else
     {
         std::size_t layer_num = layers.size();
         std::size_t layer_idx = closure->layer_idx;
-    
+
         if (layer_idx >= layer_num) {
             std::ostringstream s;
             s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
@@ -1799,15 +1951,15 @@ int Map::EIO_RenderGrid2(eio_req *req)
             closure->error = true;
             closure->error_name = s.str();
             return 0;
-        }    
+        }
     }
 
     // copy property names
     std::set<std::string> attributes = closure->grid_ptr->property_names();
 
     std::string const& join_field = closure->join_field;
-    
-    if (join_field == closure->grid_ptr->id_name_) 
+
+    if (join_field == closure->grid_ptr->id_name_)
     {
         // TODO - should feature.id() be a first class attribute?
         if (attributes.find(join_field) != attributes.end())
@@ -1861,7 +2013,7 @@ int Map::EIO_AfterRenderGrid2(eio_req *req)
         Local<Array> grid_array = Array::New();
         std::vector<mapnik::grid::lookup_type> key_order;
         node_mapnik::grid2utf<mapnik::grid>(*closure->grid_ptr,grid_array,key_order);
-    
+
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(key_order.size());
         std::vector<std::string>::iterator it;
@@ -1870,7 +2022,7 @@ int Map::EIO_AfterRenderGrid2(eio_req *req)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
-    
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (closure->num_fields > 0) {
@@ -1880,7 +2032,7 @@ int Map::EIO_AfterRenderGrid2(eio_req *req)
                            /*closure->join_field,
                            closure->grid_ptr->property_names()*/);
         }
-        
+
         // Create the return hash.
         Local<Object> json = Object::New();
         json->Set(String::NewSymbol("grid"), grid_array);
