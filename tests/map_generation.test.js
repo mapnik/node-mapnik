@@ -77,21 +77,22 @@ exports['test asynchronous map rendering to file with actual data'] = function(b
     });
 };
 
-exports['test asynchronous map rendering to file with actual data and cairo'] = function(beforeExit) {
+if(mapnik.supports.cairo) {
+    exports['test asynchronous map rendering to file with actual data and cairo'] = function(beforeExit) {
 
-    var filename = './tests/tmp/renderFile2.pdf';
-    var map = new Map(600, 400);
-    map.loadSync('./examples/stylesheet.xml');
-    map.zoomAll();
-    map.renderFile(filename, { format: "pdf" }, function(error) {
-        if (error) {
-            console.log(error);
-        }
-        assert.ok(!error);
-        assert.ok(path.existsSync(filename));
-    });
-
-};
+        var filename = './tests/tmp/renderFile2.pdf';
+        var map = new Map(600, 400);
+        map.loadSync('./examples/stylesheet.xml');
+        map.zoomAll();
+        map.renderFile(filename, { format: "pdf" }, function(error) {
+            if (error) {
+                console.log(error);
+            }
+            assert.ok(!error);
+            assert.ok(path.existsSync(filename));
+        });
+    };
+}
 
 exports['test asynchronous map rendering to file with actual data (guess file type) '] = function(beforeExit) {
 
