@@ -638,9 +638,13 @@ void Map::EIO_AfterLoad(uv_work_t* req)
 Handle<Value> Map::loadSync(const Arguments& args)
 {
     HandleScope scope;
-    if (args.Length() != 1 || !args[0]->IsString())
+    if (!args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a mapnik stylesheet")));
+
+    if (args.Length() != 1)
+      return ThrowException(Exception::TypeError(
+        String::New("only accepts one argument: a path to a mapnik stylesheet")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& stylesheet = TOSTR(args[0]);

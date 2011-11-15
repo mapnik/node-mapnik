@@ -59,7 +59,7 @@ Handle<Value> Datasource::New(const Arguments& args)
 
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
-          String::New("must provide an object, eg {type: 'shape', file : 'world.shp'}")));
+          String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
 
     Local<Object> options = args[0]->ToObject();
 

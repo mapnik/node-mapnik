@@ -50,7 +50,7 @@ Handle<Value> JSDatasource::New(const Arguments& args)
 
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
-          String::New("must provide an object, eg {extent: '-180,-90,180,90'}")));
+          String::New("Must provide an object, eg {extent: '-180,-90,180,90'}")));
 
     Local<Object> options = args[0]->ToObject();
 
