@@ -41,10 +41,10 @@ var featureset = ds.featureset();
 
 var mem_datasource = new mapnik.MemoryDatasource(
     {'extent':'-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'}
-    )
+    );
 
 // build up memory datasource
-while (feat = featureset.next(true)) {
+while ((feat = featureset.next(true))) {
     var e = feat.extent();
     // center longitude of polygon bbox
     var x = (e[0]+e[2])/2;
@@ -58,7 +58,7 @@ while (feat = featureset.next(true)) {
 }
 
 var options = {
-    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
+    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'
 };
 
 // contruct a mapnik layer dynamically

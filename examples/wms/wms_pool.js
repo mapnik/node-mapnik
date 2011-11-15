@@ -32,9 +32,11 @@ var aquire = function(id,options,callback) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
                 obj.load(id,{strict:true},function(err,obj) {
                     if (err) callback(err,null);
-                    if (options.bufferSize) obj.bufferSize = options.bufferSize;
-                    cb(obj)
-                })
+                    if (options.bufferSize) {
+                        obj.bufferSize = options.bufferSize;
+                    }
+                    cb(obj);
+                });
             },
             destroy: function(obj) {
                 obj.clear();

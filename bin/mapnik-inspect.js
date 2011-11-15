@@ -31,9 +31,9 @@ if (/.shp$/.test(obj)) {
     console.log('First feature --> ');
     console.log(opened.features().slice(0,1));
 }
-else if ((/.csv$/.test(obj))
-        || (/.tsv$/.test(obj)) // google refine output .tsv for tab-separated files
-        || (/.txt$/.test(obj))) {
+else if ((/.csv$/.test(obj)) || 
+         (/.tsv$/.test(obj)) || // google refine output .tsv for tab-separated files
+         (/.txt$/.test(obj))) {
     var opened = new mapnik.Datasource({type: 'csv', file: obj});
     console.log('Description -->');
     console.log(opened.describe());
@@ -47,15 +47,15 @@ else if (/.osm$/.test(obj)) {
     console.log('First feature --> ');
     console.log(opened.features().slice(0,1));
 }
-else if ((/.json$/.test(obj))
-         || (/.geojson$/.test(obj))
-         || (/.kml$/.test(obj))
-         || (/.sqlite$/.test(obj))
-         || (/.sqlite3$/.test(obj))
-         || (/.db$/.test(obj))
-         || (/.gml$/.test(obj))
-         || (/.vrt$/.test(obj))
-         || (/.dbf$/.test(obj))
+else if ((/.json$/.test(obj))    ||
+         (/.geojson$/.test(obj)) ||
+         (/.kml$/.test(obj))     ||
+         (/.sqlite$/.test(obj))  ||
+         (/.sqlite3$/.test(obj)) ||
+         (/.db$/.test(obj))      ||
+         (/.gml$/.test(obj))     ||
+         (/.vrt$/.test(obj))     ||
+         (/.dbf$/.test(obj))
         ) {
     var opened = new mapnik.Datasource({type: 'ogr', file: obj, 'layer_by_index': 0});
     console.log('Description -->');

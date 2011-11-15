@@ -58,7 +58,7 @@ var featureset = ds.featureset();
 var options = {
     // right now 'extent' is required
     // world in merc
-    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
+    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'
     // world in long lat
     //extent: '-180,-90,180,90',
 };
@@ -73,7 +73,7 @@ var options = {
 
 var feat;
 var next = function() {
-    while (feat = featureset.next(true)) {
+    while ((feat = featureset.next(true))) {
         // center longitude of polygon bbox
         var e = feat.extent();
         var x = (e[0]+e[2])/2;
@@ -85,7 +85,7 @@ var next = function() {
                  'properties' : { 'NAME':attr.NAME,'POP2005':attr.POP2005 }
                };
     }
-}
+};
 
 // create the special datasource
 var ds = new mapnik.JSDatasource(options,next);

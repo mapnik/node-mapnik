@@ -50,25 +50,25 @@ map.fromStringSync(s);
 
 // Latest 30 days of earthquakes > 2.5 from USGS (http://earthquake.usgs.gov/earthquakes/catalogs/) 
 // CSV munged into json using Yahoo pipes
-var dl = new get("http://pipes.yahoo.com/pipes/pipe.run?_id=f36216d2581df7ed23615f42ff2af187&_render=json")
+var dl = new get("http://pipes.yahoo.com/pipes/pipe.run?_id=f36216d2581df7ed23615f42ff2af187&_render=json");
 dl.asString(function(err,str){
   // Loop through quake list
   // WARNING - this API will change!
   var quakes = JSON.parse(str).value.items;
   var quake;
   var next = function() {
-      while (quake = quakes.pop()) {
+      while ((quake = quakes.pop())) {
         var merc_coords = merc.forward([+quake.Lon, +quake.Lat]); //reproject wgs84 to mercator
         return { 'x'          : merc_coords[0],
                  'y'          : merc_coords[1],
                  'properties' : { 'NAME':quake.Region,'MAGNITUDE':+quake.Magnitude}
                };
       }
-  }
+  };
 
   // create the Merc special datasource
   var options = {
-    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
+    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'
   };
   var ds = new mapnik.JSDatasource(options,next);
 

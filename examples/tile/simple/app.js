@@ -7,20 +7,20 @@
 // expected output at zoom 0: http://goo.gl/cyGwo
 
 
-var mapnik = require('mapnik')
-  , mercator = require('mapnik/sphericalmercator')
-  , connect = require('connect')
-  , url = require('url')
-  , fs = require('fs')
-  , path = require('path')
-  , port = 3000;
+var mapnik = require('mapnik'),
+  mercator = require('mapnik/sphericalmercator'),
+  connect = require('connect'),
+  url = require('url'),
+  fs = require('fs'),
+  path = require('path'),
+  port = 3000;
 
 
 var stylesheet = path.join(__dirname, '../../stylesheet.xml');
 
 var server = connect.createServer(  
   
-  connect.logger('\033[90m:method\033[0m \033[36m:url\033[0m \033[90m:status :response-timems -> :res[Content-Type]\033[0m')  
+  connect.logger('\\033[90m:method\\033[0m \\033[36m:url\\033[0m \\033[90m:status :response-timems -> :res[Content-Type]\\033[0m'), 
 , connect.static(__dirname + '/public/')
 , connect.router(function(app){
     
@@ -29,9 +29,9 @@ var server = connect.createServer(
 
       try {
         // calculate the bounding box for each tile
-        var bbox = mercator.xyz_to_envelope(parseInt(req.params.x),
-                                            parseInt(req.params.y),
-                                            parseInt(req.params.z), false);
+        var bbox = mercator.xyz_to_envelope(parseInt(req.params.x,10),
+                                            parseInt(req.params.y,10),
+                                            parseInt(req.params.z,10), false);
       
         // create map
         var map = new mapnik.Map(256, 256, mercator.proj4);
@@ -56,7 +56,7 @@ var server = connect.createServer(
         res.end(err.message);
       }
     });
-  })  
+  });
 );
 
 server.listen(port);

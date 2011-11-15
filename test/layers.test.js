@@ -3,7 +3,7 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
-exports['test layers'] = function() {
+exports['test layers'] = function(beforeExit, assert) {
     // no 'new' keyword
     assert.throws(function() { mapnik.Layer('foo'); });
     // invalid args

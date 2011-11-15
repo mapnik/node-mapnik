@@ -44,27 +44,27 @@ map.fromStringSync(s);
 
 // Pubs around Washington DC - using the OSM XAPI from Mapquest (http://open.mapquestapi.com/xapi/)) 
 // XML munged into json using Yahoo pipes
-var dl = new get("http://pipes.yahoo.com/pipes/pipe.run?_id=313bef20b9a083d22241c59211b04a91&_render=json")
+var dl = new get("http://pipes.yahoo.com/pipes/pipe.run?_id=313bef20b9a083d22241c59211b04a91&_render=json");
 dl.asString(function(err,str){
   // Loop through pub list
   var items = JSON.parse(str).value.items;
-  if (!items.length >= 1)
+  if (items.length < 1)
       throw new Error("whoops looks like the data changed upstream and this demo no longer works");
   var pubs = items[0].node;
   var pub;
   var next = function() {
-      while (pub = pubs.pop()) {
+      while ((pub = pubs.pop())) {
         var merc_coords = merc.forward([+pub.lon, +pub.lat]); //reproject wgs84 to mercator
         return { 'x'          : merc_coords[0],
                  'y'          : merc_coords[1],
                  'properties' : { 'USER':pub.user}
                };
       }
-  }
+  };
 
   // create the Merc special datasource
   var options = {
-    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
+    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'
   };
   var ds = new mapnik.JSDatasource(options,next);
 
@@ -80,11 +80,11 @@ dl.asString(function(err,str){
   map.add_layer(l);
 
   // zoom to the extent of the new layer (pulled from options since otherwise we cannot know)
-  bl = merc.forward([-77.161742101557, 38.83321750946542])
-  tr = merc.forward([-76.88708389844298, 38.9534635955426])
+  bl = merc.forward([-77.161742101557, 38.83321750946542]);
+  tr = merc.forward([-76.88708389844298, 38.9534635955426]);
   
   //minx,miny,maxx,maxy
-  map.extent = (bl[0],bl[1],tr[0],tr[1]);
+  map.extent = [bl[0],bl[1],tr[0],tr[1]];
 
   // render it! You should see a bunch of red and blue points reprenting
   map.renderFileSync('dc_pubs.png');

@@ -49,7 +49,7 @@ function get_map()
 }
 
 http.createServer(function(req, res) {
-  var query = url.parse(req.url.toLowerCase(), true).query
+  var query = url.parse(req.url.toLowerCase(), true).query;
   if (query && query.bbox !== undefined) {
       var bbox = query.bbox.split(',');
       res.writeHead(200, {'Content-Type': 'image/png'});
@@ -64,7 +64,7 @@ http.createServer(function(req, res) {
       }
 
       if (query.width !== undefined && query.height !== undefined) {
-          map.resize(parseInt(query.width), parseInt(query.height));
+          map.resize(parseInt(query.width,10), parseInt(query.height,10));
       }
 
       if (async_render) {
