@@ -1,5 +1,16 @@
 var mapnik = require('mapnik');
 
+
+exports['test asynchronous map rendering to file'] = function(beforeExit, assert) {
+    var map = new mapnik.Map(600, 400);
+    var filename = './tests/tmp/renderFile.png';
+    map.renderFile(filename, function(error) {
+        //assert.ok(!error);
+        //assert.ok(path.existsSync(filename));
+    });
+    
+};
+
 exports['async render'] = function(beforeExit, assert) {
 
     var rendered = false;

@@ -1283,6 +1283,7 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
 }
 
 typedef struct {
+    uv_work_t request;
     Map *m;
     std::string format;
     std::string output;
@@ -1305,7 +1306,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
     Local<Value> callback = args[args.Length()-1];
 
-    if (!args[args.Length()-1]->IsFunction())
+    if (!callback->IsFunction())
         return ThrowException(Exception::TypeError(
                     String::New("last argument must be a callback function")));
 
@@ -1362,13 +1363,10 @@ Handle<Value> Map::renderFile(const Arguments& args)
         return ThrowException(Exception::Error(
           String::New(s.str().c_str())));
 #endif
-    } else {
-
     }
 
-
-
     render_file_baton_t *closure = new render_file_baton_t();
+    closure->request.data = closure;
 
     closure->m = m;
     closure->error = false;
@@ -1378,7 +1376,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     closure->palette = palette;
     closure->output = output;
 
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, EIO_AfterRenderFile)
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, EIO_AfterRenderFile);
     //uv_ref(uv_default_loop())
     m->Ref();
 
@@ -1402,7 +1400,8 @@ void Map::EIO_RenderFile(uv_work_t* req)
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-            V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
+            // causes hang with node v0.6.0
+            //V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
             mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im);
             ren.apply();
 
@@ -1441,8 +1440,6 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
         closure->cb->Call(Context::GetCurrent()->Global(),1, argv);
     }
 
-
-
     if (try_catch.HasCaught()) {
         FatalException(try_catch);
     }
@@ -1452,6 +1449,7 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
     closure->m->Unref();
     closure->cb.Dispose();
     delete closure;
+
 }
 
 Handle<Value> Map::renderLayerSync(const Arguments& args)
