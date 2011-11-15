@@ -31,7 +31,7 @@
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">=0.2.4 <0.5" },
+  "engines"       : { "node": ">=0.6.0 <0.7" },
   "scripts"       : {
       "install" : "node-waf -v configure build",
       "pretest" : "npm install --dev",
