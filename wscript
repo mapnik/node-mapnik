@@ -16,9 +16,6 @@ built = 'build/default/%s' % TARGET_FILE
 dest = 'lib/%s' % TARGET_FILE
 settings = 'lib/mapnik_settings.js'
 
-# detect this install: http://dbsgeo.com/downloads/#mapnik200
-HAS_OSX_FRAMEWORK = False
-
 # this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
@@ -75,7 +72,6 @@ def set_options(opt):
     #opt.add_option('-D', '--debug', action='store_true', default=False, dest='debug')
 
 def configure(conf):
-    global HAS_OSX_FRAMEWORK
 
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
@@ -85,22 +81,11 @@ def configure(conf):
     cairo_cxxflags = []
     grid_cxxflags = []
 
-    # future auto-support for mapnik frameworks..
     path_list = environ.get('PATH', '').split(os.pathsep)
     
-    # if user is not setting LINKFLAGS (custom compile) detect and auto-configure
-    # against the Mapnik.Framework installer
-    framework_path = '/Library/Frameworks/Mapnik.framework/Programs'
-    if not os.environ.has_key('LINKFLAGS') and os.path.exists('/Library/Frameworks/Mapnik.framework'):
-        path_list.append(framework_path)
-        HAS_OSX_FRAMEWORK = True
-    else:
-        if framework_path in path_list:
-            path_list.remove(framework_path)
-
     mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list)
     if not mapnik_config:
-        conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik Trunk (future Mapnik 2.0 release) provides this tool, and therefore node-mapnik requires Mapnik trunk.\n\nSee http://trac.mapnik.org/wiki/Mapnik2 for more info.\n')
+        conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.x provides this tool.\n')
         
     # this breaks with git cloned mapnik repos, so skip it
     #ensure_min_mapnik_revision(conf)
@@ -131,21 +116,10 @@ def configure(conf):
     cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
 
     if '-lcairo' in all_ldflags or '-DHAVE_CAIRO' in cxxflags:
-
-        if HAS_OSX_FRAMEWORK and os.path.exists('/Library/Frameworks/Mapnik.framework/Headers/cairo'):
-            # prep for this specific install of mapnik 1.0: http://dbsgeo.com/downloads/#mapnik200
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairomm-1.0')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairo')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/sigc++-2.0')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/unix/lib/sigc++-2.0/include')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers') #fontconfig
-            Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
+        Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
     else:
         Utils.pprint('YELLOW','Notice: "mapnik-config --libs" or "mapnik-config --cflags" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
 
-
-    if HAS_OSX_FRAMEWORK:
-        cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
     
     # if cairo is available
     if cairo_cxxflags:
