@@ -25,6 +25,90 @@ exports['map constructor errors'] = function(beforeExit, assert) {
 
 };
 
+
+exports['test asynchronous map rendering'] = function(beforeExit, assert) {
+    var completed = false;
+    var map = new Map(600, 400);
+    assert.ok(map instanceof Map);
+    map.extent = map.extent;
+    var im = new mapnik.Image(map.width, map.height);
+    map.render(im, {scale: 1}, function(err, image) {
+        assert.ok(image);
+        assert.ok(!err);
+        var buffer = im.encodeSync('png');
+        //assert.equal(helper.md5(buffer), 'ef33223235b26c782736c88933b35331');
+    });
+
+};
+
+exports['test asynchronous map rendering to file with actual data'] = function(beforeExit, assert) {
+    var filename = './tests/tmp/renderFile2.png';
+    var map = new Map(600, 400);
+    map.loadSync('./examples/stylesheet.xml');
+    map.zoomAll();
+    map.renderFile(filename, function(error) {
+        assert.ok(!error);
+        assert.ok(path.existsSync(filename));
+    });
+};
+
+
+if(mapnik.supports.cairo) {
+    exports['test asynchronous map rendering to file with actual data and cairo'] = function(beforeExit, assert) {
+
+        var filename = './tests/tmp/renderFile2.pdf';
+        var map = new Map(600, 400);
+        map.loadSync('./examples/stylesheet.xml');
+        map.zoomAll();
+        map.renderFile(filename, { format: "pdf" }, function(error) {
+            if (error) {
+                console.log(error);
+            }
+            assert.ok(!error);
+            assert.ok(path.existsSync(filename));
+        });
+    };
+}
+
+exports['test asynchronous map rendering to file with actual data (guess file type) '] = function(beforeExit, assert) {
+
+    var filename = './tests/tmp/renderFile.jpg';
+    var map = new Map(600, 400);
+    map.loadSync('./examples/stylesheet.xml');
+    map.zoomAll();
+    map.renderFile(filename, function(error) {
+        if (error) {
+            console.log(error);
+        }
+        assert.ok(!error);
+        assert.ok(path.existsSync(filename));
+    });
+
+};
+
+
+exports['test asynchronous map rendering to file and wrong input'] = function(beforeExit, assert) {
+
+    var filename = './tests/tmp/renderFile2.pdf';
+    var map = new Map(600, 400);
+    map.loadSync('./examples/stylesheet.xml');
+    map.zoomAll();
+    try {
+        map.renderFile({ format: "pdf" }, function(error) {
+        });
+    } catch (e) {
+        assert.ok(e);
+    }
+
+    try {
+        map.renderFile(filename,null, function(error) {
+        });
+    } catch (ex) {
+        assert.ok(ex);
+    }
+
+};
+
 exports['test loading a stylesheet'] = function(beforeExit, assert) {
     var map = new Map(600, 400);
 
