@@ -34,7 +34,11 @@ test: test-tmp
 	@if test -e "node_modules/expresso/"; then NODE_PATH=./lib:$NODE_PATH ./node_modules/expresso/bin/expresso tests/${only}.test.js; else NODE_PATH=./lib:$NODE_PATH expresso tests/${only}.test.js; fi;
 endif
 
-lint:
-	./node_modules/.bin/jshint lib/*js bin/*js --config=jshint.json
+fix:
+	@fixjsstyle lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
 
-.PHONY: test
+lint:
+	@./node_modules/.bin/jshint lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
+
+
+.PHONY: test lint fix
