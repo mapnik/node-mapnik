@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
 var http = require('http');
 var mapnik = require('mapnik');
@@ -64,11 +64,11 @@ http.createServer(function(req, res) {
       }
 
       if (query.width !== undefined && query.height !== undefined) {
-          map.resize(parseInt(query.width,10), parseInt(query.height,10));
+          map.resize(parseInt(query.width, 10), parseInt(query.height, 10));
       }
 
       if (async_render) {
-          var im = new mapnik.Image(map.width,map.height);
+          var im = new mapnik.Image(map.width, map.height);
           map.bufferSize = 128;
           map.extent = bbox;
           map.render(im, function(err, im) {

@@ -1,22 +1,22 @@
 var url = require('url');
 
 module.exports.parseXYZ = function(req, TMS_SCHEME, callback) {
-  
+
     matches = req.url.match(/(\d+)\/(\d+)\/(\d+)/g);
     if (matches && matches.length == 3) {
         try {
-            var x = parseInt(matches[1],10);
-            var y = parseInt(matches[2],10);
-            var z = parseInt(matches[0],10);
+            var x = parseInt(matches[1], 10);
+            var y = parseInt(matches[2], 10);
+            var z = parseInt(matches[0], 10);
             if (TMS_SCHEME)
-                y = (Math.pow(2,z)-1) - y;
+                y = (Math.pow(2, z) - 1) - y;
             callback(null,
                { z: z,
                  x: x,
                  y: y
                });
         } catch (err) {
-            callback(err,null);
+            callback(err, null);
         }
     } else {
           try {
@@ -27,19 +27,19 @@ module.exports.parseXYZ = function(req, TMS_SCHEME, callback) {
                   query.z !== undefined) {
                   try {
                       callback(null,
-                          { z: parseInt(query.z,10),
-                          x: parseInt(query.x,10),
-                          y: parseInt(query.y,10)
+                          { z: parseInt(query.z, 10),
+                          x: parseInt(query.x, 10),
+                          y: parseInt(query.y, 10)
                           }
                       );
                   } catch (err) {
-                      callback(err,null);
+                      callback(err, null);
                   }
               } else {
-                  callback(new Error("no x,y,z provided"),null);
+                  callback(new Error('no x,y,z provided'), null);
               }
           } catch (err) {
-              callback(err,null);
+              callback(err, null);
           }
     }
 };

@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
-// This example shows how to use node-mapnik with the 
+// This example shows how to use node-mapnik with the
 // connect http server to serve map tiles to polymaps
 // client. Also logs tile render speed
 //
@@ -37,11 +37,11 @@ var aquire = function(id,options,callback) {
     var methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                obj.load(id,{strict:true},function(err,obj) {
-                    if (err) callback(err,null);
+                obj.load(id, {strict: true},function(err,obj) {
+                    if (err) callback(err, null);
                     if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                    cb(obj)
-                })
+                    cb(obj);
+                });
             },
             destroy: function(obj) {
                 obj.clear();
@@ -74,9 +74,9 @@ http.createServer(function(req, res) {
                 } else {
                     // bbox for x,y,z
                     var bbox = mercator.xyz_to_envelope(params.x, params.y, params.z, TMS_SCHEME);
-      
+
                     map.extent = bbox;
-                    var im = new mapnik.Image(map.width,map.height);
+                    var im = new mapnik.Image(map.width, map.height);
                     map.render(im, function(err, im) {
                         maps.release(stylesheet, map);
                         if (err) {
@@ -94,7 +94,7 @@ http.createServer(function(req, res) {
                 }
             });
         }
-    })
+    });
 
 }).listen(port);
 

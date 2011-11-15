@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
 var fs = require('fs');
 var path = require('path');
@@ -50,7 +50,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
                 renderMap(stylesheet, image);
             }
         });
-    } catch(e) {
+    } catch (e) {
         console.log('Carto is required to render .mml files.');
         process.exit(1);
     }

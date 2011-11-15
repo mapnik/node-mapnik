@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
 var http = require('http');
 var mapnik = require('mapnik');
@@ -30,8 +30,8 @@ var aquire = function(id,options,callback) {
     methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                obj.load(id,{strict:true},function(err,obj) {
-                    if (err) callback(err,null);
+                obj.load(id, {strict: true},function(err,obj) {
+                    if (err) callback(err, null);
                     if (options.bufferSize) {
                         obj.bufferSize = options.bufferSize;
                     }
@@ -64,9 +64,9 @@ http.createServer(function(req, res) {
           if (err) {
               res.end(err.message);
           } else {
-              var im = new mapnik.Image(map.width,map.height);
+              var im = new mapnik.Image(map.width, map.height);
               map.extent = bbox;
-              map.render(im,function(err, im) {
+              map.render(im, function(err, im) {
                   maps.release(stylesheet, map);
                   if (err) {
                       res.end(err.message);

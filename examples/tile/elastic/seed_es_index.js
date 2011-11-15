@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
 var mapnik = require('mapnik');
 var path = require('path');
@@ -6,7 +6,7 @@ var path = require('path');
 // port of elastic search
 var port = 9200;
 // "index"/"type"
-var url = "/geo/project/";
+var url = '/geo/project/';
 
 var client = require('http').createClient(port, 'localhost');
 
@@ -31,21 +31,21 @@ var feat;
 var idx = 1;
 while (feat = featureset.next(true)) {
     // center longitude of polygon bbox
-    var x = (feat._extent[0]+feat._extent[2])/2;
+    var x = (feat._extent[0] + feat._extent[2]) / 2;
     // center latitude of polygon bbox
-    var y = (feat._extent[1]+feat._extent[3])/2;
+    var y = (feat._extent[1] + feat._extent[3]) / 2;
     var request = client.request('POST', url + idx, headers);
     idx++;
     var put = {
-        "project" : {
-            "location" : {
-                "lat" : y,
-                "lon" : x
+        'project' : {
+            'location' : {
+                'lat' : y,
+                'lon' : x
             },
-            "name": feat.NAME,
-            "pop2005": feat.POP2005
+            'name': feat.NAME,
+            'pop2005': feat.POP2005
         }
-    }
+    };
     request.write(JSON.stringify(put), 'utf8');
     request.on('response', function(response) {
         var body = '';

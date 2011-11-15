@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
 /*
 Example of streaming features into Mapnik using a
@@ -40,11 +40,11 @@ s += '</Style>';
 s += '</Map>';
 
 // create map object
-var map = new mapnik.Map(256,256);
-map.fromStringSync(s,{strict:true,base:'.'});
+var map = new mapnik.Map(256, 256);
+map.fromStringSync(s, {strict: true, base: '.'});
 
 // go get some arbitrary data that we can stream
-var shp = path.join(__dirname,'../data/world_merc');
+var shp = path.join(__dirname, '../data/world_merc');
 
 var ds = new mapnik.Datasource({
     type: 'shape',
@@ -76,24 +76,24 @@ var next = function() {
     while ((feat = featureset.next(true))) {
         // center longitude of polygon bbox
         var e = feat.extent();
-        var x = (e[0]+e[2])/2;
+        var x = (e[0] + e[2]) / 2;
         // center latitude of polygon bbox
-        var y = (e[1]+e[3])/2;
+        var y = (e[1] + e[3]) / 2;
         var attr = feat.attributes();
-        return { 'x'          : x,
-                 'y'          : y,
-                 'properties' : { 'NAME':attr.NAME,'POP2005':attr.POP2005 }
+        return { 'x' : x,
+                 'y' : y,
+                 'properties' : { 'NAME': attr.NAME, 'POP2005': attr.POP2005 }
                };
     }
 };
 
 // create the special datasource
-var ds = new mapnik.JSDatasource(options,next);
+var ds = new mapnik.JSDatasource(options, next);
 
 // contruct a mapnik layer dynamically
 var l = new mapnik.Layer('test');
 l.srs = map.srs;
-l.styles = ["points"];
+l.styles = ['points'];
 
 // add our custom datasource
 l.datasource = ds;
@@ -107,4 +107,4 @@ map.zoomAll();
 // render it! You should see a bunch of red and blue points reprenting
 map.renderFileSync('js_points.png');
 
-console.log('rendered to js_points.png!' );
+console.log('rendered to js_points.png!');

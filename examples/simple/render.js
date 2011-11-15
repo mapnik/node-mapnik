@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+# !/ usr / bin / env node;
 
-// This example shows how to use node-mapnik to render 
+// This example shows how to use node-mapnik to render
 // a map to a file
 //
 // expected output: http://goo.gl/cyGwo
