@@ -20,8 +20,8 @@
   "licenses"      : [{"type": "BSD"}],
   "dependencies"  : {},
   "devDependencies": {
-    "expresso": "0.8.x",
-    "jshint"  : "0.2.3"
+    "expresso": "~0.9.x",
+    "jshint"  : "~0.5.x"
    },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
