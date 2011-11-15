@@ -1,10 +1,9 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 
 var stylesheet = './examples/stylesheet.xml';
 
-exports['test simple_grid rendering'] = function(beforeExit) {
+exports['test simple_grid rendering'] = function(beforeExit, assert) {
     var rendered = false;
     var reference = fs.readFileSync('./test/support/grid2.json', 'utf8');
     var reference_view = fs.readFileSync('./test/support/grid_view.json', 'utf8');

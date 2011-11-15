@@ -1,5 +1,4 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var helper = require('./support/helper');
@@ -12,7 +11,8 @@ var map = new Map(600, 400);
 map.fromStringSync(style_string, {strict: true, base: base_url});
 map.zoomAll();
 
-exports['test map generation'] = function(beforeExit, assert) {
+exports['map constructor errors'] = function(beforeExit, assert) {
+
     // no 'new' keyword
     assert.throws(function() { Map('foo'); });
 
@@ -23,24 +23,7 @@ exports['test map generation'] = function(beforeExit, assert) {
     assert.throws(function() { new Map('a', 'b', 'c'); });
     assert.throws(function() { new Map(new Map(1, 1)); });
 
-    var map = new Map(256, 256);
-    assert.ok(map instanceof Map);
-
-    // test initial values
-    assert.deepEqual(map.extent, [0, 0, -1, -1]);
 };
-
-exports['test synchronous map rendering'] = function(beforeExit, assert) {
-    var map = new Map(600, 400);
-    assert.ok(map instanceof Map);
-
-    // Test rendering a blank image
-    var filename = helper.filename();
-    map.renderFileSync(filename);
-    assert.ok(path.existsSync(filename));
-    //assert.equal(helper.md5File(filename), 'ef33223235b26c782736c88933b35331');
-};
-
 
 exports['test loading a stylesheet'] = function(beforeExit, assert) {
     var map = new Map(600, 400);

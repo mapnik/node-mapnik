@@ -1,7 +1,6 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 
-exports['test color creation'] = function(beforeExit) {
+exports['test color creation'] = function(beforeExit, assert) {
     // no 'new' keyword
     assert.throws(function() { mapnik.Color(); });
 

@@ -28,10 +28,10 @@ test-tmp:
 
 ifndef only
 test: test-tmp
-	@if test -e "node_modules/expresso/"; then NODE_PATH=./lib:$NODE_PATH ./node_modules/expresso/bin/expresso; else NODE_PATH=./lib:$NODE_PATH expresso; fi;
+	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso
 else
 test: test-tmp
-	@if test -e "node_modules/expresso/"; then NODE_PATH=./lib:$NODE_PATH ./node_modules/expresso/bin/expresso tests/${only}.test.js; else NODE_PATH=./lib:$NODE_PATH expresso tests/${only}.test.js; fi;
+	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso test/${only}.test.js
 endif
 
 fix:

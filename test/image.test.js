@@ -1,11 +1,10 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
 var Image = mapnik.Image;
 
-exports['test images'] = function(beforeExit) {
+exports['test images'] = function(beforeExit, assert) {
     // no 'new' keyword
     assert.throws(function() { Image(1, 1); });
 
