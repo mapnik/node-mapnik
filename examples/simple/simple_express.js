@@ -1,4 +1,4 @@
-# !/ usr / bin / env node;
+#!/usr/bin/env node
 
 // This example shows how to use node-mapnik with the
 // express web development framework (http://expressjs.com/)

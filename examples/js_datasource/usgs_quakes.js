@@ -1,4 +1,4 @@
-# !/ usr / bin / env node;
+#!/usr/bin/env node
 
 // Example of streaming feature showing last 30 days of global earthquakes
 // from the USGS earthquake data feed

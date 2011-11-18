@@ -1,4 +1,4 @@
-# !/ usr / bin / env node;
+#!/usr/bin/env node
 
 var mapnik = require('mapnik')
   , mercator = require('mapnik/sphericalmercator')

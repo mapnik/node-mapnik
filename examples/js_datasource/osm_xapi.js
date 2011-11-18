@@ -1,4 +1,4 @@
-# !/ usr / bin / env node;
+#!/usr/bin/env node
 
 // Example of streaming feature showing DC pub locations
 // using OSM XAPI live datasource via Yahoo Pipes

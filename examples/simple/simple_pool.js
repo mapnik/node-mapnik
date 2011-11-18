@@ -1,4 +1,4 @@
-# !/ usr / bin / env node;
+#!/usr/bin/env node
 
 // This example shows how to use (generic-pool) node-pool with mapnik
 // to maintain a pool of renderers
