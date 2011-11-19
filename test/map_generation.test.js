@@ -42,7 +42,7 @@ exports['test asynchronous map rendering'] = function(beforeExit, assert) {
 };
 
 exports['test asynchronous map rendering to file with actual data'] = function(beforeExit, assert) {
-    var filename = './tests/tmp/renderFile2.png';
+    var filename = './test/tmp/renderFile2.png';
     var map = new Map(600, 400);
     map.loadSync('./examples/stylesheet.xml');
     map.zoomAll();
@@ -56,7 +56,7 @@ exports['test asynchronous map rendering to file with actual data'] = function(b
 if(mapnik.supports.cairo) {
     exports['test asynchronous map rendering to file with actual data and cairo'] = function(beforeExit, assert) {
 
-        var filename = './tests/tmp/renderFile2.pdf';
+        var filename = './test/tmp/renderFile2.pdf';
         var map = new Map(600, 400);
         map.loadSync('./examples/stylesheet.xml');
         map.zoomAll();
@@ -72,7 +72,7 @@ if(mapnik.supports.cairo) {
 
 exports['test asynchronous map rendering to file with actual data (guess file type) '] = function(beforeExit, assert) {
 
-    var filename = './tests/tmp/renderFile.jpg';
+    var filename = './test/tmp/renderFile.jpg';
     var map = new Map(600, 400);
     map.loadSync('./examples/stylesheet.xml');
     map.zoomAll();
@@ -89,7 +89,7 @@ exports['test asynchronous map rendering to file with actual data (guess file ty
 
 exports['test asynchronous map rendering to file and wrong input'] = function(beforeExit, assert) {
 
-    var filename = './tests/tmp/renderFile2.pdf';
+    var filename = './test/tmp/renderFile2.pdf';
     var map = new Map(600, 400);
     map.loadSync('./examples/stylesheet.xml');
     map.zoomAll();
