@@ -1,8 +1,7 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 
-exports['test constants'] = function(beforeExit) {
+exports['test constants'] = function(beforeExit, assert) {
     assert.ok(mapnik.settings);
     assert.ok(mapnik.settings.paths);
     assert.ok(mapnik.settings.paths.fonts.length);

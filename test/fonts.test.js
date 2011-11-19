@@ -1,5 +1,4 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 
 function oc(a) {
@@ -10,7 +9,7 @@ function oc(a) {
     return o;
 }
 
-exports['test fonts'] = function(beforeExit) {
+exports['test fonts'] = function(beforeExit, assert) {
     // make sure we have default fonts
     assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
 

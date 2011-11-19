@@ -1,16 +1,15 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
-exports['test datasource creation'] = function() {
+exports['test datasource creation'] = function(beforeExit, assert) {
     assert.throws(function() { mapnik.Datasource('foo'); });
     assert.throws(function() { mapnik.Datasource({ 'foo': 1 }); });
     assert.throws(function() { mapnik.Datasource({ 'type': 'foo' }); });
     assert.throws(function() { mapnik.Datasource({ 'type': 'shape' }); });
 
     assert.throws(function() { new mapnik.Datasource('foo'); },
-        /must provide an object, eg {type: 'shape', file : 'world.shp'}/);
+        /Must provide an object, eg \{type: 'shape', file : 'world.shp'\}/);
 
     assert.throws(function() { new mapnik.Datasource({ 'foo': 1 }); },
         /Could not create datasource. Required parameter 'type' is missing/);
@@ -22,7 +21,7 @@ exports['test datasource creation'] = function() {
         /Shape Plugin: missing <file> parameter/);
 };
 
-exports['test datasource'] = function() {
+exports['test datasource'] = function(beforeExit, assert) {
     var options = {
         type: 'shape',
         file: './examples/data/world_merc.shp'
@@ -77,7 +76,7 @@ exports['test datasource'] = function() {
 };
 
 
-exports['test JSON datasource'] = function() {
+exports['test JSON datasource'] = function(beforeExit, assert) {
     // same datasource but from json file (originally converted with ogr2ogr)
     var options = {
         type: 'ogr',

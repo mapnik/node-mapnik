@@ -1,13 +1,12 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 
 var stylesheet = './examples/stylesheet.xml';
 
-exports['test simple_grid rendering'] = function(beforeExit) {
+exports['test simple_grid rendering'] = function(beforeExit, assert) {
     var rendered = false;
-    var reference = fs.readFileSync('./tests/support/grid2.json', 'utf8');
-    var reference_view = fs.readFileSync('./tests/support/grid_view.json', 'utf8');
+    var reference = fs.readFileSync('./test/support/grid2.json', 'utf8');
+    var reference_view = fs.readFileSync('./test/support/grid_view.json', 'utf8');
 
     var map_grid = new mapnik.Map(256, 256);
     map_grid.load(stylesheet, {strict: true}, function(err,map) {
@@ -21,7 +20,7 @@ exports['test simple_grid rendering'] = function(beforeExit) {
             rendered = true;
             assert.ok(!err);
             grid_utf = grid.encodeSync('utf', {resolution: 4});
-            //fs.writeFileSync('./tests/support/grid2_.json',JSON.stringify(grid_utf))
+            //fs.writeFileSync('./test/support/grid2_.json',JSON.stringify(grid_utf))
             assert.equal(JSON.stringify(grid_utf), reference);
 
             // pull an identical view and compare it to original grid
@@ -34,7 +33,7 @@ exports['test simple_grid rendering'] = function(beforeExit) {
             assert.equal(gv2.width(), 64);
             assert.equal(gv2.height(), 64);
             gv_utf2 = gv2.encodeSync('utf', {resolution: 4});
-            //fs.writeFileSync('./tests/support/grid_view.json',JSON.stringify(gv_utf2),'utf8')
+            //fs.writeFileSync('./test/support/grid_view.json',JSON.stringify(gv_utf2),'utf8')
             assert.equal(JSON.stringify(gv_utf2), reference_view);
 
         });

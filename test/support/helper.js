@@ -11,5 +11,5 @@ exports.md5 = function(data) {
 };
 
 exports.filename = function(suffix) {
-    return 'tests/tmp/file_' + (Math.random() * 1e16).toFixed() + '.' + (suffix || 'png');
+    return 'test/tmp/file_' + (Math.random() * 1e16).toFixed() + '.' + (suffix || 'png');
 };

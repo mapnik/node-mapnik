@@ -49,6 +49,7 @@
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
+
 Persistent<FunctionTemplate> Map::constructor;
 
 void Map::Initialize(Handle<Object> target) {
@@ -524,6 +525,7 @@ Handle<Value> Map::resize(const Arguments& args)
 
 
 typedef struct {
+    uv_work_t request;
     Map *m;
     std::string stylesheet;
     bool strict;
@@ -574,20 +576,19 @@ Handle<Value> Map::load(const Arguments& args)
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     load_image_baton_t *closure = new load_image_baton_t();
-
+    closure->request.data = closure;
     closure->stylesheet = TOSTR(stylesheet);
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    eio_custom(EIO_Load, EIO_PRI_DEFAULT, EIO_AfterLoad, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, EIO_AfterLoad);
     m->Ref();
-
+    //uv_ref(uv_default_loop());
     return Undefined();
 }
 
-int Map::EIO_Load(eio_req *req)
+void Map::EIO_Load(uv_work_t* req)
 {
     load_image_baton_t *closure = static_cast<load_image_baton_t *>(req->data);
 
@@ -605,15 +606,13 @@ int Map::EIO_Load(eio_req *req)
         closure->error = true;
         closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
     }
-    return 0;
 }
 
-int Map::EIO_AfterLoad(eio_req *req)
+void Map::EIO_AfterLoad(uv_work_t* req)
 {
     HandleScope scope;
 
     load_image_baton_t *closure = static_cast<load_image_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -630,18 +629,22 @@ int Map::EIO_AfterLoad(eio_req *req)
     }
 
     closure->m->Unref();
+    //uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 
 
 Handle<Value> Map::loadSync(const Arguments& args)
 {
     HandleScope scope;
-    if (args.Length() != 1 || !args[0]->IsString())
+    if (!args[0]->IsString())
       return ThrowException(Exception::TypeError(
         String::New("first argument must be a path to a mapnik stylesheet")));
+
+    if (args.Length() != 1)
+      return ThrowException(Exception::TypeError(
+        String::New("only accepts one argument: a path to a mapnik stylesheet")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string const& stylesheet = TOSTR(args[0]);
@@ -731,6 +734,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
 }
 
 typedef struct {
+    uv_work_t request;
     Map *m;
     std::string stylesheet;
     std::string base_url;
@@ -782,6 +786,7 @@ Handle<Value> Map::fromString(const Arguments& args)
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
     load_string_image_baton_t *closure = new load_string_image_baton_t();
+    closure->request.data = closure;
 
     param = String::New("base");
     if (options->Has(param))
@@ -798,14 +803,13 @@ Handle<Value> Map::fromString(const Arguments& args)
     closure->strict = strict;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    eio_custom(EIO_FromString, EIO_PRI_DEFAULT, EIO_AfterFromString, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, EIO_AfterFromString);
     m->Ref();
-
+    //uv_ref(uv_default_loop());
     return Undefined();
 }
 
-int Map::EIO_FromString(eio_req *req)
+void Map::EIO_FromString(uv_work_t* req)
 {
     load_string_image_baton_t *closure = static_cast<load_string_image_baton_t *>(req->data);
 
@@ -823,15 +827,13 @@ int Map::EIO_FromString(eio_req *req)
         closure->error = true;
         closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
     }
-    return 0;
 }
 
-int Map::EIO_AfterFromString(eio_req *req)
+void Map::EIO_AfterFromString(uv_work_t* req)
 {
     HandleScope scope;
 
     load_string_image_baton_t *closure = static_cast<load_string_image_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -848,9 +850,9 @@ int Map::EIO_AfterFromString(eio_req *req)
     }
 
     closure->m->Unref();
+    //uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 
 
@@ -934,6 +936,7 @@ Handle<Value> Map::zoomToBox(const Arguments& args)
 }
 
 typedef struct {
+    uv_work_t request;
     Map *m;
     Image *im;
     double scale_factor;
@@ -945,6 +948,7 @@ typedef struct {
 } image_baton_t;
 
 typedef struct {
+    uv_work_t request;
     Map *m;
     Grid *g;
     std::size_t layer_idx;
@@ -1042,6 +1046,7 @@ Handle<Value> Map::render(const Arguments& args)
     if (Image::constructor->HasInstance(obj)) {
 
         image_baton_t *closure = new image_baton_t();
+        closure->request.data = closure;
         closure->m = m;
         closure->im = ObjectWrap::Unwrap<Image>(obj);
         closure->im->_ref();
@@ -1050,7 +1055,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_y = offset_y;
         closure->error = false;
         closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
-        eio_custom(EIO_RenderImage, EIO_PRI_DEFAULT, EIO_AfterRenderImage, closure);
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, EIO_AfterRenderImage);
 
     } else if (Grid::constructor->HasInstance(obj)) {
 
@@ -1125,6 +1130,7 @@ Handle<Value> Map::render(const Arguments& args)
         }
 
         grid_baton_t *closure = new grid_baton_t();
+        closure->request.data = closure;
         closure->m = m;
         closure->g = g;
         closure->g->_ref();
@@ -1134,20 +1140,18 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_y = offset_y;
         closure->error = false;
         closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
-        eio_custom(EIO_RenderGrid, EIO_PRI_DEFAULT, EIO_AfterRenderGrid, closure);
-
-    // TODO - canvas
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, EIO_AfterRenderGrid);
     } else {
         return ThrowException(Exception::TypeError(String::New("renderable mapnik object expected")));
     }
 
-    ev_ref(EV_DEFAULT_UC);
     m->acquire();
     m->Ref();
+    //uv_unref(uv_default_loop());
     return Undefined();
 }
 
-int Map::EIO_RenderGrid(eio_req *req)
+void Map::EIO_RenderGrid(uv_work_t* req)
 {
 
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
@@ -1192,18 +1196,14 @@ int Map::EIO_RenderGrid(eio_req *req)
         closure->error = true;
         closure->error_name = "Unknown error occured, please file bug";
     }
-
-    return 0;
-
 }
 
 
-int Map::EIO_AfterRenderGrid(eio_req *req)
+void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
     HandleScope scope;
 
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -1223,13 +1223,13 @@ int Map::EIO_AfterRenderGrid(eio_req *req)
 
     closure->m->release();
     closure->m->Unref();
+    //uv_unref(uv_default_loop());
     closure->g->_unref();
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 
-int Map::EIO_RenderImage(eio_req *req)
+void Map::EIO_RenderImage(uv_work_t* req)
 {
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
 
@@ -1252,15 +1252,13 @@ int Map::EIO_RenderImage(eio_req *req)
         closure->error = true;
         closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
     }
-    return 0;
 }
 
-int Map::EIO_AfterRenderImage(eio_req *req)
+void Map::EIO_AfterRenderImage(uv_work_t* req)
 {
     HandleScope scope;
 
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -1278,14 +1276,14 @@ int Map::EIO_AfterRenderImage(eio_req *req)
 
     closure->m->release();
     closure->m->Unref();
+    //uv_unref(uv_default_loop());
     closure->im->_unref();
     closure->cb.Dispose();
     delete closure;
-    return 0;
-
 }
 
 typedef struct {
+    uv_work_t request;
     Map *m;
     std::string format;
     std::string output;
@@ -1308,7 +1306,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
     Local<Value> callback = args[args.Length()-1];
 
-    if (!args[args.Length()-1]->IsFunction())
+    if (!callback->IsFunction())
         return ThrowException(Exception::TypeError(
                     String::New("last argument must be a callback function")));
 
@@ -1365,13 +1363,10 @@ Handle<Value> Map::renderFile(const Arguments& args)
         return ThrowException(Exception::Error(
           String::New(s.str().c_str())));
 #endif
-    } else {
-
     }
 
-
-
     render_file_baton_t *closure = new render_file_baton_t();
+    closure->request.data = closure;
 
     closure->m = m;
     closure->error = false;
@@ -1381,15 +1376,15 @@ Handle<Value> Map::renderFile(const Arguments& args)
     closure->palette = palette;
     closure->output = output;
 
-    eio_custom(EIO_RenderFile, EIO_PRI_DEFAULT, EIO_AfterRenderFile, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, EIO_AfterRenderFile);
+    //uv_ref(uv_default_loop())
     m->Ref();
 
     return Undefined();
 
 }
 
-int Map::EIO_RenderFile(eio_req *req)
+void Map::EIO_RenderFile(uv_work_t* req)
 {
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
 
@@ -1405,7 +1400,8 @@ int Map::EIO_RenderFile(eio_req *req)
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-            V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
+            // causes hang with node v0.6.0
+            //V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
             mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im);
             ren.apply();
 
@@ -1426,15 +1422,13 @@ int Map::EIO_RenderFile(eio_req *req)
         closure->error = true;
         closure->error_name = "unknown exception happend while rendering image to file,\n this should not happen, please submit a bug report";
     }
-    return 0;
 }
 
-int Map::EIO_AfterRenderFile(eio_req *req)
+void Map::EIO_AfterRenderFile(uv_work_t* req)
 {
     HandleScope scope;
 
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -1446,18 +1440,16 @@ int Map::EIO_AfterRenderFile(eio_req *req)
         closure->cb->Call(Context::GetCurrent()->Global(),1, argv);
     }
 
-
-
     if (try_catch.HasCaught()) {
         FatalException(try_catch);
     }
 
+    //uv_unref(uv_default_loop());
     closure->m->release();
     closure->m->Unref();
     closure->cb.Dispose();
     delete closure;
 
-    return 0;
 }
 
 Handle<Value> Map::renderLayerSync(const Arguments& args)
@@ -1776,6 +1768,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 }
 
 struct grid_t {
+    uv_work_t request;
     Map *m;
     boost::shared_ptr<mapnik::grid> grid_ptr;
     std::size_t layer_idx;
@@ -1853,6 +1846,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     }
 
     grid_t *closure = new grid_t();
+    closure->request.data = closure;
 
     if (!closure) {
         V8::LowMemoryNotification();
@@ -1900,16 +1894,16 @@ Handle<Value> Map::render_grid(const Arguments& args)
         }
     }
 
-    eio_custom(EIO_RenderGrid2, EIO_PRI_DEFAULT, EIO_AfterRenderGrid2, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid2, EIO_AfterRenderGrid2);
     m->acquire();
     m->Ref();
+    //uv_ref(uv_default_loop());
     return Undefined();
 
 }
 
 
-int Map::EIO_RenderGrid2(eio_req *req)
+void Map::EIO_RenderGrid2(uv_work_t* req)
 {
 
     grid_t *closure = static_cast<grid_t *>(req->data);
@@ -1936,7 +1930,7 @@ int Map::EIO_RenderGrid2(eio_req *req)
             s << "Layer name '" << layer_name << "' not found";
             closure->error = true;
             closure->error_name = s.str();
-            return 0;
+            return;
         }
     }
     else
@@ -1950,8 +1944,8 @@ int Map::EIO_RenderGrid2(eio_req *req)
               << layers.size() << "' layers are in map";
             closure->error = true;
             closure->error_name = s.str();
-            return 0;
-        }
+            return;
+        }    
     }
 
     // copy property names
@@ -1988,18 +1982,14 @@ int Map::EIO_RenderGrid2(eio_req *req)
         closure->error = true;
         closure->error_name = "Unknown error occured, please file bug";
     }
-
-    return 0;
-
 }
 
 
-int Map::EIO_AfterRenderGrid2(eio_req *req)
+void Map::EIO_AfterRenderGrid2(uv_work_t* req)
 {
     HandleScope scope;
 
     grid_t *closure = static_cast<grid_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -2048,8 +2038,8 @@ int Map::EIO_AfterRenderGrid2(eio_req *req)
 
     closure->m->release();
     closure->m->Unref();
+    //uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 

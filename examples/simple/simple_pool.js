@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// This example shows how to use (generic-pool) node-pool with mapnik 
+// This example shows how to use (generic-pool) node-pool with mapnik
 // to maintain a pool of renderers
 //
 // expected output: http://goo.gl/cyGwo
@@ -22,11 +22,11 @@ var aquire = function(id,options,callback) {
     methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                obj.load(id,{strict:true},function(err,obj) {
-                    if (err) callback(err,null);
+                obj.load(id, {strict: true},function(err,obj) {
+                    if (err) callback(err, null);
                     if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                    cb(obj)
-                })
+                    cb(obj);
+                });
             },
             destroy: function(obj) {
                 obj.clear();
@@ -52,7 +52,7 @@ http.createServer(function(req, res) {
           // zoom to full extent
           map.zoomAll();
           // real example we would pass a bbox
-          var im = new mapnik.Image(map.width,map.height);
+          var im = new mapnik.Image(map.width, map.height);
           map.render(im, function(err, im) {
               maps.release(stylesheet, map);
               if (err) {
@@ -71,4 +71,4 @@ http.createServer(function(req, res) {
   });
 }).listen(port);
 
-console.log("server running on port " + port);
+console.log('server running on port ' + port);

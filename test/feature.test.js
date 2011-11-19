@@ -1,9 +1,8 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
-exports['test features'] = function() {
+exports['test features'] = function(beforeExit, assert) {
     var options = {
         type: 'shape',
         file: './examples/data/world_merc.shp'
@@ -29,7 +28,7 @@ exports['test features'] = function() {
 
     // loop over all of them to ensure the proper feature count
     var count = 1;
-    while (feature = featureset.next()) {
+    while ((feature = featureset.next())) {
         count++;
     }
     assert.equal(count, 245);

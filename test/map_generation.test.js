@@ -1,5 +1,4 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var helper = require('./support/helper');
@@ -12,7 +11,8 @@ var map = new Map(600, 400);
 map.fromStringSync(style_string, {strict: true, base: base_url});
 map.zoomAll();
 
-exports['test map generation'] = function(beforeExit) {
+exports['map constructor errors'] = function(beforeExit, assert) {
+
     // no 'new' keyword
     assert.throws(function() { Map('foo'); });
 
@@ -23,35 +23,10 @@ exports['test map generation'] = function(beforeExit) {
     assert.throws(function() { new Map('a', 'b', 'c'); });
     assert.throws(function() { new Map(new Map(1, 1)); });
 
-    var map = new Map(256, 256);
-    assert.ok(map instanceof Map);
-
-    // test initial values
-    assert.deepEqual(map.extent, [0, 0, -1, -1]);
 };
 
-exports['test synchronous map rendering'] = function(beforeExit) {
-    var map = new Map(600, 400);
-    assert.ok(map instanceof Map);
 
-    // Test rendering a blank image
-    var filename = helper.filename();
-    map.renderFileSync(filename);
-    assert.ok(path.existsSync(filename));
-    //assert.equal(helper.md5File(filename), 'ef33223235b26c782736c88933b35331');
-};
-
-exports['test asynchronous map rendering to file'] = function(beforeExit) {
-    var map = new Map(600, 400);
-    var filename = './tests/tmp/renderFile.png';
-    map.renderFile(filename, function(error) {
-        assert.ok(!error);
-        assert.ok(path.existsSync(filename));
-
-    });
-};
-
-exports['test asynchronous map rendering'] = function(beforeExit) {
+exports['test asynchronous map rendering'] = function(beforeExit, assert) {
     var completed = false;
     var map = new Map(600, 400);
     assert.ok(map instanceof Map);
@@ -66,7 +41,7 @@ exports['test asynchronous map rendering'] = function(beforeExit) {
 
 };
 
-exports['test asynchronous map rendering to file with actual data'] = function(beforeExit) {
+exports['test asynchronous map rendering to file with actual data'] = function(beforeExit, assert) {
     var filename = './tests/tmp/renderFile2.png';
     var map = new Map(600, 400);
     map.loadSync('./examples/stylesheet.xml');
@@ -77,8 +52,9 @@ exports['test asynchronous map rendering to file with actual data'] = function(b
     });
 };
 
+
 if(mapnik.supports.cairo) {
-    exports['test asynchronous map rendering to file with actual data and cairo'] = function(beforeExit) {
+    exports['test asynchronous map rendering to file with actual data and cairo'] = function(beforeExit, assert) {
 
         var filename = './tests/tmp/renderFile2.pdf';
         var map = new Map(600, 400);
@@ -94,7 +70,7 @@ if(mapnik.supports.cairo) {
     };
 }
 
-exports['test asynchronous map rendering to file with actual data (guess file type) '] = function(beforeExit) {
+exports['test asynchronous map rendering to file with actual data (guess file type) '] = function(beforeExit, assert) {
 
     var filename = './tests/tmp/renderFile.jpg';
     var map = new Map(600, 400);
@@ -110,7 +86,8 @@ exports['test asynchronous map rendering to file with actual data (guess file ty
 
 };
 
-exports['test asynchronous map rendering to file and wrong input'] = function(beforeExit) {
+
+exports['test asynchronous map rendering to file and wrong input'] = function(beforeExit, assert) {
 
     var filename = './tests/tmp/renderFile2.pdf';
     var map = new Map(600, 400);
@@ -132,7 +109,7 @@ exports['test asynchronous map rendering to file and wrong input'] = function(be
 
 };
 
-exports['test loading a stylesheet'] = function(beforeExit) {
+exports['test loading a stylesheet'] = function(beforeExit, assert) {
     var map = new Map(600, 400);
 
     assert.equal(map.width, 600);
@@ -155,18 +132,18 @@ exports['test loading a stylesheet'] = function(beforeExit) {
     // clear styles and layers from previous load to set up for another
     // otherwise layers are duplicated
     map.clear();
-    var layers = map.layers();
-    assert.equal(layers.length, 0);
+    var layers2 = map.layers();
+    assert.equal(layers2.length, 0);
 };
 
-exports['test rendering with actual data'] = function(beforeExit) {
+exports['test rendering with actual data'] = function(beforeExit, assert) {
     var filename = helper.filename();
     map.renderFileSync(filename);
     assert.ok(path.existsSync(filename));
     //assert.equal(helper.md5File(filename), 'aaf71787e4d5dcbab3c964192038f465');
 };
 
-exports['test map extents'] = function() {
+exports['test map extents'] = function(beforeExit, assert) {
     var expected = [-20037508.3428, -14996604.5082, 20037508.3428, 25078412.1774];
     assert.notStrictEqual(map.extent, expected);
 
@@ -174,7 +151,7 @@ exports['test map extents'] = function() {
     assert.deepEqual(map.extent, expected_precise);
 };
 
-exports['test setting map properties'] = function() {
+exports['test setting map properties'] = function(beforeExit, assert) {
     var map = new Map(600, 400);
 
     assert.equal(map.width, 600);
@@ -195,7 +172,7 @@ exports['test setting map properties'] = function() {
 
 };
 
-exports['test map layers'] = function() {
+exports['test map layers'] = function(beforeExit, assert) {
     var layers = map.layers();
     assert.equal(layers.length, 1);
     assert.equal(layers[0].name, 'world');
@@ -205,7 +182,7 @@ exports['test map layers'] = function() {
     assert.equal(path.normalize(layers[0].datasource.file), path.normalize(path.join(process.cwd(), 'examples/data/world_merc.shp')));
 };
 
-exports['test map features'] = function() {
+exports['test map features'] = function(beforeExit, assert) {
     // features
     var features = map.features(0); // for first and only layer
     assert.equal(features.length, 245);
@@ -272,7 +249,7 @@ exports['test map features'] = function() {
     ]);
 };
 
-exports['test map datasource'] = function() {
+exports['test map datasource'] = function(beforeExit, assert) {
     // datasource meta data
     var described = map.describe_data();
     assert.deepEqual(described.world.extent, [-20037508.342789248, -8283343.693882697, 20037508.342789244, 18365151.363070473]);

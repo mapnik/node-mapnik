@@ -1,9 +1,8 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
-exports['test projection creation'] = function() {
+exports['test projection creation'] = function(beforeExit, assert) {
     assert.throws(function() { new mapnik.Projection('+init=epsg:foo'); },
         /failed to initialize projection with: '\+init=epsg:foo'/);
     assert.throws(function() { new mapnik.Projection('+proj +foo'); },
@@ -14,7 +13,7 @@ exports['test projection creation'] = function() {
     assert.ok(wgs84 instanceof mapnik.Projection);
 };
 
-exports['test projection'] = function() {
+exports['test projection'] = function(beforeExit, assert) {
     var merc;
     try {
         // perhaps we've got a savvy user?

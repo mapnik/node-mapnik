@@ -13,14 +13,14 @@ var use_map_pool = true;
 
 var usage = 'usage: wms.js <stylesheet> <port>';
 
-var stylesheet = process.ARGV[2];
+var stylesheet = process.argv[2];
 
 if (!stylesheet) {
    console.log(usage);
    process.exit(1);
 }
 
-var port = process.ARGV[3];
+var port = process.argv[3];
 
 if (!port) {
    console.log(usage);
@@ -49,7 +49,7 @@ function get_map()
 }
 
 http.createServer(function(req, res) {
-  var query = url.parse(req.url.toLowerCase(), true).query
+  var query = url.parse(req.url.toLowerCase(), true).query;
   if (query && query.bbox !== undefined) {
       var bbox = query.bbox.split(',');
       res.writeHead(200, {'Content-Type': 'image/png'});
@@ -64,11 +64,11 @@ http.createServer(function(req, res) {
       }
 
       if (query.width !== undefined && query.height !== undefined) {
-          map.resize(parseInt(query.width), parseInt(query.height));
+          map.resize(parseInt(query.width, 10), parseInt(query.height, 10));
       }
 
       if (async_render) {
-          var im = new mapnik.Image(map.width,map.height);
+          var im = new mapnik.Image(map.width, map.height);
           map.bufferSize = 128;
           map.extent = bbox;
           map.render(im, function(err, im) {

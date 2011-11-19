@@ -1,7 +1,6 @@
 var mapnik = require('mapnik');
-var assert = require('assert');
 
-exports['test color creation'] = function(beforeExit) {
+exports['test color creation'] = function(beforeExit, assert) {
     // no 'new' keyword
     assert.throws(function() { mapnik.Color(); });
 
@@ -18,7 +17,7 @@ exports['test color creation'] = function(beforeExit) {
     assert.equal(c.hex(), '#008000');
     assert.equal(c.toString(), 'rgb(0,128,0)');
 
-    var c = new mapnik.Color(0, 128, 0);
+    c = new mapnik.Color(0, 128, 0);
     assert.equal(c.r, 0);
     assert.equal(c.g, 128);
     assert.equal(c.b, 0);
@@ -26,7 +25,7 @@ exports['test color creation'] = function(beforeExit) {
     assert.equal(c.hex(), '#008000');
     assert.equal(c.toString(), 'rgb(0,128,0)');
 
-    var c = new mapnik.Color(0, 128, 0, 255);
+    c = new mapnik.Color(0, 128, 0, 255);
     assert.equal(c.r, 0);
     assert.equal(c.g, 128);
     assert.equal(c.b, 0);

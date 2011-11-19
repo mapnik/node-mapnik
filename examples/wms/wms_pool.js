@@ -10,14 +10,14 @@ var pool_size = 10;
 
 var usage = 'usage: wms.js <stylesheet> <port>';
 
-var stylesheet = process.ARGV[2];
+var stylesheet = process.argv[2];
 
 if (!stylesheet) {
    console.log(usage);
    process.exit(1);
 }
 
-var port = process.ARGV[3];
+var port = process.argv[3];
 
 if (!port) {
    console.log(usage);
@@ -30,11 +30,13 @@ var aquire = function(id,options,callback) {
     methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
-                obj.load(id,{strict:true},function(err,obj) {
-                    if (err) callback(err,null);
-                    if (options.bufferSize) obj.bufferSize = options.bufferSize;
-                    cb(obj)
-                })
+                obj.load(id, {strict: true},function(err,obj) {
+                    if (err) callback(err, null);
+                    if (options.bufferSize) {
+                        obj.bufferSize = options.bufferSize;
+                    }
+                    cb(obj);
+                });
             },
             destroy: function(obj) {
                 obj.clear();
@@ -62,9 +64,9 @@ http.createServer(function(req, res) {
           if (err) {
               res.end(err.message);
           } else {
-              var im = new mapnik.Image(map.width,map.height);
+              var im = new mapnik.Image(map.width, map.height);
               map.extent = bbox;
-              map.render(im,function(err, im) {
+              map.render(im, function(err, im) {
                   maps.release(stylesheet, map);
                   if (err) {
                       res.end(err.message);
