@@ -85,7 +85,7 @@
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalLibraryDirectories': [
-                'c:\\dev2\\node\\Debug',
+                'c:\\dev2\\node\\Release',
 				#'C:\mapnik-2.0\lib',
 				'C:\\dev2\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
 				'C:\\dev2\\boost-vc100\\lib',
