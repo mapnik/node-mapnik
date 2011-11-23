@@ -56,29 +56,40 @@
         [ 'OS=="win"', {
           'defines': [
             'PLATFORM="win32"',
-          ],
-          'libraries': [ 'node.lib' ],
-          'include_dirs': [
-             'c:\\dev2\\node\\src',
-             'c:\\dev2\\node\\deps\\uv\\include',
-             'c:\\dev2\\node\\deps\\v8\\include',
-             'c:\\dev2\\freetype',
-             'c:\\dev2\\icu',
-             'c:\\dev2\\boost',
-          ],
-          'defines': [
-            'PLATFORM="<(OS)"',
             '_LARGEFILE_SOURCE',
             '_FILE_OFFSET_BITS=64',
-            #'WIN32',
-            #'_WINDOWS',
+            '_WINDOWS',
+			'__WINDOWS__', # ltdl
+			#'WIN32',
             #'_USRDLL',
-            #'BUILDING_NODE_EXTENSION'
+            'BUILDING_NODE_EXTENSION'
+          ],
+          'libraries': [ 
+		      'node.lib',
+			  'mapnik2.lib',
+			  'icuuc.lib',
+		      'libboost_regex-vc100-mt-1_48.lib',
+		  ],
+          'include_dirs': [
+             'c:\\mapnik-2.0\\include',
+			 'c:\\dev2\\freetype',
+			 'c:\\dev2\\freetype\\include',
+			 'c:\\dev2\\boost-vc100\\include\\boost-1_48',
+			 'c:\\dev2\\node\\src',
+             'c:\\dev2\\node\\deps\\uv\\include',
+             'c:\\dev2\\node\\deps\\v8\\include',
+             'c:\\dev2\\proj\\src',
+             'c:\\dev2\\icu\\include',
+             'C:\dev2\mapnik-packaging\windows\ltdl',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalLibraryDirectories': [
                 'c:\\dev2\\node\\Debug',
+				#'C:\mapnik-2.0\lib',
+				'C:\\dev2\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
+				'C:\\dev2\\boost-vc100\\lib',
+				'C:\\dev2\\icu\\lib',
               ],
           },
         },
