@@ -65,9 +65,9 @@
             'BUILDING_NODE_EXTENSION'
           ],
           'libraries': [ 
+			  'mapnik2.lib',
 		      'node.lib',
-			  'mapnik2.dll',
-			  'icuuc.dll',
+			  'icuuc.lib',
 		      'libboost_regex-vc100-mt-1_48.lib',
 		  ],
           'include_dirs': [
@@ -75,9 +75,9 @@
 			 'c:\\dev2\\freetype',
 			 'c:\\dev2\\freetype\\include',
 			 'c:\\dev2\\boost-vc100\\include\\boost-1_48',
-			 'c:\\dev2\\node\\src',
-             'c:\\dev2\\node\\deps\\uv\\include',
-             'c:\\dev2\\node\\deps\\v8\\include',
+			 'c:\\dev2\\node-v0.6.2\\src',
+             'c:\\dev2\\node-v0.6.2\\deps\\uv\\include',
+             'c:\\dev2\\node-v0.6.2\\deps\\v8\\include',
              'c:\\dev2\\proj\\src',
              'c:\\dev2\\icu\\include',
              'C:\dev2\mapnik-packaging\windows\ltdl',
@@ -85,9 +85,9 @@
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalLibraryDirectories': [
-                'c:\\dev2\\node\\Release',
-				'C:\mapnik-2.0\lib',
-				#'C:\\dev2\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
+                'c:\\dev2\\node-v0.6.2\\Release',
+				#'C:\\mapnik-2.0\\lib',
+				'C:\\dev2\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
 				'C:\\dev2\\boost-vc100\\lib',
 				'C:\\dev2\\icu\\lib',
               ],
