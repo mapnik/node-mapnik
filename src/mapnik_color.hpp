@@ -25,12 +25,12 @@ class Color: public node::ObjectWrap {
     static Handle<Value> toString(const Arguments &args);
     static Handle<Value> hex(const Arguments &args);
 
-    static Handle<Value> get_prop(Local<String> property,
+/*    static Handle<Value> get_prop(Local<String> property,
                          const AccessorInfo& info);
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
-
+*/
     Color();
     inline color_ptr get() { return this_; }
 

@@ -32,10 +32,11 @@ void Layer::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe_data", describe_data);
 
     // properties
-    ATTR(constructor, "name", get_prop, set_prop);
+    /*ATTR(constructor, "name", get_prop, set_prop);
     ATTR(constructor, "srs", get_prop, set_prop);
     ATTR(constructor, "styles", get_prop, set_prop);
     ATTR(constructor, "datasource", get_prop, set_prop);
+	*/
 
     target->Set(String::NewSymbol("Layer"),constructor->GetFunction());
 }
@@ -141,6 +142,7 @@ Handle<Value> Layer::New(mapnik::layer & lay_ref) {
     return scope.Close(obj);
 }
 
+/*
 Handle<Value> Layer::get_prop(Local<String> property,
                          const AccessorInfo& info)
 {
@@ -175,7 +177,7 @@ void Layer::set_prop(Local<String> property,
                          const AccessorInfo& info)
 {
     HandleScope scope;
-    Layer* l = ObjectWrap::Unwrap<Layer>(info.Holder());
+    Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
     std::string a = TOSTR(property);
     if (a == "name")
     {
@@ -241,7 +243,7 @@ void Layer::set_prop(Local<String> property,
         }
     }
 }
-
+*/
 
 Handle<Value> Layer::describe(const Arguments& args)
 {
