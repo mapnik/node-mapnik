@@ -71,7 +71,6 @@ extern "C" {
   static void InitMapnik (Handle<Object> target)
   {
     // module level functions
-    NODE_SET_METHOD(target, "make_mapnik_symbols_visible", node_mapnik::make_mapnik_symbols_visible);
     NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
     NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
     NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
