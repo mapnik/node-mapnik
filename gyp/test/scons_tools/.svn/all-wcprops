@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/771/trunk/test/scons_tools
+END
+tools.c
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/771/trunk/test/scons_tools/tools.c
+END
+gyptest-tools.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/721/trunk/test/scons_tools/gyptest-tools.py
+END
+tools.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/721/trunk/test/scons_tools/tools.gyp
+END

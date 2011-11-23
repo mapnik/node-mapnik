@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars
+END
+file.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/file.c
+END
+test_bundle_executable.sh
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_bundle_executable.sh
+END
+test_nonbundle_loadable_module.sh
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_nonbundle_loadable_module.sh
+END
+test_nonbundle_shared_library.sh
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_nonbundle_shared_library.sh
+END
+test_nonbundle_static_library.sh
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_nonbundle_static_library.sh
+END
+test_bundle_loadable_module.sh
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_bundle_loadable_module.sh
+END
+test_bundle_shared_library.sh
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_bundle_shared_library.sh
+END
+test.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test.gyp
+END
+test_nonbundle_executable.sh
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/1067/trunk/test/mac/type_envvars/test_nonbundle_executable.sh
+END

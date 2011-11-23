@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/1077/trunk/test/rules-dirname/src/subdir/foo/bar
+END
+baz.printvars
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/1077/trunk/test/rules-dirname/src/subdir/foo/bar/baz.printvars
+END
+baz.gencc
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/1077/trunk/test/rules-dirname/src/subdir/foo/bar/baz.gencc
+END

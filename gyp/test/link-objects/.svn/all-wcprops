@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/944/trunk/test/link-objects
+END
+link-objects.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/873/trunk/test/link-objects/link-objects.gyp
+END
+extra.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/873/trunk/test/link-objects/extra.c
+END
+base.c
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/873/trunk/test/link-objects/base.c
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/944/trunk/test/link-objects/gyptest-all.py
+END

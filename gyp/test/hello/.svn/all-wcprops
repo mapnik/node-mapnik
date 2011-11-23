@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/svn/!svn/ver/905/trunk/test/hello
+END
+hello.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/721/trunk/test/hello/hello.gyp
+END
+hello2.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/721/trunk/test/hello/hello2.gyp
+END
+hello.c
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/771/trunk/test/hello/hello.c
+END
+hello2.c
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/771/trunk/test/hello/hello2.c
+END
+gyptest-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/905/trunk/test/hello/gyptest-default.py
+END
+gyptest-target.py
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/905/trunk/test/hello/gyptest-target.py
+END
+gyptest-regyp.py
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/721/trunk/test/hello/gyptest-regyp.py
+END
+gyptest-disable-regyp.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/hello/gyptest-disable-regyp.py
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/905/trunk/test/hello/gyptest-all.py
+END

@@ -1,0 +1,37 @@
+10
+
+dir
+1098
+http://gyp.googlecode.com/svn/trunk/test/sibling/src
+http://gyp.googlecode.com/svn
+
+
+
+2009-10-22T20:02:37.997393Z
+721
+sgk@chromium.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+78cadc50-ecff-11dd-a971-7dbc132099af
+
+build
+dir
+
+prog1
+dir
+
+prog2
+dir
+

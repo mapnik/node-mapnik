@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/1014/trunk/test/mac/postbuilds/script
+END
+shared_library_postbuild.sh
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/1014/trunk/test/mac/postbuilds/script/shared_library_postbuild.sh
+END
+static_library_postbuild.sh
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/1014/trunk/test/mac/postbuilds/script/static_library_postbuild.sh
+END

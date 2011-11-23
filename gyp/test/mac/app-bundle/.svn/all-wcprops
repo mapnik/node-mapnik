@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/965/trunk/test/mac/app-bundle
+END
+empty.c
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/965/trunk/test/mac/app-bundle/empty.c
+END
+test.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/965/trunk/test/mac/app-bundle/test.gyp
+END

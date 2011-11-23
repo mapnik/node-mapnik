@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/891/trunk/test/include_dirs
+END
+gyptest-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/891/trunk/test/include_dirs/gyptest-default.py
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/891/trunk/test/include_dirs/gyptest-all.py
+END

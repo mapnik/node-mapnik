@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/1047/trunk/test/mac/strip
+END
+file.c
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/1047/trunk/test/mac/strip/file.c
+END
+test.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1047/trunk/test/mac/strip/test.gyp
+END

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/867/trunk/test/rules/src/subdir2
+END
+file1.in
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/622/trunk/test/rules/src/subdir2/file1.in
+END
+file2.in
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/622/trunk/test/rules/src/subdir2/file2.in
+END
+no_inputs.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/842/trunk/test/rules/src/subdir2/no_inputs.gyp
+END
+never_used.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/867/trunk/test/rules/src/subdir2/never_used.gyp
+END
+none.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/721/trunk/test/rules/src/subdir2/none.gyp
+END

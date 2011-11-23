@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src
+END
+a.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/a.c
+END
+b.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/b.c
+END
+c.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/c.c
+END
+d.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/d.c
+END
+emit.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/emit.py
+END
+a.h
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/a.h
+END
+b.h
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/b.h
+END
+c.h
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/c.h
+END
+hard_dependency.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/1028/trunk/test/hard_dependency/src/hard_dependency.gyp
+END

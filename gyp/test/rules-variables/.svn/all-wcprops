@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/1082/trunk/test/rules-variables
+END
+gyptest-rules-variables.py
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/1082/trunk/test/rules-variables/gyptest-rules-variables.py
+END

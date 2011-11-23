@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/974/trunk/test/settings
+END
+gyptest-settings.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/970/trunk/test/settings/gyptest-settings.py
+END
+settings.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/974/trunk/test/settings/settings.gyp
+END

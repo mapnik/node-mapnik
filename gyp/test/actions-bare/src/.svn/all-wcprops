@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/721/trunk/test/actions-bare/src
+END
+bare.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/721/trunk/test/actions-bare/src/bare.py
+END
+bare.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/721/trunk/test/actions-bare/src/bare.gyp
+END

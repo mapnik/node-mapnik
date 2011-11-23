@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/994/trunk/test/defines-escaping
+END
+defines-escaping.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/798/trunk/test/defines-escaping/defines-escaping.gyp
+END
+defines-escaping.c
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/798/trunk/test/defines-escaping/defines-escaping.c
+END
+gyptest-defines-escaping.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/994/trunk/test/defines-escaping/gyptest-defines-escaping.py
+END

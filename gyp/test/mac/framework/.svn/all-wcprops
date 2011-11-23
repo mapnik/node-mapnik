@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/971/trunk/test/mac/framework
+END
+empty.c
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/965/trunk/test/mac/framework/empty.c
+END
+framework.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/971/trunk/test/mac/framework/framework.gyp
+END

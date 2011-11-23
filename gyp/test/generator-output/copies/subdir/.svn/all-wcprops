@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/generator-output/copies/subdir
+END
+file3
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/642/trunk/test/generator-output/copies/subdir/file3
+END
+file4
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/642/trunk/test/generator-output/copies/subdir/file4
+END
+subdir.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/721/trunk/test/generator-output/copies/subdir/subdir.gyp
+END

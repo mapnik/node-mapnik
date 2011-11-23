@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/1076/trunk/test/rules/src
+END
+somefile.ext
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/1075/trunk/test/rules/src/somefile.ext
+END
+input-root.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/1074/trunk/test/rules/src/input-root.gyp
+END
+actions.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/1076/trunk/test/rules/src/actions.gyp
+END
+copy-file.py
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/721/trunk/test/rules/src/copy-file.py
+END
+rule.py
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/1074/trunk/test/rules/src/rule.py
+END

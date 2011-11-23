@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/721/trunk/test/assembly/src
+END
+program.c
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/671/trunk/test/assembly/src/program.c
+END
+lib1.c
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/671/trunk/test/assembly/src/lib1.c
+END
+lib1.S
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/671/trunk/test/assembly/src/lib1.S
+END
+as.bat
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/671/trunk/test/assembly/src/as.bat
+END
+assembly.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/721/trunk/test/assembly/src/assembly.gyp
+END

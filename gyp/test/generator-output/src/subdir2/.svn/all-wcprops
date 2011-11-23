@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/721/trunk/test/generator-output/src/subdir2
+END
+prog2.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/721/trunk/test/generator-output/src/subdir2/prog2.gyp
+END
+prog2.c
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/638/trunk/test/generator-output/src/subdir2/prog2.c
+END

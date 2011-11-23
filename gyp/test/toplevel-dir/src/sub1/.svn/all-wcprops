@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/826/trunk/test/toplevel-dir/src/sub1
+END
+main.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/826/trunk/test/toplevel-dir/src/sub1/main.gyp
+END
+prog1.c
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/826/trunk/test/toplevel-dir/src/sub1/prog1.c
+END
