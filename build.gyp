@@ -32,6 +32,11 @@
       ],
       'defines': [
         'PLATFORM="<(OS)"',
+		'HAVE_CAIRO',
+		'HAVE_JPEG',
+		'MAPNIK_THREADSAFE',
+		'HAVE_LIBXML2',
+		'LIBTOOL_SUPPORTS_ADVISE',
       ],
       'conditions': [
         [ 'OS=="mac"', {
@@ -75,13 +80,16 @@
              'c:\\mapnik-2.0\\include',
              'c:\\dev2\\freetype',
              'c:\\dev2\\freetype\\include',
+			 'C:\\dev2\\cairo\\src',
+			 'c:\\dev2\\cairomm',
+			 'C:\\dev2\\libsigc++',
              'c:\\dev2\\boost-vc100\\include\\boost-1_48',
              'c:\\dev2\\node-v0.6.2\\deps\\v8\\include',
              'c:\\dev2\\node-v0.6.2\\src',
              'c:\\dev2\\node-v0.6.2\\deps\\uv\\include',
              'c:\\dev2\\proj\\src',
              'c:\\dev2\\icu\\include',
-             'C:\dev2\mapnik-packaging\windows\ltdl',
+             'C:\\dev2\\mapnik-packaging\\windows\\ltdl',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
