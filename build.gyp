@@ -32,11 +32,10 @@
       ],
       'defines': [
         'PLATFORM="<(OS)"',
-		'HAVE_CAIRO',
-		'HAVE_JPEG',
-		'MAPNIK_THREADSAFE',
-		'HAVE_LIBXML2',
-		'LIBTOOL_SUPPORTS_ADVISE',
+        'HAVE_JPEG',
+        'MAPNIK_THREADSAFE',
+        'HAVE_LIBXML2',
+        'LIBTOOL_SUPPORTS_ADVISE',
       ],
       'conditions': [
         [ 'OS=="mac"', {
@@ -54,12 +53,14 @@
              '/usr/include',
           ],
           'defines': [
+            #'HAVE_CAIRO',
             '_LARGEFILE_SOURCE',
             '_FILE_OFFSET_BITS=64',
           ],
         }],
         [ 'OS=="win"', {
           'defines': [
+            'HAVE_CAIRO',
             'PLATFORM="win32"',
             '_LARGEFILE_SOURCE',
             '_FILE_OFFSET_BITS=64',
@@ -72,7 +73,6 @@
           'libraries': [ 
               'mapnik2.lib',
               'node.lib',
-              #'v8_base.lib',
               'icuuc.lib',
               'libboost_regex-vc100-mt-1_48.lib',
           ],
@@ -80,9 +80,9 @@
              'c:\\mapnik-2.0\\include',
              'c:\\dev2\\freetype',
              'c:\\dev2\\freetype\\include',
-			 'C:\\dev2\\cairo\\src',
-			 'c:\\dev2\\cairomm',
-			 'C:\\dev2\\libsigc++',
+             'C:\\dev2\\cairo\\src',
+             'c:\\dev2\\cairomm',
+             'C:\\dev2\\libsigc++',
              'c:\\dev2\\boost-vc100\\include\\boost-1_48',
              'c:\\dev2\\node-v0.6.2\\deps\\v8\\include',
              'c:\\dev2\\node-v0.6.2\\src',
@@ -94,12 +94,12 @@
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalOptions': [
+                # https://github.com/mapnik/node-mapnik/issues/74
                 '/FORCE:MULTIPLE'
               ],
               'AdditionalLibraryDirectories': [
                 'c:\\dev2\\node-v0.6.2\\Release\\lib',
                 'c:\\dev2\\node-v0.6.2\\Release',
-                #'C:\\mapnik-2.0\\lib',
                 'C:\\dev2\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
                 'C:\\dev2\\boost-vc100\\lib',
                 'C:\\dev2\\icu\\lib',
