@@ -26,12 +26,12 @@ class Layer: public node::ObjectWrap {
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> describe_data(const Arguments &args);
 
-    /*static Handle<Value> get_prop(Local<String> property,
+    static Handle<Value> get_prop(Local<String> property,
                          const AccessorInfo& info);
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
-	*/
+	
 
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);

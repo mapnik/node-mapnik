@@ -85,6 +85,9 @@
           ],
           'msvs_settings': {
             'VCLinkerTool': {
+              'AdditionalOptions': [
+                '/FORCE:MULTIPLE'
+              ],
               'AdditionalLibraryDirectories': [
                 'c:\\dev2\\node-v0.6.2\\Release\\lib',
                 'c:\\dev2\\node-v0.6.2\\Release',

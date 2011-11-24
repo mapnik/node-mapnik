@@ -7,6 +7,7 @@
 
 Persistent<FunctionTemplate> Color::constructor;
 
+
 void Color::Initialize(Handle<Object> target) {
 
     HandleScope scope;
@@ -20,11 +21,11 @@ void Color::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
 
     // properties
-    /*ATTR(constructor, "r", get_prop, set_prop);
+    ATTR(constructor, "r", get_prop, set_prop);
     ATTR(constructor, "g", get_prop, set_prop);
     ATTR(constructor, "b", get_prop, set_prop);
     ATTR(constructor, "a", get_prop, set_prop);
-	*/
+	
 
     target->Set(String::NewSymbol("Color"),constructor->GetFunction());
 }
@@ -120,7 +121,7 @@ Handle<Value> Color::New(mapnik::color const& color) {
     return scope.Close(obj);
 }
 
-/*
+
 Handle<Value> Color::get_prop(Local<String> property,
                          const AccessorInfo& info)
 {
@@ -158,7 +159,7 @@ void Color::set_prop(Local<String> property,
         c->get()->set_blue(value->IntegerValue());
     }
 }
-*/
+
 Handle<Value> Color::toString(const Arguments& args)
 {
     HandleScope scope;
