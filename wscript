@@ -99,8 +99,8 @@ def configure(conf):
     if os.environ.has_key('LINKFLAGS'):
         linkflags.extend(os.environ['LINKFLAGS'].split(' '))
     
-    # put on the path the first -L to where libmapnik2 should be
-    linkflags.extend(all_ldflags[:1])
+    # put on the path the first -L to where libmapnik should be and libmapnik itself
+    linkflags.extend(all_ldflags)
     
     # add prefix to linkflags if it is unique
     prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
@@ -109,8 +109,8 @@ def configure(conf):
 
     conf.env.append_value("LINKFLAGS", linkflags)
 
-    # unneeded currently as second item from mapnik-config is -lmapnik2
-    conf.env.append_value("LIB_MAPNIK", "mapnik2")
+    # unneeded currently as second item from mapnik-config is -lmapnik
+    #conf.env.append_value("LIB_MAPNIK", "mapnik2")
 
     # TODO - too much potential pollution here, need to limit this upstream
     cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
