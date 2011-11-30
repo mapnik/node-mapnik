@@ -110,7 +110,7 @@ def configure(conf):
     conf.env.append_value("LINKFLAGS", linkflags)
 
     # unneeded currently as second item from mapnik-config is -lmapnik
-    #conf.env.append_value("LIB_MAPNIK", "mapnik2")
+    #conf.env.append_value("LIB_MAPNIK", "mapnik")
 
     # TODO - too much potential pollution here, need to limit this upstream
     cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
