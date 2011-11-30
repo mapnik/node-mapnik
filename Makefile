@@ -13,7 +13,7 @@ endif
 gyp:
 	python gen_settings.py
 	python gyp/gyp build.gyp --depth=. -f make --generator-output=./projects/makefiles
-	make -C ./projects/makefiles/
+	make -j$(NPROCS) -C ./projects/makefiles/ V=1
 	cp projects/makefiles/out/Default/_mapnik.node lib/_mapnik.node
 
 install: all
