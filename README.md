@@ -55,7 +55,7 @@
 
   node (development headers) >= v0.2.3
   
-  mapnik 2.0 / (latest trunk >= r3306)
+  mapnik 2.1 (current master): (at least [9e924bfa11](https://github.com/mapnik/mapnik/commit/9e924bfa1169b213ed31689b3c1e700251bb7d44))
   
   node-pool for some examples (npm install -g generic-pool)
  
