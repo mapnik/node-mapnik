@@ -24,6 +24,7 @@
 #include "mapnik_image_view.hpp"
 #include "mapnik_grid.hpp"
 #include "mapnik_grid_view.hpp"
+#include "mapnik_expression.hpp"
 #include "utils.hpp"
 
 // mapnik
@@ -95,6 +96,7 @@ extern "C" {
     Featureset::Initialize(target);
     JSDatasource::Initialize(target);
     MemoryDatasource::Initialize(target);
+    Expression::Initialize(target);
 
     // node-mapnik version
     target->Set(String::NewSymbol("version"), String::New("0.5.10"));

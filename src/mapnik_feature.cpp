@@ -3,8 +3,11 @@
 #include "mapnik_geometry.hpp"
 
 // mapnik
+#include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 
+// boost
+#include <boost/scoped_ptr.hpp>
 #include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> Feature::constructor;
@@ -21,7 +24,9 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "attributes", attributes);
     NODE_SET_PROTOTYPE_METHOD(constructor, "addGeometry", addGeometry);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addAttributes", addAttributes);
     NODE_SET_PROTOTYPE_METHOD(constructor, "numGeometries", numGeometries);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
     target->Set(String::NewSymbol("Feature"),constructor->GetFunction());
 }
 
@@ -165,6 +170,69 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
     }
 
     return Undefined();
+}
+
+Handle<Value> Feature::addAttributes(const Arguments& args)
+{
+    HandleScope scope;
+
+    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+
+    if (args.Length() > 0 ) {
+        Local<Value> value = args[0];
+        if (value->IsNull() || value->IsUndefined()) {
+            return ThrowException(Exception::TypeError(String::New("object expected")));
+        } else {
+            Local<Object> attr = value->ToObject();
+            try
+            {
+                Local<Array> names = attr->GetPropertyNames();
+                uint32_t i = 0;
+                uint32_t a_length = names->Length();
+                boost::scoped_ptr<mapnik::transcoder> tr(new mapnik::transcoder("utf8"));
+                while (i < a_length) {
+                    Local<Value> name = names->Get(i)->ToString();
+                    Local<Value> value = attr->Get(name);
+                    if (value->IsString()) {
+                        UnicodeString ustr = tr->transcode(TOSTR(value));
+                        boost::put(*fp->get(),TOSTR(name),ustr);
+                    } else if (value->IsNumber()) {
+                        double num = value->NumberValue();
+                        // todo - round
+                        if (num == value->IntegerValue()) {
+                            int integer = value->IntegerValue();
+                            boost::put(*fp->get(),TOSTR(name),integer);
+                        } else {
+                            double dub_val = value->NumberValue();
+                            boost::put(*fp->get(),TOSTR(name),dub_val);
+                        }
+                    } else {
+                        std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
+                    }
+                    i++;
+                }
+            }
+            catch (const std::exception & ex )
+            {
+                return ThrowException(Exception::Error(
+                  String::New(ex.what())));
+            }
+            catch (...) {
+                return ThrowException(Exception::Error(
+                  String::New("Unknown exception happended - please report bug")));
+            }
+        }
+    }
+
+    return Undefined();
+}
+
+Handle<Value> Feature::toString(const Arguments& args)
+{
+    HandleScope scope;
+
+    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    return scope.Close(String::New(fp->get()->to_string().c_str()));
 }
 
 
