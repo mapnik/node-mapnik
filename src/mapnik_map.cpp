@@ -99,6 +99,7 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "extent", get_prop, set_prop);
     ATTR(constructor, "maximumExtent", get_prop, set_prop);
     ATTR(constructor, "background", get_prop, set_prop);
+    ATTR(constructor, "parameters", get_prop, set_prop)
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
     //eio_set_max_poll_reqs(10);
@@ -219,6 +220,18 @@ Handle<Value> Map::get_prop(Local<String> property,
         else
             return Undefined();
     }
+    else if (a == "parameters") {
+        Local<Object> ds = Object::New();
+        mapnik::parameters const& params = m->map_->get_extra_parameters();
+        mapnik::parameters::const_iterator it = params.begin();
+        mapnik::parameters::const_iterator end = params.end();
+        for (; it != end; ++it)
+        {
+            node_mapnik::params_to_object serializer( ds , it->first);
+            boost::apply_visitor( serializer, it->second );
+        }
+        return scope.Close(ds);
+    }
     return Undefined();
 }
 
@@ -295,7 +308,41 @@ void Map::set_prop(Local<String> property,
         Color *c = ObjectWrap::Unwrap<Color>(obj);
         m->map_->set_background(*c->get());
     }
+    else if (a == "parameters") {
+        if (!value->IsObject())
+            ThrowException(Exception::TypeError(
+              String::New("object expected for map.parameters")));
 
+        Local<Object> obj = value->ToObject();
+        if (obj->IsNull() || obj->IsUndefined())
+            ThrowException(Exception::TypeError(String::New("object expected for map.parameters, cannot be null/undefined")));
+
+        mapnik::parameters params;
+        Local<Array> names = obj->GetPropertyNames();
+        uint32_t i = 0;
+        uint32_t a_length = names->Length();
+        while (i < a_length) {
+            Local<Value> name = names->Get(i)->ToString();
+            Local<Value> value = obj->Get(name);
+            if (value->IsString()) {
+                params[TOSTR(name)] = TOSTR(value);            
+            } else if (value->IsNumber()) {
+                double num = value->NumberValue();
+                // todo - round
+                if (num == value->IntegerValue()) {
+                    int integer = value->IntegerValue();
+                    params[TOSTR(name)] = integer;
+                } else {
+                    double dub_val = value->NumberValue();
+                    params[TOSTR(name)] = dub_val;
+                }
+            } else {
+                std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
+            }
+            i++;
+        }
+        m->map_->set_extra_parameters(params);
+    }
 }
 
 Handle<Value> Map::scaleDenominator(const Arguments& args)

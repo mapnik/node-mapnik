@@ -83,6 +83,7 @@ Handle<Value> Datasource::New(const Arguments& args)
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);
+        // TODO - don't treat everything as strings
         params[TOSTR(name)] = TOSTR(value);
         i++;
     }
