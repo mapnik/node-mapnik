@@ -79,34 +79,38 @@ private:
     std::string key_;
 };
 
-struct value_converter: public boost::static_visitor<Local<Value> >
+struct value_converter: public boost::static_visitor<Handle<Value> >
 {
-    Local<Value> operator () ( int val ) const
+    Handle<Value> operator () ( int val ) const
     {
         return Integer::New(val);
     }
 
-    Local<Value> operator () ( double val ) const
+    Handle<Value> operator () ( bool val ) const
+    {
+        return Boolean::New(val);
+    }
+
+    Handle<Value> operator () ( double val ) const
     {
         return Number::New(val);
     }
 
-    Local<Value> operator () ( std::string const& val ) const
+    Handle<Value> operator () ( std::string const& val ) const
     {
-        
         return String::New(val.c_str());
     }
 
-    Local<Value> operator () ( UnicodeString const& val) const
+    Handle<Value> operator () ( UnicodeString const& val) const
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);
         return String::New(buffer.c_str());
     }
 
-    Local<Value> operator () ( mapnik::value_null const& val ) const
+    Handle<Value> operator () ( mapnik::value_null const& val ) const
     {
-        return String::New("");//Undefined();
+        return Undefined();
     }
 };
 
