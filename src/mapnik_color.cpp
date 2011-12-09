@@ -165,7 +165,6 @@ Handle<Value> Color::toString(const Arguments& args)
     HandleScope scope;
 
     Color* c = ObjectWrap::Unwrap<Color>(args.This());
-    std::string hex = c->get()->to_string();
     return scope.Close(String::New( c->get()->to_string().c_str() ));
 }
 

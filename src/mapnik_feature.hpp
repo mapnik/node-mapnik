@@ -26,7 +26,9 @@ class Feature: public node::ObjectWrap {
     static Handle<Value> extent(const Arguments &args);
     static Handle<Value> attributes(const Arguments &args);
     static Handle<Value> addGeometry(const Arguments &args);
+    static Handle<Value> addAttributes(const Arguments &args);
     static Handle<Value> numGeometries(const Arguments &args);
+    static Handle<Value> toString(const Arguments &args);
 
     // todo
     // how to allow altering of attributes
