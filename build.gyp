@@ -18,7 +18,10 @@
           "src/mapnik_layer.cpp",
           "src/mapnik_datasource.cpp",
           "src/mapnik_featureset.cpp"
-      ]
+      ],
+      'node_root': '/opt/node-v6.1',
+      'node_root_win': 'c:\\node',
+      'deps_root_win': 'c:\\dev2'
   },
   'targets': [
     {
@@ -40,17 +43,17 @@
       'conditions': [
         [ 'OS=="mac"', {
           'libraries': [
-            '-lmapnik2',
+            '-lmapnik',
             '-undefined dynamic_lookup'
           ],
           'include_dirs': [
              'src/',
-             '/usr/local/include/node',
+             '<@(node_root)/include/node',
+             '<@(node_root)/include',
              '/opt/boost-48/include',
              '/usr/local/Cellar/icu4c/4.8.1.1/include',
              '/usr/X11/include/freetype2',
              '/usr/X11/include',
-             '/usr/include',
           ],
           'defines': [
             #'HAVE_CAIRO',
@@ -66,8 +69,6 @@
             '_FILE_OFFSET_BITS=64',
             '_WINDOWS',
             '__WINDOWS__', # ltdl
-            #'WIN32',
-            #'_USRDLL',
             'BUILDING_NODE_EXTENSION'
           ],
           'libraries': [ 
@@ -78,18 +79,18 @@
           ],
           'include_dirs': [
              'c:\\mapnik-2.0\\include',
-             'c:\\dev2\\freetype',
-             'c:\\dev2\\freetype\\include',
-             'C:\\dev2\\cairo\\src',
-             'c:\\dev2\\cairomm',
-             'C:\\dev2\\libsigc++',
-             'c:\\dev2\\boost-vc100\\include\\boost-1_48',
-             'c:\\dev2\\node-v0.6.2\\deps\\v8\\include',
-             'c:\\dev2\\node-v0.6.2\\src',
-             'c:\\dev2\\node-v0.6.2\\deps\\uv\\include',
-             'c:\\dev2\\proj\\src',
-             'c:\\dev2\\icu\\include',
-             'C:\\dev2\\mapnik-packaging\\windows\\ltdl',
+             '<@(deps_root_win)\\freetype',
+             '<@(deps_root_win)\\freetype\\include',
+             '<@(deps_root_win)\\cairo\\src',
+             '<@(deps_root_win)\\cairomm',
+             '<@(deps_root_win)\\libsigc++',
+             '<@(deps_root_win)\\boost-vc100\\include\\boost-1_48',
+             '<@(node_root_win)\\deps\\v8\\include',
+             '<@(node_root_win)\\src',
+             '<@(node_root_win)\\deps\\uv\\include',
+             '<@(deps_root_win)\\proj\\src',
+             '<@(deps_root_win)\\icu\\include',
+             '<@(deps_root_win)\\mapnik-packaging\\windows\\ltdl',
           ],
           'msvs_settings': {
             'VCLinkerTool': {
@@ -98,11 +99,11 @@
                 '/FORCE:MULTIPLE'
               ],
               'AdditionalLibraryDirectories': [
-                'c:\\dev2\\node-v0.6.2\\Release\\lib',
-                'c:\\dev2\\node-v0.6.2\\Release',
-                'C:\\dev2\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
-                'C:\\dev2\\boost-vc100\\lib',
-                'C:\\dev2\\icu\\lib',
+                '<@(node_root_win)\\Release\\lib',
+                '<@(node_root_win)\\Release',
+                '<@(deps_root_win)\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
+                '<@(deps_root_win)\\boost-vc100\\lib',
+                '<@(deps_root_win)\\icu\\lib',
               ],
             },
           },
