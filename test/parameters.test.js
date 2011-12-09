@@ -6,7 +6,7 @@ var path = require('path');
 
 exports['test getting map parameters'] = function(beforeExit) {
     var map = new mapnik.Map(1,1);
-    map.loadSync('./tests/support/extra_arbitary_map_parameters.xml')
+    map.loadSync('./test/support/extra_arbitary_map_parameters.xml')
     var params = map.parameters;
     assert.equal(params.decimal,0.999);
     assert.equal(params.integer,10);
