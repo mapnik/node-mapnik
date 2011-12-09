@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/721/trunk/test/builddir/src
+END
+func3.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/649/trunk/test/builddir/src/func3.c
+END
+func4.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/649/trunk/test/builddir/src/func4.c
+END
+func5.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/649/trunk/test/builddir/src/func5.c
+END
+builddir.gypi
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/721/trunk/test/builddir/src/builddir.gypi
+END
+prog1.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/721/trunk/test/builddir/src/prog1.gyp
+END
+prog1.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/649/trunk/test/builddir/src/prog1.c
+END
+func1.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/649/trunk/test/builddir/src/func1.c
+END
+func2.c
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/649/trunk/test/builddir/src/func2.c
+END

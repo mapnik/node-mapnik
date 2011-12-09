@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir2
+END
+make-file.py
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir2/make-file.py
+END
+none.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir2/none.gyp
+END

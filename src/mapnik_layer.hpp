@@ -31,6 +31,7 @@ class Layer: public node::ObjectWrap {
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
+	
 
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);

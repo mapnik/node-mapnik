@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/svn/!svn/ver/869/trunk/test/make
+END
+gyptest-noload.py
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/869/trunk/test/make/gyptest-noload.py
+END
+dependencies.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/849/trunk/test/make/dependencies.gyp
+END
+main.cc
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/849/trunk/test/make/main.cc
+END
+gyptest-dependencies.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/852/trunk/test/make/gyptest-dependencies.py
+END
+main.h
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/849/trunk/test/make/main.h
+END

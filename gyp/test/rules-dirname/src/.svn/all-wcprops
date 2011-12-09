@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/1077/trunk/test/rules-dirname/src
+END
+actions.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/1077/trunk/test/rules-dirname/src/actions.gyp
+END
+copy-file.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/1077/trunk/test/rules-dirname/src/copy-file.py
+END

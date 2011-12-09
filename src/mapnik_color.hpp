@@ -30,7 +30,6 @@ class Color: public node::ObjectWrap {
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
-
     Color();
     inline color_ptr get() { return this_; }
 

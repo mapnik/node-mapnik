@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/1035/trunk/tools
+END
+graphviz.py
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/929/trunk/tools/graphviz.py
+END
+pretty_vcproj.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/771/trunk/tools/pretty_vcproj.py
+END
+pretty_sln.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/771/trunk/tools/pretty_sln.py
+END
+pretty_gyp.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/620/trunk/tools/pretty_gyp.py
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/139/trunk/tools/README
+END

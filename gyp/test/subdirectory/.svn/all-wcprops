@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/1009/trunk/test/subdirectory
+END
+gyptest-SYMROOT-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/721/trunk/test/subdirectory/gyptest-SYMROOT-default.py
+END
+gyptest-subdir-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/1009/trunk/test/subdirectory/gyptest-subdir-all.py
+END
+gyptest-SYMROOT-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/721/trunk/test/subdirectory/gyptest-SYMROOT-all.py
+END
+gyptest-top-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/721/trunk/test/subdirectory/gyptest-top-default.py
+END
+gyptest-subdir2-deep.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/721/trunk/test/subdirectory/gyptest-subdir2-deep.py
+END
+gyptest-top-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/721/trunk/test/subdirectory/gyptest-top-all.py
+END
+gyptest-subdir-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/1009/trunk/test/subdirectory/gyptest-subdir-default.py
+END

@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/721/trunk/test/multiple-targets
+END
+gyptest-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/721/trunk/test/multiple-targets/gyptest-default.py
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/721/trunk/test/multiple-targets/gyptest-all.py
+END

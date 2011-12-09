@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/758/trunk/test/rules/src/subdir3
+END
+executable2.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/758/trunk/test/rules/src/subdir3/executable2.gyp
+END
+program.c
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/757/trunk/test/rules/src/subdir3/program.c
+END
+function3.in
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/757/trunk/test/rules/src/subdir3/function3.in
+END

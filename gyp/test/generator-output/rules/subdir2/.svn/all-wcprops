@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/generator-output/rules/subdir2
+END
+file1.in0
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/669/trunk/test/generator-output/rules/subdir2/file1.in0
+END
+file2.in0
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/669/trunk/test/generator-output/rules/subdir2/file2.in0
+END
+file3.in1
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/669/trunk/test/generator-output/rules/subdir2/file3.in1
+END
+file4.in1
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/669/trunk/test/generator-output/rules/subdir2/file4.in1
+END
+none.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/721/trunk/test/generator-output/rules/subdir2/none.gyp
+END

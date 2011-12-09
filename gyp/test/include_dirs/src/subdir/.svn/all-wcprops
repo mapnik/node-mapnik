@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/721/trunk/test/include_dirs/src/subdir
+END
+inc.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/629/trunk/test/include_dirs/src/subdir/inc.h
+END
+subdir_includes.c
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/629/trunk/test/include_dirs/src/subdir/subdir_includes.c
+END
+subdir_includes.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/721/trunk/test/include_dirs/src/subdir/subdir_includes.gyp
+END

@@ -71,7 +71,6 @@ extern "C" {
   static void InitMapnik (Handle<Object> target)
   {
     // module level functions
-    NODE_SET_METHOD(target, "make_mapnik_symbols_visible", node_mapnik::make_mapnik_symbols_visible);
     NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
     NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
     NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
@@ -108,9 +107,7 @@ extern "C" {
     versions->Set(String::NewSymbol("mapnik"), String::New(format_version(MAPNIK_VERSION).c_str()));
     versions->Set(String::NewSymbol("mapnik_number"), Integer::New(MAPNIK_VERSION));
     #if defined(HAVE_CAIRO)
-      std::ostringstream s;
-      s << CAIRO_VERSION_MAJOR << "." << CAIRO_VERSION_MINOR << "." << CAIRO_VERSION_MICRO;
-      versions->Set(String::NewSymbol("cairo"), String::New(s.str().c_str()));
+      versions->Set(String::NewSymbol("cairo"), String::New(CAIRO_VERSION_STRING));
     #endif
     target->Set(String::NewSymbol("versions"), versions);
 

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/771/trunk/test/toolsets
+END
+gyptest-toolsets.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/721/trunk/test/toolsets/gyptest-toolsets.py
+END
+toolsets.cc
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/771/trunk/test/toolsets/toolsets.cc
+END
+main.cc
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/771/trunk/test/toolsets/main.cc
+END
+toolsets.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/721/trunk/test/toolsets/toolsets.gyp
+END

@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/759/trunk/test/same-gyp-name/src/subdir2
+END
+executable.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/759/trunk/test/same-gyp-name/src/subdir2/executable.gyp
+END
+main2.cc
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/759/trunk/test/same-gyp-name/src/subdir2/main2.cc
+END

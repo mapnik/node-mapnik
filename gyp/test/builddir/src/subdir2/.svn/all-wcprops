@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/721/trunk/test/builddir/src/subdir2
+END
+prog2.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/builddir/src/subdir2/prog2.gyp
+END
+prog2.c
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/649/trunk/test/builddir/src/subdir2/prog2.c
+END

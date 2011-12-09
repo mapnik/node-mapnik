@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/721/trunk/test/dependencies/c
+END
+c.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/721/trunk/test/dependencies/c/c.gyp
+END
+c.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/702/trunk/test/dependencies/c/c.c
+END
+d.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/702/trunk/test/dependencies/c/d.c
+END

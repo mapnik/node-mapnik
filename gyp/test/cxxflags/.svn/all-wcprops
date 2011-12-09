@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/872/trunk/test/cxxflags
+END
+cxxflags.cc
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/872/trunk/test/cxxflags/cxxflags.cc
+END
+gyptest-cxxflags.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/872/trunk/test/cxxflags/gyptest-cxxflags.py
+END
+cxxflags.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/872/trunk/test/cxxflags/cxxflags.gyp
+END

@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/905/trunk/test/rules-rebuild
+END
+gyptest-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/905/trunk/test/rules-rebuild/gyptest-default.py
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/905/trunk/test/rules-rebuild/gyptest-all.py
+END

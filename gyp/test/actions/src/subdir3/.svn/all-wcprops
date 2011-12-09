@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/787/trunk/test/actions/src/subdir3
+END
+generate_main.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/721/trunk/test/actions/src/subdir3/generate_main.py
+END
+null_input.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/787/trunk/test/actions/src/subdir3/null_input.gyp
+END

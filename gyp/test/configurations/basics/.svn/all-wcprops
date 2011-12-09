@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/734/trunk/test/configurations/basics
+END
+configurations.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/734/trunk/test/configurations/basics/configurations.gyp
+END
+configurations.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/734/trunk/test/configurations/basics/configurations.c
+END
+gyptest-configurations.py
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/734/trunk/test/configurations/basics/gyptest-configurations.py
+END

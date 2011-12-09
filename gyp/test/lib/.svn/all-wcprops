@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/svn/!svn/ver/1049/trunk/test/lib
+END
+TestCommon.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/772/trunk/test/lib/TestCommon.py
+END
+TestGyp.py
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/1038/trunk/test/lib/TestGyp.py
+END
+TestCmd.py
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/1049/trunk/test/lib/TestCmd.py
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/562/trunk/test/lib/README.txt
+END

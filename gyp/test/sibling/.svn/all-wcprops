@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/1009/trunk/test/sibling
+END
+gyptest-relocate.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/1009/trunk/test/sibling/gyptest-relocate.py
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/1009/trunk/test/sibling/gyptest-all.py
+END

@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/721/trunk/test/variants
+END
+gyptest-variants.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/721/trunk/test/variants/gyptest-variants.py
+END

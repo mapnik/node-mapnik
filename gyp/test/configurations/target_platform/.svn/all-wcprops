@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/806/trunk/test/configurations/target_platform
+END
+configurations.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/760/trunk/test/configurations/target_platform/configurations.gyp
+END
+front.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/760/trunk/test/configurations/target_platform/front.c
+END
+left.c
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/760/trunk/test/configurations/target_platform/left.c
+END
+right.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/760/trunk/test/configurations/target_platform/right.c
+END
+gyptest-target_platform.py
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/806/trunk/test/configurations/target_platform/gyptest-target_platform.py
+END
