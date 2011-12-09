@@ -1,175 +1,0 @@
-10
-
-dir
-1098
-http://gyp.googlecode.com/svn/trunk/test
-http://gyp.googlecode.com/svn
-
-
-
-2011-11-22T19:02:03.172082Z
-1096
-thakis@chromium.org
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-78cadc50-ecff-11dd-a971-7dbc132099af
-
-additional-targets
-dir
-
-assembly
-dir
-
-copies
-dir
-
-generator-output
-dir
-
-link-objects
-dir
-
-dependencies
-dir
-
-dependency-copy
-dir
-
-actions-subdir
-dir
-
-variants
-dir
-
-sibling
-dir
-
-configurations
-dir
-
-builddir
-dir
-
-settings
-dir
-
-rules-variables
-dir
-
-mac
-dir
-
-same-name
-dir
-
-library
-dir
-
-scons_tools
-dir
-
-toplevel-dir
-dir
-
-lib
-dir
-
-rules-dirname
-dir
-
-actions-bare
-dir
-
-compilable
-dir
-
-variables
-dir
-
-exclusion
-dir
-
-no-output
-dir
-
-home_dot_gyp
-dir
-
-make
-dir
-
-rules-rebuild
-dir
-
-cxxflags
-dir
-
-product
-dir
-
-module
-dir
-
-same-target-name
-dir
-
-msvs
-dir
-
-actions-multiple
-dir
-
-rules
-dir
-
-cflags
-dir
-
-ninja
-dir
-
-actions
-dir
-
-same-gyp-name
-dir
-
-multiple-targets
-dir
-
-hello
-dir
-
-defines-escaping
-dir
-
-include_dirs
-dir
-
-small
-dir
-
-toolsets
-dir
-
-hard_dependency
-dir
-
-defines
-dir
-
-subdirectory
-dir
-

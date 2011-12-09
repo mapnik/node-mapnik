@@ -1,4 +1,5 @@
 build
+.svn
 .notes.txt
 .lock-wscript
 .DS_Store
