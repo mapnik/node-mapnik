@@ -102,7 +102,7 @@
               'AdditionalLibraryDirectories': [
                 '<@(node_root_win)\\Release\\lib',
                 '<@(node_root_win)\\Release',
-                '<@(deps_root_win)\\mapnik-packaging\\windows\\build\\src\\msvc-9.0\\release\\threading-multi',
+                '<@(deps_root_win)\\mapnik-packaging\\windows\\build\\src\\msvc-10.0\\release\\threading-multi',
                 '<@(deps_root_win)\\boost-vc100\\lib',
                 '<@(deps_root_win)\\icu\\lib',
               ],
