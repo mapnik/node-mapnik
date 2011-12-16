@@ -106,24 +106,12 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                            description->Set(String::NewSymbol("geometry_type"), String::New("point"));
                            break;
       
-                        case mapnik::MultiPoint:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("multipoint"));
-                           break;
-                           
                         case mapnik::Polygon:
                            description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
-                           break;
-      
-                        case mapnik::MultiPolygon:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("multipolygon"));
                            break;
     
                         case mapnik::LineString:
                            description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
-                           break;
-      
-                        case mapnik::MultiLineString:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("multilinestring"));
                            break;
                            
                         default:

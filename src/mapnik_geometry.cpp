@@ -24,9 +24,6 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::Point);
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::LineString);
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::Polygon);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::MultiPoint);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::MultiLineString);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::MultiPolygon);
 
     // This *must* go after the ATTR setting
     /*
