@@ -25,9 +25,6 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),Point);
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),LineString);
     NODE_DEFINE_CONSTANT(constructor->GetFunction(),Polygon);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiPoint);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiLineString);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiPolygon);
 
     // This *must* go after the ATTR setting
     /*
