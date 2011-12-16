@@ -98,7 +98,7 @@ extern "C" {
     Expression::Initialize(target);
 
     // node-mapnik version
-    target->Set(String::NewSymbol("version"), String::New("0.6.2"));
+    target->Set(String::NewSymbol("version"), String::New("0.6.3"));
 
     // versions of deps
     Local<Object> versions = Object::New();
