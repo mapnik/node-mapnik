@@ -78,18 +78,14 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         }
         description->Set(String::NewSymbol("fields"), fields);
     
-        // get first geometry type using naive first hit approach
-        // TODO proper approach --> https://trac.mapnik.org/ticket/701
-    #if MAPNIK_VERSION >= 800
         mapnik::query q(ds->envelope());
-    #else
-        mapnik::query q(ds->envelope(),1.0,1.0);
-    #endif
-    
+
         mapnik::featureset_ptr fs = ds->features(q);
         description->Set(String::NewSymbol("geometry_type"), Undefined());
         description->Set(String::NewSymbol("has_features"), Boolean::New(false));
     
+        // TODO - need to remove this after this lands:
+        // https://github.com/mapnik/mapnik/issues/701
         if (fs)
         {
             mapnik::feature_ptr fp = fs->next();
@@ -100,24 +96,42 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                 {
                     mapnik::geometry_type const& geom = fp->get_geometry(0);
                     mapnik::eGeomType g_type = geom.type();
+                    Local<String> js_type = String::New("unknown");
                     switch (g_type)
                     {
                         case mapnik::Point:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("point"));
+                        {
+                           if (fp->num_geometries() > 1) {
+                               js_type = String::New("multipoint");
+                           } else {
+                               js_type = String::New("point");
+                           }
                            break;
-      
+                        }
                         case mapnik::Polygon:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("polygon"));
+                        {
+                           if (fp->num_geometries() > 1) {
+                               js_type = String::New("multipolygon");
+                           } else {
+                               js_type = String::New("polygon");
+                           }
                            break;
-    
+                        }
                         case mapnik::LineString:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("linestring"));
+                        {
+                           if (fp->num_geometries() > 1) {
+                               js_type = String::New("multilinestring");
+                           } else {
+                               js_type = String::New("linestring");
+                           }
                            break;
-                           
+                        }
                         default:
-                           description->Set(String::NewSymbol("geometry_type"), String::New("unknown"));
+                        {
                            break;
+                        }
                     }
+                    description->Set(String::NewSymbol("geometry_type"), js_type);
                 }
             }
         }
