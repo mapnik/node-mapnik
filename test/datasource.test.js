@@ -71,7 +71,7 @@ exports['test datasource'] = function() {
             LON: 'Number',
             LAT: 'Number'
         },
-        geometry_type: 'polygon',
+        geometry_type: 'multipolygon',
         has_features: true
     });
 };
@@ -128,7 +128,7 @@ exports['test JSON datasource'] = function() {
             LON: 'Number',
             LAT: 'Number'
         },
-        geometry_type: 'polygon',
+        geometry_type: 'multipolygon',
         has_features: true
     });
 };
