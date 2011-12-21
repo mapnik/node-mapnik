@@ -23,15 +23,15 @@ uninstall:
 	@node-waf uninstall
 
 test-tmp:
-	@rm -rf tests/tmp
-	@mkdir -p tests/tmp
+	@rm -rf test/tmp
+	@mkdir -p test/tmp
 
 ifndef only
 test: test-tmp
-	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso -I lib tests/*.test.js;
+	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso -I lib test/*.test.js;
 else
 test: test-tmp
-	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso -I lib tests/${only}.test.js;
+	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso -I lib test/${only}.test.js;
 endif
 
 lint:
