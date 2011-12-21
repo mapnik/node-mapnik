@@ -70,7 +70,7 @@ exports['test datasource'] = function(beforeExit, assert) {
             LON: 'Number',
             LAT: 'Number'
         },
-        geometry_type: 'polygon',
+        geometry_type: 'multipolygon',
         has_features: true
     });
 };
@@ -127,7 +127,7 @@ exports['test JSON datasource'] = function(beforeExit, assert) {
             LON: 'Number',
             LAT: 'Number'
         },
-        geometry_type: 'polygon',
+        geometry_type: 'multipolygon',
         has_features: true
     });
 };
