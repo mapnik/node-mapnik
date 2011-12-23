@@ -19,7 +19,6 @@ void Geometry::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "json", json);
     //NODE_SET_PROTOTYPE_METHOD(constructor, "area", area);
     
     using namespace mapnik;
@@ -66,54 +65,6 @@ Handle<Value> Geometry::New(const Arguments& args)
           String::New("mapnik.Geometry cannot be created with normal contructor, you must use fromWKT method")));
     }
 
-}
-
-Handle<Value> Geometry::json(const Arguments& args)
-{
-    HandleScope scope;
-    Geometry* g = ObjectWrap::Unwrap<Geometry>(args.This());
-    Local<Object> geojson = Object::New();
-    Local<Array> coords = Array::New(g->get()->num_points());
-    
-    mapnik::eGeomType type = g->get()->type();
-    Local<String> js_type = String::New("unknown");
-    switch (g_type)
-    {
-        case mapnik::Point:
-        {
-           if (fp->num_geometries() > 1) {
-               js_type = String::New("multipoint");
-           } else {
-               js_type = String::New("point");
-           }
-           break;
-        }
-        case mapnik::Polygon:
-        {
-           if (fp->num_geometries() > 1) {
-               js_type = String::New("multipolygon");
-           } else {
-               js_type = String::New("polygon");
-           }
-           break;
-        }
-        case mapnik::LineString:
-        {
-           if (fp->num_geometries() > 1) {
-               js_type = String::New("multilinestring");
-           } else {
-               js_type = String::New("linestring");
-           }
-           break;
-        }
-        default:
-        {
-           break;
-        }
-    }
-    
-    
-    return scope.Close(geojson);
 }
 
 Handle<Value> Geometry::fromWKT(const Arguments& args)
