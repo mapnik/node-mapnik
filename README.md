@@ -44,7 +44,7 @@ For more sample code see 'examples/'
 
 ## Depends
 
-* Node >= v0.6.0
+* Node >= v0.4.x
 * Mapnik 2.1 (current master): (at least [9e924bfa11](https://github.com/mapnik/mapnik/commit/9e924bfa1169b213ed31689b3c1e700251bb7d44))
 
 
@@ -95,7 +95,7 @@ From the source checkout root do:
 
 To require node-mapnik as a depedency of another package put in your package.json:
 
-    "dependencies"  : { "mapnik":"0.6.x" }
+    "dependencies"  : { "mapnik":"0.5.x" }
 
   
 ## Examples
