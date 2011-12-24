@@ -631,7 +631,7 @@ Handle<Value> Map::load(const Arguments& args)
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, EIO_AfterLoad);
     m->Ref();
-    //uv_ref(uv_default_loop());
+    uv_ref(uv_default_loop());
     return Undefined();
 }
 
@@ -676,7 +676,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
     }
 
     closure->m->Unref();
-    //uv_unref(uv_default_loop());
+    uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
 }
@@ -852,7 +852,7 @@ Handle<Value> Map::fromString(const Arguments& args)
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, EIO_AfterFromString);
     m->Ref();
-    //uv_ref(uv_default_loop());
+    uv_ref(uv_default_loop());
     return Undefined();
 }
 
@@ -897,7 +897,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     }
 
     closure->m->Unref();
-    //uv_unref(uv_default_loop());
+    uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
 }
@@ -1194,7 +1194,7 @@ Handle<Value> Map::render(const Arguments& args)
 
     m->acquire();
     m->Ref();
-    //uv_unref(uv_default_loop());
+    uv_ref(uv_default_loop());
     return Undefined();
 }
 
@@ -1270,7 +1270,7 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
 
     closure->m->release();
     closure->m->Unref();
-    //uv_unref(uv_default_loop());
+    uv_unref(uv_default_loop());
     closure->g->_unref();
     closure->cb.Dispose();
     delete closure;
@@ -1323,7 +1323,7 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
 
     closure->m->release();
     closure->m->Unref();
-    //uv_unref(uv_default_loop());
+    uv_unref(uv_default_loop());
     closure->im->_unref();
     closure->cb.Dispose();
     delete closure;
@@ -1424,7 +1424,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     closure->output = output;
 
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, EIO_AfterRenderFile);
-    //uv_ref(uv_default_loop())
+    uv_ref(uv_default_loop());
     m->Ref();
 
     return Undefined();
@@ -1491,9 +1491,9 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
         FatalException(try_catch);
     }
 
-    //uv_unref(uv_default_loop());
     closure->m->release();
     closure->m->Unref();
+    uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
 
@@ -1944,7 +1944,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid2, EIO_AfterRenderGrid2);
     m->acquire();
     m->Ref();
-    //uv_ref(uv_default_loop());
+    uv_ref(uv_default_loop());
     return Undefined();
 
 }
@@ -2085,7 +2085,7 @@ void Map::EIO_AfterRenderGrid2(uv_work_t* req)
 
     closure->m->release();
     closure->m->Unref();
-    //uv_unref(uv_default_loop());
+    uv_unref(uv_default_loop());
     closure->cb.Dispose();
     delete closure;
 }

@@ -238,7 +238,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
-    //uv_ref(uv_default_loop());
+    uv_ref(uv_default_loop());
     im->Ref();
 
     return Undefined();
@@ -296,7 +296,7 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
       FatalException(try_catch);
     }
 
-    //uv_unref(uv_default_loop());
+    uv_unref(uv_default_loop());
     closure->im->Unref();
     closure->cb.Dispose();
     delete closure;
