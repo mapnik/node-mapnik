@@ -73,7 +73,7 @@
             'BUILDING_NODE_EXTENSION'
           ],
           'libraries': [ 
-              'mapnik2.lib',
+              'mapnik.lib',
               'node.lib',
               'icuuc.lib',
               'libboost_regex-vc100-mt-1_48.lib',
