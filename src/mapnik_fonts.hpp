@@ -88,12 +88,12 @@ static inline Handle<Value> available_font_faces(const Arguments& args)
 static inline Handle<Value> available_font_files(const Arguments& args)
 {
     HandleScope scope;
-    std::map<std::string,std::string> const& mapping = mapnik::freetype_engine::get_mapping();
+    std::map<std::string,std::pair<int,std::string> > const& mapping = mapnik::freetype_engine::get_mapping();
     Local<Object> obj = Object::New();
-    std::map<std::string,std::string>::const_iterator itr;
+    std::map<std::string,std::pair<int,std::string> >::const_iterator itr;
     for (itr = mapping.begin();itr!=mapping.end();++itr)
     {
-        obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.c_str()));
+        obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.second.c_str()));
     }
     return scope.Close(obj);
 }
