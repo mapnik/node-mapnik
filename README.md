@@ -39,6 +39,10 @@ http.createServer(function(req, res) {
 }).listen(port);
 ```
 
+Note: to run this example locally first do:
+
+    export NODE_PATH=./lib:${NODE_PATH}
+
 For more sample code see 'examples/'
 
 
@@ -82,12 +86,14 @@ The above will install node-mapnik locally in a node_modules folder. To install 
 
     npm install -g mapnik
 
+
 ## Quick rendering test
 
 To see if things are working try rendering a world map with the sample data
   
 From the source checkout root do:
   
+    export NODE_PATH=./lib
     ./examples/simple/render.js ./examples/stylesheet.xml map.png
 
 
@@ -105,10 +111,9 @@ See the 'examples/' folder for more usage examples.
 
 ## Tests
 
-To run the expresso tests first install expresso and step.
+To run the expresso tests first install expresso.
   
     npm install -g expresso
-    npm install -g step
   
 Then run:
   
