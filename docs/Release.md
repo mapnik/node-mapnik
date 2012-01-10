@@ -9,6 +9,12 @@ All tests must pass if you run:
 
     make test
 
+## Test examples
+
+We just want to make sure none throw. Test this with:
+
+   ./test/run_examples.sh
+
 
 ## Update Readme.md
 

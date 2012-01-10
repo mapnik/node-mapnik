@@ -43,7 +43,7 @@ Note: to run this example locally first do:
 
     export NODE_PATH=./lib:${NODE_PATH}
 
-For more sample code see 'examples/'
+For more sample code see 'examples/README.md'
 
 
 ## Depends
