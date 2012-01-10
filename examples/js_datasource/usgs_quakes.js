@@ -20,8 +20,8 @@ mapnik.MemoryDatasource instead of mapnik.JSDatasource.
 var mapnik = require('mapnik');
 var sys = require('fs');
 var path = require('path');
-var get = require('node-get');
-var merc = require('mapnik/sphericalmercator').proj4;
+var get = require('get');
+var merc = require('../utils/sphericalmercator').proj4;
 
 // map with just a style
 // eventually the api will support adding styles in javascript

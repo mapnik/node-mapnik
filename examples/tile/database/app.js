@@ -7,11 +7,11 @@
 
 
 var mapnik = require('mapnik')
-  , mercator = require('mapnik/sphericalmercator')
+  , mercator = require('../../utils/sphericalmercator')
   , url = require('url')
   , fs = require('fs')
   , http = require('http')
-  , util = require('../lib/utility.js')
+  , parseXYZ = require('../../utils/tile.js').parseXYZ
   , path = require('path')
   , port = 8000
   , TMS_SCHEME = false;
@@ -26,7 +26,7 @@ var postgis_settings = {
 };
 
 http.createServer(function(req, res) {
-  util.parseXYZ(req, TMS_SCHEME, function(err,params) {
+  parseXYZ(req, TMS_SCHEME, function(err,params) {
     if (err) {
       res.writeHead(500, {'Content-Type': 'text/plain'});
       res.end(err.message);

@@ -2,7 +2,7 @@
 
 var http = require('http');
 var mapnik = require('mapnik');
-var mappool = require('mapnik/pool');
+var mappool = require('../utils/pool.js');
 var url = require('url');
 
 var port = 8000;
@@ -24,7 +24,7 @@ if (!port) {
    process.exit(1);
 }
 
-var maps = mappool.create(10);
+var maps = mappool.create_pool(10);
 
 var aquire = function(id,options,callback) {
     methods = {

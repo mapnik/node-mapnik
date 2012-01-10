@@ -7,15 +7,15 @@
 // expected output at zoom 0: http://goo.gl/cyGwo
 
 var mapnik = require('mapnik')
-  , mercator = require('mapnik/sphericalmercator')
-  , mappool = require('mapnik/pool')
+  , mercator = require('../../utils/sphericalmercator')
+  , mappool = require('../../utils/pool.js')
   , http = require('http')
-  , util = require('../lib/utility.js');
+  , parseXYZ = require('../../utils/tile.js').parseXYZ;
 
 var TMS_SCHEME = false;
 
 // create a pool of 5 maps to manage concurrency under load
-var maps = mappool.create(5);
+var maps = mappool.create_pool(5);
 
 var usage = 'usage: app.js <stylesheet> <port>\ndemo:  app.js ../../stylesheet.xml 8000';
 
@@ -58,7 +58,7 @@ var aquire = function(id,options,callback) {
 
 
 http.createServer(function(req, res) {
-    util.parseXYZ(req, TMS_SCHEME, function(err,params) {
+    parseXYZ(req, TMS_SCHEME, function(err,params) {
         if (err) {
             res.writeHead(500, {
               'Content-Type': 'text/plain'

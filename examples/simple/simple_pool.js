@@ -7,12 +7,12 @@
 
 var http = require('http');
 var mapnik = require('mapnik');
-var mappool = require('mapnik/pool');
+var mappool = require('../utils/pool.js');
 var path = require('path');
 
 // create a pool of 10 maps
 // this allows us to manage concurrency under high load
-var maps = mappool.create(10);
+var maps = mappool.create_pool(10);
 
 var port = 8000;
 
