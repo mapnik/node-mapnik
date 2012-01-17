@@ -35,10 +35,10 @@ test-tmp:
 
 ifndef only
 test: test-tmp
-	@PATH=./node_modules/.bin:${PATH} && NODE_PATH=./lib:$NODE_PATH expresso
+	@PATH=./node_modules/expresso/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH expresso
 else
 test: test-tmp
-	@PATH=./node_modules/.bin:${PATH} && NODE_PATH=./lib:$NODE_PATH expresso test/${only}.test.js
+	@PATH=./node_modules/expresso/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH expresso test/${only}.test.js
 endif
 
 fix:
