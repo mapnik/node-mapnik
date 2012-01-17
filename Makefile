@@ -28,10 +28,10 @@ test-tmp:
 
 ifndef only
 test: test-tmp
-	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso -I lib test/*.test.js;
+	@NODE_PATH=./lib:$NODE_PATH ./node_modules/expresso/bin/expresso -I lib test/*.test.js;
 else
 test: test-tmp
-	@NODE_PATH=./lib:$NODE_PATH ./node_modules/.bin/expresso -I lib test/${only}.test.js;
+	@NODE_PATH=./lib:$NODE_PATH ./node_modules/expresso/bin/expresso -I lib test/${only}.test.js;
 endif
 
 lint:

@@ -32,15 +32,15 @@ class js_datasource : public mapnik::datasource
 public:
     js_datasource(const mapnik::parameters &params, bool bind, Local<Value> cb);
     virtual ~js_datasource();
-    int type() const;
+    mapnik::datasource::datasource_t type() const;
     mapnik::featureset_ptr features(const mapnik::query& q) const;
     mapnik::featureset_ptr features_at_point(mapnik::coord2d const& pt) const;
     mapnik::box2d<double> envelope() const;
+    boost::optional<mapnik::datasource::geometry_t> get_geometry_type() const;
     mapnik::layer_descriptor get_descriptor() const;
     size_t size() const;
     Persistent<Function> cb_;
 private:
-    int type_;
     mutable mapnik::layer_descriptor desc_;
     mapnik::box2d<double> ext_;
 }; 
@@ -48,7 +48,6 @@ private:
 
 js_datasource::js_datasource(const mapnik::parameters &params, bool bind, Local<Value> cb)
     : datasource (params),
-      type_(datasource::Vector),
       desc_(*params.get<std::string>("type"), *params.get<std::string>("encoding","utf-8"))
 {
     cb_ = Persistent<Function>::New(Handle<Function>::Cast(cb));
@@ -65,7 +64,7 @@ js_datasource::~js_datasource()
 }
 
   
-int js_datasource::type() const
+mapnik::datasource::datasource_t js_datasource::type() const
 {
     return mapnik::datasource::Vector;
 }
@@ -75,7 +74,12 @@ mapnik::box2d<double> js_datasource::envelope() const
 {
     return ext_;
 }
-    
+
+boost::optional<mapnik::datasource::geometry_t> js_datasource::get_geometry_type() const
+{
+    return boost::optional<mapnik::datasource::geometry_t>();
+}
+
 mapnik::layer_descriptor js_datasource::get_descriptor() const
 {
     return mapnik::layer_descriptor("in-memory js datasource","utf-8");
