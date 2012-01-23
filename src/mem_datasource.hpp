@@ -24,8 +24,6 @@ using namespace node;
 #include <vector>
 #include <algorithm>
 
-
-
 class js_datasource : public mapnik::datasource
 {
     friend class js_featureset;
@@ -38,13 +36,13 @@ public:
     mapnik::box2d<double> envelope() const;
     boost::optional<mapnik::datasource::geometry_t> get_geometry_type() const;
     mapnik::layer_descriptor get_descriptor() const;
+    std::map<std::string, mapnik::parameters> get_statistics() const;
     size_t size() const;
     Persistent<Function> cb_;
 private:
     mutable mapnik::layer_descriptor desc_;
     mapnik::box2d<double> ext_;
-}; 
-
+};
 
 js_datasource::js_datasource(const mapnik::parameters &params, bool bind, Local<Value> cb)
     : datasource (params),
@@ -55,7 +53,7 @@ js_datasource::js_datasource(const mapnik::parameters &params, bool bind, Local<
     if (ext)
         ext_.from_string(*ext);
     else
-        throw mapnik::datasource_exception("JSDatasource missing <extent> parameter");    
+        throw mapnik::datasource_exception("JSDatasource missing <extent> parameter");
 }
 
 js_datasource::~js_datasource()
@@ -63,13 +61,11 @@ js_datasource::~js_datasource()
     cb_.Dispose();
 }
 
-  
 mapnik::datasource::datasource_t js_datasource::type() const
 {
     return mapnik::datasource::Vector;
 }
 
-    
 mapnik::box2d<double> js_datasource::envelope() const
 {
     return ext_;
@@ -84,7 +80,13 @@ mapnik::layer_descriptor js_datasource::get_descriptor() const
 {
     return mapnik::layer_descriptor("in-memory js datasource","utf-8");
 }
-    
+
+std::map<std::string, mapnik::parameters> js_datasource::get_statistics() const
+{
+    std::map<std::string, mapnik::parameters> _stats;
+    return _stats;
+}
+
 size_t js_datasource::size() const
 {
     return 0;//features_.size();
@@ -108,7 +110,6 @@ public:
         a->Set(2, Number::New(e.maxx()));
         a->Set(3, Number::New(e.maxy()));
         obj_->Set(String::NewSymbol("extent"), a);
-        
     }
 
     virtual ~js_featureset() {}
@@ -117,7 +118,6 @@ public:
     {
 
         HandleScope scope;
-        
         TryCatch try_catch;
         Local<Value> argv[2] = { Integer::New(feature_id_), obj_ };
         Local<Value> val = ds_->cb_->Call(Context::GetCurrent()->Global(), 2, argv);
@@ -174,23 +174,22 @@ public:
                                     }
                                 }
                             }
-                            return feature;                
+                            return feature;
                         }
                     }
                 }
-            }        
+            }
         }
 
         return mapnik::feature_ptr();
     }
-        
+
 private:
     mapnik::query const& q_;
     unsigned int feature_id_;
     boost::scoped_ptr<mapnik::transcoder> tr_;
     const js_datasource* ds_;
     Local<Object> obj_;
-    
 };
 
 

@@ -58,3 +58,11 @@ Q: I get a compile error like:
     ../src/_mapnik.cc:184: warning: 'void init(v8::Handle<v8::Object>)' defined but not used
 
 A: Your node version is too old, upgrade to at least node 0.2.4
+
+Q: I get a compile error like:
+
+    [ 2/18] cxx: src/mapnik_map.cpp -> build/default/src/mapnik_map_1.o
+    In file included from ../src/node_mapnik.cpp:10:
+    ../src/mapnik_map.hpp:29: error: ‘uv_work_t’ has not been declared
+
+A: Your node version is too old, upgrade to at least 0.6.0
