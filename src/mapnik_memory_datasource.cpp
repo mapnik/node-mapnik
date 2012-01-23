@@ -29,6 +29,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
     // methods
     NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "statistics", statistics);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
     NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(constructor, "add", add);
@@ -138,6 +139,24 @@ Handle<Value> MemoryDatasource::describe(const Arguments& args)
     if (d->datasource_) {
         try {
             node_mapnik::describe_datasource(description,d->datasource_);
+        }
+        catch (const std::exception & ex)
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
+    }
+    return scope.Close(description);
+}
+
+Handle<Value> MemoryDatasource::statistics(const Arguments& args)
+{
+    HandleScope scope;
+    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    Local<Object> description = Object::New();
+    if (d->datasource_) {
+        try {
+            node_mapnik::datasource_statistics(description, d->datasource_);
         }
         catch (const std::exception & ex)
         {

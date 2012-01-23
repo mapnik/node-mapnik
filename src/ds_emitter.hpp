@@ -31,7 +31,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         }
         meta->Set(String::NewSymbol("styles"), s );
         */
-    
+
         // type
         if (ds->type() == mapnik::datasource::Raster)
         {
@@ -41,7 +41,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         {
             description->Set(String::NewSymbol("type"), String::New("vector"));
         }
-    
+
         // extent
         Local<Array> a = Array::New(4);
         mapnik::box2d<double> e = ds->envelope();
@@ -50,12 +50,12 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         a->Set(2, Number::New(e.maxx()));
         a->Set(3, Number::New(e.maxy()));
         description->Set(String::NewSymbol("extent"), a);
-    
+
         mapnik::layer_descriptor ld = ds->get_descriptor();
-    
+
         // encoding
         description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
-    
+
         // field names and types
         Local<Object> fields = Object::New();
         std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
@@ -77,20 +77,20 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             ++itr;
         }
         description->Set(String::NewSymbol("fields"), fields);
-    
+
         mapnik::query q(ds->envelope());
 
         mapnik::featureset_ptr fs = ds->features(q);
         description->Set(String::NewSymbol("geometry_type"), Undefined());
         description->Set(String::NewSymbol("has_features"), Boolean::New(false));
-    
+
         // TODO - need to remove this after this lands:
         // https://github.com/mapnik/mapnik/issues/701
         if (fs)
         {
             mapnik::feature_ptr fp = fs->next();
             if (fp) {
-    
+
                 description->Set(String::NewSymbol("has_features"), Boolean::New(true));
                 if (fp->num_geometries() > 0)
                 {
@@ -148,6 +148,24 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     }
 }
 
+static void datasource_statistics(Local<Object> description, mapnik::datasource_ptr ds)
+{
+    try
+    {
+        std::map<std::string, mapnik::parameters> stats = ds->get_statistics();
+        description->Set(String::NewSymbol("statistics"), String::New("TODO: test"));
+    }
+    catch (const std::exception & ex)
+    {
+        ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        ThrowException(Exception::Error(
+          String::New("unknown exception happened when calling describe_datasource, please file bug")));
+    }
+}
 
 static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsigned first, unsigned last)
 {
@@ -159,7 +177,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
     #else
         mapnik::query q(ds->envelope(),1.0,1.0);
     #endif
-    
+
         mapnik::layer_descriptor ld = ds->get_descriptor();
         std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
         std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
@@ -169,7 +187,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             q.add_property_name(itr->get_name());
             ++itr;
         }
-    
+
         mapnik::featureset_ptr fs = ds->features(q);
         if (fs)
         {
@@ -189,10 +207,10 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                         // not a mapnik::value_holder
                         boost::apply_visitor( serializer, it->second.base() );
                     }
-    
+
                     // add feature id
                     feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
-        
+
                     a->Set(idx, feat);
                 }
                 ++idx;

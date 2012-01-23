@@ -161,6 +161,29 @@ Handle<Value> Datasource::describe(const Arguments& args)
     return scope.Close(description);
 }
 
+Handle<Value> Datasource::statistics(const Arguments& args)
+{
+    HandleScope scope;
+    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Local<Object> statistics = Object::New();
+    try
+    {
+        node_mapnik::datasource_statistics(statistics, d->datasource_);
+    }
+    catch (const std::exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened getting statistics for datasource, please file bug")));
+    }
+
+    return scope.Close(statistics);
+}
+
 Handle<Value> Datasource::features(const Arguments& args)
 {
 
