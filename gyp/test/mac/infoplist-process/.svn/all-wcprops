@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/1090/trunk/test/mac/infoplist-process
+END
+test2.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1090/trunk/test/mac/infoplist-process/test2.gyp
+END
+test3.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1089/trunk/test/mac/infoplist-process/test3.gyp
+END
+main.c
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/1089/trunk/test/mac/infoplist-process/main.c
+END
+Info.plist
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/1089/trunk/test/mac/infoplist-process/Info.plist
+END
+test1.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1089/trunk/test/mac/infoplist-process/test1.gyp
+END

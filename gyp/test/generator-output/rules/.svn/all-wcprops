@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/721/trunk/test/generator-output/rules
+END
+rules.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/721/trunk/test/generator-output/rules/rules.gyp
+END
+copy-file.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/721/trunk/test/generator-output/rules/copy-file.py
+END

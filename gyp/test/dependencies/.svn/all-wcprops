@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/1014/trunk/test/dependencies
+END
+a.c
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/771/trunk/test/dependencies/a.c
+END
+lib_only.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/721/trunk/test/dependencies/lib_only.gyp
+END
+gyptest-lib-only.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/1014/trunk/test/dependencies/gyptest-lib-only.py
+END
+extra_targets.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/dependencies/extra_targets.gyp
+END
+gyptest-extra-targets.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/721/trunk/test/dependencies/gyptest-extra-targets.py
+END

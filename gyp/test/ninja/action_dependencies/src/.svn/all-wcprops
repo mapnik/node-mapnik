@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src
+END
+action_dependencies.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/action_dependencies.gyp
+END
+a.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/a.c
+END
+b.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/b.c
+END
+c.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/c.c
+END
+emit.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/emit.py
+END
+a.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/a.h
+END
+b.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/b.h
+END
+c.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/src/c.h
+END

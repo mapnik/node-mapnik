@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/867/trunk/test/same-target-name
+END
+gyptest-same-target-name.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/867/trunk/test/same-target-name/gyptest-same-target-name.py
+END

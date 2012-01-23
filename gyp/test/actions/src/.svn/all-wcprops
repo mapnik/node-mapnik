@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/795/trunk/test/actions/src
+END
+action_missing_name.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/721/trunk/test/actions/src/action_missing_name.gyp
+END
+confirm-dep-files.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/791/trunk/test/actions/src/confirm-dep-files.py
+END
+actions.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/795/trunk/test/actions/src/actions.gyp
+END

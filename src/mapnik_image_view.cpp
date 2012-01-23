@@ -12,6 +12,7 @@
 #include <boost/make_shared.hpp>
 
 #include "mapnik_image_view.hpp"
+#include "mapnik_palette.hpp"
 #include "utils.hpp"
 
 // std
@@ -105,18 +106,50 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
     
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
+    palette_ptr palette;
     
     // accept custom format
-    if (args.Length() >= 1){
+    if (args.Length() >= 1) {
         if (!args[0]->IsString())
           return ThrowException(Exception::TypeError(
             String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
+
+    // options hash
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+    }
     
     try {
-        std::string s = mapnik::save_to_string(*(im->this_), format);
+        std::string s;
+        if (palette.get())
+        {
+            s = save_to_string(*(im->this_), format, *palette);
+        }
+        else {
+            s = save_to_string(*(im->this_), format);
+        }
+
         #if NODE_VERSION_AT_LEAST(0,3,0)
         node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
         #else
@@ -138,9 +171,11 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 }
 
 typedef struct {
+    uv_work_t request;
     ImageView* im;
     boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > image;
     std::string format;
+    palette_ptr palette;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -154,14 +189,38 @@ Handle<Value> ImageView::encode(const Arguments& args)
 
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
 
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
+    palette_ptr palette;
 
     // accept custom format
-    if (args.Length() >= 1){
+    if (args.Length() > 1){
         if (!args[0]->IsString())
           return ThrowException(Exception::TypeError(
             String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
+    }
+
+    // options hash
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
     }
 
     // ensure callback is a function
@@ -171,25 +230,33 @@ Handle<Value> ImageView::encode(const Arguments& args)
                   String::New("last argument must be a callback function")));
 
     encode_image_baton_t *closure = new encode_image_baton_t();
-
+    closure->request.data = closure;
     closure->im = im;
     closure->image = im->this_;
     closure->format = format;
+    closure->palette = palette;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    eio_custom(EIO_Encode, EIO_PRI_DEFAULT, EIO_AfterEncode, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
+    uv_ref(uv_default_loop());
     im->Ref();
 
     return Undefined();
 }
 
-int ImageView::EIO_Encode(eio_req* req)
+void ImageView::EIO_Encode(uv_work_t* req)
 {
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
 
     try {
-        closure->result = mapnik::save_to_string(*(closure->image), closure->format);
+        if (closure->palette.get())
+        {
+            closure->result = save_to_string(*(closure->image), closure->format, *closure->palette);
+        }
+        else
+        {
+            closure->result = save_to_string(*(closure->image), closure->format);
+        }
     }
     catch (std::exception & ex)
     {
@@ -201,15 +268,13 @@ int ImageView::EIO_Encode(eio_req* req)
         closure->error = true;
         closure->error_name = "unknown exception happened when encoding image: please file bug report";
     }
-    return 0;
 }
 
-int ImageView::EIO_AfterEncode(eio_req* req)
+void ImageView::EIO_AfterEncode(uv_work_t* req)
 {
     HandleScope scope;
 
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -231,15 +296,12 @@ int ImageView::EIO_AfterEncode(eio_req* req)
       FatalException(try_catch);
     }
 
+    uv_unref(uv_default_loop());
     closure->im->Unref();
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 
-
-//  help compiler see correct definition
-void (*save_view)(mapnik::image_view<mapnik::image_data_32> const&, std::string const&) = mapnik::save_to_file;
 
 Handle<Value> ImageView::save(const Arguments& args)
 {
@@ -271,7 +333,7 @@ Handle<Value> ImageView::save(const Arguments& args)
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
     try
     {
-        save_view(*im->get(),filename);
+        save_to_file(*im->get(),filename);
     }
     catch (const std::exception & ex)
     {

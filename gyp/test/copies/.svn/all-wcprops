@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/!svn/ver/1096/trunk/test/copies
+END
+gyptest-default.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/801/trunk/test/copies/gyptest-default.py
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/801/trunk/test/copies/gyptest-all.py
+END
+gyptest-slash.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/1096/trunk/test/copies/gyptest-slash.py
+END

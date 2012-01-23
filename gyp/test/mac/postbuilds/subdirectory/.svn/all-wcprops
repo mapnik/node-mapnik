@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/1001/trunk/test/mac/postbuilds/subdirectory
+END
+nested_target.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/1001/trunk/test/mac/postbuilds/subdirectory/nested_target.gyp
+END

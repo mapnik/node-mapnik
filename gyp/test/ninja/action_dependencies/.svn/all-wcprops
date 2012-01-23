@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies
+END
+gyptest-action-dependencies.py
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/1087/trunk/test/ninja/action_dependencies/gyptest-action-dependencies.py
+END

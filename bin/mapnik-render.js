@@ -6,13 +6,13 @@ var child_process = require('child_process');
 
 var usage = 'usage: render.js <stylesheet> <image>';
 
-var stylesheet = process.ARGV[2];
+var stylesheet = process.argv[2];
 if (!stylesheet) {
    console.log(usage);
    process.exit(1);
 }
 
-var image = process.ARGV[3];
+var image = process.argv[3];
 if (!image) {
    console.log(usage);
    process.exit(1);
@@ -33,7 +33,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
         var carto = require('carto');
         new carto.Renderer({
             filename: stylesheet,
-            local_data_dir: path.dirname(stylesheet),
+            local_data_dir: path.dirname(stylesheet)
         }).render(fs.readFileSync(stylesheet, 'utf-8'), function(err, output) {
             if (err) {
                 if (Array.isArray(err)) {
@@ -50,8 +50,8 @@ if (path.extname(stylesheet).match(/.mml/i)) {
                 renderMap(stylesheet, image);
             }
         });
-    } catch(e) {
-        console.log('Carto is required to render .mml files.')
+    } catch (e) {
+        console.log('Carto is required to render .mml files.');
         process.exit(1);
     }
 } else {

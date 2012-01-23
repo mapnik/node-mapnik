@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/721/trunk/test/subdirectory/src
+END
+symroot.gypi
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/721/trunk/test/subdirectory/src/symroot.gypi
+END
+prog1.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/721/trunk/test/subdirectory/src/prog1.gyp
+END
+prog1.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/615/trunk/test/subdirectory/src/prog1.c
+END

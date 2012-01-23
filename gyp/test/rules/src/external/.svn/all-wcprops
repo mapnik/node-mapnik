@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/1072/trunk/test/rules/src/external
+END
+external.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1072/trunk/test/rules/src/external/external.gyp
+END
+file1.in
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/1071/trunk/test/rules/src/external/file1.in
+END
+file2.in
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/1071/trunk/test/rules/src/external/file2.in
+END

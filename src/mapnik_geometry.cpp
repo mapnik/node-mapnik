@@ -21,18 +21,16 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
     //NODE_SET_PROTOTYPE_METHOD(constructor, "area", area);
     
-    using namespace mapnik;
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),Point);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),LineString);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),Polygon);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiPoint);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiLineString);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),MultiPolygon);
+    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::Point);
+    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::LineString);
+    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::Polygon);
 
     // This *must* go after the ATTR setting
+    /*
     NODE_SET_METHOD(constructor->GetFunction(),
                   "fromWKT",
                   Geometry::fromWKT);
+    */
 
     target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
 }
@@ -72,7 +70,7 @@ Handle<Value> Geometry::fromWKT(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >=1)
+    /*if (!args.Length() >=1)
         return ThrowException(Exception::Error(
           String::New("must provide a WKT string")));
     
@@ -87,7 +85,10 @@ Handle<Value> Geometry::fromWKT(const Arguments& args)
     } else {
         return ThrowException(Exception::Error(
           String::New("failed to parse WKT string")));
-    }
+    }*/
+    return ThrowException(Exception::Error(
+      String::New("mapnik.Geometry.from_wkt() is currently disabled until mapnik trunk api settles out")));
+    
 }
 
 Handle<Value> Geometry::extent(const Arguments& args)

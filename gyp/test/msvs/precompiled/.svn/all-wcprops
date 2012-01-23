@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/905/trunk/test/msvs/precompiled
+END
+hello.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/888/trunk/test/msvs/precompiled/hello.gyp
+END
+hello.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/888/trunk/test/msvs/precompiled/hello.c
+END
+precomp.c
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/888/trunk/test/msvs/precompiled/precomp.c
+END
+hello2.c
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/888/trunk/test/msvs/precompiled/hello2.c
+END
+gyptest-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/905/trunk/test/msvs/precompiled/gyptest-all.py
+END

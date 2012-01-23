@@ -1,108 +1,123 @@
 
 # Node-Mapnik
       
-  Bindings to the [Mapnik](http://mapnik.org) tile rendering library for [node](http://nodejs.org).
+Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
   
-    var mapnik = require('mapnik');
-    var http = require('http');
-    
-    var port = 8000;
-    var stylesheet = './examples/stylesheet.xml';
-    
-    http.createServer(function(req, res) {
-      res.writeHead(500, {'Content-Type': 'text/plain'});
-      var map = new mapnik.Map(256, 256);
-      map.load(stylesheet,
-        function(err,map) {
-          if (err) {
-              res.end(err.message);
-          }
-          map.zoomAll();
-          var im = new mapnik.Image(256, 256);
-          map.render(im, function(err,im) {
-            if (err) {
-                res.end(err.message);
-            } else {
-                im.encode('png', function(err,buffer) {
-                    if (err) {
-                        res.end(err.message);
-                    } else {
-                        res.writeHead(200, {'Content-Type': 'image/png'});
-                        res.end(buffer);
-                    }
-                });
-            }
-          });
-       }
-      );
-    }).listen(port);
-  
-  For more see 'examples/'
+```js
+var mapnik = require('mapnik');
+var http = require('http');
 
+var port = 8000;
+var stylesheet = './examples/stylesheet.xml';
 
-## Development Status
-  
-  Prototype at this point, API will be frequently changing.
-  
-  Developed on OS X (10.6)
-  
-  Tested on Debian Squeeze, Ubuntu Maverick/Natty, and Centos 5.4.
-  
+http.createServer(function(req, res) {
+  res.writeHead(500, {'Content-Type': 'text/plain'});
+  var map = new mapnik.Map(256, 256);
+  map.load(stylesheet,
+    function(err,map) {
+      if (err) {
+          res.end(err.message);
+      }
+      map.zoomAll();
+      var im = new mapnik.Image(256, 256);
+      map.render(im, function(err,im) {
+        if (err) {
+            res.end(err.message);
+        } else {
+            im.encode('png', function(err,buffer) {
+                if (err) {
+                    res.end(err.message);
+                } else {
+                    res.writeHead(200, {'Content-Type': 'image/png'});
+                    res.end(buffer);
+                }
+            });
+        }
+      });
+   }
+  );
+}).listen(port);
+```
+
+Note: to run this example locally first do:
+
+    export NODE_PATH=./lib:${NODE_PATH}
+
+For more sample code see 'examples/README.md'
+
 
 ## Depends
 
-  node (development headers) >= v0.2.3
-  
-  mapnik 2.0 / (latest trunk >= r3055)
-  
-  node-pool for some examples (npm install -g generic-pool)
-  
-  expresso and >= node v0.4.x for tests (npm install expresso)
-  
-  npm >= 1.0 (if you use npm to install deps)
+* Node >= v0.6.0
+* Mapnik 2.1 (current master): (at least [e8541e1685](https://github.com/mapnik/mapnik/commit/e8541e168514ce1175bc6fe8e85db258e6f20c15) / January 9, 2012)
 
 
 ## Installation
-  
-  Install node-mapnik:
-  
-    $ git clone git://github.com/mapnik/node-mapnik.git
-    $ cd node-mapnik
-    $ ./configure
-    $ make
-    $ sudo make install
 
-  For more details see 'docs/install.txt'
+First install Mapnik master from github:
 
-  Or you can also install via npm:
+    git clone https://github.com/mapnik/mapnik.git
+
+For more details see: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
+
+Confirm that the `mapnik-config` program is available and on your $PATH.
+
+To install node-mapnik locally for development or testing do:
+
+    git clone git://github.com/mapnik/node-mapnik.git
+    cd node-mapnik
+    ./configure
+    make
+
+Then, if you have expresso installed you can run the tests:
+
+    make test
+
+Or set NODE_PATH to test importing:
+
+    export NODE_PATH=./lib
+    node -e "require.resolve('mapnik')"
+
+Or you can also install via npm
   
-    $ npm install -g mapnik
+    npm install mapnik
+
+The above will install node-mapnik locally in a node_modules folder. To install globally do:
+
+    npm install -g mapnik
 
 
 ## Quick rendering test
 
-  To see if things are working try rendering a world map with the sample data
+To see if things are working try rendering a world map with the sample data
   
-  From the source checkout root do:
+From the source checkout root do:
   
-    $ ./examples/simple/render.js ./examples/stylesheet.xml map.png
+    export NODE_PATH=./lib
+    ./examples/simple/render.js ./examples/stylesheet.xml map.png
+
+
+## Using node-mapnik from your node app
+
+To require node-mapnik as a depedency of another package put in your package.json:
+
+    "dependencies"  : { "mapnik":"0.6.x" }
 
   
 ## Examples
 
-  See the 'examples/' folder for more usage examples.
+See the 'examples/' folder for more usage examples.
 
 
 ## Tests
 
-  To run the expresso tests first install expresso and step.
+To run the expresso tests first install expresso.
   
-    $ npm install -g expresso
-    $ npm install -g step
+    npm install -g expresso
   
-  Then run:
+Then run:
   
-    $ make test
+    make test
 
 
 ## License

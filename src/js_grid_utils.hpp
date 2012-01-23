@@ -89,6 +89,7 @@ static void grid2utf(T const& grid_type,
         typename T::value_type const* row = grid_type.getRow(y);
         for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
         {
+            // todo - this lookup is expensive
             feature_pos = feature_keys.find(row[x]);
             if (feature_pos != feature_keys.end())
             {

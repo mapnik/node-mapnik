@@ -1,4 +1,5 @@
 import os
+import sys
 from glob import glob
 from os import unlink, symlink, popen, uname, environ
 from os.path import exists
@@ -11,27 +12,22 @@ import Utils
 
 TARGET = '_mapnik'
 TARGET_FILE = '%s.node' % TARGET
-built = 'build/default/%s' % TARGET_FILE
+built = 'build/Release/%s' % TARGET_FILE
 dest = 'lib/%s' % TARGET_FILE
 settings = 'lib/mapnik_settings.js'
-
-# detect this install: http://dbsgeo.com/downloads/#mapnik200
-HAS_OSX_FRAMEWORK = False
 
 # this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
 module.exports.paths = {
-    'fonts': '%s',
-    'input_plugins': '%s',
+    'fonts': %s,
+    'input_plugins': %s
 };
 """
 
-# number of parallel compile jobs
-jobs=1
-if os.environ.has_key('JOBS'):
-  jobs = int(os.environ['JOBS'])
-
-def write_mapnik_settings(fonts='',input_plugins=''):
+def write_mapnik_settings(fonts='undefined',input_plugins='undefined'):
+    global settings_template
+    if '__dirname' in fonts or '__dirname' in input_plugins:
+        settings_template = "var path = require('path');\n" + settings_template
     open(settings,'w').write(settings_template % (fonts,input_plugins))
 
 def ensure_min_mapnik_revision(conf,revision=3055):
@@ -76,23 +72,20 @@ def set_options(opt):
     #opt.add_option('-D', '--debug', action='store_true', default=False, dest='debug')
 
 def configure(conf):
-    global HAS_OSX_FRAMEWORK
 
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
+    if sys.platform == 'darwin':
+        conf.check_tool('osx')
     settings_dict = {}
     cairo_cxxflags = []
     grid_cxxflags = []
 
-    # future auto-support for mapnik frameworks..
     path_list = environ.get('PATH', '').split(os.pathsep)
-    if os.path.exists('/Library/Frameworks/Mapnik.framework'):
-        path_list.append('/Library/Frameworks/Mapnik.framework/Programs')
-        HAS_OSX_FRAMEWORK = True
-
+    
     mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list)
     if not mapnik_config:
-        conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik Trunk (future Mapnik 2.0 release) provides this tool, and therefore node-mapnik requires Mapnik trunk.\n\nSee http://trac.mapnik.org/wiki/Mapnik2 for more info.\n')
+        conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.x provides this tool.\n')
         
     # this breaks with git cloned mapnik repos, so skip it
     #ensure_min_mapnik_revision(conf)
@@ -102,51 +95,31 @@ def configure(conf):
     all_ldflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')
 
     # only link to libmapnik, which should be in first two flags
-    linkflags = all_ldflags[:2]
-
+    linkflags = []
+    if os.environ.has_key('LINKFLAGS'):
+        linkflags.extend(os.environ['LINKFLAGS'].split(' '))
+    
+    # put on the path the first -L to where libmapnik should be and libmapnik itself
+    linkflags.extend(all_ldflags)
+    
     # add prefix to linkflags if it is unique
     prefix_lib = os.path.join(conf.env['PREFIX'],'lib')
     if not '/usr/local' in prefix_lib:
         linkflags.insert(0,'-L%s' % prefix_lib)
 
-    #linkflags.append('-F/Library/')
-    #linkflags.append('-framework Mapnik')
-    #linkflags.append('-Z')
-
     conf.env.append_value("LINKFLAGS", linkflags)
 
-    # unneeded currently as second item from mapnik-config is -lmapnik2
-    #conf.env.append_value("LIB_MAPNIK", "mapnik2")
-
-    if '-lcairo' in all_ldflags:
-
-        if HAS_OSX_FRAMEWORK and os.path.exists('/Library/Frameworks/Mapnik.framework/Headers/cairo'):
-            # prep for this specific install of mapnik 1.0: http://dbsgeo.com/downloads/#mapnik200
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairomm-1.0')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/cairo')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers/sigc++-2.0')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/unix/lib/sigc++-2.0/include')
-            cairo_cxxflags.append('-I/Library/Frameworks/Mapnik.framework/Headers') #fontconfig
-            Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
-        else:
-            pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', path_list=path_list, mandatory=False)
-            if not pkg_config:
-                Utils.pprint('YELLOW','pkg-config not found, building Cairo support into Mapnik is not available')
-            else:
-                cmd = '%s cairomm-1.0' %  pkg_config
-                if not int(call(cmd.split(' '))) >= 0:
-                    Utils.pprint('YELLOW','"pkg-config --cflags cairomm-1.0" failed, building Cairo support into Mapnik is not available')
-                else:
-                    Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
-                    cairo_cxxflags.extend(popen("pkg-config --cflags cairomm-1.0").readline().strip().split(' '))
-    else:
-        Utils.pprint('YELLOW','Notice: "mapnik-config --libs" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
-
+    # unneeded currently as second item from mapnik-config is -lmapnik
+    #conf.env.append_value("LIB_MAPNIK", "mapnik")
 
     # TODO - too much potential pollution here, need to limit this upstream
     cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
-    if os.path.exists('/Library/Frameworks/Mapnik.framework'):
-        cxxflags.insert(0,'-I/Library/Frameworks/Mapnik.framework/Versions/2.0/unix/include/freetype2')
+
+    if '-lcairo' in all_ldflags or '-DHAVE_CAIRO' in cxxflags:
+        Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
+    else:
+        Utils.pprint('YELLOW','Notice: "mapnik-config --libs" or "mapnik-config --cflags" is not reporting Cairo support in your mapnik version, so node-mapnik will not be built with Cairo support (pdf/svg output)')
+
     
     # if cairo is available
     if cairo_cxxflags:
@@ -164,16 +137,29 @@ def configure(conf):
     #conf.env.append_value("LDFLAGS", ldflags)
 
     # settings for fonts and input plugins
-    settings_dict['input_plugins'] = popen("%s --input-plugins" % mapnik_config).readline().strip()
-    settings_dict['fonts'] = popen("%s --fonts" % mapnik_config).readline().strip()
+    if os.environ.has_key('MAPNIK_INPUT_PLUGINS'):
+        settings_dict['input_plugins'] =  os.environ['MAPNIK_INPUT_PLUGINS']
+    else:
+        settings_dict['input_plugins'] = '\'%s\'' % popen("%s --input-plugins" % mapnik_config).readline().strip()
+
+    if os.environ.has_key('MAPNIK_FONTS'):
+        settings_dict['fonts'] =  os.environ['MAPNIK_FONTS']
+    else:
+        settings_dict['fonts'] = '\'%s\'' % popen("%s --fonts" % mapnik_config).readline().strip()
 
 
     write_mapnik_settings(**settings_dict)
 
+def clean(bld):
+    pass # to avoid red warning from waf of "nothing to clean"
+
 def build(bld):
-    Options.options.jobs = jobs;
+    #Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
     obj.cxxflags = ["-O3", "-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
+    # uncomment the next line to remove '-undefined dynamic_lookup' 
+    # in order to review linker errors (v8, libev/eio references can be ignored)
+    #obj.env['LINKFLAGS_MACBUNDLE'] = ['-bundle']
     obj.target = TARGET
     obj.source =  ["src/node_mapnik.cpp",
                    "src/mapnik_map.cpp",
@@ -186,10 +172,12 @@ def build(bld):
                    "src/mapnik_grid_view.cpp",
                    "src/mapnik_js_datasource.cpp",
                    "src/mapnik_memory_datasource.cpp",
+                   "src/mapnik_palette.cpp",
                    "src/mapnik_projection.cpp",
                    "src/mapnik_layer.cpp",
                    "src/mapnik_datasource.cpp",
-                   "src/mapnik_featureset.cpp"
+                   "src/mapnik_featureset.cpp",
+                   "src/mapnik_expression.cpp"
                   ]
     obj.uselib = "MAPNIK"
     # install 'mapnik' module

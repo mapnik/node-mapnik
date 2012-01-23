@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/1009/trunk/test/generator-output
+END
+gyptest-relocate.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/1009/trunk/test/generator-output/gyptest-relocate.py
+END
+gyptest-actions.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/1009/trunk/test/generator-output/gyptest-actions.py
+END
+gyptest-copies.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/1009/trunk/test/generator-output/gyptest-copies.py
+END
+gyptest-subdir2-deep.py
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/1009/trunk/test/generator-output/gyptest-subdir2-deep.py
+END
+gyptest-top-all.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/1009/trunk/test/generator-output/gyptest-top-all.py
+END
+gyptest-rules.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1009/trunk/test/generator-output/gyptest-rules.py
+END

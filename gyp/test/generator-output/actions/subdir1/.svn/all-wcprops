@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir1
+END
+executable.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir1/executable.gyp
+END
+program.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/!svn/ver/645/trunk/test/generator-output/actions/subdir1/program.c
+END
+make-prog1.py
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir1/make-prog1.py
+END
+make-prog2.py
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/721/trunk/test/generator-output/actions/subdir1/make-prog2.py
+END

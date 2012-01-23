@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/721/trunk/test/sibling/src/prog2
+END
+prog2.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/721/trunk/test/sibling/src/prog2/prog2.gyp
+END
+prog2.c
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/602/trunk/test/sibling/src/prog2/prog2.c
+END

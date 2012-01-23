@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/1088/trunk/test/defines
+END
+defines-env.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/721/trunk/test/defines/defines-env.gyp
+END
+gyptest-defines.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/1088/trunk/test/defines/gyptest-defines.py
+END
+gyptest-defines-env.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/defines/gyptest-defines-env.py
+END
+gyptest-define-override.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/797/trunk/test/defines/gyptest-define-override.py
+END
+defines.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/1088/trunk/test/defines/defines.gyp
+END
+gyptest-defines-env-regyp.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/1088/trunk/test/defines/gyptest-defines-env-regyp.py
+END
+defines.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/1088/trunk/test/defines/defines.c
+END

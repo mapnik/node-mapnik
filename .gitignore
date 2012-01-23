@@ -1,7 +1,10 @@
 build
+.svn
 .notes.txt
 .lock-wscript
 .DS_Store
-tests/tmp
+npm-debug.log
+test/tmp
 lib/_mapnik.node
 lib/mapnik_settings.js
+node_modules/

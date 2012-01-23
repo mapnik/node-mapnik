@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/892/trunk/test/rules-rebuild/src
+END
+main.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/763/trunk/test/rules-rebuild/src/main.c
+END
+make-sources.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/763/trunk/test/rules-rebuild/src/make-sources.py
+END
+same_target.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/892/trunk/test/rules-rebuild/src/same_target.gyp
+END
+prog1.in
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/763/trunk/test/rules-rebuild/src/prog1.in
+END
+prog2.in
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/763/trunk/test/rules-rebuild/src/prog2.in
+END

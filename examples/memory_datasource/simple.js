@@ -3,7 +3,7 @@
 var fs = require('fs');
 var mapnik = require('mapnik');
 var path = require('path');
-var merc = require('mapnik/sphericalmercator').proj4;
+var merc = require('../utils/sphericalmercator').proj4;
 
 // map with just a style
 // eventually the api will support adding styles in javascript
@@ -25,11 +25,11 @@ s += '</Style>';
 s += '</Map>';
 
 // create map object
-var map = new mapnik.Map(256,256);
+var map = new mapnik.Map(256, 256);
 map.fromStringSync(s);
 
 // go get some arbitrary data that we can stream
-var shp = path.join(__dirname,'../data/world_merc');
+var shp = path.join(__dirname, '../data/world_merc');
 
 var ds = new mapnik.Datasource({
     type: 'shape',
@@ -40,31 +40,31 @@ var ds = new mapnik.Datasource({
 var featureset = ds.featureset();
 
 var mem_datasource = new mapnik.MemoryDatasource(
-    {'extent':'-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'}
-    )
+    {'extent': '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'}
+    );
 
 // build up memory datasource
-while (feat = featureset.next(true)) {
+while ((feat = featureset.next(true))) {
     var e = feat.extent();
     // center longitude of polygon bbox
-    var x = (e[0]+e[2])/2;
+    var x = (e[0] + e[2]) / 2;
     // center latitude of polygon bbox
-    var y = (e[1]+e[3])/2;
+    var y = (e[1] + e[3]) / 2;
     var attr = feat.attributes();
-    mem_datasource.add({ 'x'          : x,
-                         'y'          : y,
-                         'properties' : { 'feat_id':feat.id(), 'NAME':attr.NAME,'POP2005':attr.POP2005 }
+    mem_datasource.add({ 'x' : x,
+                         'y' : y,
+                         'properties' : { 'feat_id': feat.id(), 'NAME': attr.NAME, 'POP2005': attr.POP2005 }
                        });
 }
 
 var options = {
-    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070',
+    extent: '-20037508.342789,-8283343.693883,20037508.342789,18365151.363070'
 };
 
 // contruct a mapnik layer dynamically
 var l = new mapnik.Layer('test');
 l.srs = map.srs;
-l.styles = ["points"];
+l.styles = ['points'];
 
 // add our custom datasource
 l.datasource = mem_datasource;
@@ -79,14 +79,14 @@ map.zoomAll();
 map.renderFileSync('memory_points.png');
 
 var options = {
-    layer:0,
-    fields: ['POP2005','NAME','feat_id']
+    layer: 0,
+    fields: ['POP2005', 'NAME', 'feat_id']
     };
 
-var grid = new mapnik.Grid(map.width,map.height,{key:'feat_id'});
-map.render(grid,options,function(err, grid) {
+var grid = new mapnik.Grid(map.width, map.height, {key: 'feat_id'});
+map.render(grid, options, function(err, grid) {
     if (err) throw err;
-    fs.writeFileSync('memory_points.json',JSON.stringify(grid.encodeSync('utf',{resolution:4})));
+    fs.writeFileSync('memory_points.json', JSON.stringify(grid.encodeSync('utf', {resolution: 4})));
 });
 
-console.log('rendered to memory_points.png and memory_points.json' );
+console.log('rendered to memory_points.png and memory_points.json');

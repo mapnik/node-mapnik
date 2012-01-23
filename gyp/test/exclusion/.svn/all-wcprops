@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/866/trunk/test/exclusion
+END
+hello.c
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/864/trunk/test/exclusion/hello.c
+END
+exclusion.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/864/trunk/test/exclusion/exclusion.gyp
+END
+gyptest-exclusion.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/866/trunk/test/exclusion/gyptest-exclusion.py
+END

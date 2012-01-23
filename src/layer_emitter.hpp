@@ -25,16 +25,6 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
         meta->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
     }
 
-    if ( layer.abstract() != "" )
-    {
-        meta->Set(String::NewSymbol("abstract"), String::New(layer.abstract().c_str()));
-    }
-
-    if ( layer.title() != "" )
-    {
-        meta->Set(String::NewSymbol("title"), String::New(layer.title().c_str()));
-    }
-
     if ( layer.srs() != "" )
     {
         meta->Set(String::NewSymbol("srs"), String::New(layer.srs().c_str()));

@@ -8,9 +8,6 @@
 // node
 #include <node.h>
 
-/* dlopen(), dlsym() */
-#include <dlfcn.h>
-
 // mapnik
 #include <mapnik/datasource_cache.hpp>
 
@@ -24,23 +21,6 @@ using namespace node;
 
 namespace node_mapnik {
 
-static inline Handle<Value> make_mapnik_symbols_visible(const Arguments& args)
-{
-  HandleScope scope;
-  if (args.Length() != 1 || !args[0]->IsString())
-    return ThrowException(Exception::TypeError(
-      String::New("first argument must be a path to a directory holding _mapnik.node")));
-  String::Utf8Value filename(args[0]->ToString());
-  void *handle = dlopen(*filename, RTLD_NOW|RTLD_GLOBAL);
-  if (handle == NULL) {
-      return False();
-  }
-  else
-  {
-      dlclose(handle);
-      return True();
-  }
-}
 
 static inline Handle<Value> available_input_plugins(const Arguments& args)
 {

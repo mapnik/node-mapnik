@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/1028/trunk/test/hard_dependency
+END
+gyptest-no-exported-hard-dependency.py
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/1028/trunk/test/hard_dependency/gyptest-no-exported-hard-dependency.py
+END
+gyptest-exported-hard-dependency.py
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/1028/trunk/test/hard_dependency/gyptest-exported-hard-dependency.py
+END

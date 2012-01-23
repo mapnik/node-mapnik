@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/852/trunk/test/library/src
+END
+library.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/752/trunk/test/library/src/library.gyp
+END
+lib1_moveable.c
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/665/trunk/test/library/src/lib1_moveable.c
+END
+shared_dependency.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/852/trunk/test/library/src/shared_dependency.gyp
+END
+lib2_moveable.c
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/665/trunk/test/library/src/lib2_moveable.c
+END
+program.c
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/665/trunk/test/library/src/program.c
+END
+lib1.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/665/trunk/test/library/src/lib1.c
+END
+lib2.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/665/trunk/test/library/src/lib2.c
+END

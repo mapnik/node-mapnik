@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/956/trunk/test/mac/app-bundle/TestApp
+END
+main.m
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/956/trunk/test/mac/app-bundle/TestApp/main.m
+END
+TestAppAppDelegate.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/956/trunk/test/mac/app-bundle/TestApp/TestAppAppDelegate.h
+END
+TestApp-Info.plist
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/956/trunk/test/mac/app-bundle/TestApp/TestApp-Info.plist
+END
+TestAppAppDelegate.m
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/956/trunk/test/mac/app-bundle/TestApp/TestAppAppDelegate.m
+END

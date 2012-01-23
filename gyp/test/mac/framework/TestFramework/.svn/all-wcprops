@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/958/trunk/test/mac/framework/TestFramework
+END
+ObjCVectorInternal.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/958/trunk/test/mac/framework/TestFramework/ObjCVectorInternal.h
+END
+TestFramework_Prefix.pch
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/958/trunk/test/mac/framework/TestFramework/TestFramework_Prefix.pch
+END
+Info.plist
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/958/trunk/test/mac/framework/TestFramework/Info.plist
+END
+ObjCVector.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/958/trunk/test/mac/framework/TestFramework/ObjCVector.h
+END
+ObjCVector.mm
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/958/trunk/test/mac/framework/TestFramework/ObjCVector.mm
+END

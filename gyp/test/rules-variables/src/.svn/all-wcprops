@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/1082/trunk/test/rules-variables/src
+END
+input_ext.c
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/1082/trunk/test/rules-variables/src/input_ext.c
+END
+test.input_root.c
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/1082/trunk/test/rules-variables/src/test.input_root.c
+END
+variables.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/1082/trunk/test/rules-variables/src/variables.gyp
+END

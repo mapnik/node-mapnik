@@ -59,7 +59,7 @@ Handle<Value> Datasource::New(const Arguments& args)
 
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
-          String::New("must provide an object, eg {type: 'shape', file : 'world.shp'}")));
+          String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
 
     Local<Object> options = args[0]->ToObject();
 
@@ -83,6 +83,7 @@ Handle<Value> Datasource::New(const Arguments& args)
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);
+        // TODO - don't treat everything as strings
         params[TOSTR(name)] = TOSTR(value);
         i++;
     }

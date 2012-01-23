@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/868/trunk/test/make/noload
+END
+main.c
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/856/trunk/test/make/noload/main.c
+END
+all.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/856/trunk/test/make/noload/all.gyp
+END

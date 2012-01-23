@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/721/trunk/test/generator-output/src
+END
+inc.h
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/638/trunk/test/generator-output/src/inc.h
+END
+symroot.gypi
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/721/trunk/test/generator-output/src/symroot.gypi
+END
+prog1.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/721/trunk/test/generator-output/src/prog1.gyp
+END
+prog1.c
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/638/trunk/test/generator-output/src/prog1.c
+END

@@ -20,14 +20,15 @@ class Image: public node::ObjectWrap {
 
     static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
-    static int EIO_Encode(eio_req *req);
-    static int EIO_AfterEncode(eio_req *req);
+    static void EIO_Encode(uv_work_t* req);
+    static void EIO_AfterEncode(uv_work_t* req);
 
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> view(const Arguments &args);
     static Handle<Value> open(const Arguments &args);
     static Handle<Value> save(const Arguments &args);
+    static Handle<Value> painted(const Arguments &args);
 
     static Handle<Value> get_prop(Local<String> property,
                          const AccessorInfo& info);

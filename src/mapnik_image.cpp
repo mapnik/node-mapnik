@@ -10,9 +10,11 @@
 
 // boost
 #include <boost/make_shared.hpp>
+#include <boost/optional/optional.hpp>
 
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
+#include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
 #include "utils.hpp"
@@ -36,6 +38,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -49,11 +52,15 @@ void Image::Initialize(Handle<Object> target) {
 
 Image::Image(unsigned int width, unsigned int height) :
   ObjectWrap(),
-  this_(boost::make_shared<mapnik::image_32>(width,height)) {}
+  this_(boost::make_shared<mapnik::image_32>(width,height)) {
+      V8::AdjustAmountOfExternalAllocatedMemory(4 * width * height);
+  }
 
 Image::Image(image_ptr this_) :
   ObjectWrap(),
-  this_(this_) {}
+  this_(this_) {
+      V8::AdjustAmountOfExternalAllocatedMemory(4 * this_->width() * this_->height());
+  }
 
 Image::~Image()
 {
@@ -99,7 +106,11 @@ Handle<Value> Image::get_prop(Local<String> property,
     Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "background") {
-        return scope.Close(Color::New(im->get()->get_background()));
+        boost::optional<mapnik::color> c = im->get()->get_background();
+        if (c)
+            return scope.Close(Color::New(*c));
+        else
+            return Undefined();
     }
     return Undefined();
 }
@@ -124,6 +135,14 @@ void Image::set_prop(Local<String> property,
     }
 }
 
+
+Handle<Value> Image::painted(const Arguments& args)
+{
+    HandleScope scope;
+
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    return scope.Close(Boolean::New(im->get()->painted()));
+}
 
 Handle<Value> Image::width(const Arguments& args)
 {
@@ -185,7 +204,8 @@ Handle<Value> Image::encodeSync(const Arguments& args)
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
+    palette_ptr palette;
     
     // accept custom format
     if (args.Length() >= 1){
@@ -194,9 +214,41 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
+
+
+    // options hash
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
     
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+    }
+
     try {
-        std::string s = save_to_string(*(im->this_), format);
+        std::string s;
+        if (palette.get())
+        {
+            s = save_to_string(*(im->this_), format, *palette);
+        }
+        else {
+            s = save_to_string(*(im->this_), format);
+        }
+
         #if NODE_VERSION_AT_LEAST(0,3,0)
         node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
         #else
@@ -218,9 +270,11 @@ Handle<Value> Image::encodeSync(const Arguments& args)
 }
 
 typedef struct {
+    uv_work_t request;
     Image* im;
     boost::shared_ptr<mapnik::image_32> image;
     std::string format;
+    palette_ptr palette;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -233,7 +287,8 @@ Handle<Value> Image::encode(const Arguments& args)
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
 
-    std::string format = "png8"; //default to 256 colors
+    std::string format = "png";
+    palette_ptr palette;
 
     // accept custom format
     if (args.Length() >= 1){
@@ -243,6 +298,29 @@ Handle<Value> Image::encode(const Arguments& args)
         format = TOSTR(args[0]);
     }
 
+    // options hash
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be an options object")));
+
+        Local<Object> options = args[1]->ToObject();
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+              return ThrowException(Exception::TypeError(
+                String::New("'palette' must be an object")));
+            
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+    
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+    }
+
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction())
@@ -250,25 +328,33 @@ Handle<Value> Image::encode(const Arguments& args)
                   String::New("last argument must be a callback function")));
 
     encode_image_baton_t *closure = new encode_image_baton_t();
-
+    closure->request.data = closure;
     closure->im = im;
     closure->image = im->this_;
     closure->format = format;
+    closure->palette = palette;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    eio_custom(EIO_Encode, EIO_PRI_DEFAULT, EIO_AfterEncode, closure);
-    ev_ref(EV_DEFAULT_UC);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
+    uv_ref(uv_default_loop());
     im->Ref();
 
     return Undefined();
 }
 
-int Image::EIO_Encode(eio_req* req)
+void Image::EIO_Encode(uv_work_t* req)
 {
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
 
     try {
-        closure->result = save_to_string(*(closure->image), closure->format);
+        if (closure->palette.get())
+        {
+            closure->result = save_to_string(*(closure->image), closure->format, *closure->palette);
+        }
+        else
+        {
+            closure->result = save_to_string(*(closure->image), closure->format);
+        }
     }
     catch (std::exception & ex)
     {
@@ -280,15 +366,13 @@ int Image::EIO_Encode(eio_req* req)
         closure->error = true;
         closure->error_name = "unknown exception happened when encoding image: please file bug report";
     }
-    return 0;
 }
 
-int Image::EIO_AfterEncode(eio_req* req)
+void Image::EIO_AfterEncode(uv_work_t* req)
 {
     HandleScope scope;
 
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
 
     TryCatch try_catch;
 
@@ -310,10 +394,10 @@ int Image::EIO_AfterEncode(eio_req* req)
       FatalException(try_catch);
     }
 
+    uv_unref(uv_default_loop());
     closure->im->Unref();
     closure->cb.Dispose();
     delete closure;
-    return 0;
 }
 
 Handle<Value> Image::view(const Arguments& args)

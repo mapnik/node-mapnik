@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/756/trunk/test/additional-targets/src/dir1
+END
+emit.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/721/trunk/test/additional-targets/src/dir1/emit.py
+END
+lib1.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/720/trunk/test/additional-targets/src/dir1/lib1.c
+END
+actions.gyp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/756/trunk/test/additional-targets/src/dir1/actions.gyp
+END
