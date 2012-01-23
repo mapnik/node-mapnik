@@ -200,7 +200,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
               String::New(ex.what())));
         }
     }
-    
+
     return scope.Close(a);
 }
 
@@ -222,7 +222,7 @@ Handle<Value> MemoryDatasource::featureset(const Arguments& args)
             q.add_property_name(itr->get_name());
             ++itr;
         }
-    
+
         mapnik::featureset_ptr fs = d->datasource_->features(q);
         if (fs)
         {

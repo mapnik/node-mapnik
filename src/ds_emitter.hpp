@@ -12,6 +12,8 @@
 #include <mapnik/params.hpp>
 #include <mapnik/feature_layer_desc.hpp>
 
+#include <map>
+
 using namespace v8;
 using namespace node;
 
@@ -148,12 +150,21 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
     }
 }
 
-static void datasource_statistics(Local<Object> description, mapnik::datasource_ptr ds)
+static void datasource_statistics(Local<Object> stats_obj, mapnik::datasource_ptr ds)
 {
     try
     {
         std::map<std::string, mapnik::parameters> stats = ds->get_statistics();
-        description->Set(String::NewSymbol("statistics"), String::New("TODO: test"));
+        std::map<std::string, mapnik::parameters>::iterator it;
+
+        for (it = stats.begin(); it != stats.end(); it++) {
+            Local<Object> field = Object::New();
+            mapnik::parameters::const_iterator k = it->second.begin();
+            for (; k != it->second.end(); ++k) {
+                field->Set(String::NewSymbol(k->first.c_str()), Number::New(boost::get<float>(k->second)));
+            }
+            stats_obj->Set(String::NewSymbol(it->first.c_str()), field);
+        }
     }
     catch (const std::exception & ex)
     {
