@@ -3,28 +3,33 @@ var mapnik = require('mapnik'),
     path = require('path');
 
 describe('test memory datasource', function() {
-    var options = {};
-    var ds = new mapnik.MemoryDatasource(options);
+
+    var ds, options;
+
+    beforeEach(function() {
+        options = {};
+        ds = new mapnik.MemoryDatasource(options);
+        for (var x = -80; x <= 80; x += 10) {
+            for (var y = -80; y <= 80; y += 10) {
+                var f = {
+                    x: x, y: y,
+                    properties: {
+                        val: x
+                    }
+                };
+                if (y >= 0) {
+                    f.properties.y = y;
+                }
+                f.properties.ch = String.fromCharCode(Math.abs(y) % 50 + 48);
+                ds.add(f);
+            }
+        }
+    });
 
     it('should be creatable', function() {
         ds.parameters().should.be.ok;
         ds.parameters().should.eql(options);
     });
-
-    for (var x = -80; x <= 80; x += 10) {
-        for (var y = -80; y <= 80; y += 10) {
-            var f = {
-                x: x, y: y,
-                properties: {
-                    val: x
-                }
-            };
-            if (y >= 0) {
-                f.properties.y = y;
-            }
-            ds.add(f);
-        }
-    }
 
     it('should report length and be an object', function() {
         ds.features().should.have.lengthOf(289);
@@ -49,5 +54,23 @@ describe('test memory datasource', function() {
         ds.statistics().y.mean.should.equal(40);
         ds.statistics().y.min.should.equal(0);
         ds.statistics().y.max.should.equal(80);
+    });
+
+    it('should reflect data changes', function() {
+        ds.add({
+            x: 0, y: 0,
+            properties: {
+                val: 90
+            }
+        });
+        ds.statistics().val.max.should.equal(90);
+        ds.add({
+            x: 0, y: 0,
+            properties: {
+                val: -90
+            }
+        });
+        ds.statistics().val.min.should.equal(-90);
+        ds.statistics().val.mean.should.equal(0);
     });
 });
