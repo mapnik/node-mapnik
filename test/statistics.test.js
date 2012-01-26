@@ -2,7 +2,7 @@ var mapnik = require('mapnik'),
     fs = require('fs'),
     path = require('path');
 
-describe('test memory datasource', function() {
+describe('test memory datasource statistics', function() {
 
     var ds, options;
 
