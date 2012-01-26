@@ -162,7 +162,7 @@ static void datasource_statistics(Local<Object> stats_obj, mapnik::datasource_pt
             for (; k != it->second.end(); ++k) {
                 field->Set(
                     String::NewSymbol(k->first.c_str()),
-                    Number::New(boost::get<float>(k->second)));
+                    Number::New(boost::get<double>(k->second)));
             }
             stats_obj->Set(String::NewSymbol(it->first.c_str()), field);
         }
