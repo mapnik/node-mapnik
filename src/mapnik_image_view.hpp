@@ -32,6 +32,7 @@ class ImageView: public node::ObjectWrap {
     static Handle<Value> height(const Arguments &args);
     //static Handle<Value> open(const Arguments &args);
     static Handle<Value> save(const Arguments &args);
+    static Handle<Value> isSolid(const Arguments &args);
 
     ImageView(image_view_ptr this_);
     inline image_view_ptr get() { return this_; }
