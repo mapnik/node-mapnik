@@ -23,4 +23,6 @@ exports['test images view getPixel'] = function(beforeExit) {
     assert.equal(pixel.g,2);
     assert.equal(pixel.b,2);
     assert.equal(pixel.a,2);
+    assert.equal(view.getPixel(99999999,9999999),undefined);
+
 };
