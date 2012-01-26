@@ -12,6 +12,7 @@
 #include <boost/make_shared.hpp>
 
 #include "mapnik_image_view.hpp"
+#include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
 
@@ -34,6 +35,7 @@ void ImageView::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
 
     target->Set(String::NewSymbol("ImageView"),constructor->GetFunction());
 }
@@ -107,6 +109,44 @@ Handle<Value> ImageView::isSolid(const Arguments& args)
         }
     }
     return scope.Close(Boolean::New(true));
+}
+
+
+Handle<Value> ImageView::getPixel(const Arguments& args)
+{
+    HandleScope scope;
+
+    unsigned x(0);
+    unsigned y(0);
+
+    if (args.Length() >= 2) {
+        if (!args[0]->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("first arg, 'x' must be an integer")));
+        if (!args[1]->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("second arg, 'y' must be an integer")));
+        x = args[0]->IntegerValue();
+        y = args[1]->IntegerValue();
+    } else {
+          return ThrowException(Exception::TypeError(
+            String::New("must supply x,y to query pixel color")));
+    }
+
+    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > im_view_ptr_type;
+    im_view_ptr_type view = im->get();
+    if (x < view->width() && y < view->height())
+    {
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const pixel = row[x];
+        unsigned r = pixel & 0xff;
+        unsigned g = (pixel >> 8) & 0xff;
+        unsigned b = (pixel >> 16) & 0xff;
+        unsigned a = (pixel >> 24) & 0xff;
+        return Color::New(mapnik::color(r,g,b,a));
+    }
+    return Undefined();
 }
 
 
