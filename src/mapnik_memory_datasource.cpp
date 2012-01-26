@@ -14,7 +14,7 @@
 #include <exception>
 
 // boost
-#include <boost/make_shared.hpp> 
+#include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -163,6 +163,9 @@ Handle<Value> MemoryDatasource::statistics(const Arguments& args)
             return ThrowException(Exception::Error(
               String::New(ex.what())));
         }
+    } else {
+        return ThrowException(Exception::Error(
+          String::New("statistics called on non-datasource")));
     }
     return scope.Close(description);
 }

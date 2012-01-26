@@ -152,8 +152,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
 
 static void datasource_statistics(Local<Object> stats_obj, mapnik::datasource_ptr ds)
 {
-    try
-    {
+    try {
         std::map<std::string, mapnik::parameters> stats = ds->get_statistics();
         std::map<std::string, mapnik::parameters>::iterator it;
 
@@ -161,7 +160,9 @@ static void datasource_statistics(Local<Object> stats_obj, mapnik::datasource_pt
             Local<Object> field = Object::New();
             mapnik::parameters::const_iterator k = it->second.begin();
             for (; k != it->second.end(); ++k) {
-                field->Set(String::NewSymbol(k->first.c_str()), Number::New(boost::get<float>(k->second)));
+                field->Set(
+                    String::NewSymbol(k->first.c_str()),
+                    Number::New(boost::get<float>(k->second)));
             }
             stats_obj->Set(String::NewSymbol(it->first.c_str()), field);
         }
