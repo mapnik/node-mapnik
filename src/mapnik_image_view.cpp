@@ -33,6 +33,7 @@ void ImageView::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
 
     target->Set(String::NewSymbol("ImageView"),constructor->GetFunction());
 }
@@ -82,6 +83,32 @@ Handle<Value> ImageView::New(boost::shared_ptr<mapnik::image_32> image_ptr,
     return scope.Close(obj);
 
 }
+
+Handle<Value> ImageView::isSolid(const Arguments& args)
+{
+    HandleScope scope;
+    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > im_view_ptr_type;
+    im_view_ptr_type view = im->get();
+    if (view->width() > 0 && view->height() > 0)
+    {
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const* first_row = view->getRow(0);
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const first_pixel = first_row[0];
+        for (unsigned y = 0; y < view->height(); ++y)
+        {
+            mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
+            for (unsigned x = 0; x < view->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    return scope.Close(Boolean::New(false));
+                }
+            }
+        }
+    }
+    return scope.Close(Boolean::New(true));
+}
+
 
 Handle<Value> ImageView::width(const Arguments& args)
 {
