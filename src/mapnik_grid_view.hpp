@@ -24,6 +24,8 @@ class GridView: public node::ObjectWrap {
     static Handle<Value> encode(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
+    static Handle<Value> isSolid(const Arguments &args);
+    static Handle<Value> getPixel(const Arguments &args);
 
     GridView(grid_view_ptr gp);
     inline grid_view_ptr get() { return this_; }
