@@ -77,9 +77,8 @@ Handle<Value> ImageView::New(boost::shared_ptr<mapnik::image_32> image_ptr,
     )
 {
     HandleScope scope;
-    typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > im_view_ptr_type;
-    im_view_ptr_type image_view_ptr = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(image_ptr->get_view(x,y,w,h));
-    ImageView* imv = new ImageView(image_view_ptr);
+    image_view_ptr iv_ptr = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(image_ptr->get_view(x,y,w,h));
+    ImageView* imv = new ImageView(iv_ptr);
     Handle<Value> ext = External::New(imv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
@@ -90,8 +89,7 @@ Handle<Value> ImageView::isSolid(const Arguments& args)
 {
     HandleScope scope;
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
-    typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > im_view_ptr_type;
-    im_view_ptr_type view = im->get();
+    image_view_ptr view = im->get();
     if (view->width() > 0 && view->height() > 0)
     {
         mapnik::image_view<mapnik::image_data_32>::pixel_type const* first_row = view->getRow(0);
@@ -134,8 +132,7 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
     }
 
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
-    typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > im_view_ptr_type;
-    im_view_ptr_type view = im->get();
+    image_view_ptr view = im->get();
     if (x < view->width() && y < view->height())
     {
         mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
