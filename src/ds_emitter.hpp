@@ -11,6 +11,7 @@
 #include <mapnik/layer.hpp>
 #include <mapnik/params.hpp>
 #include <mapnik/feature_layer_desc.hpp>
+#include <mapnik/feature_kv_iterator.hpp>
 
 #include <map>
 
@@ -207,17 +208,16 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             unsigned idx = 0;
             while ((fp = fs->next()))
             {
-                if  ((idx >= first) && (idx <= last || last == 0)) {
-                    std::map<std::string,mapnik::value> const& fprops = fp->props();
+                if ((idx >= first) && (idx <= last || last == 0)) {
                     Local<Object> feat = Object::New();
-                    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-                    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-                    for (; it != end; ++it)
+                    mapnik::feature_kv_iterator itr = fp->begin();
+                    mapnik::feature_kv_iterator end = fp->end();
+                    for ( ;itr!=end; ++itr)
                     {
-                        node_mapnik::params_to_object serializer( feat , it->first);
+                        node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
                         // need to call base() since this is a mapnik::value
                         // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, it->second.base() );
+                        boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
                     }
 
                     // add feature id

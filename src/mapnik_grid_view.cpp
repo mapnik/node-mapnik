@@ -30,6 +30,8 @@ void GridView::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
 
     target->Set(String::NewSymbol("GridView"),constructor->GetFunction());
 }
@@ -71,9 +73,8 @@ Handle<Value> GridView::New(boost::shared_ptr<mapnik::grid> grid_ptr,
     )
 {
     HandleScope scope;
-    typedef boost::shared_ptr<mapnik::grid_view> grid_view_ptr_type;
-    grid_view_ptr_type grid_view_ptr = boost::make_shared<mapnik::grid_view>(grid_ptr->get_view(x,y,w,h));
-    GridView* gv = new GridView(grid_view_ptr);
+    grid_view_ptr gb_ptr = boost::make_shared<mapnik::grid_view>(grid_ptr->get_view(x,y,w,h));
+    GridView* gv = new GridView(gb_ptr);
     Handle<Value> ext = External::New(gv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
@@ -95,6 +96,62 @@ Handle<Value> GridView::height(const Arguments& args)
     return scope.Close(Integer::New(g->get()->height()));
 }
 
+Handle<Value> GridView::isSolid(const Arguments& args)
+{
+    HandleScope scope;
+    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    grid_view_ptr view = g->get();
+    if (view->width() > 0 && view->height() > 0)
+    {
+        mapnik::grid_view::value_type const* first_row = view->getRow(0);
+        mapnik::grid_view::value_type const first_pixel = first_row[0];
+        for (unsigned y = 0; y < view->height(); ++y)
+        {
+            mapnik::grid_view::value_type const * row = view->getRow(y);
+            for (unsigned x = 0; x < view->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    return scope.Close(Boolean::New(false));
+                }
+            }
+        }
+    }
+    return scope.Close(Boolean::New(true));
+}
+
+Handle<Value> GridView::getPixel(const Arguments& args)
+{
+    HandleScope scope;
+
+
+    unsigned x(0);
+    unsigned y(0);
+
+    if (args.Length() >= 2) {
+        if (!args[0]->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("first arg, 'x' must be an integer")));
+        if (!args[1]->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("second arg, 'y' must be an integer")));
+        x = args[0]->IntegerValue();
+        y = args[1]->IntegerValue();
+    } else {
+          return ThrowException(Exception::TypeError(
+            String::New("must supply x,y to query pixel color")));
+    }
+
+    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    grid_view_ptr view = g->get();
+    if (x < view->width() && y < view->height())
+    {
+        mapnik::grid_view::value_type const * row = view->getRow(y);
+        mapnik::grid_view::value_type const pixel = row[x];
+        return Integer::New(pixel);
+    }
+    return Undefined();
+}
 
 Handle<Value> GridView::encodeSync(const Arguments& args)
 {

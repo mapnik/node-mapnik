@@ -12,6 +12,7 @@
 #include <boost/make_shared.hpp>
 
 #include "mapnik_image_view.hpp"
+#include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
 
@@ -33,6 +34,8 @@ void ImageView::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
 
     target->Set(String::NewSymbol("ImageView"),constructor->GetFunction());
 }
@@ -74,14 +77,75 @@ Handle<Value> ImageView::New(boost::shared_ptr<mapnik::image_32> image_ptr,
     )
 {
     HandleScope scope;
-    typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > im_view_ptr_type;
-    im_view_ptr_type image_view_ptr = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(image_ptr->get_view(x,y,w,h));
-    ImageView* imv = new ImageView(image_view_ptr);
+    image_view_ptr iv_ptr = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(image_ptr->get_view(x,y,w,h));
+    ImageView* imv = new ImageView(iv_ptr);
     Handle<Value> ext = External::New(imv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
 
 }
+
+Handle<Value> ImageView::isSolid(const Arguments& args)
+{
+    HandleScope scope;
+    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    image_view_ptr view = im->get();
+    if (view->width() > 0 && view->height() > 0)
+    {
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const* first_row = view->getRow(0);
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const first_pixel = first_row[0];
+        for (unsigned y = 0; y < view->height(); ++y)
+        {
+            mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
+            for (unsigned x = 0; x < view->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    return scope.Close(Boolean::New(false));
+                }
+            }
+        }
+    }
+    return scope.Close(Boolean::New(true));
+}
+
+
+Handle<Value> ImageView::getPixel(const Arguments& args)
+{
+    HandleScope scope;
+
+    unsigned x(0);
+    unsigned y(0);
+
+    if (args.Length() >= 2) {
+        if (!args[0]->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("first arg, 'x' must be an integer")));
+        if (!args[1]->IsNumber())
+          return ThrowException(Exception::TypeError(
+            String::New("second arg, 'y' must be an integer")));
+        x = args[0]->IntegerValue();
+        y = args[1]->IntegerValue();
+    } else {
+          return ThrowException(Exception::TypeError(
+            String::New("must supply x,y to query pixel color")));
+    }
+
+    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    image_view_ptr view = im->get();
+    if (x < view->width() && y < view->height())
+    {
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const pixel = row[x];
+        unsigned r = pixel & 0xff;
+        unsigned g = (pixel >> 8) & 0xff;
+        unsigned b = (pixel >> 16) & 0xff;
+        unsigned a = (pixel >> 24) & 0xff;
+        return Color::New(mapnik::color(r,g,b,a));
+    }
+    return Undefined();
+}
+
 
 Handle<Value> ImageView::width(const Arguments& args)
 {
