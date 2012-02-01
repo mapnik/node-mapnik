@@ -162,7 +162,7 @@ static void write_features(T const& grid_type,
                 }
                 // FIXME: segfault here because feature ctx is gone?
                 //std::clog << "feautre : " << *feature << "\n";
-                mapnik::feature_kv_iterator itr = feature->begin();
+                //mapnik::feature_kv_iterator itr = feature->begin();
                 //mapnik::feature_kv_iterator end = feature->end();
                 /*for ( ;itr!=end; ++itr)
                 {
