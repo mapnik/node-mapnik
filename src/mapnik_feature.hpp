@@ -40,6 +40,7 @@ class Feature: public node::ObjectWrap {
   private:
     ~Feature();
     mapnik::feature_ptr this_;
+    mapnik::context_ptr ctx_;
 };
 
 #endif

@@ -45,7 +45,7 @@ For more sample code see 'examples/'
 ## Depends
 
 * Node >= v0.4.x
-* Mapnik 2.1-dev (current master): (at least [425f20fb689](https://github.com/mapnik/mapnik/commit/425f20fb689da284440b7a5aa118ab2f34dbd885) / January 9, 2012)
+* Mapnik 2.1-dev (current master): (at least [30bef5c955e](https://github.com/mapnik/mapnik/commit/30bef5c955e54290f7b45073a8bdff45e87dff26) / February 1, 2012)
 
 
 ## Installation

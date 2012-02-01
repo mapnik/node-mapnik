@@ -5,6 +5,7 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/feature_kv_iterator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
@@ -36,8 +37,12 @@ Feature::Feature(mapnik::feature_ptr f) :
 
 Feature::Feature(int id) :
   ObjectWrap(),
-  this_(mapnik::feature_factory::create(id)) {}
-  
+  this_() {
+    // TODO - accept/require context object to reused
+    ctx_ = boost::make_shared<mapnik::context_type>();
+    this_ = mapnik::feature_factory::create(ctx_,id);
+  }
+
 Feature::~Feature()
 {
 }
@@ -57,6 +62,8 @@ Handle<Value> Feature::New(const Arguments& args)
         f->Wrap(args.This());
         return args.This();
     }
+
+    // TODO - expose mapnik.Context
     
     if (!args.Length() == 1 || !args[0]->IsNumber()) {
         return ThrowException(Exception::TypeError(
@@ -110,13 +117,13 @@ Handle<Value> Feature::attributes(const Arguments& args)
     
     Local<Object> feat = Object::New();
 
-    std::map<std::string,mapnik::value> const& fprops = fp->get()->props();
-    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-    for (; it != end; ++it)
+    mapnik::feature_ptr feature = fp->get();
+    mapnik::feature_kv_iterator itr = feature->begin();
+    mapnik::feature_kv_iterator end = feature->end();
+    for ( ;itr!=end; ++itr)
     {
-        node_mapnik::params_to_object serializer( feat , it->first);
-        boost::apply_visitor( serializer, it->second.base() );
+        node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
+        boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
     }
     
     return scope.Close(feat);
@@ -195,16 +202,16 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                     Local<Value> value = attr->Get(name);
                     if (value->IsString()) {
                         UnicodeString ustr = tr->transcode(TOSTR(value));
-                        boost::put(*fp->get(),TOSTR(name),ustr);
+                        fp->get()->put_new(TOSTR(name),ustr);
                     } else if (value->IsNumber()) {
                         double num = value->NumberValue();
                         // todo - round
                         if (num == value->IntegerValue()) {
                             int integer = value->IntegerValue();
-                            boost::put(*fp->get(),TOSTR(name),integer);
+                            fp->get()->put_new(TOSTR(name),integer);
                         } else {
                             double dub_val = value->NumberValue();
-                            boost::put(*fp->get(),TOSTR(name),dub_val);
+                            fp->get()->put_new(TOSTR(name),dub_val);
                         }
                     } else {
                         std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
