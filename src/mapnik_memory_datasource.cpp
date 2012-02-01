@@ -241,7 +241,8 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
             pt->move_to(x->NumberValue(),y->NumberValue());
-            mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
+            mapnik::context_ptr ctx = boost::make_shared<mapnik::context_type>();
+            mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
             feature->add_geometry(pt);
             if (obj->Has(String::New("properties")))
@@ -260,16 +261,16 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
                             UnicodeString ustr = d->tr_->transcode(TOSTR(value));
-                            boost::put(*feature,TOSTR(name),ustr);
+                            feature->put_new(TOSTR(name),ustr);
                         } else if (value->IsNumber()) {
                             double num = value->NumberValue();
                             // todo - round
                             if (num == value->IntegerValue()) {
                                 int integer = value->IntegerValue();
-                                boost::put(*feature,TOSTR(name),integer);
+                                feature->put_new(TOSTR(name),integer);
                             } else {
                                 double dub_val = value->NumberValue();
-                                boost::put(*feature,TOSTR(name),dub_val);
+                                feature->put_new(TOSTR(name),dub_val);
                             }
                         } else {
                             std::clog << "unhandled type for property: " << TOSTR(name) << "\n";

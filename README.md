@@ -49,7 +49,7 @@ For more sample code see 'examples/README.md'
 ## Depends
 
 * Node >= v0.6.0
-* Mapnik 2.1 (current master): (at least [e8541e1685](https://github.com/mapnik/mapnik/commit/e8541e168514ce1175bc6fe8e85db258e6f20c15) / January 9, 2012)
+* Mapnik 2.1-dev (current master): (at least [30bef5c955e](https://github.com/mapnik/mapnik/commit/30bef5c955e54290f7b45073a8bdff45e87dff26) / February 1, 2012)
 
 
 ## Installation
