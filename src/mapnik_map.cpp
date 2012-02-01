@@ -1211,7 +1211,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
         std::set<std::string> attributes = closure->g->get()->property_names();
 
         std::string join_field = closure->g->get()->get_key();
-        if (join_field == closure->g->get()->id_name_)
+        if (join_field == closure->g->get()->key_name())
         {
             // TODO - should feature.id() be a first class attribute?
             if (attributes.find(join_field) != attributes.end())
@@ -1608,7 +1608,7 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
         std::set<std::string> attributes = g->get()->property_names();
 
         std::string join_field = g->get()->get_key();
-        if (join_field == g->get()->id_name_)
+        if (join_field == g->get()->key_name())
         {
             // TODO - should feature.id() be a first class attribute?
             if (attributes.find(join_field) != attributes.end())
@@ -2000,7 +2000,7 @@ void Map::EIO_RenderGrid2(uv_work_t* req)
 
     std::string const& join_field = closure->join_field;
 
-    if (join_field == closure->grid_ptr->id_name_)
+    if (join_field == closure->grid_ptr->key_name())
     {
         // TODO - should feature.id() be a first class attribute?
         if (attributes.find(join_field) != attributes.end())

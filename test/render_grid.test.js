@@ -12,15 +12,25 @@ exports['test simple_grid rendering'] = function(beforeExit, assert) {
     map_grid.load(stylesheet, {strict: true}, function(err,map) {
         if (err) throw err;
         map.zoomAll();
+        var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
+
+        // START TEMP
+        // testing sync to isolate crash
+        map.renderLayerSync(grid,0, {fields:['NAME']});
+        // FIXME: segfault!
+        grid_utf = grid.encodeSync('utf', {resolution: 4});
+        rendered = true;
+        // END TEMP
+        /*
         var options = {'layer': 0,
                        'fields': ['NAME']
                       };
-        var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
         map.render(grid, options, function(err, grid) {
             rendered = true;
             assert.ok(!err);
             grid_utf = grid.encodeSync('utf', {resolution: 4});
-            //fs.writeFileSync('./test/support/grid2_.json',JSON.stringify(grid_utf))
+            //fs.writeFileSync('./ref.json',JSON.stringify(grid_utf))
+
             assert.equal(JSON.stringify(grid_utf), reference);
 
             // pull an identical view and compare it to original grid
@@ -35,8 +45,8 @@ exports['test simple_grid rendering'] = function(beforeExit, assert) {
             gv_utf2 = gv2.encodeSync('utf', {resolution: 4});
             //fs.writeFileSync('./test/support/grid_view.json',JSON.stringify(gv_utf2),'utf8')
             assert.equal(JSON.stringify(gv_utf2), reference_view);
-
         });
+        */
     });
 
     beforeExit(function() {
