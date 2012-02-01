@@ -47,7 +47,6 @@ static void grid2utf(T const& grid_type,
                     // can't be encoded directly in JSON.
                     if (codepoint == 34) ++codepoint;      // Skip "
                     else if (codepoint == 92) ++codepoint; // Skip backslash
-                
                     keys[val] = codepoint;
                     key_order.push_back(val);
                     line[idx++] = static_cast<uint16_t>(codepoint);
@@ -100,7 +99,6 @@ static void grid2utf(T const& grid_type,
                     // can't be encoded directly in JSON.
                     if (codepoint == 34) ++codepoint;      // Skip "
                     else if (codepoint == 92) ++codepoint; // Skip backslash
-                
                     keys[val] = codepoint;
                     key_order.push_back(val);
                     line[idx++] = static_cast<uint16_t>(codepoint);
@@ -124,45 +122,66 @@ static void write_features(T const& grid_type,
     Local<Object>& feature_data,
     std::vector<typename T::lookup_type> const& key_order)
 {
-    std::string const& key = grid_type.get_key(); // get_key();
+    std::string const& key = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     typename T::feature_type::const_iterator feat_itr = g_features.begin();
     typename T::feature_type::const_iterator feat_end = g_features.end();
     bool include_key = (attributes.find(key) != attributes.end());
-
     for (; feat_itr != feat_end; ++feat_itr)
     {
-        std::map<std::string,mapnik::value> const& props = feat_itr->second;
-        std::map<std::string,mapnik::value>::const_iterator const& itr = props.find(key);
-        if (itr != props.end())
+        mapnik::Feature const* feature = feat_itr->second;
+        boost::optional<std::string> join_value;
+        if (key == grid_type.key_name())
         {
-            typename T::lookup_type const& join_value = itr->second.to_string();
-    
+            std::stringstream s;
+            s << feature->id();
+            join_value = s.str();
+
+        }
+        else if (feature->has_key(key))
+        {
+            join_value = feature->get(key).to_string();
+        }
+
+        if (join_value)
+        {
             // only serialize features visible in the grid
-            if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end()) {
+            if(std::find(key_order.begin(), key_order.end(), *join_value) != key_order.end()) {
                 Local<Object> feat = Object::New();
-                std::map<std::string,mapnik::value>::const_iterator it = props.begin();
-                std::map<std::string,mapnik::value>::const_iterator end = props.end();
                 bool found = false;
-                for (; it != end; ++it)
+                if (key == grid_type.key_name())
                 {
-                    std::string const& key_name = it->first;
+                    // drop key unless requested
+                    if (include_key) {
+                        found = true;
+                        // TODO do we need to duplicate __id__ ?
+                        //feat->Set(String::NewSymbol(key.c_str()), String::New(join_value->c_str()) );
+                    }
+                }
+                // FIXME: segfault here because feature ctx is gone?
+                //std::clog << "feautre : " << *feature << "\n";
+                mapnik::feature_kv_iterator itr = feature->begin();
+                //mapnik::feature_kv_iterator end = feature->end();
+                /*for ( ;itr!=end; ++itr)
+                {
+                    std::string const& key_name = boost::get<0>(*itr);
                     if (key_name == key) {
-                        // drop join_field unless requested
+                        // drop key unless requested
                         if (include_key) {
                             found = true;
-                            params_to_object serializer( feat , it->first);
-                            boost::apply_visitor( serializer, it->second.base() );
+                            params_to_object serializer( feat ,  key_name);
+                            boost::apply_visitor( serializer,  boost::get<1>(*itr).base() );
                         }
                     }
                     else if ( (attributes.find(key_name) != attributes.end()) )
                     {
                         found = true;
-                        params_to_object serializer( feat , it->first);
-                        boost::apply_visitor( serializer, it->second.base() );
+                        params_to_object serializer( feat ,  key_name);
+                        boost::apply_visitor( serializer,  boost::get<1>(*itr).base() );
                     }
-                }
+                }*/
+
                 if (found)
                 {
                     feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
