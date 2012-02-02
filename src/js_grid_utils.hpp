@@ -131,7 +131,7 @@ static void write_features(T const& grid_type,
     bool include_key = (attributes.find(key) != attributes.end());
     for (; feat_itr != feat_end; ++feat_itr)
     {
-        mapnik::Feature const* feature = feat_itr->second;
+        mapnik::feature_ptr feature = feat_itr->second;
         boost::optional<std::string> join_value;
         if (key == grid_type.key_name())
         {
@@ -160,11 +160,9 @@ static void write_features(T const& grid_type,
                         //feat->Set(String::NewSymbol(key.c_str()), String::New(join_value->c_str()) );
                     }
                 }
-                // FIXME: segfault here because feature ctx is gone?
-                //std::clog << "feautre : " << *feature << "\n";
-                //mapnik::feature_kv_iterator itr = feature->begin();
-                //mapnik::feature_kv_iterator end = feature->end();
-                /*for ( ;itr!=end; ++itr)
+                mapnik::feature_kv_iterator itr = feature->begin();
+                mapnik::feature_kv_iterator end = feature->end();
+                for ( ;itr!=end; ++itr)
                 {
                     std::string const& key_name = boost::get<0>(*itr);
                     if (key_name == key) {
@@ -181,7 +179,7 @@ static void write_features(T const& grid_type,
                         params_to_object serializer( feat ,  key_name);
                         boost::apply_visitor( serializer,  boost::get<1>(*itr).base() );
                     }
-                }*/
+                }
 
                 if (found)
                 {
