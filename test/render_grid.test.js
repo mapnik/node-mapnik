@@ -14,26 +14,22 @@ exports['test simple_grid rendering'] = function(beforeExit) {
         if (err) throw err;
         map.zoomAll();
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
-
-        // START TEMP
-        // testing sync to isolate crash
+        
+        /*
         map.renderLayerSync(grid,0, {fields:['NAME']});
         // FIXME: segfault!
         grid_utf = grid.encodeSync('utf', {resolution: 4});
         rendered = true;
         // END TEMP
-        /*
+        */
         var options = {'layer': 0,
                        'fields': ['NAME']
                       };
         map.render(grid, options, function(err, grid) {
-            rendered = true;
             assert.ok(!err);
             grid_utf = grid.encodeSync('utf', {resolution: 4});
             //fs.writeFileSync('./ref.json',JSON.stringify(grid_utf))
-
             assert.equal(JSON.stringify(grid_utf), reference);
-
             // pull an identical view and compare it to original grid
             var gv = grid.view(0, 0, 256, 256);
             gv_utf = gv.encodeSync('utf', {resolution: 4});
@@ -46,8 +42,8 @@ exports['test simple_grid rendering'] = function(beforeExit) {
             gv_utf2 = gv2.encodeSync('utf', {resolution: 4});
             //fs.writeFileSync('./test/support/grid_view.json',JSON.stringify(gv_utf2),'utf8')
             assert.equal(JSON.stringify(gv_utf2), reference_view);
+            rendered = true;
         });
-        */
     });
 
     beforeExit(function() {
