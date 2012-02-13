@@ -20,7 +20,7 @@
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/layer.hpp>
-#include <mapnik/filter_factory.hpp>
+#include <mapnik/expression.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/config_error.hpp>
 #include <mapnik/load_map.hpp>
