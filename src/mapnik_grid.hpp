@@ -19,11 +19,11 @@ class Grid: public node::ObjectWrap {
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
+    static Handle<Value> fields(const Arguments &args);
+    static Handle<Value> view(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
-    static Handle<Value> view(const Arguments &args);
-
-    static Handle<Value> fields(const Arguments &args);
+    static Handle<Value> painted(const Arguments &args);
 
     static Handle<Value> get_prop(Local<String> property,
                          const AccessorInfo& info);

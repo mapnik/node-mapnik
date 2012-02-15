@@ -34,6 +34,7 @@ void Grid::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "view", view);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
 
     // properties
     ATTR(constructor, "key", get_prop, set_prop);
@@ -119,6 +120,14 @@ Handle<Value> Grid::New(const Arguments& args)
           String::New("please provide Grid width and height")));
     }
     return Undefined();
+}
+
+Handle<Value> Grid::painted(const Arguments& args)
+{
+    HandleScope scope;
+
+    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    return scope.Close(Boolean::New(g->get()->painted()));
 }
 
 Handle<Value> Grid::width(const Arguments& args)

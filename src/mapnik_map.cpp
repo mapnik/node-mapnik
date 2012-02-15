@@ -1149,8 +1149,15 @@ Handle<Value> Map::render(const Arguments& args)
 
                 if (layer_idx >= layer_num) {
                     std::ostringstream s;
-                    s << "Zero-based layer index '" << layer_idx << "' not valid, only '"
-                      << layers.size() << "' layers are in map";
+                    s << "Zero-based layer index '" << layer_idx << "' not valid, ";
+                    if (layer_num > 0)
+                    {
+                        s << "only '" << layers.size() << "' layers exist in map";
+                    }
+                    else
+                    {
+                        s << "no layers found in map";
+                    }
                     return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
                 }
             } else {
