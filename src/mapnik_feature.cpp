@@ -5,7 +5,6 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
-#include <mapnik/feature_kv_iterator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
@@ -118,8 +117,8 @@ Handle<Value> Feature::attributes(const Arguments& args)
     Local<Object> feat = Object::New();
 
     mapnik::feature_ptr feature = fp->get();
-    mapnik::feature_kv_iterator itr = feature->begin();
-    mapnik::feature_kv_iterator end = feature->end();
+    mapnik::feature_impl::iterator itr = feature->begin();
+    mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
         node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));

@@ -11,7 +11,6 @@
 #include <mapnik/layer.hpp>
 #include <mapnik/params.hpp>
 #include <mapnik/feature_layer_desc.hpp>
-#include <mapnik/feature_kv_iterator.hpp>
 
 using namespace v8;
 using namespace node;
@@ -180,8 +179,8 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             {
                 if ((idx >= first) && (idx <= last || last == 0)) {
                     Local<Object> feat = Object::New();
-                    mapnik::feature_kv_iterator itr = fp->begin();
-                    mapnik::feature_kv_iterator end = fp->end();
+                    mapnik::feature_impl::iterator itr = fp->begin();
+                    mapnik::feature_impl::iterator end = fp->end();
                     for ( ;itr!=end; ++itr)
                     {
                         node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));

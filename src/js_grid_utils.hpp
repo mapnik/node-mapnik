@@ -160,8 +160,8 @@ static void write_features(T const& grid_type,
                         //feat->Set(String::NewSymbol(key.c_str()), String::New(join_value->c_str()) );
                     }
                 }
-                mapnik::feature_kv_iterator itr = feature->begin();
-                mapnik::feature_kv_iterator end = feature->end();
+                mapnik::feature_impl::iterator itr = feature->begin();
+                mapnik::feature_impl::iterator end = feature->end();
                 for ( ;itr!=end; ++itr)
                 {
                     std::string const& key_name = boost::get<0>(*itr);
