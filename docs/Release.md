@@ -25,7 +25,7 @@ Update any examples that may have broken.
 
 ## Increment versions
 
-Increment version in `package.json` and `src/node_mapnik.cpp`
+Increment version in `package.json`.
 
 
 ## Commit, tag, and push tag

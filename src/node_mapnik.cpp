@@ -97,9 +97,6 @@ extern "C" {
     MemoryDatasource::Initialize(target);
     Expression::Initialize(target);
 
-    // node-mapnik version
-    target->Set(String::NewSymbol("version"), String::New("0.6.5"));
-
     // versions of deps
     Local<Object> versions = Object::New();
     versions->Set(String::NewSymbol("node"), String::New(NODE_VERSION+1));
