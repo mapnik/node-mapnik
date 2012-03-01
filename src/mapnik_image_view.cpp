@@ -101,7 +101,7 @@ Handle<Value> ImageView::isSolid(const Arguments& args)
             {
                 if (first_pixel != row[x])
                 {
-                    return scope.Close(Boolean::New(false));
+                    return scope.Close(False());
                 }
             }
         }

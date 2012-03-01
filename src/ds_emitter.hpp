@@ -82,7 +82,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
 
         mapnik::featureset_ptr fs = ds->features(q);
         description->Set(String::NewSymbol("geometry_type"), Undefined());
-        description->Set(String::NewSymbol("has_features"), Boolean::New(false));
+        description->Set(String::NewSymbol("has_features"), False());
     
         // TODO - need to remove this after this lands:
         // https://github.com/mapnik/mapnik/issues/701

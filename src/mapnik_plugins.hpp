@@ -68,7 +68,7 @@ static inline Handle<Value> register_datasources(const Arguments& args)
     std::vector<std::string> const& names_after = mapnik::datasource_cache::plugin_names();
     if (names_after.size() > names_before.size())
         return scope.Close(Boolean::New(true));
-    return scope.Close(Boolean::New(false));
+    return scope.Close(False());
 }
 
 
