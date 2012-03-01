@@ -24,8 +24,8 @@ Increment version in `package.json` and `src/node_mapnik.cpp`
 
 ## Commit, tag, and push tag
 
-    VERSION="0.6.5"
-    git ci -a -m 'bump to ${VERSION}'
+    VERSION="0.5.17"
+    git ci -a -m "bump to ${VERSION}"
     git push
     git tag ${VERSION}
     git push --tags
