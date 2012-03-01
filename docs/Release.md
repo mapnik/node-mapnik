@@ -30,7 +30,7 @@ Increment version in `package.json`.
 
 ## Commit, tag, and push tag
 
-    VERSION="0.6.5"
+    VERSION="0.6.6"
     git ci -a -m "bump to ${VERSION}"
     git push
     git tag ${VERSION} -m "tagging ${VERSION}"
@@ -39,7 +39,7 @@ Increment version in `package.json`.
 
 ## Publish
 
-First, remove all files/folder in your node-mapnik checkout that are not either checked into git or listed in .gitigore so that the files do not end up in the npm bundle.
+First, remove all files/folder in your node-mapnik checkout that are not either checked into git or listed in .gitignore so that the files do not end up in the npm bundle.
 
 Doing `npm publish` on the clean checkout works well for ensuring this is not a problem.
 

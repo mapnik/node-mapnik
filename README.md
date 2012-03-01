@@ -49,7 +49,7 @@ For more sample code see 'examples/README.md'
 ## Depends
 
 * Node >= v0.6.0
-* Mapnik 2.1-dev (current master): (at least [57cf7d54](https://github.com/mapnik/mapnik/commit/57cf7d54cf73a7734a62836759d9d7721340ffc6) / February 1, 2012)
+* Mapnik 2.1-dev (current master): (at least [9e397ae55](https://github.com/mapnik/mapnik/commit/9e397ae55e37e0e23477e523d03084790e23e264) / March 1, 2012)
 
 
 ## Installation
@@ -108,12 +108,18 @@ To require node-mapnik as a depedency of another package put in your package.jso
 
 See the 'examples/' folder for more usage examples.
 
+For some of the tests you will need:
+
+    npm install express
+    npm install generic-pool
+    npm install get
+
 
 ## Tests
 
 To run the expresso tests first install expresso.
   
-    npm install -g expresso
+    npm install expresso
   
 Then run:
   
