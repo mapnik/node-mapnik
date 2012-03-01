@@ -19,6 +19,7 @@ class MemoryDatasource: public node::ObjectWrap {
     static Handle<Value> New(mapnik::datasource_ptr ds_ptr);
     static Handle<Value> parameters(const Arguments &args);
     static Handle<Value> describe(const Arguments &args);
+    static Handle<Value> statistics(const Arguments &args);
     static Handle<Value> features(const Arguments &args);
     static Handle<Value> featureset(const Arguments &args);
     static Handle<Value> add(const Arguments &args);

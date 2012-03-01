@@ -23,6 +23,7 @@ void Datasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "statistics", statistics);
     NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
 
     target->Set(String::NewSymbol("Datasource"),constructor->GetFunction());
@@ -159,6 +160,29 @@ Handle<Value> Datasource::describe(const Arguments& args)
     }
 
     return scope.Close(description);
+}
+
+Handle<Value> Datasource::statistics(const Arguments& args)
+{
+    HandleScope scope;
+    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Local<Object> stats = Object::New();
+    try
+    {
+        node_mapnik::datasource_statistics(stats, d->datasource_);
+    }
+    catch (const std::exception & ex )
+    {
+        return ThrowException(Exception::Error(
+          String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+          String::New("unknown exception happened getting statistics for datasource, please file bug")));
+    }
+
+    return scope.Close(stats);
 }
 
 Handle<Value> Datasource::features(const Arguments& args)

@@ -14,7 +14,7 @@
 #include <exception>
 
 // boost
-#include <boost/make_shared.hpp> 
+#include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -29,6 +29,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
     // methods
     NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "statistics", statistics);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
     NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(constructor, "add", add);
@@ -148,6 +149,27 @@ Handle<Value> MemoryDatasource::describe(const Arguments& args)
     return scope.Close(description);
 }
 
+Handle<Value> MemoryDatasource::statistics(const Arguments& args)
+{
+    HandleScope scope;
+    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    Local<Object> description = Object::New();
+    if (d->datasource_) {
+        try {
+            node_mapnik::datasource_statistics(description, d->datasource_);
+        }
+        catch (const std::exception & ex)
+        {
+            return ThrowException(Exception::Error(
+              String::New(ex.what())));
+        }
+    } else {
+        return ThrowException(Exception::Error(
+          String::New("statistics called on non-datasource")));
+    }
+    return scope.Close(description);
+}
+
 Handle<Value> MemoryDatasource::features(const Arguments& args)
 {
 
@@ -181,7 +203,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
               String::New(ex.what())));
         }
     }
-    
+
     return scope.Close(a);
 }
 
@@ -203,7 +225,7 @@ Handle<Value> MemoryDatasource::featureset(const Arguments& args)
             q.add_property_name(itr->get_name());
             ++itr;
         }
-    
+
         mapnik::featureset_ptr fs = d->datasource_->features(q);
         if (fs)
         {

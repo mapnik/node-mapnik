@@ -38,7 +38,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
             if (err) {
                 if (Array.isArray(err)) {
                     err.forEach(function(e) {
-                        carto.writeError(e, options);
+                        carto.writeError(e);
                     });
                 }
                 process.exit(1);

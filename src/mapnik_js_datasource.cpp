@@ -87,9 +87,7 @@ Handle<Value> JSDatasource::New(const Arguments& args)
     mapnik::datasource_ptr ds;
     try
     {
-
         ds = mapnik::datasource_ptr(new js_datasource(params,bind,args[args.Length()-1]));
-        
     }
     catch (const std::exception & ex)
     {
@@ -115,7 +113,7 @@ Handle<Value> JSDatasource::New(const Arguments& args)
 Handle<Value> JSDatasource::next(const Arguments& args)
 {
     HandleScope scope;
-    
+
     JSDatasource* d = ObjectWrap::Unwrap<JSDatasource>(args.This());
     js_datasource *js = dynamic_cast<js_datasource *>(d->ds_ptr_.get());
     return scope.Close((*js->cb_)->Call(Context::GetCurrent()->Global(), 0, NULL));
