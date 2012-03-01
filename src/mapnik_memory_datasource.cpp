@@ -283,5 +283,5 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
             cache->push(feature);
         }
     }
-    return scope.Close(Boolean::New(false));
+    return scope.Close(False());
 }
