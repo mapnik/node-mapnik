@@ -100,7 +100,9 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "extent", get_prop, set_prop);
     ATTR(constructor, "maximumExtent", get_prop, set_prop);
     ATTR(constructor, "background", get_prop, set_prop);
-    ATTR(constructor, "parameters", get_prop, set_prop)
+    ATTR(constructor, "parameters", get_prop, set_prop);
+
+    NODE_SET_PROTOTYPE_METHOD(constructor, "size", size);
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
     //eio_set_max_poll_reqs(10);
@@ -110,26 +112,26 @@ void Map::Initialize(Handle<Object> target) {
 Map::Map(int width, int height) :
   ObjectWrap(),
   map_(boost::make_shared<mapnik::Map>(width,height)),
-  in_use_(0) {}
+  in_use_(0),
+  estimated_size_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
   ObjectWrap(),
   map_(boost::make_shared<mapnik::Map>(width,height,srs)),
-  in_use_(0) {}
+  in_use_(0),
+  estimated_size_(0) {}
 
 Map::~Map()
 {
-    // std::clog << "~Map(node)\n";
-    // release is handled by boost::shared_ptr
+    if (estimated_size_ >0)
+        V8::AdjustAmountOfExternalAllocatedMemory(-estimated_size_);
 }
 
 void Map::acquire() {
-    //std::cerr << "acquiring!!\n";
     ++in_use_;
 }
 
 void Map::release() {
-    //std::cerr << "releasing!!\n";
     --in_use_;
 }
 
@@ -176,8 +178,96 @@ Handle<Value> Map::New(const Arguments& args)
         return ThrowException(Exception::Error(
           String::New("please provide Map width and height and optional srs")));
     }
-    //return args.This();
     return Undefined();
+}
+
+class sizeof_symbolizer : public boost::static_visitor<>
+{
+public:
+    sizeof_symbolizer( unsigned int * usage):
+        usage_(usage),
+        factor_(21 /*arbitrary*/) {}
+
+    void operator () ( mapnik::point_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::line_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::line_pattern_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::polygon_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::polygon_pattern_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::raster_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::shield_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::text_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::building_symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    void operator () ( mapnik::markers_symbolizer const& sym)
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
+    unsigned int * usage_;
+    unsigned int factor_;
+};
+
+unsigned int Map::estimate_map_size()
+{
+    // very rough estimate of memory usage of a map
+    unsigned int mem_usage(0);
+    mapnik::Map::const_style_iterator sty_itr = map_->styles().begin();
+    for (; sty_itr != map_->styles().end(); ++sty_itr)
+    {
+        mapnik::feature_type_style const& style = sty_itr->second;
+        mapnik::rules::const_iterator rule_itr = style.get_rules().begin();
+        for (; rule_itr != style.get_rules().end(); ++rule_itr)
+        {
+            mapnik::rule::symbolizers::const_iterator begin = rule_itr->get_symbolizers().begin();
+            mapnik::rule::symbolizers::const_iterator end = rule_itr->get_symbolizers().end();
+            sizeof_symbolizer detector( &mem_usage);
+            std::for_each( begin, end , boost::apply_visitor( detector ));
+        }
+    }
+    estimated_size_ = mem_usage;
+    return mem_usage;
+}
+
+Handle<Value> Map::size(const Arguments& args)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    return scope.Close(Integer::New(m->estimate_map_size()));
 }
 
 Handle<Value> Map::get_prop(Local<String> property,
@@ -669,6 +759,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
     } else {
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        V8::AdjustAmountOfExternalAllocatedMemory(closure->m->estimate_map_size());
     }
 
     if (try_catch.HasCaught()) {
@@ -710,6 +801,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
       return ThrowException(Exception::TypeError(
         String::New("something went wrong loading the map")));
     }
+    V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
 }
 
@@ -777,6 +869,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
       return ThrowException(Exception::TypeError(
         String::New("something went wrong loading the map")));
     }
+    V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
 }
 
@@ -890,6 +983,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     } else {
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        V8::AdjustAmountOfExternalAllocatedMemory(closure->m->estimate_map_size());
     }
 
     if (try_catch.HasCaught()) {
@@ -1037,7 +1131,7 @@ Handle<Value> Map::render(const Arguments& args)
           << m->active()
           << " other thread(s) which is not allowed."
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
-        std::cerr << s.str() << "\n";
+        std::clog << s.str() << "\n";
     }
 
     // parse options
@@ -1454,8 +1548,6 @@ void Map::EIO_RenderFile(uv_work_t* req)
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-            // causes hang with node v0.6.0
-            //V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
             mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im);
             ren.apply();
 
@@ -1686,7 +1778,6 @@ Handle<Value> Map::renderSync(const Arguments& args)
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
-        V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
         mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
         ren.apply();
 
@@ -1795,7 +1886,6 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
-            V8::AdjustAmountOfExternalAllocatedMemory(4 * im.width() * im.height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
             ren.apply();
 
@@ -1849,7 +1939,7 @@ Handle<Value> Map::render_grid(const Arguments& args)
           << m->active()
           << " other thread(s) which is not allowed."
           << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
-        std::cerr << s.str() << "\n";
+        std::clog << s.str() << "\n";
         //return ThrowException(Exception::Error(
         //  String::New(s.str().c_str())));
     }

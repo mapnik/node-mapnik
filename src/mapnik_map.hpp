@@ -81,14 +81,19 @@ class Map: public node::ObjectWrap {
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
 
+    static Handle<Value> size(const Arguments &args);
+
     void acquire();
     void release();
     int active() const;
+    unsigned int estimate_map_size();
+
 
   private:
     ~Map();
     map_ptr map_;
     int in_use_;
+    unsigned int estimated_size_;
 };
 
 #endif

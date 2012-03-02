@@ -56,6 +56,7 @@ Grid::Grid(grid_ptr this_) :
 
 Grid::~Grid()
 {
+    V8::AdjustAmountOfExternalAllocatedMemory(-4 * this_->width() * this_->height());
 }
 
 Handle<Value> Grid::New(const Arguments& args)
