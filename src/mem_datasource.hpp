@@ -17,7 +17,6 @@ using namespace node;
 #include <mapnik/feature_factory.hpp>
 
 // boost
-#include <boost/utility.hpp>
 #include <boost/scoped_ptr.hpp>
 
 // stl
@@ -91,7 +90,7 @@ size_t js_datasource::size() const
 }
 
 
-class js_featureset : public mapnik::Featureset, private boost::noncopyable
+class js_featureset : public mapnik::Featureset
 {
 public:
     js_featureset( const mapnik::query& q, const js_datasource* ds)
