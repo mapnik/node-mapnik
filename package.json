@@ -2,7 +2,7 @@
   "name"          : "mapnik",
   "description"   : "Tile rendering library for node",
   "url"           : "http://github.com/mapnik/node-mapnik",
-  "version"       : "0.6.6",
+  "version"       : "0.6.7",
   "main"          : "./lib/mapnik.js",
   "keywords"      : ["map", "graphics", "canvas", "tile", "mapnik", "carto"],
    "repositories" : [
@@ -31,7 +31,7 @@
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">=0.6.0 <0.7" },
+  "engines"       : { "node": ">=0.6.0" },
   "scripts"       : {
       "install" : "node-waf -v configure build",
       "pretest" : "npm install --dev",
