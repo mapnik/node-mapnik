@@ -39,7 +39,7 @@ exports['async render'] = function(beforeExit, assert) {
 exports['async render loop'] = function(beforeExit, assert) {
 
     var rendered = 0;
-    var expected = 100;
+    var expected = 10;
 
     var render = function() {
         var map = new mapnik.Map(256, 256);
@@ -56,15 +56,16 @@ exports['async render loop'] = function(beforeExit, assert) {
         });
     };
 
-    for (var i = 0; i < expected; ++i) {
-        render();
-    }
-
-    for (var i = 0; i < expected; ++i) {
-        render();
-    }
+    var loop = function() {
+	    for (var i = 0; i < expected; ++i) {
+            render();
+        }
+	}
+	loop();
+	loop();
+	loop();
 
     beforeExit(function() {
-        assert.equal(rendered, expected*2);
+        assert.equal(rendered, expected*3);
     });
 };
