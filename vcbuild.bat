@@ -2,10 +2,10 @@ set PROJ_LIB=C:\dev2\proj\nad
 set GDAL_DATA=C:\dev2\gdal\data
 set MAPNIK_INPUT_PLUGINS="c:\\mapnik-2.0\\lib\\mapnik\\input"
 set MAPNIK_FONTS="c:\\mapnik-2.0\\lib\\mapnik\\fonts"
-set target=Build
-set config=Release
+rd /q /s Default
+del lib\\_mapnik.node
 python gen_settings.py
-rm build.sln
+del build.sln
 python gyp/gyp build.gyp --depth=. -f msvs -G msvs_version=2010
 rem msbuild build.sln /t:%target% /p:Configuration=%config%
 msbuild build.sln
