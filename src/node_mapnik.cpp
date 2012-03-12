@@ -29,6 +29,8 @@
 
 // mapnik
 #include <mapnik/version.hpp>
+#include <mapnik/marker_cache.hpp>
+#include <mapnik/mapped_memory_cache.hpp>
 
 // boost
 #include <boost/version.hpp>
@@ -64,6 +66,14 @@ static std::string format_version(int version)
     return s.str();
 }
 
+static Handle<Value> clearCache(const Arguments& args)
+{
+    HandleScope scope;
+    mapnik::marker_cache::instance()->clear();
+    mapnik::mapped_memory_cache::instance()->clear();
+    return Undefined();
+}
+
 extern "C" {
 
   static void InitMapnik (Handle<Object> target)
@@ -74,6 +84,7 @@ extern "C" {
     NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
     NODE_SET_METHOD(target, "fonts", node_mapnik::available_font_faces);
     NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
+    NODE_SET_METHOD(target, "clearCache", clearCache);
     NODE_SET_METHOD(target, "gc", gc);
 
     // Classes
