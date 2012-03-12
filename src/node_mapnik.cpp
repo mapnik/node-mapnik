@@ -30,9 +30,6 @@
 // mapnik
 #include <mapnik/version.hpp>
 
-// provides MAPNIK_SUPPORTS_GRID_RENDERER
-#include <mapnik/config.hpp>
-
 // boost
 #include <boost/version.hpp>
 
@@ -112,21 +109,17 @@ extern "C" {
 
     // built in support
     Local<Object> supports = Object::New();
+
     #if defined(HAVE_CAIRO)
       supports->Set(String::NewSymbol("cairo"), Boolean::New(true));
     #else
       supports->Set(String::NewSymbol("cairo"), False());
     #endif
+
     #if defined(HAVE_JPEG)
       supports->Set(String::NewSymbol("jpeg"), Boolean::New(true));
     #else
       supports->Set(String::NewSymbol("jpeg"), False());
-    #endif
-    #if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
-      supports->Set(String::NewSymbol("grid"), Boolean::New(true));
-    #else
-      #warning("you are building against a version of mapnik2 without grid_renderer support, upgrading to at least >= r2898 of mapnik trunk/mapnik2 is required for grid rendering support")
-      supports->Set(String::NewSymbol("grid"), False());
     #endif
     target->Set(String::NewSymbol("supports"), supports);
 

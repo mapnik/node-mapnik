@@ -4,14 +4,9 @@
 
 // mapnik
 
-// provides MAPNIK_SUPPORTS_GRID_RENDERER
-#include <mapnik/config.hpp>
-
 // mapnik renderers
 #include <mapnik/agg_renderer.hpp>
-#if defined(MAPNIK_SUPPORTS_GRID_RENDERER)
 #include <mapnik/grid/grid_renderer.hpp>
-#endif
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_renderer.hpp>
 #endif
