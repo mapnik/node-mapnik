@@ -30,9 +30,9 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
         meta->Set(String::NewSymbol("srs"), String::New(layer.srs().c_str()));
     }
 
-    if ( !layer.isActive())
+    if ( !layer.active())
     {
-        meta->Set(String::NewSymbol("status"), Boolean::New(layer.isActive()));
+        meta->Set(String::NewSymbol("status"), Boolean::New(layer.active()));
     }
 
     if ( layer.clear_label_cache())
@@ -40,19 +40,19 @@ static void layer_as_json(Local<Object> meta, const mapnik::layer & layer)
         meta->Set(String::NewSymbol("clear_label_cache"), Boolean::New(layer.clear_label_cache()));
     }
 
-    if ( layer.getMinZoom() )
+    if ( layer.min_zoom() > 0)
     {
-        meta->Set(String::NewSymbol("minzoom"), Number::New(layer.getMinZoom()));
+        meta->Set(String::NewSymbol("minzoom"), Number::New(layer.min_zoom()));
     }
 
-    if ( layer.getMaxZoom() != std::numeric_limits<double>::max() )
+    if ( layer.max_zoom() != std::numeric_limits<double>::max() )
     {
-        meta->Set(String::NewSymbol("maxzoom"), Number::New(layer.getMaxZoom()));
+        meta->Set(String::NewSymbol("maxzoom"), Number::New(layer.max_zoom()));
     }
 
-    if ( layer.isQueryable())
+    if ( layer.queryable())
     {
-        meta->Set(String::NewSymbol("queryable"), Boolean::New(layer.isQueryable()));
+        meta->Set(String::NewSymbol("queryable"), Boolean::New(layer.queryable()));
     }
 
     std::vector<std::string> const& style_names = layer.styles();
