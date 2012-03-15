@@ -220,20 +220,17 @@ void Layer::set_prop(Local<String> property,
             ThrowException(Exception::TypeError(String::New("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected")));
         } else {
             if (Datasource::constructor->HasInstance(obj)) {
-                JSDatasource *d = ObjectWrap::Unwrap<JSDatasource>(obj);
-                // TODO - addLayer should be add_layer in mapnik
+                Datasource *d = ObjectWrap::Unwrap<Datasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
             else if (JSDatasource::constructor->HasInstance(obj))
             {
                 JSDatasource *d = ObjectWrap::Unwrap<JSDatasource>(obj);
-                // TODO - addLayer should be add_layer in mapnik
                 l->layer_->set_datasource(d->get());
             }
             else if (MemoryDatasource::constructor->HasInstance(obj))
             {
                 MemoryDatasource *d = ObjectWrap::Unwrap<MemoryDatasource>(obj);
-                // TODO - addLayer should be add_layer in mapnik
                 l->layer_->set_datasource(d->get());
             }
             else
