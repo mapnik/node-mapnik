@@ -21,6 +21,10 @@ exports['test constants'] = function(beforeExit, assert) {
     assert.ok(mapnik.versions.boost);
     assert.ok(mapnik.versions.boost_number);
 
+    assert.ok(mapnik.Geometry.Point,1);
+    assert.ok(mapnik.Geometry.LineString,2);
+    assert.ok(mapnik.Geometry.Polygon,3);
+
     // make sure we have some
     assert.ok(mapnik.datasources().length > 0);
 };

@@ -21,9 +21,12 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
     //NODE_SET_PROTOTYPE_METHOD(constructor, "area", area);
     
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::Point);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::LineString);
-    NODE_DEFINE_CONSTANT(constructor->GetFunction(),mapnik::Polygon);
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                "Point",mapnik::Point)
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                "LineString",mapnik::LineString)
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                "Polygon",mapnik::Polygon)
 
     // This *must* go after the ATTR setting
     /*

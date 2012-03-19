@@ -28,6 +28,13 @@
 #define ATTR(t, name, get, set) \
   t->InstanceTemplate()->SetAccessor(String::NewSymbol(name), get, set);
 
+#define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
+  (target)->Set(v8::String::NewSymbol(name),                            \
+                v8::Integer::New(constant),                             \
+                static_cast<v8::PropertyAttribute>(                     \
+                    v8::ReadOnly|v8::DontDelete));
+
+
 using namespace v8;
 using namespace node;
 
