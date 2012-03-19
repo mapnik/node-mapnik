@@ -30,41 +30,16 @@ def write_mapnik_settings(fonts='undefined',input_plugins='undefined'):
         settings_template = "var path = require('path');\n" + settings_template
     open(settings,'w').write(settings_template % (fonts,input_plugins))
 
-def ensure_min_mapnik_revision(conf,revision=3055):
-    # mapnik-config was basically written for node-mapnik
-    # so a variety of kinks mean that we need a very
-    # recent version for things to work properly
-    # http://trac.mapnik.org/log/trunk/utils/mapnik-config
-
-    #TODO - if we require >=2503 then we can check return type not "Usage" string...
-    if popen("%s --libs" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage') \
-      or popen("%s --input-plugins" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage') \
-      or popen("%s --svn-revision" % conf.env['MAPNIK_CONFIG']).read().startswith('Usage'):
-        Utils.pprint('YELLOW', 'mapnik-config version is too old, mapnik > %s is required for auto-configuring build' % revision)
-        conf.fatal('please upgrade to mapnik trunk')
-
-    failed = False
-    found_ver = None
-
-    try:
-        found_ver = int(popen("%s --svn-revision" % conf.env['MAPNIK_CONFIG']).readline().strip())
-        if not found_ver >= revision:
-            failed = True
-            print found_ver,revision
-        else:
-            Utils.pprint('GREEN', 'Sweet, found viable mapnik svn-revision r%s (via mapnik-config)' % (found_ver))
-    except Exception,e:
-        print e
-        failed = True
-
-    if failed:
-        if found_ver:
-            msg = 'mapnik-config version is too old, mapnik > r%s is required for auto-configuring build, found only r%s' % (revision,found_ver)
-        else:
-            msg = 'mapnik-config version is too old, mapnik > r%s is required for auto-configuring build' % revision
-
-        Utils.pprint('YELLOW', msg)
-        conf.fatal('please upgrade to mapnik trunk')
+def ensure_min_mapnik_version(conf,min_version='2.1.0'):
+    found_version = popen("%s --version" % conf.env['MAPNIK_CONFIG']).readline().strip().replace('-pre','')
+    f_parts = found_version.split('.')
+    found_version_num = (f_parts[0]*100000)+(f_parts[1]*100)+f_parts[2]
+    m_parts = min_version.split('.')
+    min_version_num = (m_parts[0]*100000)+(m_parts[1]*100)+m_parts[2]
+    if found_version_num == min_version_num:
+        Utils.pprint('GREEN', 'Sweet, found compatible mapnik version %s (via mapnik-config)' % (found_version))
+    else:
+        conf.fatal("Incompatible libmapnik version found, this 'node-mapnik' requires 'mapnik %s'" % min_version)
 
 
 def set_options(opt):
@@ -87,8 +62,7 @@ def configure(conf):
     if not mapnik_config:
         conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.x provides this tool.\n')
         
-    # this breaks with git cloned mapnik repos, so skip it
-    #ensure_min_mapnik_revision(conf)
+    ensure_min_mapnik_version(conf)
 
     # todo - check return value of popen otherwise we can end up with
     # return of 'Usage: mapnik-config [OPTION]'
