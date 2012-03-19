@@ -29,6 +29,9 @@ class Image: public node::ObjectWrap {
     static Handle<Value> open(const Arguments &args);
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> painted(const Arguments &args);
+    static Handle<Value> composite(const Arguments &args);
+    static void EIO_Composite(uv_work_t* req);
+    static void EIO_AfterComposite(uv_work_t* req);
 
     static Handle<Value> get_prop(Local<String> property,
                          const AccessorInfo& info);

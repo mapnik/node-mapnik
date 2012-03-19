@@ -7,6 +7,7 @@
 #include <mapnik/image_util.hpp>
 #include <mapnik/graphics.hpp>
 #include <mapnik/image_reader.hpp>
+#include <mapnik/image_compositing.hpp>
 
 // boost
 #include <boost/make_shared.hpp>
@@ -39,6 +40,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -135,7 +137,6 @@ void Image::set_prop(Local<String> property,
         im->get()->set_background(*c->get());
     }
 }
-
 
 Handle<Value> Image::painted(const Arguments& args)
 {
@@ -331,7 +332,6 @@ Handle<Value> Image::encode(const Arguments& args)
     encode_image_baton_t *closure = new encode_image_baton_t();
     closure->request.data = closure;
     closure->im = im;
-    closure->image = im->this_;
     closure->format = format;
     closure->palette = palette;
     closure->error = false;
@@ -350,11 +350,11 @@ void Image::EIO_Encode(uv_work_t* req)
     try {
         if (closure->palette.get())
         {
-            closure->result = save_to_string(*(closure->image), closure->format, *closure->palette);
+            closure->result = save_to_string(*(closure->im->this_), closure->format, *closure->palette);
         }
         else
         {
-            closure->result = save_to_string(*(closure->image), closure->format);
+            closure->result = save_to_string(*(closure->im->this_), closure->format);
         }
     }
     catch (std::exception & ex)
@@ -465,4 +465,103 @@ Handle<Value> Image::save(const Arguments& args)
     return Undefined();
 }
 
-            
+typedef struct {
+    uv_work_t request;
+    Image* im1;
+    Image* im2;
+    mapnik::composite_mode_e mode;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} composite_image_baton_t;
+
+Handle<Value> Image::composite(const Arguments& args)
+{
+    HandleScope scope;
+
+    // accept custom format
+    if (!args.Length() >= 2){
+          return ThrowException(Exception::TypeError(
+            String::New("requires two arguments: an image mask and a compositeOp")));
+    }
+
+    if (!args[0]->IsObject()) {
+      return ThrowException(Exception::TypeError(
+        String::New("first argument must be an image mask")));
+    }
+
+    if (!args[1]->IsNumber()) {
+      return ThrowException(Exception::TypeError(
+        String::New("second argument must be an compositeOp value")));
+    }
+
+    Local<Object> im2 = args[0]->ToObject();
+    if (im2->IsNull() || im2->IsUndefined() || !Image::constructor->HasInstance(im2))
+      return ThrowException(Exception::TypeError(String::New("mapnik.Image expected as first arg")));
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                  String::New("last argument must be a callback function")));
+
+    composite_image_baton_t *closure = new composite_image_baton_t();
+    closure->request.data = closure;
+    closure->im1 = ObjectWrap::Unwrap<Image>(args.This());
+    closure->im2 = ObjectWrap::Unwrap<Image>(im2);
+    closure->mode = static_cast<mapnik::composite_mode_e>(args[1]->IntegerValue());
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, EIO_AfterComposite);
+    uv_ref(uv_default_loop());
+    closure->im1->Ref();
+    closure->im2->Ref();
+    return Undefined();
+}
+
+void Image::EIO_Composite(uv_work_t* req)
+{
+    composite_image_baton_t *closure = static_cast<composite_image_baton_t *>(req->data);
+
+    try
+    {
+        mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode);
+    }
+    catch (std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "unknown exception happened when compositing image: please file bug report";
+    }
+}
+
+void Image::EIO_AfterComposite(uv_work_t* req)
+{
+    HandleScope scope;
+
+    composite_image_baton_t *closure = static_cast<composite_image_baton_t *>(req->data);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im1->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    uv_unref(uv_default_loop());
+    closure->im1->Unref();
+    closure->im2->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}

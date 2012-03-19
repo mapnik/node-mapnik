@@ -31,6 +31,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/mapped_memory_cache.hpp>
+#include <mapnik/image_compositing.hpp>
 
 // boost
 #include <boost/version.hpp>
@@ -133,6 +134,39 @@ extern "C" {
       supports->Set(String::NewSymbol("jpeg"), False());
     #endif
     target->Set(String::NewSymbol("supports"), supports);
+
+    Local<Object> composite_ops = Object::New();
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_out", mapnik::dst_over)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst", mapnik::dst)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_over", mapnik::src_over)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_over", mapnik::dst_over)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_in", mapnik::src_in)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_in", mapnik::dst_in)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_out", mapnik::src_out)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_out", mapnik::dst_out)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_atop", mapnik::src_atop)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_atop", mapnik::dst_atop)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "xor", mapnik::_xor)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "plus", mapnik::plus)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "minus", mapnik::minus)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "multiply", mapnik::multiply)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "screen", mapnik::screen)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "overlay", mapnik::overlay)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "darken", mapnik::darken)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "lighten", mapnik::lighten)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color_dodge", mapnik::color_dodge)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color_burn", mapnik::color_burn)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hard_light", mapnik::hard_light)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "soft_light", mapnik::soft_light)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "difference", mapnik::difference)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "exclusion", mapnik::exclusion)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "contrast", mapnik::contrast)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert", mapnik::invert)
+    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert_rgb", mapnik::invert_rgb)
+
+    target->Set(String::NewSymbol("compositeOp"), composite_ops);
 
   }
 
