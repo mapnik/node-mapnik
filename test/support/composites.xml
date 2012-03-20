@@ -2,8 +2,8 @@
 
     <!--
     
-    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one test/support/a.png
-    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l two test/support/b.png
+    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one -f png8:m=h:c=64 test/support/a.png
+    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l two -f png8:m=h:c=64 test/support/b.png
     
     -->
 

@@ -30,8 +30,8 @@ uninstall:
 	@node-waf uninstall
 
 test-tmp:
-	@rm -rf tests/tmp
-	@mkdir -p tests/tmp
+	@rm -rf test/tmp
+	@mkdir -p test/tmp
 
 ifndef only
 test: test-tmp
