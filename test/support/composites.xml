@@ -1,0 +1,60 @@
+<Map srs="+init=epsg:4326">
+
+    <!--
+    
+    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one test/support/a.png
+    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l two test/support/b.png
+    
+    -->
+
+    <Style name="one">
+        <Rule>
+            <MarkersSymbolizer width="80" opacity=".5" fill="blue" allow-overlap="true"
+              stroke-width="20" stroke="green" stroke-opacity=".5"
+            />
+        </Rule>
+    </Style>
+
+    <Style name="one_b">
+        <Rule>
+            <MarkersSymbolizer width="80" fill="orange" stroke-width="0" allow-overlap="true"/>
+        </Rule>
+    </Style>
+
+    <Layer name="one" srs="+init=epsg:4326">
+        <StyleName>one_b</StyleName>
+        <Datasource>
+            <Parameter name="type">csv</Parameter>
+            <Parameter name="inline">
+                x,y,name
+                -35,0,one
+            </Parameter>
+        </Datasource>
+    </Layer>
+
+    <Style name="two">
+        <Rule>
+            <MarkersSymbolizer width="80" opacity=".5" fill="red" allow-overlap="true"
+              stroke-width="20" stroke="yellow" stroke-opacity=".5"            
+            />
+        </Rule>
+    </Style>
+
+    <Style name="two_b">
+        <Rule>
+            <MarkersSymbolizer width="80" fill="purple" stroke-width="0" allow-overlap="true"/>
+        </Rule>
+    </Style>
+
+    <Layer name="two" srs="+init=epsg:4326">
+        <StyleName>two_b</StyleName>
+        <Datasource>
+            <Parameter name="type">csv</Parameter>
+            <Parameter name="inline">
+                x,y,name
+                35,0,one
+            </Parameter>
+        </Datasource>
+    </Layer>
+
+</Map>

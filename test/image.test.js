@@ -89,4 +89,29 @@ exports['test images'] = function(beforeExit, assert) {
         assert.equal(im_blank3.background, undefined);
     });
 
+    var gray = new mapnik.Image(256,256);
+    gray.background = new mapnik.Color('white');
+    gray.setGrayScaleToAlpha();
+    var gray_view = gray.view(0,0,gray.width(),gray.height());
+    assert.equal(gray_view.isSolid(),true);
+    var pixel = gray_view.getPixel(0,0);
+    assert.equal(pixel.r,255);
+    assert.equal(pixel.g,255);
+    assert.equal(pixel.b,255);
+    assert.equal(pixel.a,255);
+
+    gray.background = new mapnik.Color('black');
+    gray.setGrayScaleToAlpha();
+    var pixel2 = gray_view.getPixel(0,0);
+    assert.equal(pixel2.r,255);
+    assert.equal(pixel2.g,255);
+    assert.equal(pixel2.b,255);
+    assert.equal(pixel2.a,0);
+
+    gray.setGrayScaleToAlpha(new mapnik.Color('green'));
+    var pixel3 = gray_view.getPixel(0,0);
+    assert.equal(pixel3.r,0);
+    assert.equal(pixel3.g,128);
+    assert.equal(pixel3.b,0);
+    assert.equal(pixel3.a,255);
 };

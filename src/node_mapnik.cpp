@@ -136,7 +136,6 @@ extern "C" {
     target->Set(String::NewSymbol("supports"), supports);
 
     Local<Object> composite_ops = Object::New();
-    NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_out", mapnik::dst_over)
     NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
     NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
     NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst", mapnik::dst)

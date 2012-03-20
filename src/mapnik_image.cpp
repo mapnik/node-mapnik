@@ -37,6 +37,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "view", view);
     NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "setGrayScaleToAlpha", setGrayScaleToAlpha);
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
@@ -136,6 +137,51 @@ void Image::set_prop(Local<String> property,
         Color *c = ObjectWrap::Unwrap<Color>(obj);
         im->get()->set_background(*c->get());
     }
+}
+
+Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
+{
+    HandleScope scope;
+
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    if (args.Length() == 0) {
+        im->this_->set_grayscale_to_alpha();
+    } else {
+        if (!args[0]->IsObject())
+          return ThrowException(Exception::TypeError(
+            String::New("optional second arg must be a mapnik.Color")));
+
+        Local<Object> obj = args[0]->ToObject();
+
+        if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
+          return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as second arg")));
+
+        Color * color = ObjectWrap::Unwrap<Color>(obj);
+
+        mapnik::image_data_32 & data = im->this_->data();
+        for (unsigned int y = 0; y < data.height(); ++y)
+        {
+            unsigned int* row_from = data.getRow(y);
+            for (unsigned int x = 0; x < data.width(); ++x)
+            {
+                unsigned rgba = row_from[x];
+                // TODO - big endian support
+                unsigned r = rgba & 0xff;
+                unsigned g = (rgba >> 8 ) & 0xff;
+                unsigned b = (rgba >> 16) & 0xff;
+
+                // magic numbers for grayscale
+                unsigned a = (int)((r * .3) + (g * .59) + (b * .11));
+
+                row_from[x] = (a << 24) |
+                               (color->get()->blue() << 16) |
+                               (color->get()->green() << 8) |
+                               (color->get()->red()) ;
+            }
+        }
+    }
+
+    return Undefined();
 }
 
 Handle<Value> Image::painted(const Arguments& args)
