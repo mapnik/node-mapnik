@@ -23,6 +23,7 @@ class Image: public node::ObjectWrap {
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
+    static Handle<Value> setGrayScaleToAlpha(const Arguments &args);
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> view(const Arguments &args);
