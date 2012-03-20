@@ -39,7 +39,7 @@ def ensure_min_mapnik_version(conf,min_version='2.1.0'):
     if found_version_num == min_version_num:
         Utils.pprint('GREEN', 'Sweet, found compatible mapnik version %s (via mapnik-config)' % (found_version))
     else:
-        conf.fatal("Incompatible libmapnik version found, this 'node-mapnik' requires 'mapnik %s'" % min_version)
+        Utils.pprint('RED',"Warning: Incompatible libmapnik version found, this 'node-mapnik' requires 'mapnik %s'" % min_version)
 
 
 def set_options(opt):
