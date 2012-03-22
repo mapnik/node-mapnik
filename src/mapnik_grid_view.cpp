@@ -117,7 +117,7 @@ Handle<Value> GridView::isSolid(const Arguments& args)
             }
         }
     }
-    return scope.Close(Boolean::New(true));
+    return scope.Close(True());
 }
 
 Handle<Value> GridView::getPixel(const Arguments& args)

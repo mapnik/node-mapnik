@@ -106,7 +106,7 @@ Handle<Value> ImageView::isSolid(const Arguments& args)
             }
         }
     }
-    return scope.Close(Boolean::New(true));
+    return scope.Close(True());
 }
 
 
