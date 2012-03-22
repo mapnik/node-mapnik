@@ -120,6 +120,7 @@ extern "C" {
 
     // built in support
     Local<Object> supports = Object::New();
+    supports->Set(String::NewSymbol("grid"), True());
 
     #if defined(HAVE_CAIRO)
       supports->Set(String::NewSymbol("cairo"), Boolean::New(true));
