@@ -320,7 +320,6 @@ Handle<Value> Image::encodeSync(const Arguments& args)
 typedef struct {
     uv_work_t request;
     Image* im;
-    boost::shared_ptr<mapnik::image_32> image;
     std::string format;
     palette_ptr palette;
     bool error;
