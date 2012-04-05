@@ -1,10 +1,8 @@
 <Map srs="+init=epsg:4326">
 
     <!--
-    
     nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one -f png8:m=h:c=64 test/support/a.png
     nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l two -f png8:m=h:c=64 test/support/b.png
-    
     -->
 
     <Style name="one">
@@ -35,7 +33,7 @@
     <Style name="two">
         <Rule>
             <MarkersSymbolizer width="80" opacity=".5" fill="red" allow-overlap="true"
-              stroke-width="20" stroke="yellow" stroke-opacity=".5"            
+              stroke-width="20" stroke="yellow" stroke-opacity=".5"
             />
         </Rule>
     </Style>
