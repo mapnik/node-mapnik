@@ -121,15 +121,16 @@ extern "C" {
 
     // built in support
     Local<Object> supports = Object::New();
+    supports->Set(String::NewSymbol("grid"), True());
 
     #if defined(HAVE_CAIRO)
-      supports->Set(String::NewSymbol("cairo"), Boolean::New(true));
+      supports->Set(String::NewSymbol("cairo"), True());
     #else
       supports->Set(String::NewSymbol("cairo"), False());
     #endif
 
     #if defined(HAVE_JPEG)
-      supports->Set(String::NewSymbol("jpeg"), Boolean::New(true));
+      supports->Set(String::NewSymbol("jpeg"), True());
     #else
       supports->Set(String::NewSymbol("jpeg"), False());
     #endif

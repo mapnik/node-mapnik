@@ -91,7 +91,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             mapnik::feature_ptr fp = fs->next();
             if (fp) {
     
-                description->Set(String::NewSymbol("has_features"), Boolean::New(true));
+                description->Set(String::NewSymbol("has_features"), True());
                 if (fp->num_geometries() > 0)
                 {
                     mapnik::geometry_type const& geom = fp->get_geometry(0);
