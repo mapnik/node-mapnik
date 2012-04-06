@@ -24,7 +24,6 @@ class Geometry: public node::ObjectWrap {
     static Handle<Value> fromWKT(const Arguments &args);
     static Handle<Value> extent(const Arguments &args);
     static Handle<Value> type(const Arguments &args);
-    //static Handle<Value> area(const Arguments &args);
 
     Geometry();
     inline geometry_ptr get() { return this_; }
