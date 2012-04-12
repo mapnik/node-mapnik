@@ -17,8 +17,8 @@ void Query::Initialize(Handle<Object> target) {
 }
 
 Query::Query(mapnik::box2d<double> const& box) :
-  ObjectWrap(),
-  this_(boost::make_shared<mapnik::query>(box)) {}
+    ObjectWrap(),
+    this_(boost::make_shared<mapnik::query>(box)) {}
 
 Query::~Query()
 {

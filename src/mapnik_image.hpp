@@ -13,7 +13,7 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::image_32> image_ptr;
 
 class Image: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -35,7 +35,7 @@ class Image: public node::ObjectWrap {
     static void EIO_AfterComposite(uv_work_t* req);
 
     static Handle<Value> get_prop(Local<String> property,
-                         const AccessorInfo& info);
+                                  const AccessorInfo& info);
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
@@ -46,7 +46,7 @@ class Image: public node::ObjectWrap {
     Image(image_ptr this_);
     inline image_ptr get() { return this_; }
 
-  private:
+private:
     ~Image();
     image_ptr this_;
 };

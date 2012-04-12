@@ -22,8 +22,8 @@ void Expression::Initialize(Handle<Object> target) {
 }
 
 Expression::Expression() :
-  ObjectWrap(),
-  this_() {}
+    ObjectWrap(),
+    this_() {}
 
 Expression::~Expression()
 {
@@ -50,21 +50,21 @@ Handle<Value> Expression::New(const Arguments& args)
     {
         if (args.Length() == 1 && args[0]->IsString()){
             e_ptr = mapnik::parse_expression(TOSTR(args[0]),"utf8");
-    
+
         } else {
             return ThrowException(Exception::Error(
-              String::New("invalid arguments: accepts a single argument of string type")));
+                                      String::New("invalid arguments: accepts a single argument of string type")));
         }
     }
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+                                  String::New("unknown exception happened, please file bug")));
     }
 
     if (e_ptr)
@@ -77,7 +77,7 @@ Handle<Value> Expression::New(const Arguments& args)
     else
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+                                  String::New("unknown exception happened, please file bug")));
     }
 
     return Undefined();
@@ -97,7 +97,7 @@ Handle<Value> Expression::evaluate(const Arguments& args)
 
     if (!args.Length() > 0) {
         return ThrowException(Exception::Error(
-          String::New("requires a mapnik.Feature as an argument")));
+                                  String::New("requires a mapnik.Feature as an argument")));
     }
 
     Local<Object> obj = args[0]->ToObject();

@@ -16,7 +16,7 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::projection> proj_ptr;
 
 class Projection: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -27,7 +27,7 @@ class Projection: public node::ObjectWrap {
     explicit Projection(std::string const& name);
     explicit Projection(std::string const& name, std::string const& srs);
 
-  private:
+private:
     ~Projection();
     proj_ptr projection_;
 };

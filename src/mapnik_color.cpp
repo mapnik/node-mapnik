@@ -25,14 +25,14 @@ void Color::Initialize(Handle<Object> target) {
     ATTR(constructor, "g", get_prop, set_prop);
     ATTR(constructor, "b", get_prop, set_prop);
     ATTR(constructor, "a", get_prop, set_prop);
-	
+
 
     target->Set(String::NewSymbol("Color"),constructor->GetFunction());
 }
 
 Color::Color() :
-  ObjectWrap(),
-  this_() {}
+    ObjectWrap(),
+    this_() {}
 
 Color::~Color()
 {
@@ -57,20 +57,20 @@ Handle<Value> Color::New(const Arguments& args)
     color_ptr c_p;
     try
     {
-    
+
         if (args.Length() == 1 && args[0]->IsString()){
-    
+
             c_p = boost::make_shared<mapnik::color>(TOSTR(args[0]));
-    
+
         } else if (args.Length() == 3) {
 
             int r = args[0]->IntegerValue();
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
             c_p = boost::make_shared<mapnik::color>(r,g,b);
-        
+
         } else if (args.Length() == 4) {
-        
+
             int r = args[0]->IntegerValue();
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
@@ -78,9 +78,9 @@ Handle<Value> Color::New(const Arguments& args)
             c_p = boost::make_shared<mapnik::color>(r,g,b,a);
         } else {
             return ThrowException(Exception::Error(
-              String::New("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values")));
+                                      String::New("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values")));
 
-        
+
         }
         // todo allow int,int,int and int,int,int,int contructor
 
@@ -88,12 +88,12 @@ Handle<Value> Color::New(const Arguments& args)
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+                                  String::New("unknown exception happened, please file bug")));
     }
 
     if (c_p)
@@ -106,7 +106,7 @@ Handle<Value> Color::New(const Arguments& args)
     else
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+                                  String::New("unknown exception happened, please file bug")));
     }
 
     return Undefined();
@@ -123,7 +123,7 @@ Handle<Value> Color::New(mapnik::color const& color) {
 
 
 Handle<Value> Color::get_prop(Local<String> property,
-                         const AccessorInfo& info)
+                              const AccessorInfo& info)
 {
     HandleScope scope;
     Color* c = ObjectWrap::Unwrap<Color>(info.This());
@@ -135,20 +135,20 @@ Handle<Value> Color::get_prop(Local<String> property,
     else if (a == "g")
         return scope.Close(Integer::New(c->get()->green()));
     else if (a == "b")
-        return scope.Close(Integer::New(c->get()->blue()));    
+        return scope.Close(Integer::New(c->get()->blue()));
     return Undefined();
 }
 
 void Color::set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info)
+                     Local<Value> value,
+                     const AccessorInfo& info)
 {
     HandleScope scope;
     Color* c = ObjectWrap::Unwrap<Color>(info.This());
     std::string a = TOSTR(property);
     if (!value->IsNumber())
         ThrowException(Exception::TypeError(
-          String::New("color channel value must be an integer")));
+                           String::New("color channel value must be an integer")));
     if (a == "a") {
         c->get()->set_alpha(value->IntegerValue());
     } else if (a == "r") {

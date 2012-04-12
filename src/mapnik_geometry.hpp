@@ -17,7 +17,7 @@ using namespace node;
 typedef std::auto_ptr<mapnik::geometry_type> geometry_ptr;
 
 class Geometry: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -28,7 +28,7 @@ class Geometry: public node::ObjectWrap {
     Geometry();
     inline geometry_ptr get() { return this_; }
 
-  private:
+private:
     ~Geometry();
     geometry_ptr this_;
 };

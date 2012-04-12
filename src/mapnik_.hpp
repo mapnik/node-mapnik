@@ -17,7 +17,7 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::•> •_ptr;
 
 class •: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -25,7 +25,7 @@ class •: public node::ObjectWrap {
     •(std::string const& name);
     •(std::string const& name, std::string const& srs);
 
-  private:
+private:
     ~•();
     •_ptr this_;
 };

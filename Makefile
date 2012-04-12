@@ -44,6 +44,10 @@ endif
 fix:
 	@fixjsstyle lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
 
+fixc:
+	@tools/fix_cpp_style.sh
+	@rm src/*.*~
+
 lint:
 	@./node_modules/.bin/jshint lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
 

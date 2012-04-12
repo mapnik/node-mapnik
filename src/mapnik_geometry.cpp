@@ -19,20 +19,20 @@ void Geometry::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
-    
+
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
                                 "Point",mapnik::Point)
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                "LineString",mapnik::LineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                "Polygon",mapnik::Polygon)
+        NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                    "LineString",mapnik::LineString)
+        NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                    "Polygon",mapnik::Polygon)
 
-    target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
+        target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
 }
 
 Geometry::Geometry() :
-  ObjectWrap(),
-  this_() {}
+    ObjectWrap(),
+    this_() {}
 
 Geometry::~Geometry()
 {
@@ -56,7 +56,7 @@ Handle<Value> Geometry::New(const Arguments& args)
     else
     {
         return ThrowException(Exception::Error(
-          String::New("a mapnik.Geometry cannot be created directly - rather you should create mapnik.Path objects which can contain one or more geometries")));
+                                  String::New("a mapnik.Geometry cannot be created directly - rather you should create mapnik.Path objects which can contain one or more geometries")));
     }
     return args.This();
 }
@@ -73,7 +73,7 @@ Handle<Value> Geometry::extent(const Arguments& args)
     a->Set(1, Number::New(e.miny()));
     a->Set(2, Number::New(e.maxx()));
     a->Set(3, Number::New(e.maxy()));
- 
+
     return scope.Close(a);
 }
 

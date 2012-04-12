@@ -18,8 +18,8 @@ void Featureset::Initialize(Handle<Object> target) {
 }
 
 Featureset::Featureset() :
-  ObjectWrap(),
-  this_() {}
+    ObjectWrap(),
+    this_() {}
 
 Featureset::~Featureset()
 {
@@ -42,30 +42,30 @@ Handle<Value> Featureset::New(const Arguments& args)
     }
 
     return ThrowException(Exception::TypeError(
-      String::New("Sorry a Featureset cannot currently be created, only accessed via an existing datasource")));
+                              String::New("Sorry a Featureset cannot currently be created, only accessed via an existing datasource")));
 }
 
 Handle<Value> Featureset::next(const Arguments& args)
 {
     HandleScope scope;
-    
+
     Featureset* fs = ObjectWrap::Unwrap<Featureset>(args.This());
 
     if (fs->this_) {
         mapnik::feature_ptr fp;
         try
         {
-             fp = fs->this_->next();
+            fp = fs->this_->next();
         }
         catch (const std::exception & ex)
         {
             return ThrowException(Exception::Error(
-              String::New(ex.what())));
+                                      String::New(ex.what())));
         }
         catch (...)
         {
             return ThrowException(Exception::Error(
-              String::New("unknown exception happened when accessing a feature with next(), please file bug")));
+                                      String::New("unknown exception happened when accessing a feature with next(), please file bug")));
         }
         if (fp) {
             return scope.Close(Feature::New(fp));

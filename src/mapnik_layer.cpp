@@ -34,16 +34,16 @@ void Layer::Initialize(Handle<Object> target) {
 }
 
 Layer::Layer(std::string const& name) :
-  ObjectWrap(),
-  layer_(boost::make_shared<mapnik::layer>(name)) {}
+    ObjectWrap(),
+    layer_(boost::make_shared<mapnik::layer>(name)) {}
 
 Layer::Layer(std::string const& name, std::string const& srs) :
-  ObjectWrap(),
-  layer_(boost::make_shared<mapnik::layer>(name,srs)) {}
+    ObjectWrap(),
+    layer_(boost::make_shared<mapnik::layer>(name,srs)) {}
 
 Layer::Layer() :
-  ObjectWrap(),
-  layer_() {}
+    ObjectWrap(),
+    layer_() {}
 
 
 Layer::~Layer() {}
@@ -69,7 +69,7 @@ Handle<Value> Layer::New(const Arguments& args)
         if (!args[0]->IsString())
         {
             return ThrowException(Exception::TypeError(
-                String::New("'name' must be a string")));
+                                      String::New("'name' must be a string")));
         }
         Layer* l = new Layer(TOSTR(args[0]));
         l->Wrap(args.This());
@@ -79,7 +79,7 @@ Handle<Value> Layer::New(const Arguments& args)
     {
         if (!args[0]->IsString() || !args[1]->IsString())
             return ThrowException(Exception::TypeError(
-               String::New("'name' and 'srs' must be a strings")));
+                                      String::New("'name' and 'srs' must be a strings")));
         Layer* l = new Layer(TOSTR(args[0]),TOSTR(args[1]));
         l->Wrap(args.This());
         return args.This();
@@ -87,7 +87,7 @@ Handle<Value> Layer::New(const Arguments& args)
     else
     {
         return ThrowException(Exception::TypeError(
-          String::New("please provide Layer name and optional srs")));
+                                  String::New("please provide Layer name and optional srs")));
     }
     return args.This();
 }
@@ -103,7 +103,7 @@ Handle<Value> Layer::New(mapnik::layer const& lay_ref) {
 }
 
 Handle<Value> Layer::get_prop(Local<String> property,
-                         const AccessorInfo& info)
+                              const AccessorInfo& info)
 {
     HandleScope scope;
     Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
@@ -132,8 +132,8 @@ Handle<Value> Layer::get_prop(Local<String> property,
 }
 
 void Layer::set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info)
+                     Local<Value> value,
+                     const AccessorInfo& info)
 {
     HandleScope scope;
     Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
@@ -142,7 +142,7 @@ void Layer::set_prop(Local<String> property,
     {
         if (!value->IsString()) {
             ThrowException(Exception::Error(
-               String::New("'name' must be a string")));
+                               String::New("'name' must be a string")));
         } else {
             l->layer_->set_name(TOSTR(value));
         }
@@ -151,7 +151,7 @@ void Layer::set_prop(Local<String> property,
     {
         if (!value->IsString()) {
             ThrowException(Exception::Error(
-               String::New("'srs' must be a string")));
+                               String::New("'srs' must be a string")));
         } else {
             l->layer_->set_srs(TOSTR(value));
         }
@@ -160,7 +160,7 @@ void Layer::set_prop(Local<String> property,
     {
         if (!value->IsArray())
             ThrowException(Exception::Error(
-               String::New("Must provide an array of style names")));
+                               String::New("Must provide an array of style names")));
         else {
             Local<Array> a = Local<Array>::Cast(value->ToObject());
             // todo - how to check if cast worked?

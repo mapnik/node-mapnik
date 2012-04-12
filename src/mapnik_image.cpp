@@ -1,7 +1,6 @@
 
 // node
 #include <node_buffer.h>
-#include <node_version.h>
 
 // mapnik
 #include <mapnik/image_util.hpp>
@@ -47,23 +46,23 @@ void Image::Initialize(Handle<Object> target) {
 
     // This *must* go after the ATTR setting
     NODE_SET_METHOD(constructor->GetFunction(),
-                  "open",
-                  Image::open);
+                    "open",
+                    Image::open);
 
     target->Set(String::NewSymbol("Image"),constructor->GetFunction());
 }
 
 Image::Image(unsigned int width, unsigned int height) :
-  ObjectWrap(),
-  this_(boost::make_shared<mapnik::image_32>(width,height)) {
-      V8::AdjustAmountOfExternalAllocatedMemory(4 * width * height);
-  }
+    ObjectWrap(),
+    this_(boost::make_shared<mapnik::image_32>(width,height)) {
+    V8::AdjustAmountOfExternalAllocatedMemory(4 * width * height);
+}
 
 Image::Image(image_ptr this_) :
-  ObjectWrap(),
-  this_(this_) {
-      V8::AdjustAmountOfExternalAllocatedMemory(4 * this_->width() * this_->height());
-  }
+    ObjectWrap(),
+    this_(this_) {
+    V8::AdjustAmountOfExternalAllocatedMemory(4 * this_->width() * this_->height());
+    }
 
 Image::~Image()
 {
@@ -90,7 +89,7 @@ Handle<Value> Image::New(const Arguments& args)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
             return ThrowException(Exception::Error(
-               String::New("Image 'width' and 'height' must be a integers")));
+                                      String::New("Image 'width' and 'height' must be a integers")));
         Image* im = new Image(args[0]->IntegerValue(),args[1]->IntegerValue());
         im->Wrap(args.This());
         return args.This();
@@ -98,13 +97,13 @@ Handle<Value> Image::New(const Arguments& args)
     else
     {
         return ThrowException(Exception::Error(
-          String::New("please provide Image width and height")));
+                                  String::New("please provide Image width and height")));
     }
     return Undefined();
 }
 
 Handle<Value> Image::get_prop(Local<String> property,
-                         const AccessorInfo& info)
+                              const AccessorInfo& info)
 {
     HandleScope scope;
     Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
@@ -120,8 +119,8 @@ Handle<Value> Image::get_prop(Local<String> property,
 }
 
 void Image::set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info)
+                     Local<Value> value,
+                     const AccessorInfo& info)
 {
     HandleScope scope;
     Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
@@ -129,8 +128,8 @@ void Image::set_prop(Local<String> property,
     if (a == "background") {
         if (!value->IsObject())
             ThrowException(Exception::TypeError(
-              String::New("mapnik.Color expected")));
-    
+                               String::New("mapnik.Color expected")));
+
         Local<Object> obj = value->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
@@ -148,13 +147,13 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
         im->this_->set_grayscale_to_alpha();
     } else {
         if (!args[0]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be a mapnik.Color")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be a mapnik.Color")));
 
         Local<Object> obj = args[0]->ToObject();
 
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
-          return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as second arg")));
+            return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as second arg")));
 
         Color * color = ObjectWrap::Unwrap<Color>(obj);
 
@@ -174,9 +173,9 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
                 unsigned a = (int)((r * .3) + (g * .59) + (b * .11));
 
                 row_from[x] = (a << 24) |
-                               (color->get()->blue() << 16) |
-                               (color->get()->green() << 8) |
-                               (color->get()->red()) ;
+                    (color->get()->blue() << 16) |
+                    (color->get()->green() << 8) |
+                    (color->get()->red()) ;
             }
         }
     }
@@ -211,12 +210,12 @@ Handle<Value> Image::height(const Arguments& args)
 Handle<Value> Image::open(const Arguments& args)
 {
     HandleScope scope;
-    
+
     if (!args[0]->IsString()) {
-      return ThrowException(Exception::TypeError(String::New(
-              "Argument must be a string")));
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "Argument must be a string")));
     }
-  
+
     try {
         std::string filename = TOSTR(args[0]);
         boost::optional<std::string> type = mapnik::type_from_filename(filename);
@@ -233,15 +232,15 @@ Handle<Value> Image::open(const Arguments& args)
                 return scope.Close(obj);
             }
             return ThrowException(Exception::TypeError(String::New(
-                    ("Failed to load: " + filename).c_str())));
+                                                           ("Failed to load: " + filename).c_str())));
         }
         return ThrowException(Exception::TypeError(String::New(
-                ("Unsupported image format:" + filename).c_str())));
+                                                       ("Unsupported image format:" + filename).c_str())));
     }
     catch (std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
 
 }
@@ -251,15 +250,15 @@ Handle<Value> Image::encodeSync(const Arguments& args)
     HandleScope scope;
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
-    
+
     std::string format = "png";
     palette_ptr palette;
-    
+
     // accept custom format
     if (args.Length() >= 1){
         if (!args[0]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'format' must be a string")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
 
@@ -267,8 +266,8 @@ Handle<Value> Image::encodeSync(const Arguments& args)
     // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be an options object")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be an options object")));
 
         Local<Object> options = args[1]->ToObject();
 
@@ -276,13 +275,13 @@ Handle<Value> Image::encodeSync(const Arguments& args)
         {
             Local<Value> format_opt = options->Get(String::New("palette"));
             if (!format_opt->IsObject())
-              return ThrowException(Exception::TypeError(
-                String::New("'palette' must be an object")));
-            
+                return ThrowException(Exception::TypeError(
+                                          String::New("'palette' must be an object")));
+
             Local<Object> obj = format_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
-    
+                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
             palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
@@ -297,23 +296,18 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             s = save_to_string(*(im->this_), format);
         }
 
-        #if NODE_VERSION_AT_LEAST(0,3,0)
         node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
-        #else
-        node::Buffer *retbuf = Buffer::New(s.size());
-        memcpy(retbuf->data(), s.data(), s.size());
-        #endif
         return scope.Close(retbuf->handle_);
     }
     catch (std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened when encoding image: please file bug report")));
+                                  String::New("unknown exception happened when encoding image: please file bug report")));
     }
 }
 
@@ -340,16 +334,16 @@ Handle<Value> Image::encode(const Arguments& args)
     // accept custom format
     if (args.Length() >= 1){
         if (!args[0]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'format' must be a string")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
 
     // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be an options object")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be an options object")));
 
         Local<Object> options = args[1]->ToObject();
 
@@ -357,13 +351,13 @@ Handle<Value> Image::encode(const Arguments& args)
         {
             Local<Value> format_opt = options->Get(String::New("palette"));
             if (!format_opt->IsObject())
-              return ThrowException(Exception::TypeError(
-                String::New("'palette' must be an object")));
-            
+                return ThrowException(Exception::TypeError(
+                                          String::New("'palette' must be an object")));
+
             Local<Object> obj = format_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-              return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
-    
+                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
             palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
@@ -372,7 +366,7 @@ Handle<Value> Image::encode(const Arguments& args)
     Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
-                  String::New("last argument must be a callback function")));
+                                  String::New("last argument must be a callback function")));
 
     encode_image_baton_t *closure = new encode_image_baton_t();
     closure->request.data = closure;
@@ -425,19 +419,16 @@ void Image::EIO_AfterEncode(uv_work_t* req)
     if (closure->error) {
         Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-    } else {
-        #if NODE_VERSION_AT_LEAST(0,3,0)
+    }
+    else
+    {
         node::Buffer *retbuf = Buffer::New((char*)closure->result.data(),closure->result.size());
-        #else
-        node::Buffer *retbuf = Buffer::New(closure->result.size());
-        memcpy(retbuf->data(), closure->result.data(), closure->result.size());
-        #endif
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
     if (try_catch.HasCaught()) {
-      FatalException(try_catch);
+        FatalException(try_catch);
     }
 
     uv_unref(uv_default_loop());
@@ -452,8 +443,8 @@ Handle<Value> Image::view(const Arguments& args)
 
     if ( (!args.Length() == 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
         return ThrowException(Exception::TypeError(
-          String::New("requires 4 integer arguments: x, y, width, height")));
-    
+                                  String::New("requires 4 integer arguments: x, y, width, height")));
+
     // TODO parse args
     unsigned x = args[0]->IntegerValue();
     unsigned y = args[1]->IntegerValue();
@@ -470,24 +461,24 @@ Handle<Value> Image::save(const Arguments& args)
 
     if (!args.Length() >= 1 || !args[0]->IsString()){
         return ThrowException(Exception::TypeError(
-          String::New("filename required")));
+                                  String::New("filename required")));
     }
-    
+
     std::string filename = TOSTR(args[0]);
-    
+
     std::string format("");
-    
+
     if (args.Length() >= 2) {
         if (!args[1]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("both 'filename' and 'format' arguments must be strings")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("both 'filename' and 'format' arguments must be strings")));
 
         format = mapnik::guess_type(TOSTR(args[1]));
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << filename << "\n";
             return ThrowException(Exception::Error(
-                String::New(s.str().c_str())));
+                                      String::New(s.str().c_str())));
         }
     }
 
@@ -499,14 +490,14 @@ Handle<Value> Image::save(const Arguments& args)
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::TypeError(
-          String::New("unknown exception happened while saving an image, please submit a bug report")));
+                                  String::New("unknown exception happened while saving an image, please submit a bug report")));
     }
-    
+
     return Undefined();
 }
 
@@ -526,29 +517,29 @@ Handle<Value> Image::composite(const Arguments& args)
 
     // accept custom format
     if (!args.Length() >= 2){
-          return ThrowException(Exception::TypeError(
-            String::New("requires two arguments: an image mask and a compositeOp")));
+        return ThrowException(Exception::TypeError(
+                                  String::New("requires two arguments: an image mask and a compositeOp")));
     }
 
     if (!args[0]->IsObject()) {
-      return ThrowException(Exception::TypeError(
-        String::New("first argument must be an image mask")));
+        return ThrowException(Exception::TypeError(
+                                  String::New("first argument must be an image mask")));
     }
 
     if (!args[1]->IsNumber()) {
-      return ThrowException(Exception::TypeError(
-        String::New("second argument must be an compositeOp value")));
+        return ThrowException(Exception::TypeError(
+                                  String::New("second argument must be an compositeOp value")));
     }
 
     Local<Object> im2 = args[0]->ToObject();
     if (im2->IsNull() || im2->IsUndefined() || !Image::constructor->HasInstance(im2))
-      return ThrowException(Exception::TypeError(String::New("mapnik.Image expected as first arg")));
+        return ThrowException(Exception::TypeError(String::New("mapnik.Image expected as first arg")));
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
-                  String::New("last argument must be a callback function")));
+                                  String::New("last argument must be a callback function")));
 
     composite_image_baton_t *closure = new composite_image_baton_t();
     closure->request.data = closure;
@@ -601,7 +592,7 @@ void Image::EIO_AfterComposite(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-      FatalException(try_catch);
+        FatalException(try_catch);
     }
 
     uv_unref(uv_default_loop());

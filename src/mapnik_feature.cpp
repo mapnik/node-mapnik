@@ -22,7 +22,7 @@ void Feature::Initialize(Handle<Object> target) {
     constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Feature::New));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Feature"));
-    
+
     NODE_SET_PROTOTYPE_METHOD(constructor, "id", id);
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "attributes", attributes);
@@ -35,16 +35,16 @@ void Feature::Initialize(Handle<Object> target) {
 }
 
 Feature::Feature(mapnik::feature_ptr f) :
-  ObjectWrap(),
-  this_(f) {}
+    ObjectWrap(),
+    this_(f) {}
 
 Feature::Feature(int id) :
-  ObjectWrap(),
-  this_() {
+    ObjectWrap(),
+    this_() {
     // TODO - accept/require context object to reused
     ctx_ = boost::make_shared<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
-  }
+}
 
 Feature::~Feature()
 {
@@ -67,12 +67,12 @@ Handle<Value> Feature::New(const Arguments& args)
     }
 
     // TODO - expose mapnik.Context
-    
+
     if (args.Length() > 1 || args.Length() < 1 || !args[0]->IsNumber()) {
         return ThrowException(Exception::TypeError(
-          String::New("requires one argument: an integer feature id")));
+                                  String::New("requires one argument: an integer feature id")));
     }
-    
+
     Feature* f = new Feature(args[0]->IntegerValue());
     f->Wrap(args.This());
     return args.This();
@@ -108,7 +108,7 @@ Handle<Value> Feature::extent(const Arguments& args)
     a->Set(1, Number::New(e.miny()));
     a->Set(2, Number::New(e.maxx()));
     a->Set(3, Number::New(e.maxy()));
- 
+
     return scope.Close(a);
 }
 
@@ -117,7 +117,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
     HandleScope scope;
 
     Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
-    
+
     Local<Object> feat = Object::New();
 
     mapnik::feature_ptr feature = fp->get();
@@ -128,7 +128,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
         node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
         boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
     }
-    
+
     return scope.Close(feat);
 }
 
@@ -154,7 +154,7 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
             Local<Object> obj = value->ToObject();
             if (Geometry::constructor->HasInstance(obj)) {
                 Geometry* g = ObjectWrap::Unwrap<Geometry>(obj);
-            
+
                 try
                 {
                     std::auto_ptr<mapnik::geometry_type> geom_ptr = g->get();
@@ -163,17 +163,17 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
                         geom_ptr.release();
                     } else {
                         return ThrowException(Exception::Error(
-                          String::New("empty geometry!")));
+                                                  String::New("empty geometry!")));
                     }
                 }
                 catch (const std::exception & ex )
                 {
                     return ThrowException(Exception::Error(
-                      String::New(ex.what())));
+                                              String::New(ex.what())));
                 }
                 catch (...) {
                     return ThrowException(Exception::Error(
-                      String::New("Unknown exception happended - please report bug")));
+                                              String::New("Unknown exception happended - please report bug")));
                 }
             }
         }
@@ -225,11 +225,11 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
             catch (const std::exception & ex )
             {
                 return ThrowException(Exception::Error(
-                  String::New(ex.what())));
+                                          String::New(ex.what())));
             }
             catch (...) {
                 return ThrowException(Exception::Error(
-                  String::New("Unknown exception happended - please report bug")));
+                                          String::New("Unknown exception happended - please report bug")));
             }
         }
     }
@@ -256,11 +256,11 @@ Handle<Value> Feature::toJSON(const Arguments& args)
     if (!generator.generate(json,*(fp->get())))
     {
         return ThrowException(Exception::Error(
-          String::New("Failed to generate GeoJSON")));
+                                  String::New("Failed to generate GeoJSON")));
     }
 #else
     return ThrowException(Exception::Error(
-      String::New("GeoJSON output requires at least boost 1.47 ")));
+                              String::New("GeoJSON output requires at least boost 1.47 ")));
 #endif
 
     return scope.Close(String::New(json.c_str()));

@@ -15,12 +15,12 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > image_view_ptr;
 
 class ImageView: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> New(boost::shared_ptr<mapnik::image_32> image_ptr,
-          unsigned x,unsigned y, unsigned w, unsigned h);
+                             unsigned x,unsigned y, unsigned w, unsigned h);
 
     static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
@@ -38,7 +38,7 @@ class ImageView: public node::ObjectWrap {
     ImageView(image_view_ptr this_);
     inline image_view_ptr get() { return this_; }
 
-  private:
+private:
     ~ImageView();
     image_view_ptr this_;
 };

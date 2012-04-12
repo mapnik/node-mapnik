@@ -9,7 +9,7 @@ using namespace v8;
 using namespace node;
 
 class JSDatasource: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -25,7 +25,7 @@ class JSDatasource: public node::ObjectWrap {
 
     JSDatasource();
 
-  private:
+private:
     ~JSDatasource();
     mapnik::datasource_ptr ds_ptr_;
 };

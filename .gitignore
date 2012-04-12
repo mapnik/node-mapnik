@@ -9,3 +9,4 @@ test/tmp
 lib/_mapnik.node
 lib/mapnik_settings.js
 node_modules/
+src/*.*~

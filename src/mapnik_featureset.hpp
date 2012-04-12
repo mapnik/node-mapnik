@@ -12,16 +12,16 @@ using namespace node;
 typedef mapnik::featureset_ptr fs_ptr;
 
 class Featureset: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> New(mapnik::featureset_ptr fs_ptr);
     static Handle<Value> next(const Arguments &args);
-    
+
     Featureset();
 
-  private:
+private:
     ~Featureset();
     fs_ptr this_;
 };

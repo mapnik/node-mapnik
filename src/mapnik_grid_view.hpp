@@ -14,12 +14,12 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
 class GridView: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> New(boost::shared_ptr<mapnik::grid> grid_ptr,
-          unsigned x,unsigned y, unsigned w, unsigned h);
+                             unsigned x,unsigned y, unsigned w, unsigned h);
 
     static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
@@ -34,7 +34,7 @@ class GridView: public node::ObjectWrap {
     GridView(grid_view_ptr gp);
     inline grid_view_ptr get() { return this_; }
 
-  private:
+private:
     ~GridView();
     grid_view_ptr this_;
 };

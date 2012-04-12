@@ -1,7 +1,6 @@
 
 // node
 #include <node_buffer.h>
-#include <node_version.h>
 
 // mapnik
 #include <mapnik/grid/grid_view.hpp>
@@ -38,8 +37,8 @@ void GridView::Initialize(Handle<Object> target) {
 
 
 GridView::GridView(grid_view_ptr gp) :
-  ObjectWrap(),
-  this_(gp) {}
+    ObjectWrap(),
+    this_(gp) {}
 
 GridView::~GridView()
 {
@@ -66,10 +65,10 @@ Handle<Value> GridView::New(const Arguments& args)
 }
 
 Handle<Value> GridView::New(boost::shared_ptr<mapnik::grid> grid_ptr,
-    unsigned x,
-    unsigned y,
-    unsigned w,
-    unsigned h
+                            unsigned x,
+                            unsigned y,
+                            unsigned w,
+                            unsigned h
     )
 {
     HandleScope scope;
@@ -130,16 +129,16 @@ Handle<Value> GridView::getPixel(const Arguments& args)
 
     if (args.Length() >= 2) {
         if (!args[0]->IsNumber())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'x' must be an integer")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'x' must be an integer")));
         if (!args[1]->IsNumber())
-          return ThrowException(Exception::TypeError(
-            String::New("second arg, 'y' must be an integer")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("second arg, 'y' must be an integer")));
         x = args[0]->IntegerValue();
         y = args[1]->IntegerValue();
     } else {
-          return ThrowException(Exception::TypeError(
-            String::New("must supply x,y to query pixel color")));
+        return ThrowException(Exception::TypeError(
+                                  String::New("must supply x,y to query pixel color")));
     }
 
     GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
@@ -158,25 +157,25 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
     HandleScope scope;
 
     GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
-    
+
     // defaults
     std::string format("utf");
     unsigned int resolution = 4;
     bool add_features = true;
-    
+
     // accept custom format
     if (args.Length() >= 1){
         if (!args[0]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'format' must be a string")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
-    
+
     // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be an options object")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be an options object")));
 
         Local<Object> options = args[1]->ToObject();
 
@@ -184,9 +183,9 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
         {
             Local<Value> bind_opt = options->Get(String::New("resolution"));
             if (!bind_opt->IsNumber())
-              return ThrowException(Exception::TypeError(
-                String::New("'resolution' must be an Integer")));
-    
+                return ThrowException(Exception::TypeError(
+                                          String::New("'resolution' must be an Integer")));
+
             resolution = bind_opt->IntegerValue();
         }
 
@@ -194,19 +193,19 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
         {
             Local<Value> bind_opt = options->Get(String::New("features"));
             if (!bind_opt->IsBoolean())
-              return ThrowException(Exception::TypeError(
-                String::New("'features' must be an Boolean")));
-    
+                return ThrowException(Exception::TypeError(
+                                          String::New("'features' must be an Boolean")));
+
             add_features = bind_opt->BooleanValue();
         }
     }
-    
+
     try {
-    
+
         Local<Array> grid_array = Array::New();
         std::vector<mapnik::grid_view::lookup_type> key_order;
         node_mapnik::grid2utf<mapnik::grid_view>(*g->get(),grid_array,key_order,resolution);
-    
+
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(key_order.size());
         std::vector<std::string>::iterator it;
@@ -215,28 +214,28 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
-    
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (add_features) {
             node_mapnik::write_features<mapnik::grid_view>(*g->get(),
-                           feature_data,
-                           key_order
-                           );
+                                                           feature_data,
+                                                           key_order
+                );
         }
-        
+
         // Create the return hash.
         Local<Object> json = Object::New();
         json->Set(String::NewSymbol("grid"), grid_array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
         return json;
-        
+
     }
     catch (std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
 
 }
@@ -269,16 +268,16 @@ Handle<Value> GridView::encode(const Arguments& args)
     // accept custom format
     if (args.Length() >= 1){
         if (!args[0]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'format' must be a string")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
 
     // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be an options object")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be an options object")));
 
         Local<Object> options = args[1]->ToObject();
 
@@ -286,8 +285,8 @@ Handle<Value> GridView::encode(const Arguments& args)
         {
             Local<Value> bind_opt = options->Get(String::New("resolution"));
             if (!bind_opt->IsNumber())
-              return ThrowException(Exception::TypeError(
-                String::New("'resolution' must be an Integer")));
+                return ThrowException(Exception::TypeError(
+                                          String::New("'resolution' must be an Integer")));
 
             resolution = bind_opt->IntegerValue();
         }
@@ -296,8 +295,8 @@ Handle<Value> GridView::encode(const Arguments& args)
         {
             Local<Value> bind_opt = options->Get(String::New("features"));
             if (!bind_opt->IsBoolean())
-              return ThrowException(Exception::TypeError(
-                String::New("'features' must be an Boolean")));
+                return ThrowException(Exception::TypeError(
+                                          String::New("'features' must be an Boolean")));
 
             add_features = bind_opt->BooleanValue();
         }
@@ -306,9 +305,9 @@ Handle<Value> GridView::encode(const Arguments& args)
     // ensure callback is a function
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
-                  String::New("last argument must be a callback function")));
+                                  String::New("last argument must be a callback function")));
     Local<Function> callback = Local<Function>::Cast(args[args.Length()-1]);
-    
+
     encode_grid_view_baton_t *closure = new encode_grid_view_baton_t();
     closure->request.data = closure;
     closure->g = g;
@@ -331,9 +330,9 @@ void GridView::EIO_Encode(uv_work_t* req)
     {
         // TODO - write features and clear here as well?
         node_mapnik::grid2utf<mapnik::grid_view>(*closure->g->get(),
-                                            closure->array,
-                                            closure->key_order,
-                                            closure->resolution);
+                                                 closure->array,
+                                                 closure->key_order,
+                                                 closure->resolution);
     }
     catch (std::exception & ex)
     {
@@ -359,7 +358,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     } else {
-        
+
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(closure->key_order.size());
         std::vector<std::string>::iterator it;
@@ -368,14 +367,14 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
-        
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (closure->add_features) {
             node_mapnik::write_features<mapnik::grid_view>(*closure->g->get(),
-                           feature_data,
-                           closure->key_order
-                           );
+                                                           feature_data,
+                                                           closure->key_order
+                );
         }
 
         // Create the return hash.
@@ -389,7 +388,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-      FatalException(try_catch);
+        FatalException(try_catch);
     }
 
     uv_unref(uv_default_loop());

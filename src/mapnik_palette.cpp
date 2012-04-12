@@ -27,8 +27,8 @@ void Palette::Initialize(Handle<Object> target) {
 }
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
-  ObjectWrap(),
-  palette_(boost::make_shared<mapnik::rgba_palette>(palette, type)) {}
+    ObjectWrap(),
+    palette_(boost::make_shared<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }
@@ -62,7 +62,7 @@ Handle<Value> Palette::New(const Arguments& args) {
 
     if (!palette.length()) {
         return ThrowException(Exception::TypeError(
-            String::New("First parameter must be a palette string")));
+                                  String::New("First parameter must be a palette string")));
     }
 
     try {

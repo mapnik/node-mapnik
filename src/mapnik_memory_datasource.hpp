@@ -12,7 +12,7 @@ using namespace v8;
 using namespace node;
 
 class MemoryDatasource: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -26,7 +26,7 @@ class MemoryDatasource: public node::ObjectWrap {
     MemoryDatasource();
     inline mapnik::datasource_ptr get() { return datasource_; }
 
-  private:
+private:
     ~MemoryDatasource();
     mapnik::datasource_ptr datasource_;
     unsigned int feature_id_;

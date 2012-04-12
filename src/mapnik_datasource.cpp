@@ -29,8 +29,8 @@ void Datasource::Initialize(Handle<Object> target) {
 }
 
 Datasource::Datasource() :
-  ObjectWrap(),
-  datasource_() {}
+    ObjectWrap(),
+    datasource_() {}
 
 Datasource::~Datasource()
 {
@@ -52,26 +52,26 @@ Handle<Value> Datasource::New(const Arguments& args)
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
             args.This()->Set(String::NewSymbol("type"),
-                String::NewSymbol("raster"),
-                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             String::NewSymbol("raster"),
+                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         else
         {
             args.This()->Set(String::NewSymbol("type"),
-                String::NewSymbol("vector"),
-                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             String::NewSymbol("vector"),
+                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         d->Wrap(args.This());
         return args.This();
     }
     if (!args.Length() == 1){
         return ThrowException(Exception::TypeError(
-          String::New("accepts only one argument, an object of key:value datasource options")));
+                                  String::New("accepts only one argument, an object of key:value datasource options")));
     }
 
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
-          String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
+                                  String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
 
     Local<Object> options = args[0]->ToObject();
 
@@ -82,8 +82,8 @@ Handle<Value> Datasource::New(const Arguments& args)
     {
         Local<Value> bind_opt = options->Get(String::New("bind"));
         if (!bind_opt->IsBoolean())
-          return ThrowException(Exception::TypeError(
-            String::New("'bind' must be a Boolean")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("'bind' must be a Boolean")));
 
         bind = bind_opt->BooleanValue();
     }
@@ -108,26 +108,26 @@ Handle<Value> Datasource::New(const Arguments& args)
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+                                  String::New("unknown exception happened, please file bug")));
     }
     if (ds)
     {
         if (ds->type() == mapnik::datasource::Raster)
         {
             args.This()->Set(String::NewSymbol("type"),
-                String::NewSymbol("raster"),
-                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             String::NewSymbol("raster"),
+                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         else
         {
             args.This()->Set(String::NewSymbol("type"),
-                String::NewSymbol("vector"),
-                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             String::NewSymbol("vector"),
+                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         Datasource* d = new Datasource();
         d->Wrap(args.This());
@@ -173,12 +173,12 @@ Handle<Value> Datasource::describe(const Arguments& args)
     catch (const std::exception & ex )
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened describing datasource, please file bug")));
+                                  String::New("unknown exception happened describing datasource, please file bug")));
     }
 
     return scope.Close(description);
@@ -196,7 +196,7 @@ Handle<Value> Datasource::features(const Arguments& args)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
             return ThrowException(Exception::Error(
-               String::New("Index of 'first' and 'last' feature must be an integer")));
+                                      String::New("Index of 'first' and 'last' feature must be an integer")));
         first = args[0]->IntegerValue();
         last = args[1]->IntegerValue();
     }
@@ -212,12 +212,12 @@ Handle<Value> Datasource::features(const Arguments& args)
     catch (const std::exception & ex )
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened slicing datasource, please file bug")));
+                                  String::New("unknown exception happened slicing datasource, please file bug")));
     }
 
     return scope.Close(a);
@@ -243,18 +243,18 @@ Handle<Value> Datasource::featureset(const Arguments& args)
             q.add_property_name(itr->get_name());
             ++itr;
         }
-        
+
         fs = ds->datasource_->features(q);
     }
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened getting featureset, please file bug")));
+                                  String::New("unknown exception happened getting featureset, please file bug")));
     }
 
     if (fs)

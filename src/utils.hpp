@@ -20,19 +20,19 @@
 #define TOSTR(obj) (*String::Utf8Value((obj)->ToString()))
 
 #define FUNCTION_ARG(I, VAR)                                            \
-  if (args.Length() <= (I) || !args[I]->IsFunction())                   \
-    return ThrowException(Exception::TypeError(                         \
-                  String::New("Argument " #I " must be a function")));  \
-  Local<Function> VAR = Local<Function>::Cast(args[I]);
+    if (args.Length() <= (I) || !args[I]->IsFunction())                 \
+        return ThrowException(Exception::TypeError(                     \
+                                  String::New("Argument " #I " must be a function"))); \
+    Local<Function> VAR = Local<Function>::Cast(args[I]);
 
-#define ATTR(t, name, get, set) \
-  t->InstanceTemplate()->SetAccessor(String::NewSymbol(name), get, set);
+#define ATTR(t, name, get, set)                                         \
+    t->InstanceTemplate()->SetAccessor(String::NewSymbol(name), get, set);
 
-#define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
-  (target)->Set(v8::String::NewSymbol(name),                            \
-                v8::Integer::New(constant),                             \
-                static_cast<v8::PropertyAttribute>(                     \
-                    v8::ReadOnly|v8::DontDelete));
+#define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)     \
+    (target)->Set(v8::String::NewSymbol(name),                  \
+                  v8::Integer::New(constant),                   \
+                  static_cast<v8::PropertyAttribute>(           \
+                      v8::ReadOnly|v8::DontDelete));
 
 
 using namespace v8;
@@ -65,7 +65,7 @@ public:
 
     void operator () ( std::string const& val )
     {
-        
+
         ds_->Set(String::NewSymbol(key_.c_str()), String::New(val.c_str()) );
     }
 

@@ -18,8 +18,8 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::Map> map_ptr;
 
 class Map: public node::ObjectWrap {
-  public:
-  
+public:
+
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -71,7 +71,7 @@ class Map: public node::ObjectWrap {
     static Handle<Value> get_layer(const Arguments &args);
 
     static Handle<Value> get_prop(Local<String> property,
-                         const AccessorInfo& info);
+                                  const AccessorInfo& info);
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
@@ -87,7 +87,7 @@ class Map: public node::ObjectWrap {
     unsigned int estimate_map_size();
 
 
-  private:
+private:
     ~Map();
     map_ptr map_;
     int in_use_;

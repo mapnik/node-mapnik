@@ -17,8 +17,8 @@ void •::Initialize(Handle<Object> target) {
 }
 
 •::•(std::string const& name) :
-  ObjectWrap(),
-  this_(boost::make_shared<mapnik::•>(name)) {}
+ObjectWrap(),
+    this_(boost::make_shared<mapnik::•>(name)) {}
 
 •::~•()
 {

@@ -13,7 +13,7 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::grid> grid_ptr;
 
 class Grid: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -30,7 +30,7 @@ class Grid: public node::ObjectWrap {
     static Handle<Value> painted(const Arguments &args);
 
     static Handle<Value> get_prop(Local<String> property,
-                         const AccessorInfo& info);
+                                  const AccessorInfo& info);
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
@@ -41,7 +41,7 @@ class Grid: public node::ObjectWrap {
     Grid(grid_ptr this_);
     inline grid_ptr get() { return this_; }
 
-  private:
+private:
     ~Grid();
     grid_ptr this_;
 };

@@ -11,7 +11,7 @@ using namespace v8;
 using namespace node;
 
 class Datasource: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -25,7 +25,7 @@ class Datasource: public node::ObjectWrap {
     Datasource();
     inline mapnik::datasource_ptr get() { return datasource_; }
 
-  private:
+private:
     ~Datasource();
     mapnik::datasource_ptr datasource_;
 };

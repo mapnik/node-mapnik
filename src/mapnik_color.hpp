@@ -17,7 +17,7 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::color> color_ptr;
 
 class Color: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -26,14 +26,14 @@ class Color: public node::ObjectWrap {
     static Handle<Value> hex(const Arguments &args);
 
     static Handle<Value> get_prop(Local<String> property,
-                         const AccessorInfo& info);
+                                  const AccessorInfo& info);
     static void set_prop(Local<String> property,
                          Local<Value> value,
                          const AccessorInfo& info);
     Color();
     inline color_ptr get() { return this_; }
 
-  private:
+private:
     ~Color();
     color_ptr this_;
 };

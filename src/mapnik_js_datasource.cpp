@@ -21,8 +21,8 @@ void JSDatasource::Initialize(Handle<Object> target) {
 }
 
 JSDatasource::JSDatasource() :
-  ObjectWrap(),
-  ds_ptr_() {}
+    ObjectWrap(),
+    ds_ptr_() {}
 
 JSDatasource::~JSDatasource()
 {
@@ -42,22 +42,22 @@ Handle<Value> JSDatasource::New(const Arguments& args)
         d->Wrap(args.This());
         return args.This();
     }
-    
+
     if (!args.Length() == 2){
         return ThrowException(Exception::TypeError(
-          String::New("two argument required: an object of key:value datasource options and a callback function for features")));
+                                  String::New("two argument required: an object of key:value datasource options and a callback function for features")));
     }
 
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
-          String::New("Must provide an object, eg {extent: '-180,-90,180,90'}")));
+                                  String::New("Must provide an object, eg {extent: '-180,-90,180,90'}")));
 
     Local<Object> options = args[0]->ToObject();
 
     // function callback
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
-                  String::New("last argument must be a callback function")));
+                                  String::New("last argument must be a callback function")));
 
     // TODO - maybe validate in js?
 
@@ -66,8 +66,8 @@ Handle<Value> JSDatasource::New(const Arguments& args)
     {
         Local<Value> bind_opt = options->Get(String::New("bind"));
         if (!bind_opt->IsBoolean())
-          return ThrowException(Exception::TypeError(
-            String::New("'bind' must be a Boolean")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("'bind' must be a Boolean")));
 
         bind = bind_opt->BooleanValue();
     }
@@ -89,17 +89,17 @@ Handle<Value> JSDatasource::New(const Arguments& args)
     {
 
         ds = mapnik::datasource_ptr(new js_datasource(params,bind,args[args.Length()-1]));
-        
+
     }
     catch (const std::exception & ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
     catch (...)
     {
         return ThrowException(Exception::Error(
-          String::New("unknown exception happened, please file bug")));
+                                  String::New("unknown exception happened, please file bug")));
     }
     if (ds)
     {
@@ -115,7 +115,7 @@ Handle<Value> JSDatasource::New(const Arguments& args)
 Handle<Value> JSDatasource::next(const Arguments& args)
 {
     HandleScope scope;
-    
+
     JSDatasource* d = ObjectWrap::Unwrap<JSDatasource>(args.This());
     js_datasource *js = dynamic_cast<js_datasource *>(d->ds_ptr_.get());
     return scope.Close((*js->cb_)->Call(Context::GetCurrent()->Global(), 0, NULL));

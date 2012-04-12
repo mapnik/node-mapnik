@@ -39,8 +39,8 @@ static inline Handle<Value> register_datasources(const Arguments& args)
 {
     HandleScope scope;
     if (args.Length() != 1 || !args[0]->IsString())
-      return ThrowException(Exception::TypeError(
-        String::New("first argument must be a path to a directory of mapnik input plugins")));
+        return ThrowException(Exception::TypeError(
+                                  String::New("first argument must be a path to a directory of mapnik input plugins")));
 
     std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names();
     std::string const& path = TOSTR(args[0]);

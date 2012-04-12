@@ -14,7 +14,7 @@
 #include <exception>
 
 // boost
-#include <boost/make_shared.hpp> 
+#include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -37,10 +37,10 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
 }
 
 MemoryDatasource::MemoryDatasource() :
-  ObjectWrap(),
-  datasource_(),
-  feature_id_(1),
-  tr_(new mapnik::transcoder("utf8")) {}
+    ObjectWrap(),
+    datasource_(),
+    feature_id_(1),
+    tr_(new mapnik::transcoder("utf8")) {}
 
 MemoryDatasource::~MemoryDatasource()
 {
@@ -64,12 +64,12 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
     }
     if (!args.Length() == 1){
         return ThrowException(Exception::TypeError(
-          String::New("accepts only one argument, an object of key:value datasource options")));
+                                  String::New("accepts only one argument, an object of key:value datasource options")));
     }
 
     if (!args[0]->IsObject())
         return ThrowException(Exception::TypeError(
-          String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
+                                  String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
 
     Local<Object> options = args[0]->ToObject();
 
@@ -80,8 +80,8 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
     {
         Local<Value> bind_opt = options->Get(String::New("bind"));
         if (!bind_opt->IsBoolean())
-          return ThrowException(Exception::TypeError(
-            String::New("'bind' must be a Boolean")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("'bind' must be a Boolean")));
 
         bind = bind_opt->BooleanValue();
     }
@@ -142,7 +142,7 @@ Handle<Value> MemoryDatasource::describe(const Arguments& args)
         catch (const std::exception & ex)
         {
             return ThrowException(Exception::Error(
-              String::New(ex.what())));
+                                      String::New(ex.what())));
         }
     }
     return scope.Close(description);
@@ -160,7 +160,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
             return ThrowException(Exception::Error(
-               String::New("Index of 'first' and 'last' feature must be an integer")));
+                                      String::New("Index of 'first' and 'last' feature must be an integer")));
         first = args[0]->IntegerValue();
         last = args[1]->IntegerValue();
     }
@@ -178,10 +178,10 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
         catch (const std::exception & ex )
         {
             return ThrowException(Exception::Error(
-              String::New(ex.what())));
+                                      String::New(ex.what())));
         }
     }
-    
+
     return scope.Close(a);
 }
 
@@ -203,7 +203,7 @@ Handle<Value> MemoryDatasource::featureset(const Arguments& args)
             q.add_property_name(itr->get_name());
             ++itr;
         }
-    
+
         mapnik::featureset_ptr fs = d->datasource_->features(q);
         if (fs)
         {
@@ -222,7 +222,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
     if ((args.Length() != 1) || !args[0]->IsObject())
     {
         return ThrowException(Exception::Error(
-           String::New("accepts one argument: an object including x and y (or wkt) and properties")));
+                                  String::New("accepts one argument: an object including x and y (or wkt) and properties")));
     }
 
     MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
@@ -233,7 +233,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
     {
         if (obj->Has(String::New("wkt")))
             return ThrowException(Exception::Error(
-               String::New("wkt not yet supported")));
+                                      String::New("wkt not yet supported")));
 
         Local<Value> x = obj->Get(String::New("x"));
         Local<Value> y = obj->Get(String::New("y"));

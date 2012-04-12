@@ -42,7 +42,7 @@ public:
 private:
     mutable mapnik::layer_descriptor desc_;
     mapnik::box2d<double> ext_;
-}; 
+};
 
 
 js_datasource::js_datasource(const mapnik::parameters &params, bool bind, Local<Value> cb)
@@ -54,7 +54,7 @@ js_datasource::js_datasource(const mapnik::parameters &params, bool bind, Local<
     if (ext)
         ext_.from_string(*ext);
     else
-        throw mapnik::datasource_exception("JSDatasource missing <extent> parameter");    
+        throw mapnik::datasource_exception("JSDatasource missing <extent> parameter");
 }
 
 js_datasource::~js_datasource()
@@ -62,13 +62,13 @@ js_datasource::~js_datasource()
     cb_.Dispose();
 }
 
-  
+
 mapnik::datasource::datasource_t js_datasource::type() const
 {
     return mapnik::datasource::Vector;
 }
 
-    
+
 mapnik::box2d<double> js_datasource::envelope() const
 {
     return ext_;
@@ -83,7 +83,7 @@ mapnik::layer_descriptor js_datasource::get_descriptor() const
 {
     return mapnik::layer_descriptor("in-memory js datasource","utf-8");
 }
-    
+
 size_t js_datasource::size() const
 {
     return 0;//features_.size();
@@ -107,7 +107,7 @@ public:
         a->Set(2, Number::New(e.maxx()));
         a->Set(3, Number::New(e.maxy()));
         obj_->Set(String::NewSymbol("extent"), a);
-        
+
     }
 
     virtual ~js_featureset() {}
@@ -116,7 +116,7 @@ public:
     {
 
         HandleScope scope;
-        
+
         TryCatch try_catch;
         Local<Value> argv[2] = { Integer::New(feature_id_), obj_ };
         Local<Value> val = ds_->cb_->Call(Context::GetCurrent()->Global(), 2, argv);
@@ -174,23 +174,23 @@ public:
                                     }
                                 }
                             }
-                            return feature;                
+                            return feature;
                         }
                     }
                 }
-            }        
+            }
         }
 
         return mapnik::feature_ptr();
     }
-        
+
 private:
     mapnik::query const& q_;
     unsigned int feature_id_;
     boost::scoped_ptr<mapnik::transcoder> tr_;
     const js_datasource* ds_;
     Local<Object> obj_;
-    
+
 };
 
 
@@ -202,11 +202,11 @@ mapnik::featureset_ptr js_datasource::features(const mapnik::query& q) const
 mapnik::featureset_ptr js_datasource::features_at_point(mapnik::coord2d const& pt) const
 {
 /*
-    box2d<double> box = box2d<double>(pt.x, pt.y, pt.x, pt.y);
-#ifdef MAPNIK_DEBUG
-    std::clog << "box=" << box << ", pt x=" << pt.x << ", y=" << pt.y << "\n";
-#endif
-    return featureset_ptr(new memory_featureset(box,*this));
+  box2d<double> box = box2d<double>(pt.x, pt.y, pt.x, pt.y);
+  #ifdef MAPNIK_DEBUG
+  std::clog << "box=" << box << ", pt x=" << pt.x << ", y=" << pt.y << "\n";
+  #endif
+  return featureset_ptr(new memory_featureset(box,*this));
 */
     return mapnik::featureset_ptr();
 }

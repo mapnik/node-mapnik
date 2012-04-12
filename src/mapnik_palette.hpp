@@ -16,7 +16,7 @@ using namespace node;
 typedef boost::shared_ptr<mapnik::rgba_palette> palette_ptr;
 
 class Palette: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
 
     explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
@@ -27,7 +27,7 @@ class Palette: public node::ObjectWrap {
     static Handle<Value> ToBuffer(const Arguments& args);
 
     inline palette_ptr palette() { return palette_; }
-  private:
+private:
     ~Palette();
     palette_ptr palette_;
 };

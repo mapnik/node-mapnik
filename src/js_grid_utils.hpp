@@ -15,9 +15,9 @@ using namespace node;
 namespace node_mapnik {
 
 template <typename T, typename ArrayType>
-static void grid2utf(T const& grid_type, 
-    ArrayType const& l,
-    std::vector<typename T::lookup_type>& key_order)
+static void grid2utf(T const& grid_type,
+                     ArrayType const& l,
+                     std::vector<typename T::lookup_type>& key_order)
 {
     typename T::data_type const& data = grid_type.data();
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
@@ -67,10 +67,10 @@ static void grid2utf(T const& grid_type,
 // requires mapnik >= r2957
 
 template <typename T, typename ArrayType>
-static void grid2utf(T const& grid_type, 
-    ArrayType const& l,
-    std::vector<typename T::lookup_type>& key_order,
-    unsigned int resolution)
+static void grid2utf(T const& grid_type,
+                     ArrayType const& l,
+                     std::vector<typename T::lookup_type>& key_order,
+                     unsigned int resolution)
 {
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
     typename T::key_type keys;
@@ -120,8 +120,8 @@ static void grid2utf(T const& grid_type,
 
 template <typename T>
 static void write_features(T const& grid_type,
-    Local<Object>& feature_data,
-    std::vector<typename T::lookup_type> const& key_order)
+                           Local<Object>& feature_data,
+                           std::vector<typename T::lookup_type> const& key_order)
 {
     std::string const& key = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();

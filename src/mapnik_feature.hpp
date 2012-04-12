@@ -17,7 +17,7 @@ using namespace node;
 
 
 class Feature: public node::ObjectWrap {
-  public:
+public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
@@ -38,7 +38,7 @@ class Feature: public node::ObjectWrap {
     Feature(int id);
     inline mapnik::feature_ptr get() { return this_; }
 
-  private:
+private:
     ~Feature();
     mapnik::feature_ptr this_;
     mapnik::context_ptr ctx_;
