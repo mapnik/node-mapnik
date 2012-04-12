@@ -14,9 +14,9 @@ using namespace node;
 
 namespace node_mapnik {
 
-template <typename T>
+template <typename T, typename ArrayType>
 static void grid2utf(T const& grid_type, 
-    Local<Array>& l,
+    ArrayType const& l,
     std::vector<typename T::lookup_type>& key_order)
 {
     typename T::data_type const& data = grid_type.data();
@@ -66,9 +66,9 @@ static void grid2utf(T const& grid_type,
 
 // requires mapnik >= r2957
 
-template <typename T>
+template <typename T, typename ArrayType>
 static void grid2utf(T const& grid_type, 
-    Local<Array>& l,
+    ArrayType const& l,
     std::vector<typename T::lookup_type>& key_order,
     unsigned int resolution)
 {

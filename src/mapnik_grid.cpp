@@ -194,6 +194,24 @@ Handle<Value> Grid::fields(const Arguments& args)
 
 }
 
+Handle<Value> Grid::view(const Arguments& args)
+{
+    HandleScope scope;
+
+    if ( (!args.Length() == 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
+        return ThrowException(Exception::TypeError(
+          String::New("requires 4 integer arguments: x, y, width, height")));
+
+    unsigned x = args[0]->IntegerValue();
+    unsigned y = args[1]->IntegerValue();
+    unsigned w = args[2]->IntegerValue();
+    unsigned h = args[3]->IntegerValue();
+
+    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    return scope.Close(GridView::New(g->get(),x,y,w,h));
+}
+
+
 Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
 {
     HandleScope scope;
@@ -281,8 +299,19 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
     }
 }
 
-// @TODO: convert this to EIO. It's currently doing all the work in the main
-// thread, and just provides an async interface.
+typedef struct {
+    uv_work_t request;
+    Grid* g;
+    std::string format;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+    Persistent<Array> array;
+    unsigned int resolution;
+    bool add_features;
+    std::vector<mapnik::grid::lookup_type> key_order;
+} encode_grid_baton_t;
+
 Handle<Value> Grid::encode(const Arguments& args) // format, resolution
 {
     HandleScope scope;
@@ -336,68 +365,92 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
         return ThrowException(Exception::TypeError(
                   String::New("last argument must be a callback function")));
     Local<Function> callback = Local<Function>::Cast(args[args.Length()-1]);
+    
+    encode_grid_baton_t *closure = new encode_grid_baton_t();
+    closure->request.data = closure;
+    closure->g = g;
+    closure->format = format;
+    closure->error = false;
+    closure->resolution = resolution;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    closure->array = Persistent<Array>::New(Array::New());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
+    uv_ref(uv_default_loop());
+    g->Ref();
+    return Undefined();
+}
 
-    try {
+void Grid::EIO_Encode(uv_work_t* req)
+{
+    encode_grid_baton_t *closure = static_cast<encode_grid_baton_t *>(req->data);
 
-        Local<Array> grid_array = Array::New();
-        std::vector<mapnik::grid::lookup_type> key_order;
-        node_mapnik::grid2utf<mapnik::grid>(*g->get(),grid_array,key_order,resolution);
+    try
+    {
+        node_mapnik::grid2utf<mapnik::grid>(*closure->g->get(),
+                                            closure->array,
+                                            closure->key_order,
+                                            closure->resolution);
+    }
+    catch (std::exception & ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "unknown exception happened when encoding grid: please file bug report";
+    }
+}
 
+void Grid::EIO_AfterEncode(uv_work_t* req)
+{
+    HandleScope scope;
+
+    encode_grid_baton_t *closure = static_cast<encode_grid_baton_t *>(req->data);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        
         // convert key order to proper javascript array
-        Local<Array> keys_a = Array::New(key_order.size());
+        Local<Array> keys_a = Array::New(closure->key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        for (it = closure->key_order.begin(), i = 0; it < closure->key_order.end(); ++it, ++i)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
-
+        
         // gather feature data
         Local<Object> feature_data = Object::New();
-        if (add_features) {
-            node_mapnik::write_features<mapnik::grid>(*g->get(),
+        if (closure->add_features) {
+            node_mapnik::write_features<mapnik::grid>(*closure->g->get(),
                            feature_data,
-                           key_order
+                           closure->key_order
                            );
         }
 
         // Create the return hash.
         Local<Object> json = Object::New();
-        json->Set(String::NewSymbol("grid"), grid_array);
+        json->Set(String::NewSymbol("grid"), closure->array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
 
-        TryCatch try_catch;
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
-        callback->Call(Context::GetCurrent()->Global(), 2, argv);
-        if (try_catch.HasCaught()) {
-            FatalException(try_catch);
-        }
-    }
-    catch (std::exception & ex)
-    {
-        Local<Value> argv[1] = { Exception::Error(String::New(ex.what())) };
-        callback->Call(Context::GetCurrent()->Global(), 1, argv);
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
-    return scope.Close(Undefined());
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
+
+    uv_unref(uv_default_loop());
+    closure->g->Unref();
+    closure->cb.Dispose();
+    closure->array.Dispose();
+    delete closure;
 }
-
-
-Handle<Value> Grid::view(const Arguments& args)
-{
-    HandleScope scope;
-
-    if ( (!args.Length() == 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
-        return ThrowException(Exception::TypeError(
-          String::New("requires 4 integer arguments: x, y, width, height")));
-    
-    unsigned x = args[0]->IntegerValue();
-    unsigned y = args[1]->IntegerValue();
-    unsigned w = args[2]->IntegerValue();
-    unsigned h = args[3]->IntegerValue();
-
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
-    return scope.Close(GridView::New(g->get(),x,y,w,h));
-}
-
