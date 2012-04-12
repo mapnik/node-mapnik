@@ -21,17 +21,6 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
 {
     try
     {
-        // todo collect active attributes in styles
-        /*
-          std::vector<std::string> const& style_names = layer.styles();
-          Local<Array> s = Array::New(style_names.size());
-          for (unsigned i = 0; i < style_names.size(); ++i)
-          {
-          s->Set(i, String::New(style_names[i].c_str()) );
-          }
-          meta->Set(String::NewSymbol("styles"), s );
-        */
-
         // type
         if (ds->type() == mapnik::datasource::Raster)
         {
@@ -78,63 +67,40 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         }
         description->Set(String::NewSymbol("fields"), fields);
 
-        mapnik::query q(ds->envelope());
-
-        mapnik::featureset_ptr fs = ds->features(q);
-        description->Set(String::NewSymbol("geometry_type"), Undefined());
-        description->Set(String::NewSymbol("has_features"), False());
-
-        // TODO - need to remove this after this lands:
-        // https://github.com/mapnik/mapnik/issues/701
-        if (fs)
+        Local<String> js_type = String::New("unknown");
+        boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
+        if (geom_type)
         {
-            mapnik::feature_ptr fp = fs->next();
-            if (fp) {
-
-                description->Set(String::NewSymbol("has_features"), True());
-                if (fp->num_geometries() > 0)
+            mapnik::datasource::geometry_t g_type = *geom_type;
+            switch (g_type)
+            {
+                case mapnik::datasource::Point:
                 {
-                    mapnik::geometry_type const& geom = fp->get_geometry(0);
-                    mapnik::eGeomType g_type = geom.type();
-                    Local<String> js_type = String::New("unknown");
-                    switch (g_type)
-                    {
-                    case mapnik::Point:
-                    {
-                        if (fp->num_geometries() > 1) {
-                            js_type = String::New("multipoint");
-                        } else {
-                            js_type = String::New("point");
-                        }
-                        break;
-                    }
-                    case mapnik::Polygon:
-                    {
-                        if (fp->num_geometries() > 1) {
-                            js_type = String::New("multipolygon");
-                        } else {
-                            js_type = String::New("polygon");
-                        }
-                        break;
-                    }
-                    case mapnik::LineString:
-                    {
-                        if (fp->num_geometries() > 1) {
-                            js_type = String::New("multilinestring");
-                        } else {
-                            js_type = String::New("linestring");
-                        }
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
-                    }
-                    description->Set(String::NewSymbol("geometry_type"), js_type);
+                    js_type = String::New("point");
+                    break;
+                }
+                case mapnik::datasource::LineString:
+                {
+                    js_type = String::New("linestring");
+                    break;
+                }
+                case mapnik::datasource::Polygon:
+                {
+                    js_type = String::New("polygon");
+                    break;
+                }
+                case mapnik::datasource::Collection:
+                {
+                    js_type = String::New("collection");
+                    break;
+                }
+                default:
+                {
+                    break;
                 }
             }
         }
+        description->Set(String::NewSymbol("geometry_type"), js_type);
     }
     catch (std::exception const& ex)
     {
