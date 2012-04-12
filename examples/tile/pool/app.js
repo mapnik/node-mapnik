@@ -43,7 +43,6 @@ var aquire = function(id,options,callback) {
                 });
             },
             destroy: function(obj) {
-                obj.clear();
                 delete obj;
             }
     };
