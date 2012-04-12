@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 var http = require('http');
 var mapnik = require('mapnik');
@@ -39,7 +38,6 @@ var aquire = function(id,options,callback) {
                 });
             },
             destroy: function(obj) {
-                obj.clear();
                 delete obj;
             }
     };

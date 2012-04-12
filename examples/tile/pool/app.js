@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 // This example shows how to use node-mapnik with the
 // connect http server to serve map tiles to polymaps
@@ -44,7 +43,6 @@ var aquire = function(id,options,callback) {
                 });
             },
             destroy: function(obj) {
-                obj.clear();
                 delete obj;
             }
     };

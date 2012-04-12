@@ -36,8 +36,6 @@
 #include "utils.hpp"
 #include "js_grid_utils.hpp"
 #include "mapnik_map.hpp"
-#include "ds_emitter.hpp"
-#include "layer_emitter.hpp"
 #include "mapnik_layer.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
@@ -81,11 +79,7 @@ void Map::Initialize(Handle<Object> target) {
     // layer access
     NODE_SET_PROTOTYPE_METHOD(constructor, "add_layer", add_layer);
     NODE_SET_PROTOTYPE_METHOD(constructor, "get_layer", get_layer);
-
-    // temp hack to expose layer metadata
     NODE_SET_PROTOTYPE_METHOD(constructor, "layers", layers);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "describe_data", describe_data);
 
     // properties
     ATTR(constructor, "srs", get_prop, set_prop);
@@ -438,6 +432,19 @@ Handle<Value> Map::scaleDenominator(const Arguments& args)
     return scope.Close(Number::New(m->map_->scale_denominator()));
 }
 
+Handle<Value> Map::layers(const Arguments& args)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    std::vector<mapnik::layer> const& layers = m->map_->layers();
+    Local<Array> a = Array::New(layers.size());
+    for (unsigned i = 0; i < layers.size(); ++i )
+    {
+        a->Set(i, Layer::New(layers[i]));
+    }
+    return scope.Close(a);
+}
+
 Handle<Value> Map::add_layer(const Arguments &args) {
     HandleScope scope;
 
@@ -464,7 +471,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
         String::New("Please provide layer name or index")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    std::vector<mapnik::layer> & layers = m->map_->layers();
+    std::vector<mapnik::layer> const& layers = m->map_->layers();
 
     Local<Value> layer = args[0];
     if (layer->IsNumber())
@@ -511,123 +518,6 @@ Handle<Value> Map::get_layer(const Arguments& args)
     }
 
     return Undefined();
-
-}
-
-
-Handle<Value> Map::layers(const Arguments& args)
-{
-    HandleScope scope;
-
-    // todo - optimize by allowing indexing...
-    /*if (!args.Length() == 1)
-      return ThrowException(Exception::Error(
-        String::New("Please provide layer index")));
-
-    if (!args[0]->IsNumber())
-      return ThrowException(Exception::TypeError(
-        String::New("layer index must be an integer")));
-    */
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    std::vector<mapnik::layer> const & layers = m->map_->layers();
-    Local<Array> a = Array::New(layers.size());
-
-    for (unsigned i = 0; i < layers.size(); ++i )
-    {
-        const mapnik::layer & layer = layers[i];
-        Local<Object> meta = Object::New();
-        node_mapnik::layer_as_json(meta,layer);
-        a->Set(i, meta);
-    }
-
-    return scope.Close(a);
-
-}
-
-Handle<Value> Map::describe_data(const Arguments& args)
-{
-    HandleScope scope;
-
-    // todo - optimize by allowing indexing...
-    /*if (!args.Length() == 1)
-      return ThrowException(Exception::Error(
-        String::New("Please provide layer index")));
-
-    if (!args[0]->IsNumber())
-      return ThrowException(Exception::TypeError(
-        String::New("layer index must be an integer")));
-    */
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    std::vector<mapnik::layer> const & layers = m->map_->layers();
-
-    Local<Object> meta = Object::New();
-
-    for (unsigned i = 0; i < layers.size(); ++i )
-    {
-        const mapnik::layer & layer = layers[i];
-        Local<Object> description = Object::New();
-        mapnik::datasource_ptr ds = layer.datasource();
-        if (ds)
-        {
-            node_mapnik::describe_datasource(description,ds);
-        }
-        meta->Set(String::NewSymbol(layer.name().c_str()), description);
-    }
-
-    return scope.Close(meta);
-
-}
-
-
-Handle<Value> Map::features(const Arguments& args)
-{
-    HandleScope scope;
-
-    if (!args.Length() >= 1)
-      return ThrowException(Exception::Error(
-        String::New("Please provide layer index")));
-
-    if (!args[0]->IsNumber())
-      return ThrowException(Exception::TypeError(
-        String::New("layer index must be an integer")));
-
-    unsigned first = 0;
-    unsigned last = 0;
-
-    // we are slicing
-    if (args.Length() == 3)
-    {
-        if (!args[1]->IsNumber() || !args[2]->IsNumber())
-            return ThrowException(Exception::Error(
-               String::New("Index of 'first' and 'last' feature must be an integer")));
-        first = args[1]->IntegerValue();
-        last = args[2]->IntegerValue();
-    }
-
-    unsigned index = args[0]->IntegerValue();
-
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-
-    std::vector<mapnik::layer> const & layers = m->map_->layers();
-
-    // TODO - we don't know features.length at this point
-    Local<Array> a = Array::New(0);
-    if ( index < layers.size())
-    {
-        mapnik::layer const& layer = layers[index];
-        mapnik::datasource_ptr ds = layer.datasource();
-        if (ds)
-        {
-            node_mapnik::datasource_features(a,ds,first,last);
-        }
-    }
-
-    return scope.Close(a);
-
 }
 
 Handle<Value> Map::clear(const Arguments& args)

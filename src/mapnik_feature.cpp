@@ -5,12 +5,15 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/json/geojson_generator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
 #include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> Feature::constructor;
+
+static mapnik::json::feature_generator generator;
 
 void Feature::Initialize(Handle<Object> target) {
 
@@ -27,6 +30,7 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "addAttributes", addAttributes);
     NODE_SET_PROTOTYPE_METHOD(constructor, "numGeometries", numGeometries);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     target->Set(String::NewSymbol("Feature"),constructor->GetFunction());
 }
 
@@ -64,7 +68,7 @@ Handle<Value> Feature::New(const Arguments& args)
 
     // TODO - expose mapnik.Context
     
-    if (!args.Length() == 1 || !args[0]->IsNumber()) {
+    if (args.Length() > 1 || args.Length() < 1 || !args[0]->IsNumber()) {
         return ThrowException(Exception::TypeError(
           String::New("requires one argument: an integer feature id")));
     }
@@ -241,4 +245,23 @@ Handle<Value> Feature::toString(const Arguments& args)
     return scope.Close(String::New(fp->get()->to_string().c_str()));
 }
 
+Handle<Value> Feature::toJSON(const Arguments& args)
+{
+    HandleScope scope;
 
+    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    std::string json;
+#if BOOST_VERSION >= 104700
+    // TODO - create once?
+    if (!generator.generate(json,*(fp->get())))
+    {
+        return ThrowException(Exception::Error(
+          String::New("Failed to generate GeoJSON")));
+    }
+#else
+    return ThrowException(Exception::Error(
+      String::New("GeoJSON output requires at least boost 1.47 ")));
+#endif
+
+    return scope.Close(String::New(json.c_str()));
+}

@@ -49,6 +49,18 @@ Handle<Value> Datasource::New(const Arguments& args)
         Local<External> ext = Local<External>::Cast(args[0]);
         void* ptr = ext->Value();
         Datasource* d =  static_cast<Datasource*>(ptr);
+        if (d->datasource_->type() == mapnik::datasource::Raster)
+        {
+            args.This()->Set(String::NewSymbol("type"),
+                String::NewSymbol("raster"),
+                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+        }
+        else
+        {
+            args.This()->Set(String::NewSymbol("type"),
+                String::NewSymbol("vector"),
+                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+        }
         d->Wrap(args.This());
         return args.This();
     }
@@ -105,12 +117,23 @@ Handle<Value> Datasource::New(const Arguments& args)
     }
     if (ds)
     {
+        if (ds->type() == mapnik::datasource::Raster)
+        {
+            args.This()->Set(String::NewSymbol("type"),
+                String::NewSymbol("raster"),
+                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+        }
+        else
+        {
+            args.This()->Set(String::NewSymbol("type"),
+                String::NewSymbol("vector"),
+                static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+        }
         Datasource* d = new Datasource();
         d->Wrap(args.This());
         d->datasource_ = ds;
         return args.This();
     }
-
     return Undefined();
 }
 

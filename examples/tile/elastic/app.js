@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 var mapnik = require('mapnik')
   , mercator = require('../../utils/sphericalmercator')
@@ -158,4 +157,4 @@ http.createServer(function(req, res) {
 }).listen(port);
 
 
-console.log('Test server listening on port ' +  port);
+console.log('Test server listening on port ' + port);

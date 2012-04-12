@@ -29,6 +29,7 @@ class Feature: public node::ObjectWrap {
     static Handle<Value> addAttributes(const Arguments &args);
     static Handle<Value> numGeometries(const Arguments &args);
     static Handle<Value> toString(const Arguments &args);
+    static Handle<Value> toJSON(const Arguments &args);
 
     // todo
     // how to allow altering of attributes

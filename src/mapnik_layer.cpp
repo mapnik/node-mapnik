@@ -4,11 +4,6 @@
 #include "mapnik_datasource.hpp"
 #include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
-#include "ds_emitter.hpp"
-#include "layer_emitter.hpp"
-
-//#include <node_buffer.h>
-#include <node_version.h>
 
 // boost
 #include <boost/make_shared.hpp>
@@ -28,15 +23,12 @@ void Layer::Initialize(Handle<Object> target) {
 
     // methods
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "describe_data", describe_data);
 
     // properties
     ATTR(constructor, "name", get_prop, set_prop);
     ATTR(constructor, "srs", get_prop, set_prop);
     ATTR(constructor, "styles", get_prop, set_prop);
     ATTR(constructor, "datasource", get_prop, set_prop);
-	
 
     target->Set(String::NewSymbol("Layer"),constructor->GetFunction());
 }
@@ -54,11 +46,7 @@ Layer::Layer() :
   layer_() {}
 
 
-Layer::~Layer()
-{
-    //std::clog << "~node.Layer\n";
-    // release is handled by boost::shared_ptr
-}
+Layer::~Layer() {}
 
 Handle<Value> Layer::New(const Arguments& args)
 {
@@ -67,22 +55,8 @@ Handle<Value> Layer::New(const Arguments& args)
     if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
 
-    /*
-    if (args.Length() > 0) {
-        Local<Object> obj = args[0]->ToObject();
-        if (!Layer::constructor->HasInstance(obj)) {
-          Layer* l = ObjectWrap::Unwrap<Layer>(obj);
-          // segfault
-          l->Wrap(obj);
-          return obj;
-        }
-    }
-    */
-
     if (args[0]->IsExternal())
     {
-        //return ThrowException(String::New("No support yet for passing v8:External wrapper around C++ void*"));
-        //std::clog << "external!\n";
         Local<External> ext = Local<External>::Cast(args[0]);
         void* ptr = ext->Value();
         Layer* l =  static_cast<Layer*>(ptr);
@@ -115,24 +89,10 @@ Handle<Value> Layer::New(const Arguments& args)
         return ThrowException(Exception::TypeError(
           String::New("please provide Layer name and optional srs")));
     }
-
-    //return args.This();
-    return Undefined();
-
+    return args.This();
 }
 
-/*
-Handle<Value> Layer::New(mapnik::layer & lay_ref) {
-    HandleScope scope;
-    Handle<Value> ext = String::New("temporary");
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    Layer* l = ObjectWrap::Unwrap<Layer>(obj);
-    *l->layer_ = lay_ref;
-    return obj;
-}
-*/
-
-Handle<Value> Layer::New(mapnik::layer & lay_ref) {
+Handle<Value> Layer::New(mapnik::layer const& lay_ref) {
     HandleScope scope;
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
@@ -141,7 +101,6 @@ Handle<Value> Layer::New(mapnik::layer & lay_ref) {
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
 }
-
 
 Handle<Value> Layer::get_prop(Local<String> property,
                          const AccessorInfo& info)
@@ -248,60 +207,64 @@ Handle<Value> Layer::describe(const Arguments& args)
     Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
 
     Local<Object> description = Object::New();
-    node_mapnik::layer_as_json(description,*l->layer_);
+    mapnik::layer const& layer = *l->layer_;
+    if ( layer.name() != "" )
+    {
+        description->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+    }
+
+    if ( layer.srs() != "" )
+    {
+        description->Set(String::NewSymbol("srs"), String::New(layer.srs().c_str()));
+    }
+
+    if ( !layer.active())
+    {
+        description->Set(String::NewSymbol("status"), Boolean::New(layer.active()));
+    }
+
+    if ( layer.clear_label_cache())
+    {
+        description->Set(String::NewSymbol("clear_label_cache"), Boolean::New(layer.clear_label_cache()));
+    }
+
+    if ( layer.min_zoom() > 0)
+    {
+        description->Set(String::NewSymbol("minzoom"), Number::New(layer.min_zoom()));
+    }
+
+    if ( layer.max_zoom() != std::numeric_limits<double>::max() )
+    {
+        description->Set(String::NewSymbol("maxzoom"), Number::New(layer.max_zoom()));
+    }
+
+    if ( layer.queryable())
+    {
+        description->Set(String::NewSymbol("queryable"), Boolean::New(layer.queryable()));
+    }
+
+    std::vector<std::string> const& style_names = layer.styles();
+    Local<Array> s = Array::New(style_names.size());
+    for (unsigned i = 0; i < style_names.size(); ++i)
+    {
+        s->Set(i, String::New(style_names[i].c_str()) );
+    }
+
+    description->Set(String::NewSymbol("styles"), s );
+
+    mapnik::datasource_ptr datasource = layer.datasource();
+    Local<v8::Object> ds = Object::New();
+    description->Set(String::NewSymbol("datasource"), ds );
+    if ( datasource )
+    {
+        mapnik::parameters::const_iterator it = datasource->params().begin();
+        mapnik::parameters::const_iterator end = datasource->params().end();
+        for (; it != end; ++it)
+        {
+            node_mapnik::params_to_object serializer( ds , it->first);
+            boost::apply_visitor( serializer, it->second );
+        }
+    }
 
     return scope.Close(description);
 }
-
-Handle<Value> Layer::describe_data(const Arguments& args)
-{
-    HandleScope scope;
-    Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
-    Local<Object> description = Object::New();
-    mapnik::datasource_ptr ds = l->layer_->datasource();
-    if (ds)
-    {
-        try
-        {
-            node_mapnik::describe_datasource(description,ds);
-        }
-        catch (const std::exception & ex )
-        {
-            return ThrowException(Exception::Error(
-              String::New(ex.what())));
-        }
-    }
-    return scope.Close(description);
-}
-
-Handle<Value> Layer::features(const Arguments& args)
-{
-
-    HandleScope scope;
-
-    unsigned first = 0;
-    unsigned last = 0;
-    // we are slicing
-    if (args.Length() == 2)
-    {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
-            return ThrowException(Exception::Error(
-               String::New("Index of 'first' and 'last' feature must be an integer")));
-        first = args[0]->IntegerValue();
-        last = args[1]->IntegerValue();
-    }
-
-
-    Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
-
-    // TODO - we don't know features.length at this point
-    Local<Array> a = Array::New(0);
-    mapnik::datasource_ptr ds = l->layer_->datasource();
-    if (ds)
-    {
-        node_mapnik::datasource_features(a,ds,first,last);
-    }
-
-    return scope.Close(a);
-}
-

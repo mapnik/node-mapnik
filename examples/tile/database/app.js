@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 // This example shows how to use node-mapnik to
 // render maps tiles based on spatial data stored in postgis
@@ -6,15 +5,15 @@
 // To run you must configure the postgis_settings variable
 
 
-var mapnik = require('mapnik')
-  , mercator = require('../../utils/sphericalmercator')
-  , url = require('url')
-  , fs = require('fs')
-  , http = require('http')
-  , parseXYZ = require('../../utils/tile.js').parseXYZ
-  , path = require('path')
-  , port = 8000
-  , TMS_SCHEME = false;
+var mapnik = require('mapnik');
+var mercator = require('../../utils/sphericalmercator');
+var url = require('url');
+var fs = require('fs');
+var http = require('http');
+var parseXYZ = require('../../utils/tile.js').parseXYZ;
+var path = require('path');
+var port = 8000;
+var TMS_SCHEME = false;
 
 // change this to fit your db connection and settings
 var postgis_settings = {

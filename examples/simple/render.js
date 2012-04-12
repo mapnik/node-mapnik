@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 // This example shows how to use node-mapnik to render
 // a map to a file

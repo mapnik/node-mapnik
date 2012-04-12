@@ -32,14 +32,17 @@ def write_mapnik_settings(fonts='undefined',input_plugins='undefined'):
 
 def ensure_min_mapnik_version(conf,min_version='2.1.0'):
     found_version = popen("%s --version" % conf.env['MAPNIK_CONFIG']).readline().strip().replace('-pre','')
-    f_parts = found_version.split('.')
-    found_version_num = (f_parts[0]*100000)+(f_parts[1]*100)+f_parts[2]
-    m_parts = min_version.split('.')
-    min_version_num = (m_parts[0]*100000)+(m_parts[1]*100)+m_parts[2]
-    if found_version_num == min_version_num:
-        Utils.pprint('GREEN', 'Sweet, found compatible mapnik version %s (via mapnik-config)' % (found_version))
+    if not found_version:
+        Utils.pprint('RED',"Warning: Incompatible libmapnik version found (using mapnik-config --version), this 'node-mapnik' requires 'mapnik %s'" % min_version)
     else:
-        Utils.pprint('RED',"Warning: Incompatible libmapnik version found, this 'node-mapnik' requires 'mapnik %s'" % min_version)
+        f_parts = found_version.split('.')
+        found_version_num = (f_parts[0]*100000)+(f_parts[1]*100)+f_parts[2]
+        m_parts = min_version.split('.')
+        min_version_num = (m_parts[0]*100000)+(m_parts[1]*100)+m_parts[2]
+        if found_version_num == min_version_num:
+            Utils.pprint('GREEN', 'Sweet, found compatible mapnik version %s (via mapnik-config)' % (found_version))
+        else:
+            Utils.pprint('RED',"Warning: Incompatible libmapnik version found (using mapnik-config --version), this 'node-mapnik' requires 'mapnik %s'" % min_version)
 
 
 def set_options(opt):
@@ -151,7 +154,8 @@ def build(bld):
                    "src/mapnik_layer.cpp",
                    "src/mapnik_datasource.cpp",
                    "src/mapnik_featureset.cpp",
-                   "src/mapnik_expression.cpp"
+                   "src/mapnik_expression.cpp",
+                   "src/mapnik_query.cpp"
                   ]
     obj.uselib = "MAPNIK"
     # install 'mapnik' module
