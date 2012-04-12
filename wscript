@@ -154,7 +154,8 @@ def build(bld):
                    "src/mapnik_layer.cpp",
                    "src/mapnik_datasource.cpp",
                    "src/mapnik_featureset.cpp",
-                   "src/mapnik_expression.cpp"
+                   "src/mapnik_expression.cpp",
+                   "src/mapnik_query.cpp"
                   ]
     obj.uselib = "MAPNIK"
     # install 'mapnik' module
