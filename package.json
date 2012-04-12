@@ -2,7 +2,7 @@
   "name"          : "mapnik",
   "description"   : "Tile rendering library for node",
   "url"           : "http://github.com/mapnik/node-mapnik",
-  "version"       : "0.6.7",
+  "version"       : "0.7.0",
   "main"          : "./lib/mapnik.js",
   "keywords"      : ["map", "graphics", "canvas", "tile", "mapnik", "carto"],
    "repositories" : [
@@ -13,14 +13,14 @@
    ],
   "author": {
       "name"  : "Dane Springmeyer",
-      "url"   : "http://mapbox.com/",
+      "url"   : "http://mapnik.org",
       "email" : "dane@dbsgeo.com"
    },
   "contributors"  : ["Konstantin Käfer"],
   "licenses"      : [{"type": "BSD"}],
   "dependencies"  : {},
   "devDependencies": {
-    "expresso": "~0.9.x",
+    "mocha": "*",
     "jshint"  : "~0.5.x"
    },
   "bin"           : {
