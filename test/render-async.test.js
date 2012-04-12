@@ -1,47 +1,19 @@
-var path = require('path');
 var mapnik = require('mapnik');
+var assert = require('assert');
+var path = require('path');
 
-
-exports['test asynchronous map rendering to file'] = function(beforeExit, assert) {
-    var map = new mapnik.Map(600, 400);
-    var filename = './test/tmp/renderFile.png';
-    map.renderFile(filename, function(error) {
-        assert.ok(!error);
-        assert.ok(path.existsSync(filename));
-    });
-    
-};
-
-exports['async render'] = function(beforeExit, assert) {
-
-    var rendered = false;
-    var map = new mapnik.Map(256, 256);
-    map.load('./examples/stylesheet.xml', function(err,map) {
-        map.zoomAll();
-        var im = new mapnik.Image(map.width, map.height);
-        map.render(im, function(err, im) {
-            im.encode('png', function(err,buffer) {
-                var string = im.toString();
-                assert.ok(string);
-                rendered = true;
-            });
+describe('mapnik async rendering', function() {
+    it('should render to a file', function(done) {
+        var map = new mapnik.Map(600, 400);
+        var filename = './test/tmp/renderFile.png';
+        map.renderFile(filename, function(error) {
+            assert.ok(!error);
+            assert.ok(path.existsSync(filename));
+            done();
         });
     });
 
-    beforeExit(function() {
-        assert.equal(rendered, true);
-    });
-};
-
-
-// TODO - pooled and cloned render
-
-exports['async render loop'] = function(beforeExit, assert) {
-
-    var rendered = 0;
-    var expected = 10;
-
-    var render = function() {
+    it('should render to an image', function(done) {
         var map = new mapnik.Map(256, 256);
         map.load('./examples/stylesheet.xml', function(err,map) {
             map.zoomAll();
@@ -50,22 +22,9 @@ exports['async render loop'] = function(beforeExit, assert) {
                 im.encode('png', function(err,buffer) {
                     var string = im.toString();
                     assert.ok(string);
-                    rendered++;
+                    done();
                 });
             });
         });
-    };
-
-    var loop = function() {
-	    for (var i = 0; i < expected; ++i) {
-            render();
-        }
-	}
-	loop();
-	loop();
-	loop();
-
-    beforeExit(function() {
-        assert.equal(rendered, expected*3);
     });
-};
+});

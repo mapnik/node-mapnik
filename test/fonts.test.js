@@ -1,4 +1,5 @@
 var mapnik = require('mapnik');
+var assert = require('assert');
 var fs = require('fs');
 
 function oc(a) {
@@ -9,18 +10,23 @@ function oc(a) {
     return o;
 }
 
-exports['test fonts'] = function(beforeExit, assert) {
-    // make sure we have default fonts
-    assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
+describe('mapnik fonts ', function() {
+    it('should auto-register DejaVu fonts', function() {
+        // make sure we have default fonts
+        assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
+    });
 
-    // make sure system font was loaded
-    if (process.platform == 'darwin') {
-        assert.ok('Times Regular' in oc(mapnik.fonts()));
-        // it should already be loaded so trying to register more should return false
-        assert.ok(!mapnik.register_fonts('/System/Library/Fonts/', { recurse: true }));
-    }
+    it('should auto-register a system font like Times Regular on OS X', function() {
+        if (process.platform == 'darwin') {
+            assert.ok('Times Regular' in oc(mapnik.fonts()));
+            // it should already be loaded so trying to register more should return false
+            assert.ok(!mapnik.register_fonts('/System/Library/Fonts/', { recurse: true }));
+        }
+    });
 
-    // will return true if new fonts are found
-    // but should return false as we now call at startup
-    assert.ok(!mapnik.register_system_fonts());
-};
+    it('should find new fonts when registering all system fonts', function() {
+        // will return true if new fonts are found
+        // but should return false as we now call at startup
+        assert.ok(!mapnik.register_system_fonts());
+    });
+});

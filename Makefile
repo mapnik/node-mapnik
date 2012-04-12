@@ -30,15 +30,15 @@ uninstall:
 	@node-waf uninstall
 
 test-tmp:
-	@rm -rf tests/tmp
-	@mkdir -p tests/tmp
+	@rm -rf test/tmp
+	@mkdir -p test/tmp
 
 ifndef only
 test: test-tmp
-	@PATH=./node_modules/expresso/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH expresso
+	@PATH=./node_modules/mocha/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH mocha -R spec
 else
 test: test-tmp
-	@PATH=./node_modules/expresso/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH expresso test/${only}.test.js
+	@PATH=./node_modules/mocha/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH mocha -R spec test/${only}.test.js
 endif
 
 fix:
