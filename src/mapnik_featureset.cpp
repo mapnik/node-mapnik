@@ -57,7 +57,7 @@ Handle<Value> Featureset::next(const Arguments& args)
         {
             fp = fs->this_->next();
         }
-        catch (const std::exception & ex)
+        catch (std::exception const& ex)
         {
             return ThrowException(Exception::Error(
                                       String::New(ex.what())));

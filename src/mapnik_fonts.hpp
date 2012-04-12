@@ -66,7 +66,7 @@ static inline Handle<Value> register_fonts(const Arguments& args)
 
         return scope.Close(Boolean::New(found));
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));

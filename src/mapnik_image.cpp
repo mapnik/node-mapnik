@@ -487,7 +487,7 @@ Handle<Value> Image::save(const Arguments& args)
     {
         mapnik::save_to_file<mapnik::image_data_32>(im->get()->data(),filename);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));

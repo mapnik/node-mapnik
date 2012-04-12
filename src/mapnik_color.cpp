@@ -85,7 +85,7 @@ Handle<Value> Color::New(const Arguments& args)
         // todo allow int,int,int and int,int,int,int contructor
 
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));

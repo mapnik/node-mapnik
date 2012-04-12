@@ -390,7 +390,7 @@ Handle<Value> ImageView::save(const Arguments& args)
     {
         save_to_file(*im->get(),filename);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));

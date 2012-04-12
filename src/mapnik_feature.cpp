@@ -166,7 +166,7 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
                                                   String::New("empty geometry!")));
                     }
                 }
-                catch (const std::exception & ex )
+                catch (std::exception const& ex )
                 {
                     return ThrowException(Exception::Error(
                                               String::New(ex.what())));
@@ -222,7 +222,7 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                     i++;
                 }
             }
-            catch (const std::exception & ex )
+            catch (std::exception const& ex )
             {
                 return ThrowException(Exception::Error(
                                           String::New(ex.what())));

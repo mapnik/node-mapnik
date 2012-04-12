@@ -617,7 +617,7 @@ void Map::EIO_Load(uv_work_t* req)
     {
         mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
@@ -675,7 +675,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
     {
         mapnik::load_map(*m->map_,stylesheet,strict);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -743,7 +743,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     {
         mapnik::load_map_string(*m->map_,stylesheet,strict,base_path);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -841,7 +841,7 @@ void Map::EIO_FromString(uv_work_t* req)
     {
         mapnik::load_map_string(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_url);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
@@ -911,7 +911,7 @@ Handle<Value> Map::zoomAll(const Arguments& args)
     try {
         m->map_->zoom_all();
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -1218,7 +1218,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
         ren.apply(layer,attributes);
 
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
@@ -1274,7 +1274,7 @@ void Map::EIO_RenderImage(uv_work_t* req)
                                                    closure->offset_y);
         ren.apply();
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
@@ -1442,7 +1442,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
             }
         }
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
@@ -1609,7 +1609,7 @@ Handle<Value> Map::renderLayerSync(const Arguments& args)
         ren.apply(layer,attributes);
 
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -1673,7 +1673,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
             s = save_to_string(im, format);
         }
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -1776,7 +1776,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             }
         }
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -1994,7 +1994,7 @@ void Map::EIO_RenderGrid2(uv_work_t* req)
         mapnik::layer const& layer = layers[closure->layer_idx];
         ren.apply(layer,attributes);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();

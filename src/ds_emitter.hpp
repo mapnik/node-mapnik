@@ -136,7 +136,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             }
         }
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         ThrowException(Exception::Error(
                            String::New(ex.what())));
@@ -193,7 +193,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             }
         }
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         ThrowException(Exception::Error(
                            String::New(ex.what())));

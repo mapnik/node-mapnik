@@ -56,7 +56,7 @@ Handle<Value> Expression::New(const Arguments& args)
                                       String::New("invalid arguments: accepts a single argument of string type")));
         }
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));

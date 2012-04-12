@@ -105,7 +105,7 @@ Handle<Value> Datasource::New(const Arguments& args)
     {
         ds = mapnik::datasource_cache::create(params, bind);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -170,7 +170,7 @@ Handle<Value> Datasource::describe(const Arguments& args)
     {
         node_mapnik::describe_datasource(description,d->datasource_);
     }
-    catch (const std::exception & ex )
+    catch (std::exception const& ex )
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -209,7 +209,7 @@ Handle<Value> Datasource::features(const Arguments& args)
     {
         node_mapnik::datasource_features(a,d->datasource_,first,last);
     }
-    catch (const std::exception & ex )
+    catch (std::exception const& ex )
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -246,7 +246,7 @@ Handle<Value> Datasource::featureset(const Arguments& args)
 
         fs = ds->datasource_->features(q);
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));

@@ -45,7 +45,7 @@ Handle<Value> Projection::New(const Arguments& args)
         p->Wrap(args.This());
         return args.This();
     }
-    catch (const std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
