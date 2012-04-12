@@ -47,6 +47,16 @@ else if (/.osm$/.test(obj)) {
     console.log('First feature --> ');
     console.log(opened.features().slice(0, 1));
 }
+else if ((/.sqlite$/.test(obj)) ||
+         (/.sqlite3$/.test(obj)) ||
+         (/.db$/.test(obj))
+        ) {
+    var opened = new mapnik.Datasource({type: 'sqlite', file: obj, 'table_by_index': 0});
+    console.log('Description -->');
+    console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0, 1));
+}
 else if ((/.json$/.test(obj)) ||
          (/.geojson$/.test(obj)) ||
          (/.kml$/.test(obj)) ||
