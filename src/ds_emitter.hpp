@@ -31,15 +31,6 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             description->Set(String::NewSymbol("type"), String::New("vector"));
         }
 
-        // extent
-        Local<Array> a = Array::New(4);
-        mapnik::box2d<double> e = ds->envelope();
-        a->Set(0, Number::New(e.minx()));
-        a->Set(1, Number::New(e.miny()));
-        a->Set(2, Number::New(e.maxx()));
-        a->Set(3, Number::New(e.maxy()));
-        description->Set(String::NewSymbol("extent"), a);
-
         mapnik::layer_descriptor ld = ds->get_descriptor();
 
         // encoding

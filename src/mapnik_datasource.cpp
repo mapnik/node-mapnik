@@ -24,6 +24,7 @@ void Datasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
     NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
 
     target->Set(String::NewSymbol("Datasource"),constructor->GetFunction());
 }
@@ -159,6 +160,19 @@ Handle<Value> Datasource::parameters(const Arguments& args)
         boost::apply_visitor( serializer, it->second );
     }
     return scope.Close(ds);
+}
+
+Handle<Value> Datasource::extent(const Arguments& args)
+{
+    HandleScope scope;
+    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Local<Array> a = Array::New(4);
+    mapnik::box2d<double> const& e = d->datasource_->envelope();
+    a->Set(0, Number::New(e.minx()));
+    a->Set(1, Number::New(e.miny()));
+    a->Set(2, Number::New(e.maxx()));
+    a->Set(3, Number::New(e.maxy()));
+    return scope.Close(a);
 }
 
 Handle<Value> Datasource::describe(const Arguments& args)

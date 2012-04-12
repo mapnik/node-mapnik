@@ -76,10 +76,11 @@ describe('mapnik.Datasource', function() {
         }
         var actual = ds.describe();
         assert.deepEqual(actual['type'],expected['type']);
-        assert.deepEqual(actual['extent'],expected['extent']);
         assert.deepEqual(actual['encoding'],expected['encoding']);
         assert.deepEqual(actual['fields'],expected['fields']);
         assert.deepEqual(actual['geometry_type'],expected['geometry_type']);
+
+        assert.deepEqual(ds.extent(),expected['extent']);
     });
 
     it('should validate with known geojson', function() {
@@ -137,9 +138,10 @@ describe('mapnik.Datasource', function() {
         };
         var actual = ds.describe();
         assert.deepEqual(actual['type'],expected['type']);
-        assert.deepEqual(actual['extent'],expected['extent']);
         assert.deepEqual(actual['encoding'],expected['encoding']);
         assert.deepEqual(actual['fields'],expected['fields']);
         assert.deepEqual(actual['geometry_type'],expected['geometry_type']);
+
+        assert.deepEqual(ds.extent(),expected['extent']);
     });
 });
