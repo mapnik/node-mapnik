@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 /*
 Example of streaming features into Mapnik using a

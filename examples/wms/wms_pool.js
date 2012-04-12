@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 var http = require('http');
 var mapnik = require('mapnik');
