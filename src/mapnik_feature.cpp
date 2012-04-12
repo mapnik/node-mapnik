@@ -68,7 +68,7 @@ Handle<Value> Feature::New(const Arguments& args)
 
     // TODO - expose mapnik.Context
     
-    if (!args.Length() == 1 || !args[0]->IsNumber()) {
+    if (args.Length() > 1 || args.Length() < 1 || !args[0]->IsNumber()) {
         return ThrowException(Exception::TypeError(
           String::New("requires one argument: an integer feature id")));
     }

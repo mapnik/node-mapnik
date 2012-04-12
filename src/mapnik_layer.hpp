@@ -21,10 +21,8 @@ class Layer: public node::ObjectWrap {
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
-    static Handle<Value> New(mapnik::layer & lay_ref);
+    static Handle<Value> New(mapnik::layer const& lay_ref);
     static Handle<Value> describe(const Arguments &args);
-    static Handle<Value> features(const Arguments &args);
-    static Handle<Value> describe_data(const Arguments &args);
 
     static Handle<Value> get_prop(Local<String> property,
                          const AccessorInfo& info);
