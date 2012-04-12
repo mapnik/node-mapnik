@@ -238,7 +238,7 @@ typedef struct {
     std::string error_name;
     Persistent<Function> cb;
     std::string result;
-} encode_image_baton_t;
+} encode_image_view_baton_t;
 
 
 Handle<Value> ImageView::encode(const Arguments& args)
@@ -287,7 +287,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    encode_image_baton_t *closure = new encode_image_baton_t();
+    encode_image_view_baton_t *closure = new encode_image_view_baton_t();
     closure->request.data = closure;
     closure->im = im;
     closure->image = im->this_;
@@ -304,7 +304,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
 
 void ImageView::EIO_Encode(uv_work_t* req)
 {
-    encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
+    encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
 
     try {
         if (closure->palette.get())
@@ -332,7 +332,7 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
 {
     HandleScope scope;
 
-    encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
+    encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
 
     TryCatch try_catch;
 
