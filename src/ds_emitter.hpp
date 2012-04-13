@@ -65,30 +65,30 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             mapnik::datasource::geometry_t g_type = *geom_type;
             switch (g_type)
             {
-                case mapnik::datasource::Point:
-                {
-                    js_type = String::New("point");
-                    break;
-                }
-                case mapnik::datasource::LineString:
-                {
-                    js_type = String::New("linestring");
-                    break;
-                }
-                case mapnik::datasource::Polygon:
-                {
-                    js_type = String::New("polygon");
-                    break;
-                }
-                case mapnik::datasource::Collection:
-                {
-                    js_type = String::New("collection");
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
+            case mapnik::datasource::Point:
+            {
+                js_type = String::New("point");
+                break;
+            }
+            case mapnik::datasource::LineString:
+            {
+                js_type = String::New("linestring");
+                break;
+            }
+            case mapnik::datasource::Polygon:
+            {
+                js_type = String::New("polygon");
+                break;
+            }
+            case mapnik::datasource::Collection:
+            {
+                js_type = String::New("collection");
+                break;
+            }
+            default:
+            {
+                break;
+            }
             }
         }
         description->Set(String::NewSymbol("geometry_type"), js_type);
