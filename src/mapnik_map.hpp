@@ -66,6 +66,11 @@ public:
     static Handle<Value> zoomToBox(const Arguments &args);
     static Handle<Value> layers(const Arguments &args);
     static Handle<Value> scaleDenominator(const Arguments &args);
+    static Handle<Value> queryPoint(const Arguments &args);
+    static Handle<Value> queryMapPoint(const Arguments &args);
+    static Handle<Value> abstractQueryPoint(const Arguments &args, bool geo_coords);
+    static void EIO_QueryMap(uv_work_t* req);
+    static void EIO_AfterQueryMap(uv_work_t* req);
 
     static Handle<Value> add_layer(const Arguments &args);
     static Handle<Value> get_layer(const Arguments &args);

@@ -36,6 +36,7 @@
 #include "js_grid_utils.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_layer.hpp"
+#include "mapnik_featureset.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
 #include "mapnik_palette.hpp"
@@ -74,6 +75,8 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoomAll", zoomAll);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoomToBox", zoomToBox); //setExtent
     NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scaleDenominator);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "queryPoint", queryPoint);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "queryMapPoint", queryMapPoint);
 
     // layer access
     NODE_SET_PROTOTYPE_METHOD(constructor, "add_layer", add_layer);
@@ -431,6 +434,267 @@ Handle<Value> Map::scaleDenominator(const Arguments& args)
     return scope.Close(Number::New(m->map_->scale_denominator()));
 }
 
+typedef struct {
+    uv_work_t request;
+    Map *m;
+    std::map<std::string,mapnik::featureset_ptr> featuresets;
+    int layer_idx;
+    bool geo_coords;
+    double x;
+    double y;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} query_map_baton_t;
+
+
+Handle<Value> Map::queryMapPoint(const Arguments& args)
+{
+    HandleScope scope;
+    abstractQueryPoint(args,false);
+    return Undefined();
+}
+
+Handle<Value> Map::queryPoint(const Arguments& args)
+{
+    HandleScope scope;
+    abstractQueryPoint(args,true);
+    return Undefined();
+}
+
+Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
+{
+    HandleScope scope;
+    if (!args.Length() >= 3)
+    {
+        return ThrowException(Exception::TypeError(
+                                  String::New("requires at least three arguments, a x,y query and a callback")));
+    }
+
+    double x,y;
+    if (!args[0]->IsNumber() || !args[1]->IsNumber())
+    {
+        return ThrowException(Exception::TypeError(
+                                  String::New("x,y arguments must be numbers")));
+    }
+    else
+    {
+        x = args[0]->NumberValue();
+        y = args[1]->NumberValue();
+    }
+
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+
+    Local<Object> options;
+    int layer_idx = -1;
+
+    if (args.Length() > 3)
+    {
+        // options object
+        if (!args[2]->IsObject())
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional third argument must be an options object")));
+
+        options = args[2]->ToObject();
+
+        if (options->Has(String::New("layer")))
+        {
+            std::vector<mapnik::layer> const& layers = m->map_->layers();
+            Local<Value> layer_id = options->Get(String::New("layer"));
+            if (! (layer_id->IsString() || layer_id->IsNumber()) )
+                return ThrowException(Exception::TypeError(
+                                          String::New("'layer' option required for map query and must be either a layer name(string) or layer index (integer)")));
+
+            if (layer_id->IsString()) {
+                bool found = false;
+                unsigned int idx(0);
+                std::string const & layer_name = TOSTR(layer_id);
+                BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+                {
+                    if (lyr.name() == layer_name)
+                    {
+                        found = true;
+                        layer_idx = idx;
+                        break;
+                    }
+                    ++idx;
+                }
+                if (!found)
+                {
+                    std::ostringstream s;
+                    s << "Layer name '" << layer_name << "' not found";
+                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                }
+            }
+            else if (layer_id->IsNumber())
+            {
+                layer_idx = layer_id->IntegerValue();
+                std::size_t layer_num = layers.size();
+
+                if (layer_idx < 0) {
+                    std::ostringstream s;
+                    s << "Zero-based layer index '" << layer_idx << "' not valid"
+                      << " must be a positive integer";
+                    if (layer_num > 0)
+                    {
+                        s << "only '" << layers.size() << "' layers exist in map";
+                    }
+                    else
+                    {
+                        s << "no layers found in map";
+                    }
+                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                } else if (layer_idx >= layer_num) {
+                    std::ostringstream s;
+                    s << "Zero-based layer index '" << layer_idx << "' not valid, ";
+                    if (layer_num > 0)
+                    {
+                        s << "only '" << layers.size() << "' layers exist in map";
+                    }
+                    else
+                    {
+                        s << "no layers found in map";
+                    }
+                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                }
+            } else {
+                return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
+            }
+        }
+    }
+
+    // ensure function callback
+    Local<Value> callback = args[args.Length()-1];
+    if (!callback->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    query_map_baton_t *closure = new query_map_baton_t();
+    closure->request.data = closure;
+    closure->m = m;
+    closure->x = x;
+    closure->y = y;
+    closure->layer_idx = static_cast<std::size_t>(layer_idx);
+    closure->geo_coords = geo_coords;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMap, EIO_AfterQueryMap);
+    m->Ref();
+    uv_ref(uv_default_loop());
+    return Undefined();
+}
+
+void Map::EIO_QueryMap(uv_work_t* req)
+{
+    query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
+
+    try
+    {
+        std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
+        if (closure->layer_idx >= 0)
+        {
+            mapnik::featureset_ptr fs;
+            if (closure->geo_coords)
+            {
+                fs = closure->m->map_->query_point(closure->layer_idx,
+                                                            closure->x,
+                                                            closure->y);
+            }
+            else
+            {
+                fs = closure->m->map_->query_map_point(closure->layer_idx,
+                                                            closure->x,
+                                                            closure->y);
+            }
+            mapnik::layer const& lyr = layers[closure->layer_idx];
+            closure->featuresets.insert(std::make_pair(lyr.name(),fs));
+        }
+        else
+        {
+            // query all layers
+            unsigned idx = 0;
+            BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+            {
+                mapnik::featureset_ptr fs;
+                if (closure->geo_coords)
+                {
+                    fs = closure->m->map_->query_point(idx,
+                                                       closure->x,
+                                                       closure->y);
+                }
+                else
+                {
+                    fs = closure->m->map_->query_map_point(idx,
+                                                           closure->x,
+                                                           closure->y);
+                }
+                closure->featuresets.insert(std::make_pair(lyr.name(),fs));
+                ++idx;
+            }
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+    catch (...)
+    {
+        closure->error = true;
+        closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
+    }
+}
+
+void Map::EIO_AfterQueryMap(uv_work_t* req)
+{
+    HandleScope scope;
+
+    query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
+
+    TryCatch try_catch;
+
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    } else {
+        std::size_t num_result = closure->featuresets.size();
+        if (num_result >= 1)
+        {
+            Local<Array> a = Array::New(num_result);
+            typedef std::map<std::string,mapnik::featureset_ptr> fs_itr;
+            fs_itr::const_iterator it = closure->featuresets.begin();
+            fs_itr::const_iterator end = closure->featuresets.end();
+            unsigned idx = 0;
+            for (; it != end; ++it)
+            {
+                Local<Object> obj = Object::New();
+                obj->Set(String::NewSymbol("layer"), String::New(it->first.c_str()));
+                obj->Set(String::NewSymbol("featureset"), Featureset::New(it->second));
+                a->Set(idx, obj);
+                ++idx;
+            }
+            closure->featuresets.clear();
+            Local<Value> argv[2] = { Local<Value>::New(Null()), a };
+            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        }
+        else
+        {
+            Local<Value> argv[2] = { Local<Value>::New(Null()),
+                                     Local<Value>::New(Undefined()) };
+            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        }
+    }
+
+    if (try_catch.HasCaught()) {
+        FatalException(try_catch);
+    }
+
+    closure->m->Unref();
+    uv_unref(uv_default_loop());
+    closure->cb.Dispose();
+    delete closure;
+}
+
 Handle<Value> Map::layers(const Arguments& args)
 {
     HandleScope scope;
@@ -572,7 +836,7 @@ Handle<Value> Map::load(const Arguments& args)
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
-    if (!args[args.Length()-1]->IsFunction())
+    if (!callback->IsFunction())
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
