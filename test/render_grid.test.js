@@ -70,7 +70,7 @@ describe('mapnik grid rendering ', function() {
                 var gv = grid.view(0, 0, 256, 256);
                 gv.encode('utf', {resolution: 4}, function(err,gv_utf1) {
                     assert.equal(JSON.stringify(gv_utf1), reference);
-                    done()
+                    done();
                 });
             });
         });

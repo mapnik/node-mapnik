@@ -73,14 +73,14 @@ describe('mapnik.Datasource', function() {
                 LAT: 'Number'
             },
             geometry_type: 'polygon'
-        }
+        };
         var actual = ds.describe();
-        assert.deepEqual(actual['type'],expected['type']);
-        assert.deepEqual(actual['encoding'],expected['encoding']);
-        assert.deepEqual(actual['fields'],expected['fields']);
-        assert.deepEqual(actual['geometry_type'],expected['geometry_type']);
+        assert.deepEqual(actual.type, expected.type);
+        assert.deepEqual(actual.encoding, expected.encoding);
+        assert.deepEqual(actual.fields, expected.fields);
+        assert.deepEqual(actual.geometry_type, expected.geometry_type);
 
-        assert.deepEqual(ds.extent(),expected['extent']);
+        assert.deepEqual(ds.extent(), expected.extent);
     });
 
     it('should validate with known geojson', function() {
@@ -137,11 +137,11 @@ describe('mapnik.Datasource', function() {
             geometry_type: 'polygon'
         };
         var actual = ds.describe();
-        assert.deepEqual(actual['type'],expected['type']);
-        assert.deepEqual(actual['encoding'],expected['encoding']);
-        assert.deepEqual(actual['fields'],expected['fields']);
-        assert.deepEqual(actual['geometry_type'],expected['geometry_type']);
+        assert.deepEqual(actual.type, expected.type);
+        assert.deepEqual(actual.encoding, expected.encoding);
+        assert.deepEqual(actual.fields, expected.fields);
+        assert.deepEqual(actual.geometry_type, expected.geometry_type);
 
-        assert.deepEqual(ds.extent(),expected['extent']);
+        assert.deepEqual(ds.extent(), expected.extent);
     });
 });

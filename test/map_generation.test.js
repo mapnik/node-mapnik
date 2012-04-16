@@ -57,7 +57,7 @@ describe('mapnik rendering ', function() {
                     assert.ok(path.existsSync(filename));
                     done();
                 });
-        } else { done() }
+        } else { done(); }
     });
 
     it('should render async to file (guessing format)', function(done) {

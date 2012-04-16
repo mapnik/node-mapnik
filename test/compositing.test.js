@@ -9,7 +9,7 @@ describe('mapnik.compositeOp', function() {
             var im1 = mapnik.Image.open('test/support/a.png');
             var im2 = mapnik.Image.open('test/support/b.png');
             it('should blend image correctly with op:' + name, function(done) {
-                im1.composite(im2,mapnik.compositeOp[name], function(err,im_out) {
+                im1.composite(im2, mapnik.compositeOp[name], function(err,im_out) {
                     if (err) throw err;
                     assert.ok(im_out);
                     var out = 'test/tmp/' + name + '.png';
@@ -18,6 +18,6 @@ describe('mapnik.compositeOp', function() {
                     done();
                 });
             });
-        })(name)
+        })(name);
     }
 });

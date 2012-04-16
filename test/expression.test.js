@@ -13,13 +13,13 @@ describe('mapnik.Expression', function() {
     it('should accept complex expressions', function() {
         // valid expression strings
         var expr = new mapnik.Expression('[ATTR]');
-        var expr = new mapnik.Expression('[ATTR]+2');
-        var expr = new mapnik.Expression('[ATTR]/2');
+        expr = new mapnik.Expression('[ATTR]+2');
+        expr = new mapnik.Expression('[ATTR]/2');
 
-        var expr = new mapnik.Expression('[ATTR1]/[ATTR2]');
+        expr = new mapnik.Expression('[ATTR1]/[ATTR2]');
         assert.equal(expr.toString(), '[ATTR1]/[ATTR2]');
 
-        var expr = new mapnik.Expression('\'literal\'');
+        expr = new mapnik.Expression('\'literal\'');
         assert.equal(expr.toString(), "'literal'");
     });
 
