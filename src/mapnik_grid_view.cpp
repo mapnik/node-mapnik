@@ -202,9 +202,9 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
 
     try {
 
-        Local<Array> grid_array = Array::New();
+        boost::ptr_vector<uint16_t> lines;
         std::vector<mapnik::grid_view::lookup_type> key_order;
-        node_mapnik::grid2utf<mapnik::grid_view>(*g->get(),grid_array,key_order,resolution);
+        node_mapnik::grid2utf<mapnik::grid_view>(*g->get(),lines,key_order,resolution);
 
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(key_order.size());
@@ -215,17 +215,24 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
             keys_a->Set(i, String::New((*it).c_str()));
         }
 
+        mapnik::grid_view const& grid_type = *g->get();
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (add_features) {
-            node_mapnik::write_features<mapnik::grid_view>(*g->get(),
+            node_mapnik::write_features<mapnik::grid_view>(grid_type,
                                                            feature_data,
-                                                           key_order
-                );
+                                                           key_order);
         }
 
         // Create the return hash.
         Local<Object> json = Object::New();
+        Local<Array> grid_array = Array::New();
+        unsigned array_size = static_cast<unsigned int>(grid_type.width()/resolution);
+        for (unsigned j=0;j<lines.size();++j)
+        {
+            grid_array->Set(j,String::New(&lines[j],array_size));
+        }
         json->Set(String::NewSymbol("grid"), grid_array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
@@ -247,7 +254,7 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-    Persistent<Array> array;
+    boost::ptr_vector<uint16_t> lines;
     unsigned int resolution;
     bool add_features;
     std::vector<mapnik::grid::lookup_type> key_order;
@@ -314,8 +321,8 @@ Handle<Value> GridView::encode(const Arguments& args)
     closure->format = format;
     closure->error = false;
     closure->resolution = resolution;
+    closure->add_features = add_features;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    closure->array = Persistent<Array>::New(Array::New());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
     uv_ref(uv_default_loop());
     g->Ref();
@@ -330,7 +337,7 @@ void GridView::EIO_Encode(uv_work_t* req)
     {
         // TODO - write features and clear here as well?
         node_mapnik::grid2utf<mapnik::grid_view>(*closure->g->get(),
-                                                 closure->array,
+                                                 closure->lines,
                                                  closure->key_order,
                                                  closure->resolution);
     }
@@ -368,18 +375,25 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
             keys_a->Set(i, String::New((*it).c_str()));
         }
 
+        mapnik::grid_view const& grid_type = *closure->g->get();
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (closure->add_features) {
-            node_mapnik::write_features<mapnik::grid_view>(*closure->g->get(),
+            node_mapnik::write_features<mapnik::grid_view>(grid_type,
                                                            feature_data,
-                                                           closure->key_order
-                );
+                                                           closure->key_order);
         }
 
         // Create the return hash.
         Local<Object> json = Object::New();
-        json->Set(String::NewSymbol("grid"), closure->array);
+        Local<Array> grid_array = Array::New(closure->lines.size());
+        unsigned array_size = static_cast<unsigned int>(grid_type.width()/closure->resolution);
+        for (unsigned j=0;j<closure->lines.size();++j)
+        {
+            grid_array->Set(j,String::New(&closure->lines[j],array_size));
+        }
+        json->Set(String::NewSymbol("grid"), grid_array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
 
@@ -394,6 +408,5 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     uv_unref(uv_default_loop());
     closure->g->Unref();
     closure->cb.Dispose();
-    closure->array.Dispose();
     delete closure;
 }

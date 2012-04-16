@@ -14,9 +14,9 @@ using namespace node;
 
 namespace node_mapnik {
 
-template <typename T, typename ArrayType>
+template <typename T>
 static void grid2utf(T const& grid_type,
-                     ArrayType const& l,
+                     boost::ptr_vector<uint16_t> & lines,
                      std::vector<typename T::lookup_type>& key_order)
 {
     typename T::data_type const& data = grid_type.data();
@@ -26,13 +26,12 @@ static void grid2utf(T const& grid_type,
     typename T::feature_key_type::const_iterator feature_pos;
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
-    uint16_t row_idx = 0;
 
     unsigned array_size = data.width();
     for (unsigned y = 0; y < data.height(); ++y)
     {
         uint16_t idx = 0;
-        boost::scoped_array<uint16_t> line(new uint16_t[array_size]);
+        uint16_t* line = new uint16_t[array_size];
         typename T::value_type const* row = data.getRow(y);
         for (unsigned x = 0; x < data.width(); ++x)
         {
@@ -59,16 +58,15 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
-        l->Set(row_idx, String::New(line.get(),array_size));
-        ++row_idx;
+        lines.push_back(line);
     }
 }
 
 // requires mapnik >= r2957
 
-template <typename T, typename ArrayType>
+template <typename T>
 static void grid2utf(T const& grid_type,
-                     ArrayType const& l,
+                     boost::ptr_vector<uint16_t> & lines,
                      std::vector<typename T::lookup_type>& key_order,
                      unsigned int resolution)
 {
@@ -78,13 +76,12 @@ static void grid2utf(T const& grid_type,
     typename T::feature_key_type::const_iterator feature_pos;
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
-    uint16_t row_idx = 0;
 
     unsigned array_size = static_cast<unsigned int>(grid_type.width()/resolution);
     for (unsigned y = 0; y < grid_type.height(); y=y+resolution)
     {
         uint16_t idx = 0;
-        boost::scoped_array<uint16_t> line(new uint16_t[array_size]);
+        uint16_t* line = new uint16_t[array_size];
         typename T::value_type const* row = grid_type.getRow(y);
         for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
         {
@@ -112,8 +109,7 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
-        l->Set(row_idx, String::New(line.get(),array_size));
-        ++row_idx;
+        lines.push_back(line);
     }
 }
 

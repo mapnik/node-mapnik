@@ -261,9 +261,9 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
 
     try {
 
-        Local<Array> grid_array = Array::New();
+        boost::ptr_vector<uint16_t> lines;
         std::vector<mapnik::grid::lookup_type> key_order;
-        node_mapnik::grid2utf<mapnik::grid>(*g->get(),grid_array,key_order,resolution);
+        node_mapnik::grid2utf<mapnik::grid>(*g->get(),lines,key_order,resolution);
 
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(key_order.size());
@@ -274,17 +274,24 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
             keys_a->Set(i, String::New((*it).c_str()));
         }
 
+        mapnik::grid const& grid_type = *g->get();
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (add_features) {
             node_mapnik::write_features<mapnik::grid>(*g->get(),
                                                       feature_data,
-                                                      key_order
-                );
+                                                      key_order);
         }
 
         // Create the return hash.
         Local<Object> json = Object::New();
+        Local<Array> grid_array = Array::New();
+        unsigned array_size = static_cast<unsigned int>(grid_type.width()/resolution);
+        for (unsigned j=0;j<lines.size();++j)
+        {
+            grid_array->Set(j,String::New(&lines[j],array_size));
+        }
         json->Set(String::NewSymbol("grid"), grid_array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
@@ -305,7 +312,7 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-    Persistent<Array> array;
+    boost::ptr_vector<uint16_t> lines;
     unsigned int resolution;
     bool add_features;
     std::vector<mapnik::grid::lookup_type> key_order;
@@ -371,8 +378,9 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
     closure->format = format;
     closure->error = false;
     closure->resolution = resolution;
+    closure->add_features = add_features;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    closure->array = Persistent<Array>::New(Array::New());
+    // todo - reserve lines size?
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
     uv_ref(uv_default_loop());
     g->Ref();
@@ -386,7 +394,7 @@ void Grid::EIO_Encode(uv_work_t* req)
     try
     {
         node_mapnik::grid2utf<mapnik::grid>(*closure->g->get(),
-                                            closure->array,
+                                            closure->lines,
                                             closure->key_order,
                                             closure->resolution);
     }
@@ -424,18 +432,24 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
             keys_a->Set(i, String::New((*it).c_str()));
         }
 
+        mapnik::grid const& grid_type = *closure->g->get();
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (closure->add_features) {
-            node_mapnik::write_features<mapnik::grid>(*closure->g->get(),
+            node_mapnik::write_features<mapnik::grid>(grid_type,
                                                       feature_data,
-                                                      closure->key_order
-                );
+                                                      closure->key_order);
         }
 
         // Create the return hash.
         Local<Object> json = Object::New();
-        json->Set(String::NewSymbol("grid"), closure->array);
+        Local<Array> grid_array = Array::New(closure->lines.size());
+        unsigned array_size = static_cast<unsigned int>(grid_type.width()/closure->resolution);
+        for (unsigned j=0;j<closure->lines.size();++j)
+        {
+            grid_array->Set(j,String::New(&closure->lines[j],array_size));
+        }
+        json->Set(String::NewSymbol("grid"), grid_array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
 
@@ -450,6 +464,5 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
     uv_unref(uv_default_loop());
     closure->g->Unref();
     closure->cb.Dispose();
-    closure->array.Dispose();
     delete closure;
 }
