@@ -28,38 +28,40 @@ describe('mapnik.Grid ', function() {
         assert.equal(grid.encodeSync().length, v.encodeSync().length);
     });
 
-    it('should be painted after rendering', function(done) {
+    it('should not be painted after rendering', function(done) {
         var grid_blank = new mapnik.Grid(4, 4);
         assert.equal(grid_blank.painted(), false);
         assert.equal(grid_blank.background, undefined);
         var m = new mapnik.Map(4, 4);
         var l = new mapnik.Layer('test');
         m.add_layer(l);
-
         m.render(grid_blank, {layer: 0},function(err,grid_blank) {
             assert.equal(grid_blank.painted(), false);
+            // TODO - expose grid background
             assert.equal(grid_blank.background, undefined);
+            done();
         });
+    });
 
-        var grid_blank2 = new mapnik.Grid(4, 4);
-        assert.equal(grid_blank2.painted(), false);
-        assert.equal(grid_blank2.background, undefined);
+    it('should be have background applied after rendering', function(done) {
 
-        var m2 = new mapnik.Map(4, 4);
+        var grid_blank = new mapnik.Grid(4, 4);
+        var m = new mapnik.Map(4, 4);
         var l = new mapnik.Layer('test');
-        m2.add_layer(l);
-
-        m2.background = new mapnik.Color('green');
-        m2.render(grid_blank2, {layer: 0},function(err,grid_blank2) {
-            assert.equal(grid_blank2.painted(), false);
+        m.add_layer(l);
+        m.background = new mapnik.Color('green');
+        m.render(grid_blank, {layer: 0},function(err,grid_blank2) {
+            assert.equal(grid_blank.painted(), false);
+            // TODO - expose grid background
             //assert.ok(grid_blank2.background);
+            done();
         });
+    });
 
-
+    it('should be painted after rendering2', function(done) {
         var grid_blank3 = new mapnik.Grid(4, 4);
         assert.equal(grid_blank3.painted(), false);
         assert.equal(grid_blank3.background, undefined);
-
         var m3 = new mapnik.Map(4, 4);
         var s = '<Map>';
         s += '<Style name="points">';
@@ -69,7 +71,6 @@ describe('mapnik.Grid ', function() {
         s += '</Style>';
         s += '</Map>';
         m3.fromStringSync(s);
-
         var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         mem_datasource.add({ 'x': 0, 'y': 0 });
         mem_datasource.add({ 'x': 1, 'y': 1 });

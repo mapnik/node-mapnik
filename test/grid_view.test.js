@@ -31,7 +31,6 @@ describe('mapnik.GridView ', function() {
                       };
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
         map.render(grid, options, function(err, grid) {
-
             var view = grid.view(0, 0, 256, 256);
             assert.equal(view.isSolid(), false);
             // hit alaska (USA is id 207)

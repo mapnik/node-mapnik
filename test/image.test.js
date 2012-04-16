@@ -38,7 +38,7 @@ describe('mapnik.Image ', function() {
         assert.equal(im.encodeSync().length, im2.encodeSync().length);
     });
 
-    it('should be painted after rendering', function(done) {
+    it('should not be painted after rendering', function(done) {
         var im_blank = new mapnik.Image(4, 4);
         assert.equal(im_blank.painted(), false);
         assert.equal(im_blank.background, undefined);
@@ -48,8 +48,11 @@ describe('mapnik.Image ', function() {
         m.render(im_blank, {},function(err,im_blank) {
             assert.equal(im_blank.painted(), false);
             assert.equal(im_blank.background, undefined);
+            done();
         });
+    });
 
+    it('should have background set after rendering', function(done) {
         var im_blank2 = new mapnik.Image(4, 4);
         assert.equal(im_blank2.painted(), false);
         assert.equal(im_blank2.background, undefined);
@@ -60,8 +63,11 @@ describe('mapnik.Image ', function() {
         m2.render(im_blank2, {},function(err,im_blank2) {
             assert.equal(im_blank2.painted(), false);
             assert.ok(im_blank2.background);
+            done();
         });
+    });
 
+    it('should be painted after rendering', function(done) {
 
         var im_blank3 = new mapnik.Image(4, 4);
         assert.equal(im_blank3.painted(), false);
