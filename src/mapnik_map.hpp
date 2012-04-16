@@ -49,14 +49,6 @@ public:
     static Handle<Value> renderSync(const Arguments &args);
     static Handle<Value> renderFileSync(const Arguments &args);
 
-
-    // TODO - deprecated, remove
-    static Handle<Value> renderLayerSync(const Arguments &args);
-    static Handle<Value> render_grid(const Arguments &args);
-    static void EIO_RenderGrid2(uv_work_t* req);
-    static void EIO_AfterRenderGrid2(uv_work_t* req);
-
-
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> to_string(const Arguments &args);
 
