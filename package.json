@@ -5,12 +5,10 @@
   "version"       : "0.7.0",
   "main"          : "./lib/mapnik.js",
   "keywords"      : ["map", "graphics", "canvas", "tile", "mapnik", "carto"],
-   "repositories" : [
-       {
+  "repository"   :  {
            "type" : "git",
            "url"  : "git://github.com/mapnik/node-mapnik.git"
-       }
-   ],
+  },
   "author": {
       "name"  : "Dane Springmeyer",
       "url"   : "http://mapnik.org",
