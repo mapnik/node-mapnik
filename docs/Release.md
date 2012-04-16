@@ -30,7 +30,7 @@ Increment version in `package.json`.
 
 ## Commit, tag, and push tag
 
-    VERSION="0.6.6"
+    VERSION="0.7.0"
     git ci -a -m "bump to ${VERSION}"
     git push
     git tag ${VERSION} -m "tagging ${VERSION}"
