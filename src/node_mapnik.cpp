@@ -15,6 +15,7 @@
 #include "mapnik_plugins.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_projection.hpp"
+#include "mapnik_proj_transform.hpp"
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
@@ -97,6 +98,7 @@ extern "C" {
         ImageView::Initialize(target);
         Palette::Initialize(target);
         Projection::Initialize(target);
+        ProjTransform::Initialize(target);
         Layer::Initialize(target);
         Grid::Initialize(target);
         GridView::Initialize(target);

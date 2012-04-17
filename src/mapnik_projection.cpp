@@ -28,6 +28,17 @@ Projection::~Projection()
 {
 }
 
+bool Projection::HasInstance(Handle<Value> val)
+{
+    if (!val->IsObject()) return false;
+    Local<Object> obj = val->ToObject();
+    
+    if (constructor->HasInstance(obj))
+        return true;
+    
+    return false;
+}
+
 Handle<Value> Projection::New(const Arguments& args)
 {
     HandleScope scope;

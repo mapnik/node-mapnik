@@ -23,9 +23,11 @@ public:
 
     static Handle<Value> inverse(const Arguments& args);
     static Handle<Value> forward(const Arguments& args);
+    static bool HasInstance(Handle<Value> val);
 
     explicit Projection(std::string const& name);
-    explicit Projection(std::string const& name, std::string const& srs);
+
+    inline proj_ptr get() { return projection_; }
 
 private:
     ~Projection();

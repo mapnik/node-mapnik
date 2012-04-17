@@ -9,13 +9,14 @@ describe('mapnik.Projection ', function() {
             /failed to initialize projection with: '\+init=epsg:foo'/);
         assert.throws(function() { new mapnik.Projection('+proj +foo'); },
             /failed to initialize projection with: '\+proj \+foo'/);
-
-
-        var wgs84 = new mapnik.Projection('+init=epsg:4326');
-        assert.ok(wgs84 instanceof mapnik.Projection);
+        assert.throws(function() { new mapnik.Projection(1); });
+        assert.throws(function() { new mapnik.Projection({}); });
     });
 
     it('should initialize properly', function() {
+        var wgs84 = new mapnik.Projection('+init=epsg:4326');
+        assert.ok(wgs84 instanceof mapnik.Projection);
+
         var merc;
         try {
             // perhaps we've got a savvy user?
