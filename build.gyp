@@ -15,10 +15,12 @@
           "src/mapnik_memory_datasource.cpp",
           "src/mapnik_palette.cpp",
           "src/mapnik_projection.cpp",
+          "src/mapnik_proj_transform.cpp",
           "src/mapnik_layer.cpp",
           "src/mapnik_datasource.cpp",
           "src/mapnik_featureset.cpp",
           "src/mapnik_expression.cpp"
+          #"src/mapnik_query.cpp"
       ],
       'node_root': '/opt/node-v6.1',
       'node_root_win': 'c:\\node',
