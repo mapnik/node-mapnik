@@ -10,6 +10,8 @@
 
 // stl
 #include <vector>
+#include <iostream>
+#include <iomanip>
 
 Persistent<FunctionTemplate> Palette::constructor;
 
