@@ -12,5 +12,5 @@ msbuild build.sln
 copy Default\\_mapnik.node lib\\_mapnik.node
 rem test!
 set NODE_PATH=lib
-node node_modules\expresso\bin\expresso
-rem node -e "console.log(require('mapnik'))"
+mocha
+@rem node -e "console.log(require('mapnik'))"
