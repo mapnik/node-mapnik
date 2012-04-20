@@ -29,4 +29,11 @@ describe('mapnik fonts ', function() {
         // but should return false as we now call at startup
         assert.ok(!mapnik.register_system_fonts());
     });
+
+    it('should not register hidden fonts', function() {
+        var fonts = mapnik.fonts();
+        for (var i = 0; i < fonts.length; i++) {
+            assert(fonts[i][0] != '.');
+        }
+    });
 });
