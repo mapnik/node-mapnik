@@ -30,10 +30,18 @@ describe('mapnik fonts ', function() {
         assert.ok(!mapnik.register_system_fonts());
     });
 
-    it('should not register hidden fonts', function() {
-        var fonts = mapnik.fonts();
+    it('should not register hidden fonts file names', function() {
+        var fonts = mapnik.fontFiles();
         for (var i = 0; i < fonts.length; i++) {
-            assert(fonts[i][0] != '.');
+            assert(fonts[i][1][0] != '.', fonts[i]);
+        }
+    });
+
+    it('should not register hidden fonts face-names', function() {
+        var fonts = mapnik.fonts();
+        console.log(fonts);
+        for (var i = 0; i < fonts.length; i++) {
+            assert(fonts[i][0] != '.', fonts[i]);
         }
     });
 });
