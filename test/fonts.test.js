@@ -39,7 +39,6 @@ describe('mapnik fonts ', function() {
 
     it('should not register hidden fonts face-names', function() {
         var fonts = mapnik.fonts();
-        console.log(fonts);
         for (var i = 0; i < fonts.length; i++) {
             assert(fonts[i][0] != '.', fonts[i]);
         }

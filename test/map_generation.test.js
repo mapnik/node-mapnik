@@ -50,9 +50,6 @@ describe('mapnik rendering ', function() {
                 map.loadSync('./examples/stylesheet.xml');
                 map.zoomAll();
                 map.renderFile(filename, { format: 'pdf' }, function(error) {
-                    if (error) {
-                        console.log(error);
-                    }
                     assert.ok(!error);
                     assert.ok(path.existsSync(filename));
                     done();
@@ -66,9 +63,6 @@ describe('mapnik rendering ', function() {
         map.loadSync('./examples/stylesheet.xml');
         map.zoomAll();
         map.renderFile(filename, function(error) {
-            if (error) {
-                console.log(error);
-            }
             assert.ok(!error);
             assert.ok(path.existsSync(filename));
             done();
