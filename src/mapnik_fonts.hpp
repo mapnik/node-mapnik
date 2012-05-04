@@ -50,13 +50,13 @@ static inline Handle<Value> register_fonts(const Arguments& args)
                                               String::New("'recurse' must be a Boolean")));
 
                 bool recurse = recurse_opt->BooleanValue();
-                std::string const& path = TOSTR(args[0]);
+                std::string path = TOSTR(args[0]);
                 found = mapnik::freetype_engine::register_fonts(path,recurse);
             }
         }
         else
         {
-            std::string const& path = TOSTR(args[0]);
+            std::string path = TOSTR(args[0]);
             found = mapnik::freetype_engine::register_fonts(path);
         }
 
