@@ -249,9 +249,9 @@ Handle<Value> Feature::toJSON(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
     std::string json;
 #if BOOST_VERSION >= 104700
+    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
     // TODO - create once?
     if (!generator.generate(json,*(fp->get())))
     {
