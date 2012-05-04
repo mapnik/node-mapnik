@@ -43,7 +43,7 @@ static inline Handle<Value> register_datasources(const Arguments& args)
                                   String::New("first argument must be a path to a directory of mapnik input plugins")));
 
     std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names();
-    std::string const& path = TOSTR(args[0]);
+    std::string path = TOSTR(args[0]);
     mapnik::datasource_cache::instance()->register_datasources(path);
     std::vector<std::string> const& names_after = mapnik::datasource_cache::plugin_names();
     if (names_after.size() > names_before.size())

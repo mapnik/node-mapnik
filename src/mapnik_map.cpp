@@ -925,7 +925,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
                                   String::New("first argument must be a path to a mapnik stylesheet")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    std::string const& stylesheet = TOSTR(args[0]);
+    std::string stylesheet = TOSTR(args[0]);
     bool strict = false;
 
     if (args.Length() > 2)
@@ -1020,7 +1020,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    std::string const& stylesheet = TOSTR(args[0]);
+    std::string stylesheet = TOSTR(args[0]);
 
     try
     {
@@ -1172,7 +1172,7 @@ Handle<Value> Map::save(const Arguments& args)
                                   String::New("first argument must be a path to map.xml to save")));
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    std::string const& filename = TOSTR(args[0]);
+    std::string filename = TOSTR(args[0]);
     bool explicit_defaults = false;
     mapnik::save_map(*m->map_,filename,explicit_defaults);
     return Undefined();
@@ -1657,7 +1657,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    std::string const& output = TOSTR(args[0]);
+    std::string output = TOSTR(args[0]);
 
     //maybe do this in the async part?
     if (format.empty()) {
@@ -1878,7 +1878,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    std::string const& output = TOSTR(args[0]);
+    std::string output = TOSTR(args[0]);
 
     if (format.empty()) {
         format = mapnik::guess_type(output);
