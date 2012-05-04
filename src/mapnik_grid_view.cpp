@@ -336,7 +336,7 @@ void GridView::EIO_Encode(uv_work_t* req)
     try
     {
         // TODO - write features and clear here as well?
-        node_mapnik::grid2utf<mapnik::grid_view>(*closure->g->get(),
+        node_mapnik::grid2utf<mapnik::grid_view>(*(closure->g->get()),
                                                  closure->lines,
                                                  closure->key_order,
                                                  closure->resolution);
@@ -375,7 +375,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
             keys_a->Set(i, String::New((*it).c_str()));
         }
 
-        mapnik::grid_view const& grid_type = *closure->g->get();
+        mapnik::grid_view const& grid_type = *(closure->g->get());
 
         // gather feature data
         Local<Object> feature_data = Object::New();
