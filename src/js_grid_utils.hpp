@@ -128,7 +128,7 @@ static void write_features(T const& grid_type,
     for (; feat_itr != feat_end; ++feat_itr)
     {
         mapnik::feature_ptr feature = feat_itr->second;
-        boost::optional<std::string> join_value;
+        std::string join_value;
         if (key == grid_type.key_name())
         {
             std::stringstream s;
@@ -141,10 +141,10 @@ static void write_features(T const& grid_type,
             join_value = feature->get(key).to_string();
         }
 
-        if (join_value)
+        if (!join_value.empty())
         {
             // only serialize features visible in the grid
-            if(std::find(key_order.begin(), key_order.end(), *join_value) != key_order.end()) {
+            if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end()) {
                 Local<Object> feat = Object::New();
                 bool found = false;
                 if (key == grid_type.key_name())
@@ -160,20 +160,22 @@ static void write_features(T const& grid_type,
                 mapnik::feature_impl::iterator end = feature->end();
                 for ( ;itr!=end; ++itr)
                 {
-                    std::string const& key_name = boost::get<0>(*itr);
+                    std::string key_name = boost::get<0>(*itr);
                     if (key_name == key) {
                         // drop key unless requested
                         if (include_key) {
                             found = true;
-                            params_to_object serializer( feat ,  key_name);
-                            boost::apply_visitor( serializer,  boost::get<1>(*itr).base() );
+                            feat->Set(String::NewSymbol(key_name.c_str()),
+                                boost::apply_visitor(node_mapnik::value_converter(),
+                                                     boost::get<1>(*itr).base()));
                         }
                     }
                     else if ( (attributes.find(key_name) != attributes.end()) )
                     {
                         found = true;
-                        params_to_object serializer( feat ,  key_name);
-                        boost::apply_visitor( serializer,  boost::get<1>(*itr).base() );
+                        feat->Set(String::NewSymbol(key_name.c_str()),
+                            boost::apply_visitor(node_mapnik::value_converter(),
+                                                 boost::get<1>(*itr).base()));
                     }
                 }
 
