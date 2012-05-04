@@ -205,12 +205,13 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 
     try {
         std::string s;
+        mapnik::image_view<mapnik::image_data_32> const& image = *(im->this_);
         if (palette.get())
         {
-            s = save_to_string(*(im->this_), format, *palette);
+            s = save_to_string(image, format, *palette);
         }
         else {
-            s = save_to_string(*(im->this_), format);
+            s = save_to_string(image, format);
         }
 
         node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
@@ -231,7 +232,6 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 typedef struct {
     uv_work_t request;
     ImageView* im;
-    boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > image;
     std::string format;
     palette_ptr palette;
     bool error;
@@ -290,7 +290,6 @@ Handle<Value> ImageView::encode(const Arguments& args)
     encode_image_view_baton_t *closure = new encode_image_view_baton_t();
     closure->request.data = closure;
     closure->im = im;
-    closure->image = im->this_;
     closure->format = format;
     closure->palette = palette;
     closure->error = false;
@@ -307,13 +306,14 @@ void ImageView::EIO_Encode(uv_work_t* req)
     encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
 
     try {
+        mapnik::image_view<mapnik::image_data_32> const& im = *(closure->im->this_);
         if (closure->palette.get())
         {
-            closure->result = save_to_string(*(closure->image), closure->format, *closure->palette);
+            closure->result = save_to_string(im, closure->format, *closure->palette);
         }
         else
         {
-            closure->result = save_to_string(*(closure->image), closure->format);
+            closure->result = save_to_string(im, closure->format);
         }
     }
     catch (std::exception & ex)
