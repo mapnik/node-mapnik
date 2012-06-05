@@ -109,7 +109,7 @@ From the source checkout root do:
 
 To require node-mapnik as a depedency of another package put in your package.json:
 
-    "dependencies"  : { "mapnik":"0.6.x" }
+    "dependencies"  : { "mapnik":"*" } // replace * with a given semver version string
 
   
 ## Examples
