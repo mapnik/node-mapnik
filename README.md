@@ -51,6 +51,14 @@ For more sample code see 'examples/README.md'
 * Node >= v0.6.0
 * Mapnik 2.1-dev (current master): (at least [207ecfd597](https://github.com/mapnik/mapnik/commit/207ecfd597d70a9fcc1b3c8e768049658e4085fc) / March 12, 2012)
 
+If you are running the Mapnik 2.0.x series, then you will need to use the 'mapnik-2.0.x' branch of node-mapnik:
+
+```
+git clone -b mapnik-2.0.x https://github.com/mapnik/node-mapnik node-mapnik-2.0.x
+```
+
+The `mapnik-2.0.x` branch has the same primary featureset as the master branch, but some advanced/rarely used features are disabled since their interface has been rapidly changing in the Mapnik 2.1.x series. If you need a feature added to the node-mapnik 2.0.x compatible code you can create an issue requesting it and we will consider backporting it.
+
 
 ## Installation
 
