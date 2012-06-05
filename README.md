@@ -118,7 +118,6 @@ See the 'examples/' folder for more usage examples.
 
 For some of the tests you will need:
 
-    npm install express
     npm install generic-pool
     npm install get
 
@@ -127,7 +126,7 @@ For some of the tests you will need:
 
 To run the expresso tests first install expresso.
   
-    npm install expresso
+    npm install mocha
   
 Then run:
   
