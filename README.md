@@ -77,10 +77,6 @@ To install node-mapnik locally for development or testing do:
     ./configure
     make
 
-Then, if you have expresso installed you can run the tests:
-
-    make test
-
 Or set NODE_PATH to test importing:
 
     export NODE_PATH=./lib
@@ -124,7 +120,7 @@ For some of the tests you will need:
 
 ## Tests
 
-To run the expresso tests first install expresso.
+To run the tests first install mocha:
   
     npm install mocha
   
