@@ -1,3 +1,5 @@
+#http://www.gnu.org/prep/standards/html_node/Standard-Targets.html#Standard-Targets
+
 all: mapnik.node
 
 NPROCS:=1
@@ -40,6 +42,8 @@ else
 test: test-tmp
 	@PATH=./node_modules/mocha/bin:${PATH} && NODE_PATH=./lib:$NODE_PATH mocha -R spec test/${only}.test.js
 endif
+
+check: test
 
 fix:
 	@fixjsstyle lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
