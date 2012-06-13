@@ -481,7 +481,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    Local<Object> options;
+    Local<Object> options = Object::New();
     int layer_idx = -1;
 
     if (args.Length() > 3)
@@ -1308,7 +1308,7 @@ Handle<Value> Map::render(const Arguments& args)
     unsigned offset_x = 0;
     unsigned offset_y = 0;
 
-    Local<Object> options;
+    Local<Object> options = Object::New();
 
     if (args.Length() > 2) {
 
