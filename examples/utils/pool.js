@@ -4,7 +4,7 @@ try { var pool = require('generic-pool').Pool; } catch (e) {}
 
 module.exports.create_pool = function(size) {
     if (!pool) {
-        throw new Error('map pool requires generic-pool to be installed:\nnpm install -g generic-pool');
+        throw new Error('map pool requires generic-pool to be installed:\nnpm install generic-pool');
     }
     return {
         max: size || 5,
