@@ -382,7 +382,6 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     // todo - reserve lines size?
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
-    uv_ref(uv_default_loop());
     g->Ref();
     return Undefined();
 }
@@ -461,7 +460,6 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         FatalException(try_catch);
     }
 
-    uv_unref(uv_default_loop());
     closure->g->Unref();
     closure->cb.Dispose();
     delete closure;

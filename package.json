@@ -42,7 +42,9 @@
        "examples" : "examples",
        "src": "src"
    },
-  "engines"       : { "node": ">=0.6.0" },
+  "engines"       : {
+      "node": ">= 0.6.0 && <= 0.8.x"
+  },
   "scripts"       : {
       "install" : "node-waf -v configure build",
       "pretest" : "npm install --dev",
