@@ -1,26 +1,26 @@
 <Map srs="+init=epsg:4326">
 
     <!--
-    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one -f png8:m=h:c=64 test/support/a.png
-    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l two -f png8:m=h:c=64 test/support/b.png
+    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one -f png32 test/support/a.png
+    nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l two -f png32 test/support/b.png
     -->
 
     <Style name="one">
         <Rule>
-            <MarkersSymbolizer width="80" opacity=".5" fill="blue" allow-overlap="true"
-              stroke-width="20" stroke="green" stroke-opacity=".5"
+            <MarkersSymbolizer width="160" opacity=".9" fill="orange" allow-overlap="true"
+              stroke-width="40" stroke="green" stroke-opacity=".5"
             />
         </Rule>
     </Style>
 
     <Style name="one_b">
         <Rule>
-            <MarkersSymbolizer width="80" fill="orange" stroke-width="0" allow-overlap="true"/>
+            <MarkersSymbolizer width="160" fill="orange" stroke-width="0" allow-overlap="true"/>
         </Rule>
     </Style>
 
     <Layer name="one" srs="+init=epsg:4326">
-        <StyleName>one_b</StyleName>
+        <StyleName>one</StyleName>
         <Datasource>
             <Parameter name="type">csv</Parameter>
             <Parameter name="inline">
@@ -32,20 +32,20 @@
 
     <Style name="two">
         <Rule>
-            <MarkersSymbolizer width="80" opacity=".5" fill="red" allow-overlap="true"
-              stroke-width="20" stroke="yellow" stroke-opacity=".5"
+            <MarkersSymbolizer width="160" opacity=".9" fill="purple" allow-overlap="true"
+              stroke-width="40" stroke="yellow" stroke-opacity=".5"
             />
         </Rule>
     </Style>
 
     <Style name="two_b">
         <Rule>
-            <MarkersSymbolizer width="80" fill="purple" stroke-width="0" allow-overlap="true"/>
+            <MarkersSymbolizer width="160" fill="purple" stroke-width="0" allow-overlap="true"/>
         </Rule>
     </Style>
 
     <Layer name="two" srs="+init=epsg:4326">
-        <StyleName>two_b</StyleName>
+        <StyleName>two</StyleName>
         <Datasource>
             <Parameter name="type">csv</Parameter>
             <Parameter name="inline">

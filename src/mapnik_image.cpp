@@ -41,6 +41,8 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "premultiply", premultiply);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "demultiply", demultiply);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -180,6 +182,22 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
         }
     }
 
+    return Undefined();
+}
+
+Handle<Value> Image::premultiply(const Arguments& args)
+{
+    HandleScope scope;
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    im->get()->premultiply();
+    return Undefined();
+}
+
+Handle<Value> Image::demultiply(const Arguments& args)
+{
+    HandleScope scope;
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    im->get()->demultiply();
     return Undefined();
 }
 

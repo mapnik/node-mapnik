@@ -49,7 +49,7 @@ For more sample code see 'examples/README.md'
 ## Depends
 
 * Node >= v0.6.0
-* Mapnik 2.1-dev (current master): (at least [207ecfd597](https://github.com/mapnik/mapnik/commit/207ecfd597d70a9fcc1b3c8e768049658e4085fc) / March 12, 2012)
+* Mapnik 2.1-dev (current master): (at least [5b61c09](https://github.com/mapnik/mapnik/commit/5b61c093e59be182fd8e6fd718e71e8242b6a262) / June 23, 2012)
 
 If you are running the Mapnik 2.0.x series, then you will need to use the 'mapnik-2.0.x' branch of node-mapnik:
 

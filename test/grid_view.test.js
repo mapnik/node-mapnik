@@ -19,7 +19,7 @@ describe('mapnik.GridView ', function() {
 
     it('should have zero value for pixel', function() {
         var pixel = view.getPixel(0, 0);
-        assert.equal(pixel, 0);
+        assert.equal(pixel, -2147483648);
     });
 
     it('should be painted after rendering', function(done) {
