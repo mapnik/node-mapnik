@@ -19,7 +19,7 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
-#include "mapnik_js_datasource.hpp"
+//#include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
@@ -104,7 +104,8 @@ extern "C" {
         GridView::Initialize(target);
         Datasource::Initialize(target);
         Featureset::Initialize(target);
-        JSDatasource::Initialize(target);
+        // Not production safe, so disabling indefinitely
+        //JSDatasource::Initialize(target);
         MemoryDatasource::Initialize(target);
         Expression::Initialize(target);
 

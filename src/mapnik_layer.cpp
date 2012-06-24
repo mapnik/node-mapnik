@@ -2,7 +2,7 @@
 #include "utils.hpp"
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
-#include "mapnik_js_datasource.hpp"
+//#include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 
 // boost
@@ -176,17 +176,17 @@ void Layer::set_prop(Local<String> property,
     {
         Local<Object> obj = value->ToObject();
         if (value->IsNull() || value->IsUndefined()) {
-            ThrowException(Exception::TypeError(String::New("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected")));
+            ThrowException(Exception::TypeError(String::New("mapnik.Datasource, or mapnik.MemoryDatasource instance expected")));
         } else {
             if (Datasource::constructor->HasInstance(obj)) {
                 Datasource *d = ObjectWrap::Unwrap<Datasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
-            else if (JSDatasource::constructor->HasInstance(obj))
+            /*else if (JSDatasource::constructor->HasInstance(obj))
             {
                 JSDatasource *d = ObjectWrap::Unwrap<JSDatasource>(obj);
                 l->layer_->set_datasource(d->get());
-            }
+            }*/
             else if (MemoryDatasource::constructor->HasInstance(obj))
             {
                 MemoryDatasource *d = ObjectWrap::Unwrap<MemoryDatasource>(obj);

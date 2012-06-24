@@ -1,3 +1,4 @@
+/*
 #include <mapnik/datasource_cache.hpp>
 
 #include "mapnik_js_datasource.hpp"
@@ -120,3 +121,4 @@ Handle<Value> JSDatasource::next(const Arguments& args)
     js_datasource *js = dynamic_cast<js_datasource *>(d->ds_ptr_.get());
     return scope.Close((*js->cb_)->Call(Context::GetCurrent()->Global(), 0, NULL));
 }
+*/
