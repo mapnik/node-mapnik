@@ -27,4 +27,6 @@ Query::~Query()
 Handle<Value> Query::New(const Arguments& args)
 {
     HandleScope scope;
+    // TODO - implement this
+    return Undefined();
 }
