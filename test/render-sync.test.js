@@ -1,6 +1,6 @@
 var mapnik = require('mapnik');
 var assert = require('assert');
-var path = require('path');
+var exists = require('fs').existsSync || require('path').existsSync;
 var helper = require('./support/helper');
 
 describe('mapnik sync rendering ', function() {
@@ -11,6 +11,6 @@ describe('mapnik sync rendering ', function() {
         var im = new mapnik.Image(map.width, map.height);
         var filename = helper.filename();
         map.renderFileSync(filename);
-        assert.ok(path.existsSync(filename));
+        assert.ok(exists(filename));
     });
 });

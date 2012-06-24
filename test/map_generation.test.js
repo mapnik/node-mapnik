@@ -3,6 +3,7 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var helper = require('./support/helper');
+var exists = require('fs').existsSync || require('path').existsSync;
 
 describe('mapnik rendering ', function() {
     it('should render async (blank)', function(done) {
@@ -26,7 +27,7 @@ describe('mapnik rendering ', function() {
         map.zoomAll();
         map.renderFile(filename, function(error) {
             assert.ok(!error);
-            assert.ok(path.existsSync(filename));
+            assert.ok(exists(filename));
             done();
         });
     });
@@ -38,7 +39,7 @@ describe('mapnik rendering ', function() {
         map.zoomAll();
         map.renderFile(filename, function(error) {
             assert.ok(!error);
-            assert.ok(path.existsSync(filename));
+            assert.ok(exists(filename));
             done();
         });
     });
@@ -51,7 +52,7 @@ describe('mapnik rendering ', function() {
                 map.zoomAll();
                 map.renderFile(filename, { format: 'pdf' }, function(error) {
                     assert.ok(!error);
-                    assert.ok(path.existsSync(filename));
+                    assert.ok(exists(filename));
                     done();
                 });
         } else { done(); }
@@ -64,7 +65,7 @@ describe('mapnik rendering ', function() {
         map.zoomAll();
         map.renderFile(filename, function(error) {
             assert.ok(!error);
-            assert.ok(path.existsSync(filename));
+            assert.ok(exists(filename));
             done();
         });
     });

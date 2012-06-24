@@ -1,6 +1,6 @@
 var mapnik = require('mapnik');
 var assert = require('assert');
-var path = require('path');
+var exists = require('fs').existsSync || require('path').existsSync;
 
 describe('mapnik async rendering', function() {
     it('should render to a file', function(done) {
@@ -8,7 +8,7 @@ describe('mapnik async rendering', function() {
         var filename = './test/tmp/renderFile.png';
         map.renderFile(filename, function(error) {
             assert.ok(!error);
-            assert.ok(path.existsSync(filename));
+            assert.ok(exists(filename));
             done();
         });
     });

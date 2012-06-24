@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var path = require('path');
+var exists = require('fs').existsSync || require('path').existsSync;
 var fs = require('fs');
 
 var usage = 'usage:';
@@ -15,7 +15,7 @@ if (!obj) {
    process.exit(1);
 }
 
-if (!path.existsSync(obj)) {
+if (!exists(obj)) {
     console.log(obj + ' does not exist');
     process.exit(1);
 }

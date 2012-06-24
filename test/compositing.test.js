@@ -1,6 +1,6 @@
 var mapnik = require('mapnik');
 var assert = require('assert');
-var path = require('path');
+var exists = require('fs').existsSync || require('path').existsSync;
 
 describe('mapnik.compositeOp', function() {
     for (var name in mapnik.compositeOp) {
@@ -17,7 +17,7 @@ describe('mapnik.compositeOp', function() {
                     var out = 'test/tmp/' + name + '.png';
                     im_out.demultiply();
                     im_out.save(out);
-                    assert.ok(path.existsSync(out));
+                    assert.ok(exists(out));
                     done();
                 });
             });
