@@ -540,7 +540,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
                         s << "no layers found in map";
                     }
                     return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
-                } else if (layer_idx >= layer_num) {
+                } else if (layer_idx >= static_cast<int>(layer_num)) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
                     if (layer_num > 0)
