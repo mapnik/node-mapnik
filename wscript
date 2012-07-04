@@ -46,6 +46,20 @@ def ensure_min_mapnik_version(conf,min_version='2.1.0'):
         else:
             Utils.pprint('RED',"Warning: Incompatible libmapnik version found (using mapnik-config --version), this 'node-mapnik' requires 'mapnik %s'" % min_version)
 
+def warn_about_mapnik_version(conf):
+    found_version = popen("%s --version" % conf.env['MAPNIK_CONFIG']).readline().strip().replace('-pre','')
+    # NOTE: bug in Mapnik 2.0.0 results in blank version returned
+    if found_version:
+        found_version_num = version2num(found_version)
+        min_version = '2.0.0'
+        max_version = '2.1.0'
+        min_version_num = version2num(min_version)
+        max_version_num = version2num(max_version)
+        if found_version_num <= max_version_num and found_version_num >= min_version_num:
+            Utils.pprint('GREEN', 'Sweet, found compatible mapnik version %s (via mapnik-config)' % (found_version))
+        else:
+            Utils.pprint('RED',"Warning: Incompatible libmapnik version found (using mapnik-config --version).\nThis 'node-mapnik' requires mapnik >=%s and <=%s" % (min_version,max_version))
+
 
 def set_options(opt):
     opt.tool_options("compiler_cxx")
@@ -68,6 +82,7 @@ def configure(conf):
         conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.x provides this tool.\n')
         
     #ensure_min_mapnik_version(conf)
+    warn_about_mapnik_version(conf)
 
     # todo - check return value of popen otherwise we can end up with
     # return of 'Usage: mapnik-config [OPTION]'
