@@ -5,15 +5,17 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
-#include <mapnik/json/geojson_generator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-Persistent<FunctionTemplate> Feature::constructor;
-
+#if MAPNIK_VERSION >= 200100
+#include <mapnik/json/geojson_generator.hpp>
 static mapnik::json::feature_generator generator;
+#endif
+
+Persistent<FunctionTemplate> Feature::constructor;
 
 void Feature::Initialize(Handle<Object> target) {
 
@@ -41,9 +43,13 @@ Feature::Feature(mapnik::feature_ptr f) :
 Feature::Feature(int id) :
     ObjectWrap(),
     this_() {
+#if MAPNIK_VERSION >= 200100
     // TODO - accept/require context object to reused
     ctx_ = boost::make_shared<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
+#else
+    this_ = mapnik::feature_factory::create(id);
+#endif
 }
 
 Feature::~Feature()
@@ -120,6 +126,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
 
     Local<Object> feat = Object::New();
 
+#if MAPNIK_VERSION >= 200100
     mapnik::feature_ptr feature = fp->get();
     mapnik::feature_impl::iterator itr = feature->begin();
     mapnik::feature_impl::iterator end = feature->end();
@@ -128,7 +135,16 @@ Handle<Value> Feature::attributes(const Arguments& args)
         node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
         boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
     }
-
+#else
+    std::map<std::string,mapnik::value> const& fprops = fp->get()->props();
+    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
+    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
+    for (; it != end; ++it)
+    {
+        node_mapnik::params_to_object serializer( feat , it->first);
+        boost::apply_visitor( serializer, it->second.base() );
+    }
+#endif
     return scope.Close(feat);
 }
 
@@ -205,16 +221,29 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                     Local<Value> value = attr->Get(name);
                     if (value->IsString()) {
                         UnicodeString ustr = tr->transcode(TOSTR(value));
+#if MAPNIK_VERSION >= 200100
                         fp->get()->put_new(TOSTR(name),ustr);
+#else
+                        boost::put(*fp->get(),TOSTR(name),ustr);
+#endif
                     } else if (value->IsNumber()) {
                         double num = value->NumberValue();
                         // todo - round
                         if (num == value->IntegerValue()) {
                             int integer = value->IntegerValue();
+#if MAPNIK_VERSION >= 200100
                             fp->get()->put_new(TOSTR(name),integer);
+#else
+                            boost::put(*fp->get(),TOSTR(name),integer);
+#endif
+
                         } else {
                             double dub_val = value->NumberValue();
+#if MAPNIK_VERSION >= 200100
                             fp->get()->put_new(TOSTR(name),dub_val);
+#else
+                            boost::put(*fp->get(),TOSTR(name),dub_val);
+#endif
                         }
                     } else {
                         std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
@@ -250,7 +279,7 @@ Handle<Value> Feature::toJSON(const Arguments& args)
     HandleScope scope;
 
     std::string json;
-#if BOOST_VERSION >= 104700
+#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
     Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
     // TODO - create once?
     if (!generator.generate(json,*(fp->get())))
@@ -260,7 +289,7 @@ Handle<Value> Feature::toJSON(const Arguments& args)
     }
 #else
     return ThrowException(Exception::Error(
-                              String::New("GeoJSON output requires at least boost 1.47 ")));
+                              String::New("GeoJSON output requires at least boost 1.47 and mapnik 2.1.x")));
 #endif
 
     return scope.Close(String::New(json.c_str()));

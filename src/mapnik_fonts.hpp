@@ -9,6 +9,7 @@
 #include <node.h>
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 
 // stl
@@ -88,6 +89,7 @@ static inline Handle<Value> available_font_faces(const Arguments& args)
 static inline Handle<Value> available_font_files(const Arguments& args)
 {
     HandleScope scope;
+#if MAPNIK_VERSION >= 200100
     std::map<std::string,std::pair<int,std::string> > const& mapping = mapnik::freetype_engine::get_mapping();
     Local<Object> obj = Object::New();
     std::map<std::string,std::pair<int,std::string> >::const_iterator itr;
@@ -95,6 +97,15 @@ static inline Handle<Value> available_font_files(const Arguments& args)
     {
         obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.second.c_str()));
     }
+#else
+    std::map<std::string,std::string> const& mapping = mapnik::freetype_engine::get_mapping();
+    Local<Object> obj = Object::New();
+    std::map<std::string,std::string>::const_iterator itr;
+    for (itr = mapping.begin();itr!=mapping.end();++itr)
+    {
+        obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.c_str()));
+    }
+#endif
     return scope.Close(obj);
 }
 

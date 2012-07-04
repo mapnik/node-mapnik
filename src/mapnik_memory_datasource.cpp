@@ -1,5 +1,6 @@
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/memory_datasource.hpp>
@@ -241,8 +242,12 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
             pt->move_to(x->NumberValue(),y->NumberValue());
+#if MAPNIK_VERSION >= 200100
             mapnik::context_ptr ctx = boost::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
+#else
+            mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
+#endif
             ++(d->feature_id_);
             feature->add_geometry(pt);
             if (obj->Has(String::New("properties")))
@@ -261,16 +266,28 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
                             UnicodeString ustr = d->tr_->transcode(TOSTR(value));
+#if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),ustr);
+#else
+                            boost::put(*feature,TOSTR(name),ustr);
+#endif
                         } else if (value->IsNumber()) {
                             double num = value->NumberValue();
                             // todo - round
                             if (num == value->IntegerValue()) {
                                 int integer = value->IntegerValue();
+#if MAPNIK_VERSION >= 200100
                                 feature->put_new(TOSTR(name),integer);
+#else
+                                boost::put(*feature,TOSTR(name),integer);
+#endif
                             } else {
                                 double dub_val = value->NumberValue();
+#if MAPNIK_VERSION >= 200100
                                 feature->put_new(TOSTR(name),dub_val);
+#else
+                                boost::put(*feature,TOSTR(name),dub_val);
+#endif
                             }
                         } else {
                             std::clog << "unhandled type for property: " << TOSTR(name) << "\n";

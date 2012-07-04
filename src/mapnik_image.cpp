@@ -3,10 +3,14 @@
 #include <node_buffer.h>
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/graphics.hpp>
 #include <mapnik/image_reader.hpp>
+
+#if MAPNIK_VERSION >= 200100
 #include <mapnik/image_compositing.hpp>
+#endif
 
 // boost
 #include <boost/make_shared.hpp>
@@ -188,16 +192,20 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
 Handle<Value> Image::premultiply(const Arguments& args)
 {
     HandleScope scope;
+#if MAPNIK_VERSION >= 200100
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     im->get()->premultiply();
+#endif
     return Undefined();
 }
 
 Handle<Value> Image::demultiply(const Arguments& args)
 {
     HandleScope scope;
+#if MAPNIK_VERSION >= 200100
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     im->get()->demultiply();
+#endif
     return Undefined();
 }
 
@@ -517,6 +525,8 @@ Handle<Value> Image::save(const Arguments& args)
     return Undefined();
 }
 
+#if MAPNIK_VERSION >= 200100
+
 typedef struct {
     uv_work_t request;
     Image* im1;
@@ -615,3 +625,16 @@ void Image::EIO_AfterComposite(uv_work_t* req)
     closure->cb.Dispose();
     delete closure;
 }
+
+#else
+
+Handle<Value> Image::composite(const Arguments& args)
+{
+    HandleScope scope;
+
+    return ThrowException(Exception::TypeError(
+                              String::New("compositing is only supported if node-mapnik is built against >= Mapnik 2.1.x")));
+    
+}
+
+#endif

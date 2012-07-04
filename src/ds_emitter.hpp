@@ -8,6 +8,7 @@
 #include <node.h>
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/params.hpp>
 #include <mapnik/feature_layer_desc.hpp>
@@ -59,6 +60,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         description->Set(String::NewSymbol("fields"), fields);
 
         Local<String> js_type = String::New("unknown");
+#if MAPNIK_VERSION >= 200100
         boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
         if (geom_type)
         {
@@ -91,6 +93,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             }
             }
         }
+#endif
         description->Set(String::NewSymbol("geometry_type"), js_type);
     }
     catch (std::exception const& ex)
@@ -131,6 +134,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             {
                 if ((idx >= first) && (idx <= last || last == 0)) {
                     Local<Object> feat = Object::New();
+#if MAPNIK_VERSION >= 200100
                     mapnik::feature_impl::iterator itr = fp->begin();
                     mapnik::feature_impl::iterator end = fp->end();
                     for ( ;itr!=end; ++itr)
@@ -140,7 +144,18 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                         // not a mapnik::value_holder
                         boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
                     }
-
+#else
+                    std::map<std::string,mapnik::value> const& fprops = fp->props();
+                    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
+                    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
+                    for (; it != end; ++it)
+                    {
+                        node_mapnik::params_to_object serializer( feat , it->first);
+                        // need to call base() since this is a mapnik::value
+                        // not a mapnik::value_holder
+                        boost::apply_visitor( serializer, it->second.base() );
+                    }
+#endif
                     // add feature id
                     feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
 

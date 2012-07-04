@@ -6,6 +6,7 @@
 #include <node_object_wrap.h>
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/datasource.hpp> // feature_ptr and featureset_ptr
 
@@ -41,7 +42,9 @@ public:
 private:
     ~Feature();
     mapnik::feature_ptr this_;
+#if MAPNIK_VERSION >= 200100
     mapnik::context_ptr ctx_;
+#endif
 };
 
 #endif

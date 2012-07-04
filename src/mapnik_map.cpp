@@ -42,6 +42,9 @@
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
+#if MAPNIK_VERSION < 200100
+#define key_name get_key
+#endif
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -225,6 +228,12 @@ public:
         *usage_ += (sizeof(sym)*factor_);
     }
 
+#if MAPNIK_VERSION < 200100
+    void operator () ( mapnik::glyph_symbolizer const& sym)
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+#endif
     unsigned int * usage_;
     unsigned int factor_;
 };
@@ -300,6 +309,7 @@ Handle<Value> Map::get_prop(Local<String> property,
     }
     else if (a == "parameters") {
         Local<Object> ds = Object::New();
+#if MAPNIK_VERSION >= 200100
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
@@ -308,6 +318,7 @@ Handle<Value> Map::get_prop(Local<String> property,
             node_mapnik::params_to_object serializer( ds , it->first);
             boost::apply_visitor( serializer, it->second );
         }
+#endif
         return scope.Close(ds);
     }
     return Undefined();
@@ -387,6 +398,7 @@ void Map::set_prop(Local<String> property,
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
+#if MAPNIK_VERSION >= 200100
         if (!value->IsObject())
             ThrowException(Exception::TypeError(
                                String::New("object expected for map.parameters")));
@@ -420,6 +432,7 @@ void Map::set_prop(Local<String> property,
             i++;
         }
         m->map_->set_extra_parameters(params);
+#endif
     }
 }
 

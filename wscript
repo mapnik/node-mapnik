@@ -24,6 +24,10 @@ module.exports.paths = {
 };
 """
 
+def version2num(version_string):
+    f_parts = map(int,version_string.split('.'))
+    return (f_parts[0]*100000)+(f_parts[1]*100)+f_parts[2]
+
 def write_mapnik_settings(fonts='undefined',input_plugins='undefined'):
     global settings_template
     if '__dirname' in fonts or '__dirname' in input_plugins:
@@ -35,10 +39,8 @@ def ensure_min_mapnik_version(conf,min_version='2.1.0'):
     if not found_version:
         Utils.pprint('RED',"Warning: Incompatible libmapnik version found (using mapnik-config --version), this 'node-mapnik' requires 'mapnik %s'" % min_version)
     else:
-        f_parts = map(int,found_version.split('.'))
-        found_version_num = (f_parts[0]*100000)+(f_parts[1]*100)+f_parts[2]
-        m_parts = map(int,min_version.split('.'))
-        min_version_num = (m_parts[0]*100000)+(m_parts[1]*100)+m_parts[2]
+        found_version_num = version2num(found_version)
+        min_version_num = version2num(min_version)
         if found_version_num == min_version_num:
             Utils.pprint('GREEN', 'Sweet, found compatible mapnik version %s (via mapnik-config)' % (found_version))
         else:
@@ -65,7 +67,7 @@ def configure(conf):
     if not mapnik_config:
         conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.x provides this tool.\n')
         
-    ensure_min_mapnik_version(conf)
+    #ensure_min_mapnik_version(conf)
 
     # todo - check return value of popen otherwise we can end up with
     # return of 'Usage: mapnik-config [OPTION]'
