@@ -79,7 +79,7 @@ def configure(conf):
     
     mapnik_config = conf.find_program('mapnik-config', var='MAPNIK_CONFIG', path_list=path_list)
     if not mapnik_config:
-        conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.x provides this tool.\n')
+        conf.fatal('\n\nSorry, the "mapnik-config" program was not found.\nOnly Mapnik >=2.0.0 provides this tool.\n')
         
     #ensure_min_mapnik_version(conf)
     warn_about_mapnik_version(conf)
