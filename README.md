@@ -59,11 +59,7 @@ Mapnik 2.1.0 is targeted, but 2.0.x is also supported. This means that if you ar
 
 ## Installation
 
-First install Mapnik master from github:
-
-    git clone https://github.com/mapnik/mapnik.git
-
-For more details see: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
+First install Mapnik - for more details see: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
 
 Confirm that the `mapnik-config` program is available and on your $PATH.
 
@@ -95,21 +91,21 @@ To see if things are working try rendering a world map with the sample data
 From the source checkout root do:
   
     export NODE_PATH=./lib
-    ./examples/simple/render.js ./examples/stylesheet.xml map.png
+    node ./examples/simple/render.js ./examples/stylesheet.xml map.png
 
 
 ## Using node-mapnik from your node app
 
-To require node-mapnik as a depedency of another package put in your package.json:
+To require node-mapnik as a dependency of another package put in your package.json:
 
     "dependencies"  : { "mapnik":"*" } // replace * with a given semver version string
 
   
 ## Examples
 
-See the 'examples/' folder for more usage examples.
+See the 'examples/README.md' for more usage examples.
 
-For some of the tests you will need:
+For some of the examples you will need:
 
     npm install generic-pool
     npm install get
@@ -117,14 +113,13 @@ For some of the tests you will need:
 
 ## Tests
 
-To run the tests first install mocha:
+To run the tests do:
   
-    npm install mocha
-  
-Then run:
-  
-    make test
+    npm test
 
+Or you can manually install mocha and then just do:
+
+    make test
 
 ## License
 

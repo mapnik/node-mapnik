@@ -47,7 +47,7 @@
   },
   "scripts"       : {
       "install" : "node-waf -v configure build",
-      "pretest" : "npm install --dev",
+      "pretest" : "npm install mocha",
       "test"    : "make test"
    }
 }

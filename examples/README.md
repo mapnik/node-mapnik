@@ -2,7 +2,7 @@
 
 Examples are designed to be run from the root like:
 
-    ./examples/simple/render.js examples/stylesheet.xml map.png
+    node ./examples/simple/render.js examples/stylesheet.xml map.png
 
 ## Depends
 
