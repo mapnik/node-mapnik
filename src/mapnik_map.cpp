@@ -14,7 +14,11 @@
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/layer.hpp>
+#if MAPNIK_VERSION >= 200100
 #include <mapnik/expression.hpp>
+#else
+#include <mapnik/filter_factory.hpp>
+#endif
 #include <mapnik/image_util.hpp>
 #include <mapnik/config_error.hpp>
 #include <mapnik/load_map.hpp>

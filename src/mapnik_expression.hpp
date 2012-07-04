@@ -6,8 +6,13 @@
 #include <node_object_wrap.h>
 
 // mapnik
-#include <mapnik/expression_node.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 200100
 #include <mapnik/expression.hpp>
+#else
+#include <mapnik/filter_factory.hpp>
+#endif
+#include <mapnik/expression_node.hpp>
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
 

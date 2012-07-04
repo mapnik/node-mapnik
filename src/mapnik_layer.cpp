@@ -9,7 +9,18 @@
 #include <boost/make_shared.hpp>
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/layer.hpp>
+
+#if MAPNIK_VERSION <= 200000
+#define active isActive
+#define min_zoom getMinZoom
+#define max_zoom getMaxZoom
+#define queryable isQueryable
+#define active isActive
+#define visible isVisible
+#endif
+
 
 Persistent<FunctionTemplate> Layer::constructor;
 
@@ -268,3 +279,12 @@ Handle<Value> Layer::describe(const Arguments& args)
 
     return scope.Close(description);
 }
+
+#if MAPNIK_VERSION <= 200000
+#undef active
+#undef min_zoom
+#undef max_zoom
+#undef queryable
+#undef active
+#undef visible
+#endif
