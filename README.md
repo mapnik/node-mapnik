@@ -55,8 +55,8 @@ For more sample code see 'examples/README.md'
 
 Mapnik 2.1.0 is targeted, but 2.0.x is also supported. This means that if you are running the Mapnik 2.0.x series some minor test failures are expected:
 
- * 7 test failures are expected using Mapnik 2.0.0
- * 5 test failures are expected using Mapnik 2.0.2
+ * 6-7 test failures are expected using Mapnik 2.0.0
+ * 4-5 test failures are expected using Mapnik 2.0.2
  * 0 test failures are expected using Mapnik 2.1.0-pre
 
 ## Installation
