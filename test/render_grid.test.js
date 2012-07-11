@@ -17,6 +17,7 @@ describe('mapnik grid rendering ', function() {
                        'fields': ['NAME']
                       };
         map.render(grid, options, function(err, grid) {
+            if (err) throw err;
             var grid_utf = grid.encodeSync('utf', {resolution: 4});
             //fs.writeFileSync('./ref.json',JSON.stringify(grid_utf))
             assert.equal(JSON.stringify(grid_utf), reference);
@@ -46,7 +47,7 @@ describe('mapnik grid rendering ', function() {
                            'fields': ['NAME']
                           };
             map.render(grid, options, function(err, grid) {
-                assert.ok(!err);
+                if (err) throw err;
                 grid.encode('utf', {resolution: 4}, function(err,utf) {
                     assert.equal(JSON.stringify(utf), reference);
                     done();
