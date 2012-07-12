@@ -10,6 +10,9 @@
 
 #include "utils.hpp"
 
+// boost
+#include <boost/foreach.hpp>
+
 using namespace v8;
 using namespace node;
 
@@ -140,76 +143,80 @@ static void write_features(T const& grid_type,
                            Local<Object>& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    std::string const& key = grid_type.get_key();
+    std::string const& key_name = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type const& g_features = grid_type.get_grid_features();
-    typename T::feature_type::const_iterator feat_itr = g_features.begin();
+    bool include_key = (attributes.find(key_name) != attributes.end());
     typename T::feature_type::const_iterator feat_end = g_features.end();
-    bool include_key = (attributes.find(key) != attributes.end());
-    for (; feat_itr != feat_end; ++feat_itr)
+    BOOST_FOREACH ( std::string const& key_item, key_order )
     {
+        if (key_item.empty())
+        {
+            continue;
+        }
+
+        typename T::feature_type::const_iterator feat_itr = g_features.find(key_item);
+        if (feat_itr == feat_end)
+        {
+            std::clog << "feature not found for '" << key_item << "'\n";
+            continue;
+        }
+
         mapnik::feature_ptr feature = feat_itr->second;
         std::string join_value;
-        if (key == grid_type.key_name())
+        if (key_name == grid_type.key_name())
         {
             join_value = feat_itr->first;
 
         }
-        else if (feature->has_key(key))
+        else if (feature->has_key(key_name))
         {
-            join_value = feature->get(key).to_string();
+            join_value = feature->get(key_name).to_string();
+        }
+        if (join_value.empty())
+        {
+            std::clog << "should not get here: key '" << key_name << "' not found in grid feature properties\n";
+            continue;
         }
 
-        if (!join_value.empty())
+        Local<Object> feat = Object::New();
+        bool found = false;
+        if (key_name == grid_type.key_name())
         {
-            // only serialize features visible in the grid
-            // TODO 6 of 13 seconds taken in std::find
-            // switch to storing numbers?
-            if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end()) {
-                Local<Object> feat = Object::New();
-                bool found = false;
-                if (key == grid_type.key_name())
-                {
-                    // drop key unless requested
-                    if (include_key) {
-                        found = true;
-                        // TODO do we need to duplicate __id__ ?
-                        //feat->Set(String::NewSymbol(key.c_str()), String::New(join_value->c_str()) );
-                    }
-                }
-                mapnik::feature_impl::iterator itr = feature->begin();
-                mapnik::feature_impl::iterator end = feature->end();
-                for ( ;itr!=end; ++itr)
-                {
-                    std::string key_name = boost::get<0>(*itr);
-                    if (key_name == key) {
-                        // drop key unless requested
-                        if (include_key) {
-                            found = true;
-                            feat->Set(String::NewSymbol(key_name.c_str()),
-                                boost::apply_visitor(node_mapnik::value_converter(),
-                                                     boost::get<1>(*itr).base()));
-                        }
-                    }
-                    // TODO - optimize
-                    else if ( (attributes.find(key_name) != attributes.end()) )
-                    {
-                        found = true;
-                        feat->Set(String::NewSymbol(key_name.c_str()),
-                            boost::apply_visitor(node_mapnik::value_converter(),
-                                                 boost::get<1>(*itr).base()));
-                    }
-                }
-
-                if (found)
-                {
-                    feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
-                }
+            // drop key unless requested
+            if (include_key) {
+                found = true;
+                // TODO do we need to duplicate __id__ ?
+                //feat->Set(String::NewSymbol(key.c_str()), String::New(join_value->c_str()) );
             }
         }
-        else
+        mapnik::feature_impl::iterator itr = feature->begin();
+        mapnik::feature_impl::iterator end = feature->end();
+        for ( ;itr!=end; ++itr)
         {
-            std::clog << "should not get here: key '" << key << "' not found in grid feature properties\n";
+            std::string feat_key_name = boost::get<0>(*itr);
+            if (feat_key_name == key_name) {
+                // drop key unless requested
+                if (include_key) {
+                    found = true;
+                    feat->Set(String::NewSymbol(key_name.c_str()),
+                        boost::apply_visitor(node_mapnik::value_converter(),
+                                             boost::get<1>(*itr).base()));
+                }
+            }
+            // TODO - optimize
+            else if ( (attributes.find(feat_key_name) != attributes.end()) )
+            {
+                found = true;
+                feat->Set(String::NewSymbol(feat_key_name.c_str()),
+                    boost::apply_visitor(node_mapnik::value_converter(),
+                                         boost::get<1>(*itr).base()));
+            }
+        }
+
+        if (found)
+        {
+            feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
         }
     }
 }
