@@ -200,23 +200,14 @@ static void write_features(T const& grid_type,
         mapnik::feature_impl::iterator end = feature->end();
         for ( ;itr!=end; ++itr)
         {
-            std::string feat_key_name = boost::get<0>(*itr);
-            if (feat_key_name == key_name) {
-                // drop key unless requested
-                if (include_key) {
-                    found = true;
-                    feat->Set(String::NewSymbol(key_name.c_str()),
-                        boost::apply_visitor(node_mapnik::value_converter(),
-                                             boost::get<1>(*itr).base()));
-                }
-            }
-            // TODO - optimize
-            else if ( (attributes.find(feat_key_name) != attributes.end()) )
+            std::string const& feat_key_name = boost::get<0>(*itr);
+            if (( feat_key_name == key_name && include_key ) // drop key unless requested
+                || attributes.find(feat_key_name) != attributes.end())
             {
                 found = true;
                 feat->Set(String::NewSymbol(feat_key_name.c_str()),
-                    boost::apply_visitor(node_mapnik::value_converter(),
-                                         boost::get<1>(*itr).base()));
+                          boost::apply_visitor(node_mapnik::value_converter(),
+                                               boost::get<1>(*itr).base()));
             }
         }
 
@@ -345,8 +336,8 @@ static void grid2utf(T const& grid_type,
 
 template <typename T>
 static void write_features(T const& grid_type,
-    Local<Object>& feature_data,
-    std::vector<typename T::lookup_type> const& key_order)
+                           Local<Object>& feature_data,
+                           std::vector<typename T::lookup_type> const& key_order)
 {
     std::string const& key = grid_type.get_key(); // get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
@@ -358,13 +349,14 @@ static void write_features(T const& grid_type,
     for (; feat_itr != feat_end; ++feat_itr)
     {
         std::map<std::string,mapnik::value> const& props = feat_itr->second;
-        std::map<std::string,mapnik::value>::const_iterator const& itr = props.find(key);
+        std::map<std::string,mapnik::value>::const_iterator itr = props.find(key);
         if (itr != props.end())
         {
             typename T::lookup_type const& join_value = itr->second.to_string();
 
             // only serialize features visible in the grid
-            if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end()) {
+            if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end())
+            {
                 Local<Object> feat = Object::New();
                 std::map<std::string,mapnik::value>::const_iterator it = props.begin();
                 std::map<std::string,mapnik::value>::const_iterator end = props.end();
@@ -372,21 +364,15 @@ static void write_features(T const& grid_type,
                 for (; it != end; ++it)
                 {
                     std::string const& key_name = it->first;
-                    if (key_name == key) {
-                        // drop join_field unless requested
-                        if (include_key) {
-                            found = true;
-                            params_to_object serializer( feat , it->first);
-                            boost::apply_visitor( serializer, it->second.base() );
-                        }
-                    }
-                    else if ( (attributes.find(key_name) != attributes.end()) )
+                    if ((key_name == key && include_key) // drop join_field unless requested
+                        || attributes.find(key_name) != attributes.end())
                     {
                         found = true;
                         params_to_object serializer( feat , it->first);
                         boost::apply_visitor( serializer, it->second.base() );
                     }
                 }
+
                 if (found)
                 {
                     feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);

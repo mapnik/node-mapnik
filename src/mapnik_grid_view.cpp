@@ -103,8 +103,7 @@ Handle<Value> GridView::isSolid(const Arguments& args)
     grid_view_ptr view = g->get();
     if (view->width() > 0 && view->height() > 0)
     {
-        mapnik::grid_view::value_type const* first_row = view->getRow(0);
-        mapnik::grid_view::value_type const first_pixel = first_row[0];
+        mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
         for (unsigned y = 0; y < view->height(); ++y)
         {
             mapnik::grid_view::value_type const * row = view->getRow(y);
@@ -125,8 +124,8 @@ Handle<Value> GridView::getPixel(const Arguments& args)
     HandleScope scope;
 
 
-    unsigned x(0);
-    unsigned y(0);
+    unsigned x = 0;
+    unsigned y = 0;
 
     if (args.Length() >= 2) {
         if (!args[0]->IsNumber())
@@ -146,8 +145,7 @@ Handle<Value> GridView::getPixel(const Arguments& args)
     grid_view_ptr view = g->get();
     if (x < view->width() && y < view->height())
     {
-        mapnik::grid_view::value_type const * row = view->getRow(y);
-        mapnik::grid_view::value_type const pixel = row[x];
+        mapnik::grid_view::value_type pixel = view->getRow(y)[x];
         return Integer::New(pixel);
     }
     return Undefined();
@@ -213,7 +211,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
         Local<Array> keys_a = Array::New(key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        for (it = key_order.begin(), i = 0; it != key_order.end(); ++it, ++i)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
@@ -372,7 +370,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         Local<Array> keys_a = Array::New(closure->key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
-        for (it = closure->key_order.begin(), i = 0; it < closure->key_order.end(); ++it, ++i)
+        for (it = closure->key_order.begin(), i = 0; it != closure->key_order.end(); ++it, ++i)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
@@ -473,7 +471,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
         Local<Array> keys_a = Array::New(key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        for (it = key_order.begin(), i = 0; it != key_order.end(); ++it, ++i)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
@@ -567,7 +565,7 @@ Handle<Value> GridView::encode(const Arguments& args)
         Local<Array> keys_a = Array::New(key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
+        for (it = key_order.begin(), i = 0; it != key_order.end(); ++it, ++i)
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
