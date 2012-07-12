@@ -37,12 +37,16 @@ void GridView::Initialize(Handle<Object> target) {
 }
 
 
-GridView::GridView(grid_view_ptr gp) :
+GridView::GridView(Grid * JSGrid) :
     ObjectWrap(),
-    this_(gp) {}
+    this_(),
+    JSGrid_(JSGrid) {
+        JSGrid_->_ref();
+    }
 
 GridView::~GridView()
 {
+    JSGrid_->_unref();
 }
 
 Handle<Value> GridView::New(const Arguments& args)
@@ -65,7 +69,7 @@ Handle<Value> GridView::New(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> GridView::New(boost::shared_ptr<mapnik::grid> grid_ptr,
+Handle<Value> GridView::New(Grid * JSGrid,
                             unsigned x,
                             unsigned y,
                             unsigned w,
@@ -73,8 +77,8 @@ Handle<Value> GridView::New(boost::shared_ptr<mapnik::grid> grid_ptr,
     )
 {
     HandleScope scope;
-    grid_view_ptr gb_ptr = boost::make_shared<mapnik::grid_view>(grid_ptr->get_view(x,y,w,h));
-    GridView* gv = new GridView(gb_ptr);
+    GridView* gv = new GridView(JSGrid);
+    gv->this_ = boost::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
     Handle<Value> ext = External::New(gv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);

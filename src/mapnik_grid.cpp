@@ -214,7 +214,7 @@ Handle<Value> Grid::view(const Arguments& args)
     unsigned h = args[3]->IntegerValue();
 
     Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
-    return scope.Close(GridView::New(g->get(),x,y,w,h));
+    return scope.Close(GridView::New(g,x,y,w,h));
 }
 
 

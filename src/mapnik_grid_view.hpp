@@ -8,6 +8,8 @@
 #include <mapnik/grid/grid.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include "mapnik_grid.hpp"
+
 using namespace v8;
 using namespace node;
 
@@ -18,7 +20,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
-    static Handle<Value> New(boost::shared_ptr<mapnik::grid> grid_ptr,
+    static Handle<Value> New(Grid * JSGrid,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static Handle<Value> encodeSync(const Arguments &args);
@@ -31,12 +33,13 @@ public:
     static Handle<Value> isSolid(const Arguments &args);
     static Handle<Value> getPixel(const Arguments &args);
 
-    GridView(grid_view_ptr gp);
+    GridView(Grid * JSGrid);
     inline grid_view_ptr get() { return this_; }
 
 private:
     ~GridView();
     grid_view_ptr this_;
+    Grid * JSGrid_;
 };
 
 #endif
