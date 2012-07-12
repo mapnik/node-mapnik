@@ -1488,16 +1488,16 @@ void Map::EIO_RenderGrid(uv_work_t* req)
         // copy property names
         std::set<std::string> attributes = closure->g->get()->property_names();
 
-        std::string join_field = closure->g->get()->get_key();
-        if (join_field == closure->g->get()->key_name())
+        // todo - make this a static constant
+        std::string known_id_key = "__id__";
+        if (attributes.find(known_id_key) != attributes.end())
         {
-            // TODO - should feature.id() be a first class attribute?
-            if (attributes.find(join_field) != attributes.end())
-            {
-                attributes.erase(join_field);
-            }
+            attributes.erase(known_id_key);
         }
-        else if (attributes.find(join_field) == attributes.end())
+
+        std::string join_field = closure->g->get()->get_key();
+        if (known_id_key != join_field &&
+            attributes.find(join_field) == attributes.end())
         {
             attributes.insert(join_field);
         }

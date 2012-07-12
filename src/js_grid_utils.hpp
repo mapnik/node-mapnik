@@ -149,10 +149,13 @@ static void write_features(T const& grid_type,
                            Local<Object>& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
+    typename T::feature_type const& g_features = grid_type.get_grid_features();
+    if (g_features.size() <= 0)
+    {
+        return;
+    }
     std::string const& key_name = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
-    typename T::feature_type const& g_features = grid_type.get_grid_features();
-    bool include_key = (attributes.find(key_name) != attributes.end());
     typename T::feature_type::const_iterator feat_end = g_features.end();
     BOOST_FOREACH ( std::string const& key_item, key_order )
     {
@@ -164,50 +167,25 @@ static void write_features(T const& grid_type,
         typename T::feature_type::const_iterator feat_itr = g_features.find(key_item);
         if (feat_itr == feat_end)
         {
-            std::clog << "feature not found for '" << key_item << "'\n";
             continue;
         }
 
-        mapnik::feature_ptr feature = feat_itr->second;
-        std::string join_value;
-        if (key_name == grid_type.key_name())
-        {
-            join_value = feat_itr->first;
-
-        }
-        else if (feature->has_key(key_name))
-        {
-            join_value = feature->get(key_name).to_string();
-        }
-        if (join_value.empty())
-        {
-            std::clog << "should not get here: key '" << key_name << "' not found in grid feature properties\n";
-            continue;
-        }
-
-        Local<Object> feat = Object::New();
         bool found = false;
-        if (key_name == grid_type.key_name())
+        Local<Object> feat = Object::New();
+        mapnik::feature_ptr feature = feat_itr->second;
+        BOOST_FOREACH ( std::string const& attr, attributes )
         {
-            // drop key unless requested
-            if (include_key) {
-                found = true;
-                // TODO do we need to duplicate __id__ ?
-                //feat->Set(String::NewSymbol(key.c_str()), String::New(join_value->c_str()) );
+            if (attr == "__id__")
+            {
+                feat->Set(String::NewSymbol(attr.c_str()),Integer::New(feature->id()));
             }
-        }
-        mapnik::feature_impl::iterator itr = feature->begin();
-        mapnik::feature_impl::iterator end = feature->end();
-        for ( ;itr!=end; ++itr)
-        {
-            std::string const& feat_key_name = boost::get<0>(*itr);
-            if (( feat_key_name == key_name && include_key ) // drop key unless requested
-                || attributes.find(feat_key_name) != attributes.end())
+            else if (feature->has_key(attr))
             {
                 found = true;
-                feat->Set(String::NewSymbol(feat_key_name.c_str()),
-                          boost::apply_visitor(node_mapnik::value_converter(),
-                                               boost::get<1>(*itr).base()));
+                mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
+                feat->Set(String::NewSymbol(attr.c_str()),
+                    boost::apply_visitor(node_mapnik::value_converter(),
+                    attr_val.base()));
             }
         }
 
@@ -339,7 +317,7 @@ static void write_features(T const& grid_type,
                            Local<Object>& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    std::string const& key = grid_type.get_key(); // get_key();
+    std::string const& key = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     typename T::feature_type::const_iterator feat_itr = g_features.begin();
