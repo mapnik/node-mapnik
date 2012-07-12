@@ -1611,6 +1611,8 @@ typedef struct {
     std::string format;
     std::string output;
     palette_ptr palette;
+    double scale_factor;
+    bool use_cairo;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1624,7 +1626,9 @@ Handle<Value> Map::renderFile(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to a file to save")));
 
+    // defaults
     std::string format = "png";
+    double scale_factor = 10.;
     palette_ptr palette;
 
     Local<Value> callback = args[args.Length()-1];
@@ -1658,6 +1662,14 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
             palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale' must be a number")));
+
+            scale_factor = bind_opt->NumberValue();
+        }
 
     } else if (!args[1]->IsFunction()) {
         return ThrowException(Exception::TypeError(
@@ -1678,20 +1690,25 @@ Handle<Value> Map::renderFile(const Arguments& args)
         }
     }
 
+    render_file_baton_t *closure = new render_file_baton_t();
+
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
 #if defined(HAVE_CAIRO)
+        closure->use_cairo = true;
 #else
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
         return ThrowException(Exception::Error(
                                   String::New(s.str().c_str())));
 #endif
+    } else {
+        closure->use_cairo = false;
     }
 
-    render_file_baton_t *closure = new render_file_baton_t();
     closure->request.data = closure;
 
     closure->m = m;
+    closure->scale_factor = scale_factor;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
 
@@ -1712,9 +1729,9 @@ void Map::EIO_RenderFile(uv_work_t* req)
 
     try
     {
-        if(closure->format == "pdf" || closure->format == "svg" || closure->format == "ps" || closure->format == "ARGB32" || closure->format == "RGB24") {
+        if(closure->use_cairo) {
 #if defined(HAVE_CAIRO)
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
+            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
 #else
 
 #endif
@@ -1722,7 +1739,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im);
+            mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im,closure->scale_factor);
             ren.apply();
 
             if (closure->palette.get()) {
@@ -1848,6 +1865,8 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}")));
 
+    // defaults
+    double scale_factor = 1.0;
     std::string format = "png";
     palette_ptr palette;
 
@@ -1880,7 +1899,14 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
             palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale' must be a number")));
 
+            scale_factor = bind_opt->NumberValue();
+        }
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -1902,7 +1928,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
-            mapnik::save_to_cairo_file(*m->map_,output,format);
+            mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
@@ -1913,7 +1939,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
+            mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
             ren.apply();
 
             if (palette.get())
