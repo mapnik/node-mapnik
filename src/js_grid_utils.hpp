@@ -25,11 +25,14 @@ static void grid2utf(T const& grid_type,
                      boost::ptr_vector<uint16_t> & lines,
                      std::vector<typename T::lookup_type>& key_order)
 {
+    typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
+    typedef typename keys_type::const_iterator keys_iterator;
+
     typename T::data_type const& data = grid_type.data();
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
-    typename T::key_type keys;
-    typename T::key_type::const_iterator key_pos;
     typename T::feature_key_type::const_iterator feature_pos;
+
+    keys_type keys;
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
 
@@ -46,7 +49,7 @@ static void grid2utf(T const& grid_type,
             if (feature_pos != feature_keys.end())
             {
                 typename T::lookup_type const& val = feature_pos->second;
-                key_pos = keys.find(val);
+                keys_iterator key_pos = keys.find(val);
                 if (key_pos == keys.end())
                 {
                     // Create a new entry for this key. Skip the codepoints that
@@ -85,10 +88,13 @@ static void grid2utf(T const& grid_type,
                      std::vector<typename T::lookup_type>& key_order,
                      unsigned int resolution)
 {
+    typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
+    typedef typename keys_type::const_iterator keys_iterator;
+
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
-    typename T::key_type keys;
-    typename T::key_type::const_iterator key_pos;
     typename T::feature_key_type::const_iterator feature_pos;
+
+    keys_type keys;
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
 
@@ -106,7 +112,7 @@ static void grid2utf(T const& grid_type,
             if (feature_pos != feature_keys.end())
             {
                 typename T::lookup_type const& val = feature_pos->second;
-                key_pos = keys.find(val);
+                keys_iterator key_pos = keys.find(val);
                 if (key_pos == keys.end())
                 {
                     // Create a new entry for this key. Skip the codepoints that
@@ -226,15 +232,18 @@ static void write_features(T const& grid_type,
 
 
 template <typename T>
-static void grid2utf(T const& grid_type, 
+static void grid2utf(T const& grid_type,
     Local<Array>& l,
     std::vector<typename T::lookup_type>& key_order)
 {
+    typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
+    typedef typename keys_type::const_iterator keys_iterator;
+
     typename T::data_type const& data = grid_type.data();
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
-    typename T::key_type keys;
-    typename T::key_type::const_iterator key_pos;
     typename T::feature_key_type::const_iterator feature_pos;
+
+    keys_type keys;
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
     uint16_t row_idx = 0;
@@ -251,14 +260,14 @@ static void grid2utf(T const& grid_type,
             if (feature_pos != feature_keys.end())
             {
                 typename T::lookup_type const& val = feature_pos->second;
-                key_pos = keys.find(val);
+                keys_iterator key_pos = keys.find(val);
                 if (key_pos == keys.end())
                 {
                     // Create a new entry for this key. Skip the codepoints that
                     // can't be encoded directly in JSON.
                     if (codepoint == 34) ++codepoint;      // Skip "
                     else if (codepoint == 92) ++codepoint; // Skip backslash
-                
+
                     keys[val] = codepoint;
                     key_order.push_back(val);
                     line[idx++] = static_cast<uint16_t>(codepoint);
@@ -279,15 +288,18 @@ static void grid2utf(T const& grid_type,
 // requires mapnik >= r2957
 
 template <typename T>
-static void grid2utf(T const& grid_type, 
+static void grid2utf(T const& grid_type,
     Local<Array>& l,
     std::vector<typename T::lookup_type>& key_order,
     unsigned int resolution)
 {
+    typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
+    typedef typename keys_type::const_iterator keys_iterator;
+
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
-    typename T::key_type keys;
-    typename T::key_type::const_iterator key_pos;
     typename T::feature_key_type::const_iterator feature_pos;
+
+    keys_type keys;
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
     uint16_t row_idx = 0;
@@ -305,14 +317,14 @@ static void grid2utf(T const& grid_type,
             if (feature_pos != feature_keys.end())
             {
                 typename T::lookup_type const& val = feature_pos->second;
-                key_pos = keys.find(val);
+                keys_iterator key_pos = keys.find(val);
                 if (key_pos == keys.end())
                 {
                     // Create a new entry for this key. Skip the codepoints that
                     // can't be encoded directly in JSON.
                     if (codepoint == 34) ++codepoint;      // Skip "
                     else if (codepoint == 92) ++codepoint; // Skip backslash
-                
+
                     keys[val] = codepoint;
                     key_order.push_back(val);
                     line[idx++] = static_cast<uint16_t>(codepoint);
@@ -350,7 +362,7 @@ static void write_features(T const& grid_type,
         if (itr != props.end())
         {
             typename T::lookup_type const& join_value = itr->second.to_string();
-    
+
             // only serialize features visible in the grid
             if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end()) {
                 Local<Object> feat = Object::New();
