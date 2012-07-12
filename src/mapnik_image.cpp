@@ -476,7 +476,7 @@ Handle<Value> Image::view(const Arguments& args)
     unsigned h = args[3]->IntegerValue();
 
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
-    return scope.Close(ImageView::New(im->get(),x,y,w,h));
+    return scope.Close(ImageView::New(im,x,y,w,h));
 }
 
 Handle<Value> Image::save(const Arguments& args)

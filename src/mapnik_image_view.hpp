@@ -9,6 +9,8 @@
 #include <mapnik/graphics.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include "mapnik_image.hpp"
+
 using namespace v8;
 using namespace node;
 
@@ -19,7 +21,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
-    static Handle<Value> New(boost::shared_ptr<mapnik::image_32> image_ptr,
+    static Handle<Value> New(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static Handle<Value> encodeSync(const Arguments &args);
@@ -35,12 +37,13 @@ public:
     static Handle<Value> isSolid(const Arguments &args);
     static Handle<Value> getPixel(const Arguments &args);
 
-    ImageView(image_view_ptr this_);
+    ImageView(Image * JSImage);
     inline image_view_ptr get() { return this_; }
 
 private:
     ~ImageView();
     image_view_ptr this_;
+    Image * JSImage_;
 };
 
 #endif

@@ -40,12 +40,16 @@ void ImageView::Initialize(Handle<Object> target) {
 }
 
 
-ImageView::ImageView(image_view_ptr this_) :
+ImageView::ImageView(Image * JSImage) :
     ObjectWrap(),
-    this_(this_) {}
+    this_(),
+    JSImage_(JSImage) {
+        JSImage_->_ref();
+    }
 
 ImageView::~ImageView()
 {
+    JSImage_->_unref();
 }
 
 Handle<Value> ImageView::New(const Arguments& args)
@@ -68,7 +72,7 @@ Handle<Value> ImageView::New(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> ImageView::New(boost::shared_ptr<mapnik::image_32> image_ptr,
+Handle<Value> ImageView::New(Image * JSImage ,
                              unsigned x,
                              unsigned y,
                              unsigned w,
@@ -76,8 +80,8 @@ Handle<Value> ImageView::New(boost::shared_ptr<mapnik::image_32> image_ptr,
     )
 {
     HandleScope scope;
-    image_view_ptr iv_ptr = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(image_ptr->get_view(x,y,w,h));
-    ImageView* imv = new ImageView(iv_ptr);
+    ImageView* imv = new ImageView(JSImage);
+    imv->this_ = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
     Handle<Value> ext = External::New(imv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
