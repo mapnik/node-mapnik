@@ -5,6 +5,9 @@ var fs = require('fs');
 var stylesheet = './examples/stylesheet.xml';
 var reference = fs.readFileSync('./test/support/grid2.json', 'utf8');
 var reference_view = fs.readFileSync('./test/support/grid_view.json', 'utf8');
+var reference__id__ = fs.readFileSync('./test/support/grid__id__.json', 'utf8');
+var reference__id__2 = fs.readFileSync('./test/support/grid__id__2.json', 'utf8');
+var reference__id__3 = fs.readFileSync('./test/support/grid__id__3.json', 'utf8');
 
 describe('mapnik grid rendering ', function() {
 
@@ -98,6 +101,57 @@ describe('mapnik grid rendering ', function() {
                     done();
                 });
             });
+        });
+    });
+
+    it('should match expected output if __id__ is not the grid key', function(done) {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync(stylesheet, {strict: true});
+        map.zoomAll();
+        var grid = new mapnik.Grid(map.width, map.height, {key: 'NAME'});
+        var options = {'layer': 0,
+                       'fields': ['FIPS','__id__']
+                      };
+        map.render(grid, options, function(err, grid) {
+            if (err) throw err;
+            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            //fs.writeFileSync('./ref.json',JSON.stringify(grid_utf))
+            assert.equal(JSON.stringify(grid_utf), reference__id__);
+            done();
+        });
+    });
+
+    it('should match expected output if __id__ both the grid key and in the attributes with others', function(done) {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync(stylesheet, {strict: true});
+        map.zoomAll();
+        var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
+        var options = {'layer': 0,
+                       'fields': ['__id__','NAME']
+                      };
+        map.render(grid, options, function(err, grid) {
+            if (err) throw err;
+            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            //fs.writeFileSync('./ref.json',JSON.stringify(grid_utf))
+            assert.equal(JSON.stringify(grid_utf), reference__id__2);
+            done();
+        });
+    });
+
+    it('should match expected output if __id__ the grid key and the only attributes', function(done) {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync(stylesheet, {strict: true});
+        map.zoomAll();
+        var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
+        var options = {'layer': 0,
+                       'fields': ['__id__']
+                      };
+        map.render(grid, options, function(err, grid) {
+            if (err) throw err;
+            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            //fs.writeFileSync('./ref.json',JSON.stringify(grid_utf))
+            assert.equal(JSON.stringify(grid_utf), reference__id__3);
+            done();
         });
     });
 
