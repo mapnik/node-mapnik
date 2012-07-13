@@ -154,7 +154,6 @@ static void write_features(T const& grid_type,
     {
         return;
     }
-    std::string const& key_name = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type::const_iterator feat_end = g_features.end();
     BOOST_FOREACH ( std::string const& key_item, key_order )
