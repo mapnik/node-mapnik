@@ -16,6 +16,13 @@ Release 0.7.6
 Release 0.7.5
 2012-07-12
 
+ - Speed up grid encoding when featuresets are large: 12s -> 4s for
+   processed_p at full zoom
+ - Throw upon errors in grid rendering test
+ - Fix mapnik version check in grid_view pixel value test
+ - Amend expected test failures per version to account for platform
+   differences in whether hidden fonts are around
+
 Release 0.7.4
 2012-07-04
 
