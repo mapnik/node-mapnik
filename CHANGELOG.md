@@ -1,10 +1,20 @@
-Release 0.7.7
+# Changlog
+
+## 0.7.7
+
+2012-07-18
+
+ - Fixed compile against Mapnik 2.0.x
+
+## 0.7.7
+
 2012-07-13
 
  - remove debug output when locally customized environment settings are
    pushed into process.env
 
-Release 0.7.6
+## 0.7.6
+
 2012-07-13
 
  - Further optimize grid encoding
@@ -13,7 +23,8 @@ Release 0.7.6
    possible scope issues resulting in segfaults when v8 garbage collects
    (#89, #110)
 
-Release 0.7.5
+## 0.7.5
+
 2012-07-12
 
  - Speed up grid encoding when featuresets are large: 12s -> 4s for
@@ -23,144 +34,190 @@ Release 0.7.5
  - Amend expected test failures per version to account for platform
    differences in whether hidden fonts are around
 
-Release 0.7.4
+## 0.7.4
+
 2012-07-04
 
-Release 0.7.3
+## 0.7.3
+
 2012-06-29
 
-Release 0.7.2
+## 0.7.2
+
 2012-06-27
 
-Release 0.7.1
+## 0.7.1
+
 2012-04-27
 
-Release 0.7.0
+
+## 0.7.0
 2012-04-16
 
-Release 0.6.7
+## 0.6.7
+
 2012-03-09
 
-Release 0.5.17
+## 0.5.17
+
 2012-03-01
 
-Release 0.5.16
+## 0.5.16
+
 2012-01-23
 
-Release 0.5.15
+## 0.5.15
+
 2012-01-10
 
-Release 0.6.5
+## 0.6.5
+
 2012-01-10
 
-Release 0.6.4
+## 0.6.4
+
 2011-12-21
 
-Release 0.5.14
+## 0.5.14
+
 2011-12-21
 
-Release 0.6.3
+## 0.6.3
+
 2011-12-16
 
-Release 0.5.13
+## 0.5.13
+
 2011-12-16
 
-Release 0.5.12
+## 0.5.12
+
 2011-12-06
 
-Release 0.5.11
+## 0.5.11
+
 2011-12-06
 
-Release 0.6.2
+## 0.6.2
+
 2011-12-06
 
-Release 0.6.1
+## 0.6.1
+
 2011-11-30
 
-Release 0.5.10
+## 0.5.10
+
 2011-11-30
 
-Release 0.6.0
+## 0.6.0
+
 2011-11-19
 
-Release 0.5.9
+## 0.5.9
+
 2011-11-18
 
-Release 0.5.8
+## 0.5.8
+
 2011-10-19
 
-Release 0.5.7
+## 0.5.7
+
 2011-10-18
 
-Release 0.5.6
+## 0.5.6
+
 2011-10-03
 
-Release 0.5.5
+## 0.5.5
+
 2011-11-30
 
-Release 0.5.4
+## 0.5.4
+
 2011-08-23
 
-Release 0.5.3
+## 0.5.3
+
 2011-08-04
 
-Release 0.5.2
+## 0.5.2
+
 2011-08-04
 
-Release 0.5.1
+## 0.5.1
+
 2011-08-04
 
-Release 0.5.0
+## 0.5.0
+
 2011-08-03
 
-Release 0.4.1
+## 0.4.1
+
 2011-07-29
 
-Release 0.4.0
+## 0.4.0
+
 2011-06-27
 
-Release 0.3.1
+## 0.3.1
+
 2011-05-04
 
-Release 0.3.0
+## 0.3.0
+
 2011-04-29
 
-Release 0.2.13
+## 0.2.13
+
 2011-03-12
 
-Release 0.2.12
+## 0.2.12
+
 2011-03-03
 
-Release 0.2.11
+## 0.2.11
+
 2011-03-01
 
-Release 0.2.10
+## 0.2.10
+
 2011-02-28
 
-Release 0.2.9
+## 0.2.9
+
 2011-02-24
 
-Release 0.2.8
+## 0.2.8
+
 2011-02-11
 
-Release 0.2.7
+## 0.2.7
+
 2011-02-08
 
-Release 0.2.6
+## 0.2.6
+
 2011-02-08
 
-Release 0.2.5
+## 0.2.5
+
 2011-02-08
 
-Release 0.2.3
+## 0.2.3
+
 2011-01-27
 
-Release 0.1.2
+## 0.1.2
+
 2011-01-27
 
-Release 0.1.1
+## 0.1.1
+
 2011-01-27
 
-Release 0.1.0
-2011-01-27
+## 0.1.0
 
+2011-01-27
