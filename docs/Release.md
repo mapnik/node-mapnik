@@ -2,12 +2,17 @@
 
 Steps to cut a new release of node-mapnik.
 
+## Changelog
+
+Update it with key changes since last tag.
 
 ## Tests
 
 All tests must pass if you run:
 
     make test
+
+But only if running Mapnik 2.1.x.
 
 ## Test examples
 
@@ -30,12 +35,13 @@ Increment version in `package.json`.
 
 ## Commit, tag, and push tag
 
-    VERSION="0.7.0"
-    git ci -a -m "bump to ${VERSION}"
-    git push
-    git tag ${VERSION} -m "tagging ${VERSION}"
-    git push --tags
-
+```
+VERSION=`node -e "console.log(require('./package.json')['version'])"`
+git ci -a -m "bump to ${VERSION}"
+git push
+git tag ${VERSION} -m "tagging ${VERSION}"
+git push --tags
+```
 
 ## Publish
 
