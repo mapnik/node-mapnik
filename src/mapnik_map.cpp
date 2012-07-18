@@ -1731,7 +1731,11 @@ void Map::EIO_RenderFile(uv_work_t* req)
     {
         if(closure->use_cairo) {
 #if defined(HAVE_CAIRO)
+  #if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
+  #else
+            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
+  #endif
 #else
 
 #endif
@@ -1928,7 +1932,11 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
+  #if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
+  #else
+            mapnik::save_to_cairo_file(*m->map_,output,format);
+  #endif
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
