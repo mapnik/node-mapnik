@@ -11,6 +11,7 @@
 #endif
 
 #include <mapnik/version.hpp>
+#include <mapnik/feature_type_style.hpp>
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/layer.hpp>
