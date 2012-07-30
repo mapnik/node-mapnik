@@ -31,6 +31,11 @@ clean:
 uninstall:
 	@node-waf uninstall
 
+rebuild:
+	@make clean
+	@./configure
+	@make
+
 test-tmp:
 	@rm -rf test/tmp
 	@mkdir -p test/tmp
