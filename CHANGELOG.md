@@ -1,6 +1,13 @@
 # Changlog
 
-## 0.7.7
+## 0.7.9
+
+2012-08-1
+
+ - Fixed broken usage of V8::AdjustAmountOfExternalAllocatedMemory
+   which could trigger unneeded garbage collection pauses. (@strk)
+
+## 0.7.8
 
 2012-07-18
 
