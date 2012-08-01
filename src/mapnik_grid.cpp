@@ -44,25 +44,17 @@ void Grid::Initialize(Handle<Object> target) {
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
     ObjectWrap(),
-    this_(boost::make_shared<mapnik::grid>(width,height,key,resolution)) {
+    this_(boost::make_shared<mapnik::grid>(width,height,key,resolution)),
+    estimated_size_(width * height) {
 #if MAPNIK_VERSION <= 200100
     this_->painted(false);
 #endif
-    V8::AdjustAmountOfExternalAllocatedMemory(width * height);
+    V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
 }
-
-Grid::Grid(grid_ptr this_) :
-    ObjectWrap(),
-    this_(this_) {
-#if MAPNIK_VERSION <= 200100
-    this_->painted(false);
-#endif
-    V8::AdjustAmountOfExternalAllocatedMemory(this_->width() * this_->height());
-    }
 
 Grid::~Grid()
 {
-    V8::AdjustAmountOfExternalAllocatedMemory(-4 * this_->width() * this_->height());
+    V8::AdjustAmountOfExternalAllocatedMemory(-estimated_size_);
 }
 
 Handle<Value> Grid::New(const Arguments& args)

@@ -38,12 +38,12 @@ public:
     void _unref() { Unref(); }
 
     Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution);
-    Grid(grid_ptr this_);
     inline grid_ptr get() { return this_; }
 
 private:
     ~Grid();
     grid_ptr this_;
+    int estimated_size_;
 };
 
 #endif

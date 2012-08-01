@@ -51,6 +51,7 @@ public:
 private:
     ~Image();
     image_ptr this_;
+    int estimated_size_;
 };
 
 #endif

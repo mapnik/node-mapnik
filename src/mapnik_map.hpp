@@ -81,14 +81,14 @@ public:
     void acquire();
     void release();
     int active() const;
-    unsigned int estimate_map_size();
+    int estimate_map_size();
 
 
 private:
     ~Map();
     map_ptr map_;
     int in_use_;
-    unsigned int estimated_size_;
+    int estimated_size_;
 };
 
 #endif

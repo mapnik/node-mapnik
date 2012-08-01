@@ -100,8 +100,6 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "size", size);
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
-    //eio_set_max_poll_reqs(10);
-    //eio_set_min_parallel(10);
 }
 
 Map::Map(int width, int height) :
@@ -118,8 +116,10 @@ Map::Map(int width, int height, std::string const& srs) :
 
 Map::~Map()
 {
-    if (estimated_size_ >0)
+    if (estimated_size_ > 0)
+    {
         V8::AdjustAmountOfExternalAllocatedMemory(-estimated_size_);
+    }
 }
 
 void Map::acquire() {
@@ -179,7 +179,7 @@ Handle<Value> Map::New(const Arguments& args)
 class sizeof_symbolizer : public boost::static_visitor<>
 {
 public:
-    sizeof_symbolizer( unsigned int * usage):
+    sizeof_symbolizer( int * usage):
         usage_(usage),
         factor_(21 /*arbitrary*/) {}
 
@@ -239,14 +239,14 @@ public:
         *usage_ += (sizeof(sym)*factor_);
     }
 #endif
-    unsigned int * usage_;
-    unsigned int factor_;
+    int * usage_;
+    int factor_;
 };
 
-unsigned int Map::estimate_map_size()
+int Map::estimate_map_size()
 {
     // very rough estimate of memory usage of a map
-    unsigned int mem_usage(0);
+    int mem_usage = 0;
     mapnik::Map::const_style_iterator sty_itr = map_->styles().begin();
     for (; sty_itr != map_->styles().end(); ++sty_itr)
     {
