@@ -118,8 +118,10 @@ Map::Map(int width, int height, std::string const& srs) :
 
 Map::~Map()
 {
-    if (estimated_size_ >0)
-        V8::AdjustAmountOfExternalAllocatedMemory(-estimated_size_);
+    if (estimated_size_ >0) {
+        // See https://github.com/mapnik/node-mapnik/issues/116 for the int cast
+        V8::AdjustAmountOfExternalAllocatedMemory(int(-estimated_size_));
+    }
 }
 
 void Map::acquire() {
