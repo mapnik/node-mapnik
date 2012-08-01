@@ -72,7 +72,8 @@ Image::Image(image_ptr this_) :
 
 Image::~Image()
 {
-    V8::AdjustAmountOfExternalAllocatedMemory(-4 * this_->width() * this_->height());
+    // See https://github.com/mapnik/node-mapnik/issues/116 for the int cast
+    V8::AdjustAmountOfExternalAllocatedMemory(int(-4 * this_->width() * this_->height()));
 }
 
 Handle<Value> Image::New(const Arguments& args)
