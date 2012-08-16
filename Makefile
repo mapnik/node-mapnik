@@ -2,14 +2,16 @@
 
 all: mapnik.node
 
-NPROCS:=1
 OS:=$(shell uname -s)
 
-ifeq ($(OS),Linux)
-	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
-endif
-ifeq ($(OS),Darwin)
-	NPROCS:=$(shell sysctl -n hw.ncpu)
+ifeq ($(NPROCS),)
+	NPROCS:=1
+	ifeq ($(OS),Linux)
+		NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
+	endif
+	ifeq ($(OS),Darwin)
+		NPROCS:=$(shell sysctl -n hw.ncpu)
+	endif
 endif
 
 gyp:
