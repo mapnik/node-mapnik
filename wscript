@@ -52,7 +52,7 @@ def warn_about_mapnik_version(conf):
     if found_version:
         found_version_num = version2num(found_version)
         min_version = '2.0.0'
-        max_version = '2.1.0'
+        max_version = '2.2.0'
         min_version_num = version2num(min_version)
         max_version_num = version2num(max_version)
         if found_version_num <= max_version_num and found_version_num >= min_version_num:
