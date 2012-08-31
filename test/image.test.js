@@ -101,7 +101,7 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('should support compositing', function() {
+    it('should support setting the alpha channel based on the amount of gray', function() {
         var gray = new mapnik.Image(256, 256);
         gray.background = new mapnik.Color('white');
         gray.setGrayScaleToAlpha();
