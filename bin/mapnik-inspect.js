@@ -58,11 +58,14 @@ else if ((/.sqlite$/.test(obj)) ||
     console.log(opened.features().slice(0, 1));
 }
 else if ((/.json$/.test(obj)) ||
-         (/.geojson$/.test(obj)) ||
-         (/.kml$/.test(obj)) ||
-         (/.sqlite$/.test(obj)) ||
-         (/.sqlite3$/.test(obj)) ||
-         (/.db$/.test(obj)) ||
+         (/.geojson$/.test(obj))) {
+    var opened = new mapnik.Datasource({type: 'geojson', file: obj});
+    console.log('Description -->');
+    console.log(opened.describe());
+    console.log('First feature --> ');
+    console.log(opened.features().slice(0, 1));
+}
+else if ((/.kml$/.test(obj)) ||
          (/.gml$/.test(obj)) ||
          (/.vrt$/.test(obj)) ||
          (/.dbf$/.test(obj))
