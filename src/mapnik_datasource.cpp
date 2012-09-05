@@ -1,4 +1,4 @@
-
+#include <mapnik/version.hpp>
 #include <mapnik/datasource_cache.hpp>
 
 #include "mapnik_datasource.hpp"
@@ -104,7 +104,11 @@ Handle<Value> Datasource::New(const Arguments& args)
     mapnik::datasource_ptr ds;
     try
     {
+#if MAPNIK_VERSION >= 200200
+        ds = mapnik::datasource_cache::instance()->create(params, bind);
+#else
         ds = mapnik::datasource_cache::create(params, bind);
+#endif
     }
     catch (std::exception const& ex)
     {

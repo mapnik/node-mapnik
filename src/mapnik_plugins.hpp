@@ -10,6 +10,7 @@
 
 // mapnik
 #include <mapnik/datasource_cache.hpp>
+#include <mapnik/version.hpp>
 
 // stl
 #include <vector>
@@ -25,7 +26,11 @@ namespace node_mapnik {
 static inline Handle<Value> available_input_plugins(const Arguments& args)
 {
     HandleScope scope;
-    std::vector<std::string> const& names = mapnik::datasource_cache::plugin_names();
+#if MAPNIK_VERSION >= 200200
+    std::vector<std::string> names = mapnik::datasource_cache::instance()->plugin_names();
+#else
+    std::vector<std::string> names = mapnik::datasource_cache::plugin_names();
+#endif
     Local<Array> a = Array::New(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
@@ -41,11 +46,18 @@ static inline Handle<Value> register_datasources(const Arguments& args)
     if (args.Length() != 1 || !args[0]->IsString())
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to a directory of mapnik input plugins")));
-
-    std::vector<std::string> const names_before = mapnik::datasource_cache::plugin_names();
+#if MAPNIK_VERSION >= 200200
+    std::vector<std::string> names_before = mapnik::datasource_cache::instance()->plugin_names();
+#else
+    std::vector<std::string> names_before = mapnik::datasource_cache::plugin_names();
+#endif
     std::string path = TOSTR(args[0]);
     mapnik::datasource_cache::instance()->register_datasources(path);
-    std::vector<std::string> const& names_after = mapnik::datasource_cache::plugin_names();
+#if MAPNIK_VERSION >= 200200
+    std::vector<std::string> names_after = mapnik::datasource_cache::instance()->plugin_names();
+#else
+    std::vector<std::string> names_after = mapnik::datasource_cache::plugin_names();
+#endif
     if (names_after.size() > names_before.size())
         return scope.Close(True());
     return scope.Close(False());
