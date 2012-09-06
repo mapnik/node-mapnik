@@ -1,5 +1,18 @@
 # Changlog
 
+## 0.7.11
+
+2012-09-5
+
+ - Fixed compile with Mapnik 2.2.0-pre
+
+## 0.7.10
+
+2012-08-17
+
+ - Makefile wrapper around node-waf now allows NPROCS option to be set.
+ - Allow configure to work against Mapnik 2.2.0-pre without warning.
+
 ## 0.7.9
 
 2012-08-1
