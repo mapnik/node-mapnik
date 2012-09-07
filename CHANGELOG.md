@@ -1,5 +1,11 @@
 # Changlog
 
+## 0.7.12
+
+2012-09-7
+
+ - Keep chasing Mapnik 2.2.0-pre API changes in singletons
+
 ## 0.7.11
 
 2012-09-5
