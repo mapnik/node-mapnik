@@ -1,5 +1,17 @@
 # Changlog
 
+## 0.7.14
+
+2012-09-16
+
+ - Keep chasing Mapnik 2.2.0-pre API changes in symbolizers
+
+## 0.7.13
+
+2012-09-13
+
+ - Fixed compile with <= Mapnik 2.1.0
+
 ## 0.7.12
 
 2012-09-7
