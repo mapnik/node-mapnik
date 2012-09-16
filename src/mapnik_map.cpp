@@ -239,6 +239,11 @@ public:
         *usage_ += (sizeof(sym)*factor_);
     }
 #endif
+    void operator () ( mapnik::symbolizer const& sym )
+    {
+        *usage_ += (sizeof(sym)*factor_);
+    }
+
     int * usage_;
     int factor_;
 };
