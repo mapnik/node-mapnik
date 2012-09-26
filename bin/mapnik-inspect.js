@@ -24,57 +24,54 @@ var mapnik = require('mapnik');
 
 console.log(obj);
 
+var meta = function(ds) {
+    console.log('Description -->');
+    console.log(ds.describe());
+    console.log('extent: ' + ds.extent().toString());
+    console.log('First feature --> ');
+    console.log(ds.features().slice(0, 1));
+}
+
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
-    console.log('Description -->');
-    console.log(opened.describe());
-    console.log('First feature --> ');
-    console.log(opened.features().slice(0, 1));
 }
 else if ((/.csv$/.test(obj)) ||
          (/.tsv$/.test(obj)) || // google refine output .tsv for tab-separated files
          (/.txt$/.test(obj))) {
     var opened = new mapnik.Datasource({type: 'csv', file: obj});
-    console.log('Description -->');
-    console.log(opened.describe());
-    console.log('First feature --> ');
-    console.log(opened.features().slice(0, 5));
+    meta(opened);
 }
 else if (/.osm$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'osm', file: obj});
-    console.log('Description -->');
-    console.log(opened.describe());
-    console.log('First feature --> ');
-    console.log(opened.features().slice(0, 1));
+    meta(opened);
 }
 else if ((/.sqlite$/.test(obj)) ||
          (/.sqlite3$/.test(obj)) ||
          (/.db$/.test(obj))
         ) {
     var opened = new mapnik.Datasource({type: 'sqlite', file: obj, 'table_by_index': 0});
-    console.log('Description -->');
-    console.log(opened.describe());
-    console.log('First feature --> ');
-    console.log(opened.features().slice(0, 1));
+    meta(opened);
 }
 else if ((/.json$/.test(obj)) ||
          (/.geojson$/.test(obj))) {
     var opened = new mapnik.Datasource({type: 'geojson', file: obj});
-    console.log('Description -->');
-    console.log(opened.describe());
-    console.log('First feature --> ');
-    console.log(opened.features().slice(0, 1));
+    meta(opened);
 }
 else if ((/.kml$/.test(obj)) ||
          (/.gml$/.test(obj)) ||
-         (/.vrt$/.test(obj)) ||
          (/.dbf$/.test(obj))
         ) {
     var opened = new mapnik.Datasource({type: 'ogr', file: obj, 'layer_by_index': 0});
-    console.log('Description -->');
-    console.log(opened.describe());
-    console.log('First feature --> ');
-    console.log(opened.features().slice(0, 1));
+    meta(opened);
+}
+else if ((/.tif$/.test(obj)) ||
+         (/.tiff$/.test(obj)) ||
+         (/.vrt$/.test(obj)) ||
+         (/.geotif$/.test(obj)) ||
+         (/.geotiff$/.test(obj))
+        ) {
+    var opened = new mapnik.Datasource({type: 'gdal', file: obj});
+    meta(opened);
 }
 else if (/.xml$/.test(obj)) {
     var map = new mapnik.Map(1, 1);
