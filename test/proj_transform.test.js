@@ -8,7 +8,7 @@ describe('mapnik.ProjTransform ', function() {
         assert.throws(function() { new mapnik.ProjTransform('+init=epsg:foo'); });
         assert.throws(function() { new mapnik.ProjTransform('+proj +foo'); });
         assert.throws(function() { new mapnik.ProjTransform(1,1); });
-        //assert.throws(function() { new mapnik.ProjTransform({},{}); });
+        assert.throws(function() { new mapnik.ProjTransform({},{}); });
     });
 
     it('should initialize properly', function() {

@@ -196,7 +196,7 @@ Handle<Value> Grid::view(const Arguments& args)
 {
     HandleScope scope;
 
-    if ( (!args.Length() == 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
+    if ( (args.Length() != 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
         return ThrowException(Exception::TypeError(
                                   String::New("requires 4 integer arguments: x, y, width, height")));
 

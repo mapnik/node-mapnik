@@ -469,7 +469,7 @@ Handle<Value> Image::view(const Arguments& args)
 {
     HandleScope scope;
 
-    if ( (!args.Length() == 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
+    if ( (args.Length() != 4) || (!args[0]->IsNumber() && !args[1]->IsNumber() && !args[2]->IsNumber() && !args[3]->IsNumber() ))
         return ThrowException(Exception::TypeError(
                                   String::New("requires 4 integer arguments: x, y, width, height")));
 
@@ -545,8 +545,7 @@ Handle<Value> Image::composite(const Arguments& args)
 {
     HandleScope scope;
 
-    // accept custom format
-    if (!args.Length() >= 2){
+    if (args.Length() < 2){
         return ThrowException(Exception::TypeError(
                                   String::New("requires two arguments: an image mask and a compositeOp")));
     }

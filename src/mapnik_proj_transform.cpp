@@ -35,7 +35,7 @@ Handle<Value> ProjTransform::New(const Arguments& args)
     if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
 
-    if (!args.Length() == 2 || !args[0]->IsObject()  || !args[1]->IsObject()) {
+    if (args.Length() != 2 || !args[0]->IsObject()  || !args[1]->IsObject()) {
         return ThrowException(Exception::TypeError(
                                   String::New("please provide two arguments: a pair of mapnik.Projection objects")));
     }

@@ -347,7 +347,7 @@ void Map::set_prop(Local<String> property,
                                String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
         } else {
             Local<Array> arr = Local<Array>::Cast(value);
-            if (!arr->Length() == 4) {
+            if (arr->Length() != 4) {
                 ThrowException(Exception::Error(
                                    String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
             } else {
@@ -484,7 +484,7 @@ Handle<Value> Map::queryPoint(const Arguments& args)
 Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
 {
     HandleScope scope;
-    if (!args.Length() >= 3)
+    if (args.Length() < 3)
     {
         return ThrowException(Exception::TypeError(
                                   String::New("requires at least three arguments, a x,y query and a callback")));
@@ -812,7 +812,7 @@ Handle<Value> Map::resize(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() == 2)
+    if (args.Length() != 2)
         return ThrowException(Exception::Error(
                                   String::New("Please provide width and height")));
 
@@ -841,7 +841,7 @@ Handle<Value> Map::load(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >= 2)
+    if (args.Length() < 2)
         return ThrowException(Exception::Error(
                                   String::New("please provide a stylesheet path, options, and callback")));
 
@@ -1075,7 +1075,7 @@ Handle<Value> Map::fromString(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >= 2)
+    if (args.Length() < 2)
         return ThrowException(Exception::Error(
                                   String::New("please provide a stylesheet string, options, and callback")));
 
@@ -1291,7 +1291,7 @@ Handle<Value> Map::render(const Arguments& args)
     HandleScope scope;
 
     // ensure at least 2 args
-    if (!args.Length() >= 2) {
+    if (args.Length() < 2) {
         return ThrowException(Exception::TypeError(
                                   String::New("requires at least two arguments, a renderable mapnik object, and a callback")));
     }
