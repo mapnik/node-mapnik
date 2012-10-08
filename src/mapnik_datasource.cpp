@@ -76,19 +76,6 @@ Handle<Value> Datasource::New(const Arguments& args)
 
     Local<Object> options = args[0]->ToObject();
 
-    // TODO - maybe validate in js?
-
-    bool bind=true;
-    if (options->Has(String::New("bind")))
-    {
-        Local<Value> bind_opt = options->Get(String::New("bind"));
-        if (!bind_opt->IsBoolean())
-            return ThrowException(Exception::TypeError(
-                                      String::New("'bind' must be a Boolean")));
-
-        bind = bind_opt->BooleanValue();
-    }
-
     mapnik::parameters params;
     Local<Array> names = options->GetPropertyNames();
     uint32_t i = 0;
@@ -105,9 +92,9 @@ Handle<Value> Datasource::New(const Arguments& args)
     try
     {
 #if MAPNIK_VERSION >= 200200
-        ds = mapnik::datasource_cache::instance().create(params, bind);
+        ds = mapnik::datasource_cache::instance().create(params);
 #else
-        ds = mapnik::datasource_cache::instance()->create(params, bind);
+        ds = mapnik::datasource_cache::instance()->create(params);
 #endif
     }
     catch (std::exception const& ex)
