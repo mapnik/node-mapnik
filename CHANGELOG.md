@@ -1,5 +1,11 @@
 # Changlog
 
+## 0.7.15
+
+2012-10-09
+
+ - Minor compiler warning fixes
+
 ## 0.7.14
 
 2012-09-16
