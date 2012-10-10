@@ -34,6 +34,7 @@ var meta = function(ds) {
 
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
+    meta(opened);
 }
 else if ((/.csv$/.test(obj)) ||
          (/.tsv$/.test(obj)) || // google refine output .tsv for tab-separated files
