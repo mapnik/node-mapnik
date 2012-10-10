@@ -994,7 +994,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
 Handle<Value> Map::fromStringSync(const Arguments& args)
 {
     HandleScope scope;
-    if (!args.Length() >= 1) {
+    if (args.Length() < 1) {
         return ThrowException(Exception::TypeError(
                                   String::New("Accepts 2 arguments: stylesheet string and an optional options")));
     }
@@ -1628,7 +1628,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >= 1 || !args[0]->IsString())
+    if (args.Length() < 1 || !args[0]->IsString())
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to a file to save")));
 
@@ -1803,7 +1803,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >= 1 || !args[0]->IsString())
+    if (args.Length() < 1 || !args[0]->IsString())
         return ThrowException(Exception::TypeError(
                                   String::New("argument must be a format string")));
 
@@ -1867,7 +1867,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
 Handle<Value> Map::renderFileSync(const Arguments& args)
 {
     HandleScope scope;
-    if (!args.Length() >= 1 || !args[0]->IsString())
+    if (args.Length() < 1 || !args[0]->IsString())
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to a file to save")));
 
