@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.7.16
+
+ - Fixed handling of datasource exception when calculating extent
+
 ## 0.7.15
 
 2012-10-09

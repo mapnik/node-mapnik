@@ -157,8 +157,23 @@ Handle<Value> Datasource::extent(const Arguments& args)
 {
     HandleScope scope;
     Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    mapnik::box2d<double> e;
+    try
+    {
+        e = d->datasource_->envelope();
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
+    catch (...)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("unknown exception happened getting datasource extent, please file bug")));
+    }
+
     Local<Array> a = Array::New(4);
-    mapnik::box2d<double> const& e = d->datasource_->envelope();
     a->Set(0, Number::New(e.minx()));
     a->Set(1, Number::New(e.miny()));
     a->Set(2, Number::New(e.maxx()));
@@ -175,7 +190,7 @@ Handle<Value> Datasource::describe(const Arguments& args)
     {
         node_mapnik::describe_datasource(description,d->datasource_);
     }
-    catch (std::exception const& ex )
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -214,7 +229,7 @@ Handle<Value> Datasource::features(const Arguments& args)
     {
         node_mapnik::datasource_features(a,d->datasource_,first,last);
     }
-    catch (std::exception const& ex )
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
