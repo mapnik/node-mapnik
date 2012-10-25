@@ -47,6 +47,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
     NODE_SET_PROTOTYPE_METHOD(constructor, "premultiply", premultiply);
     NODE_SET_PROTOTYPE_METHOD(constructor, "demultiply", demultiply);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -190,6 +191,15 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
         }
     }
 
+    return Undefined();
+}
+
+Handle<Value> Image::clear(const Arguments& args)
+{
+    HandleScope scope;
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    mapnik::image_data_32 & data = im->this_->data();
+    std::memset(data.getData(),0,sizeof(mapnik::image_data_32::pixel_type)*data.width()*data.height());
     return Undefined();
 }
 

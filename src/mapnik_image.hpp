@@ -33,6 +33,7 @@ public:
     static Handle<Value> composite(const Arguments &args);
     static Handle<Value> premultiply(const Arguments& args);
     static Handle<Value> demultiply(const Arguments& args);
+    static Handle<Value> clear(const Arguments& args);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
 
