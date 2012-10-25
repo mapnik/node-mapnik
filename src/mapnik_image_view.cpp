@@ -88,7 +88,78 @@ Handle<Value> ImageView::New(Image * JSImage ,
 
 }
 
+typedef struct {
+    uv_work_t request;
+    ImageView* im;
+    std::string error_name;
+    Persistent<Function> cb;
+    bool result;
+} is_solid_image_view_baton_t;
+
 Handle<Value> ImageView::isSolid(const Arguments& args)
+{
+    HandleScope scope;
+    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+
+    if (args.Length() == 0) {
+        return isSolidSync(args);
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    is_solid_image_view_baton_t *closure = new is_solid_image_view_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->result = true;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, EIO_AfterIsSolid);
+    im->Ref();
+    return Undefined();
+}
+
+void ImageView::EIO_IsSolid(uv_work_t* req)
+{
+    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
+    image_view_ptr view = closure->im->get();
+    if (view->width() > 0 && view->height() > 0)
+    {
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const* first_row = view->getRow(0);
+        mapnik::image_view<mapnik::image_data_32>::pixel_type const first_pixel = first_row[0];
+        for (unsigned y = 0; y < view->height(); ++y)
+        {
+            mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
+            for (unsigned x = 0; x < view->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    closure->result = false;
+                }
+            }
+        }
+    }
+}
+
+void ImageView::EIO_AfterIsSolid(uv_work_t* req)
+{
+    HandleScope scope;
+    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
+    TryCatch try_catch;
+    Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(Boolean::New(closure->result)) };
+    closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    if (try_catch.HasCaught())
+    {
+        FatalException(try_catch);
+    }
+    closure->im->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
+
+Handle<Value> ImageView::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
     ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());

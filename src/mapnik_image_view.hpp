@@ -35,6 +35,9 @@ public:
     //static Handle<Value> open(const Arguments &args);
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> isSolid(const Arguments &args);
+    static void EIO_IsSolid(uv_work_t* req);
+    static void EIO_AfterIsSolid(uv_work_t* req);
+    static Handle<Value> isSolidSync(const Arguments &args);
     static Handle<Value> getPixel(const Arguments &args);
 
     ImageView(Image * JSImage);
