@@ -19,15 +19,13 @@ void Geometry::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
-
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
                                 "Point",mapnik::Point)
-        NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                    "LineString",mapnik::LineString)
-        NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                    "Polygon",mapnik::Polygon)
-
-        target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                "LineString",mapnik::LineString)
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+                                "Polygon",mapnik::Polygon)
+    target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
 }
 
 Geometry::Geometry() :
