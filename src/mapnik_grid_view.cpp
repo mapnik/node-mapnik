@@ -104,9 +104,11 @@ Handle<Value> GridView::height(const Arguments& args)
 typedef struct {
     uv_work_t request;
     GridView* g;
-    std::string error_name;
     Persistent<Function> cb;
+    bool error;
+    std::string error_name;
     bool result;
+    mapnik::grid_view::value_type pixel;
 } is_solid_grid_view_baton_t;
 
 
@@ -128,6 +130,8 @@ Handle<Value> GridView::isSolid(const Arguments& args)
     closure->request.data = closure;
     closure->g = g;
     closure->result = true;
+    closure->pixel = 0;
+    closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, EIO_AfterIsSolid);
     g->Ref();
@@ -140,6 +144,7 @@ void GridView::EIO_IsSolid(uv_work_t* req)
     if (view->width() > 0 && view->height() > 0)
     {
         mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
+        closure->pixel = first_pixel;
         for (unsigned y = 0; y < view->height(); ++y)
         {
             mapnik::grid_view::value_type const * row = view->getRow(y);
@@ -153,6 +158,11 @@ void GridView::EIO_IsSolid(uv_work_t* req)
             }
         }
     }
+    else
+    {
+        closure->error = true;
+        closure->error_name = "image does not have valid dimensions";
+    }
 }
 
 void GridView::EIO_AfterIsSolid(uv_work_t* req)
@@ -160,8 +170,28 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
     HandleScope scope;
     is_solid_grid_view_baton_t *closure = static_cast<is_solid_grid_view_baton_t *>(req->data);
     TryCatch try_catch;
-    Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(Boolean::New(closure->result)) };
-    closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        if (closure->result)
+        {
+            Local<Value> argv[3] = { Local<Value>::New(Null()),
+                                     Local<Value>::New(Boolean::New(closure->result)),
+                                     Local<Value>::New(Number::New(closure->pixel)),
+                                   };
+            closure->cb->Call(Context::GetCurrent()->Global(), 3, argv);
+        }
+        else
+        {
+            Local<Value> argv[2] = { Local<Value>::New(Null()),
+                                     Local<Value>::New(Boolean::New(closure->result))
+                                   };
+            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        }
+    }
     if (try_catch.HasCaught())
     {
         FatalException(try_catch);
@@ -439,8 +469,9 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     if (closure->error) {
         Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-    } else {
-
+    }
+    else
+    {
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(closure->key_order.size());
         std::vector<std::string>::iterator it;
@@ -459,7 +490,6 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
                                                            feature_data,
                                                            closure->key_order);
         }
-
         // Create the return hash.
         Local<Object> json = Object::New();
         Local<Array> grid_array = Array::New(closure->lines.size());

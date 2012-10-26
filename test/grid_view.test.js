@@ -14,12 +14,14 @@ describe('mapnik.GridView ', function() {
     });
 
     it('should be solid', function() {
-        assert.equal(view.isSolid(), true);
+        assert.equal(view.isSolidSync(), true);
     });
 
     it('should be solid (async)', function(done) {
-        view.isSolid(function(err,solid) {
+        view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
+            assert.equal(pixel, -2147483648);
+            assert.equal(pixel, mapnik.Grid.base_mask);
             done();
         });
     });
@@ -30,6 +32,7 @@ describe('mapnik.GridView ', function() {
             assert.equal(pixel, 0);
         } else {
             assert.equal(pixel, -2147483648);
+            assert.equal(pixel, mapnik.Grid.base_mask);
         }
     });
 
@@ -43,11 +46,12 @@ describe('mapnik.GridView ', function() {
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
         map.render(grid, options, function(err, grid) {
             var view = grid.view(0, 0, 256, 256);
-            assert.equal(view.isSolid(), false);
+            assert.equal(view.isSolidSync(), false);
             // hit alaska (USA is id 207)
             assert.equal(view.getPixel(25, 100), 207);
-            view.isSolid(function(err,solid){
+            view.isSolid(function(err,solid,pixel){
                 assert.equal(solid, false);
+                assert.equal(pixel, undefined);
                 done();
             });
         });

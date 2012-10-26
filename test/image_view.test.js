@@ -18,7 +18,7 @@ describe('mapnik.ImageView ', function() {
     it('should be initialized properly', function() {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0, 0, 256, 256);
-        assert.equal(view.isSolid(), true);
+        assert.equal(view.isSolidSync(), true);
         var pixel = view.getPixel(0, 0);
         assert.equal(pixel.r, 0);
         assert.equal(pixel.g, 0);
@@ -28,7 +28,7 @@ describe('mapnik.ImageView ', function() {
         im = new mapnik.Image(256, 256);
         im.background = new mapnik.Color(2, 2, 2, 2);
         view = im.view(0, 0, 256, 256);
-        assert.equal(view.isSolid(), true);
+        assert.equal(view.isSolidSync(), true);
         pixel = view.getPixel(0, 0);
         assert.equal(pixel.r, 2);
         assert.equal(pixel.g, 2);
@@ -40,9 +40,29 @@ describe('mapnik.ImageView ', function() {
     it('isSolid async works if true', function(done) {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0, 0, 256, 256);
-        assert.equal(view.isSolid(), true);
-        view.isSolid(function(err,solid) {
+        assert.equal(view.isSolidSync(), true);
+        view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
+            assert.equal(pixel, 0);
+            done();
+        });
+    });
+
+    it('isSolid async works if true and white', function(done) {
+        var im = new mapnik.Image(256, 256);
+        var color = new mapnik.Color('white');
+        im.background = color
+        var view = im.view(0, 0, 256, 256);
+        assert.equal(view.isSolidSync(), true);
+        view.isSolid(function(err,solid,pixel) {
+            assert.equal(solid, true);
+            assert.equal(pixel, 4294967295);
+            // NOTE: shifts are 32 bit signed ints in js, so creating the unsigned
+            // rgba for white is not possible using normal bit ops
+            // var rgba = (color.a << 24) | (color.b << 16) | (color.g << 8) | (color.r);
+            // how about this? (from tilelive source)
+            var rgba = color.a*(1<<24) + ((color.b<<16) | (color.g<<8) | color.r);
+            assert.equal(pixel, rgba);
             done();
         });
     });
@@ -50,9 +70,10 @@ describe('mapnik.ImageView ', function() {
     it('isSolid async works if false', function(done) {
         var im = new mapnik.Image.open('./test/support/a.png');
         var view = im.view(0, 0, im.width(), im.height());
-        assert.equal(view.isSolid(), false);
-        view.isSolid(function(err,solid) {
+        assert.equal(view.isSolidSync(), false);
+        view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, false);
+            assert.equal(pixel, undefined);
             done();
         });
     });

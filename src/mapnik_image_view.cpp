@@ -92,9 +92,11 @@ Handle<Value> ImageView::New(Image * JSImage ,
 typedef struct {
     uv_work_t request;
     ImageView* im;
-    std::string error_name;
     Persistent<Function> cb;
+    bool error;
+    std::string error_name;
     bool result;
+    mapnik::image_view<mapnik::image_data_32>::pixel_type pixel;
 } is_solid_image_view_baton_t;
 
 Handle<Value> ImageView::isSolid(const Arguments& args)
@@ -115,6 +117,8 @@ Handle<Value> ImageView::isSolid(const Arguments& args)
     closure->request.data = closure;
     closure->im = im;
     closure->result = true;
+    closure->pixel = 0;
+    closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, EIO_AfterIsSolid);
     im->Ref();
@@ -127,11 +131,12 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
     image_view_ptr view = closure->im->get();
     if (view->width() > 0 && view->height() > 0)
     {
-        mapnik::image_view<mapnik::image_data_32>::pixel_type const* first_row = view->getRow(0);
-        mapnik::image_view<mapnik::image_data_32>::pixel_type const first_pixel = first_row[0];
+        typedef mapnik::image_view<mapnik::image_data_32>::pixel_type pixel_type;
+        pixel_type const first_pixel = view->getRow(0)[0];
+        closure->pixel = first_pixel;
         for (unsigned y = 0; y < view->height(); ++y)
         {
-            mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
+            pixel_type const * row = view->getRow(y);
             for (unsigned x = 0; x < view->width(); ++x)
             {
                 if (first_pixel != row[x])
@@ -142,6 +147,11 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
             }
         }
     }
+    else
+    {
+        closure->error = true;
+        closure->error_name = "image does not have valid dimensions";
+    }
 }
 
 void ImageView::EIO_AfterIsSolid(uv_work_t* req)
@@ -149,8 +159,28 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
     HandleScope scope;
     is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
     TryCatch try_catch;
-    Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(Boolean::New(closure->result)) };
-    closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        if (closure->result)
+        {
+            Local<Value> argv[3] = { Local<Value>::New(Null()),
+                                     Local<Value>::New(Boolean::New(closure->result)),
+                                     Local<Value>::New(Number::New(closure->pixel)),
+                                   };
+            closure->cb->Call(Context::GetCurrent()->Global(), 3, argv);
+        }
+        else
+        {
+            Local<Value> argv[2] = { Local<Value>::New(Null()),
+                                     Local<Value>::New(Boolean::New(closure->result))
+                                   };
+            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        }
+    }
     if (try_catch.HasCaught())
     {
         FatalException(try_catch);

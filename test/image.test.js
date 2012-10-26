@@ -106,7 +106,7 @@ describe('mapnik.Image ', function() {
         gray.background = new mapnik.Color('white');
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
-        assert.equal(gray_view.isSolid(), true);
+        assert.equal(gray_view.isSolidSync(), true);
         var pixel = gray_view.getPixel(0, 0);
         assert.equal(pixel.r, 255);
         assert.equal(pixel.g, 255);
