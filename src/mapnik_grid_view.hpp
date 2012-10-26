@@ -31,6 +31,9 @@ public:
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> isSolid(const Arguments &args);
+    static void EIO_IsSolid(uv_work_t* req);
+    static void EIO_AfterIsSolid(uv_work_t* req);
+    static Handle<Value> isSolidSync(const Arguments &args);
     static Handle<Value> getPixel(const Arguments &args);
 
     GridView(Grid * JSGrid);

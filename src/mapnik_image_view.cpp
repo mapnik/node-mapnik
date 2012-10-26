@@ -34,6 +34,7 @@ void ImageView::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolidSync", isSolidSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
 
     target->Set(String::NewSymbol("ImageView"),constructor->GetFunction());
@@ -136,6 +137,7 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
                 if (first_pixel != row[x])
                 {
                     closure->result = false;
+                    return;
                 }
             }
         }

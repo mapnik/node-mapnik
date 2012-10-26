@@ -17,6 +17,13 @@ describe('mapnik.GridView ', function() {
         assert.equal(view.isSolid(), true);
     });
 
+    it('should be solid (async)', function(done) {
+        view.isSolid(function(err,solid) {
+            assert.equal(solid, true);
+            done();
+        });
+    });
+
     it('should have zero value for pixel', function() {
         var pixel = view.getPixel(0, 0);
         if (mapnik.versions.mapnik_number < 200100) {
@@ -39,7 +46,10 @@ describe('mapnik.GridView ', function() {
             assert.equal(view.isSolid(), false);
             // hit alaska (USA is id 207)
             assert.equal(view.getPixel(25, 100), 207);
-            done();
+            view.isSolid(function(err,solid){
+                assert.equal(solid, false);
+                done();
+            });
         });
     });
 });

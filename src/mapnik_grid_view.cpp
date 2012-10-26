@@ -31,6 +31,7 @@ void GridView::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolidSync", isSolidSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
 
     target->Set(String::NewSymbol("GridView"),constructor->GetFunction());
@@ -100,7 +101,77 @@ Handle<Value> GridView::height(const Arguments& args)
     return scope.Close(Integer::New(g->get()->height()));
 }
 
+typedef struct {
+    uv_work_t request;
+    GridView* g;
+    std::string error_name;
+    Persistent<Function> cb;
+    bool result;
+} is_solid_grid_view_baton_t;
+
+
 Handle<Value> GridView::isSolid(const Arguments& args)
+{
+    HandleScope scope;
+    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+
+    if (args.Length() == 0) {
+        return isSolidSync(args);
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    is_solid_grid_view_baton_t *closure = new is_solid_grid_view_baton_t();
+    closure->request.data = closure;
+    closure->g = g;
+    closure->result = true;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, EIO_AfterIsSolid);
+    g->Ref();
+    return Undefined();
+}
+void GridView::EIO_IsSolid(uv_work_t* req)
+{
+    is_solid_grid_view_baton_t *closure = static_cast<is_solid_grid_view_baton_t *>(req->data);
+    grid_view_ptr view = closure->g->get();
+    if (view->width() > 0 && view->height() > 0)
+    {
+        mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
+        for (unsigned y = 0; y < view->height(); ++y)
+        {
+            mapnik::grid_view::value_type const * row = view->getRow(y);
+            for (unsigned x = 0; x < view->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    closure->result = false;
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void GridView::EIO_AfterIsSolid(uv_work_t* req)
+{
+    HandleScope scope;
+    is_solid_grid_view_baton_t *closure = static_cast<is_solid_grid_view_baton_t *>(req->data);
+    TryCatch try_catch;
+    Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(Boolean::New(closure->result)) };
+    closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    if (try_catch.HasCaught())
+    {
+        FatalException(try_catch);
+    }
+    closure->g->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> GridView::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
     GridView* g = ObjectWrap::Unwrap<GridView>(args.This());

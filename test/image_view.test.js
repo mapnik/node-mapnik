@@ -36,4 +36,25 @@ describe('mapnik.ImageView ', function() {
         assert.equal(pixel.a, 2);
         assert.equal(view.getPixel(99999999, 9999999), undefined);
     });
+
+    it('isSolid async works if true', function(done) {
+        var im = new mapnik.Image(256, 256);
+        var view = im.view(0, 0, 256, 256);
+        assert.equal(view.isSolid(), true);
+        view.isSolid(function(err,solid) {
+            assert.equal(solid, true);
+            done();
+        });
+    });
+
+    it('isSolid async works if false', function(done) {
+        var im = new mapnik.Image.open('./test/support/a.png');
+        var view = im.view(0, 0, im.width(), im.height());
+        assert.equal(view.isSolid(), false);
+        view.isSolid(function(err,solid) {
+            assert.equal(solid, false);
+            done();
+        });
+    });
+
 });
