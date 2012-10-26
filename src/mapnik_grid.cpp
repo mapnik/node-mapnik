@@ -40,6 +40,7 @@ void Grid::Initialize(Handle<Object> target) {
     ATTR(constructor, "key", get_prop, set_prop);
 
     target->Set(String::NewSymbol("Grid"),constructor->GetFunction());
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", mapnik::grid::base_mask);
 }
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
