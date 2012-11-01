@@ -13,11 +13,9 @@ describe('mapnik.Datasource', function() {
         assert.throws(function() { new mapnik.Datasource('foo'); },
             /Must provide an object, eg \{type: 'shape', file : 'world.shp'\}/);
 
-        assert.throws(function() { new mapnik.Datasource({ 'foo': 1 }); },
-            /Could not create datasource. Required parameter 'type' is missing/);
+        assert.throws(function() { new mapnik.Datasource({ 'foo': 1 }); });
 
-        assert.throws(function() { new mapnik.Datasource({ 'type': 'foo' }); },
-            /Could not create datasource. No plugin found for type 'foo'/);
+        assert.throws(function() { new mapnik.Datasource({ 'type': 'foo' }); });
 
         assert.throws(function() { new mapnik.Datasource({ 'type': 'shape' }); },
             /Shape Plugin: missing <file> parameter/);
