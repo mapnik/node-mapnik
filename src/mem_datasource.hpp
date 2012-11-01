@@ -29,7 +29,7 @@ class js_datasource : public mapnik::datasource
 {
     friend class js_featureset;
 public:
-    js_datasource(const mapnik::parameters &params, bool bind, Local<Value> cb);
+    js_datasource(const mapnik::parameters &params, Local<Value> cb);
     virtual ~js_datasource();
     mapnik::datasource::datasource_t type() const;
     mapnik::featureset_ptr features(const mapnik::query& q) const;
@@ -45,7 +45,7 @@ private:
 };
 
 
-js_datasource::js_datasource(const mapnik::parameters &params, bool bind, Local<Value> cb)
+js_datasource::js_datasource(const mapnik::parameters &params, Local<Value> cb)
     : datasource (params),
       desc_(*params.get<std::string>("type"), *params.get<std::string>("encoding","utf-8"))
 {
