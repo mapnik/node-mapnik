@@ -49,9 +49,9 @@ describe('mapnik.Palette ', function() {
         // Test rendering a blank image
         var filename = helper.filename();
         var buffer = map.renderSync('png', {palette: pal});
-        assert.ok(buffer.length < 7000);
+        assert.ok(buffer.length < 7300);
         map.renderFileSync(filename, {palette: pal});
         var stat = fs.statSync(filename);
-        assert.ok(stat.size < 7000);
+        assert.ok(stat.size < 7300);
     });
 });
