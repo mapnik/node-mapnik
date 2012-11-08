@@ -510,8 +510,11 @@ Handle<Value> Image::save(const Arguments& args)
         if (!args[1]->IsString())
             return ThrowException(Exception::TypeError(
                                       String::New("both 'filename' and 'format' arguments must be strings")));
-
-        format = mapnik::guess_type(TOSTR(args[1]));
+        format = TOSTR(args[1]);
+    }
+    else
+    {
+        format = mapnik::guess_type(filename);
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << filename << "\n";
