@@ -16,7 +16,6 @@ Examples are arranged into topic directories:
 * **tile**   - TMS style tileservers. Also includes PostGIS example.  
 * **wms**		 - WMS servers
 * **memory_datasource** - rendering of native javascript objects using in memory features created up front
-* **js_datasource** - rendering of native javascript objects using callback approach (WARNING - does not work outside of main event loop)
 
 ## Other files
 
@@ -29,8 +28,3 @@ Examples are arranged into topic directories:
 To run most examples, read the code then execute their app.js file. 
 
 In tile examples you can view the output in polymaps via tile/index.html
-
-TODO
------
-* interaction
-* js_datasource + interaction

@@ -1,6 +1,6 @@
 
 // This example shows how to use node-mapnik to render
-// a map to a file
+// a map to a image on disk
 //
 // expected output: http://goo.gl/cyGwo
 

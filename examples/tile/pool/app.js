@@ -33,25 +33,23 @@ if (!port) {
 }
 
 var aquire = function(id,options,callback) {
-    var methods = {
+    methods = {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
                 obj.load(id, {strict: true},function(err,obj) {
-                    if (err) callback(err, null);
-                    if (options.buffer_size) obj.buffer_size(options.buffer_size);
-                    cb(obj);
+                    if (options.bufferSize) {
+                        obj.bufferSize = options.bufferSize;
+                    }
+                    cb(err,obj);
                 });
             },
             destroy: function(obj) {
                 delete obj;
             }
     };
-    maps.acquire(id,
-                  methods,
-                  function(obj) {
-                    callback(null, obj);
-                  }
-   );
+    maps.acquire(id,methods,function(err,obj) {
+      callback(err, obj);
+    });
 };
 
 
@@ -65,6 +63,9 @@ http.createServer(function(req, res) {
         } else {
             aquire(stylesheet, {}, function(err, map) {
                 if (err) {
+                    process.nextTick(function() {
+                        maps.release(stylesheet, map);
+                    });
                     res.writeHead(500, {
                       'Content-Type': 'text/plain'
                     });
@@ -72,11 +73,12 @@ http.createServer(function(req, res) {
                 } else {
                     // bbox for x,y,z
                     var bbox = mercator.xyz_to_envelope(params.x, params.y, params.z, TMS_SCHEME);
-
                     map.extent = bbox;
                     var im = new mapnik.Image(map.width, map.height);
                     map.render(im, function(err, im) {
-                        maps.release(stylesheet, map);
+                        process.nextTick(function() {
+                            maps.release(stylesheet, map);
+                        });
                         if (err) {
                             res.writeHead(500, {
                               'Content-Type': 'text/plain'

@@ -9,10 +9,13 @@ var path = require('path');
 var port = 8000;
 
 var im = new mapnik.Image(256, 256);
+im.background = new mapnik.Color('steelblue');
 
 http.createServer(function(req, res) {
     res.writeHead(200, {'Content-Type': 'image/png'});
-    res.end(im.encodeSync('png8'));
+    im.encode('png8:z=1',function(err,buffer) {
+        res.end(buffer);
+    });
 }).listen(port);
 
 console.log('server running on port ' + port);

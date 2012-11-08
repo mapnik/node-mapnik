@@ -30,23 +30,19 @@ var aquire = function(id,options,callback) {
         create: function(cb) {
                 var obj = new mapnik.Map(options.width || 256, options.height || 256);
                 obj.load(id, {strict: true},function(err,obj) {
-                    if (err) callback(err, null);
                     if (options.bufferSize) {
                         obj.bufferSize = options.bufferSize;
                     }
-                    cb(obj);
+                    cb(err,obj);
                 });
             },
             destroy: function(obj) {
                 delete obj;
             }
     };
-    maps.acquire(id,
-                  methods,
-                  function(obj) {
-                    callback(null, obj);
-                  }
-   );
+    maps.acquire(id,methods,function(err,obj) {
+      callback(err, obj);
+    });
 };
 
 
