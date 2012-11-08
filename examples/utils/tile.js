@@ -2,7 +2,7 @@ var url = require('url');
 
 module.exports.parseXYZ = function(req, TMS_SCHEME, callback) {
 
-    matches = req.url.match(/(\d+)\/(\d+)\/(\d+)/g);
+    var matches = req.url.match(/(\d+)/g);
     if (matches && matches.length == 3) {
         try {
             var x = parseInt(matches[1], 10);
