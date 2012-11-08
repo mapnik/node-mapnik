@@ -82,7 +82,10 @@ public:
     void release();
     int active() const;
     int estimate_map_size();
+    void _ref() { Ref(); }
+    void _unref() { Unref(); }
 
+    inline map_ptr get() { return map_; }
 
 private:
     ~Map();
