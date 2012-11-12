@@ -20,8 +20,12 @@ describe('mapnik.GridView ', function() {
     it('should be solid (async)', function(done) {
         view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel, -2147483648);
-            assert.equal(pixel, mapnik.Grid.base_mask);
+            if (mapnik.versions.mapnik_number < 200100) {
+                assert.equal(pixel, 0);
+            } else {
+                assert.equal(pixel, -2147483648);
+                assert.equal(pixel, mapnik.Grid.base_mask);
+            }
             done();
         });
     });
