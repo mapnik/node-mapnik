@@ -28,6 +28,10 @@ public:
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> painted(const Arguments &args);
+    static Handle<Value> clearSync(const Arguments& args);
+    static Handle<Value> clear(const Arguments& args);
+    static void EIO_Clear(uv_work_t* req);
+    static void EIO_AfterClear(uv_work_t* req);
 
     static Handle<Value> get_prop(Local<String> property,
                                   const AccessorInfo& info);

@@ -35,12 +35,17 @@ void Grid::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
-
+    NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "clearSync", clear);
     // properties
     ATTR(constructor, "key", get_prop, set_prop);
 
     target->Set(String::NewSymbol("Grid"),constructor->GetFunction());
+#if MAPNIK_VERSION >= 200200
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", mapnik::grid::base_mask);
+#else
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", 0);
+#endif
 }
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
@@ -120,6 +125,88 @@ Handle<Value> Grid::New(const Arguments& args)
                                   String::New("please provide Grid width and height")));
     }
     return Undefined();
+}
+
+Handle<Value> Grid::clearSync(const Arguments& args)
+{
+    HandleScope scope;
+    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+#if MAPNIK_VERSION >= 200200
+    g->get()->clear();
+#endif
+    return Undefined();
+}
+
+typedef struct {
+    uv_work_t request;
+    Grid* g;
+    std::string format;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} clear_grid_baton_t;
+
+Handle<Value> Grid::clear(const Arguments& args)
+{
+    HandleScope scope;
+    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+
+    if (args.Length() == 0) {
+        return clearSync(args);
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+    clear_grid_baton_t *closure = new clear_grid_baton_t();
+    closure->request.data = closure;
+    closure->g = g;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, EIO_AfterClear);
+    g->Ref();
+    return Undefined();
+}
+
+void Grid::EIO_Clear(uv_work_t* req)
+{
+    clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
+    try
+    {
+#if MAPNIK_VERSION >= 200200
+        closure->g->get()->clear();
+#endif
+    }
+    catch(std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Grid::EIO_AfterClear(uv_work_t* req)
+{
+    HandleScope scope;
+    clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { Local<Value>::New(Null()) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    if (try_catch.HasCaught())
+    {
+        FatalException(try_catch);
+    }
+    closure->g->Unref();
+    closure->cb.Dispose();
+    delete closure;
 }
 
 Handle<Value> Grid::painted(const Arguments& args)

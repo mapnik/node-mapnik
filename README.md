@@ -53,9 +53,9 @@ For more sample code see 'examples/README.md'
 * Node v0.6 or v0.8
 * Mapnik 2.x
 
-Mapnik 2.1.0 is targeted, but 2.0.x is also supported.
+Mapnik 2.2.x is targeted, but 2.1.x and 2.0.x is also supported.
 
-This means that if you are running the Mapnik 2.1 series (current unreleased master) you must be running at least [0eddc2b5a0](https://github.com/mapnik/mapnik/commit/0eddc2b5a0d42fb1dcf5c228871eac145c089bbc).
+This means that if you are running the Mapnik 2.2 series (current unreleased master) you must be running at least [0eddc2b5a0](https://github.com/mapnik/mapnik/commit/eebc8cc73eb18903b07e3b3e0757c11925962124).
 
 This means that if you are running the Mapnik 2.0.x series some minor test failures are expected:
 

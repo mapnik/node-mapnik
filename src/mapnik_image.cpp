@@ -48,6 +48,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "premultiply", premultiply);
     NODE_SET_PROTOTYPE_METHOD(constructor, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "clearSync", clear);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -149,6 +150,88 @@ void Image::set_prop(Local<String> property,
     }
 }
 
+Handle<Value> Image::clearSync(const Arguments& args)
+{
+    HandleScope scope;
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+#if MAPNIK_VERSION >= 200200
+    im->get()->clear();
+#endif
+    return Undefined();
+}
+
+typedef struct {
+    uv_work_t request;
+    Image* im;
+    std::string format;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} clear_image_baton_t;
+
+Handle<Value> Image::clear(const Arguments& args)
+{
+    HandleScope scope;
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+
+    if (args.Length() == 0) {
+        return clearSync(args);
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+    clear_image_baton_t *closure = new clear_image_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, EIO_AfterClear);
+    im->Ref();
+    return Undefined();
+}
+
+void Image::EIO_Clear(uv_work_t* req)
+{
+    clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
+    try
+    {
+#if MAPNIK_VERSION >= 200200
+        closure->im->get()->clear();
+#endif
+    }
+    catch(std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterClear(uv_work_t* req)
+{
+    HandleScope scope;
+    clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { Local<Value>::New(Null()) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    if (try_catch.HasCaught())
+    {
+        FatalException(try_catch);
+    }
+    closure->im->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
 Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
 {
     HandleScope scope;
@@ -191,15 +274,6 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
         }
     }
 
-    return Undefined();
-}
-
-Handle<Value> Image::clear(const Arguments& args)
-{
-    HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
-    mapnik::image_data_32 & data = im->this_->data();
-    std::memset(data.getData(),0,sizeof(mapnik::image_data_32::pixel_type)*data.width()*data.height());
     return Undefined();
 }
 
