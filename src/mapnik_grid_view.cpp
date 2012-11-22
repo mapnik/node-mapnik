@@ -334,7 +334,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
         // Create the return hash.
         Local<Object> json = Object::New();
         Local<Array> grid_array = Array::New();
-        unsigned array_size = static_cast<unsigned int>(grid_type.width()/resolution);
+        unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
         for (unsigned j=0;j<lines.size();++j)
         {
             grid_array->Set(j,String::New(&lines[j],array_size));
@@ -493,7 +493,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         // Create the return hash.
         Local<Object> json = Object::New();
         Local<Array> grid_array = Array::New(closure->lines.size());
-        unsigned array_size = static_cast<unsigned int>(grid_type.width()/closure->resolution);
+        unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(closure->resolution));
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             grid_array->Set(j,String::New(&closure->lines[j],array_size));

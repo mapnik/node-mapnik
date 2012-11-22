@@ -98,7 +98,7 @@ static void grid2utf(T const& grid_type,
     // start counting at utf8 codepoint 32, aka space character
     uint16_t codepoint = 32;
 
-    unsigned array_size = static_cast<unsigned int>(grid_type.width()/resolution);
+    unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
     for (unsigned y = 0; y < grid_type.height(); y=y+resolution)
     {
         uint16_t idx = 0;
@@ -272,7 +272,7 @@ static void grid2utf(T const& grid_type,
     uint16_t codepoint = 32;
     uint16_t row_idx = 0;
 
-    unsigned array_size = static_cast<unsigned int>(grid_type.width()/resolution);
+    unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
     for (unsigned y = 0; y < grid_type.height(); y=y+resolution)
     {
         uint16_t idx = 0;
