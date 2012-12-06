@@ -26,7 +26,7 @@ var map = new mapnik.Map(600, 400);
 
 map.loadSync(stylesheet);
 map.zoomAll();
-map.renderFileSync(image, {scale:20});
+map.renderFileSync(image);
 
 console.log('rendered map to ' + image);
 child_process.exec('open ' + image);

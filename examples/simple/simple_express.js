@@ -4,11 +4,12 @@
 //
 // expected output: http://goo.gl/cyGwo
 
-var mapnik = require('mapnik'),
-  express = require('express'),
-  path = require('path'),
-  app = express.createServer(),
-  port = 8000;
+var mapnik = require('mapnik');
+var express = require('express');
+var path = require('path');
+
+var app = express();
+var port = 8000;
 
 app.get('/', function(req, res) {
   var map = new mapnik.Map(256, 256);
