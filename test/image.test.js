@@ -15,6 +15,29 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
     });
 
+    it('should throw with filename lacking an extension', function() {
+        var im = new mapnik.Image(256, 256);
+        assert.throws(function() { im.save('foo'); });
+    });
+
+    it('should throw with invalid encoding format 1', function() {
+        var im = new mapnik.Image(256, 256);
+        assert.throws(function() { im.encodeSync('foo'); });
+    });
+
+    it('should throw with invalid encoding format 2', function() {
+        var im = new mapnik.Image(256, 256);
+        assert.throws(function() { im.save('foo','foo'); });
+    });
+
+    it('should throw with invalid encoding format 3', function(done) {
+        var im = new mapnik.Image(256, 256);
+        im.encode('foo',function(err) {
+            assert.ok(err);
+            done();
+        })
+    });
+
     it('should be initialized properly', function() {
         var im = new mapnik.Image(256, 256);
         assert.ok(im instanceof mapnik.Image);

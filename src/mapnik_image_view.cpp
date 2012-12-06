@@ -447,7 +447,7 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        node::Buffer *retbuf = Buffer::New((char*)closure->result.data(),closure->result.size());
+        node::Buffer *retbuf = node::Buffer::New((char*)closure->result.data(),closure->result.size());
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }

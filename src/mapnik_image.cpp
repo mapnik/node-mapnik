@@ -600,7 +600,7 @@ Handle<Value> Image::save(const Arguments& args)
     Image* im = ObjectWrap::Unwrap<Image>(args.This());
     try
     {
-        mapnik::save_to_file<mapnik::image_data_32>(im->get()->data(),filename);
+        mapnik::save_to_file<mapnik::image_data_32>(im->get()->data(),filename, format);
     }
     catch (std::exception const& ex)
     {
