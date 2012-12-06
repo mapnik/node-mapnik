@@ -1,5 +1,15 @@
 # Changlog
 
+## 0.7.17
+
+ - Added sync/async `clear()` method to enable re-use of mapnik.Image and mapnik.Grid
+   objects from a cache
+ - Made ImageView and GridView `isSolid()` methods async if a callback is passed
+ - Made async `isSolid()` return pixel value as second arg
+ - Fixed code examples to work with generic-pool 2.x
+ - Improved error reporting when an invalid image format is requested
+ - Fixed possible edge-case memory corruption when encoding grids whose width != height
+
 ## 0.7.16
 
  - Fixed handling of datasource exception when calculating extent

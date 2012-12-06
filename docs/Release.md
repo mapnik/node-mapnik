@@ -12,8 +12,6 @@ All tests must pass if you run:
 
     make test
 
-But only if running Mapnik 2.1.x.
-
 ## Test examples
 
 We just want to make sure none throw. Test this with:
