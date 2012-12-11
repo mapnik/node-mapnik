@@ -41,10 +41,10 @@ void Grid::Initialize(Handle<Object> target) {
     ATTR(constructor, "key", get_prop, set_prop);
 
     target->Set(String::NewSymbol("Grid"),constructor->GetFunction());
-#if MAPNIK_VERSION >= 200200
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", mapnik::grid::base_mask);
-#else
+#if MAPNIK_VERSION < 200100
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", 0);
+#else
+    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", mapnik::grid::base_mask);
 #endif
 }
 
