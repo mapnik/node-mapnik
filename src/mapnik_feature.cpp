@@ -245,6 +245,12 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                             boost::put(*fp->get(),TOSTR(name),dub_val);
 #endif
                         }
+                    } else if (value->IsNull()) {
+#if MAPNIK_VERSION >= 200100
+                        fp->get()->put_new(TOSTR(name),mapnik::value_null());
+#else
+                        boost::put(*fp->get(),TOSTR(name),mapnik::value_null());
+#endif
                     } else {
                         std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                     }

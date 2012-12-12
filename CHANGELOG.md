@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.7.18
+
+ - Report null values in mapnik features as javascript null rather than undefined
+
 ## 0.7.17
 
  - Added sync/async `clear()` method to enable re-use of mapnik.Image and mapnik.Grid

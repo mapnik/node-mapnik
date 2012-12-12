@@ -78,7 +78,7 @@ public:
 
     void operator () ( mapnik::value_null const& val )
     {
-        ds_->Set(String::NewSymbol(key_.c_str()), Undefined() );
+        ds_->Set(String::NewSymbol(key_.c_str()), Null() );
     }
 
 private:

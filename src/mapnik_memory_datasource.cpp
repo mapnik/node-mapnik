@@ -276,6 +276,12 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                                 boost::put(*feature,TOSTR(name),dub_val);
 #endif
                             }
+                        } else if (value->IsNull()) {
+#if MAPNIK_VERSION >= 200100
+                            feature->put_new(TOSTR(name),mapnik::value_null());
+#else
+                            boost::put(*feature,TOSTR(name),mapnik::value_null());
+#endif
                         } else {
                             std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                         }
