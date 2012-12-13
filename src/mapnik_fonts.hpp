@@ -28,7 +28,7 @@ static inline Handle<Value> register_fonts(const Arguments& args)
 
     try
     {
-        if (!args.Length() >= 1 || !args[0]->IsString())
+        if (args.Length() == 0 || !args[0]->IsString())
             return ThrowException(Exception::TypeError(
                                       String::New("first argument must be a path to a directory of fonts")));
 

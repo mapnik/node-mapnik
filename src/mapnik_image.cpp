@@ -571,7 +571,7 @@ Handle<Value> Image::save(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() >= 1 || !args[0]->IsString()){
+    if (args.Length() == 0 || !args[0]->IsString()){
         return ThrowException(Exception::TypeError(
                                   String::New("filename required")));
     }
