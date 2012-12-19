@@ -230,11 +230,10 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                         double num = value->NumberValue();
                         // todo - round
                         if (num == value->IntegerValue()) {
-                            int integer = value->IntegerValue();
 #if MAPNIK_VERSION >= 200100
-                            fp->get()->put_new(TOSTR(name),integer);
+                            fp->get()->put_new(TOSTR(name),value->IntegerValue());
 #else
-                            boost::put(*fp->get(),TOSTR(name),integer);
+                            boost::put(*fp->get(),TOSTR(name),static_cast<int>(value->IntegerValue()));
 #endif
 
                         } else {

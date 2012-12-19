@@ -130,8 +130,8 @@ Handle<Value> Grid::New(const Arguments& args)
 Handle<Value> Grid::clearSync(const Arguments& args)
 {
     HandleScope scope;
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
 #if MAPNIK_VERSION >= 200200
+    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
     g->get()->clear();
 #endif
     return Undefined();
@@ -171,18 +171,18 @@ Handle<Value> Grid::clear(const Arguments& args)
 
 void Grid::EIO_Clear(uv_work_t* req)
 {
+#if MAPNIK_VERSION >= 200200
     clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
     try
     {
-#if MAPNIK_VERSION >= 200200
         closure->g->get()->clear();
-#endif
     }
     catch(std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
     }
+#endif
 }
 
 void Grid::EIO_AfterClear(uv_work_t* req)

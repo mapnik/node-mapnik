@@ -262,11 +262,10 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                             double num = value->NumberValue();
                             // todo - round
                             if (num == value->IntegerValue()) {
-                                int integer = value->IntegerValue();
 #if MAPNIK_VERSION >= 200100
-                                feature->put_new(TOSTR(name),integer);
+                                feature->put_new(TOSTR(name),value->IntegerValue());
 #else
-                                boost::put(*feature,TOSTR(name),integer);
+                                boost::put(*feature,TOSTR(name),static_cast<int>(value->IntegerValue()));
 #endif
                             } else {
                                 double dub_val = value->NumberValue();

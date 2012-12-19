@@ -430,8 +430,7 @@ void Map::set_prop(Local<String> property,
                 double num = value->NumberValue();
                 // todo - round
                 if (num == value->IntegerValue()) {
-                    int integer = value->IntegerValue();
-                    params[TOSTR(name)] = integer;
+                    params[TOSTR(name)] = value->IntegerValue();
                 } else {
                     double dub_val = value->NumberValue();
                     params[TOSTR(name)] = dub_val;

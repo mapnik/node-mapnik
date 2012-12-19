@@ -13,6 +13,7 @@
 // core types
 #include <mapnik/unicode.hpp>
 #include <mapnik/value.hpp>
+#include <mapnik/version.hpp>
 
 // boost
 #include <boost/variant/static_visitor.hpp>
@@ -48,7 +49,11 @@ public:
         ds_(ds),
         key_(key) {}
 
+#if MAPNIK_VERSION >= 200200
+    void operator () ( mapnik::value_integer val )
+#else
     void operator () ( int val )
+#endif
     {
         ds_->Set(String::NewSymbol(key_.c_str()), Integer::New(val) );
     }
@@ -88,7 +93,11 @@ private:
 
 struct value_converter: public boost::static_visitor<Handle<Value> >
 {
+#if MAPNIK_VERSION >= 200200
+    Handle<Value> operator () ( mapnik::value_integer val ) const
+#else
     Handle<Value> operator () ( int val ) const
+#endif
     {
         return Integer::New(val);
     }

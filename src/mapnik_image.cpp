@@ -153,8 +153,8 @@ void Image::set_prop(Local<String> property,
 Handle<Value> Image::clearSync(const Arguments& args)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
 #if MAPNIK_VERSION >= 200200
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
     im->get()->clear();
 #endif
     return Undefined();
@@ -194,18 +194,18 @@ Handle<Value> Image::clear(const Arguments& args)
 
 void Image::EIO_Clear(uv_work_t* req)
 {
+#if MAPNIK_VERSION >= 200200
     clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
     try
     {
-#if MAPNIK_VERSION >= 200200
         closure->im->get()->clear();
-#endif
     }
     catch(std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
     }
+#endif
 }
 
 void Image::EIO_AfterClear(uv_work_t* req)
