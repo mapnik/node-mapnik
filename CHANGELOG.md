@@ -1,5 +1,10 @@
 # Changlog
 
+
+## 0.7.19
+
+ - Adapts to mapnik master's move to supporting 64 bit integers using `mapnik::value_integer`
+
 ## 0.7.18
 
  - Report null values in mapnik features as javascript null rather than undefined
