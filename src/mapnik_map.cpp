@@ -430,7 +430,7 @@ void Map::set_prop(Local<String> property,
                 double num = value->NumberValue();
                 // todo - round
                 if (num == value->IntegerValue()) {
-                    params[TOSTR(name)] = value->IntegerValue();
+                    params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(value->IntegerValue());
                 } else {
                     double dub_val = value->NumberValue();
                     params[TOSTR(name)] = dub_val;
