@@ -44,7 +44,7 @@ void Grid::Initialize(Handle<Object> target) {
 #if MAPNIK_VERSION < 200100
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", 0);
 #else
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(), "base_mask", mapnik::grid::base_mask);
+    NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(constructor->GetFunction(), "base_mask", mapnik::grid::base_mask);
 #endif
 }
 

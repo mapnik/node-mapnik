@@ -23,20 +23,20 @@ describe('mapnik.GridView ', function() {
             if (mapnik.versions.mapnik_number < 200100) {
                 assert.equal(pixel, 0);
             } else {
-                assert.equal(pixel, -2147483648);
-                assert.equal(pixel, mapnik.Grid.base_mask);
+                assert.equal(pixel,-1 * 0x7FFFFFFFFFFFFFFF);
+                assert.equal(pixel, mapnik.Grid.base_mask.toFixed());
             }
             done();
         });
     });
 
-    it('should have zero value for pixel', function() {
+    it('should report grid base_mask value for pixel', function() {
         var pixel = view.getPixel(0, 0);
         if (mapnik.versions.mapnik_number < 200100) {
             assert.equal(pixel, 0);
         } else {
-            assert.equal(pixel, -2147483648);
-            assert.equal(pixel, mapnik.Grid.base_mask);
+            assert.equal(pixel, -1 * 0x7FFFFFFFFFFFFFFF);
+            assert.equal(pixel.toFixed(), mapnik.Grid.base_mask.toFixed());
         }
     });
 

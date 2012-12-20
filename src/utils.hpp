@@ -35,6 +35,12 @@
                   static_cast<v8::PropertyAttribute>(           \
                       v8::ReadOnly|v8::DontDelete));
 
+#define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)     \
+    (target)->Set(v8::String::NewSymbol(name),                  \
+                  v8::Number::New(constant),                   \
+                  static_cast<v8::PropertyAttribute>(           \
+                      v8::ReadOnly|v8::DontDelete));
+
 
 using namespace v8;
 using namespace node;

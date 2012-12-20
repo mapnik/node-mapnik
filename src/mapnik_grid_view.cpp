@@ -251,7 +251,7 @@ Handle<Value> GridView::getPixel(const Arguments& args)
     if (x < view->width() && y < view->height())
     {
         mapnik::grid_view::value_type pixel = view->getRow(y)[x];
-        return Integer::New(pixel);
+        return Number::New(pixel);
     }
     return Undefined();
 }
