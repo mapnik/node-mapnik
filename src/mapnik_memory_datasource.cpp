@@ -263,7 +263,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                             // todo - round
                             if (num == value->IntegerValue()) {
 #if MAPNIK_VERSION >= 200100
-                                feature->put_new(TOSTR(name),value->IntegerValue());
+                                feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
 #else
                                 boost::put(*feature,TOSTR(name),static_cast<int>(value->IntegerValue()));
 #endif
