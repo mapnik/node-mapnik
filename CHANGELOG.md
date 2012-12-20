@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.7.20
+
+ - Fix compile with Mapnik 2.1 (stefanklug)
+ - Support 64 bit integers in grid types in anticipation of mapnik/mapnik#1662
 
 ## 0.7.19
 
