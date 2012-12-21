@@ -23,8 +23,8 @@ describe('mapnik.GridView ', function() {
             if (mapnik.versions.mapnik_number < 200100) {
                 assert.equal(pixel, 0);
             } else {
-                assert.equal(pixel,-1 * 0x7FFFFFFFFFFFFFFF || -2147483648);
-                assert.equal(pixel, mapnik.Grid.base_mask.toFixed());
+                assert.ok(pixel == -1 * 0x7FFFFFFFFFFFFFFF || pixel == -2147483648);
+                assert.ok(pixel.toFixed() == mapnik.Grid.base_mask.toFixed() || pixel == -2147483648);
             }
             done();
         });
@@ -35,8 +35,8 @@ describe('mapnik.GridView ', function() {
         if (mapnik.versions.mapnik_number < 200100) {
             assert.equal(pixel, 0);
         } else {
-            assert.equal(pixel, -1 * 0x7FFFFFFFFFFFFFFF || -2147483648);
-            assert.equal(pixel.toFixed(), mapnik.Grid.base_mask.toFixed());
+            assert.ok(pixel == -1 * 0x7FFFFFFFFFFFFFFF || pixel == -2147483648);
+            assert.ok(pixel.toFixed() == mapnik.Grid.base_mask.toFixed() || pixel == -2147483648);
         }
     });
 
