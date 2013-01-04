@@ -173,12 +173,12 @@ void Layer::set_prop(Local<String> property,
             ThrowException(Exception::Error(
                                String::New("Must provide an array of style names")));
         else {
-            Local<Array> a = Local<Array>::Cast(value->ToObject());
+            Local<Array> arr = Local<Array>::Cast(value->ToObject());
             // todo - how to check if cast worked?
             uint32_t i = 0;
-            uint32_t a_length = a->Length();
+            uint32_t a_length = arr->Length();
             while (i < a_length) {
-                l->layer_->add_style(TOSTR(a->Get(i)));
+                l->layer_->add_style(TOSTR(arr->Get(i)));
                 i++;
             }
         }

@@ -68,9 +68,9 @@ Image::Image(unsigned int width, unsigned int height) :
         V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
     }
 
-Image::Image(image_ptr this_) :
+Image::Image(image_ptr _this) :
     ObjectWrap(),
-    this_(this_),
+    this_(_this),
     estimated_size_(this_->width() * this_->height() * 4)
     {
         V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);

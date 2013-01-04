@@ -84,10 +84,10 @@ Handle<Value> Projection::forward(const Arguments& args)
             double x = a->Get(0)->NumberValue();
             double y = a->Get(1)->NumberValue();
             p->projection_->forward(x,y);
-            Local<Array> a = Array::New(2);
-            a->Set(0, Number::New(x));
-            a->Set(1, Number::New(y));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(2);
+            arr->Set(0, Number::New(x));
+            arr->Set(1, Number::New(y));
+            return scope.Close(arr);
         }
         else if (array_length == 4)
         {
@@ -97,12 +97,12 @@ Handle<Value> Projection::forward(const Arguments& args)
             double maxy = a->Get(3)->NumberValue();
             p->projection_->forward(minx,miny);
             p->projection_->forward(maxx,maxy);
-            Local<Array> a = Array::New(4);
-            a->Set(0, Number::New(minx));
-            a->Set(1, Number::New(miny));
-            a->Set(2, Number::New(maxx));
-            a->Set(3, Number::New(maxy));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(4);
+            arr->Set(0, Number::New(minx));
+            arr->Set(1, Number::New(miny));
+            arr->Set(2, Number::New(maxx));
+            arr->Set(3, Number::New(maxy));
+            return scope.Close(arr);
         }
         else
             return ThrowException(Exception::Error(
@@ -132,10 +132,10 @@ Handle<Value> Projection::inverse(const Arguments& args)
             double x = a->Get(0)->NumberValue();
             double y = a->Get(1)->NumberValue();
             p->projection_->inverse(x,y);
-            Local<Array> a = Array::New(2);
-            a->Set(0, Number::New(x));
-            a->Set(1, Number::New(y));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(2);
+            arr->Set(0, Number::New(x));
+            arr->Set(1, Number::New(y));
+            return scope.Close(arr);
         }
         else if (array_length == 4)
         {
@@ -145,12 +145,12 @@ Handle<Value> Projection::inverse(const Arguments& args)
             double maxy = a->Get(3)->NumberValue();
             p->projection_->inverse(minx,miny);
             p->projection_->inverse(maxx,maxy);
-            Local<Array> a = Array::New(4);
-            a->Set(0, Number::New(minx));
-            a->Set(1, Number::New(miny));
-            a->Set(2, Number::New(maxx));
-            a->Set(3, Number::New(maxy));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(4);
+            arr->Set(0, Number::New(minx));
+            arr->Set(1, Number::New(miny));
+            arr->Set(2, Number::New(maxx));
+            arr->Set(3, Number::New(maxy));
+            return scope.Close(arr);
         }
         else
             return ThrowException(Exception::Error(

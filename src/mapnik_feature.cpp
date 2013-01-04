@@ -5,6 +5,7 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/feature_kv_iterator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
@@ -98,8 +99,7 @@ Handle<Value> Feature::id(const Arguments& args)
     HandleScope scope;
 
     Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
-    // TODO - provide custom 64 bit integer type?
-    return scope.Close(Integer::New(fp->get()->id()));
+    return scope.Close(Number::New(fp->get()->id()));
 }
 
 Handle<Value> Feature::extent(const Arguments& args)

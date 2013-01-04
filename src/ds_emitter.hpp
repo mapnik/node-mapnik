@@ -12,6 +12,8 @@
 #include <mapnik/layer.hpp>
 #include <mapnik/params.hpp>
 #include <mapnik/feature_layer_desc.hpp>
+#include <mapnik/feature.hpp>
+#include <mapnik/feature_kv_iterator.hpp>
 
 using namespace v8;
 using namespace node;
@@ -135,14 +137,14 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                 if ((idx >= first) && (idx <= last || last == 0)) {
                     Local<Object> feat = Object::New();
 #if MAPNIK_VERSION >= 200100
-                    mapnik::feature_impl::iterator itr = fp->begin();
-                    mapnik::feature_impl::iterator end = fp->end();
-                    for ( ;itr!=end; ++itr)
+                    mapnik::feature_impl::iterator f_itr = fp->begin();
+                    mapnik::feature_impl::iterator f_end = fp->end();
+                    for ( ;f_itr!=f_end; ++f_itr)
                     {
-                        node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
+                        node_mapnik::params_to_object serializer( feat , boost::get<0>(*f_itr));
                         // need to call base() since this is a mapnik::value
                         // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
+                        boost::apply_visitor( serializer, boost::get<1>(*f_itr).base() );
                     }
 #else
                     std::map<std::string,mapnik::value> const& fprops = fp->props();
@@ -157,7 +159,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                     }
 #endif
                     // add feature id
-                    feat->Set(String::NewSymbol("__id__"), Integer::New(fp->id()));
+                    feat->Set(String::NewSymbol("__id__"), Number::New(fp->id()));
 
                     a->Set(idx, feat);
                 }

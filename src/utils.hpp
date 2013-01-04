@@ -63,7 +63,7 @@ public:
 
     void operator () ( value_integer val )
     {
-        ds_->Set(String::NewSymbol(key_.c_str()), Integer::New(val) );
+        ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
     }
 
     void operator () ( bool val )
@@ -103,7 +103,7 @@ struct value_converter: public boost::static_visitor<Handle<Value> >
 {
     Handle<Value> operator () ( value_integer val ) const
     {
-        return Integer::New(val);
+        return Number::New(val);
     }
 
     Handle<Value> operator () ( bool val ) const

@@ -3,6 +3,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/feature_kv_iterator.hpp>
 #include <mapnik/memory_datasource.hpp>
 
 #include "mapnik_memory_datasource.hpp"

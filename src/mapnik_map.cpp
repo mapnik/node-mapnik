@@ -14,10 +14,24 @@
 #include <mapnik/feature_type_style.hpp>
 #include <mapnik/map.hpp>
 #include <mapnik/projection.hpp>
+#include <mapnik/rule.hpp>
 #include <mapnik/layer.hpp>
+#include <mapnik/building_symbolizer.hpp>
+#include <mapnik/line_symbolizer.hpp>
+#include <mapnik/line_pattern_symbolizer.hpp>
+#include <mapnik/polygon_symbolizer.hpp>
+#include <mapnik/polygon_pattern_symbolizer.hpp>
+#include <mapnik/point_symbolizer.hpp>
+#include <mapnik/raster_symbolizer.hpp>
+#include <mapnik/shield_symbolizer.hpp>
+#include <mapnik/text_symbolizer.hpp>
+#include <mapnik/markers_symbolizer.hpp>
+
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/expression.hpp>
+#include <mapnik/debug_symbolizer.hpp>
 #else
+#include <mapnik/glyph_symbolizer.hpp>
 #include <mapnik/filter_factory.hpp>
 #endif
 #include <mapnik/image_util.hpp>
@@ -283,24 +297,24 @@ Handle<Value> Map::get_prop(Local<String> property,
     Map* m = ObjectWrap::Unwrap<Map>(info.This());
     std::string a = TOSTR(property);
     if(a == "extent") {
-        Local<Array> a = Array::New(4);
+        Local<Array> arr = Array::New(4);
         mapnik::box2d<double> const& e = m->map_->get_current_extent();
-        a->Set(0, Number::New(e.minx()));
-        a->Set(1, Number::New(e.miny()));
-        a->Set(2, Number::New(e.maxx()));
-        a->Set(3, Number::New(e.maxy()));
-        return scope.Close(a);
+        arr->Set(0, Number::New(e.minx()));
+        arr->Set(1, Number::New(e.miny()));
+        arr->Set(2, Number::New(e.maxx()));
+        arr->Set(3, Number::New(e.maxy()));
+        return scope.Close(arr);
     }
     else if(a == "maximumExtent") {
-        Local<Array> a = Array::New(4);
         boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
         if (!e)
             return Undefined();
-        a->Set(0, Number::New(e->minx()));
-        a->Set(1, Number::New(e->miny()));
-        a->Set(2, Number::New(e->maxx()));
-        a->Set(3, Number::New(e->maxy()));
-        return scope.Close(a);
+        Local<Array> arr = Array::New(4);
+        arr->Set(0, Number::New(e->minx()));
+        arr->Set(1, Number::New(e->miny()));
+        arr->Set(2, Number::New(e->maxx()));
+        arr->Set(3, Number::New(e->maxy()));
+        return scope.Close(arr);
     }
     else if(a == "width")
         return scope.Close(Integer::New(m->map_->width()));
@@ -423,16 +437,16 @@ void Map::set_prop(Local<String> property,
         uint32_t a_length = names->Length();
         while (i < a_length) {
             Local<Value> name = names->Get(i)->ToString();
-            Local<Value> value = obj->Get(name);
-            if (value->IsString()) {
-                params[TOSTR(name)] = TOSTR(value);
-            } else if (value->IsNumber()) {
-                double num = value->NumberValue();
+            Local<Value> a_value = obj->Get(name);
+            if (a_value->IsString()) {
+                params[TOSTR(name)] = TOSTR(a_value);
+            } else if (a_value->IsNumber()) {
+                double num = a_value->NumberValue();
                 // todo - round
-                if (num == value->IntegerValue()) {
-                    params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(value->IntegerValue());
+                if (num == a_value->IntegerValue()) {
+                    params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(a_value->IntegerValue());
                 } else {
-                    double dub_val = value->NumberValue();
+                    double dub_val = a_value->NumberValue();
                     params[TOSTR(name)] = dub_val;
                 }
             } else {

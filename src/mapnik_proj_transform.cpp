@@ -94,10 +94,10 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
                                       String::New(s.str().c_str())));
                 
             }
-            Local<Array> a = Array::New(2);
-            a->Set(0, Number::New(x));
-            a->Set(1, Number::New(y));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(2);
+            arr->Set(0, Number::New(x));
+            arr->Set(1, Number::New(y));
+            return scope.Close(arr);
         }
         else if (array_length == 4)
         {
@@ -114,12 +114,12 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
                                       String::New(s.str().c_str())));
             
             }
-            Local<Array> a = Array::New(4);
-            a->Set(0, Number::New(box.minx()));
-            a->Set(1, Number::New(box.miny()));
-            a->Set(2, Number::New(box.maxx()));
-            a->Set(3, Number::New(box.maxy()));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(4);
+            arr->Set(0, Number::New(box.minx()));
+            arr->Set(1, Number::New(box.miny()));
+            arr->Set(2, Number::New(box.maxx()));
+            arr->Set(3, Number::New(box.maxy()));
+            return scope.Close(arr);
         }
         else
             return ThrowException(Exception::Error(
@@ -160,10 +160,10 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
                                       String::New(s.str().c_str())));
                 
             }
-            Local<Array> a = Array::New(2);
-            a->Set(0, Number::New(x));
-            a->Set(1, Number::New(y));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(2);
+            arr->Set(0, Number::New(x));
+            arr->Set(1, Number::New(y));
+            return scope.Close(arr);
         }
         else if (array_length == 4)
         {
@@ -180,12 +180,12 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
                                       String::New(s.str().c_str())));
             
             }
-            Local<Array> a = Array::New(4);
-            a->Set(0, Number::New(box.minx()));
-            a->Set(1, Number::New(box.miny()));
-            a->Set(2, Number::New(box.maxx()));
-            a->Set(3, Number::New(box.maxy()));
-            return scope.Close(a);
+            Local<Array> arr = Array::New(4);
+            arr->Set(0, Number::New(box.minx()));
+            arr->Set(1, Number::New(box.miny()));
+            arr->Set(2, Number::New(box.maxx()));
+            arr->Set(3, Number::New(box.maxy()));
+            return scope.Close(arr);
         }
         else
             return ThrowException(Exception::Error(
