@@ -57,6 +57,7 @@ public:
     static Handle<Value> zoomAll(const Arguments &args);
     static Handle<Value> zoomToBox(const Arguments &args);
     static Handle<Value> layers(const Arguments &args);
+    static Handle<Value> scale(const Arguments &args);
     static Handle<Value> scaleDenominator(const Arguments &args);
     static Handle<Value> queryPoint(const Arguments &args);
     static Handle<Value> queryMapPoint(const Arguments &args);
