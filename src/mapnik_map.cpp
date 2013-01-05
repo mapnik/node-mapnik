@@ -78,6 +78,7 @@ void Map::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoomAll", zoomAll);
     NODE_SET_PROTOTYPE_METHOD(constructor, "zoomToBox", zoomToBox); //setExtent
+    NODE_SET_PROTOTYPE_METHOD(constructor, "scale", scale);
     NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scaleDenominator);
     NODE_SET_PROTOTYPE_METHOD(constructor, "queryPoint", queryPoint);
     NODE_SET_PROTOTYPE_METHOD(constructor, "queryMapPoint", queryMapPoint);
@@ -443,6 +444,13 @@ void Map::set_prop(Local<String> property,
         m->map_->set_extra_parameters(params);
 #endif
     }
+}
+
+Handle<Value> Map::scale(const Arguments& args)
+{
+    HandleScope scope;
+    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    return scope.Close(Number::New(m->map_->scale()));
 }
 
 Handle<Value> Map::scaleDenominator(const Arguments& args)
