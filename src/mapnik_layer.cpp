@@ -12,6 +12,9 @@
 #include <mapnik/version.hpp>
 #include <mapnik/layer.hpp>
 
+// stl
+#include <limits>
+
 #if MAPNIK_VERSION <= 200000
 #define active isActive
 #define min_zoom getMinZoom
@@ -44,15 +47,15 @@ void Layer::Initialize(Handle<Object> target) {
     target->Set(String::NewSymbol("Layer"),constructor->GetFunction());
 }
 
-Layer::Layer(std::string const& name) :
+Layer::Layer(std::string const& name):
     ObjectWrap(),
     layer_(boost::make_shared<mapnik::layer>(name)) {}
 
-Layer::Layer(std::string const& name, std::string const& srs) :
+Layer::Layer(std::string const& name, std::string const& srs):
     ObjectWrap(),
     layer_(boost::make_shared<mapnik::layer>(name,srs)) {}
 
-Layer::Layer() :
+Layer::Layer():
     ObjectWrap(),
     layer_() {}
 
