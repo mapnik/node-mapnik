@@ -15,7 +15,9 @@
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/box2d.hpp>             // for box2d
+#if MAPNIK_VERSION >= 200100
 #include <mapnik/building_symbolizer.hpp>  // for building_symbolizer
+#endif
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/datasource.hpp>        // for featureset_ptr
 #include <mapnik/feature_type_style.hpp>  // for rules, feature_type_style

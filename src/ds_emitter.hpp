@@ -10,7 +10,6 @@
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor, etc
 #include <mapnik/datasource.hpp>        // for datasource, etc
 #include <mapnik/feature.hpp>           // for feature_impl::iterator, etc
-#include <mapnik/feature_kv_iterator.hpp>  // for feature_kv_iterator
 #include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
 #include <mapnik/query.hpp>             // for query
 #include <mapnik/value.hpp>             // for value_base, value

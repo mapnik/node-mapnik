@@ -5,7 +5,6 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
-#include <mapnik/feature_kv_iterator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
