@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.7.22
+
+ - Header include refactoring to ensure clean compiles again Mapnik 2.0.x, 2.1.x, and 2.2.x
+
 ## 0.7.21
 
  - Fix compile with latest Mapnik 2.2-pre (<limits> header)
