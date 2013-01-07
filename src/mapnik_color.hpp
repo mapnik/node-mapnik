@@ -1,19 +1,15 @@
 #ifndef __NODE_MAPNIK_COLOR_H__
 #define __NODE_MAPNIK_COLOR_H__
 
-#include <v8.h>
-#include <node.h>
-#include <node_object_wrap.h>
-
-// mapnik
-#include <mapnik/color.hpp>
+#include <node_object_wrap.h>           // for ObjectWrap
+#include <v8.h>                         // for Handle, AccessorInfo, etc
 
 // boost
 #include <boost/shared_ptr.hpp>
 
 using namespace v8;
-using namespace node;
 
+namespace mapnik { class color; }
 typedef boost::shared_ptr<mapnik::color> color_ptr;
 
 class Color: public node::ObjectWrap {

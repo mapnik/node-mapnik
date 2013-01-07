@@ -4,19 +4,19 @@
 // v8
 #include <v8.h>
 
-// node
-#include <node.h>
+#include "utils.hpp"
 
 // mapnik
-#include <mapnik/version.hpp>
-#include <mapnik/layer.hpp>
-#include <mapnik/params.hpp>
-#include <mapnik/feature_layer_desc.hpp>
-#include <mapnik/feature.hpp>
-#include <mapnik/feature_kv_iterator.hpp>
+#include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor, etc
+#include <mapnik/datasource.hpp>        // for datasource, etc
+#include <mapnik/feature.hpp>           // for feature_impl::iterator, etc
+#include <mapnik/feature_kv_iterator.hpp>  // for feature_kv_iterator
+#include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
+#include <mapnik/query.hpp>             // for query
+#include <mapnik/value.hpp>             // for value_base, value
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 using namespace v8;
-using namespace node;
 
 namespace node_mapnik {
 

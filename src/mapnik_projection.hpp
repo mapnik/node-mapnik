@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_PROJECTION_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 
 // boost
@@ -11,7 +10,6 @@
 #include <mapnik/projection.hpp>
 
 using namespace v8;
-using namespace node;
 
 typedef boost::shared_ptr<mapnik::projection> proj_ptr;
 

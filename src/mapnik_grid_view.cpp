@@ -1,15 +1,23 @@
 
 // node
-#include <node_buffer.h>
+#include <node.h>                       // for NODE_SET_PROTOTYPE_METHOD, etc
+#include <node_object_wrap.h>           // for ObjectWrap
+#include <v8.h>
+#include <uv.h>
 
 // mapnik
-#include <mapnik/version.hpp>
-#include <mapnik/grid/grid_view.hpp>
+#include <mapnik/grid/grid.hpp>         // for hit_grid<>::lookup_type, etc
+#include <mapnik/grid/grid_view.hpp>    // for grid_view, hit_grid_view, etc
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 // boost
 #include <boost/make_shared.hpp>
+#include "boost/cstdint.hpp"            // for uint16_t
+#include "boost/ptr_container/ptr_sequence_adapter.hpp"
+#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
 
 #include "mapnik_grid_view.hpp"
+#include "mapnik_grid.hpp"
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
 
@@ -194,7 +202,7 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
     }
     if (try_catch.HasCaught())
     {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
     closure->g->Unref();
     closure->cb.Dispose();
@@ -507,7 +515,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->g->Unref();
@@ -694,7 +702,7 @@ Handle<Value> GridView::encode(const Arguments& args)
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(json) };
         callback->Call(Context::GetCurrent()->Global(), 2, argv);
         if (try_catch.HasCaught()) {
-            FatalException(try_catch);
+            node::FatalException(try_catch);
         }
     }
     catch (std::exception & ex)

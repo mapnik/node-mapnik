@@ -5,9 +5,6 @@
 // v8
 #include <v8.h>
 
-// node
-#include <node.h>
-
 // mapnik
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/version.hpp>
@@ -18,7 +15,6 @@
 #include "utils.hpp"
 
 using namespace v8;
-using namespace node;
 
 namespace node_mapnik {
 

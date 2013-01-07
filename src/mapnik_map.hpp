@@ -2,18 +2,16 @@
 #define __NODE_MAPNIK_MAP_H__
 
 #include <v8.h>
-#include <node.h>
+#include <uv.h>
 #include <node_object_wrap.h>
 
 // boost
 #include <boost/shared_ptr.hpp>
 
-#include <mapnik/map.hpp>
-#include "mapnik_layer.hpp"
-
 
 using namespace v8;
-using namespace node;
+
+namespace mapnik { class Map; }
 
 typedef boost::shared_ptr<mapnik::Map> map_ptr;
 

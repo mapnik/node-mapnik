@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_PROJ_TRANSFORM_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 
 // mapnik
@@ -12,7 +11,6 @@
 #include <boost/shared_ptr.hpp>
 
 using namespace v8;
-using namespace node;
 
 typedef boost::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 

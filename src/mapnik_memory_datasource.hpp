@@ -2,14 +2,12 @@
 #define __NODE_MAPNIK_MEMORY_DATASOURCE_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <mapnik/memory_datasource.hpp>
 
 using namespace v8;
-using namespace node;
 
 class MemoryDatasource: public node::ObjectWrap {
 public:

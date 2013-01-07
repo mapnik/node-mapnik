@@ -4,9 +4,6 @@
 // v8
 #include <v8.h>
 
-// node
-#include <node.h>
-
 // stl
 #include <string>
 
@@ -43,7 +40,6 @@
 
 
 using namespace v8;
-using namespace node;
 
 namespace node_mapnik {
 	

@@ -77,8 +77,8 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
 
     mapnik::parameters params;
     Local<Array> names = options->GetPropertyNames();
-    uint32_t i = 0;
-    uint32_t a_length = names->Length();
+    unsigned int i = 0;
+    unsigned int a_length = names->Length();
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);
@@ -245,8 +245,8 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                 {
                     Local<Object> p_obj = props->ToObject();
                     Local<Array> names = p_obj->GetPropertyNames();
-                    uint32_t i = 0;
-                    uint32_t a_length = names->Length();
+                    unsigned int i = 0;
+                    unsigned int a_length = names->Length();
                     while (i < a_length)
                     {
                         Local<Value> name = names->Get(i)->ToString();

@@ -2,12 +2,10 @@
 #define __NODE_MAPNIK_FEATURESET_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 #include <mapnik/datasource_cache.hpp>
 
 using namespace v8;
-using namespace node;
 
 typedef mapnik::featureset_ptr fs_ptr;
 

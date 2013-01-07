@@ -2,17 +2,13 @@
 #define __NODE_MAPNIK_IMAGE_VIEW_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
-#include <mapnik/graphics.hpp>
 #include <mapnik/image_view.hpp>
-#include <mapnik/graphics.hpp>
+#include <mapnik/image_data.hpp>        // for image_data_32
 #include <boost/shared_ptr.hpp>
 
-#include "mapnik_image.hpp"
-
+class Image;
 using namespace v8;
-using namespace node;
 
 typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > image_view_ptr;
 

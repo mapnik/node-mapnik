@@ -78,7 +78,7 @@ Handle<Value> Projection::forward(const Arguments& args)
                                       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
 
         Local<Array> a = Local<Array>::Cast(args[0]);
-        uint32_t array_length = a->Length();
+        unsigned int array_length = a->Length();
         if (array_length == 2)
         {
             double x = a->Get(0)->NumberValue();
@@ -126,7 +126,7 @@ Handle<Value> Projection::inverse(const Arguments& args)
                                       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
 
         Local<Array> a = Local<Array>::Cast(args[0]);
-        uint32_t array_length = a->Length();
+        unsigned int array_length = a->Length();
         if (array_length == 2)
         {
             double x = a->Get(0)->NumberValue();
