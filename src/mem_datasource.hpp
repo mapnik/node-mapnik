@@ -6,7 +6,6 @@
 #include <node_object_wrap.h>
 
 using namespace v8;
-using namespace node;
 
 // mapnik
 #include <mapnik/box2d.hpp>
@@ -121,7 +120,7 @@ public:
         Local<Value> argv[2] = { Integer::New(feature_id_), obj_ };
         Local<Value> val = ds_->cb_->Call(Context::GetCurrent()->Global(), 2, argv);
         if (try_catch.HasCaught()) {
-            FatalException(try_catch);
+            node::FatalException(try_catch);
         }
         else
         {
@@ -149,8 +148,8 @@ public:
                                 {
                                     Local<Object> p_obj = props->ToObject();
                                     Local<Array> names = p_obj->GetPropertyNames();
-                                    uint32_t i = 0;
-                                    uint32_t a_length = names->Length();
+                                    unsigned int i = 0;
+                                    unsigned int a_length = names->Length();
                                     while (i < a_length)
                                     {
                                         Local<Value> name = names->Get(i)->ToString();

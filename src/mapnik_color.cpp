@@ -1,8 +1,17 @@
-
-#include "utils.hpp"
 #include "mapnik_color.hpp"
-#include <mapnik/color_factory.hpp>
 
+#include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD
+#include "node_object_wrap.h"           // for ObjectWrap
+#include "utils.hpp"                    // for ATTR, TOSTR
+#include "v8.h"                         // for Handle, String, Integer, etc
+
+// mapnik
+#include <mapnik/color.hpp>             // for color
+
+// stl
+#include <exception>                    // for exception
+
+// boost
 #include <boost/make_shared.hpp>
 
 Persistent<FunctionTemplate> Color::constructor;

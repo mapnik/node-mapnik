@@ -1,13 +1,26 @@
-#include <mapnik/version.hpp>
-#include <mapnik/datasource_cache.hpp>
-
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
 #include "ds_emitter.hpp"
 
+// node
+#include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD
+#include "node_object_wrap.h"           // for ObjectWrap
+#include "v8.h"                         // for String, Handle, Object, etc
+
+// mapnik
+#include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
+#include <mapnik/box2d.hpp>             // for box2d
+#include <mapnik/datasource.hpp>        // for datasource, datasource_ptr, etc
+#include <mapnik/datasource_cache.hpp>  // for datasource_cache
+#include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
+#include <mapnik/params.hpp>            // for parameters
+#include <mapnik/query.hpp>             // for query
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
+
 // stl
 #include <exception>
+#include <vector>
 
 Persistent<FunctionTemplate> Datasource::constructor;
 
@@ -78,8 +91,8 @@ Handle<Value> Datasource::New(const Arguments& args)
 
     mapnik::parameters params;
     Local<Array> names = options->GetPropertyNames();
-    uint32_t i = 0;
-    uint32_t a_length = names->Length();
+    unsigned int i = 0;
+    unsigned int a_length = names->Length();
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);

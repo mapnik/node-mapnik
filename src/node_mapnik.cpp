@@ -3,7 +3,6 @@
 
 // node
 #include <node.h>
-#include <node_buffer.h>
 #include <node_version.h>
 
 // node-mapnik
@@ -41,7 +40,7 @@
 
 // cairo
 #if defined(HAVE_CAIRO)
-#include <cairo-version.h>
+#include <cairo.h>
 #endif
 
 namespace node_mapnik {

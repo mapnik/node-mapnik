@@ -1,15 +1,21 @@
 
 // node
+#include <node.h>                       // for NODE_SET_PROTOTYPE_METHOD, etc
+#include <node_object_wrap.h>           // for ObjectWrap
+#include <v8.h>
+#include <uv.h>
 #include <node_buffer.h>
 
 // mapnik
+#include <mapnik/color.hpp>             // for color
+#include <mapnik/image_view.hpp>        // for image_view, etc
 #include <mapnik/image_util.hpp>
 #include <mapnik/graphics.hpp>
-//#include <mapnik/image_reader.hpp>
 
 // boost
 #include <boost/make_shared.hpp>
 
+#include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
@@ -183,7 +189,7 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
     }
     if (try_catch.HasCaught())
     {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
     closure->im->Unref();
     closure->cb.Dispose();
@@ -321,7 +327,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             s = save_to_string(image, format);
         }
 
-        node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+        node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
         return scope.Close(retbuf->handle_);
     }
     catch (std::exception & ex)
@@ -453,7 +459,7 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->im->Unref();

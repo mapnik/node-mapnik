@@ -49,9 +49,9 @@ Handle<Value> Palette::New(const Arguments& args) {
             String::AsciiValue obj(args[0]->ToString());
             palette = std::string(*obj, obj.length());
         }
-        else if (Buffer::HasInstance(args[0])) {
+        else if (node::Buffer::HasInstance(args[0])) {
             Local<Object> obj = args[0]->ToObject();
-            palette = std::string(Buffer::Data(obj), Buffer::Length(obj));
+            palette = std::string(node::Buffer::Data(obj), node::Buffer::Length(obj));
         }
     }
     if (args.Length() >= 2) {
@@ -125,6 +125,6 @@ Handle<Value> Palette::ToBuffer(const Arguments& args)
         palette[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
     }
 
-    Buffer *buffer = Buffer::New(palette, length * 4);
+    node::Buffer *buffer = node::Buffer::New(palette, length * 4);
     return scope.Close(buffer->handle_);
 }

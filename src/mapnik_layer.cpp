@@ -1,16 +1,24 @@
-
-#include "utils.hpp"
 #include "mapnik_layer.hpp"
+
+#include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD
+#include "node_object_wrap.h"           // for ObjectWrap
+#include "utils.hpp"                    // for TOSTR, ATTR, etc
+#include "v8.h"                         // for String, Handle, Object, etc
+
 #include "mapnik_datasource.hpp"
 //#include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 
 // boost
-#include <boost/make_shared.hpp>
+#include <boost/smart_ptr/make_shared.hpp>  // for make_shared
+#include <boost/variant/detail/apply_visitor_unary.hpp>
+#include <boost/variant/variant.hpp>    // for variant
 
 // mapnik
-#include <mapnik/version.hpp>
-#include <mapnik/layer.hpp>
+#include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
+#include <mapnik/layer.hpp>             // for layer
+#include <mapnik/params.hpp>            // for parameters
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 // stl
 #include <limits>
@@ -178,8 +186,8 @@ void Layer::set_prop(Local<String> property,
         else {
             Local<Array> arr = Local<Array>::Cast(value->ToObject());
             // todo - how to check if cast worked?
-            uint32_t i = 0;
-            uint32_t a_length = arr->Length();
+            unsigned int i = 0;
+            unsigned int a_length = arr->Length();
             while (i < a_length) {
                 l->layer_->add_style(TOSTR(arr->Get(i)));
                 i++;

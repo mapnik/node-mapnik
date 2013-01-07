@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_FEATURE_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 
 // mapnik
@@ -14,8 +13,6 @@
 #include <boost/shared_ptr.hpp>
 
 using namespace v8;
-using namespace node;
-
 
 class Feature: public node::ObjectWrap {
 public:

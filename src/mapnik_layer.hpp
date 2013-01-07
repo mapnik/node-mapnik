@@ -1,18 +1,18 @@
 #ifndef __NODE_MAPNIK_LAYER_H__
 #define __NODE_MAPNIK_LAYER_H__
 
-#include <v8.h>
-#include <node.h>
-#include <node_object_wrap.h>
+#include <node_object_wrap.h>           // for ObjectWrap
+#include <v8.h>                         // for Handle, AccessorInfo, etc
+
+// stl
+#include <string>
 
 // boost
 #include <boost/shared_ptr.hpp>
 
-#include <mapnik/layer.hpp>
-
 using namespace v8;
-using namespace node;
 
+namespace mapnik { class layer; }
 typedef boost::shared_ptr<mapnik::layer> layer_ptr;
 
 class Layer: public node::ObjectWrap {

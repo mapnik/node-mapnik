@@ -76,8 +76,8 @@ Handle<Value> JSDatasource::New(const Arguments& args)
     mapnik::parameters params;
     params["type"] = "js";
     Local<Array> names = options->GetPropertyNames();
-    uint32_t i = 0;
-    uint32_t a_length = names->Length();
+    unsigned int i = 0;
+    unsigned int a_length = names->Length();
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);

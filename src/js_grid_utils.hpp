@@ -5,13 +5,19 @@
 #include <v8.h>
 
 // mapnik
-#include <mapnik/version.hpp>
-#include <mapnik/grid/grid.hpp>
+#include <mapnik/feature.hpp>           // for feature_impl, etc
+#include <mapnik/grid/grid.hpp>         // for grid
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 #include "utils.hpp"
 
 // boost
 #include <boost/foreach.hpp>
+#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
+
+// stl
+#include <cmath> // ceil
+#include <stdint.h>  // for uint16_t
 
 using namespace v8;
 using namespace node;

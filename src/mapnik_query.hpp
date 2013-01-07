@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_QUERY_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 
 // mapnik
@@ -13,7 +12,6 @@
 #include <boost/shared_ptr.hpp>
 
 using namespace v8;
-using namespace node;
 
 typedef boost::shared_ptr<mapnik::query> query_ptr;
 

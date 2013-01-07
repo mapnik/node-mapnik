@@ -2,16 +2,13 @@
 #define __NODE_MAPNIK_GRID_VIEW_H__
 
 #include <v8.h>
-#include <node.h>
+#include <uv.h>
 #include <node_object_wrap.h>
 #include <mapnik/grid/grid_view.hpp>
-#include <mapnik/grid/grid.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "mapnik_grid.hpp"
-
+class Grid;
 using namespace v8;
-using namespace node;
 
 typedef boost::shared_ptr<mapnik::grid_view> grid_view_ptr;
 

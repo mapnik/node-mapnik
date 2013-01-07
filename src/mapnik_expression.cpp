@@ -1,9 +1,18 @@
+#include <node.h>
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
 #include "utils.hpp"
 
+// mapnik
+#include <mapnik/expression_string.hpp>
+#include <mapnik/expression_evaluator.hpp>
+
+// boost
 #include <boost/make_shared.hpp>
+
+// stl
+#include <exception>                    // for exception
 
 Persistent<FunctionTemplate> Expression::constructor;
 

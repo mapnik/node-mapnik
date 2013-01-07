@@ -5,9 +5,6 @@
 // v8
 #include <v8.h>
 
-// node
-#include <node.h>
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/font_engine_freetype.hpp>
@@ -18,7 +15,6 @@
 #include "utils.hpp"
 
 using namespace v8;
-using namespace node;
 
 namespace node_mapnik {
 

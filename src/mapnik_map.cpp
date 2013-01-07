@@ -1,65 +1,71 @@
 
+#include "mapnik_map.hpp"
+#include "utils.hpp"
+#include "mapnik_color.hpp"             // for Color, Color::constructor
+#include "mapnik_featureset.hpp"        // for Featureset
+#include "mapnik_grid.hpp"              // for Grid, Grid::constructor
+#include "mapnik_image.hpp"             // for Image, Image::constructor
+#include "mapnik_layer.hpp"             // for Layer, Layer::constructor
+#include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
+
+// node
+#include <node.h>
 #include <node_buffer.h>
 
 // mapnik
-
-// mapnik renderers
-#include <mapnik/agg_renderer.hpp>
-#include <mapnik/grid/grid_renderer.hpp>
-#if defined(HAVE_CAIRO)
-#include <mapnik/cairo_renderer.hpp>
-#endif
-
-#include <mapnik/version.hpp>
-#include <mapnik/feature_type_style.hpp>
-#include <mapnik/map.hpp>
-#include <mapnik/projection.hpp>
-#include <mapnik/rule.hpp>
-#include <mapnik/layer.hpp>
-#include <mapnik/building_symbolizer.hpp>
-#include <mapnik/line_symbolizer.hpp>
-#include <mapnik/line_pattern_symbolizer.hpp>
-#include <mapnik/polygon_symbolizer.hpp>
-#include <mapnik/polygon_pattern_symbolizer.hpp>
-#include <mapnik/point_symbolizer.hpp>
-#include <mapnik/raster_symbolizer.hpp>
-#include <mapnik/shield_symbolizer.hpp>
-#include <mapnik/text_symbolizer.hpp>
-#include <mapnik/markers_symbolizer.hpp>
-
+#include <mapnik/agg_renderer.hpp>      // for agg_renderer
+#include <mapnik/box2d.hpp>             // for box2d
 #if MAPNIK_VERSION >= 200100
-#include <mapnik/expression.hpp>
-#include <mapnik/debug_symbolizer.hpp>
-#else
-#include <mapnik/glyph_symbolizer.hpp>
-#include <mapnik/filter_factory.hpp>
+#include <mapnik/building_symbolizer.hpp>  // for building_symbolizer
 #endif
+#include <mapnik/color.hpp>             // for color
+#include <mapnik/datasource.hpp>        // for featureset_ptr
+#include <mapnik/feature_type_style.hpp>  // for rules, feature_type_style
+#include <mapnik/graphics.hpp>          // for image_32
+#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
+#include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
+#include <mapnik/image_data.hpp>        // for image_data_32
+#include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
+#include <mapnik/layer.hpp>             // for layer
+#include <mapnik/line_pattern_symbolizer.hpp>
+#include <mapnik/line_symbolizer.hpp>   // for line_symbolizer
+#include <mapnik/load_map.hpp>          // for load_map, load_map_string
+#include <mapnik/map.hpp>               // for Map, etc
+#include <mapnik/markers_symbolizer.hpp>  // for markers_symbolizer
+#include <mapnik/params.hpp>            // for parameters
+#include <mapnik/point_symbolizer.hpp>  // for point_symbolizer
+#include <mapnik/polygon_pattern_symbolizer.hpp>
+#include <mapnik/polygon_symbolizer.hpp>  // for polygon_symbolizer
+#include <mapnik/raster_symbolizer.hpp>  // for raster_symbolizer
+#include <mapnik/rule.hpp>              // for rule, rule::symbolizers, etc
+#include <mapnik/save_map.hpp>          // for save_map, etc
+#include <mapnik/shield_symbolizer.hpp>  // for shield_symbolizer
+#include <mapnik/text_symbolizer.hpp>   // for text_symbolizer
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
+
+#if MAPNIK_VERSION < 200100
+#include <mapnik/glyph_symbolizer.hpp>
+#endif
+
 #include <mapnik/image_util.hpp>
-#include <mapnik/config_error.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/save_map.hpp>
-#include <mapnik/query.hpp>
-#include <mapnik/ctrans.hpp>
 
 // stl
-#include <exception>
-#include <set>
+#include <exception>                    // for exception
+#include <iosfwd>                       // for ostringstream, ostream
+#include <iostream>                     // for clog
+#include <ostream>                      // for operator<<, basic_ostream, etc
+#include <sstream>                      // for basic_ostringstream, etc
 
 // boost
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/optional/optional.hpp>
-
-
-#include "utils.hpp"
-#include "js_grid_utils.hpp"
-#include "mapnik_map.hpp"
-#include "mapnik_layer.hpp"
-#include "mapnik_featureset.hpp"
-#include "mapnik_image.hpp"
-#include "mapnik_grid.hpp"
-#include "mapnik_palette.hpp"
-#include "mapnik_color.hpp"
+#include <boost/foreach.hpp>            // for auto_any_base, etc
+#include <boost/optional/optional.hpp>  // for optional
+#include <boost/smart_ptr/make_shared.hpp>  // for make_shared
+#include <boost/variant/detail/apply_visitor_delayed.hpp>
+#include <boost/variant/detail/apply_visitor_unary.hpp>
+#include <boost/variant/static_visitor.hpp>  // for static_visitor
+#include <boost/variant/variant.hpp>    // for variant
 
 #if MAPNIK_VERSION < 200100
 #define key_name get_key
@@ -434,8 +440,8 @@ void Map::set_prop(Local<String> property,
 
         mapnik::parameters params;
         Local<Array> names = obj->GetPropertyNames();
-        uint32_t i = 0;
-        uint32_t a_length = names->Length();
+        unsigned int i = 0;
+        unsigned int a_length = names->Length();
         while (i < a_length) {
             Local<Value> name = names->Get(i)->ToString();
             Local<Value> a_value = obj->Get(name);
@@ -725,7 +731,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->m->Unref();
@@ -948,7 +954,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->m->Unref();
@@ -1193,7 +1199,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->m->Unref();
@@ -1471,8 +1477,8 @@ Handle<Value> Map::render(const Arguments& args)
                 return ThrowException(Exception::TypeError(
                                           String::New("option 'fields' must be an array of strings")));
             Local<Array> a = Local<Array>::Cast(param_val);
-            uint32_t i = 0;
-            uint32_t num_fields = a->Length();
+            unsigned int i = 0;
+            unsigned int num_fields = a->Length();
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
@@ -1570,7 +1576,7 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->m->release();
@@ -1622,7 +1628,7 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->m->release();
@@ -1809,7 +1815,7 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->m->release();
@@ -1881,7 +1887,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
                                   String::New("unknown exception happened while rendering the map, please submit a bug report")));
     }
 
-    node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+    node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
     return scope.Close(retbuf->handle_);
 }
 

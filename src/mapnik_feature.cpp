@@ -5,7 +5,6 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
-#include <mapnik/feature_kv_iterator.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
@@ -213,8 +212,8 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
             try
             {
                 Local<Array> names = attr->GetPropertyNames();
-                uint32_t i = 0;
-                uint32_t a_length = names->Length();
+                unsigned int i = 0;
+                unsigned int a_length = names->Length();
                 boost::scoped_ptr<mapnik::transcoder> tr(new mapnik::transcoder("utf8"));
                 while (i < a_length) {
                     Local<Value> name = names->Get(i)->ToString();

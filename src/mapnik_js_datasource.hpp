@@ -2,11 +2,9 @@
 #define __NODE_MAPNIK_JSDatasource_H__
 
 #include <v8.h>
-#include <node.h>
 #include <node_object_wrap.h>
 
 using namespace v8;
-using namespace node;
 
 class JSDatasource: public node::ObjectWrap {
 public:

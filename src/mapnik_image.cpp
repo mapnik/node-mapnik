@@ -1,12 +1,14 @@
-
 // node
+#include <node.h>
 #include <node_buffer.h>
 
 // mapnik
-#include <mapnik/version.hpp>
-#include <mapnik/image_util.hpp>
-#include <mapnik/graphics.hpp>
-#include <mapnik/image_reader.hpp>
+#include <mapnik/color.hpp>             // for color
+#include <mapnik/graphics.hpp>          // for image_32
+#include <mapnik/image_data.hpp>        // for image_data_32
+#include <mapnik/image_reader.hpp>      // for get_image_reader, etc
+#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/image_compositing.hpp>
@@ -25,6 +27,9 @@
 
 // std
 #include <exception>
+#include <memory>                       // for auto_ptr, etc
+#include <ostream>                      // for operator<<, basic_ostream
+#include <sstream>                      // for basic_ostringstream, etc
 
 Persistent<FunctionTemplate> Image::constructor;
 
@@ -225,7 +230,7 @@ void Image::EIO_AfterClear(uv_work_t* req)
     }
     if (try_catch.HasCaught())
     {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
     closure->im->Unref();
     closure->cb.Dispose();
@@ -410,7 +415,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             s = save_to_string(*(im->this_), format);
         }
 
-        node::Buffer *retbuf = Buffer::New((char*)s.data(),s.size());
+        node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
         return scope.Close(retbuf->handle_);
     }
     catch (std::exception & ex)
@@ -535,13 +540,13 @@ void Image::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        node::Buffer *retbuf = Buffer::New((char*)closure->result.data(),closure->result.size());
+        node::Buffer *retbuf = node::Buffer::New((char*)closure->result.data(),closure->result.size());
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->im->Unref();
@@ -707,7 +712,7 @@ void Image::EIO_AfterComposite(uv_work_t* req)
     }
 
     if (try_catch.HasCaught()) {
-        FatalException(try_catch);
+        node::FatalException(try_catch);
     }
 
     closure->im1->Unref();
