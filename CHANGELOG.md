@@ -1,5 +1,11 @@
 # Changlog
 
+## 0.7.21
+
+ - Fix compile with latest Mapnik 2.2-pre (<limits> header)
+ - Exposed Map.scale() (stefanklug)
+ - More fixes for 64 bit integer support
+
 ## 0.7.20
 
  - Fix compile with Mapnik 2.1 (stefanklug)
