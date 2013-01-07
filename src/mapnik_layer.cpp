@@ -12,6 +12,9 @@
 #include <mapnik/version.hpp>
 #include <mapnik/layer.hpp>
 
+// stl
+#include <limits>
+
 #if MAPNIK_VERSION <= 200000
 #define active isActive
 #define min_zoom getMinZoom
