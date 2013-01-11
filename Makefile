@@ -23,7 +23,7 @@ gyp:
 install: all
 	@node-waf build install
 
-mapnik.node:
+mapnik.node: test
 	@node-waf build -j $(NPROCS)
 
 clean:
