@@ -40,8 +40,8 @@
         'PLATFORM="<(OS)"',
         'HAVE_JPEG',
         'MAPNIK_THREADSAFE',
-        'HAVE_LIBXML2',
-        'LIBTOOL_SUPPORTS_ADVISE',
+        'BIGINT',
+        'HAVE_LIBXML2'
       ],
       'conditions': [
         [ 'OS=="mac"', {
