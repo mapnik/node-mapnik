@@ -56,7 +56,7 @@
              '/opt/boost-48/include',
              '/usr/local/Cellar/icu4c/4.8.1.1/include',
              '/usr/X11/include/freetype2',
-             '/usr/X11/include',
+             '/usr/X11/include'
           ],
           'defines': [
             #'HAVE_CAIRO',
@@ -82,19 +82,18 @@
           ],
           'include_dirs': [
              'c:\\mapnik-2.0\\include',
+             'c:\\mapnik-2.0\\include\\mapnik\\agg',
              '<@(deps_root_win)\\freetype',
              '<@(deps_root_win)\\freetype\\include',
              '<@(deps_root_win)\\cairo', # for actual cairo_version.h
              '<@(deps_root_win)\\cairo\\src',
-             '<@(deps_root_win)\\cairomm',
-             '<@(deps_root_win)\\libsigc++',
              '<@(deps_root_win)\\boost-49-vc100\\include\\boost-1_49',
              '<@(node_root_win)\\deps\\v8\\include',
              '<@(node_root_win)\\src',
              '<@(node_root_win)\\deps\\uv\\include',
              '<@(deps_root_win)\\proj\\src',
              '<@(deps_root_win)\\icu\\include',
-             '<@(deps_root_win)\\mapnik-packaging\\windows\\ltdl',
+             '<@(deps_root_win)\\mapnik-packaging\\windows\\ltdl'
           ],
           'msvs_settings': {
             'VCLinkerTool': {
