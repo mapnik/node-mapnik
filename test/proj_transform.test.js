@@ -53,6 +53,7 @@ describe('mapnik.ProjTransform ', function() {
         assert.notStrictEqual(long_lat_coords,trans.backward(merc));
     });
 
+/*
     it('should throw with invalid coords (4326 -> 3857)', function() {
         var from = new mapnik.Projection('+init=epsg:4326');
         var to = new mapnik.Projection('+init=epsg:3857');
@@ -60,6 +61,7 @@ describe('mapnik.ProjTransform ', function() {
         var long_lat_coords = [-190, 95];
         assert.throws(function() { trans.forward(long_lat_coords); });
     });
+*/
 
     it('should forward bbox properly (4326 -> 3857)', function() {
         var from = new mapnik.Projection('+init=epsg:4326');
@@ -79,6 +81,7 @@ describe('mapnik.ProjTransform ', function() {
         assert.notStrictEqual(long_lat_box,trans.backward(merc));
     });
 
+/*
     it('should throw with invalid bbox (4326 -> 3857)', function() {
         var from = new mapnik.Projection('+init=epsg:4326');
         var to = new mapnik.Projection('+init=epsg:3857');
@@ -86,6 +89,7 @@ describe('mapnik.ProjTransform ', function() {
         var long_lat_box = [-180,90,180,90];
         assert.throws(function() { trans.forward(long_lat_box); });
     });
+*/
 
 });
 
