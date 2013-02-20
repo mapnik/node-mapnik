@@ -68,46 +68,50 @@ Handle<Value> Projection::forward(const Arguments& args)
     HandleScope scope;
     Projection* p = ObjectWrap::Unwrap<Projection>(args.This());
 
-    if (!args.Length() == 1)
-        return ThrowException(Exception::Error(
-                                  String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-    else
+    try
     {
-        if (!args[0]->IsArray())
+        if (!args.Length() == 1)
             return ThrowException(Exception::Error(
                                       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-
-        Local<Array> a = Local<Array>::Cast(args[0]);
-        unsigned int array_length = a->Length();
-        if (array_length == 2)
-        {
-            double x = a->Get(0)->NumberValue();
-            double y = a->Get(1)->NumberValue();
-            p->projection_->forward(x,y);
-            Local<Array> arr = Array::New(2);
-            arr->Set(0, Number::New(x));
-            arr->Set(1, Number::New(y));
-            return scope.Close(arr);
-        }
-        else if (array_length == 4)
-        {
-            double minx = a->Get(0)->NumberValue();
-            double miny = a->Get(1)->NumberValue();
-            double maxx = a->Get(2)->NumberValue();
-            double maxy = a->Get(3)->NumberValue();
-            p->projection_->forward(minx,miny);
-            p->projection_->forward(maxx,maxy);
-            Local<Array> arr = Array::New(4);
-            arr->Set(0, Number::New(minx));
-            arr->Set(1, Number::New(miny));
-            arr->Set(2, Number::New(maxx));
-            arr->Set(3, Number::New(maxy));
-            return scope.Close(arr);
-        }
         else
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-
+        {
+            if (!args[0]->IsArray())
+                return ThrowException(Exception::Error(
+                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+            Local<Array> a = Local<Array>::Cast(args[0]);
+            unsigned int array_length = a->Length();
+            if (array_length == 2)
+            {
+                double x = a->Get(0)->NumberValue();
+                double y = a->Get(1)->NumberValue();
+                p->projection_->forward(x,y);
+                Local<Array> arr = Array::New(2);
+                arr->Set(0, Number::New(x));
+                arr->Set(1, Number::New(y));
+                return scope.Close(arr);
+            }
+            else if (array_length == 4)
+            {
+                double minx = a->Get(0)->NumberValue();
+                double miny = a->Get(1)->NumberValue();
+                double maxx = a->Get(2)->NumberValue();
+                double maxy = a->Get(3)->NumberValue();
+                p->projection_->forward(minx,miny);
+                p->projection_->forward(maxx,maxy);
+                Local<Array> arr = Array::New(4);
+                arr->Set(0, Number::New(minx));
+                arr->Set(1, Number::New(miny));
+                arr->Set(2, Number::New(maxx));
+                arr->Set(3, Number::New(maxy));
+                return scope.Close(arr);
+            }
+            else
+                return ThrowException(Exception::Error(
+                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+        }
+    } catch (std::exception const & ex) {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
     }
 }
 
@@ -116,46 +120,50 @@ Handle<Value> Projection::inverse(const Arguments& args)
     HandleScope scope;
     Projection* p = ObjectWrap::Unwrap<Projection>(args.This());
 
-    if (!args.Length() == 1)
-        return ThrowException(Exception::Error(
-                                  String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-    else
+    try
     {
-        if (!args[0]->IsArray())
+        if (!args.Length() == 1)
             return ThrowException(Exception::Error(
                                       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-
-        Local<Array> a = Local<Array>::Cast(args[0]);
-        unsigned int array_length = a->Length();
-        if (array_length == 2)
-        {
-            double x = a->Get(0)->NumberValue();
-            double y = a->Get(1)->NumberValue();
-            p->projection_->inverse(x,y);
-            Local<Array> arr = Array::New(2);
-            arr->Set(0, Number::New(x));
-            arr->Set(1, Number::New(y));
-            return scope.Close(arr);
-        }
-        else if (array_length == 4)
-        {
-            double minx = a->Get(0)->NumberValue();
-            double miny = a->Get(1)->NumberValue();
-            double maxx = a->Get(2)->NumberValue();
-            double maxy = a->Get(3)->NumberValue();
-            p->projection_->inverse(minx,miny);
-            p->projection_->inverse(maxx,maxy);
-            Local<Array> arr = Array::New(4);
-            arr->Set(0, Number::New(minx));
-            arr->Set(1, Number::New(miny));
-            arr->Set(2, Number::New(maxx));
-            arr->Set(3, Number::New(maxy));
-            return scope.Close(arr);
-        }
         else
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-
+        {
+            if (!args[0]->IsArray())
+                return ThrowException(Exception::Error(
+                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+            Local<Array> a = Local<Array>::Cast(args[0]);
+            unsigned int array_length = a->Length();
+            if (array_length == 2)
+            {
+                double x = a->Get(0)->NumberValue();
+                double y = a->Get(1)->NumberValue();
+                p->projection_->inverse(x,y);
+                Local<Array> arr = Array::New(2);
+                arr->Set(0, Number::New(x));
+                arr->Set(1, Number::New(y));
+                return scope.Close(arr);
+            }
+            else if (array_length == 4)
+            {
+                double minx = a->Get(0)->NumberValue();
+                double miny = a->Get(1)->NumberValue();
+                double maxx = a->Get(2)->NumberValue();
+                double maxy = a->Get(3)->NumberValue();
+                p->projection_->inverse(minx,miny);
+                p->projection_->inverse(maxx,maxy);
+                Local<Array> arr = Array::New(4);
+                arr->Set(0, Number::New(minx));
+                arr->Set(1, Number::New(miny));
+                arr->Set(2, Number::New(maxx));
+                arr->Set(3, Number::New(maxy));
+                return scope.Close(arr);
+            }
+            else
+                return ThrowException(Exception::Error(
+                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+        }
+    } catch (std::exception const & ex) {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
     }
 }
 
