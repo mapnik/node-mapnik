@@ -37,11 +37,7 @@
         '<@(node_mapnik_sources)',
       ],
       'defines': [
-        'PLATFORM="<(OS)"',
-        'HAVE_JPEG',
-        'MAPNIK_THREADSAFE',
-        'BIGINT',
-        'HAVE_LIBXML2'
+        'PLATFORM="<(OS)"'
       ],
       'conditions': [
         [ 'OS=="mac"', {
@@ -66,10 +62,16 @@
         }],
         [ 'OS=="win"', {
           'defines': [
+            'HAVE_JPEG',
+            'HAVE_PNG',
+            'HAVE_TIFF',
+			'MAPNIK_USE_PROJ4',
+			'BOOST_REGEX_HAS_ICU',
+            'MAPNIK_THREADSAFE',
+            'BIGINT',
+            'HAVE_LIBXML2'
             'HAVE_CAIRO',
             'PLATFORM="win32"',
-            '_LARGEFILE_SOURCE',
-            '_FILE_OFFSET_BITS=64',
             '_WINDOWS',
             '__WINDOWS__', # ltdl
             'BUILDING_NODE_EXTENSION'
@@ -78,6 +80,7 @@
               'mapnik.lib',
               'node.lib',
               'icuuc.lib',
+              'icuin.lib',
               'libboost_regex-vc100-mt-1_49.lib',
           ],
           'include_dirs': [
