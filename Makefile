@@ -25,7 +25,6 @@ install: all
 
 mapnik.node:
 	@node-waf build -j $(NPROCS)
-	@make test
 
 clean:
 	@node-waf clean distclean
