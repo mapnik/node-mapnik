@@ -7,6 +7,7 @@
 #include <mapnik/feature_factory.hpp>
 
 // boost
+#include <boost/version.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/make_shared.hpp>
 
