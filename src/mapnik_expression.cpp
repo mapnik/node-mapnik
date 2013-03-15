@@ -104,7 +104,7 @@ Handle<Value> Expression::evaluate(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() > 0) {
+    if (args.Length() < 1) {
         return ThrowException(Exception::Error(
                                   String::New("requires a mapnik.Feature as an argument")));
     }
