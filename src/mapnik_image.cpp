@@ -192,7 +192,7 @@ Handle<Value> Image::clear(const Arguments& args)
     closure->im = im;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, EIO_AfterClear);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     im->Ref();
     return Undefined();
 }
@@ -494,7 +494,7 @@ Handle<Value> Image::encode(const Arguments& args)
     closure->palette = palette;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
     im->Ref();
 
     return Undefined();
@@ -669,7 +669,7 @@ Handle<Value> Image::composite(const Arguments& args)
     closure->mode = static_cast<mapnik::composite_mode_e>(args[1]->IntegerValue());
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, EIO_AfterComposite);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
     closure->im1->Ref();
     closure->im2->Ref();
     return Undefined();

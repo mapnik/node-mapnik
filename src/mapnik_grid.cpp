@@ -169,7 +169,7 @@ Handle<Value> Grid::clear(const Arguments& args)
     closure->g = g;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, EIO_AfterClear);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     g->Ref();
     return Undefined();
 }
@@ -475,7 +475,7 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
     closure->add_features = add_features;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     // todo - reserve lines size?
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
     g->Ref();
     return Undefined();
 }
