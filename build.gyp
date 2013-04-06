@@ -23,7 +23,7 @@
           #"src/mapnik_query.cpp"
       ],
       'node_root': '/opt/node-v6.1',
-      'node_root_win': 'c:\\node',
+      'node_root_win': 'C:\\Users\\mapnik\\.node-gyp\\0.10.3\\',
       'deps_root_win': 'c:\\dev2'
   },
   'targets': [
@@ -69,7 +69,7 @@
 			'BOOST_REGEX_HAS_ICU',
             'MAPNIK_THREADSAFE',
             'BIGINT',
-            'HAVE_LIBXML2'
+            'HAVE_LIBXML2',
             'HAVE_CAIRO',
             'PLATFORM="win32"',
             '_WINDOWS',
