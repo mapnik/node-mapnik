@@ -6,17 +6,42 @@
               'cflags_cc!': ['-O3', '-DNDEBUG'],
               'xcode_settings': {
                 'OTHER_CPLUSPLUSFLAGS!':['-O3', '-DNDEBUG']
-              }
-          },
-          'Release': {
-             # nothing needed, use defaults
+              },
+          'msvs_settings': {
+            'VCCLCompilerTool': {
+              'ExceptionHandling': 1,
+            }
           }
+          },
+        'Release': {
+          'msvs_settings': {
+            'VCCLCompilerTool': {
+              'ExceptionHandling': 1,
+            },
+     	  'VCLinkerTool': {
+              'AdditionalOptions': [
+                # https://github.com/mapnik/node-mapnik/issues/74
+                '/FORCE:MULTIPLE'
+              ],
+              'AdditionalLibraryDirectories': [
+                 #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
+				 '<!@(mapnik-config --dep-libpaths)'
+              ],
+            },
+          }
+        }
       },
       'include_dirs': [
           './src'
       ],
       'conditions': [
-        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="netbsd" or OS=="mac"', {
+        ['OS=="win"', {
+		   'include_dirs':['<!@(mapnik-config --includes)'],
+		   'defines': ['<!@(mapnik-config --defines)'],
+		   'libraries': ['<!@(mapnik-config --libs)'],
+		   'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
+		}],
+		['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="netbsd" or OS=="mac"', {
           'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
           'cflags_cc' : ['<!@(mapnik-config --cflags)'],
           'libraries':[
@@ -65,7 +90,7 @@
         ],
         'GCC_ENABLE_CPP_RTTI': 'YES',
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-      }
+      },
     }
   ]
 }
