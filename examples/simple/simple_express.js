@@ -16,13 +16,15 @@ app.get('/', function(req, res) {
   map.loadSync(path.join(__dirname, '../stylesheet.xml'));
   map.zoomAll();
   var im = new mapnik.Image(map.width, map.height);
-  map.render(im, function(err,im) {
-      if (err) {
-        res.contentType('.txt');
-        res.send(err.message);
-      } else {
-        res.send(im.encodeSync('png'), {'Content-Type': 'image/png'});
-      }
+
+  map.render(im, function (err, im) {
+    if (err) {
+      res.set('Content-Type', 'text/plain');
+      return res.send(err.message);
+    }
+
+    res.set('Content-Type', 'image/png');
+    res.send(im.encodeSync('png'));
   });
 });
 
