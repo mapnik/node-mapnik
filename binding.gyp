@@ -25,7 +25,7 @@
               ],
               'AdditionalLibraryDirectories': [
                  #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
-				 '<!@(mapnik-config --dep-libpaths)'
+				 '<!@(mapnik-config --dep-libs)'
               ],
             },
           }
