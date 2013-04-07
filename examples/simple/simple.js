@@ -4,11 +4,11 @@
 //
 // expected output: http://goo.gl/cyGwo
 
-var mapnik = require('mapnik');
+var mapnik = require('../..');
 var http = require('http');
 
 var port = 8000;
-var stylesheet = './examples/stylesheet.xml';
+var stylesheet = '../stylesheet.xml';
 
 http.createServer(function(req, res) {
   res.writeHead(500, {'Content-Type': 'text/plain'});

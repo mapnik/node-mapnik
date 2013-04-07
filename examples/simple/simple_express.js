@@ -4,7 +4,7 @@
 //
 // expected output: http://goo.gl/cyGwo
 
-var mapnik = require('mapnik');
+var mapnik = require('../..');
 var express = require('express');
 var path = require('path');
 
