@@ -70,11 +70,6 @@ Handle<Value> Expression::New(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened, please file bug")));
-    }
 
     if (e_ptr)
     {

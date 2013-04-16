@@ -69,17 +69,17 @@ Image::Image(unsigned int width, unsigned int height) :
     ObjectWrap(),
     this_(boost::make_shared<mapnik::image_32>(width,height)),
     estimated_size_(width * height * 4)
-    {
-        V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
-    }
+{
+    V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
+}
 
 Image::Image(image_ptr _this) :
     ObjectWrap(),
     this_(_this),
     estimated_size_(this_->width() * this_->height() * 4)
-    {
-        V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
-    }
+{
+    V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
+}
 
 Image::~Image()
 {
@@ -356,7 +356,7 @@ Handle<Value> Image::open(const Arguments& args)
         return ThrowException(Exception::TypeError(String::New(
                                                        ("Unsupported image format:" + filename).c_str())));
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -418,15 +418,10 @@ Handle<Value> Image::encodeSync(const Arguments& args)
         node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
         return scope.Close(retbuf->handle_);
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
-    }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened when encoding image: please file bug report")));
     }
 }
 
@@ -514,15 +509,10 @@ void Image::EIO_Encode(uv_work_t* req)
             closure->result = save_to_string(*(closure->im->this_), closure->format);
         }
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened when encoding image: please file bug report";
     }
 }
 
@@ -612,12 +602,6 @@ Handle<Value> Image::save(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("unknown exception happened while saving an image, please submit a bug report")));
-    }
-
     return Undefined();
 }
 
@@ -683,15 +667,10 @@ void Image::EIO_Composite(uv_work_t* req)
     {
         mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode);
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened when compositing image: please file bug report";
     }
 }
 
@@ -729,7 +708,7 @@ Handle<Value> Image::composite(const Arguments& args)
 
     return ThrowException(Exception::TypeError(
                               String::New("compositing is only supported if node-mapnik is built against >= Mapnik 2.1.x")));
-    
+
 }
 
 #endif

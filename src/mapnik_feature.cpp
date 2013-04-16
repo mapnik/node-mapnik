@@ -187,10 +187,6 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
                     return ThrowException(Exception::Error(
                                               String::New(ex.what())));
                 }
-                catch (...) {
-                    return ThrowException(Exception::Error(
-                                              String::New("Unknown exception happended - please report bug")));
-                }
             }
         }
     }
@@ -260,10 +256,6 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
             {
                 return ThrowException(Exception::Error(
                                           String::New(ex.what())));
-            }
-            catch (...) {
-                return ThrowException(Exception::Error(
-                                          String::New("Unknown exception happended - please report bug")));
             }
         }
     }

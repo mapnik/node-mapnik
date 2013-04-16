@@ -62,11 +62,7 @@ Handle<Value> Featureset::next(const Arguments& args)
             return ThrowException(Exception::Error(
                                       String::New(ex.what())));
         }
-        catch (...)
-        {
-            return ThrowException(Exception::Error(
-                                      String::New("unknown exception happened when accessing a feature with next(), please file bug")));
-        }
+
         if (fp) {
             return scope.Close(Feature::New(fp));
         }

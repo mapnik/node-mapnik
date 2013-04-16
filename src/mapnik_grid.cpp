@@ -392,7 +392,7 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
         return json;
 
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -491,15 +491,10 @@ void Grid::EIO_Encode(uv_work_t* req)
                                             closure->key_order,
                                             closure->resolution);
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened when encoding grid: please file bug report";
     }
 }
 
@@ -567,25 +562,25 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
     HandleScope scope;
 
     Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
-    
+
     // defaults
     std::string format("utf");
     unsigned int resolution = 4;
     bool add_features = true;
-    
+
     // accept custom format
     if (args.Length() >= 1){
         if (!args[0]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'format' must be a string")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
-    
+
     // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be an options object")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be an options object")));
 
         Local<Object> options = args[1]->ToObject();
 
@@ -593,9 +588,9 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
         {
             Local<Value> bind_opt = options->Get(String::New("resolution"));
             if (!bind_opt->IsNumber())
-              return ThrowException(Exception::TypeError(
-                String::New("'resolution' must be an Integer")));
-    
+                return ThrowException(Exception::TypeError(
+                                          String::New("'resolution' must be an Integer")));
+
             resolution = bind_opt->IntegerValue();
         }
 
@@ -603,19 +598,19 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
         {
             Local<Value> bind_opt = options->Get(String::New("features"));
             if (!bind_opt->IsBoolean())
-              return ThrowException(Exception::TypeError(
-                String::New("'features' must be an Boolean")));
-    
+                return ThrowException(Exception::TypeError(
+                                          String::New("'features' must be an Boolean")));
+
             add_features = bind_opt->BooleanValue();
         }
     }
-    
+
     try {
-    
+
         Local<Array> grid_array = Array::New();
         std::vector<mapnik::grid::lookup_type> key_order;
         node_mapnik::grid2utf<mapnik::grid>(*g->get(),grid_array,key_order,resolution);
-    
+
         // convert key order to proper javascript array
         Local<Array> keys_a = Array::New(key_order.size());
         std::vector<std::string>::iterator it;
@@ -624,28 +619,28 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
         {
             keys_a->Set(i, String::New((*it).c_str()));
         }
-    
+
         // gather feature data
         Local<Object> feature_data = Object::New();
         if (add_features) {
             node_mapnik::write_features<mapnik::grid>(*g->get(),
-                           feature_data,
-                           key_order
-                           );
+                                                      feature_data,
+                                                      key_order
+                );
         }
-        
+
         // Create the return hash.
         Local<Object> json = Object::New();
         json->Set(String::NewSymbol("grid"), grid_array);
         json->Set(String::NewSymbol("keys"), keys_a);
         json->Set(String::NewSymbol("data"), feature_data);
         return json;
-        
+
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
-          String::New(ex.what())));
+                                  String::New(ex.what())));
     }
 }
 
@@ -665,16 +660,16 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
     // accept custom format
     if (args.Length() >= 1){
         if (!args[0]->IsString())
-          return ThrowException(Exception::TypeError(
-            String::New("first arg, 'format' must be a string")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'format' must be a string")));
         format = TOSTR(args[0]);
     }
 
     // options hash
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
-          return ThrowException(Exception::TypeError(
-            String::New("optional second arg must be an options object")));
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second arg must be an options object")));
 
         Local<Object> options = args[1]->ToObject();
 
@@ -682,8 +677,8 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
         {
             Local<Value> bind_opt = options->Get(String::New("resolution"));
             if (!bind_opt->IsNumber())
-              return ThrowException(Exception::TypeError(
-                String::New("'resolution' must be an Integer")));
+                return ThrowException(Exception::TypeError(
+                                          String::New("'resolution' must be an Integer")));
 
             resolution = bind_opt->IntegerValue();
         }
@@ -692,8 +687,8 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
         {
             Local<Value> bind_opt = options->Get(String::New("features"));
             if (!bind_opt->IsBoolean())
-              return ThrowException(Exception::TypeError(
-                String::New("'features' must be an Boolean")));
+                return ThrowException(Exception::TypeError(
+                                          String::New("'features' must be an Boolean")));
 
             add_features = bind_opt->BooleanValue();
         }
@@ -702,7 +697,7 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
     // ensure callback is a function
     if (!args[args.Length()-1]->IsFunction())
         return ThrowException(Exception::TypeError(
-                  String::New("last argument must be a callback function")));
+                                  String::New("last argument must be a callback function")));
     Local<Function> callback = Local<Function>::Cast(args[args.Length()-1]);
 
     try {
@@ -724,9 +719,9 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
         Local<Object> feature_data = Object::New();
         if (add_features) {
             node_mapnik::write_features<mapnik::grid>(*g->get(),
-                           feature_data,
-                           key_order
-                           );
+                                                      feature_data,
+                                                      key_order
+                );
         }
 
         // Create the return hash.
@@ -742,7 +737,7 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
             node::FatalException(try_catch);
         }
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         Local<Value> argv[1] = { Exception::Error(String::New(ex.what())) };
         callback->Call(Context::GetCurrent()->Global(), 1, argv);

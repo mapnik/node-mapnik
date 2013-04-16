@@ -115,11 +115,7 @@ Handle<Value> Datasource::New(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened, please file bug")));
-    }
+
     if (ds)
     {
         if (ds->type() == mapnik::datasource::Raster)
@@ -180,11 +176,6 @@ Handle<Value> Datasource::extent(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened getting datasource extent, please file bug")));
-    }
 
     Local<Array> a = Array::New(4);
     a->Set(0, Number::New(e.minx()));
@@ -207,11 +198,6 @@ Handle<Value> Datasource::describe(const Arguments& args)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
-    }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened describing datasource, please file bug")));
     }
 
     return scope.Close(description);
@@ -247,11 +233,6 @@ Handle<Value> Datasource::features(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened slicing datasource, please file bug")));
-    }
 
     return scope.Close(a);
 }
@@ -283,11 +264,6 @@ Handle<Value> Datasource::featureset(const Arguments& args)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
-    }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened getting featureset, please file bug")));
     }
 
     if (fs)
