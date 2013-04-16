@@ -47,10 +47,6 @@
 #include <mapnik/glyph_symbolizer.hpp>
 #endif
 
-#include <mapnik/image_util.hpp>
-#include <mapnik/load_map.hpp>
-#include <mapnik/save_map.hpp>
-
 // stl
 #include <exception>                    // for exception
 #include <iosfwd>                       // for ostringstream, ostream
@@ -554,7 +550,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
             if (layer_id->IsString()) {
                 bool found = false;
                 unsigned int idx(0);
-                std::string const & layer_name = TOSTR(layer_id);
+                std::string layer_name = TOSTR(layer_id);
                 BOOST_FOREACH ( mapnik::layer const& lyr, layers )
                 {
                     if (lyr.name() == layer_name)
@@ -642,14 +638,14 @@ void Map::EIO_QueryMap(uv_work_t* req)
             if (closure->geo_coords)
             {
                 fs = closure->m->map_->query_point(closure->layer_idx,
-                                                            closure->x,
-                                                            closure->y);
+                                                   closure->x,
+                                                   closure->y);
             }
             else
             {
                 fs = closure->m->map_->query_map_point(closure->layer_idx,
-                                                            closure->x,
-                                                            closure->y);
+                                                       closure->x,
+                                                       closure->y);
             }
             mapnik::layer const& lyr = layers[closure->layer_idx];
             closure->featuresets.insert(std::make_pair(lyr.name(),fs));
@@ -682,11 +678,6 @@ void Map::EIO_QueryMap(uv_work_t* req)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
     }
 }
 
@@ -929,11 +920,6 @@ void Map::EIO_Load(uv_work_t* req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
-    }
 }
 
 void Map::EIO_AfterLoad(uv_work_t* req)
@@ -976,7 +962,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
 
     if (args.Length() > 2)
     {
-    
+
         return ThrowException(Exception::TypeError(
                                   String::New("only accepts two arguments: a path to a mapnik stylesheet and an optional options object")));
     }
@@ -986,9 +972,9 @@ Handle<Value> Map::loadSync(const Arguments& args)
         if (!args[1]->IsObject())
             return ThrowException(Exception::TypeError(
                                       String::New("options must be an object, eg {strict: true}")));
-    
+
         Local<Object> options = args[1]->ToObject();
-    
+
         Local<String> param = String::New("strict");
         if (options->Has(param))
         {
@@ -1008,11 +994,6 @@ Handle<Value> Map::loadSync(const Arguments& args)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
-    }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("something went wrong loading the map")));
     }
     V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
@@ -1076,11 +1057,6 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
-    }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("something went wrong loading the map")));
     }
     V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
@@ -1174,11 +1150,6 @@ void Map::EIO_FromString(uv_work_t* req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
-    }
 }
 
 void Map::EIO_AfterFromString(uv_work_t* req)
@@ -1243,11 +1214,6 @@ Handle<Value> Map::zoomAll(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("Unknown exception happened while zooming, please submit a bug report")));
-    }
     return Undefined();
 }
 
@@ -1311,7 +1277,6 @@ typedef struct {
     std::string error_name;
     Persistent<Function> cb;
 } grid_baton_t;
-
 
 Handle<Value> Map::render(const Arguments& args)
 {
@@ -1549,11 +1514,6 @@ void Map::EIO_RenderGrid(uv_work_t* req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "Unknown error occured, please file bug";
-    }
 }
 
 
@@ -1603,11 +1563,6 @@ void Map::EIO_RenderImage(uv_work_t* req)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened while rendering the map,\n this should not happen, please submit a bug report";
     }
 }
 
@@ -1764,11 +1719,11 @@ void Map::EIO_RenderFile(uv_work_t* req)
     {
         if(closure->use_cairo) {
 #if defined(HAVE_CAIRO)
-  #if MAPNIK_VERSION >= 200100
+#if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
-  #else
+#else
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
-  #endif
+#endif
 #else
 
 #endif
@@ -1790,11 +1745,6 @@ void Map::EIO_RenderFile(uv_work_t* req)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happend while rendering image to file,\n this should not happen, please submit a bug report";
     }
 }
 
@@ -1881,12 +1831,6 @@ Handle<Value> Map::renderSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("unknown exception happened while rendering the map, please submit a bug report")));
-    }
-
     node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
     return scope.Close(retbuf->handle_);
 }
@@ -1965,11 +1909,11 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
-  #if MAPNIK_VERSION >= 200100
+#if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
-  #else
+#else
             mapnik::save_to_cairo_file(*m->map_,output,format);
-  #endif
+#endif
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
@@ -1997,12 +1941,5 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("unknown exception happened while rendering the map, please submit a bug report")));
-    }
     return Undefined();
 }
-
-
