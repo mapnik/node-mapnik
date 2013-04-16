@@ -176,14 +176,14 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
             Local<Value> argv[3] = { Local<Value>::New(Null()),
                                      Local<Value>::New(Boolean::New(closure->result)),
                                      Local<Value>::New(Number::New(closure->pixel)),
-                                   };
+            };
             closure->cb->Call(Context::GetCurrent()->Global(), 3, argv);
         }
         else
         {
             Local<Value> argv[2] = { Local<Value>::New(Null()),
                                      Local<Value>::New(Boolean::New(closure->result))
-                                   };
+            };
             closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
         }
     }
@@ -330,15 +330,10 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
         node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
         return scope.Close(retbuf->handle_);
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
-    }
-    catch (...)
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened when encoding image: please file bug report")));
     }
 }
 
@@ -427,15 +422,10 @@ void ImageView::EIO_Encode(uv_work_t* req)
             closure->result = save_to_string(im, closure->format);
         }
     }
-    catch (std::exception & ex)
+    catch (std::exception const& ex)
     {
         closure->error = true;
         closure->error_name = ex.what();
-    }
-    catch (...)
-    {
-        closure->error = true;
-        closure->error_name = "unknown exception happened when encoding image: please file bug report";
     }
 }
 
@@ -505,12 +495,6 @@ Handle<Value> ImageView::save(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    catch (...)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("unknown exception happened while saving an image, please submit a bug report")));
-    }
-
     return Undefined();
 }
 

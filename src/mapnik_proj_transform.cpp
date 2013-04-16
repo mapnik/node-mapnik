@@ -39,7 +39,7 @@ Handle<Value> ProjTransform::New(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("please provide two arguments: a pair of mapnik.Projection objects")));
     }
-    
+
     Local<Object> src_obj = args[0]->ToObject();
     if (src_obj->IsNull() || src_obj->IsUndefined() || !Projection::HasInstance(src_obj))
         return ThrowException(Exception::TypeError(String::New("mapnik.Projection expected for first argument")));
@@ -50,7 +50,7 @@ Handle<Value> ProjTransform::New(const Arguments& args)
 
     Projection *p1 = ObjectWrap::Unwrap<Projection>(src_obj);
     Projection *p2 = ObjectWrap::Unwrap<Projection>(dest_obj);
-    
+
     try
     {
         ProjTransform* p = new ProjTransform(*p1->get(),*p2->get());
@@ -91,8 +91,8 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
                 s << "Failed to forward project "
                   << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
                 return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
-                
+                                          String::New(s.str().c_str())));
+
             }
             Local<Array> arr = Array::New(2);
             arr->Set(0, Number::New(x));
@@ -111,8 +111,8 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
                 s << "Failed to forward project "
                   << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
                 return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
-            
+                                          String::New(s.str().c_str())));
+
             }
             Local<Array> arr = Array::New(4);
             arr->Set(0, Number::New(box.minx()));
@@ -157,8 +157,8 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
                 s << "Failed to back project "
                   << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
                 return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
-                
+                                          String::New(s.str().c_str())));
+
             }
             Local<Array> arr = Array::New(2);
             arr->Set(0, Number::New(x));
@@ -177,8 +177,8 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
                 s << "Failed to back project "
                   << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
                 return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
-            
+                                          String::New(s.str().c_str())));
+
             }
             Local<Array> arr = Array::New(4);
             arr->Set(0, Number::New(box.minx()));

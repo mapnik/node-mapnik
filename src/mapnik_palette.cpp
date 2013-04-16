@@ -67,12 +67,14 @@ Handle<Value> Palette::New(const Arguments& args) {
                                   String::New("First parameter must be a palette string")));
     }
 
-    try {
+    try
+    {
         Palette* p = new Palette(palette, type);
         p->Wrap(args.This());
         return args.This();
     }
-    catch (std::exception const& ex) {
+    catch (std::exception const& ex)
+    {
         return ThrowException(Exception::Error(String::New(ex.what())));
     }
 }

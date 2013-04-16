@@ -163,7 +163,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
         {
             node_mapnik::datasource_features(a,d->datasource_,first,last);
         }
-        catch (std::exception const& ex )
+        catch (std::exception const& ex)
         {
             return ThrowException(Exception::Error(
                                       String::New(ex.what())));
