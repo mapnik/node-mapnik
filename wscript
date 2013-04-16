@@ -63,10 +63,15 @@ def warn_about_mapnik_version(conf):
 
 def set_options(opt):
     opt.tool_options("compiler_cxx")
-    #opt.add_option('-D', '--debug', action='store_true', default=False, dest='debug')
+    opt.add_option('--debug',
+        action='store_true',
+        default=None,
+        help='Build in debug mode',
+        dest='debug'
+    )
 
 def configure(conf):
-
+    o = Options.options
     conf.check_tool("compiler_cxx")
     conf.check_tool("node_addon")
     if sys.platform == 'darwin':
@@ -106,8 +111,7 @@ def configure(conf):
     # unneeded currently as second item from mapnik-config is -lmapnik
     #conf.env.append_value("LIB_MAPNIK", "mapnik")
 
-    # TODO - too much potential pollution here, need to limit this upstream
-    cxxflags = popen("%s --cflags" % mapnik_config).readline().strip().split(' ')
+    cxxflags = popen("%s --cflags" % mapnik_config).read().replace('\n',' ').strip().split(' ')
 
     if '-lcairo' in all_ldflags or '-DHAVE_CAIRO' in cxxflags:
         Utils.pprint('GREEN','Sweet, found cairo library, will attempt to compile with cairo support for pdf/svg output')
@@ -141,8 +145,13 @@ def configure(conf):
     else:
         settings_dict['fonts'] = '\'%s\'' % popen("%s --fonts" % mapnik_config).readline().strip()
 
-
     write_mapnik_settings(**settings_dict)
+    conf.env.DEBUG = o.debug
+    if (o.debug):
+        if '-O3' in conf.env.CXXFLAGS_MAPNIK:
+            conf.env.CXXFLAGS_MAPNIK.remove('-O3')
+        conf.env.CXXFLAGS_MAPNIK.insert(0,'-O0')
+        conf.env.CXXFLAGS_MAPNIK.append('-g')
 
 def clean(bld):
     pass # to avoid red warning from waf of "nothing to clean"
@@ -150,7 +159,7 @@ def clean(bld):
 def build(bld):
     #Options.options.jobs = jobs;
     obj = bld.new_task_gen("cxx", "shlib", "node_addon", install_path=None)
-    obj.cxxflags = ["-O3", "-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
+    obj.cxxflags = ["-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     # uncomment the next line to remove '-undefined dynamic_lookup' 
     # in order to review linker errors (v8, libev/eio references can be ignored)
     #obj.env['LINKFLAGS_MACBUNDLE'] = ['-bundle']
