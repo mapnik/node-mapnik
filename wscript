@@ -93,8 +93,8 @@ def configure(conf):
     # return of 'Usage: mapnik-config [OPTION]'
     all_ldflags = popen("%s --libs" % mapnik_config).readline().strip().split(' ')
 
-    # only link to libmapnik, which should be in first two flags
-    linkflags = []
+    linkflags = ['-lprotobuf-lite']
+    linkflags.extend(popen("pkg-config protobuf --libs-only-L" ).read().replace('\n',' ').strip().split(' '))
     if os.environ.has_key('LINKFLAGS'):
         linkflags.extend(os.environ['LINKFLAGS'].split(' '))
     
@@ -123,11 +123,14 @@ def configure(conf):
     if cairo_cxxflags:
         cxxflags.append('-DHAVE_CAIRO')
         cxxflags.extend(cairo_cxxflags)
+    cxxflags.append('-I../node_modules/mapnik-vector-tile/src/')
     
     # add prefix to includes if it is unique
     prefix_inc = os.path.join(conf.env['PREFIX'],'include/node')
     if not '/usr/local' in prefix_inc:
         cxxflags.insert(0,'-I%s' % prefix_inc)
+
+    cxxflags.extend(popen("pkg-config protobuf --cflags" ).read().replace('\n',' ').strip().split(' '))
 
     conf.env.append_value("CXXFLAGS_MAPNIK", cxxflags)
 
@@ -182,7 +185,9 @@ def build(bld):
                    "src/mapnik_datasource.cpp",
                    "src/mapnik_featureset.cpp",
                    "src/mapnik_expression.cpp",
-                   "src/mapnik_query.cpp"
+                   "src/mapnik_query.cpp",
+                   "src/mapnik_vector_tile.cpp",
+                   "node_modules/mapnik-vector-tile/src/vector_tile.pb.cc"
                   ]
     obj.uselib = "MAPNIK"
     # install 'mapnik' module
