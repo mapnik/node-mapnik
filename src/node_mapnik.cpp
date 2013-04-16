@@ -27,6 +27,10 @@
 #include "mapnik_expression.hpp"
 #include "utils.hpp"
 
+#ifdef MAPNIK_DEBUG
+#include <libxml/parser.h>
+#endif
+
 // mapnik
 #include <mapnik/version.hpp>
 #if MAPNIK_VERSION >= 200100
@@ -76,10 +80,20 @@ static Handle<Value> clearCache(const Arguments& args)
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
 #else
-  #if MAPNIK_VERSION >= 200100
-      mapnik::marker_cache::instance()->clear();
-      mapnik::mapped_memory_cache::instance()->clear();
-  #endif
+#if MAPNIK_VERSION >= 200100
+    mapnik::marker_cache::instance()->clear();
+    mapnik::mapped_memory_cache::instance()->clear();
+#endif
+#endif
+    return Undefined();
+}
+
+static Handle<Value> shutdown(const Arguments& args)
+{
+    HandleScope scope;
+#ifdef MAPNIK_DEBUG
+    // http://lists.fedoraproject.org/pipermail/devel/2010-January/129117.html
+    xmlCleanupParser();
 #endif
     return Undefined();
 }
@@ -88,6 +102,7 @@ extern "C" {
 
     static void InitMapnik (Handle<Object> target)
     {
+
         // module level functions
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
         NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
@@ -96,6 +111,7 @@ extern "C" {
         NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
         NODE_SET_METHOD(target, "clearCache", clearCache);
         NODE_SET_METHOD(target, "gc", gc);
+        NODE_SET_METHOD(target, "shutdown",shutdown);
 
         // Classes
         Map::Initialize(target);
