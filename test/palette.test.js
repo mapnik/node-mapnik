@@ -41,7 +41,7 @@ describe('mapnik.Palette ', function() {
 
     it('should support rendering', function() {
         var map = new mapnik.Map(600, 400);
-        map.fromStringSync(fs.readFileSync('./examples/stylesheet.xml', 'utf8'), { strict: true, base: './examples/' });
+        map.fromStringSync(fs.readFileSync('./test/stylesheet.xml', 'utf8'), { strict: true, base: './test/' });
         map.zoomAll();
 
         var pal = new mapnik.Palette('\xff\x00\xff\xff\xff\xff', 'rgb');

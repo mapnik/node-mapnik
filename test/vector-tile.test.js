@@ -211,7 +211,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(dt.painted(), true);
         assert.equal(dt.isSolid(), false);
         var map = new mapnik.Map(dt.width(),dt.height());
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
         dt.render(map, new mapnik.Image(256,256), function(err,image) {
             if (err) throw err;
@@ -226,7 +226,7 @@ describe('mapnik.VectorTile ', function() {
     it('should render a vector_tile of the whole world', function(done) {
         var dt = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
         var png = map.renderSync('png', new mapnik.Image(256, 256), {});
@@ -244,7 +244,7 @@ describe('mapnik.VectorTile ', function() {
         var dt = new mapnik.VectorTile(0, 0, 0);
         dt.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
         var map = new mapnik.Map(256, 256);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
         assert.equal(dt.isSolid(), false);
@@ -260,7 +260,7 @@ describe('mapnik.VectorTile ', function() {
         var dt = new mapnik.VectorTile(0, 0, 0);
         dt.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
         var map = new mapnik.Map(256, 256);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
         assert.equal(dt.isSolid(), false);

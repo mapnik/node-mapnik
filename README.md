@@ -45,7 +45,7 @@ Note: to run these examples locally first do:
 
     export NODE_PATH=./lib:${NODE_PATH}
 
-For more sample code see 'examples/README.md'
+For more sample code see https://github.com/mapnik/node-mapnik-sample-code
 
 
 ## Depends
