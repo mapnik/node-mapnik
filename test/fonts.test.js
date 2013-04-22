@@ -10,6 +10,11 @@ function oc(a) {
     return o;
 }
 
+before(function() {
+    mapnik.register_default_fonts();
+    mapnik.register_system_fonts();
+});
+
 describe('mapnik fonts ', function() {
     it('should auto-register DejaVu fonts', function() {
         // make sure we have default fonts

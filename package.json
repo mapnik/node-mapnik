@@ -34,7 +34,8 @@
   },
   "devDependencies": {
       "mocha": "*",
-      "jshint"  : "~0.5.x"
+      "jshint"  : "~0.5.x",
+      "sphericalmercator":"*"
    },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
@@ -48,8 +49,6 @@
       "node": ">= 0.6.13 && < 0.9.0"
   },
   "scripts"       : {
-      "install" : "./configure && make",
-      "pretest" : "npm install mocha",
       "test"    : "make test"
    }
 }
