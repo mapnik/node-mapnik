@@ -1,7 +1,7 @@
 set PROJ_LIB=C:\dev2\proj\nad
 set GDAL_DATA=C:\dev2\gdal\data
-set MAPNIK_INPUT_PLUGINS="c:\\mapnik-2.0\\lib\\mapnik\\input"
-set MAPNIK_FONTS="c:\\mapnik-2.0\\lib\\mapnik\\fonts"
+set MAPNIK_INPUT_PLUGINS_DIRECTORY="c:\\mapnik-2.0\\lib\\mapnik\\input"
+set MAPNIK_FONT_DIRECTORY="c:\\mapnik-2.0\\lib\\mapnik\\fonts"
 rd /q /s Default
 del lib\\_mapnik.node
 python gen_settings.py

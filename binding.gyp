@@ -91,6 +91,18 @@
         'GCC_ENABLE_CPP_RTTI': 'YES',
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
       },
+      'actions': [
+        {
+          'action_name': 'generate_setting',
+          'inputs': [
+            'gen_settings.py'
+          ],
+          'outputs': [
+            'lib/mapnik_settings.js'
+          ],
+          'action': ['python', 'gen_settings.py'],
+        }
+      ]
     }
   ]
 }
