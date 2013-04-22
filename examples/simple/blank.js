@@ -1,8 +1,5 @@
-
-var mapnik = require('mapnik');
+var mapnik = require('../..');
 var http = require('http');
-var path = require('path');
-
 
 // Serve a blank tile. This can indicate the absolute fastest mapnik can return a tile
 // and highlights zlib/inflate bottleneck (compare "png" format to "png8")

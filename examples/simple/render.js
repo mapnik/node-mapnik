@@ -4,8 +4,7 @@
 //
 // expected output: http://goo.gl/cyGwo
 
-var mapnik = require('mapnik');
-var sys = require('fs');
+var mapnik = require('../..');
 var child_process = require('child_process');
 
 var usage = 'usage: render.js <stylesheet> <image>';
