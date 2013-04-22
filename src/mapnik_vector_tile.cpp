@@ -281,7 +281,7 @@ Handle<Value> VectorTile::setData(const Arguments& args)
     closure->error = false;
     closure->result = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, EIO_AfterSetData);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
     d->Ref();
     return Undefined();
 }
@@ -547,7 +547,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
     closure->m = m;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, EIO_AfterRenderTile);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, (uv_after_work_cb)EIO_AfterRenderTile);
     m->_ref();
     d->Ref();
     return Undefined();
@@ -652,7 +652,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 
             // loop over layers in map and match by name
             // with layers in the vector tile
-            for (int i=0; i < layers_size; ++i)
+            for (unsigned i=0; i < layers_size; ++i)
             {
                 mapnik::layer const& lyr = layers[i];
                 if (lyr.visible(scale_denom))
@@ -780,7 +780,7 @@ Handle<Value> VectorTile::clear(const Arguments& args)
     closure->d = d;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, EIO_AfterClear);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     d->Ref();
     return Undefined();
 }
@@ -865,7 +865,7 @@ Handle<Value> VectorTile::isSolid(const Arguments& args)
     closure->result = true;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, EIO_AfterIsSolid);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
     d->Ref();
     return Undefined();
 }
