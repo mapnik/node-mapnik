@@ -90,8 +90,13 @@
         ],
         'GCC_ENABLE_CPP_RTTI': 'YES',
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-      },
-      'actions': [
+      }
+    },
+    {
+      'target_name': 'action_after_build',
+      'type': 'none',
+      'dependencies': [ '_mapnik' ],
+'actions': [
         {
           'action_name': 'generate_setting',
           'inputs': [
@@ -100,7 +105,17 @@
           'outputs': [
             'lib/mapnik_settings.js'
           ],
-          'action': ['python', 'gen_settings.py'],
+          'action': ['python', 'gen_settings.py']
+        },
+        {
+          'action_name': 'move_node_module',
+          'inputs': [
+            '<@(PRODUCT_DIR)/_mapnik.node'
+          ],
+          'outputs': [
+            'lib/_mapnik.node'
+          ],
+          'action': ['cp', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
         }
       ]
     }
