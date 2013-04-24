@@ -7,56 +7,50 @@
               'xcode_settings': {
                 'OTHER_CPLUSPLUSFLAGS!':['-O3', '-DNDEBUG']
               },
-          'msvs_settings': {
-            'VCCLCompilerTool': {
-              'ExceptionHandling': 1,
-            }
-          }
+              'msvs_settings': {
+                 'VCCLCompilerTool': {
+                     'ExceptionHandling': 1,
+                 }
+              }
           },
-        'Release': {
-          'msvs_settings': {
-            'VCCLCompilerTool': {
-              'ExceptionHandling': 1,
-            },
-     	  'VCLinkerTool': {
-              'AdditionalOptions': [
-                # https://github.com/mapnik/node-mapnik/issues/74
-                '/FORCE:MULTIPLE'
-              ],
-              'AdditionalLibraryDirectories': [
-                 #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
-				 '<!@(mapnik-config --dep-libpaths)'
-              ],
-            },
+          'Release': {
+
           }
-        }
       },
       'include_dirs': [
           './src'
       ],
       'conditions': [
         ['OS=="win"', {
-		   'include_dirs':['<!@(mapnik-config --includes)'],
-		   'defines': ['<!@(mapnik-config --defines)'],
-		   'libraries': ['<!@(mapnik-config --libs)'],
-		   'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
-		}],
-		['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="netbsd" or OS=="mac"', {
+            'include_dirs':['<!@(mapnik-config --includes)'],
+            'defines': ['<!@(mapnik-config --defines)'],
+            'libraries': ['<!@(mapnik-config --libs)'],
+            'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
+            'msvs_settings': {
+            'VCCLCompilerTool': {
+              'ExceptionHandling': 1,
+            },
+            'VCLinkerTool': {
+              'AdditionalOptions': [
+                # https://github.com/mapnik/node-mapnik/issues/74
+                '/FORCE:MULTIPLE'
+              ],
+              'AdditionalLibraryDirectories': [
+                 #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
+                 '<!@(mapnik-config --dep-libpaths)'
+              ],
+            },
+          }
+        }],
+        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="netbsd" or OS=="mac"', {
           'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
-          'cflags_cc' : ['<!@(mapnik-config --cflags)'],
+          'cflags_cc' : [
+              '<!@(mapnik-config --cflags)'
+          ],
           'libraries':[
-            '<!@(mapnik-config --libs)', # will bring in -lmapnik and the -L to point to it
+            '<!@(mapnik-config --libs)' # will bring in -lmapnik and the -L to point to it
           ]
-        }],
-        ['OS=="linux"', {
-          'libraries':[
-            '-licuuc',
-            '-lboost_regex',
-            # if the above are not enough, link all libs
-            # mapnik uses by uncommenting the next line
-            #'<!@(mapnik-config --ldflags --dep-libs)'
-          ]
-        }],
+        }]
       ]
   },
   'targets': [
@@ -90,7 +84,34 @@
         ],
         'GCC_ENABLE_CPP_RTTI': 'YES',
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-      },
+      }
+    },
+    {
+      'target_name': 'action_after_build',
+      'type': 'none',
+      'dependencies': [ '_mapnik' ],
+'actions': [
+        {
+          'action_name': 'generate_setting',
+          'inputs': [
+            'gen_settings.py'
+          ],
+          'outputs': [
+            'lib/mapnik_settings.js'
+          ],
+          'action': ['python', 'gen_settings.py']
+        },
+        {
+          'action_name': 'move_node_module',
+          'inputs': [
+            '<@(PRODUCT_DIR)/_mapnik.node'
+          ],
+          'outputs': [
+            'lib/_mapnik.node'
+          ],
+          'action': ['cp', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
+        }
+      ]
     }
   ]
 }
