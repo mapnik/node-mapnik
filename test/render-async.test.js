@@ -15,7 +15,7 @@ describe('mapnik async rendering', function() {
 
     it('should render to an image', function(done) {
         var map = new mapnik.Map(256, 256);
-        map.load('./examples/stylesheet.xml', function(err,map) {
+        map.load('./test/stylesheet.xml', function(err,map) {
             map.zoomAll();
             var im = new mapnik.Image(map.width, map.height);
             map.render(im, function(err, im) {

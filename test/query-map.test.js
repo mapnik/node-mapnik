@@ -5,7 +5,7 @@ var assert = require('assert');
 describe('mapnik.queryPoint', function() {
     it('should throw with invalid usage', function() {
         var map = new mapnik.Map(256, 256);
-        map.loadSync('examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         assert.throws(function() { map.queryPoint(); });
         assert.throws(function() { map.queryPoint(0, 0, 0); });
@@ -15,7 +15,7 @@ describe('mapnik.queryPoint', function() {
 
     it('should return a feature if geo coords are used', function(done) {
         var map = new mapnik.Map(256, 256);
-        map.loadSync('examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         map.queryPoint(-12957605.0331, 5518141.9452, {layer: 0}, function(err, results) {
             assert.equal(results.length, 1);
@@ -44,7 +44,7 @@ describe('mapnik.queryPoint', function() {
 
     it('should return a feature if screen coords are used', function(done) {
         var map = new mapnik.Map(256, 256);
-        map.loadSync('examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         map.queryMapPoint(55, 130, {layer: 0}, function(err, results) {
             assert.equal(results.length, 1);
@@ -73,7 +73,7 @@ describe('mapnik.queryPoint', function() {
 
     it('should return a feature if multiple layers are queried', function(done) {
         var map = new mapnik.Map(256, 256);
-        map.loadSync('examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         map.queryPoint(-12957605.0331, 5518141.9452, {/*will query all layers*/}, function(err, results) {
             assert.equal(results.length, 1);
@@ -106,7 +106,7 @@ describe('mapnik.queryPoint', function() {
         layer.srs = map.srs;
         var options = {
             type: 'shape',
-            file: './examples/data/world_merc.shp'
+            file: './test/data/world_merc.shp'
         };
         layer.datasource = new mapnik.Datasource(options);
         map.add_layer(layer);

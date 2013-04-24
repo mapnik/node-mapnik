@@ -5,6 +5,9 @@ var existsSync = require('fs').existsSync || require('path').existsSync;
 
 describe('Handling unicode paths, filenames, and data', function(){
 
+    /* folder storage in git is messed up - comment for now */
+    // https://github.com/mapnik/node-mapnik/issues/142
+    /*
     it('open csv from folder with unicode', function(){
         var filepath = './test/data/Clément/foo.csv';
         assert.ok(existsSync(filepath));
@@ -18,6 +21,7 @@ describe('Handling unicode paths, filenames, and data', function(){
         var ds = new mapnik.Datasource({type:'shape',file:filepath});
         assert.ok(ds); 
     });
+    */
 
     it('open csv file with unicode name', function(){
         var filepath = './test/data/你好_points.csv';

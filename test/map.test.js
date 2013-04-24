@@ -52,7 +52,7 @@ describe('mapnik.Map', function() {
         assert.equal(map.maximumExtent, undefined);
 
         // Test loading a sample world map
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
 
         var layers = map.layers();
         assert.equal(layers.length, 1);
@@ -61,7 +61,7 @@ describe('mapnik.Map', function() {
         assert.deepEqual(layers[0].styles, ['style']);
         assert.equal(layers[0].datasource.type, 'vector');
         assert.equal(layers[0].datasource.parameters().type, 'shape');
-        assert.equal(path.normalize(layers[0].datasource.parameters().file), path.normalize(path.join(process.cwd(), 'examples/data/world_merc.shp')));
+        assert.equal(path.normalize(layers[0].datasource.parameters().file), path.normalize(path.join(process.cwd(), './test/data/world_merc.shp')));
 
         // clear styles and layers from previous load to set up for another
         // otherwise layers are duplicated
@@ -72,7 +72,7 @@ describe('mapnik.Map', function() {
 
     it('should allow access to layers', function() {
         var map = new mapnik.Map(600, 400);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         var layers = map.layers();
         assert.equal(layers.length, 1);
         assert.equal(layers[0].name, 'world');
@@ -80,7 +80,7 @@ describe('mapnik.Map', function() {
         assert.deepEqual(layers[0].styles, ['style']);
         assert.equal(layers[0].datasource.type, 'vector');
         assert.equal(layers[0].datasource.parameters().type, 'shape');
-        assert.equal(path.normalize(layers[0].datasource.parameters().file), path.normalize(path.join(process.cwd(), 'examples/data/world_merc.shp')));
+        assert.equal(path.normalize(layers[0].datasource.parameters().file), path.normalize(path.join(process.cwd(), './test/data/world_merc.shp')));
 
         var layer = map.get_layer(0);
         assert.ok(layer.datasource);
@@ -94,7 +94,7 @@ describe('mapnik.Map', function() {
 
         var options = {
             type: 'shape',
-            file: './examples/data/world_merc.shp'
+            file: './test/data/world_merc.shp'
         };
 
         // make a change to layer, ensure it sticks
