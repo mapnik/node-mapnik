@@ -30,7 +30,7 @@
       }
   ],
   "dependencies"  : {
-      "mapnik-vector-tile": "~0.0.1"
+      "mapnik-vector-tile": "~0.0.4"
   },
   "devDependencies": {
       "mocha": "*",
