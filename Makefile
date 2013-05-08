@@ -20,18 +20,12 @@ gyp:
 	make -j$(NPROCS) -C ./projects/makefiles/ V=1
 	cp projects/makefiles/out/Default/_mapnik.node lib/_mapnik.node
 
-install: all
-	@node-waf build install
-
 mapnik.node:
-	@node-waf build -j $(NPROCS)
+	PATH=node_modules/.bin/:${PATH} node-gyp build
 
 clean:
-	@node-waf clean distclean
 	@rm -rf ./projects/makefiles/
 
-uninstall:
-	@node-waf uninstall
 
 rebuild:
 	@make clean
