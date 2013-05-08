@@ -26,6 +26,7 @@
 #include "mapnik_grid.hpp"
 #include "mapnik_grid_view.hpp"
 #include "mapnik_expression.hpp"
+#include "mapnik_marker_cache.hpp"
 #include "utils.hpp"
 
 #ifdef MAPNIK_DEBUG
@@ -136,6 +137,7 @@ extern "C" {
         //JSDatasource::Initialize(target);
         MemoryDatasource::Initialize(target);
         Expression::Initialize(target);
+        MarkerCache::Initialize(target);
 
         // versions of deps
         Local<Object> versions = Object::New();
