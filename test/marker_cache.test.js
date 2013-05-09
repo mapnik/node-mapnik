@@ -13,13 +13,13 @@ describe('mapnik.MarkerCache', function() {
 
     it('should be able to clear marker cache', function() {
         mc.clear()
-        assert.equal(mc.size(),3);
+        assert.equal(mc.size(),2);
         mc.clear()
-        assert.equal(mc.size(),3);
+        assert.equal(mc.size(),2);
     });
 
     it('should be able to get marker cache keys', function() {
-        assert.deepEqual(mc.keys(),["image://dot","shape://arrow","shape://ellipse"]);
+        assert.deepEqual(mc.keys(),["shape://arrow","shape://ellipse"]);
     });
 
     it('should be able to remove marker by key', function() {
