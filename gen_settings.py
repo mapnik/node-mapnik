@@ -1,6 +1,6 @@
 import os
 
-settings = 'lib/mapnik_settings.js'
+settings = os.path.join(os.path.dirname(__file__),'lib','mapnik_settings.js')
 
 # this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
@@ -30,5 +30,5 @@ if __name__ == '__main__':
         settings_dict['fonts'] =  os.environ['MAPNIK_FONT_DIRECTORY']
     else:
         settings_dict['fonts'] = '\'%s\'' % os.popen("mapnik-config --fonts").readline().strip()
-    
+
     write_mapnik_settings(**settings_dict)
