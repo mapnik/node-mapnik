@@ -2,13 +2,12 @@
 #define __NODE_MAPNIK_MARKER_CACHE_H__
 
 #include <v8.h>
-#include <node_object_wrap.h>
 
 using namespace v8;
 
-class MarkerCache: public node::ObjectWrap {
+class MarkerCache {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Persistent<Object> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(Arguments const& args);
     static Handle<Value> clear(Arguments const& args);

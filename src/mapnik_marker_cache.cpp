@@ -11,46 +11,33 @@
 
 #include <boost/make_shared.hpp>
 
-Persistent<FunctionTemplate> MarkerCache::constructor;
+Persistent<Object> MarkerCache::constructor;
 
 void MarkerCache::Initialize(Handle<Object> target) {
-
     HandleScope scope;
-
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(MarkerCache::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("MarkerCache"));
-
-    NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "remove", remove);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "size", size);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "put", put);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "get", get);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "keys", keys);
-    // todo use NODE_SET_METHOD
-
-    target->Set(String::NewSymbol("MarkerCache"),constructor->GetFunction());
+    constructor = Persistent<Object>::New(Object::New());
+    NODE_SET_METHOD(constructor, "clear", clear);
+    NODE_SET_METHOD(constructor, "remove", remove);
+    NODE_SET_METHOD(constructor, "size", size);
+    NODE_SET_METHOD(constructor, "put", put);
+    NODE_SET_METHOD(constructor, "get", get);
+    NODE_SET_METHOD(constructor, "keys", keys);
+    target->Set(String::NewSymbol("MarkerCache"),constructor);
 }
 
-MarkerCache::MarkerCache() :
-    ObjectWrap() {}
+MarkerCache::MarkerCache() {
+       throw std::runtime_error("MarkerCache should not be initialized");
+}
 
-MarkerCache::~MarkerCache() {}
+MarkerCache::~MarkerCache() {
+       throw std::runtime_error("MarkerCache should not be initialized");
+}
 
 Handle<Value> MarkerCache::New(const Arguments& args)
 {
     HandleScope scope;
-    if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
-    if (args.Length() >= 1)
-    {
-        return ThrowException(Exception::TypeError(
-                                  String::New("accepts no arguments")));
-    }
-
-    MarkerCache* mc = new MarkerCache();
-    mc->Wrap(args.This());
-    return args.This();
+    return ThrowException(Exception::TypeError(
+                              String::New("cannot be intialized, use instead static methods")));
 }
 
 Handle<Value> MarkerCache::clear(const Arguments& args)
@@ -90,13 +77,13 @@ Handle<Value> MarkerCache::put(const Arguments& args)
         return ThrowException(Exception::TypeError(String::New("object is not valid")));
     if (Image::constructor->HasInstance(obj))
     {
-        Image *im = ObjectWrap::Unwrap<Image>(obj);
+        Image *im = node::ObjectWrap::Unwrap<Image>(obj);
         boost::optional<mapnik::image_ptr> imagep(boost::make_shared<mapnik::image_data_32>(im->get()->data()));
         mapnik::marker_cache::instance().insert_marker(uri,boost::make_shared<mapnik::marker>(imagep),true);
     }
     else if (SVG::constructor->HasInstance(obj))
     {
-        SVG *im = ObjectWrap::Unwrap<SVG>(obj);
+        SVG *im = node::ObjectWrap::Unwrap<SVG>(obj);
         mapnik::svg_path_ptr marker_path(boost::make_shared<mapnik::svg_storage_type>(*im->get()));
         mapnik::marker_cache::instance().insert_marker(uri,boost::make_shared<mapnik::marker>(marker_path),true);
     }
@@ -133,7 +120,6 @@ Handle<Value> MarkerCache::get(const Arguments& args)
             SVG* new_im = SVG::New(*itr->second->get_vector_data());
             return scope.Close(new_im->handle_);
         }
-        //return boost::python::object(*(itr->second->get_vector_data()));
     }
     return Undefined();
 }

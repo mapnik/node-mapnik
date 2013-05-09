@@ -1,6 +1,8 @@
 var mapnik = require('mapnik');
 var assert = require('assert');
 
+var mc = mapnik.MarkerCache;
+
 describe('mapnik.MarkerCache', function() {
 
     it('should throw with invalid usage', function() {
@@ -10,7 +12,6 @@ describe('mapnik.MarkerCache', function() {
     });
 
     it('should be able to clear marker cache', function() {
-        var mc = new mapnik.MarkerCache();
         mc.clear()
         assert.equal(mc.size(),3);
         mc.clear()
@@ -18,12 +19,10 @@ describe('mapnik.MarkerCache', function() {
     });
 
     it('should be able to get marker cache keys', function() {
-        var mc = new mapnik.MarkerCache();
         assert.deepEqual(mc.keys(),["image://dot","shape://arrow","shape://ellipse"]);
     });
 
     it('should be able to remove marker by key', function() {
-        var mc = new mapnik.MarkerCache();
         mc.put('hello',new mapnik.Image(3,3));
         assert.deepEqual(mc.keys().indexOf('hello'),0);
         mc.remove('hello');
@@ -31,7 +30,6 @@ describe('mapnik.MarkerCache', function() {
     });
 
     it('should be able to put new image in cache', function() {
-        var mc = new mapnik.MarkerCache();
         mc.clear();
         var size = mc.size();
         mc.put('image',new mapnik.Image(4,4));
@@ -40,7 +38,6 @@ describe('mapnik.MarkerCache', function() {
     });
 
     it('should be able to get image copy from cache', function() {
-        var mc = new mapnik.MarkerCache();
         mc.clear();
         mc.put('image',new mapnik.Image(4,6));
         var copy_from_cache = mc.get('image');
@@ -49,7 +46,6 @@ describe('mapnik.MarkerCache', function() {
     });
 
     it('should be able to put new svg in cache', function() {
-        var mc = new mapnik.MarkerCache();
         mc.clear();
         var size = mc.size();
         mc.put('svg',new mapnik.SVG.open('./test/data/octocat.svg'));
