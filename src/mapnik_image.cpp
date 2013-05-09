@@ -119,6 +119,15 @@ Handle<Value> Image::New(const Arguments& args)
     return Undefined();
 }
 
+Image * Image::New(image_ptr this_)
+{
+    HandleScope scope;
+    Image* im = new Image(this_);
+    Local<Value> ext = External::New(im);
+    Local<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
+    return ObjectWrap::Unwrap<Image>(obj);
+}
+
 Handle<Value> Image::get_prop(Local<String> property,
                               const AccessorInfo& info)
 {

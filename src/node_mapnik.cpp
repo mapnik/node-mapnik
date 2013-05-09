@@ -27,6 +27,7 @@
 #include "mapnik_grid_view.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_marker_cache.hpp"
+#include "mapnik_svg.hpp"
 #include "utils.hpp"
 
 #ifdef MAPNIK_DEBUG
@@ -138,6 +139,7 @@ extern "C" {
         MemoryDatasource::Initialize(target);
         Expression::Initialize(target);
         MarkerCache::Initialize(target);
+        SVG::Initialize(target);
 
         // versions of deps
         Local<Object> versions = Object::New();

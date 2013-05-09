@@ -15,7 +15,7 @@ public:
     static Handle<Value> remove(Arguments const& args);
     static Handle<Value> size(Arguments const& args);
     static Handle<Value> put(Arguments const& args);
-    //static Handle<Value> get(Arguments const& args);
+    static Handle<Value> get(Arguments const& args);
     static Handle<Value> keys(Arguments const& args);
     MarkerCache();
 
