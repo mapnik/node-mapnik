@@ -1,4 +1,17 @@
 {
+  'conditions': [
+      ['OS=="win"', {
+        'variables': {
+          'copy_command%': 'copy',
+          'bin_name':'call'
+        },
+      },{
+        'variables': {
+          'copy_command%': 'cp',
+          'bin_name':'node'
+        },
+      }]
+  ],
   'target_defaults': {
       'default_configuration': 'Release',
       'configurations': {
@@ -109,7 +122,7 @@
           'outputs': [
             'lib/_mapnik.node'
           ],
-          'action': ['cp', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
+          'action': ['<@(copy_command)', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
         }
       ]
     }
