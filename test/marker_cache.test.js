@@ -22,6 +22,14 @@ describe('mapnik.MarkerCache', function() {
         assert.deepEqual(mc.keys(),["image://dot","shape://arrow","shape://ellipse"]);
     });
 
+    it('should be able to remove marker by key', function() {
+        var mc = new mapnik.MarkerCache();
+        mc.put('hello',new mapnik.Image(3,3));
+        assert.deepEqual(mc.keys().indexOf('hello'),0);
+        mc.remove('hello');
+        assert.deepEqual(mc.keys().indexOf('hello'),-1);
+    });
+
     it('should be able to put new image in cache', function() {
         var mc = new mapnik.MarkerCache();
         mc.clear();
