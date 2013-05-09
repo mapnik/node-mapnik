@@ -12,6 +12,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 Persistent<FunctionTemplate> Palette::constructor;
 
