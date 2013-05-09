@@ -16,9 +16,8 @@ public:
     static Handle<Value> put(Arguments const& args);
     static Handle<Value> get(Arguments const& args);
     static Handle<Value> keys(Arguments const& args);
-    MarkerCache();
-
 private:
+    MarkerCache();
     ~MarkerCache();
 };
 
