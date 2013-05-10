@@ -32,6 +32,7 @@
 #endif
 
 // mapnik
+#include <mapnik/config.hpp> // for MAPNIK_DECL
 #include <mapnik/version.hpp>
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/marker_cache.hpp>
@@ -202,4 +203,14 @@ extern "C" {
 
 } // namespace node_mapnik
 
-NODE_MODULE(_mapnik, node_mapnik::InitMapnik)
+#define NODE_MAPNIK_MODULE(modname, regfunc)                          \
+  extern "C" {                                                        \
+    MAPNIK_DECL node::node_module_struct modname ## _module =         \
+    {                                                                 \
+      NODE_STANDARD_MODULE_STUFF,                                     \
+      (node::addon_register_func)regfunc,                             \
+      NODE_STRINGIFY(modname)                                         \
+    };                                                                \
+  }
+
+NODE_MAPNIK_MODULE(_mapnik, node_mapnik::InitMapnik)
