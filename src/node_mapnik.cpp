@@ -203,6 +203,8 @@ extern "C" {
 
 } // namespace node_mapnik
 
+#if NODE_VERSION_AT_LEAST(0, 9, 0)
+
 #define NODE_MAPNIK_MODULE(modname, regfunc)                          \
   extern "C" {                                                        \
     MAPNIK_DECL node::node_module_struct modname ## _module =         \
@@ -212,5 +214,19 @@ extern "C" {
       NODE_STRINGIFY(modname)                                         \
     };                                                                \
   }
+
+#else
+
+#define NODE_MAPNIK_MODULE(modname, regfunc)                          \
+  extern "C" {                                                        \
+    MAPNIK_DECL node::node_module_struct modname ## _module =         \
+    {                                                                 \
+      NODE_STANDARD_MODULE_STUFF,                                     \
+      regfunc,                             \
+      NODE_STRINGIFY(modname)                                         \
+    };                                                                \
+  }
+
+#endif
 
 NODE_MAPNIK_MODULE(_mapnik, node_mapnik::InitMapnik)
