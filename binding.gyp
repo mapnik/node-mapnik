@@ -23,7 +23,8 @@
               'msvs_settings': {
                  'VCCLCompilerTool': {
                      'ExceptionHandling': 1,
-                     'RuntimeTypeInfo':'true'
+                     'RuntimeTypeInfo':'true',
+                     'RuntimeLibrary': '3'  # /MDd
                  }
               }
           },
@@ -44,7 +45,8 @@
             'VCCLCompilerTool': {
               # note: not respected, need to change in C:\Users\mapnik\.node-gyp\0.10.3\common.gypi
               'ExceptionHandling': 1,
-              'RuntimeTypeInfo':'true'
+              'RuntimeTypeInfo':'true',
+              'RuntimeLibrary': '2'  # /MD
             },
             'VCLinkerTool': {
               'AdditionalOptions': [
