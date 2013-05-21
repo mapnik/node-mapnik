@@ -51,4 +51,11 @@ describe('Handling unicode paths, filenames, and data', function(){
         assert.ok(ds);
     });
 
+	it('open sqlite with unicode name', function(){
+        var filepath = './test/data/你好_points.sqlite';
+        assert.ok(existsSync(filepath));
+        var ds = new mapnik.Datasource({type:'sqlite',file:filepath,use_spatial_index:false,table_by_index:0});
+        assert.ok(ds);
+    });
+
 });
