@@ -37,4 +37,25 @@ describe('Handling unicode paths, filenames, and data', function(){
         assert.ok(ds); 
     });
 
+    it('open shape file with ogr and unicode name', function(){
+        var filepath = './test/data/你好_points.shp';
+        assert.ok(existsSync(filepath));
+        var ds = new mapnik.Datasource({type:'ogr',file:filepath, layer_by_index:0});
+        assert.ok(ds);
+    });
+
+	it('open json with unicode name', function(){
+        var filepath = './test/data/你好_points.json';
+        assert.ok(existsSync(filepath));
+        var ds = new mapnik.Datasource({type:'geojson',file:filepath});
+        assert.ok(ds);
+    });
+
+	it('open sqlite with unicode name', function(){
+        var filepath = './test/data/你好_points.sqlite';
+        assert.ok(existsSync(filepath));
+        var ds = new mapnik.Datasource({type:'sqlite',file:filepath,use_spatial_index:false,table_by_index:0});
+        assert.ok(ds);
+    });
+
 });

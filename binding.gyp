@@ -1,4 +1,17 @@
 {
+  'conditions': [
+      ['OS=="win"', {
+        'variables': {
+          'copy_command%': 'copy',
+          'bin_name':'call'
+        },
+      },{
+        'variables': {
+          'copy_command%': 'cp',
+          'bin_name':'node'
+        },
+      }]
+  ],
   'target_defaults': {
       'default_configuration': 'Release',
       'configurations': {
@@ -10,6 +23,8 @@
               'msvs_settings': {
                  'VCCLCompilerTool': {
                      'ExceptionHandling': 1,
+                     'RuntimeTypeInfo':'true',
+                     'RuntimeLibrary': '3'  # /MDd
                  }
               }
           },
@@ -29,7 +44,10 @@
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
             'VCCLCompilerTool': {
+              # note: not respected, need to change in C:\Users\mapnik\.node-gyp\0.10.3\common.gypi
               'ExceptionHandling': 1,
+              'RuntimeTypeInfo':'true',
+              'RuntimeLibrary': '2'  # /MD
             },
             'VCLinkerTool': {
               'AdditionalOptions': [
@@ -115,7 +133,7 @@
           'outputs': [
             'lib/_mapnik.node'
           ],
-          'action': ['cp', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
+          'action': ['<@(copy_command)', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
         }
       ]
     }
