@@ -207,7 +207,7 @@ extern "C" {
 
 #define NODE_MAPNIK_MODULE(modname, regfunc)                          \
   extern "C" {                                                        \
-    MAPNIK_DECL node::node_module_struct modname ## _module =         \
+    MAPNIK_EXP node::node_module_struct modname ## _module =         \
     {                                                                 \
       NODE_STANDARD_MODULE_STUFF,                                     \
       (node::addon_register_func)regfunc,                             \
@@ -219,7 +219,7 @@ extern "C" {
 
 #define NODE_MAPNIK_MODULE(modname, regfunc)                          \
   extern "C" {                                                        \
-    MAPNIK_DECL node::node_module_struct modname ## _module =         \
+    MAPNIK_EXP node::node_module_struct modname ## _module =         \
     {                                                                 \
       NODE_STANDARD_MODULE_STUFF,                                     \
       regfunc,                             \
