@@ -9,8 +9,7 @@ describe('mapnik constants', function() {
         assert.ok(mapnik.settings.paths.fonts.length);
         assert.ok(fs.statSync(mapnik.settings.paths.fonts));
         assert.ok(mapnik.settings.paths.input_plugins.length);
-        // not true if statically linking plugins
-        //assert.ok(fs.statSync(mapnik.settings.paths.input_plugins));
+        assert.ok(fs.statSync(mapnik.settings.paths.input_plugins));
 
         // reloading the default plugins path should return false as no more plugins are registered
         assert.ok(!mapnik.register_datasources(mapnik.settings.paths.input_plugins));
