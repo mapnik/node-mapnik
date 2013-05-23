@@ -37,9 +37,14 @@
       ],
       'conditions': [
         ['OS=="win"', {
-            'include_dirs':['<!@(mapnik-config --includes)'],
+            'include_dirs':[
+			  '<!@(mapnik-config --includes)',
+			  '<!@(mapnik-config --dep-includes)'
+			  ],
             'defines': ['<!@(mapnik-config --defines)'],
-            'libraries': ['<!@(mapnik-config --libs)'],
+            'libraries': [
+			  '<!@(mapnik-config --libs)',
+			  '<!@(mapnik-config --dep-libs)'],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
             'VCCLCompilerTool': {
@@ -55,7 +60,7 @@
               ],
               'AdditionalLibraryDirectories': [
                  #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
-                 '<!@(mapnik-config --dep-libpaths)'
+                 '<!@(mapnik-config --ldflags)'
               ],
             },
           }
