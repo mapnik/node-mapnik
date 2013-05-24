@@ -21,12 +21,14 @@ if __name__ == '__main__':
     settings_dict = {}
     
     # settings for fonts and input plugins
-    if os.environ.has_key('MAPNIK_INPUT_PLUGINS_DIRECTORY'):
+    # environment settings are for windows tilemill packaging:
+    # https://github.com/mapbox/tilemill/blob/master/platforms/windows/package.bat#L37
+    if os.environ.has_key('MAPNIK_INPUT_PLUGINS'):
         settings_dict['input_plugins'] =  os.environ['MAPNIK_INPUT_PLUGINS_DIRECTORY']
     else:
         settings_dict['input_plugins'] = '\'%s\'' % os.popen("mapnik-config --input-plugins").readline().strip()
     
-    if os.environ.has_key('MAPNIK_FONT_DIRECTORY'):
+    if os.environ.has_key('MAPNIK_FONTS'):
         settings_dict['fonts'] =  os.environ['MAPNIK_FONT_DIRECTORY']
     else:
         settings_dict['fonts'] = '\'%s\'' % os.popen("mapnik-config --fonts").readline().strip()
