@@ -39,13 +39,13 @@
       'conditions': [
         ['OS=="win"', {
             'include_dirs':[
-			  '<!@(mapnik-config --includes)',
-			  '<!@(mapnik-config --dep-includes)'
-			  ],
+              '<!@(mapnik-config --includes)',
+              '<!@(mapnik-config --dep-includes)'
+              ],
             'defines': ['<!@(mapnik-config --defines)'],
             'libraries': [
-			  '<!@(mapnik-config --libs)',
-			  '<!@(mapnik-config --dep-libs)'],
+              '<!@(mapnik-config --libs)',
+              '<!@(mapnik-config --dep-libs)'],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
             'VCCLCompilerTool': {
