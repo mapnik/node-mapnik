@@ -14,17 +14,12 @@ ifeq ($(NPROCS),)
 	endif
 endif
 
-gyp:
-	python gen_settings.py
-	python gyp/gyp build.gyp --depth=. -f make --generator-output=./projects/makefiles
-	make -j$(NPROCS) -C ./projects/makefiles/ V=1
-	cp projects/makefiles/out/Default/_mapnik.node lib/_mapnik.node
-
 mapnik.node:
-	PATH=node_modules/.bin/:${PATH} node-gyp build
+	`npm explore npm -g -- pwd`/bin/node-gyp-bin/node-gyp build
 
 clean:
-	@rm -rf ./projects/makefiles/
+	@rm -rf ./build
+	rm -f lib/_mapnik.node
 
 
 rebuild:
@@ -57,4 +52,4 @@ lint:
 	@./node_modules/.bin/jshint lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
 
 
-.PHONY: test lint fix gyp
+.PHONY: test lint fix
