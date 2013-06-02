@@ -848,11 +848,12 @@ typedef struct {
     uv_work_t request;
     Map *m;
     std::string stylesheet;
+    std::string base_path;
     bool strict;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} load_image_baton_t;
+} load_xml_baton_t;
 
 
 Handle<Value> Map::load(const Arguments& args)
@@ -895,8 +896,19 @@ Handle<Value> Map::load(const Arguments& args)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    load_image_baton_t *closure = new load_image_baton_t();
+    load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
+
+    param = String::New("base");
+    if (options->Has(param))
+    {
+        Local<Value> param_val = options->Get(param);
+        if (!param_val->IsString())
+            return ThrowException(Exception::TypeError(
+                                      String::New("'base' must be a string representing a filesystem path")));
+        closure->base_path = TOSTR(param_val);
+    }
+
     closure->stylesheet = TOSTR(stylesheet);
     closure->m = m;
     closure->strict = strict;
@@ -909,11 +921,16 @@ Handle<Value> Map::load(const Arguments& args)
 
 void Map::EIO_Load(uv_work_t* req)
 {
-    load_image_baton_t *closure = static_cast<load_image_baton_t *>(req->data);
+    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     try
     {
+#if MAPNIK_VERSION >= 200200
+        mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_path);
+#else
         mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict);
+#endif
+
     }
     catch (std::exception const& ex)
     {
@@ -926,7 +943,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
 {
     HandleScope scope;
 
-    load_image_baton_t *closure = static_cast<load_image_baton_t *>(req->data);
+    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     TryCatch try_catch;
 
@@ -959,6 +976,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
     std::string stylesheet = TOSTR(args[0]);
     bool strict = false;
+    std::string base_path;
 
     if (args.Length() > 2)
     {
@@ -984,11 +1002,25 @@ Handle<Value> Map::loadSync(const Arguments& args)
                                           String::New("'strict' must be a Boolean")));
             strict = param_val->BooleanValue();
         }
+
+        param = String::New("base");
+        if (options->Has(param))
+        {
+            Local<Value> param_val = options->Get(param);
+            if (!param_val->IsString())
+                return ThrowException(Exception::TypeError(
+                                          String::New("'base' must be a string representing a filesystem path")));
+            base_path = TOSTR(param_val);
+        }
     }
 
     try
     {
+#if MAPNIK_VERSION >= 200200
+        mapnik::load_map(*m->map_,stylesheet,strict,base_path);
+#else
         mapnik::load_map(*m->map_,stylesheet,strict);
+#endif
     }
     catch (std::exception const& ex)
     {
@@ -1062,18 +1094,6 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     return Undefined();
 }
 
-typedef struct {
-    uv_work_t request;
-    Map *m;
-    std::string stylesheet;
-    std::string base_url;
-    bool strict;
-    bool error;
-    std::string error_name;
-    Persistent<Function> cb;
-} load_string_image_baton_t;
-
-
 Handle<Value> Map::fromString(const Arguments& args)
 {
     HandleScope scope;
@@ -1114,7 +1134,7 @@ Handle<Value> Map::fromString(const Arguments& args)
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
 
-    load_string_image_baton_t *closure = new load_string_image_baton_t();
+    load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
     param = String::New("base");
@@ -1124,7 +1144,7 @@ Handle<Value> Map::fromString(const Arguments& args)
         if (!param_val->IsString())
             return ThrowException(Exception::TypeError(
                                       String::New("'base' must be a string representing a filesystem path")));
-        closure->base_url = TOSTR(param_val);
+        closure->base_path = TOSTR(param_val);
     }
 
     closure->stylesheet = TOSTR(stylesheet);
@@ -1139,11 +1159,11 @@ Handle<Value> Map::fromString(const Arguments& args)
 
 void Map::EIO_FromString(uv_work_t* req)
 {
-    load_string_image_baton_t *closure = static_cast<load_string_image_baton_t *>(req->data);
+    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     try
     {
-        mapnik::load_map_string(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_url);
+        mapnik::load_map_string(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_path);
     }
     catch (std::exception const& ex)
     {
@@ -1156,7 +1176,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
 {
     HandleScope scope;
 
-    load_string_image_baton_t *closure = static_cast<load_string_image_baton_t *>(req->data);
+    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     TryCatch try_catch;
 
