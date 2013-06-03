@@ -13,12 +13,15 @@ describe('Handling unicode paths, filenames, and data', function(){
     // beware: folder storage can get messed up
     // https://github.com/mapnik/node-mapnik/issues/142
 
+    /*
+    // not a valid test due to https://github.com/mapbox/tilemill/issues/1870
     it('register font file with unicode directory and name', function(){
         var filepath = './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf';
         assert.ok(existsSync(filepath));
         mapnik.register_fonts(filepath);
         assert.deepEqual(mapnik.fontFiles()['DejaVu Sans Mono Bold Oblique'],filepath);
     });
+    */
 
     it('render a map with unicode markers', function(done){
         var filepath = './test/data/ünicode_symbols.xml';
