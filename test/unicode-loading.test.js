@@ -16,9 +16,8 @@ describe('Handling unicode paths, filenames, and data', function(){
     it('register font file with unicode directory and name', function(){
         var filepath = './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf';
         assert.ok(existsSync(filepath));
-        assert.ok(mapnik.register_fonts(filepath));
-        var expected = { 'DejaVu Sans Mono Bold Oblique': './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf' };
-        assert.deepEqual(mapnik.fontFiles(),expected);
+        mapnik.register_fonts(filepath);
+        assert.deepEqual(mapnik.fontFiles()['DejaVu Sans Mono Bold Oblique'],filepath);
     });
 
     it('render a map with unicode markers', function(done){
