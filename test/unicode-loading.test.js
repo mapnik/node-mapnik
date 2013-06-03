@@ -49,8 +49,8 @@ describe('Handling unicode paths, filenames, and data', function(){
         assert.ok(true);
     });
 
-    it('open csv file with unicode name in XML', function(){
-        var filepath = './test/data/avlee-区县级行政区划.csv';
+    it('open csv file with abs path and unicode name in XML', function(){
+        var filepath = path.join(path.dirname(__dirname),'test/data/avlee-区县级行政区划.csv');
         assert.ok(existsSync(filepath));
         var map_string = map_pre;
         map_string += map_param.replace('{{{key}}}','type').replace('{{{value}}}','csv');
@@ -60,6 +60,22 @@ describe('Handling unicode paths, filenames, and data', function(){
         map.fromStringSync(map_string,{base:path.dirname(__dirname)})
         fs.writeFileSync('/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
         map.loadSync('/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
+        assert.ok(true);
+    });
+
+    it('open csv file with unicode directory name in XML', function(){
+        var filepath = './test/data/dir-区县级行政区划/points.csv';
+        assert.ok(existsSync(filepath));
+        var map_string = map_pre;
+        map_string += map_param.replace('{{{key}}}','type').replace('{{{value}}}','csv');
+        map_string += map_param.replace('{{{key}}}','file').replace('{{{value}}}',filepath);
+        map_string += map_post;
+        var map = new mapnik.Map(256,256);
+        map.fromStringSync(map_string,{base:path.dirname(__dirname)})
+        var xml_path = '/tmp/mapnik-tmp-map-load'+'区县级行政区划' +'.xml';
+		fs.writeFileSync(xml_path,map_string,'utf-8')
+		assert.ok(existsSync(xml_path));
+        map.loadSync(xml_path,{base:path.dirname(__dirname)})
         assert.ok(true);
     });
 
