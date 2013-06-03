@@ -10,23 +10,34 @@ var map_post = '\n    </Datasource>\n  </Layer>\n</Map>'
 
 describe('Handling unicode paths, filenames, and data', function(){
 
-    /* folder storage in git is messed up - comment for now */
+    // beware: folder storage can get messed up
     // https://github.com/mapnik/node-mapnik/issues/142
-    /*
-    it('open csv from folder with unicode', function(){
-        var filepath = './test/data/Clément/foo.csv';
+
+    it('register font file with unicode directory and name', function(){
+        var filepath = './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf';
         assert.ok(existsSync(filepath));
-        var ds = new mapnik.Datasource({type:'csv',file:filepath});
-        assert.ok(ds); 
+        assert.ok(mapnik.register_fonts(filepath));
+        var expected = { 'DejaVu Sans Mono Bold Oblique': './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf' };
+        assert.deepEqual(mapnik.fontFiles(),expected);
     });
 
-    it('open shape from folder with unicode', function(){
-        var filepath = './test/data/Clément/long_lat.shp';
+    it('render a map with unicode markers', function(done){
+        var filepath = './test/data/ünicode_symbols.xml';
         assert.ok(existsSync(filepath));
-        var ds = new mapnik.Datasource({type:'shape',file:filepath});
-        assert.ok(ds); 
+        var svg = './test/data/dir-区县级行政区划/你好-ellipses.svg';
+        assert.ok(existsSync(svg));
+        var map = new mapnik.Map(256,256);
+        map.load(filepath,function(err,map) {
+            if (err) throw err;
+            var im = new mapnik.Image(256,256);
+            map.zoomAll();
+            map.render(im,function(err,im) {
+                assert.ok(im);
+                //im.save('test.png')
+                done();
+            });
+        });
     });
-    */
 
     it('open csv file with unicode name', function(){
         var filepath = './test/data/你好_points.csv';
