@@ -1,9 +1,7 @@
-set PROJ_LIB=C:\dev2\proj\nad
-set GDAL_DATA=C:\dev2\gdal\data
+set PROJ_LIB=C:\mapnik-v2.2.0\share\proj
+set GDAL_DATA=C:\mapnik-v2.2.0\share\gdal
 rd /q /s build
 del lib\\_mapnik.node
 npm install
-rem test!
 set NODE_PATH=lib
-mocha
-@rem node -e "console.log(require('mapnik'))"
+npm test
