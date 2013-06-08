@@ -47,7 +47,9 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "setData", setData);
     NODE_SET_PROTOTYPE_METHOD(constructor, "setDataSync", setDataSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getData", getData);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
 #ifdef PROTOBUF_FULL
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
 #endif
@@ -114,6 +116,20 @@ Handle<Value> VectorTile::toString(const Arguments& args)
 }
 #endif
 
+Handle<Value> VectorTile::names(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+    Local<Array> arr = Array::New(tiledata.layers_size());
+    for (int i=0; i < tiledata.layers_size(); ++i)
+    {
+        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+        arr->Set(i, String::New(layer.name().c_str()));
+    }
+    return scope.Close(arr);
+}
+
 Handle<Value> VectorTile::width(const Arguments& args)
 {
     HandleScope scope;
@@ -167,7 +183,6 @@ Handle<Value> VectorTile::toJSON(const Arguments& args)
             {
                 std::size_t key_name = f.tags(m);
                 std::size_t key_value = f.tags(m + 1);
-
                 if (key_name < static_cast<std::size_t>(layer.keys_size())
                     && key_value < static_cast<std::size_t>(layer.values_size()))
                 {
@@ -215,6 +230,266 @@ Handle<Value> VectorTile::toJSON(const Arguments& args)
         arr->Set(i, layer_obj);
     }
     return scope.Close(arr);
+}
+
+static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
+                             Local<Object> layer_obj,
+                             unsigned x,
+                             unsigned y,
+                             unsigned z,
+                             unsigned width)
+{
+    layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
+    layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+    // TODO bbox/crs
+    Local<Array> f_arr = Array::New(layer.features_size());
+    layer_obj->Set(String::NewSymbol("features"), f_arr);
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(merc,wgs84);
+    double zc = 0;
+    for (int j=0; j < layer.features_size(); ++j)
+    {
+        Local<Object> feature_obj = Object::New();
+        feature_obj->Set(String::NewSymbol("type"),String::New("Feature"));
+        /*mapnik::vector::tile_datasource ds(layer,
+                                          d->x_,
+                                          d->y_,
+                                          d->z_,
+                                          d->width_);
+        mapnik::query q(ds.envelope());
+        mapnik::featureset_ptr fs = ds.features(q);
+        mapnik::vector::tile_feature const& f = layer.features(j);
+        mapnik::feature_ptr feature;
+        while ((feature = features->next()))
+        {
+        }
+        */
+        double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
+        double tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
+        double tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
+        double scale_ = (static_cast<double>(layer.extent()) / width) * width/resolution;
+        Local<Object> geometry = Object::New();
+        mapnik::vector::tile_feature const& f = layer.features(j);
+        unsigned int g_type = f.type();
+        Local<String> js_type = String::New("Unknown");
+        switch (g_type)
+        {
+        case mapnik::datasource::Point:
+        {
+            js_type = String::New("Point");
+            break;
+        }
+        case mapnik::datasource::LineString:
+        {
+            js_type = String::New("LineString");
+            break;
+        }
+        case mapnik::datasource::Polygon:
+        {
+            js_type = String::New("Polygon");
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+        geometry->Set(String::NewSymbol("type"),js_type);
+        Local<Array> g_arr = Array::New();
+        geometry->Set(String::NewSymbol("coordinates"),g_arr);
+        int cmd = -1;
+        const int cmd_bits = 3;
+        unsigned length = 0;
+        double x = tile_x_, y = tile_y_;
+        unsigned idx = 0;
+        for (int k = 0; k < f.geometry_size();)
+        {
+            if (!length) {
+                unsigned cmd_length = f.geometry(k++);
+                cmd = cmd_length & ((1 << cmd_bits) - 1);
+                length = cmd_length >> cmd_bits;
+            }
+            if (length > 0) {
+                length--;
+                if (cmd == mapnik::SEG_MOVETO || cmd == mapnik::SEG_LINETO)
+                {
+                    int32_t dx = f.geometry(k++);
+                    int32_t dy = f.geometry(k++);
+                    dx = ((dx >> 1) ^ (-(dx & 1)));
+                    dy = ((dy >> 1) ^ (-(dy & 1)));
+                    x += (double)dx / scale_;
+                    y -= (double)dy / scale_;
+                    double x1 = x;
+                    double y1 = y;
+                    if (tr.forward(x1,y1,zc)) {
+                        Local<Array> v_arr = Array::New(2);
+                        v_arr->Set(0,Number::New(x1));
+                        v_arr->Set(1,Number::New(y1));
+                        g_arr->Set(idx++,v_arr);
+                    } else {
+                        std::clog << "could not project\n";
+                    }
+                }
+                else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
+                {
+                    g_arr->Set(idx++,Local<Array>::Cast(g_arr->Get(0)));
+                }
+                else
+                {
+                    throw std::runtime_error("Unknown command type");
+                }
+            }
+        }
+        feature_obj->Set(String::NewSymbol("geometry"),geometry);
+        Local<Object> att_obj = Object::New();
+        for (int m = 0; m < f.tags_size(); m += 2)
+        {
+            std::size_t key_name = f.tags(m);
+            std::size_t key_value = f.tags(m + 1);
+    
+            if (key_name < static_cast<std::size_t>(layer.keys_size())
+                && key_value < static_cast<std::size_t>(layer.values_size()))
+            {
+                std::string const& name = layer.keys(key_name);
+                mapnik::vector::tile_value const& value = layer.values(key_value);
+                if (value.has_string_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), String::New(value.string_value().c_str()));
+                }
+                else if (value.has_int_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Number::New(value.int_value()));
+                }
+                else if (value.has_double_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Number::New(value.double_value()));
+                }
+                else if (value.has_float_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Number::New(value.float_value()));
+                }
+                else if (value.has_bool_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Boolean::New(value.bool_value()));
+                }
+                else if (value.has_sint_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Number::New(value.sint_value()));
+                }
+                else if (value.has_uint_value())
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Number::New(value.uint_value()));
+                }
+                else
+                {
+                    att_obj->Set(String::NewSymbol(name.c_str()), Undefined());
+                }
+            }
+            feature_obj->Set(String::NewSymbol("properties"),att_obj);
+        }
+        f_arr->Set(j,feature_obj);
+    }
+}
+
+Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 1)
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be either a layer name (string) or layer index (integer)")));
+    Local<Value> layer_id = args[0];
+    if (! (layer_id->IsString() || layer_id->IsNumber()) )
+        return ThrowException(Exception::TypeError(
+                                  String::New("'layer' argument must be either a layer name (string) or layer index (integer)")));
+
+    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+    std::size_t layer_num = tiledata.layers_size();
+    int layer_idx = -1;
+    bool all = false;
+
+    if (layer_id->IsString()) {
+        std::string layer_name = TOSTR(layer_id);
+        if (layer_name == "__all__")
+        {
+            all = true;
+        }
+        else
+        {
+            bool found = false;
+            unsigned int idx(0);
+            for (unsigned i=0; i < layer_num; ++i)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                if (layer.name() == layer_name)
+                {
+                    found = true;
+                    layer_idx = idx;
+                    break;
+                }
+                ++idx;
+            }
+            if (!found)
+            {
+                std::ostringstream s;
+                s << "Layer name '" << layer_name << "' not found";
+                return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+            }
+        }
+    }
+    else if (layer_id->IsNumber())
+    {
+        layer_idx = layer_id->IntegerValue();
+        if (layer_idx < 0) {
+            std::ostringstream s;
+            s << "Zero-based layer index '" << layer_idx << "' not valid"
+              << " must be a positive integer";
+            if (layer_num > 0)
+            {
+                s << "only '" << layer_num << "' layers exist in map";
+            }
+            else
+            {
+                s << "no layers found in map";
+            }
+            return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+        } else if (layer_idx >= static_cast<int>(layer_num)) {
+            std::ostringstream s;
+            s << "Zero-based layer index '" << layer_idx << "' not valid, ";
+            if (layer_num > 0)
+            {
+                s << "only '" << layer_num << "' layers exist in map";
+            }
+            else
+            {
+                s << "no layers found in map";
+            }
+            return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+        }
+    } else {
+        return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
+    }
+
+    if (all)
+    {
+        Local<Array> full_arr = Array::New(layer_num);
+        for (unsigned i=0;i<layer_num;++i)
+        {
+            Local<Object> layer_obj = Object::New();
+            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            layer_to_geojson(layer,layer_obj,d->x_,d->y_,d->z_,d->width_);
+            full_arr->Set(i,layer_obj);
+        }
+        return scope.Close(full_arr);
+    }
+    else
+    {
+        Local<Object> layer_obj = Object::New();
+        mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
+        layer_to_geojson(layer,layer_obj,d->x_,d->y_,d->z_,d->width_);
+        return scope.Close(layer_obj);
+    }
 }
 
 Handle<Value> VectorTile::setDataSync(const Arguments& args)
