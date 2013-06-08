@@ -579,7 +579,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
                       << " must be a positive integer";
                     if (layer_num > 0)
                     {
-                        s << "only '" << layers.size() << "' layers exist in map";
+                        s << "only '" << layer_num << "' layers exist in map";
                     }
                     else
                     {
@@ -591,7 +591,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
                     if (layer_num > 0)
                     {
-                        s << "only '" << layers.size() << "' layers exist in map";
+                        s << "only '" << layer_num << "' layers exist in map";
                     }
                     else
                     {
@@ -1442,7 +1442,7 @@ Handle<Value> Map::render(const Arguments& args)
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
                     if (layer_num > 0)
                     {
-                        s << "only '" << layers.size() << "' layers exist in map";
+                        s << "only '" << layer_num << "' layers exist in map";
                     }
                     else
                     {
