@@ -1,6 +1,8 @@
 # Changlog
 
 ## 1.0.0
+ - Dropped support for Mapnik versions older than v2.2.0
+ - Moved build system to node-gyp - now supports node v0.10.x
  - Fonts are not longer auto-registered. Call `mapnik.register_default_fonts()` to register "DejaVu" set
    that is often bundled by Mapnik and call `mapnik.register_system_fonts()` to register fonts are various
    known system paths.
