@@ -4,6 +4,7 @@
  - Fonts are not longer auto-registered. Call `mapnik.register_default_fonts()` to register "DejaVu" set
    that is often bundled by Mapnik and call `mapnik.register_system_fonts()` to register fonts are various
    known system paths.
+ - New mapnik.VectorTile API
 
 ## 0.7.22
 

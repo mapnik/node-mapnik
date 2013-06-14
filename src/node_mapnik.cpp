@@ -6,6 +6,7 @@
 #include <node_version.h>
 
 // node-mapnik
+#include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_geometry.hpp"
@@ -92,6 +93,7 @@ static Handle<Value> clearCache(const Arguments& args)
 static Handle<Value> shutdown(const Arguments& args)
 {
     HandleScope scope;
+    google::protobuf::ShutdownProtobufLibrary();
 #ifdef MAPNIK_DEBUG
     // http://lists.fedoraproject.org/pipermail/devel/2010-January/129117.html
     xmlCleanupParser();
@@ -103,6 +105,7 @@ extern "C" {
 
     static void InitMapnik (Handle<Object> target)
     {
+        GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
@@ -115,6 +118,7 @@ extern "C" {
         NODE_SET_METHOD(target, "shutdown",shutdown);
 
         // Classes
+        VectorTile::Initialize(target);
         Map::Initialize(target);
         Color::Initialize(target);
         Geometry::Initialize(target);

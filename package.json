@@ -29,9 +29,13 @@
         "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
       }
   ],
+  "dependencies"  : {
+      "mapnik-vector-tile": "~0.0.4"
+  },
   "devDependencies": {
       "mocha": "*",
-      "jshint"  : "~0.5.x"
+      "jshint"  : "~0.5.x",
+      "sphericalmercator":"*"
    },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
