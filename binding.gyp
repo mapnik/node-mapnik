@@ -33,18 +33,19 @@
           }
       },
       'include_dirs': [
+          './node_modules/mapnik-vector-tile/src/',
           './src'
       ],
       'conditions': [
         ['OS=="win"', {
             'include_dirs':[
-			  '<!@(mapnik-config --includes)',
-			  '<!@(mapnik-config --dep-includes)'
-			  ],
+              '<!@(mapnik-config --includes)',
+              '<!@(mapnik-config --dep-includes)'
+              ],
             'defines': ['<!@(mapnik-config --defines)'],
             'libraries': [
-			  '<!@(mapnik-config --libs)',
-			  '<!@(mapnik-config --dep-libs)'],
+              '<!@(mapnik-config --libs)',
+              '<!@(mapnik-config --dep-libs)'],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
             'VCCLCompilerTool': {
@@ -68,10 +69,13 @@
         ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="netbsd" or OS=="mac"', {
           'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
           'cflags_cc' : [
-              '<!@(mapnik-config --cflags)'
+              '<!@(mapnik-config --cflags)',
+              '<!@(pkg-config protobuf --cflags)'
           ],
           'libraries':[
-            '<!@(mapnik-config --libs)' # will bring in -lmapnik and the -L to point to it
+            '<!@(mapnik-config --libs)', # will bring in -lmapnik and the -L to point to it
+            '<!@(pkg-config protobuf --libs-only-L)',
+            '-lprotobuf-lite'
           ]
         }]
       ]
@@ -97,7 +101,9 @@
                    "src/mapnik_datasource.cpp",
                    "src/mapnik_featureset.cpp",
                    "src/mapnik_expression.cpp",
-                   "src/mapnik_query.cpp"
+                   "src/mapnik_query.cpp",
+                   "src/mapnik_vector_tile.cpp",
+                   "node_modules/mapnik-vector-tile/src/vector_tile.pb.cc"
       ],
       # this has to be per target to correctly
       # override node-gyp defaults
