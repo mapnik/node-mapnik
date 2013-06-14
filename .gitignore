@@ -2,7 +2,6 @@ archive
 build
 .svn
 .notes.txt
-.lock-wscript
 .DS_Store
 npm-debug.log
 lib/_mapnik.node
