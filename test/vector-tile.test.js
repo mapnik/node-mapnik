@@ -90,6 +90,17 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should error out if we pass invalid data to setData', function(done) {
+        var dt = new mapnik.VectorTile(0,0,0);
+        assert.throws(function() { dt.setData('foo'); }); // first arg must be a buffer object
+        assert.equal(dt.setData(new Buffer('foo')),false);
+        dt.setData(new Buffer('foo'),function(err,success) {
+            assert.equal(err,undefined);
+            assert.equal(success,false);
+            done();
+        })
+    });
+
     it('should be able to set data (async)', function(done) {
         var dt = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
