@@ -107,15 +107,25 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should be able to get tile info as json', function(done) {
+    it('should be able to get tile info as JSON', function(done) {
         var dt = new mapnik.VectorTile(9,112,195);
         dt.setData(new Buffer(_data,"hex"));
         assert.deepEqual(dt.names(),['world'])
         var expected = [{"name":"world","extent":4096,"version":2,"features":[{"id":207,"type":3,"geometry":[9,0,0,26,0,8190,8190,0,0,8189,15],"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]}];
         assert.deepEqual(dt.toJSON(),expected)
-        var expected_geojson = {"type":"FeatureCollection","name":"world","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[-101.25,39.36827914916011],[-101.25,38.82272471585834],[-100.54704666137694,38.82272471585834],[-100.54704666137694,39.36827914916011],[-101.25,39.36827914916011]]},"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]};
+        done();
+    });
+
+    it('should be able to get tile info as various flavors of GeoJSON', function(done) {
+        var dt = new mapnik.VectorTile(9,112,195);
+        dt.setData(new Buffer(_data,"hex"));
+        var expected_geojson = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-101.25,39.36827914916011],[-101.25,38.82272471585834],[-100.54704666137694,38.82272471585834],[-100.54704666137694,39.36827914916011],[-101.25,39.36827914916011]]]},"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]};
+        var expected_copy = JSON.parse(JSON.stringify(expected_geojson));
+        expected_geojson.name = "world";
         assert.deepEqual(dt.toGeoJSON(0),expected_geojson)
         assert.deepEqual(dt.toGeoJSON(0),dt.toGeoJSON('world'))
+        assert.deepEqual(dt.toGeoJSON('__all__'),expected_copy)
+        assert.deepEqual(dt.toGeoJSON('__array__'),[expected_geojson])
         done();
     });
 

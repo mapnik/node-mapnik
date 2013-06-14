@@ -233,42 +233,25 @@ Handle<Value> VectorTile::toJSON(const Arguments& args)
 }
 
 static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
-                             Local<Object> layer_obj,
+                             Local<Array> f_arr,
                              unsigned x,
                              unsigned y,
                              unsigned z,
-                             unsigned width)
+                             unsigned width,
+                             unsigned idx0)
 {
-    layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
-    layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
-    // TODO bbox/crs
-    Local<Array> f_arr = Array::New(layer.features_size());
-    layer_obj->Set(String::NewSymbol("features"), f_arr);
     mapnik::projection wgs84("+init=epsg:4326");
     mapnik::projection merc("+init=epsg:3857");
     mapnik::proj_transform tr(merc,wgs84);
     double zc = 0;
+    double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
+    double tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
+    double tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     for (int j=0; j < layer.features_size(); ++j)
     {
+        double scale_ = (static_cast<double>(layer.extent()) / width) * width/resolution;
         Local<Object> feature_obj = Object::New();
         feature_obj->Set(String::NewSymbol("type"),String::New("Feature"));
-        /*mapnik::vector::tile_datasource ds(layer,
-                                          d->x_,
-                                          d->y_,
-                                          d->z_,
-                                          d->width_);
-        mapnik::query q(ds.envelope());
-        mapnik::featureset_ptr fs = ds.features(q);
-        mapnik::vector::tile_feature const& f = layer.features(j);
-        mapnik::feature_ptr feature;
-        while ((feature = features->next()))
-        {
-        }
-        */
-        double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
-        double tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
-        double tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
-        double scale_ = (static_cast<double>(layer.extent()) / width) * width/resolution;
         Local<Object> geometry = Object::New();
         mapnik::vector::tile_feature const& f = layer.features(j);
         unsigned int g_type = f.type();
@@ -297,7 +280,16 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         }
         geometry->Set(String::NewSymbol("type"),js_type);
         Local<Array> g_arr = Array::New();
-        geometry->Set(String::NewSymbol("coordinates"),g_arr);
+        if (g_type == mapnik::datasource::Polygon)
+        {
+            Local<Array> enclosing_array = Array::New(1);
+            enclosing_array->Set(0,g_arr);
+            geometry->Set(String::NewSymbol("coordinates"),enclosing_array);
+        }
+        else
+        {
+            geometry->Set(String::NewSymbol("coordinates"),g_arr);
+        }
         int cmd = -1;
         const int cmd_bits = 3;
         unsigned length = 0;
@@ -322,18 +314,29 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     y -= (double)dy / scale_;
                     double x1 = x;
                     double y1 = y;
-                    if (tr.forward(x1,y1,zc)) {
-                        Local<Array> v_arr = Array::New(2);
-                        v_arr->Set(0,Number::New(x1));
-                        v_arr->Set(1,Number::New(y1));
-                        g_arr->Set(idx++,v_arr);
-                    } else {
+                    if (tr.forward(x1,y1,zc))
+                    {
+                        if (g_type == mapnik::datasource::Point)
+                        {
+                            g_arr->Set(0,Number::New(x1));
+                            g_arr->Set(1,Number::New(y1));
+                        }
+                        else
+                        {
+                            Local<Array> v_arr = Array::New(2);
+                            v_arr->Set(0,Number::New(x1));
+                            v_arr->Set(1,Number::New(y1));
+                            g_arr->Set(idx++,v_arr);
+                        }
+                    }
+                    else
+                    {
                         std::clog << "could not project\n";
                     }
                 }
                 else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
                 {
-                    g_arr->Set(idx++,Local<Array>::Cast(g_arr->Get(0)));
+                    if (g_arr->Length() > 0) g_arr->Set(idx++,Local<Array>::Cast(g_arr->Get(0)));
                 }
                 else
                 {
@@ -386,9 +389,9 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     att_obj->Set(String::NewSymbol(name.c_str()), Undefined());
                 }
             }
-            feature_obj->Set(String::NewSymbol("properties"),att_obj);
         }
-        f_arr->Set(j,feature_obj);
+        feature_obj->Set(String::NewSymbol("properties"),att_obj);
+        f_arr->Set(j+idx0,feature_obj);
     }
 }
 
@@ -407,13 +410,18 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
     mapnik::vector::tile const& tiledata = d->get_tile();
     std::size_t layer_num = tiledata.layers_size();
     int layer_idx = -1;
-    bool all = false;
+    bool all_array = false;
+    bool all_flattened = false;
 
     if (layer_id->IsString()) {
         std::string layer_name = TOSTR(layer_id);
-        if (layer_name == "__all__")
+        if (layer_name == "__array__")
         {
-            all = true;
+            all_array = true;
+        }
+        else if (layer_name == "__all__")
+        {
+            all_flattened = true;
         }
         else
         {
@@ -471,24 +479,44 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
         return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
     }
 
-    if (all)
+    if (all_array)
     {
-        Local<Array> full_arr = Array::New(layer_num);
+        Local<Array> layer_arr = Array::New(layer_num);
         for (unsigned i=0;i<layer_num;++i)
         {
             Local<Object> layer_obj = Object::New();
+            layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
+            Local<Array> f_arr = Array::New();
+            layer_obj->Set(String::NewSymbol("features"), f_arr);
             mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-            layer_to_geojson(layer,layer_obj,d->x_,d->y_,d->z_,d->width_);
-            full_arr->Set(i,layer_obj);
+            layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+            layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
+            layer_arr->Set(i,layer_obj);
         }
-        return scope.Close(full_arr);
+        return scope.Close(layer_arr);
     }
     else
     {
         Local<Object> layer_obj = Object::New();
-        mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
-        layer_to_geojson(layer,layer_obj,d->x_,d->y_,d->z_,d->width_);
-        return scope.Close(layer_obj);
+        layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
+        Local<Array> f_arr = Array::New();
+        layer_obj->Set(String::NewSymbol("features"), f_arr);
+        if (all_flattened)
+        {
+            for (unsigned i=0;i<layer_num;++i)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,f_arr->Length());
+            }
+            return scope.Close(layer_obj);
+        }
+        else
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
+            layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+            layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
+            return scope.Close(layer_obj);
+        }
     }
 }
 
