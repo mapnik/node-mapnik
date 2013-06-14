@@ -107,7 +107,7 @@ describe('Handling unicode paths, filenames, and data', function(){
     });
 
 	it('open json with unicode name', function(){
-        var filepath = './test/data/你好_points.json';
+        var filepath = './test/data/你好_points.geojson';
         assert.ok(existsSync(filepath));
         var ds = new mapnik.Datasource({type:'geojson',file:filepath});
         assert.ok(ds);
