@@ -93,10 +93,10 @@ describe('mapnik.VectorTile ', function() {
     it('should error out if we pass invalid data to setData', function(done) {
         var dt = new mapnik.VectorTile(0,0,0);
         assert.throws(function() { dt.setData('foo'); }); // first arg must be a buffer object
-        assert.equal(dt.setData(new Buffer('foo')),false);
+        assert.throws(function() { dt.setData('foo',function(){}); }); // first arg must be a buffer object
+        assert.throws(function() { dt.setData(new Buffer('foo')) });
         dt.setData(new Buffer('foo'),function(err,success) {
-            assert.equal(err,undefined);
-            assert.equal(success,false);
+            assert.ok(err);
             done();
         })
     });
@@ -104,9 +104,8 @@ describe('mapnik.VectorTile ', function() {
     it('should be able to set data (async)', function(done) {
         var dt = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
-        dt.setData(data, function(err, success) {
+        dt.setData(data, function(err) {
             if (err) throw err;
-            assert.equal(success, true);
             assert.equal(dt.painted(), true);
             assert.equal(dt.isSolid(), "world");
             dt.isSolid(function(err, solid, key) {

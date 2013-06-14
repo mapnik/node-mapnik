@@ -533,12 +533,22 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New("first arg must be a buffer object")));
     mapnik::vector::tile & tiledata = d->get_tile_nonconst();
-    if (tiledata.ParseFromArray(node::Buffer::Data(obj), node::Buffer::Length(obj)))
+    unsigned proto_len = node::Buffer::Length(obj);
+    if (proto_len == 0)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("could not parse empty buffer as protobuf")));
+    }
+    if (tiledata.ParseFromArray(node::Buffer::Data(obj), proto_len))
     {
         d->painted(true);
-        return True();
     }
-    return False();
+    else
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("could not parse buffer as protobuf")));
+    }
+    return Undefined();
 }
 
 typedef struct {
@@ -549,7 +559,6 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-    bool result;
 } vector_tile_setdata_baton_t;
 
 Handle<Value> VectorTile::setData(const Arguments& args)
@@ -582,7 +591,6 @@ Handle<Value> VectorTile::setData(const Arguments& args)
     closure->data = node::Buffer::Data(obj);
     closure->dataLength = node::Buffer::Length(obj);
     closure->error = false;
-    closure->result = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
     d->Ref();
@@ -598,7 +606,18 @@ void VectorTile::EIO_SetData(uv_work_t* req)
         if (tiledata.ParseFromArray(closure->data, closure->dataLength))
         {
             closure->d->painted(true);
-            closure->result = true;
+        }
+        else
+        {
+            closure->error = true;
+            if (closure->dataLength == 0)
+            {
+                closure->error_name = "could not parse empty protobuf";
+            }
+            else
+            {
+                closure->error_name = "could not parse protobuf";
+            }
         }
     }
     catch (std::exception const& ex)
@@ -622,8 +641,8 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     }
     else
     {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(Boolean::New(closure->result)) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        Local<Value> argv[1] = { Local<Value>::New(Null()) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     }
 
     if (try_catch.HasCaught()) {
