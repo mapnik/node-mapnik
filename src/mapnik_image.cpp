@@ -61,7 +61,9 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_METHOD(constructor->GetFunction(),
                     "open",
                     Image::open);
-
+    NODE_SET_METHOD(constructor->GetFunction(),
+                    "fromBytes",
+                    Image::fromBytes);
     target->Set(String::NewSymbol("Image"),constructor->GetFunction());
 }
 
@@ -330,12 +332,18 @@ Handle<Value> Image::open(const Arguments& args)
 {
     HandleScope scope;
 
+    if (args.Length() < 1) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a string argument")));
+    }
+
     if (!args[0]->IsString()) {
         return ThrowException(Exception::TypeError(String::New(
                                                        "Argument must be a string")));
     }
 
-    try {
+    try
+    {
         std::string filename = TOSTR(args[0]);
         boost::optional<std::string> type = mapnik::type_from_filename(filename);
         if (type)
@@ -361,7 +369,45 @@ Handle<Value> Image::open(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
+}
 
+Handle<Value> Image::fromBytes(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() < 1) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a buffer argument")));
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined())
+        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a Buffer")));
+    if (!node::Buffer::HasInstance(obj)) {
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "first argument must be a buffer")));
+    }
+
+    try
+    {
+        std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
+        if (reader.get())
+        {
+            boost::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+            reader->read(0,0,image_ptr->data());
+            Image* im = new Image(image_ptr);
+            Handle<Value> ext = External::New(im);
+            Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
+            return scope.Close(obj);
+        }
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "Failed to load from buffer")));
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
 }
 
 Handle<Value> Image::encodeSync(const Arguments& args)

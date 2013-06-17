@@ -61,6 +61,29 @@ describe('mapnik.Image ', function() {
         assert.equal(im.encodeSync().length, im2.encodeSync().length);
     });
 
+    it('should be able to open via byte stream', function(done) {
+        var im = new mapnik.Image(256, 256);
+        // png
+        var filename = 'test/tmp/image2.png'
+        im.save(filename);
+        var buffer = fs.readFileSync(filename);
+        var im2 = new mapnik.Image.fromBytes(buffer);
+        assert.ok(im2 instanceof mapnik.Image);
+        assert.equal(im2.width(), 256);
+        assert.equal(im2.height(), 256);
+        assert.equal(im.encodeSync().length, im2.encodeSync().length);
+        // jpeg
+        var filename2 = 'test/tmp/image2.jpeg'
+        im.save(filename2);
+        var buffer = fs.readFileSync(filename);
+        var im3 = new mapnik.Image.fromBytes(buffer);
+        assert.ok(im3 instanceof mapnik.Image);
+        assert.equal(im3.width(), 256);
+        assert.equal(im3.height(), 256);
+        assert.equal(im.encodeSync().length, im3.encodeSync().length);
+        done();
+    });
+
     it('should not be painted after rendering', function(done) {
         var im_blank = new mapnik.Image(4, 4);
         assert.equal(im_blank.painted(), false);

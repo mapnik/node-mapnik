@@ -1,5 +1,9 @@
 # Changlog
 
+## Future
+
+ - Implemented mapnik.Image.fromBytes
+
 ## 1.0.0
  - Dropped support for Mapnik versions older than v2.2.0
  - Moved build system to node-gyp - now supports node v0.10.x

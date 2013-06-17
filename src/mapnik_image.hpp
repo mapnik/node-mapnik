@@ -27,6 +27,7 @@ public:
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> view(const Arguments &args);
     static Handle<Value> open(const Arguments &args);
+    static Handle<Value> fromBytes(const Arguments &args);
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> painted(const Arguments &args);
     static Handle<Value> composite(const Arguments &args);
