@@ -7,8 +7,8 @@ describe('mapnik.compositeOp', function() {
         // http://blog.mixu.net/2011/02/03/javascript-node-js-and-for-loops/
         (function(name) {
             it('should blend image correctly with op:' + name, function(done) {
-            var im1 = mapnik.Image.open('test/support/a.png');
-            im1.premultiply();
+                var im1 = mapnik.Image.open('test/support/a.png');
+                im1.premultiply();
                 var im2 = mapnik.Image.open('test/support/b.png');
                 im2.premultiply();
                 im2.composite(im1, mapnik.compositeOp[name], function(err,im_out) {
