@@ -50,7 +50,9 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "premultiplySync", premultiplySync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "premultiply", premultiply);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "demultiplySync", demultiplySync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clearSync", clear);
@@ -284,7 +286,16 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> Image::premultiply(const Arguments& args)
+typedef struct {
+    uv_work_t request;
+    Image* im;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} image_op_baton_t;
+
+
+Handle<Value> Image::premultiplySync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200100
@@ -294,7 +305,69 @@ Handle<Value> Image::premultiply(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> Image::demultiply(const Arguments& args)
+Handle<Value> Image::premultiply(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        return premultiplySync(args);
+    }
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_op_baton_t *closure = new image_op_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Premultiply, (uv_after_work_cb)EIO_AfterMultiply);
+    im->Ref();
+    return Undefined();
+}
+
+void Image::EIO_Premultiply(uv_work_t* req)
+{
+    image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
+
+    try
+    {
+        closure->im->get()->premultiply();
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterMultiply(uv_work_t* req)
+{
+    HandleScope scope;
+    image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->im->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> Image::demultiplySync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200100
@@ -302,6 +375,45 @@ Handle<Value> Image::demultiply(const Arguments& args)
     im->get()->demultiply();
 #endif
     return Undefined();
+}
+
+Handle<Value> Image::demultiply(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        return demultiplySync(args);
+    }
+    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_op_baton_t *closure = new image_op_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Demultiply, (uv_after_work_cb)EIO_AfterMultiply);
+    im->Ref();
+    return Undefined();
+}
+
+void Image::EIO_Demultiply(uv_work_t* req)
+{
+    image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
+
+    try
+    {
+        closure->im->get()->demultiply();
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
 }
 
 Handle<Value> Image::painted(const Arguments& args)

@@ -31,8 +31,13 @@ public:
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> painted(const Arguments &args);
     static Handle<Value> composite(const Arguments &args);
+    static Handle<Value> premultiplySync(const Arguments& args);
     static Handle<Value> premultiply(const Arguments& args);
+    static void EIO_Premultiply(uv_work_t* req);
+    static Handle<Value> demultiplySync(const Arguments& args);
     static Handle<Value> demultiply(const Arguments& args);
+    static void EIO_Demultiply(uv_work_t* req);
+    static void EIO_AfterMultiply(uv_work_t* req);
     static Handle<Value> clearSync(const Arguments& args);
     static Handle<Value> clear(const Arguments& args);
     static void EIO_Clear(uv_work_t* req);
