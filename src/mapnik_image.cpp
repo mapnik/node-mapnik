@@ -66,6 +66,12 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_METHOD(constructor->GetFunction(),
                     "fromBytes",
                     Image::fromBytes);
+    NODE_SET_METHOD(constructor->GetFunction(),
+                    "openSync",
+                    Image::openSync);
+    NODE_SET_METHOD(constructor->GetFunction(),
+                    "fromBytesSync",
+                    Image::fromBytesSync);
     target->Set(String::NewSymbol("Image"),constructor->GetFunction());
 }
 
@@ -440,7 +446,7 @@ Handle<Value> Image::height(const Arguments& args)
     return scope.Close(Integer::New(im->get()->height()));
 }
 
-Handle<Value> Image::open(const Arguments& args)
+Handle<Value> Image::openSync(const Arguments& args)
 {
     HandleScope scope;
 
@@ -483,7 +489,112 @@ Handle<Value> Image::open(const Arguments& args)
     }
 }
 
-Handle<Value> Image::fromBytes(const Arguments& args)
+typedef struct {
+    uv_work_t request;
+    image_ptr im;
+    const char *data;
+    size_t dataLength;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} image_ptr_baton_t;
+
+Handle<Value> Image::open(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() == 1) {
+        return openSync(args);
+    }
+
+    if (args.Length() < 2) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a string argument")));
+    }
+
+    if (!args[0]->IsString()) {
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "Argument must be a string")));
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_ptr_baton_t *closure = new image_ptr_baton_t();
+    closure->request.data = closure;
+    std::string filename = TOSTR(args[0]);
+    closure->data = filename.data();
+    closure->dataLength = filename.size();
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Open, (uv_after_work_cb)EIO_AfterOpen);
+    return Undefined();
+}
+
+void Image::EIO_Open(uv_work_t* req)
+{
+    image_ptr_baton_t *closure = static_cast<image_ptr_baton_t *>(req->data);
+
+    try
+    {
+        std::string filename(closure->data,closure->dataLength);
+        boost::optional<std::string> type = mapnik::type_from_filename(filename);
+        if (!type)
+        {
+            closure->error = true;
+            closure->error_name = "Unsupported image format: " + filename;
+        }
+        else
+        {
+            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            if (reader.get())
+            {
+                closure->im = boost::make_shared<mapnik::image_32>(reader->width(),reader->height());
+                reader->read(0,0,closure->im->data());
+            }
+            else
+            {
+                closure->error = true;
+                closure->error_name = "Failed to load: " + filename;
+            }
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterOpen(uv_work_t* req)
+{
+    HandleScope scope;
+    image_ptr_baton_t *closure = static_cast<image_ptr_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error || !closure->im)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im);
+        Handle<Value> ext = External::New(im);
+        Local<Object> image_obj = constructor->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(ObjectWrap::Unwrap<Image>(image_obj)->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> Image::fromBytesSync(const Arguments& args)
 {
     HandleScope scope;
 
@@ -521,6 +632,68 @@ Handle<Value> Image::fromBytes(const Arguments& args)
                                   String::New(ex.what())));
     }
 }
+
+Handle<Value> Image::fromBytes(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() == 1) {
+        return fromBytesSync(args);
+    }
+
+    if (args.Length() < 2) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a buffer argument")));
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined())
+        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a Buffer")));
+    if (!node::Buffer::HasInstance(obj)) {
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "first argument must be a buffer")));
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_ptr_baton_t *closure = new image_ptr_baton_t();
+    closure->request.data = closure;
+    closure->data = node::Buffer::Data(obj);
+    closure->dataLength = node::Buffer::Length(obj);
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterOpen);
+    return Undefined();
+}
+
+void Image::EIO_FromBytes(uv_work_t* req)
+{
+    image_ptr_baton_t *closure = static_cast<image_ptr_baton_t *>(req->data);
+
+    try
+    {
+        std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
+        if (reader.get())
+        {
+            closure->im = boost::make_shared<mapnik::image_32>(reader->width(),reader->height());
+            reader->read(0,0,closure->im->data());
+        }
+        else
+        {
+            closure->error = true;
+            closure->error_name = "Failed to load from buffer";
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
 
 Handle<Value> Image::encodeSync(const Arguments& args)
 {

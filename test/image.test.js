@@ -31,12 +31,12 @@ describe('mapnik.Image ', function() {
     });
 
     it('should throw with invalid binary read from buffer', function() {
-        assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0)); });
-        assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(1024)); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(0)); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
         var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + Array(48).join('\0'), 'binary');
-        assert.throws(function() { new mapnik.Image.fromBytes(buffer); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
         buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
-        assert.throws(function() { new mapnik.Image.fromBytes(buffer); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
     });
 
     it('should throw with invalid encoding format 3', function(done) {
@@ -76,7 +76,7 @@ describe('mapnik.Image ', function() {
         var filename = 'test/tmp/image2.png'
         im.save(filename);
         var buffer = fs.readFileSync(filename);
-        var im2 = new mapnik.Image.fromBytes(buffer);
+        var im2 = new mapnik.Image.fromBytesSync(buffer);
         assert.ok(im2 instanceof mapnik.Image);
         assert.equal(im2.width(), 256);
         assert.equal(im2.height(), 256);
@@ -85,13 +85,33 @@ describe('mapnik.Image ', function() {
         var filename2 = 'test/tmp/image2.jpeg'
         im.save(filename2);
         var buffer = fs.readFileSync(filename);
-        var im3 = new mapnik.Image.fromBytes(buffer);
+        var im3 = new mapnik.Image.fromBytesSync(buffer);
         assert.ok(im3 instanceof mapnik.Image);
         assert.equal(im3.width(), 256);
         assert.equal(im3.height(), 256);
         assert.equal(im.encodeSync().length, im3.encodeSync().length);
         done();
     });
+
+    it('should be initialized properly via async constructors', function(done) {
+        var im = new mapnik.Image(256, 256);
+        im.save('test/tmp/image2.png');
+
+        mapnik.Image.open('test/tmp/image.png',function(err,im2) {
+            assert.ok(im2 instanceof mapnik.Image);
+            assert.equal(im2.width(), 256);
+            assert.equal(im2.height(), 256);
+            assert.equal(im.encodeSync().length, im2.encodeSync().length);
+            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                assert.ok(im3 instanceof mapnik.Image);
+                assert.equal(im3.width(), 256);
+                assert.equal(im3.height(), 256);
+                assert.equal(im.encodeSync().length, im3.encodeSync().length);
+                done();
+            });
+        });
+    });
+
 
     it('should not be painted after rendering', function(done) {
         var im_blank = new mapnik.Image(4, 4);
