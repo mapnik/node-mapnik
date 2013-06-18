@@ -1027,7 +1027,7 @@ Handle<Value> Image::composite(const Arguments& args)
                 return ThrowException(Exception::TypeError(
                                           String::New("dy must be an integer")));
             }
-            dx = opt->IntegerValue();
+            dy = opt->IntegerValue();
         }
 
         if (options->Has(String::New("filters")))
