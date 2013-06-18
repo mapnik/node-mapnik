@@ -945,6 +945,8 @@ typedef struct {
     Image* im1;
     Image* im2;
     mapnik::composite_mode_e mode;
+    int dx;
+    int dy;
     float opacity;
     std::vector<mapnik::filter::filter_type> filters;
     bool error;
@@ -979,6 +981,8 @@ Handle<Value> Image::composite(const Arguments& args)
     mapnik::composite_mode_e mode = mapnik::src_over;
     float opacity = 1.0;
     std::vector<mapnik::filter::filter_type> filters;
+    int dx = 0;
+    int dy = 0;
     if (args.Length() >= 2) {
         if (!args[1]->IsObject())
             return ThrowException(Exception::TypeError(
@@ -1006,6 +1010,26 @@ Handle<Value> Image::composite(const Arguments& args)
             opacity = opt->NumberValue();
         }
 
+        if (options->Has(String::New("dx")))
+        {
+            Local<Value> opt = options->Get(String::New("dx"));
+            if (!opt->IsNumber()) {
+                return ThrowException(Exception::TypeError(
+                                          String::New("dx must be an integer")));
+            }
+            dx = opt->IntegerValue();
+        }
+
+        if (options->Has(String::New("dy")))
+        {
+            Local<Value> opt = options->Get(String::New("dy"));
+            if (!opt->IsNumber()) {
+                return ThrowException(Exception::TypeError(
+                                          String::New("dy must be an integer")));
+            }
+            dx = opt->IntegerValue();
+        }
+
         if (options->Has(String::New("filters")))
         {
             Local<Value> opt = options->Get(String::New("filters"));
@@ -1030,6 +1054,8 @@ Handle<Value> Image::composite(const Arguments& args)
     closure->mode = mode;
     closure->opacity = opacity;
     closure->filters = filters;
+    closure->dx = dx;
+    closure->dy = dy;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
@@ -1052,7 +1078,7 @@ void Image::EIO_Composite(uv_work_t* req)
                 boost::apply_visitor(visitor, filter_tag);
             }
         }
-        mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode, closure->opacity);
+        mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode, closure->opacity, closure->dx, closure->dy);
     }
     catch (std::exception const& ex)
     {
