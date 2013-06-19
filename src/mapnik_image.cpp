@@ -1030,19 +1030,19 @@ Handle<Value> Image::composite(const Arguments& args)
             dy = opt->IntegerValue();
         }
 
-        if (options->Has(String::New("filters")))
+        if (options->Has(String::New("image_filters")))
         {
-            Local<Value> opt = options->Get(String::New("filters"));
+            Local<Value> opt = options->Get(String::New("image_filters"));
             if (!opt->IsString()) {
                 return ThrowException(Exception::TypeError(
-                                          String::New("filters must string of image filter names")));
+                                          String::New("filters must string of image_filters")));
             }
             std::string filter_str = TOSTR(opt);
             bool result = mapnik::filter::parse_image_filters(filter_str, filters);
             if (!result)
             {
                 return ThrowException(Exception::TypeError(
-                                          String::New("could not parse filter names")));
+                                          String::New("could not parse image_filters")));
             }
         }
     }
