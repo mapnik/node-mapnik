@@ -600,7 +600,7 @@ Handle<Value> Image::fromBytesSync(const Arguments& args)
 {
     HandleScope scope;
 
-    if (args.Length() < 1) {
+    if (args.Length() < 1 || !args[0]->IsObject()) {
         return ThrowException(Exception::TypeError(
                                   String::New("must provide a buffer argument")));
     }
@@ -644,6 +644,11 @@ Handle<Value> Image::fromBytes(const Arguments& args)
     }
 
     if (args.Length() < 2) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a buffer argument")));
+    }
+
+    if (!args[0]->IsObject()) {
         return ThrowException(Exception::TypeError(
                                   String::New("must provide a buffer argument")));
     }
@@ -1035,7 +1040,7 @@ Handle<Value> Image::composite(const Arguments& args)
             Local<Value> opt = options->Get(String::New("image_filters"));
             if (!opt->IsString()) {
                 return ThrowException(Exception::TypeError(
-                                          String::New("filters must string of image_filters")));
+                                          String::New("image_filters argument must string of filter names")));
             }
             std::string filter_str = TOSTR(opt);
             bool result = mapnik::filter::parse_image_filters(filter_str, filters);
