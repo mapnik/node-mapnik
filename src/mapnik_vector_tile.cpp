@@ -1,5 +1,6 @@
 #include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD, etc
 #include <node_buffer.h>
+#include <node_version.h>
 
 #include "utils.hpp"
 #include "mapnik_map.hpp"
@@ -660,6 +661,15 @@ Handle<Value> VectorTile::getData(const Arguments& args)
     mapnik::vector::tile const& tiledata = d->get_tile();
     // TODO - cache bytesize?
     int size = tiledata.ByteSize();
+    #if NODE_VERSION_AT_LEAST(0, 11, 0)
+    Local<Object> retbuf = node::Buffer::New(size);
+    // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
+    // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
+    if (tiledata.SerializeToArray(node::Buffer::Data(retbuf),size))
+    {
+        return scope.Close(retbuf);
+    }
+    #else
     node::Buffer *retbuf = node::Buffer::New(size);
     // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
     // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
@@ -667,6 +677,7 @@ Handle<Value> VectorTile::getData(const Arguments& args)
     {
         return scope.Close(retbuf->handle_);
     }
+    #endif
     return Undefined();
 }
 

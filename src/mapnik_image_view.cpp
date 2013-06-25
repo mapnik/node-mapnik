@@ -5,6 +5,7 @@
 #include <v8.h>
 #include <uv.h>
 #include <node_buffer.h>
+#include <node_version.h>
 
 // mapnik
 #include <mapnik/color.hpp>             // for color
@@ -327,8 +328,11 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             s = save_to_string(image, format);
         }
 
-        node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
-        return scope.Close(retbuf->handle_);
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
+        #else
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
+        #endif
     }
     catch (std::exception const& ex)
     {
@@ -443,8 +447,11 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        node::Buffer *retbuf = node::Buffer::New((char*)closure->result.data(),closure->result.size());
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())) };
+        #else
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())->handle_) };
+        #endif
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 

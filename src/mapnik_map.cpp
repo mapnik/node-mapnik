@@ -14,6 +14,7 @@
 // node
 #include <node.h>
 #include <node_buffer.h>
+#include <node_version.h>
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
@@ -1961,8 +1962,11 @@ Handle<Value> Map::renderSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
-    return scope.Close(retbuf->handle_);
+    #if NODE_VERSION_AT_LEAST(0, 11, 0)
+    return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
+    #else
+    return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
+    #endif
 }
 
 Handle<Value> Map::renderFileSync(const Arguments& args)
