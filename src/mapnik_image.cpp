@@ -115,19 +115,27 @@ Handle<Value> Image::New(const Arguments& args)
         return args.This();
     }
 
-    if (args.Length() == 2)
+    try
     {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
+        if (args.Length() == 2)
+        {
+            if (!args[0]->IsNumber() || !args[1]->IsNumber())
+                return ThrowException(Exception::Error(
+                                          String::New("Image 'width' and 'height' must be a integers")));
+            Image* im = new Image(args[0]->IntegerValue(),args[1]->IntegerValue());
+            im->Wrap(args.This());
+            return args.This();
+        }
+        else
+        {
             return ThrowException(Exception::Error(
-                                      String::New("Image 'width' and 'height' must be a integers")));
-        Image* im = new Image(args[0]->IntegerValue(),args[1]->IntegerValue());
-        im->Wrap(args.This());
-        return args.This();
+                                      String::New("please provide Image width and height")));
+        }
     }
-    else
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
-                                  String::New("please provide Image width and height")));
+                                  String::New(ex.what())));
     }
     return Undefined();
 }
