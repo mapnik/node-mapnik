@@ -314,7 +314,7 @@ Handle<Value> Map::get_prop(Local<String> property,
         return scope.Close(arr);
     }
     else if(a == "bufferedExtent") {
-        boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
+        boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
         if (!e)
             return Undefined();
         Local<Array> arr = Array::New(4);
@@ -325,7 +325,7 @@ Handle<Value> Map::get_prop(Local<String> property,
         return scope.Close(arr);
     }
     else if(a == "maximumExtent") {
-        boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
+        boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
         if (!e)
             return Undefined();
         Local<Array> arr = Array::New(4);
