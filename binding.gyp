@@ -102,6 +102,7 @@
                    "src/mapnik_featureset.cpp",
                    "src/mapnik_expression.cpp",
                    "src/mapnik_query.cpp",
+                   "src/mapnik_cairo_surface.cpp",
                    "src/mapnik_vector_tile.cpp",
                    "node_modules/mapnik-vector-tile/src/vector_tile.pb.cc"
       ],

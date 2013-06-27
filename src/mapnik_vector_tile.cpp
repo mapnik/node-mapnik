@@ -6,6 +6,11 @@
 #include "mapnik_map.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
+#include "mapnik_cairo_surface.hpp"
+#ifdef SVG_RENDERER
+#include <mapnik/svg/output/svg_renderer.hpp>
+#endif
+
 #include "mapnik_datasource.hpp"
 
 #include "mapnik_vector_tile.hpp"
@@ -26,6 +31,14 @@
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
+
+#ifdef HAVE_CAIRO
+#include <mapnik/cairo_renderer.hpp>
+#include <cairo.h>
+#ifdef CAIRO_HAS_SVG_SURFACE
+#include <cairo-svg.h>
+#endif // CAIRO_HAS_SVG_SURFACE
+#endif
 
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -74,8 +87,7 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     tiledata_(),
     width_(w),
     height_(h),
-    painted_(false),
-    estimated_size_(0) {}
+    painted_(false) {}
 
 VectorTile::~VectorTile() { }
 
@@ -686,6 +698,7 @@ typedef struct {
     Map* m;
     VectorTile* d;
     Image * im;
+    CairoSurface * c;
     Grid * g;
     std::size_t layer_idx;
     int z;
@@ -777,6 +790,12 @@ Handle<Value> VectorTile::render(const Arguments& args)
         Image *im = ObjectWrap::Unwrap<Image>(im_obj);
         closure->im = im;
         closure->im->_ref();
+    }
+    else if (CairoSurface::constructor->HasInstance(im_obj))
+    {
+        CairoSurface *c = ObjectWrap::Unwrap<CairoSurface>(im_obj);
+        closure->c = c;
+        closure->c->_ref();
     }
     else if (Grid::constructor->HasInstance(im_obj))
     {
@@ -977,6 +996,83 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 ren.end_map_processing(map_in);
             }
         }
+        else if (closure->c)
+        {
+#if defined(SVG_RENDERER) || defined(HAVE_CAIRO)
+#if defined(SVG_RENDERER) && defined(USE_SVG_RENDERER)
+            CairoSurface::i_stream & ss = closure->c->ss_;
+            typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
+            std::ostream_iterator<char> output_stream_iterator(ss);
+            svg_ren ren(map_in, req, output_stream_iterator, closure->scale_factor);
+#else
+#ifndef CAIRO_HAS_SVG_SURFACE
+            closure->error = true;
+            closure->error_name = "your cairo build appears to be missing SVG surface support";
+            return;
+#endif
+            mapnik::cairo_surface_ptr surface;
+            CairoSurface::i_stream & ss = closure->c->ss_;
+            surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
+                                                   (cairo_write_func_t)closure->c->write_callback,
+                                                   (void*)(&ss),
+                                                   static_cast<double>(closure->c->width()),
+                                                   static_cast<double>(closure->c->height())
+                                                ),mapnik::cairo_surface_closer());
+            mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
+            mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,req,c_context,closure->scale_factor);
+#endif
+            ren.start_map_processing(map_in);
+            // loop over layers in map and match by name
+            // with layers in the vector tile
+            for (unsigned i=0; i < layers_size; ++i)
+            {
+                mapnik::layer const& lyr = layers[i];
+                if (lyr.visible(scale_denom))
+                {
+                    int tile_layer_idx = -1;
+                    for (int j=0; j < tiledata.layers_size(); ++j)
+                    {
+                        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                        if (lyr.name() == layer.name())
+                        {
+                            tile_layer_idx = j;
+                            break;
+                        }
+                    }
+                    if (tile_layer_idx > -1)
+                    {
+                        mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                        mapnik::layer lyr_copy(lyr);
+                        boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                        mapnik::vector::tile_datasource>(
+                                                            layer,
+                                                            closure->d->x_,
+                                                            closure->d->y_,
+                                                            closure->d->z_,
+                                                            closure->d->width_
+                                                            );
+                        ds->set_envelope(map_extent);
+                        lyr_copy.set_datasource(ds);
+                        std::set<std::string> names;
+                        ren.apply_to_layer(lyr_copy,
+                                           ren,
+                                           map_proj,
+                                           req.scale(),
+                                           scale_denom,
+                                           req.width(),
+                                           req.height(),
+                                           req.extent(),
+                                           req.buffer_size(),
+                                           names);
+                    }
+                }
+            }
+            ren.end_map_processing(map_in);
+#else
+            closure->error = true;
+            closure->error_name = "no support for rendering svg";
+#endif
+        }
         // render all layers with agg
         else
         {
@@ -1057,9 +1153,14 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
             Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im->handle_) };
             closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
         }
-        else
+        else if (closure->g)
         {
             Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->g->handle_) };
+            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        }
+        else if (closure->c)
+        {
+            Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->c->handle_) };
             closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
         }
     }

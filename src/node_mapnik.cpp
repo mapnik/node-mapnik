@@ -24,6 +24,7 @@
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_grid.hpp"
+#include "mapnik_cairo_surface.hpp"
 #include "mapnik_grid_view.hpp"
 #include "mapnik_expression.hpp"
 #include "utils.hpp"
@@ -137,6 +138,7 @@ extern "C" {
         //JSDatasource::Initialize(target);
         MemoryDatasource::Initialize(target);
         Expression::Initialize(target);
+        CairoSurface::Initialize(target);
 
         // versions of deps
         Local<Object> versions = Object::New();
