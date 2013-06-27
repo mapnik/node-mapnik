@@ -114,6 +114,7 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "height", get_prop, set_prop);
     ATTR(constructor, "bufferSize", get_prop, set_prop);
     ATTR(constructor, "extent", get_prop, set_prop);
+    ATTR(constructor, "bufferedExtent", get_prop, set_prop);
     ATTR(constructor, "maximumExtent", get_prop, set_prop);
     ATTR(constructor, "background", get_prop, set_prop);
     ATTR(constructor, "parameters", get_prop, set_prop);
@@ -312,8 +313,19 @@ Handle<Value> Map::get_prop(Local<String> property,
         arr->Set(3, Number::New(e.maxy()));
         return scope.Close(arr);
     }
-    else if(a == "maximumExtent") {
+    else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
+        if (!e)
+            return Undefined();
+        Local<Array> arr = Array::New(4);
+        arr->Set(0, Number::New(e->minx()));
+        arr->Set(1, Number::New(e->miny()));
+        arr->Set(2, Number::New(e->maxx()));
+        arr->Set(3, Number::New(e->maxy()));
+        return scope.Close(arr);
+    }
+    else if(a == "maximumExtent") {
+        boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
         if (!e)
             return Undefined();
         Local<Array> arr = Array::New(4);
