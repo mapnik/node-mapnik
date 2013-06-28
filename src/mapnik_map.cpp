@@ -1759,7 +1759,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
     // defaults
     std::string format = "png";
-    double scale_factor = 10.;
+    double scale_factor = 1.0;
     palette_ptr palette;
 
     Local<Value> callback = args[args.Length()-1];
