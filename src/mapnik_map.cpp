@@ -46,6 +46,7 @@
 #include <mapnik/shield_symbolizer.hpp>  // for shield_symbolizer
 #include <mapnik/text_symbolizer.hpp>   // for text_symbolizer
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
+#include <mapnik/scale_denominator.hpp>
 
 #if MAPNIK_VERSION < 200100
 #include <mapnik/glyph_symbolizer.hpp>
@@ -1294,6 +1295,7 @@ typedef struct {
     Map *m;
     Image *im;
     double scale_factor;
+    double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
@@ -1307,6 +1309,7 @@ typedef struct {
     Grid *g;
     std::size_t layer_idx;
     double scale_factor;
+    double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
@@ -1321,6 +1324,7 @@ struct vector_tile_baton_t {
     unsigned tolerance;
     unsigned path_multiplier;
     double scale_factor;
+    double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
@@ -1330,6 +1334,7 @@ struct vector_tile_baton_t {
         tolerance(1),
         path_multiplier(16),
         scale_factor(1.0),
+        scale_denominator(0.0),
         offset_x(0),
         offset_y(0),
         error(false) {}
@@ -1371,6 +1376,7 @@ Handle<Value> Map::render(const Arguments& args)
 
     // defaults
     double scale_factor = 1.0;
+    double scale_denominator = 0.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
 
@@ -1392,6 +1398,15 @@ Handle<Value> Map::render(const Arguments& args)
                                           String::New("optional arg 'scale' must be a number")));
 
             scale_factor = bind_opt->NumberValue();
+        }
+
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
         }
 
         if (options->Has(String::New("offset_x"))) {
@@ -1425,6 +1440,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->im = ObjectWrap::Unwrap<Image>(obj);
         closure->im->_ref();
         closure->scale_factor = scale_factor;
+        closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
@@ -1517,6 +1533,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->g->_ref();
         closure->layer_idx = layer_idx;
         closure->scale_factor = scale_factor;
+        closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
@@ -1550,6 +1567,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->d = vector_tile_obj;
         closure->d->_ref();
         closure->scale_factor = scale_factor;
+        closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
@@ -1579,7 +1597,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->offset_x,
                           closure->offset_y,
                           closure->tolerance);
-        ren.apply();
+        ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
 
     }
@@ -1649,7 +1667,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
                                                 closure->offset_x,
                                                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
-        ren.apply(layer,attributes);
+        ren.apply(layer,attributes,closure->scale_denominator);
 
     }
     catch (std::exception const& ex)
@@ -1700,7 +1718,7 @@ void Map::EIO_RenderImage(uv_work_t* req)
                                                    closure->scale_factor,
                                                    closure->offset_x,
                                                    closure->offset_y);
-        ren.apply();
+        ren.apply(closure->scale_denominator);
     }
     catch (std::exception const& ex)
     {
@@ -1743,6 +1761,7 @@ typedef struct {
     std::string output;
     palette_ptr palette;
     double scale_factor;
+    double scale_denominator;
     bool use_cairo;
     bool error;
     std::string error_name;
@@ -1760,6 +1779,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     // defaults
     std::string format = "png";
     double scale_factor = 1.0;
+    double scale_denominator = 0.0;
     palette_ptr palette;
 
     Local<Value> callback = args[args.Length()-1];
@@ -1802,6 +1822,15 @@ Handle<Value> Map::renderFile(const Arguments& args)
             scale_factor = bind_opt->NumberValue();
         }
 
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
+        }
+
     } else if (!args[1]->IsFunction()) {
         return ThrowException(Exception::TypeError(
                                   String::New("optional argument must be an object")));
@@ -1840,6 +1869,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
     closure->m = m;
     closure->scale_factor = scale_factor;
+    closure->scale_denominator = scale_denominator;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
 
@@ -1860,22 +1890,27 @@ void Map::EIO_RenderFile(uv_work_t* req)
 
     try
     {
-        if(closure->use_cairo) {
+        if(closure->use_cairo)
+        {
 #if defined(HAVE_CAIRO)
+#if MAPNIK_VERSION > 200200
+            // https://github.com/mapnik/mapnik/issues/1930
+            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
+#else
 #if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
 #else
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
 #endif
+#endif
 #else
-
 #endif
         }
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im,closure->scale_factor);
-            ren.apply();
+            ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
                 mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output,*closure->palette);
@@ -1994,6 +2029,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
     // defaults
     double scale_factor = 1.0;
+    double scale_denominator = 0.0;
     std::string format = "png";
     palette_ptr palette;
 
@@ -2034,6 +2070,14 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
             scale_factor = bind_opt->NumberValue();
         }
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
+        }
     }
 
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
@@ -2055,10 +2099,14 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
+#if MAPNIK_VERSION > 200200
+            mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
+#else
 #if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
 #else
             mapnik::save_to_cairo_file(*m->map_,output,format);
+#endif
 #endif
 #else
             std::ostringstream s("");
@@ -2071,7 +2119,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
-            ren.apply();
+            ren.apply(scale_denominator);
 
             if (palette.get())
             {

@@ -707,6 +707,7 @@ typedef struct {
     bool zxy_override;
     bool error;
     double scale_factor;
+    double scale_denominator;
     std::string error_name;
     Persistent<Function> cb;
     std::string result;
@@ -746,6 +747,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
     closure->x = 0;
     closure->y = 0;
     closure->scale_factor = 1.0;
+    closure->scale_denominator = 0.0;
 
     Local<Object> options = Object::New();
 
@@ -781,6 +783,17 @@ Handle<Value> VectorTile::render(const Arguments& args)
                                         String::New("optional arg 'scale' must be a number")));
             }
             closure->scale_factor = bind_opt->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("scale_denominator")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+            {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                        String::New("optional arg 'scale_denominator' must be a number")));
+            }
+            closure->scale_denominator = bind_opt->NumberValue();
         }
     }
 
@@ -921,7 +934,11 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         mapnik::request req(map_in.width(),map_in.height(),map_extent);
         req.set_buffer_size(map_in.buffer_size());
         mapnik::projection map_proj(map_in.srs(),true);
-        double scale_denom = mapnik::scale_denominator(req.scale(),map_proj.is_geographic());
+        double scale_denom = closure->scale_denominator;
+        if (scale_denom <= 0.0)
+        {
+            scale_denom = mapnik::scale_denominator(req.scale(),map_proj.is_geographic());
+        }
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
         unsigned layers_size = layers.size();
