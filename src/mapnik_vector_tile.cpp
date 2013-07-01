@@ -1015,18 +1015,15 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         else if (closure->c)
         {
-#if defined(SVG_RENDERER) || defined(HAVE_CAIRO)
 #if defined(SVG_RENDERER) && defined(USE_SVG_RENDERER)
+#define PROCESS_SVG
             CairoSurface::i_stream & ss = closure->c->ss_;
             typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
             std::ostream_iterator<char> output_stream_iterator(ss);
             svg_ren ren(map_in, req, output_stream_iterator, closure->scale_factor);
-#else
-#ifndef CAIRO_HAS_SVG_SURFACE
-            closure->error = true;
-            closure->error_name = "your cairo build appears to be missing SVG surface support";
-            return;
 #endif
+#if defined(HAVE_CAIRO)
+#define PROCESS_SVG
             mapnik::cairo_surface_ptr surface;
             CairoSurface::i_stream & ss = closure->c->ss_;
             surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
@@ -1038,6 +1035,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
             mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,req,c_context,closure->scale_factor);
 #endif
+#if defined(PROCESS_SVG)
             ren.start_map_processing(map_in);
             // loop over layers in map and match by name
             // with layers in the vector tile

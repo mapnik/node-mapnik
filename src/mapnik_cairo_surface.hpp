@@ -10,6 +10,8 @@
 // cairo
 #if defined(HAVE_CAIRO)
 #include <cairo.h>
+#else
+#define cairo_status_t int
 #endif
 
 using namespace v8;
@@ -38,6 +40,8 @@ public:
         i_stream* fin = reinterpret_cast<i_stream*>(closure);
         *fin << std::string((const char*)data,(size_t)length);
         return CAIRO_STATUS_SUCCESS;
+#else
+        return 11; // CAIRO_STATUS_WRITE_ERROR
 #endif
     }
     unsigned width() { return width_; }
