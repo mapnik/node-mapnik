@@ -246,7 +246,7 @@ void Image::EIO_AfterClear(uv_work_t* req)
     }
     else
     {
-        Local<Value> argv[2] = { Local<Value>::New(Null()) };
+        Local<Value> argv[1] = { Local<Value>::New(Null()) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     }
     if (try_catch.HasCaught())
