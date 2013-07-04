@@ -693,7 +693,7 @@ Handle<Value> VectorTile::getData(const Arguments& args)
     return Undefined();
 }
 
-typedef struct {
+struct vector_tile_render_baton_t {
     uv_work_t request;
     Map* m;
     VectorTile* d;
@@ -711,7 +711,24 @@ typedef struct {
     std::string error_name;
     Persistent<Function> cb;
     std::string result;
-} vector_tile_render_baton_t;
+    bool use_cairo;
+    vector_tile_render_baton_t() :
+        request(),
+        m(NULL),
+        d(NULL),
+        im(NULL),
+        c(NULL),
+        g(NULL),
+        layer_idx(0),
+        z(0),
+        x(0),
+        y(0),
+        zxy_override(false),
+        error(false),
+        scale_factor(1.0),
+        scale_denominator(0.0),
+        use_cairo(true) {}
+};
 
 Handle<Value> VectorTile::render(const Arguments& args)
 {
@@ -736,19 +753,12 @@ Handle<Value> VectorTile::render(const Arguments& args)
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction())
+    {
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
+    }
 
     vector_tile_render_baton_t *closure = new vector_tile_render_baton_t();
-    closure->im = NULL;
-    closure->g = NULL;
-    closure->zxy_override = false;
-    closure->z = 0;
-    closure->x = 0;
-    closure->y = 0;
-    closure->scale_factor = 1.0;
-    closure->scale_denominator = 0.0;
-
     Local<Object> options = Object::New();
 
     if (args.Length() > 2)
@@ -809,6 +819,29 @@ Handle<Value> VectorTile::render(const Arguments& args)
         CairoSurface *c = ObjectWrap::Unwrap<CairoSurface>(im_obj);
         closure->c = c;
         closure->c->_ref();
+        if (options->Has(String::New("renderer")))
+        {
+            Local<Value> renderer = options->Get(String::New("renderer"));
+            if (!renderer->IsString() )
+            {
+                delete closure;
+                return ThrowException(String::New("'renderer' option must be a string of either 'svg' or 'cairo'"));
+            }
+            std::string renderer_name = TOSTR(renderer);
+            if (renderer_name == "cairo")
+            {
+                closure->use_cairo = true;
+            }
+            else if (renderer_name == "svg")
+            {
+                closure->use_cairo = false;
+            }
+            else
+            {
+                delete closure;
+                return ThrowException(String::New("'renderer' option must be a string of either 'svg' or 'cairo'"));
+            }
+        }
     }
     else if (Grid::constructor->HasInstance(im_obj))
     {
@@ -825,7 +858,6 @@ Handle<Value> VectorTile::render(const Arguments& args)
             return ThrowException(Exception::TypeError(
                                       String::New("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)")));
         } else {
-
             std::vector<mapnik::layer> const& layers = m->get()->layers();
 
             Local<Value> layer_id = options->Get(String::New("layer"));
@@ -918,6 +950,62 @@ Handle<Value> VectorTile::render(const Arguments& args)
     return Undefined();
 }
 
+template <typename Renderer> void process_layers(Renderer & ren,
+                                            mapnik::request const& req,
+                                            mapnik::projection const& map_proj,
+                                            std::vector<mapnik::layer> const& layers,
+                                            double scale_denom,
+                                            mapnik::vector::tile const& tiledata,
+                                            vector_tile_render_baton_t *closure,
+                                            mapnik::box2d<double> const& map_extent)
+{
+    // loop over layers in map and match by name
+    // with layers in the vector tile
+    unsigned layers_size = layers.size();
+    for (unsigned i=0; i < layers_size; ++i)
+    {
+        mapnik::layer const& lyr = layers[i];
+        if (lyr.visible(scale_denom))
+        {
+            int tile_layer_idx = -1;
+            for (int j=0; j < tiledata.layers_size(); ++j)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                if (lyr.name() == layer.name())
+                {
+                    tile_layer_idx = j;
+                    break;
+                }
+            }
+            if (tile_layer_idx > -1)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                mapnik::layer lyr_copy(lyr);
+                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                mapnik::vector::tile_datasource>(
+                                                    layer,
+                                                    closure->d->x_,
+                                                    closure->d->y_,
+                                                    closure->d->z_,
+                                                    closure->d->width()
+                                                    );
+                ds->set_envelope(map_extent);
+                lyr_copy.set_datasource(ds);
+                std::set<std::string> names;
+                ren.apply_to_layer(lyr_copy,
+                                   ren,
+                                   map_proj,
+                                   req.scale(),
+                                   scale_denom,
+                                   req.width(),
+                                   req.height(),
+                                   req.extent(),
+                                   req.buffer_size(),
+                                   names);
+            }
+        }
+    }
+}
 void VectorTile::EIO_RenderTile(uv_work_t* req)
 {
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
@@ -931,23 +1019,22 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         } else {
             merc.xyz(map_extent,closure->d->x_,closure->d->y_,closure->d->z_);
         }
-        mapnik::request req(map_in.width(),map_in.height(),map_extent);
-        req.set_buffer_size(map_in.buffer_size());
+        mapnik::request m_req(map_in.width(),map_in.height(),map_extent);
+        m_req.set_buffer_size(map_in.buffer_size());
         mapnik::projection map_proj(map_in.srs(),true);
         double scale_denom = closure->scale_denominator;
         if (scale_denom <= 0.0)
         {
-            scale_denom = mapnik::scale_denominator(req.scale(),map_proj.is_geographic());
+            scale_denom = mapnik::scale_denominator(m_req.scale(),map_proj.is_geographic());
         }
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
-        unsigned layers_size = layers.size();
         mapnik::vector::tile const& tiledata = closure->d->get_tile();
         // render grid for layer
         if (closure->g)
         {
             mapnik::grid_renderer<mapnik::grid> ren(map_in,
-                                                    req,
+                                                    m_req,
                                                     *closure->g->get(),
                                                     closure->scale_factor);
             ren.start_map_processing(map_in);
@@ -1002,12 +1089,12 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     ren.apply_to_layer(lyr_copy,
                                        ren,
                                        map_proj,
-                                       req.scale(),
+                                       m_req.scale(),
                                        scale_denom,
-                                       req.width(),
-                                       req.height(),
-                                       req.extent(),
-                                       req.buffer_size(),
+                                       m_req.width(),
+                                       m_req.height(),
+                                       m_req.extent(),
+                                       m_req.buffer_size(),
                                        attributes);
                 }
                 ren.end_map_processing(map_in);
@@ -1015,130 +1102,49 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         else if (closure->c)
         {
-#if defined(SVG_RENDERER) && defined(USE_SVG_RENDERER)
-#define PROCESS_SVG
             CairoSurface::i_stream & ss = closure->c->ss_;
-            typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
-            std::ostream_iterator<char> output_stream_iterator(ss);
-            svg_ren ren(map_in, req, output_stream_iterator, closure->scale_factor);
-#endif
-#if defined(HAVE_CAIRO)
-#define PROCESS_SVG
-            mapnik::cairo_surface_ptr surface;
-            CairoSurface::i_stream & ss = closure->c->ss_;
-            surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
-                                                   (cairo_write_func_t)closure->c->write_callback,
-                                                   (void*)(&ss),
-                                                   static_cast<double>(closure->c->width()),
-                                                   static_cast<double>(closure->c->height())
-                                                ),mapnik::cairo_surface_closer());
-            mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
-            mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,req,c_context,closure->scale_factor);
-#endif
-#if defined(PROCESS_SVG)
-            ren.start_map_processing(map_in);
-            // loop over layers in map and match by name
-            // with layers in the vector tile
-            for (unsigned i=0; i < layers_size; ++i)
+            if (closure->use_cairo)
             {
-                mapnik::layer const& lyr = layers[i];
-                if (lyr.visible(scale_denom))
-                {
-                    int tile_layer_idx = -1;
-                    for (int j=0; j < tiledata.layers_size(); ++j)
-                    {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
-                        if (lyr.name() == layer.name())
-                        {
-                            tile_layer_idx = j;
-                            break;
-                        }
-                    }
-                    if (tile_layer_idx > -1)
-                    {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                        mapnik::layer lyr_copy(lyr);
-                        boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
-                                                        mapnik::vector::tile_datasource>(
-                                                            layer,
-                                                            closure->d->x_,
-                                                            closure->d->y_,
-                                                            closure->d->z_,
-                                                            closure->d->width_
-                                                            );
-                        ds->set_envelope(map_extent);
-                        lyr_copy.set_datasource(ds);
-                        std::set<std::string> names;
-                        ren.apply_to_layer(lyr_copy,
-                                           ren,
-                                           map_proj,
-                                           req.scale(),
-                                           scale_denom,
-                                           req.width(),
-                                           req.height(),
-                                           req.extent(),
-                                           req.buffer_size(),
-                                           names);
-                    }
-                }
-            }
-            ren.end_map_processing(map_in);
+#if defined(HAVE_CAIRO)
+                mapnik::cairo_surface_ptr surface;
+                // TODO - support any surface type
+                surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
+                                                       (cairo_write_func_t)closure->c->write_callback,
+                                                       (void*)(&ss),
+                                                       static_cast<double>(closure->c->width()),
+                                                       static_cast<double>(closure->c->height())
+                                                    ),mapnik::cairo_surface_closer());
+                mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
+                mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,c_context,closure->scale_factor);
+                ren.start_map_processing(map_in);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                ren.end_map_processing(map_in);
 #else
-            closure->error = true;
-            closure->error_name = "no support for rendering svg";
+                closure->error = true;
+                closure->error_name = "no support for rendering svg with cairo backend";
 #endif
+            }
+            else
+            {
+#if defined(SVG_RENDERER)
+                typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
+                std::ostream_iterator<char> output_stream_iterator(ss);
+                svg_ren ren(map_in, m_req, output_stream_iterator, closure->scale_factor);
+                ren.start_map_processing(map_in);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                ren.end_map_processing(map_in);
+#else
+                closure->error = true;
+                closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
+#endif
+            }
         }
         // render all layers with agg
         else
         {
-            mapnik::agg_renderer<mapnik::image_32> ren(map_in,req,*closure->im->get(),closure->scale_factor);
+            mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,*closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);
-
-            // loop over layers in map and match by name
-            // with layers in the vector tile
-            for (unsigned i=0; i < layers_size; ++i)
-            {
-                mapnik::layer const& lyr = layers[i];
-                if (lyr.visible(scale_denom))
-                {
-                    int tile_layer_idx = -1;
-                    for (int j=0; j < tiledata.layers_size(); ++j)
-                    {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
-                        if (lyr.name() == layer.name())
-                        {
-                            tile_layer_idx = j;
-                            break;
-                        }
-                    }
-                    if (tile_layer_idx > -1)
-                    {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                        mapnik::layer lyr_copy(lyr);
-                        boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
-                                                        mapnik::vector::tile_datasource>(
-                                                            layer,
-                                                            closure->d->x_,
-                                                            closure->d->y_,
-                                                            closure->d->z_,
-                                                            closure->d->width_
-                                                            );
-                        ds->set_envelope(map_extent);
-                        lyr_copy.set_datasource(ds);
-                        std::set<std::string> names;
-                        ren.apply_to_layer(lyr_copy,
-                                           ren,
-                                           map_proj,
-                                           req.scale(),
-                                           scale_denom,
-                                           req.width(),
-                                           req.height(),
-                                           req.extent(),
-                                           req.buffer_size(),
-                                           names);
-                    }
-                }
-            }
+            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
             ren.end_map_processing(map_in);
         }
     }
