@@ -7,6 +7,14 @@ var mercator = new(require('sphericalmercator'));
 
 var overwrite_expected_data = false;
 
+var trunc_6 = function(key, val) {
+    return val.toFixed ? Number(val.toFixed(6)) : val;
+}
+
+function deepEqualTrunc(json1,json2) {
+    return assert.deepEqual(JSON.stringify(json1,trunc_6),JSON.stringify(json2,trunc_6));
+}
+
 describe('mapnik.VectorTile ', function() {
     // generate test data
     var _dt;
@@ -132,22 +140,10 @@ describe('mapnik.VectorTile ', function() {
         var expected_geojson = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-101.25,39.36827914916011],[-101.25,38.82272471585834],[-100.54704666137694,38.82272471585834],[-100.54704666137694,39.36827914916011],[-101.25,39.36827914916011]]]},"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]};
         var expected_copy = JSON.parse(JSON.stringify(expected_geojson));
         expected_geojson.name = "world";
-        assert.deepEqual(dt.toGeoJSON(0),expected_geojson)
-        assert.deepEqual(dt.toGeoJSON(0),dt.toGeoJSON('world'))
-        assert.deepEqual(dt.toGeoJSON('__all__'),expected_copy)
-        assert.deepEqual(dt.toGeoJSON('__array__'),[expected_geojson])
-        done();
-    });
-
-    it('should be able to get reduce the precision of GeoJSON coordinates', function(done) {
-        var dt = new mapnik.VectorTile(9,112,195);
-        dt.setData(new Buffer(_data,"hex"));
-        var expected_geojson = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-101.25,39.36827914916011],[-101.25,38.82272471585834],[-100.54704666137694,38.82272471585834],[-100.54704666137694,39.36827914916011],[-101.25,39.36827914916011]]]},"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}],"name":"world"};
-        var trunc = function(key, val) {
-            return val.toFixed ? Number(val.toFixed(2)) : val;
-        }
-        var expected_string = JSON.stringify(expected_geojson,trunc);
-        assert.deepEqual(JSON.stringify(dt.toGeoJSON(0),trunc),expected_string)
+        deepEqualTrunc(dt.toGeoJSON(0),expected_geojson)
+        deepEqualTrunc(dt.toGeoJSON(0),dt.toGeoJSON('world'))
+        deepEqualTrunc(dt.toGeoJSON('__all__'),expected_copy)
+        deepEqualTrunc(dt.toGeoJSON('__array__'),[expected_geojson])
         done();
     });
 
