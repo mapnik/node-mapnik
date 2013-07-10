@@ -30,12 +30,12 @@
       }
   ],
   "dependencies"  : {
-      "mapnik-vector-tile": "~0.0.5"
+      "mapnik-vector-tile": "0.1.x"
   },
   "devDependencies": {
-      "mocha": "*",
-      "jshint"  : "~0.5.x",
-      "sphericalmercator":"*"
+      "mocha": "1.12.x",
+      "jshint"  : "0.5.x",
+      "sphericalmercator":"1.0.x"
    },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
@@ -46,7 +46,7 @@
        "src": "src"
    },
   "engines"       : {
-      "node": ">= 0.6.13 && < 0.11.0"
+      "node": ">= 0.6.13 && < 0.13.0"
   },
   "scripts"       : {
       "test"    : "mocha"

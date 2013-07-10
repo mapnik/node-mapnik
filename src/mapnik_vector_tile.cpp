@@ -1012,13 +1012,14 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 
     try {
         mapnik::Map const& map_in = *closure->m->get();
-        mapnik::vector::spherical_mercator<22> merc(closure->d->width_);
-        mapnik::box2d<double> map_extent;
+        mapnik::vector::spherical_mercator merc(closure->d->width_);
+        double minx,miny,maxx,maxy;
         if (closure->zxy_override) {
-            merc.xyz(map_extent,closure->x,closure->y,closure->z);
+            merc.xyz(closure->x,closure->y,closure->z,minx,miny,maxx,maxy);
         } else {
-            merc.xyz(map_extent,closure->d->x_,closure->d->y_,closure->d->z_);
+            merc.xyz(closure->d->x_,closure->d->y_,closure->d->z_,minx,miny,maxx,maxy);
         }
+        mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
         mapnik::request m_req(map_in.width(),map_in.height(),map_extent);
         m_req.set_buffer_size(map_in.buffer_size());
         mapnik::projection map_proj(map_in.srs(),true);

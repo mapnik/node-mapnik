@@ -1,8 +1,15 @@
 # Changlog
 
-## Future
+## 1.1.0
 
- - Implemented mapnik.Image.fromBytes
+ - Added support for node v0.11.x
+ - Added async versions of Image methods: `fromBytes`, `open`, `premultiply`, `demultiply`
+ - Added experimental support for rendering vector tiles to SVG. `renderer` option (either `cairo` or `svg`) controls whether `cairo` or native svg renderer is used
+ - Exposed  `map.bufferedExtent` property to access the buffered extent
+ - Changed Image.composite function to accept offsets (`dx` and `dy`), `comp_op`, `image_filters`, and `opacity` in options.
+ - Fixed missing exception translation for MemoryDatasource and Image constructors
+ - Fixed invalid default for `scale` in `map.render`
+ - Implemented mapnik.Image.fromBytes (#147)
 
 ## 1.0.0
  - Dropped support for Mapnik versions older than v2.2.0
