@@ -3,6 +3,9 @@
       ['OS=="win"', {
         'variables': {
           'copy_command%': 'copy',
+		  'PROTOBUF_INCLUDES%':'C:/dev2/protobuf/vsprojects/include',
+		  'PROTOBUF_LIBS%':'C:/dev2/protobuf/vsprojects/Release',
+		  'PROTOBUF_LIBRARY%':'libprotobuf-lite.lib',
           'bin_name':'call'
         },
       },{
@@ -20,13 +23,6 @@
               'xcode_settings': {
                 'OTHER_CPLUSPLUSFLAGS!':['-O3', '-DNDEBUG']
               },
-              'msvs_settings': {
-                 'VCCLCompilerTool': {
-                     'ExceptionHandling': 1,
-                     'RuntimeTypeInfo':'true',
-                     'RuntimeLibrary': '3'  # /MDd
-                 }
-              }
           },
           'Release': {
 
@@ -40,12 +36,15 @@
         ['OS=="win"', {
             'include_dirs':[
               '<!@(mapnik-config --includes)',
-              '<!@(mapnik-config --dep-includes)'
+              '<!@(mapnik-config --dep-includes)',
+			  '<@(PROTOBUF_INCLUDES)'
               ],
             'defines': ['<!@(mapnik-config --defines)'],
             'libraries': [
               '<!@(mapnik-config --libs)',
-              '<!@(mapnik-config --dep-libs)'],
+              '<!@(mapnik-config --dep-libs)',
+			  '<@(PROTOBUF_LIBRARY)'
+			],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
             'VCCLCompilerTool': {
@@ -61,7 +60,8 @@
               ],
               'AdditionalLibraryDirectories': [
                  #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
-                 '<!@(mapnik-config --ldflags)'
+                 '<!@(mapnik-config --ldflags)',
+                 '<@(PROTOBUF_LIBS)'
               ],
             },
           }
@@ -114,8 +114,16 @@
         ],
         'GCC_ENABLE_CPP_RTTI': 'YES',
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
+      },
+      'msvs_settings': {
+        'VCCLCompilerTool': {
+        'ExceptionHandling': 1,
+        'RuntimeTypeInfo':'true',
+        'RuntimeLibrary': '3'  # /MDd
+        }
       }
-    },
+
+	},
     {
       'target_name': 'action_after_build',
       'type': 'none',
