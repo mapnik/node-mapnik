@@ -95,9 +95,9 @@ describe('mapnik.Image ', function() {
 
     it('should be initialized properly via async constructors', function(done) {
         var im = new mapnik.Image(256, 256);
-        im.save('test/tmp/image2.png');
+        im.save('test/tmp/image3.png');
 
-        mapnik.Image.open('test/tmp/image.png',function(err,im2) {
+        mapnik.Image.open('test/tmp/image3.png',function(err,im2) {
             assert.ok(im2 instanceof mapnik.Image);
             assert.equal(im2.width(), 256);
             assert.equal(im2.height(), 256);
