@@ -492,44 +492,51 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
         return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
     }
 
-    if (all_array)
+    try
     {
-        Local<Array> layer_arr = Array::New(layer_num);
-        for (unsigned i=0;i<layer_num;++i)
+        if (all_array)
+        {
+            Local<Array> layer_arr = Array::New(layer_num);
+            for (unsigned i=0;i<layer_num;++i)
+            {
+                Local<Object> layer_obj = Object::New();
+                layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
+                Local<Array> f_arr = Array::New();
+                layer_obj->Set(String::NewSymbol("features"), f_arr);
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+                layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
+                layer_arr->Set(i,layer_obj);
+            }
+            return scope.Close(layer_arr);
+        }
+        else
         {
             Local<Object> layer_obj = Object::New();
             layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
             Local<Array> f_arr = Array::New();
             layer_obj->Set(String::NewSymbol("features"), f_arr);
-            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-            layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
-            layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
-            layer_arr->Set(i,layer_obj);
-        }
-        return scope.Close(layer_arr);
-    }
-    else
-    {
-        Local<Object> layer_obj = Object::New();
-        layer_obj->Set(String::NewSymbol("type"), String::New("FeatureCollection"));
-        Local<Array> f_arr = Array::New();
-        layer_obj->Set(String::NewSymbol("features"), f_arr);
-        if (all_flattened)
-        {
-            for (unsigned i=0;i<layer_num;++i)
+            if (all_flattened)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-                layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,f_arr->Length());
+                for (unsigned i=0;i<layer_num;++i)
+                {
+                    mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                    layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,f_arr->Length());
+                }
+                return scope.Close(layer_obj);
             }
-            return scope.Close(layer_obj);
+            else
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
+                layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+                layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
+                return scope.Close(layer_obj);
+            }
         }
-        else
-        {
-            mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
-            layer_obj->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
-            layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
-            return scope.Close(layer_obj);
-        }
+    } catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
     }
 }
 
