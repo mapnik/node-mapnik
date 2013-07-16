@@ -1110,7 +1110,6 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         else if (closure->c)
         {
-            CairoSurface::i_stream & ss = closure->c->ss_;
             if (closure->use_cairo)
             {
 #if defined(HAVE_CAIRO)
@@ -1118,7 +1117,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 // TODO - support any surface type
                 surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
                                                        (cairo_write_func_t)closure->c->write_callback,
-                                                       (void*)(&ss),
+                                                       (void*)(&closure->c->ss_),
                                                        static_cast<double>(closure->c->width()),
                                                        static_cast<double>(closure->c->height())
                                                     ),mapnik::cairo_surface_closer());
@@ -1136,7 +1135,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             {
 #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
-                std::ostream_iterator<char> output_stream_iterator(ss);
+                std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
                 svg_ren ren(map_in, m_req, output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
