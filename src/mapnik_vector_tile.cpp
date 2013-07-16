@@ -31,6 +31,7 @@
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
+#include <mapnik/feature_type_style.hpp>
 
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo_renderer.hpp>
@@ -961,10 +962,12 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             mapnik::request const& req,
                                             mapnik::projection const& map_proj,
                                             std::vector<mapnik::layer> const& layers,
+                                            std::map<std::string,mapnik::feature_type_style> const& styles,
                                             double scale_denom,
                                             mapnik::vector::tile const& tiledata,
                                             vector_tile_render_baton_t *closure,
-                                            mapnik::box2d<double> const& map_extent)
+                                            mapnik::box2d<double> const& map_extent,
+                                            boost::optional<mapnik::box2d<double> > const& maximum_extent)
 {
     // loop over layers in map and match by name
     // with layers in the vector tile
@@ -1000,6 +1003,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                 lyr_copy.set_datasource(ds);
                 std::set<std::string> names;
                 ren.apply_to_layer(lyr_copy,
+                                   styles,
                                    ren,
                                    map_proj,
                                    req.scale(),
@@ -1008,7 +1012,8 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                    req.height(),
                                    req.extent(),
                                    req.buffer_size(),
-                                   names);
+                                   names,
+                                   maximum_extent);
             }
         }
     }
@@ -1095,6 +1100,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     ds->set_envelope(map_extent);
                     lyr_copy.set_datasource(ds);
                     ren.apply_to_layer(lyr_copy,
+                                       map_in.styles(),
                                        ren,
                                        map_proj,
                                        m_req.scale(),
@@ -1103,14 +1109,14 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                        m_req.height(),
                                        m_req.extent(),
                                        m_req.buffer_size(),
-                                       attributes);
+                                       attributes,
+                                       map_in.maximum_extent());
                 }
                 ren.end_map_processing(map_in);
             }
         }
         else if (closure->c)
         {
-            CairoSurface::i_stream & ss = closure->c->ss_;
             if (closure->use_cairo)
             {
 #if defined(HAVE_CAIRO)
@@ -1118,14 +1124,23 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 // TODO - support any surface type
                 surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
                                                        (cairo_write_func_t)closure->c->write_callback,
-                                                       (void*)(&ss),
+                                                       (void*)(&closure->c->ss_),
                                                        static_cast<double>(closure->c->width()),
                                                        static_cast<double>(closure->c->height())
                                                     ),mapnik::cairo_surface_closer());
                 mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
                 mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                process_layers(ren,
+                               m_req,
+                               map_proj,
+                               layers,
+                               map_in.styles(),
+                               scale_denom,
+                               tiledata,
+                               closure,
+                               map_extent,
+                               map_in.maximum_extent());
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -1136,10 +1151,19 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             {
 #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
-                std::ostream_iterator<char> output_stream_iterator(ss);
+                std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
                 svg_ren ren(map_in, m_req, output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                process_layers(ren,
+                               m_req,
+                               map_proj,
+                               layers,
+                               map_in.styles(),
+                               scale_denom,
+                               tiledata,
+                               closure,
+                               map_extent,
+                               map_in.maximum_extent());
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -1152,7 +1176,16 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         {
             mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,*closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);
-            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+            process_layers(ren,
+                           m_req,
+                           map_proj,
+                           layers,
+                           map_in.styles(),
+                           scale_denom,
+                           tiledata,
+                           closure,
+                           map_extent,
+                           map_in.maximum_extent());
             ren.end_map_processing(map_in);
         }
     }

@@ -52,6 +52,10 @@
 #include <mapnik/glyph_symbolizer.hpp>
 #endif
 
+#if MAPNIK_VERSION >= 300000
+#include <mapnik/util/map_query.hpp>
+#endif
+
 // stl
 #include <exception>                    // for exception
 #include <iosfwd>                       // for ostringstream, ostream
@@ -490,7 +494,8 @@ Handle<Value> Map::scaleDenominator(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    return scope.Close(Number::New(m->map_->scale_denominator()));
+    mapnik::projection map_proj(m->get()->srs());
+    return scope.Close(Number::New(mapnik::scale_denominator( m->get()->scale(), map_proj.is_geographic())));
 }
 
 typedef struct {
@@ -652,17 +657,34 @@ void Map::EIO_QueryMap(uv_work_t* req)
         if (closure->layer_idx >= 0)
         {
             mapnik::featureset_ptr fs;
+            unsigned idx = closure->layer_idx;
             if (closure->geo_coords)
             {
-                fs = closure->m->map_->query_point(closure->layer_idx,
+#if MAPNIK_VERSION >= 300000
+                fs = mapnik::util::query_point(*closure->m->map_,
+                                               idx,
+                                               closure->x,
+                                               closure->y);
+#else
+                fs = closure->m->map_->query_point(*closure->m->map_,
+                                                   idx,
                                                    closure->x,
                                                    closure->y);
+#endif
             }
             else
             {
-                fs = closure->m->map_->query_map_point(closure->layer_idx,
+#if MAPNIK_VERSION >= 300000
+                fs = mapnik::util::query_map_point(*closure->m->map_,
+                                                   idx,
+                                                   closure->x,
+                                                   closure->y);
+#else
+                fs = closure->m->map_->query_map_point(*closure->m->map_,
+                                                       idx,
                                                        closure->x,
                                                        closure->y);
+#endif
             }
             mapnik::layer const& lyr = layers[closure->layer_idx];
             closure->featuresets.insert(std::make_pair(lyr.name(),fs));
@@ -676,15 +698,31 @@ void Map::EIO_QueryMap(uv_work_t* req)
                 mapnik::featureset_ptr fs;
                 if (closure->geo_coords)
                 {
-                    fs = closure->m->map_->query_point(idx,
+#if MAPNIK_VERSION >= 300000
+                    fs = mapnik::util::query_point(*closure->m->map_,
+                                                   idx,
+                                                   closure->x,
+                                                   closure->y);
+#else
+                    fs = closure->m->map_->query_point(*closure->m->map_,
+                                                       idx,
                                                        closure->x,
                                                        closure->y);
+#endif
                 }
                 else
                 {
-                    fs = closure->m->map_->query_map_point(idx,
+#if MAPNIK_VERSION >= 300000
+                    fs = mapnik::util::query_map_point(*closure->m->map_,
+                                                       idx,
+                                                       closure->x,
+                                                       closure->y);
+#else
+                    fs = closure->m->map_->query_map_point(*closure->m->map_,
+                                                           idx,
                                                            closure->x,
                                                            closure->y);
+#endif
                 }
                 closure->featuresets.insert(std::make_pair(lyr.name(),fs));
                 ++idx;
@@ -1243,8 +1281,9 @@ Handle<Value> Map::zoomAll(const Arguments& args)
 {
     HandleScope scope;
     Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    try {
-        m->map_->zoom_all();
+    try
+    {
+        m->map_->zoom_to_box(mapnik::util::get_extent(*m->map_));
     }
     catch (std::exception const& ex)
     {
@@ -1597,7 +1636,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->offset_x,
                           closure->offset_y,
                           closure->tolerance);
-        ren.apply(closure->scale_denominator);
+        ren.apply(closure->m->get()->layers(),closure->scale_denominator);
         closure->d->painted(ren.painted());
 
     }
@@ -1667,7 +1706,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
                                                 closure->offset_x,
                                                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
-        ren.apply(layer,attributes,closure->scale_denominator);
+        ren.apply(layer,closure->m->get()->styles(),attributes,closure->scale_denominator);
 
     }
     catch (std::exception const& ex)
@@ -1713,12 +1752,12 @@ void Map::EIO_RenderImage(uv_work_t* req)
 
     try
     {
-        mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,
+        mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->get(),
                                                    *closure->im->get(),
                                                    closure->scale_factor,
                                                    closure->offset_x,
                                                    closure->offset_y);
-        ren.apply(closure->scale_denominator);
+        ren.apply(closure->m->get()->layers(),closure->m->get()->styles(),closure->scale_denominator);
     }
     catch (std::exception const& ex)
     {
@@ -1910,7 +1949,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im,closure->scale_factor);
-            ren.apply(closure->scale_denominator);
+            ren.apply(closure->m->get()->layers(),closure->m->get()->styles(),closure->scale_denominator);
 
             if (closure->palette.get()) {
                 mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output,*closure->palette);
@@ -1993,8 +2032,9 @@ Handle<Value> Map::renderSync(const Arguments& args)
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
-        mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
-        ren.apply();
+        mapnik::agg_renderer<mapnik::image_32> ren(*m->get(),im);
+        // TODO - scale denom
+        ren.apply(m->get()->layers(),m->get()->styles());
 
         if (palette.get())
         {
@@ -2118,8 +2158,8 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
-            ren.apply(scale_denominator);
+            mapnik::agg_renderer<mapnik::image_32> ren(*m->get(),im,scale_factor);
+            ren.apply(m->get()->layers(),m->get()->styles(),scale_denominator);
 
             if (palette.get())
             {
