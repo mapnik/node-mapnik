@@ -1,5 +1,9 @@
 # Changlog
 
+## Future
+
+ - Now accepting `scale_denominator`, `scale`, and `format` in options passed to `map.RenderSync`
+
 ## 1.1.0
 
  - Added support for node v0.11.x
