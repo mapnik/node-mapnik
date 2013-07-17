@@ -958,7 +958,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
 }
 
 template <typename Renderer> void process_layers(Renderer & ren,
-                                            mapnik::request const& req,
+                                            mapnik::request const& m_req,
                                             mapnik::projection const& map_proj,
                                             std::vector<mapnik::layer> const& layers,
                                             double scale_denom,
@@ -996,18 +996,18 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                                     closure->d->z_,
                                                     closure->d->width()
                                                     );
-                ds->set_envelope(map_extent);
+                ds->set_envelope(m_req.get_buffered_extent());
                 lyr_copy.set_datasource(ds);
                 std::set<std::string> names;
                 ren.apply_to_layer(lyr_copy,
                                    ren,
                                    map_proj,
-                                   req.scale(),
+                                   m_req.scale(),
                                    scale_denom,
-                                   req.width(),
-                                   req.height(),
-                                   req.extent(),
-                                   req.buffer_size(),
+                                   m_req.width(),
+                                   m_req.height(),
+                                   m_req.extent(),
+                                   m_req.buffer_size(),
                                    names);
             }
         }
@@ -1092,7 +1092,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                         closure->d->z_,
                                                         closure->d->width_
                                                         );
-                    ds->set_envelope(map_extent);
+                    ds->set_envelope(m_req.get_buffered_extent());
                     lyr_copy.set_datasource(ds);
                     ren.apply_to_layer(lyr_copy,
                                        ren,
