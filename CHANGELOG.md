@@ -1,7 +1,11 @@
 # Changlog
 
-## Future
+## 1.1.1
 
+ - Fixed extent of vector::tile_datasource to be sensitive to map buffer (TODO - long term
+   plan is to make extent optional instead of adding support for layer specific buffered extent) - this is needed for avoiding too restrictive filtering of features at render time.
+ - Fixed exception handling when creating geojson from vector tile
+ - Build fixes to support python 3.x
  - Now accepting `scale_denominator`, `scale`, and `format` in options passed to `map.RenderSync`
 
 ## 1.1.0
