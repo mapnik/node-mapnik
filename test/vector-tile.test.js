@@ -310,7 +310,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var utf = dt_image.encodeSync('utf');
             //fs.writeFileSync('./test/data/vector_tile/tile0.actual.grid.json',JSON.stringify(utf));
-            var expected = JSON.parse(fs.readFileSync('./test/data/vector_tile/tile0.actual.grid.json'));
+            var expected = JSON.parse(fs.readFileSync('./test/data/vector_tile/tile0.expected.grid.json'));
             assert.deepEqual(utf,expected)
             done();
         });
