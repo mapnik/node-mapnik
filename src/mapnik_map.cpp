@@ -2003,6 +2003,55 @@ Handle<Value> Map::renderSync(const Arguments& args)
 
     std::string format = TOSTR(args[0]);
     palette_ptr palette;
+    double scale_factor = 1.0;
+    double scale_denominator = 0.0;
+
+    if (args.Length() >= 2){
+        if (!args[1]->IsObject())
+            return ThrowException(Exception::TypeError(
+                                      String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
+
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(String::New("format")))
+        {
+            Local<Value> format_opt = options->Get(String::New("format"));
+            if (!format_opt->IsString())
+                return ThrowException(Exception::TypeError(
+                                          String::New("'format' must be a String")));
+
+            format = TOSTR(format_opt);
+        }
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+                return ThrowException(Exception::TypeError(
+                                          String::New("'palette' must be an object")));
+
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
+            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale' must be a number")));
+
+            scale_factor = bind_opt->NumberValue();
+        }
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
+        }
+    }
 
     // options hash
     if (args.Length() >= 2) {
@@ -2032,10 +2081,8 @@ Handle<Value> Map::renderSync(const Arguments& args)
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
-        mapnik::agg_renderer<mapnik::image_32> ren(*m->get(),im);
-        // TODO - scale denom
-        ren.apply(m->get()->layers(),m->get()->styles());
-
+        mapnik::agg_renderer<mapnik::image_32> ren(*m->get(),im,scale_factor);
+        ren.apply(m->get()->layers(),m->get()->styles(),scale_denominator);
         if (palette.get())
         {
             s = save_to_string(im, format, *palette);

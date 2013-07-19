@@ -959,7 +959,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
 }
 
 template <typename Renderer> void process_layers(Renderer & ren,
-                                            mapnik::request const& req,
+                                            mapnik::request const& m_req,
                                             mapnik::projection const& map_proj,
                                             std::vector<mapnik::layer> const& layers,
                                             std::map<std::string,mapnik::feature_type_style> const& styles,
@@ -999,21 +999,29 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                                     closure->d->z_,
                                                     closure->d->width()
                                                     );
-                ds->set_envelope(map_extent);
+                ds->set_envelope(m_req.get_buffered_extent());
                 lyr_copy.set_datasource(ds);
                 std::set<std::string> names;
                 ren.apply_to_layer(lyr_copy,
                                    styles,
                                    ren,
                                    map_proj,
-                                   req.scale(),
+                                   m_req.scale(),
                                    scale_denom,
+<<<<<<< HEAD
                                    req.width(),
                                    req.height(),
                                    req.extent(),
                                    req.buffer_size(),
                                    names,
                                    maximum_extent);
+=======
+                                   m_req.width(),
+                                   m_req.height(),
+                                   m_req.extent(),
+                                   m_req.buffer_size(),
+                                   names);
+>>>>>>> ad5fea85d6faa2a56d178803596af05a71ad2682
             }
         }
     }
@@ -1097,7 +1105,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                         closure->d->z_,
                                                         closure->d->width_
                                                         );
-                    ds->set_envelope(map_extent);
+                    ds->set_envelope(m_req.get_buffered_extent());
                     lyr_copy.set_datasource(ds);
                     ren.apply_to_layer(lyr_copy,
                                        map_in.styles(),
