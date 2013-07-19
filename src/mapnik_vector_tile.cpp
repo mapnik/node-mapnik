@@ -1008,20 +1008,12 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                    map_proj,
                                    m_req.scale(),
                                    scale_denom,
-<<<<<<< HEAD
-                                   req.width(),
-                                   req.height(),
-                                   req.extent(),
-                                   req.buffer_size(),
-                                   names,
-                                   maximum_extent);
-=======
                                    m_req.width(),
                                    m_req.height(),
                                    m_req.extent(),
                                    m_req.buffer_size(),
-                                   names);
->>>>>>> ad5fea85d6faa2a56d178803596af05a71ad2682
+                                   names,
+                                   maximum_extent);
             }
         }
     }
