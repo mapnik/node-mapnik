@@ -30,7 +30,7 @@
       }
   ],
   "dependencies"  : {
-      "mapnik-vector-tile": "0.2.x"
+      "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/future-rendering-api"
   },
   "devDependencies": {
       "mocha": "1.12.x",
