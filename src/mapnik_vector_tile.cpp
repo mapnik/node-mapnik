@@ -123,7 +123,7 @@ Handle<Value> VectorTile::New(const Arguments& args)
 Handle<Value> VectorTile::toString(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
     return scope.Close(String::New(tiledata.DebugString().c_str()));
 }
@@ -132,7 +132,7 @@ Handle<Value> VectorTile::toString(const Arguments& args)
 Handle<Value> VectorTile::names(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
     Local<Array> arr = Array::New(tiledata.layers_size());
     for (int i=0; i < tiledata.layers_size(); ++i)
@@ -146,28 +146,28 @@ Handle<Value> VectorTile::names(const Arguments& args)
 Handle<Value> VectorTile::width(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     return scope.Close(Integer::New(d->width()));
 }
 
 Handle<Value> VectorTile::height(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     return scope.Close(Integer::New(d->height()));
 }
 
 Handle<Value> VectorTile::painted(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     return scope.Close(Boolean::New(d->painted()));
 }
 
 Handle<Value> VectorTile::toJSON(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
     Local<Array> arr = Array::New(tiledata.layers_size());
     for (int i=0; i < tiledata.layers_size(); ++i)
@@ -419,7 +419,7 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("'layer' argument must be either a layer name (string) or layer index (integer)")));
 
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
     std::size_t layer_num = tiledata.layers_size();
     int layer_idx = -1;
@@ -544,7 +544,7 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
 {
     HandleScope scope;
 
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     if (args.Length() < 1 || !args[0]->IsObject())
         return ThrowException(Exception::Error(
                                   String::New("first argument must be a buffer object")));
@@ -603,7 +603,7 @@ Handle<Value> VectorTile::setData(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New("first arg must be a buffer object")));
 
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
 
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
@@ -676,7 +676,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 Handle<Value> VectorTile::getData(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
     // TODO - cache bytesize?
     int size = tiledata.ByteSize();
@@ -741,7 +741,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
 {
     HandleScope scope;
 
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     if (args.Length() < 1 || !args[0]->IsObject()) {
         return ThrowException(Exception::TypeError(String::New("mapnik.Map expected as first arg")));
     }
@@ -749,7 +749,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
     if (obj->IsNull() || obj->IsUndefined() || !Map::constructor->HasInstance(obj))
         return ThrowException(Exception::TypeError(String::New("mapnik.Map expected as first arg")));
 
-    Map *m = ObjectWrap::Unwrap<Map>(obj);
+    Map *m = node::ObjectWrap::Unwrap<Map>(obj);
     if (args.Length() < 2 || !args[1]->IsObject()) {
         return ThrowException(Exception::TypeError(String::New("a renderable mapnik object is expected as second arg")));
     }
@@ -817,13 +817,13 @@ Handle<Value> VectorTile::render(const Arguments& args)
     closure->layer_idx = 0;
     if (Image::constructor->HasInstance(im_obj))
     {
-        Image *im = ObjectWrap::Unwrap<Image>(im_obj);
+        Image *im = node::ObjectWrap::Unwrap<Image>(im_obj);
         closure->im = im;
         closure->im->_ref();
     }
     else if (CairoSurface::constructor->HasInstance(im_obj))
     {
-        CairoSurface *c = ObjectWrap::Unwrap<CairoSurface>(im_obj);
+        CairoSurface *c = node::ObjectWrap::Unwrap<CairoSurface>(im_obj);
         closure->c = c;
         closure->c->_ref();
         if (options->Has(String::New("renderer")))
@@ -852,7 +852,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
     }
     else if (Grid::constructor->HasInstance(im_obj))
     {
-        Grid *g = ObjectWrap::Unwrap<Grid>(im_obj);
+        Grid *g = node::ObjectWrap::Unwrap<Grid>(im_obj);
         closure->g = g;
         closure->g->_ref();
 
@@ -1209,7 +1209,7 @@ Handle<Value> VectorTile::clearSync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200200
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     d->clear();
 #endif
     return Undefined();
@@ -1227,7 +1227,7 @@ typedef struct {
 Handle<Value> VectorTile::clear(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
 
     if (args.Length() == 0) {
         return clearSync(args);
@@ -1290,7 +1290,7 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
 Handle<Value> VectorTile::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     std::string key;
     bool is_solid = mapnik::vector::is_solid_extent(d->get_tile(),key);
     if (is_solid) return scope.Close(String::New(key.c_str()));
@@ -1310,7 +1310,7 @@ typedef struct {
 Handle<Value> VectorTile::isSolid(const Arguments& args)
 {
     HandleScope scope;
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
 
     if (args.Length() == 0) {
         return isSolidSync(args);

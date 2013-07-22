@@ -97,7 +97,7 @@ Handle<Value> GridView::width(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     return scope.Close(Integer::New(g->get()->width()));
 }
 
@@ -105,7 +105,7 @@ Handle<Value> GridView::height(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     return scope.Close(Integer::New(g->get()->height()));
 }
 
@@ -123,7 +123,7 @@ typedef struct {
 Handle<Value> GridView::isSolid(const Arguments& args)
 {
     HandleScope scope;
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     if (args.Length() == 0) {
         return isSolidSync(args);
@@ -212,7 +212,7 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
 Handle<Value> GridView::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     grid_view_ptr view = g->get();
     if (view->width() > 0 && view->height() > 0)
     {
@@ -254,7 +254,7 @@ Handle<Value> GridView::getPixel(const Arguments& args)
                                   String::New("must supply x,y to query pixel color")));
     }
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     grid_view_ptr view = g->get();
     if (x < view->width() && y < view->height())
     {
@@ -270,7 +270,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");
@@ -379,7 +379,7 @@ Handle<Value> GridView::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");
@@ -525,7 +525,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");
@@ -613,7 +613,7 @@ Handle<Value> GridView::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");

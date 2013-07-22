@@ -63,7 +63,7 @@ Handle<Value> Geometry::extent(const Arguments& args)
 {
     HandleScope scope;
 
-    Geometry* g = ObjectWrap::Unwrap<Geometry>(args.This());
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.This());
 
     Local<Array> a = Array::New(4);
     mapnik::box2d<double> const& e = g->get()->envelope();
@@ -79,7 +79,7 @@ Handle<Value> Geometry::type(const Arguments& args)
 {
     HandleScope scope;
 
-    Geometry* g = ObjectWrap::Unwrap<Geometry>(args.This());
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.This());
 
     mapnik::eGeomType type = g->get()->type();
     // TODO - can we return the actual symbol?

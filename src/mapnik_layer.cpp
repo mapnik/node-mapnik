@@ -128,7 +128,7 @@ Handle<Value> Layer::get_prop(Local<String> property,
                               const AccessorInfo& info)
 {
     HandleScope scope;
-    Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(info.This());
     std::string a = TOSTR(property);
     if (a == "name")
         return scope.Close(String::New(l->layer_->name().c_str()));
@@ -158,7 +158,7 @@ void Layer::set_prop(Local<String> property,
                      const AccessorInfo& info)
 {
     HandleScope scope;
-    Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(info.This());
     std::string a = TOSTR(property);
     if (a == "name")
     {
@@ -201,17 +201,17 @@ void Layer::set_prop(Local<String> property,
             ThrowException(Exception::TypeError(String::New("mapnik.Datasource, or mapnik.MemoryDatasource instance expected")));
         } else {
             if (Datasource::constructor->HasInstance(obj)) {
-                Datasource *d = ObjectWrap::Unwrap<Datasource>(obj);
+                Datasource *d = node::ObjectWrap::Unwrap<Datasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
             /*else if (JSDatasource::constructor->HasInstance(obj))
             {
-                JSDatasource *d = ObjectWrap::Unwrap<JSDatasource>(obj);
+                JSDatasource *d = node::ObjectWrap::Unwrap<JSDatasource>(obj);
                 l->layer_->set_datasource(d->get());
             }*/
             else if (MemoryDatasource::constructor->HasInstance(obj))
             {
-                MemoryDatasource *d = ObjectWrap::Unwrap<MemoryDatasource>(obj);
+                MemoryDatasource *d = node::ObjectWrap::Unwrap<MemoryDatasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
             else
@@ -226,7 +226,7 @@ Handle<Value> Layer::describe(const Arguments& args)
 {
     HandleScope scope;
 
-    Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(args.This());
 
     Local<Object> description = Object::New();
     mapnik::layer const& layer = *l->layer_;

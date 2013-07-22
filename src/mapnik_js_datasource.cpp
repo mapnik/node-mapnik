@@ -117,7 +117,7 @@ Handle<Value> JSDatasource::next(const Arguments& args)
 {
     HandleScope scope;
 
-    JSDatasource* d = ObjectWrap::Unwrap<JSDatasource>(args.This());
+    JSDatasource* d = node::ObjectWrap::Unwrap<JSDatasource>(args.This());
     js_datasource *js = dynamic_cast<js_datasource *>(d->ds_ptr_.get());
     return scope.Close((*js->cb_)->Call(Context::GetCurrent()->Global(), 0, NULL));
 }

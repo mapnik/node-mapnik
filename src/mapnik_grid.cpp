@@ -136,7 +136,7 @@ Handle<Value> Grid::clearSync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200200
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
     g->get()->clear();
 #endif
     return Undefined();
@@ -154,7 +154,7 @@ typedef struct {
 Handle<Value> Grid::clear(const Arguments& args)
 {
     HandleScope scope;
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
 
     if (args.Length() == 0) {
         return clearSync(args);
@@ -218,7 +218,7 @@ Handle<Value> Grid::painted(const Arguments& args)
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
     return scope.Close(Boolean::New(g->get()->painted()));
 }
 
@@ -226,7 +226,7 @@ Handle<Value> Grid::width(const Arguments& args)
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
     return scope.Close(Integer::New(g->get()->width()));
 }
 
@@ -234,7 +234,7 @@ Handle<Value> Grid::height(const Arguments& args)
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
     return scope.Close(Integer::New(g->get()->height()));
 }
 
@@ -242,7 +242,7 @@ Handle<Value> Grid::get_prop(Local<String> property,
                              const AccessorInfo& info)
 {
     HandleScope scope;
-    Grid* g = ObjectWrap::Unwrap<Grid>(info.Holder());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "key")
         return scope.Close(String::New(g->get()->get_key().c_str()));
@@ -254,7 +254,7 @@ void Grid::set_prop(Local<String> property,
                     const AccessorInfo& info)
 {
     HandleScope scope;
-    Grid* g = ObjectWrap::Unwrap<Grid>(info.Holder());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "key") {
         if (!value->IsNumber())
@@ -269,7 +269,7 @@ Handle<Value> Grid::fields(const Arguments& args)
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
     std::set<std::string> const& a = g->get()->property_names();
     std::set<std::string>::const_iterator itr = a.begin();
     std::set<std::string>::const_iterator end = a.end();
@@ -298,7 +298,7 @@ Handle<Value> Grid::view(const Arguments& args)
     unsigned w = args[2]->IntegerValue();
     unsigned h = args[3]->IntegerValue();
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
     return scope.Close(GridView::New(g,x,y,w,h));
 }
 
@@ -309,7 +309,7 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
 
     // defaults
     std::string format("utf");
@@ -416,7 +416,7 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
 
     // defaults
     std::string format("utf");
@@ -561,7 +561,7 @@ Handle<Value> Grid::encodeSync(const Arguments& args) // format, resolution
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
 
     // defaults
     std::string format("utf");
@@ -650,7 +650,7 @@ Handle<Value> Grid::encode(const Arguments& args) // format, resolution
 {
     HandleScope scope;
 
-    Grid* g = ObjectWrap::Unwrap<Grid>(args.This());
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.This());
 
     // defaults
     std::string format("utf");

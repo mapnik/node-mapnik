@@ -295,7 +295,7 @@ int Map::estimate_map_size()
 Handle<Value> Map::size(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     return scope.Close(Integer::New(m->estimate_map_size()));
 }
 
@@ -303,7 +303,7 @@ Handle<Value> Map::get_prop(Local<String> property,
                             const AccessorInfo& info)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(info.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(info.This());
     std::string a = TOSTR(property);
     if(a == "extent") {
         Local<Array> arr = Array::New(4);
@@ -373,7 +373,7 @@ void Map::set_prop(Local<String> property,
                    const AccessorInfo& info)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = node::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
     if(a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
@@ -438,7 +438,7 @@ void Map::set_prop(Local<String> property,
         Local<Object> obj = value->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
-        Color *c = ObjectWrap::Unwrap<Color>(obj);
+        Color *c = node::ObjectWrap::Unwrap<Color>(obj);
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
@@ -482,14 +482,14 @@ void Map::set_prop(Local<String> property,
 Handle<Value> Map::scale(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     return scope.Close(Number::New(m->map_->scale()));
 }
 
 Handle<Value> Map::scaleDenominator(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     return scope.Close(Number::New(m->map_->scale_denominator()));
 }
 
@@ -542,7 +542,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
         y = args[1]->NumberValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     Local<Object> options = Object::New();
     int layer_idx = -1;
@@ -750,7 +750,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
 Handle<Value> Map::layers(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     Local<Array> a = Array::New(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
@@ -770,8 +770,8 @@ Handle<Value> Map::add_layer(const Arguments &args) {
     Local<Object> obj = args[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !Layer::constructor->HasInstance(obj))
         return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
-    Layer *l = ObjectWrap::Unwrap<Layer>(obj);
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     // TODO - addLayer should be add_layer in mapnik
     m->map_->addLayer(*l->get());
     return Undefined();
@@ -785,7 +785,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New("Please provide layer name or index")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
     Local<Value> layer = args[0];
@@ -838,7 +838,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
 Handle<Value> Map::clear(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     m->map_->remove_all();
     return Undefined();
 }
@@ -855,7 +855,7 @@ Handle<Value> Map::resize(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("width and height must be integers")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
     return Undefined();
 }
@@ -911,7 +911,7 @@ Handle<Value> Map::load(const Arguments& args)
         strict = param_val->BooleanValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
@@ -990,7 +990,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to a mapnik stylesheet")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string stylesheet = TOSTR(args[0]);
     bool strict = false;
     std::string base_path;
@@ -1094,7 +1094,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
         }
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     std::string stylesheet = TOSTR(args[0]);
 
@@ -1149,7 +1149,7 @@ Handle<Value> Map::fromString(const Arguments& args)
         strict = param_val->BooleanValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
@@ -1223,7 +1223,7 @@ Handle<Value> Map::save(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to map.xml to save")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string filename = TOSTR(args[0]);
     bool explicit_defaults = false;
     mapnik::save_map(*m->map_,filename,explicit_defaults);
@@ -1233,7 +1233,7 @@ Handle<Value> Map::save(const Arguments& args)
 Handle<Value> Map::to_string(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
     return scope.Close(String::New(map_string.c_str()));
@@ -1242,7 +1242,7 @@ Handle<Value> Map::to_string(const Arguments& args)
 Handle<Value> Map::zoomAll(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     try
     {
         m->map_->zoom_all();
@@ -1258,7 +1258,7 @@ Handle<Value> Map::zoomAll(const Arguments& args)
 Handle<Value> Map::zoomToBox(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     double minx;
     double miny;
@@ -1362,7 +1362,7 @@ Handle<Value> Map::render(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     if (m->active() != 0) {
         std::ostringstream s;
@@ -1438,7 +1438,7 @@ Handle<Value> Map::render(const Arguments& args)
         image_baton_t *closure = new image_baton_t();
         closure->request.data = closure;
         closure->m = m;
-        closure->im = ObjectWrap::Unwrap<Image>(obj);
+        closure->im = node::ObjectWrap::Unwrap<Image>(obj);
         closure->im->_ref();
         closure->scale_factor = scale_factor;
         closure->scale_denominator = scale_denominator;
@@ -1450,7 +1450,7 @@ Handle<Value> Map::render(const Arguments& args)
 
     } else if (Grid::constructor->HasInstance(obj)) {
 
-        Grid * g = ObjectWrap::Unwrap<Grid>(obj);
+        Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
 
         std::size_t layer_idx = 0;
 
@@ -1543,7 +1543,7 @@ Handle<Value> Map::render(const Arguments& args)
     } else if (VectorTile::constructor->HasInstance(obj)) {
 
         vector_tile_baton_t *closure = new vector_tile_baton_t();
-        VectorTile * vector_tile_obj = ObjectWrap::Unwrap<VectorTile>(obj);
+        VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
 
         if (options->Has(String::New("tolerance"))) {
 
@@ -1812,7 +1812,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -1837,7 +1837,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
                                   String::New("optional argument must be an object")));
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string output = TOSTR(args[0]);
 
     //maybe do this in the async part?
@@ -1995,7 +1995,7 @@ Handle<Value> Map::renderSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -2034,11 +2034,11 @@ Handle<Value> Map::renderSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string s;
     try
     {
@@ -2110,7 +2110,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -2130,7 +2130,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         }
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string output = TOSTR(args[0]);
 
     if (format.empty()) {

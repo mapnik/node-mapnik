@@ -66,7 +66,7 @@ Handle<Value> Projection::New(const Arguments& args)
 Handle<Value> Projection::forward(const Arguments& args)
 {
     HandleScope scope;
-    Projection* p = ObjectWrap::Unwrap<Projection>(args.This());
+    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.This());
 
     try
     {
@@ -118,7 +118,7 @@ Handle<Value> Projection::forward(const Arguments& args)
 Handle<Value> Projection::inverse(const Arguments& args)
 {
     HandleScope scope;
-    Projection* p = ObjectWrap::Unwrap<Projection>(args.This());
+    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.This());
 
     try
     {

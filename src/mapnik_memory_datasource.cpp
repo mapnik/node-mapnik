@@ -104,7 +104,7 @@ Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
 Handle<Value> MemoryDatasource::parameters(const Arguments& args)
 {
     HandleScope scope;
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
     Local<Object> ds = Object::New();
     if (d->datasource_) {
         mapnik::parameters::const_iterator it = d->datasource_->params().begin();
@@ -121,7 +121,7 @@ Handle<Value> MemoryDatasource::parameters(const Arguments& args)
 Handle<Value> MemoryDatasource::describe(const Arguments& args)
 {
     HandleScope scope;
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
     Local<Object> description = Object::New();
     if (d->datasource_) {
         try {
@@ -153,7 +153,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
         last = args[1]->IntegerValue();
     }
 
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
@@ -178,7 +178,7 @@ Handle<Value> MemoryDatasource::featureset(const Arguments& args)
 
     HandleScope scope;
 
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
 
     try
     {
@@ -220,7 +220,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                                   String::New("accepts one argument: an object including x and y (or wkt) and properties")));
     }
 
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
 
     Local<Object> obj = args[0]->ToObject();
 

@@ -98,7 +98,7 @@ Handle<Value> Feature::id(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     return scope.Close(Number::New(fp->get()->id()));
 }
 
@@ -106,7 +106,7 @@ Handle<Value> Feature::extent(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     Local<Array> a = Array::New(4);
     mapnik::box2d<double> const& e = fp->get()->envelope();
@@ -122,7 +122,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     Local<Object> feat = Object::New();
 
@@ -151,7 +151,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
 Handle<Value> Feature::numGeometries(const Arguments& args)
 {
     HandleScope scope;
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     return scope.Close(Integer::New(fp->get()->num_geometries()));
 }
 
@@ -160,7 +160,7 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     if (args.Length() >= 1 ) {
         Local<Value> value = args[0];
@@ -169,7 +169,7 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
         } else {
             Local<Object> obj = value->ToObject();
             if (Geometry::constructor->HasInstance(obj)) {
-                Geometry* g = ObjectWrap::Unwrap<Geometry>(obj);
+                Geometry* g = node::ObjectWrap::Unwrap<Geometry>(obj);
 
                 try
                 {
@@ -198,7 +198,7 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     if (args.Length() > 0 ) {
         Local<Value> value = args[0];
@@ -267,7 +267,7 @@ Handle<Value> Feature::toString(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     return scope.Close(String::New(fp->get()->to_string().c_str()));
 }
 
@@ -277,7 +277,7 @@ Handle<Value> Feature::toJSON(const Arguments& args)
 
     std::string json;
 #if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     // TODO - create once?
     if (!generator.generate(json,*(fp->get())))
     {

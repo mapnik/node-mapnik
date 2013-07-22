@@ -144,7 +144,7 @@ Handle<Value> Image::get_prop(Local<String> property,
                               const AccessorInfo& info)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
+    Image* im = node::ObjectWrap::Unwrap<Image>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "background") {
         boost::optional<mapnik::color> c = im->get()->get_background();
@@ -161,7 +161,7 @@ void Image::set_prop(Local<String> property,
                      const AccessorInfo& info)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
+    Image* im = node::ObjectWrap::Unwrap<Image>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "background") {
         if (!value->IsObject())
@@ -171,7 +171,7 @@ void Image::set_prop(Local<String> property,
         Local<Object> obj = value->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
-        Color *c = ObjectWrap::Unwrap<Color>(obj);
+        Color *c = node::ObjectWrap::Unwrap<Color>(obj);
         im->get()->set_background(*c->get());
     }
 }
@@ -180,7 +180,7 @@ Handle<Value> Image::clearSync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200200
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     im->get()->clear();
 #endif
     return Undefined();
@@ -198,7 +198,7 @@ typedef struct {
 Handle<Value> Image::clear(const Arguments& args)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     if (args.Length() == 0) {
         return clearSync(args);
@@ -262,7 +262,7 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     if (args.Length() == 0) {
         im->this_->set_grayscale_to_alpha();
     } else {
@@ -275,7 +275,7 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as second arg")));
 
-        Color * color = ObjectWrap::Unwrap<Color>(obj);
+        Color * color = node::ObjectWrap::Unwrap<Color>(obj);
 
         mapnik::image_data_32 & data = im->this_->data();
         for (unsigned int y = 0; y < data.height(); ++y)
@@ -316,7 +316,7 @@ Handle<Value> Image::premultiplySync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200100
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     im->get()->premultiply();
 #endif
     return Undefined();
@@ -328,7 +328,7 @@ Handle<Value> Image::premultiply(const Arguments& args)
     if (args.Length() == 0) {
         return premultiplySync(args);
     }
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
@@ -388,7 +388,7 @@ Handle<Value> Image::demultiplySync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200100
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     im->get()->demultiply();
 #endif
     return Undefined();
@@ -400,7 +400,7 @@ Handle<Value> Image::demultiply(const Arguments& args)
     if (args.Length() == 0) {
         return demultiplySync(args);
     }
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
@@ -437,7 +437,7 @@ Handle<Value> Image::painted(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(Boolean::New(im->get()->painted()));
 }
 
@@ -445,7 +445,7 @@ Handle<Value> Image::width(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(Integer::New(im->get()->width()));
 }
 
@@ -453,7 +453,7 @@ Handle<Value> Image::height(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(Integer::New(im->get()->height()));
 }
 
@@ -715,7 +715,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -748,7 +748,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -791,7 +791,7 @@ Handle<Value> Image::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -823,7 +823,7 @@ Handle<Value> Image::encode(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -912,7 +912,7 @@ Handle<Value> Image::view(const Arguments& args)
     unsigned w = args[2]->IntegerValue();
     unsigned h = args[3]->IntegerValue();
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(ImageView::New(im,x,y,w,h));
 }
 
@@ -946,7 +946,7 @@ Handle<Value> Image::save(const Arguments& args)
         }
     }
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     try
     {
         mapnik::save_to_file<mapnik::image_data_32>(im->get()->data(),filename, format);
@@ -1070,8 +1070,8 @@ Handle<Value> Image::composite(const Arguments& args)
 
     composite_image_baton_t *closure = new composite_image_baton_t();
     closure->request.data = closure;
-    closure->im1 = ObjectWrap::Unwrap<Image>(args.This());
-    closure->im2 = ObjectWrap::Unwrap<Image>(im2);
+    closure->im1 = node::ObjectWrap::Unwrap<Image>(args.This());
+    closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
     closure->mode = mode;
     closure->opacity = opacity;
     closure->filters = filters;

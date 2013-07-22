@@ -48,8 +48,8 @@ Handle<Value> ProjTransform::New(const Arguments& args)
     if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Projection::HasInstance(dest_obj))
         return ThrowException(Exception::TypeError(String::New("mapnik.Projection expected for second argument")));
 
-    Projection *p1 = ObjectWrap::Unwrap<Projection>(src_obj);
-    Projection *p2 = ObjectWrap::Unwrap<Projection>(dest_obj);
+    Projection *p1 = node::ObjectWrap::Unwrap<Projection>(src_obj);
+    Projection *p2 = node::ObjectWrap::Unwrap<Projection>(dest_obj);
 
     try
     {
@@ -67,7 +67,7 @@ Handle<Value> ProjTransform::New(const Arguments& args)
 Handle<Value> ProjTransform::forward(const Arguments& args)
 {
     HandleScope scope;
-    ProjTransform* p = ObjectWrap::Unwrap<ProjTransform>(args.This());
+    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.This());
 
     if (!args.Length() == 1)
         return ThrowException(Exception::Error(
@@ -131,7 +131,7 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
 Handle<Value> ProjTransform::backward(const Arguments& args)
 {
     HandleScope scope;
-    ProjTransform* p = ObjectWrap::Unwrap<ProjTransform>(args.This());
+    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.This());
 
     if (!args.Length() == 1)
         return ThrowException(Exception::Error(

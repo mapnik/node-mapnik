@@ -74,7 +74,7 @@ Handle<Value> CairoSurface::width(const Arguments& args)
 {
     HandleScope scope;
 
-    CairoSurface* im = ObjectWrap::Unwrap<CairoSurface>(args.This());
+    CairoSurface* im = node::ObjectWrap::Unwrap<CairoSurface>(args.This());
     return scope.Close(Integer::New(im->width()));
 }
 
@@ -82,14 +82,14 @@ Handle<Value> CairoSurface::height(const Arguments& args)
 {
     HandleScope scope;
 
-    CairoSurface* im = ObjectWrap::Unwrap<CairoSurface>(args.This());
+    CairoSurface* im = node::ObjectWrap::Unwrap<CairoSurface>(args.This());
     return scope.Close(Integer::New(im->height()));
 }
 
 Handle<Value> CairoSurface::getData(const Arguments& args)
 {
     HandleScope scope;
-    CairoSurface* surface = ObjectWrap::Unwrap<CairoSurface>(args.This());
+    CairoSurface* surface = node::ObjectWrap::Unwrap<CairoSurface>(args.This());
     std::string s = surface->ss_.str();
     #if NODE_VERSION_AT_LEAST(0, 11, 0)
     return scope.Close(node::Buffer::New((char*)s.data(),s.size()));

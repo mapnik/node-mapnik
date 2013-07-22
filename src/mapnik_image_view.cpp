@@ -109,7 +109,7 @@ typedef struct {
 Handle<Value> ImageView::isSolid(const Arguments& args)
 {
     HandleScope scope;
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
 
     if (args.Length() == 0) {
         return isSolidSync(args);
@@ -201,7 +201,7 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 Handle<Value> ImageView::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     image_view_ptr view = im->get();
     if (view->width() > 0 && view->height() > 0)
     {
@@ -244,7 +244,7 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
                                   String::New("must supply x,y to query pixel color")));
     }
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     image_view_ptr view = im->get();
     if (x < view->width() && y < view->height())
     {
@@ -264,7 +264,7 @@ Handle<Value> ImageView::width(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     return scope.Close(Integer::New(im->get()->width()));
 }
 
@@ -272,7 +272,7 @@ Handle<Value> ImageView::height(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     return scope.Close(Integer::New(im->get()->height()));
 }
 
@@ -281,7 +281,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -313,7 +313,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -357,7 +357,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -389,7 +389,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -492,7 +492,7 @@ Handle<Value> ImageView::save(const Arguments& args)
         }
     }
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     try
     {
         save_to_file(*im->get(),filename);

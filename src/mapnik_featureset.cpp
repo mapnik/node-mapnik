@@ -49,7 +49,7 @@ Handle<Value> Featureset::next(const Arguments& args)
 {
     HandleScope scope;
 
-    Featureset* fs = ObjectWrap::Unwrap<Featureset>(args.This());
+    Featureset* fs = node::ObjectWrap::Unwrap<Featureset>(args.This());
 
     if (fs->this_) {
         mapnik::feature_ptr fp;

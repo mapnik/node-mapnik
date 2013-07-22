@@ -84,7 +84,7 @@ Handle<Value> Palette::New(const Arguments& args) {
 Handle<Value> Palette::ToString(const Arguments& args)
 {
     HandleScope scope;
-    palette_ptr p = ObjectWrap::Unwrap<Palette>(args.This())->palette_;
+    palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.This())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     unsigned length = colors.size();
@@ -114,7 +114,7 @@ Handle<Value> Palette::ToBuffer(const Arguments& args)
 {
     HandleScope scope;
 
-    palette_ptr p = ObjectWrap::Unwrap<Palette>(args.This())->palette_;
+    palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.This())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     unsigned length = colors.size();

@@ -130,7 +130,7 @@ Handle<Value> Color::get_prop(Local<String> property,
                               const AccessorInfo& info)
 {
     HandleScope scope;
-    Color* c = ObjectWrap::Unwrap<Color>(info.This());
+    Color* c = node::ObjectWrap::Unwrap<Color>(info.This());
     std::string a = TOSTR(property);
     if (a == "a")
         return scope.Close(Integer::New(c->get()->alpha()));
@@ -148,7 +148,7 @@ void Color::set_prop(Local<String> property,
                      const AccessorInfo& info)
 {
     HandleScope scope;
-    Color* c = ObjectWrap::Unwrap<Color>(info.This());
+    Color* c = node::ObjectWrap::Unwrap<Color>(info.This());
     std::string a = TOSTR(property);
     if (!value->IsNumber())
         ThrowException(Exception::TypeError(
@@ -168,7 +168,7 @@ Handle<Value> Color::toString(const Arguments& args)
 {
     HandleScope scope;
 
-    Color* c = ObjectWrap::Unwrap<Color>(args.This());
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.This());
     return scope.Close(String::New( c->get()->to_string().c_str() ));
 }
 
@@ -177,7 +177,7 @@ Handle<Value> Color::hex(const Arguments& args)
 {
     HandleScope scope;
 
-    Color* c = ObjectWrap::Unwrap<Color>(args.This());
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.This());
     std::string hex = c->get()->to_hex_string();
     return scope.Close(String::New( hex.c_str() ));
 }
