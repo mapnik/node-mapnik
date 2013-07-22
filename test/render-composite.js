@@ -100,6 +100,8 @@ describe('mapnik.VectorTile ', function() {
             // okay, sweet, now render these various sources into and image
             // NOTE: order of sources does not matter, what matters is the order
             // of the layers in the mapnik.Map (which must match sources by name)
+            // EXCEPT if multiple sources provide data for the same layer name - in this
+            // case they are currently both rendered in the order of the sources array
             var sources = [vtile_global,{'name':'raster','image':raster},japan_vtile];
             var opts = {scale:1.0,buffer_size:256};
             var map_composite = new mapnik.Map(256,256);
