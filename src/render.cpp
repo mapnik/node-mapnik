@@ -2,7 +2,6 @@
 // node
 #include <node_object_wrap.h>
 
-
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -18,7 +17,6 @@
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/image_compositing.hpp>
-
 
 // stl
 #include <vector>
@@ -36,29 +34,6 @@
 #include <boost/make_shared.hpp>
 
 namespace node_mapnik {
-/*
-
-var tile = new mapnik.Tile(z,x,y);
-tile.render();
-
-var opts = { scale_factor:2, buffer_size:256 };
-var sources = [
-  vtile,
-  {'name':image},
-  vtile
-];
-
-mapnik.render(z,x,y,map,sources,image,opts,function(err,image) {
-    ren = agg_renderer;
-    for layer_name in map:
-        source = sources.find(layer_name);
-        if (vector):
-          ren.apply_to_layer(layer,map.styles())
-        else if (raster)
-          ren.apply_to_image()
-});
-
-*/
 
 struct render_baton_t {
     uv_work_t request;
