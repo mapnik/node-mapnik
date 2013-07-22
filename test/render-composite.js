@@ -3,7 +3,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 
-describe('mapnik.VectorTile ', function() {
+describe('mapnik.render ', function() {
 
     it('should throw with invalid params', function() {
         assert.throws(function() { mapnik.render(); });
