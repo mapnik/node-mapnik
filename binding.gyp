@@ -104,6 +104,7 @@
                    "src/mapnik_query.cpp",
                    "src/mapnik_cairo_surface.cpp",
                    "src/mapnik_vector_tile.cpp",
+                   "src/render.cpp",
                    "node_modules/mapnik-vector-tile/src/vector_tile.pb.cc"
       ],
       # this has to be per target to correctly

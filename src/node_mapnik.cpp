@@ -6,6 +6,7 @@
 #include <node_version.h>
 
 // node-mapnik
+#include "render.hpp"
 #include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
@@ -109,6 +110,7 @@ extern "C" {
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
+        NODE_SET_METHOD(target, "render", node_mapnik::render);
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
         NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
         NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
