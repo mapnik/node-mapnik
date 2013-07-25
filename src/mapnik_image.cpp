@@ -734,9 +734,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
         if (!args[1]->IsObject())
             return ThrowException(Exception::TypeError(
                                       String::New("optional second arg must be an options object")));
-
         Local<Object> options = args[1]->ToObject();
-
         if (options->Has(String::New("palette")))
         {
             Local<Value> format_opt = options->Get(String::New("palette"));
@@ -747,7 +745,6 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             Local<Object> obj = format_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
-
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
@@ -999,89 +996,96 @@ Handle<Value> Image::composite(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    mapnik::composite_mode_e mode = mapnik::src_over;
-    float opacity = 1.0;
-    std::vector<mapnik::filter::filter_type> filters;
-    int dx = 0;
-    int dy = 0;
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional second arg must be an options object")));
-
-        Local<Object> options = args[1]->ToObject();
-
-        if (options->Has(String::New("comp_op")))
-        {
-            Local<Value> opt = options->Get(String::New("comp_op"));
-            if (!opt->IsNumber()) {
+    try
+    {
+        mapnik::composite_mode_e mode = mapnik::src_over;
+        float opacity = 1.0;
+        std::vector<mapnik::filter::filter_type> filters;
+        int dx = 0;
+        int dy = 0;
+        if (args.Length() >= 2) {
+            if (!args[1]->IsObject())
                 return ThrowException(Exception::TypeError(
-                                          String::New("comp_op must be a mapnik.compositeOp value")));
-            }
-            mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
-        }
+                                          String::New("optional second arg must be an options object")));
 
-        if (options->Has(String::New("opacity")))
-        {
-            Local<Value> opt = options->Get(String::New("opacity"));
-            if (!opt->IsNumber()) {
-                return ThrowException(Exception::TypeError(
-                                          String::New("opacity must be a floating point number")));
-            }
-            opacity = opt->NumberValue();
-        }
+            Local<Object> options = args[1]->ToObject();
 
-        if (options->Has(String::New("dx")))
-        {
-            Local<Value> opt = options->Get(String::New("dx"));
-            if (!opt->IsNumber()) {
-                return ThrowException(Exception::TypeError(
-                                          String::New("dx must be an integer")));
-            }
-            dx = opt->IntegerValue();
-        }
-
-        if (options->Has(String::New("dy")))
-        {
-            Local<Value> opt = options->Get(String::New("dy"));
-            if (!opt->IsNumber()) {
-                return ThrowException(Exception::TypeError(
-                                          String::New("dy must be an integer")));
-            }
-            dy = opt->IntegerValue();
-        }
-
-        if (options->Has(String::New("image_filters")))
-        {
-            Local<Value> opt = options->Get(String::New("image_filters"));
-            if (!opt->IsString()) {
-                return ThrowException(Exception::TypeError(
-                                          String::New("image_filters argument must string of filter names")));
-            }
-            std::string filter_str = TOSTR(opt);
-            bool result = mapnik::filter::parse_image_filters(filter_str, filters);
-            if (!result)
+            if (options->Has(String::New("comp_op")))
             {
-                return ThrowException(Exception::TypeError(
-                                          String::New("could not parse image_filters")));
+                Local<Value> opt = options->Get(String::New("comp_op"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("comp_op must be a mapnik.compositeOp value")));
+                }
+                mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
+            }
+
+            if (options->Has(String::New("opacity")))
+            {
+                Local<Value> opt = options->Get(String::New("opacity"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("opacity must be a floating point number")));
+                }
+                opacity = opt->NumberValue();
+            }
+
+            if (options->Has(String::New("dx")))
+            {
+                Local<Value> opt = options->Get(String::New("dx"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("dx must be an integer")));
+                }
+                dx = opt->IntegerValue();
+            }
+
+            if (options->Has(String::New("dy")))
+            {
+                Local<Value> opt = options->Get(String::New("dy"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("dy must be an integer")));
+                }
+                dy = opt->IntegerValue();
+            }
+
+            if (options->Has(String::New("image_filters")))
+            {
+                Local<Value> opt = options->Get(String::New("image_filters"));
+                if (!opt->IsString()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("image_filters argument must string of filter names")));
+                }
+                std::string filter_str = TOSTR(opt);
+                bool result = mapnik::filter::parse_image_filters(filter_str, filters);
+                if (!result)
+                {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("could not parse image_filters")));
+                }
             }
         }
-    }
 
-    composite_image_baton_t *closure = new composite_image_baton_t();
-    closure->request.data = closure;
-    closure->im1 = node::ObjectWrap::Unwrap<Image>(args.This());
-    closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
-    closure->mode = mode;
-    closure->opacity = opacity;
-    closure->filters = filters;
-    closure->dx = dx;
-    closure->dy = dy;
-    closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
-    closure->im1->Ref();
-    closure->im2->Ref();
+        composite_image_baton_t *closure = new composite_image_baton_t();
+        closure->request.data = closure;
+        closure->im1 = node::ObjectWrap::Unwrap<Image>(args.This());
+        closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
+        closure->mode = mode;
+        closure->opacity = opacity;
+        closure->filters = filters;
+        closure->dx = dx;
+        closure->dy = dy;
+        closure->error = false;
+        closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
+        closure->im1->Ref();
+        closure->im2->Ref();
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(String::New(ex.what())));
+    }
     return Undefined();
 }
 
