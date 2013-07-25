@@ -53,6 +53,8 @@ struct render_baton_t {
     double scale_factor;
     int buffer_size;
     double scale_denominator;
+    unsigned offset_x;
+    unsigned offset_y;
     Persistent<Function> cb;
     bool use_cairo;
     unsigned tile_size;
@@ -72,6 +74,8 @@ struct render_baton_t {
         scale_factor(1.0),
         buffer_size(0),
         scale_denominator(0.0),
+        offset_x(0),
+        offset_y(0),
         use_cairo(true),
         tile_size(256) {}
 };
@@ -97,7 +101,7 @@ void AsyncRender(uv_work_t* req)
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
         mapnik::image_32 & image_buffer = *closure->im->get();
-        mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,image_buffer,closure->scale_factor);
+        mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,image_buffer,closure->scale_factor,closure->offset_x,closure->offset_y);
         ren.start_map_processing(map_in);
         unsigned layers_size = layers.size();
         for (unsigned i=0; i < layers_size; ++i)
@@ -281,24 +285,48 @@ Handle<Value> render(const Arguments& args)
         options = args[6]->ToObject();
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
-            if (!bind_opt->IsNumber())
+            if (!bind_opt->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("optional arg 'scale' must be a number")));
+            }
             closure->scale_factor = bind_opt->NumberValue();
         }
         if (options->Has(String::New("buffer_size"))) {
             Local<Value> bind_opt = options->Get(String::New("buffer_size"));
-            if (!bind_opt->IsNumber())
+            if (!bind_opt->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("optional arg 'buffer_size' must be a number")));
+            }
             closure->buffer_size = bind_opt->IntegerValue();
         }
         if (options->Has(String::New("scale_denominator"))) {
             Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
-            if (!bind_opt->IsNumber())
+            if (!bind_opt->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("optional arg 'scale_denominator' must be a number")));
+            }
             closure->scale_denominator = bind_opt->NumberValue();
+        }
+        if (options->Has(String::New("offset_x"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_x"));
+            if (!bind_opt->IsNumber()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'offset_x' must be a number")));
+            }
+            closure->offset_x = bind_opt->IntegerValue();
+        }
+        if (options->Has(String::New("offset_y"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_y"));
+            if (!bind_opt->IsNumber()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'offset_y' must be a number")));
+            }
+            closure->offset_y = bind_opt->IntegerValue();
         }
     }
     
