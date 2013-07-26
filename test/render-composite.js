@@ -64,7 +64,7 @@ describe('mapnik.render ', function() {
         });
     });
 
-    it('should allow a render-time sandwich of vector tiles and raster images', function(done) {
+    it('should allow a rendering vector tiles and raster images to an image', function(done) {
         // first we create a vector tile on the fly
         var vtile_global = new mapnik.VectorTile(0,0,0);
         var map = new mapnik.Map(256,256,'+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
@@ -97,7 +97,7 @@ describe('mapnik.render ', function() {
             // image has alpha so it needs to be premultiplied before passing into renderer
             raster.premultiply();
             
-            // okay, sweet, now render these various sources into and image
+            // okay, sweet, now render these various sources into a new image
             // NOTE: order of sources does not matter, what matters is the order
             // of the layers in the mapnik.Map (which must match sources by name)
             // EXCEPT if multiple sources provide data for the same layer name - in this
@@ -111,12 +111,66 @@ describe('mapnik.render ', function() {
             var y = 0;
             mapnik.render(z,x,y,map_composite,new mapnik.Image(256,256),sources,opts,function(err,im) {
                 if (err) throw err;
-                im.save('./test/data/render-composite/composite-actual.png');
-                assert.equal(fs.readFileSync('./test/data/render-composite/composite-actual.png').length,
-                             fs.readFileSync('./test/data/render-composite/composite-expected.png').length);
+                var actual = './test/data/render-composite/composite-actual.png';
+                var expected = actual.replace('actual','expected');
+                im.save(actual);
+                assert.equal(fs.readFileSync(actual).length,
+                             fs.readFileSync(expected).length);
                 done();
             });
         });
     });
 
+    it('should allow a rendering vector tiles and raster images to a vector tile', function(done) {
+        // first we create a vector tile on the fly
+        var vtile_global = new mapnik.VectorTile(0,0,0);
+        var map = new mapnik.Map(256,256,'+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        var global = new mapnik.Layer('global',map.srs)
+        var options = {
+            type: 'shape',
+            file: './test/data/world_merc.shp',
+            encoding: 'iso-8859-1'
+        };
+        global.datasource = new mapnik.Datasource(options);
+        map.add_layer(global);
+        map.render(vtile_global,{},function(err, vtile_global) {
+            if (err) throw err;
+            // ensure the vtile contains one layer named 'global'
+            assert.deepEqual(vtile_global.names(),['global']);
+
+            // now load a vector tile for some deeper zoom level
+            // in this case we grab a tile for japan from the tests
+            var japan_vtile = new mapnik.VectorTile(5,28,12);
+            japan_vtile.setData(fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf"));
+            // ensure the vtile contains one layer named 'world'
+            assert.deepEqual(japan_vtile.names(),['world']);
+
+            // now load up a raster image to composite into the final rendered image
+            // 128 is used here just for testing purposed - you will want to stick to 256 px images
+            var raster = new mapnik.Image(128,128);
+            // semi transparent blue
+            raster.background = new mapnik.Color('rgba(0,0,255,.5)');
+            // image has alpha so it needs to be premultiplied before passing into renderer
+            raster.premultiply();
+            
+            // okay, sweet, now render these various sources into a new vector tile
+            var sources = [vtile_global,{'name':'raster','image':raster},japan_vtile];
+            var opts = {scale:1.0,buffer_size:256};
+            var map_composite = new mapnik.Map(256,256);
+            map_composite.loadSync('./test/data/render-composite/composite.xml');
+            var z = 5;
+            var x = 28;
+            var y = 12;
+            mapnik.render(z,x,y,map_composite,new mapnik.VectorTile(z,x,y),sources,opts,function(err,v) {
+                if (err) throw err;
+                var actual = './test/data/render-composite/composite-actual.json';
+                var expected = actual.replace('actual','expected');
+                fs.writeFileSync(actual,JSON.stringify(v.toJSON(),null,1));
+                assert.equal(fs.readFileSync(actual).length,
+                             fs.readFileSync(expected).length);
+                done();
+            });
+        });
+    });
 });
