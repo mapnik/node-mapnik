@@ -4,7 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var inflate = require('zlib').inflate;
 var mercator = new(require('sphericalmercator'));
-
+var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 
 var trunc_6 = function(key, val) {
@@ -309,8 +309,11 @@ describe('mapnik.VectorTile ', function() {
         dt.render(map, new mapnik.Grid(256, 256), {layer:0}, function(err, dt_image) {
             if (err) throw err;
             var utf = dt_image.encodeSync('utf');
-            //fs.writeFileSync('./test/data/vector_tile/tile0.actual.grid.json',JSON.stringify(utf));
-            var expected = JSON.parse(fs.readFileSync('./test/data/vector_tile/tile0.expected.grid.json'));
+            var expected_file = './test/data/vector_tile/tile0.expected.grid.json';
+            if (!existsSync(expected_file)) {
+                fs.writeFileSync(expected_file,JSON.stringify(utf));
+            }
+            var expected = JSON.parse(fs.readFileSync(expected_file));
             assert.deepEqual(utf,expected)
             done();
         });
