@@ -1,5 +1,9 @@
 # Changlog
 
+## 1.1.2
+
+ - Upgraded to mapnik-vector-tile 3.0.x API
+
 ## 1.1.1
 
  - Fixed extent of vector::tile_datasource to be sensitive to map buffer (TODO - long term

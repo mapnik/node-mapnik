@@ -25,6 +25,9 @@
 #include "mapnik_vector_tile.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_datasource.hpp"
+#include "vector_tile_processor.hpp"
+#include "vector_tile_backend_pbf.hpp"
+
 //#include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
 #include "mapnik_image.hpp"
@@ -43,7 +46,7 @@ struct render_baton_t {
     bool error;
     std::string result;
     Map* m;
-    VectorTile* d;
+    VectorTile* v;
     Image * im;
     std::vector<VectorTile*> vtiles;
     std::map<std::string,Image*> images;
@@ -55,6 +58,8 @@ struct render_baton_t {
     double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
+    unsigned tolerance;
+    unsigned path_multiplier;
     Persistent<Function> cb;
     bool use_cairo;
     unsigned tile_size;
@@ -66,7 +71,7 @@ struct render_baton_t {
         error(false),
         result(),
         m(NULL),
-        d(NULL),
+        v(NULL),
         im(NULL),
         //c(NULL),
         //g(NULL),
@@ -76,6 +81,8 @@ struct render_baton_t {
         scale_denominator(0.0),
         offset_x(0),
         offset_y(0),
+        tolerance(1),
+        path_multiplier(16),
         use_cairo(true),
         tile_size(256) {}
 };
@@ -100,82 +107,177 @@ void AsyncRender(uv_work_t* req)
         }
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
-        mapnik::image_32 & image_buffer = *closure->im->get();
-        mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,image_buffer,closure->scale_factor,closure->offset_x,closure->offset_y);
-        ren.start_map_processing(map_in);
-        unsigned layers_size = layers.size();
-        for (unsigned i=0; i < layers_size; ++i)
+        if (closure->im)
         {
-            mapnik::layer const& lyr = layers[i];
-            if (lyr.visible(scale_denom))
+            mapnik::image_32 & image_buffer = *closure->im->get();
+            mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,image_buffer,closure->scale_factor,closure->offset_x,closure->offset_y);
+            ren.start_map_processing(map_in);
+            unsigned layers_size = layers.size();
+            for (unsigned i=0; i < layers_size; ++i)
             {
-                unsigned layer_hit = 0;
-                // search for matching name in images
-                typedef std::map<std::string, Image *>::const_iterator iterator_type;
-                iterator_type itr =  closure->images.find(lyr.name());
-                if (itr != closure->images.end())
+                mapnik::layer const& lyr = layers[i];
+                if (lyr.visible(scale_denom))
                 {
-                    // TODO - comp_op, filters, opacity from style
-                    ++layer_hit;
-                    mapnik::composite(image_buffer.data(),itr->second->get()->data(), mapnik::src_over, 1.0f, 0, 0, false);
-                }
-                else
-                {
-                    for (unsigned v=0; v < closure->vtiles.size(); ++v)
+                    unsigned layer_hit = 0;
+                    // search for matching name in images
+                    typedef std::map<std::string, Image *>::const_iterator iterator_type;
+                    iterator_type itr =  closure->images.find(lyr.name());
+                    if (itr != closure->images.end())
                     {
-                        int tile_layer_idx = -1;
-                        VectorTile * vtile = closure->vtiles[v];
-                        mapnik::vector::tile const& tiledata = vtile->get_tile();
-                        for (int t=0; t < tiledata.layers_size(); ++t)
+                        // TODO - comp_op, filters, opacity from style
+                        ++layer_hit;
+                        mapnik::composite(image_buffer.data(),itr->second->get()->data(), mapnik::src_over, 1.0f, 0, 0, false);
+                    }
+                    else
+                    {
+                        for (unsigned v=0; v < closure->vtiles.size(); ++v)
                         {
-                            mapnik::vector::tile_layer const& layer = tiledata.layers(t);
-                            if (lyr.name() == layer.name())
+                            int tile_layer_idx = -1;
+                            VectorTile * vtile = closure->vtiles[v];
+                            mapnik::vector::tile const& tiledata = vtile->get_tile();
+                            for (int t=0; t < tiledata.layers_size(); ++t)
                             {
-                                tile_layer_idx = t;
-                                break;
+                                mapnik::vector::tile_layer const& layer = tiledata.layers(t);
+                                if (lyr.name() == layer.name())
+                                {
+                                    tile_layer_idx = t;
+                                    break;
+                                }
+                            }
+                            if (tile_layer_idx > -1)
+                            {
+                                ++layer_hit;
+                                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                                mapnik::layer lyr_copy(lyr);
+                                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                                mapnik::vector::tile_datasource>(
+                                                                    layer,
+                                                                    vtile->x_,
+                                                                    vtile->y_,
+                                                                    vtile->z_,
+                                                                    closure->tile_size
+                                                                    );
+                                // TODO - really should be respecting/using buffered layer extent
+                                ds->set_envelope(m_req.get_buffered_extent());
+                                lyr_copy.set_datasource(ds);
+                                std::set<std::string> names;
+                                ren.apply_to_layer(lyr_copy,
+                                                   ren,
+                                                   map_proj,
+                                                   m_req.scale(),
+                                                   scale_denom,
+                                                   m_req.width(),
+                                                   m_req.height(),
+                                                   m_req.extent(),
+                                                   m_req.buffer_size(),
+                                                   names);
                             }
                         }
-                        if (tile_layer_idx > -1)
-                        {
-                            ++layer_hit;
-                            mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                            mapnik::layer lyr_copy(lyr);
-                            boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
-                                                            mapnik::vector::tile_datasource>(
-                                                                layer,
-                                                                vtile->x_,
-                                                                vtile->y_,
-                                                                vtile->z_,
-                                                                closure->tile_size
-                                                                );
-                            // TODO - really should be respecting/using buffered layer extent
-                            ds->set_envelope(m_req.get_buffered_extent());
-                            lyr_copy.set_datasource(ds);
-                            std::set<std::string> names;
-                            ren.apply_to_layer(lyr_copy,
-                                               ren,
-                                               map_proj,
-                                               m_req.scale(),
-                                               scale_denom,
-                                               m_req.width(),
-                                               m_req.height(),
-                                               m_req.extent(),
-                                               m_req.buffer_size(),
-                                               names);
-                        }
+                    }
+                    if (layer_hit <= 0)
+                    {
+                        std::clog << "notice: no sources matched layer " << lyr.name() << "\n";
+                    }
+                    if (layer_hit > 1)
+                    {
+                        std::clog << "notice: multiple sources matched layer " << lyr.name() << "\n";
                     }
                 }
-                if (layer_hit <= 0)
+            }
+            ren.end_map_processing(map_in);
+        }
+        else if (closure->v)
+        {
+            typedef mapnik::vector::backend_pbf backend_type;
+            typedef mapnik::vector::processor<backend_type> renderer_type;
+            backend_type backend(closure->v->get_tile_nonconst(),
+                                 closure->path_multiplier);
+            renderer_type ren(backend,
+                              *closure->m->get(),
+                              m_req,
+                              closure->scale_factor,
+                              closure->offset_x,
+                              closure->offset_y,
+                              closure->tolerance);
+            unsigned layers_size = layers.size();
+            for (unsigned i=0; i < layers_size; ++i)
+            {
+                mapnik::layer const& lyr = layers[i];
+                if (lyr.visible(scale_denom))
                 {
-                    std::clog << "notice: no sources matched layer " << lyr.name() << "\n";
-                }
-                if (layer_hit > 1)
-                {
-                    std::clog << "notice: multiple sources matched layer " << lyr.name() << "\n";
+                    unsigned layer_hit = 0;
+                    // search for matching name in images
+                    typedef std::map<std::string, Image *>::const_iterator iterator_type;
+                    iterator_type itr =  closure->images.find(lyr.name());
+                    if (itr != closure->images.end())
+                    {
+                        ++layer_hit;
+                        std::clog << "WARNING: pushing rasters into a vector tile is not yet supported\n";
+                        //mapnik::composite(image_buffer.data(),itr->second->get()->data(), mapnik::src_over, 1.0f, 0, 0, false);
+                    }
+                    else
+                    {
+                        for (unsigned v=0; v < closure->vtiles.size(); ++v)
+                        {
+                            int tile_layer_idx = -1;
+                            VectorTile * vtile = closure->vtiles[v];
+                            mapnik::vector::tile const& tiledata = vtile->get_tile();
+                            for (int t=0; t < tiledata.layers_size(); ++t)
+                            {
+                                mapnik::vector::tile_layer const& layer = tiledata.layers(t);
+                                if (lyr.name() == layer.name())
+                                {
+                                    tile_layer_idx = t;
+                                    break;
+                                }
+                            }
+                            if (tile_layer_idx > -1)
+                            {
+                                ++layer_hit;
+                                backend.start_tile_layer(lyr.name());
+                                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                                mapnik::layer lyr_copy(lyr);
+                                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                                mapnik::vector::tile_datasource>(
+                                                                    layer,
+                                                                    vtile->x_,
+                                                                    vtile->y_,
+                                                                    vtile->z_,
+                                                                    closure->tile_size
+                                                                    );
+                                // TODO - really should be respecting/using buffered layer extent
+                                ds->set_envelope(m_req.get_buffered_extent());
+                                lyr_copy.set_datasource(ds);
+                                ren.apply_to_layer(lyr_copy,
+                                                   map_proj,
+                                                   m_req.scale(),
+                                                   scale_denom,
+                                                   m_req.width(),
+                                                   m_req.height(),
+                                                   m_req.extent(),
+                                                   m_req.buffer_size());
+                                 backend.stop_tile_layer();
+                                 // @TODO - break to avoid possibility of duplicate layer names?
+                            }
+                        }
+                    }
+                    if (layer_hit <= 0)
+                    {
+                        std::clog << "notice: no sources matched layer " << lyr.name() << "\n";
+                    }
+                    if (layer_hit > 1)
+                    {
+                        std::clog << "notice: multiple sources matched layer " << lyr.name() << "\n";
+                    }
                 }
             }
+            closure->v->painted(ren.painted());
         }
-        ren.end_map_processing(map_in);
+        else
+        {
+            closure->error  = true;
+            closure->result = "hit unsuppored rendering surface";
+        }
     }
     catch (std::exception const& ex)
     {
@@ -203,17 +305,16 @@ void AfterRender(uv_work_t* req)
             Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im->handle_) };
             closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
         }
-        /*
-        else if (closure->g)
+        else if (closure->v)
         {
-            Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->g->handle_) };
+            Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->v->handle_) };
             closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
         }
-        else if (closure->c)
+        else
         {
-            Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->c->handle_) };
-            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-        }*/
+            Local<Value> argv[1] = { Exception::Error(String::New("invalid rendering surface")) };
+            closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        }
     }
 
     if (try_catch.HasCaught()) {
@@ -222,8 +323,8 @@ void AfterRender(uv_work_t* req)
 
     closure->m->_unref();
     if (closure->im) closure->im->_unref();
+    if (closure->v) closure->v->_unref();
     //if (closure->g) closure->g->_unref();
-    //closure->d->Unref();
     closure->cb.Dispose();
     delete closure;
 }
@@ -249,8 +350,15 @@ Handle<Value> render(const Arguments& args)
     }
 
     Local<Object> image_obj = args[4]->ToObject();
-    if (image_obj->IsNull() || image_obj->IsUndefined() || !Image::constructor->HasInstance(image_obj)) {
-        return ThrowException(Exception::TypeError(String::New("mapnik.Image expected as fifth arg")));
+    if (image_obj->IsNull() || image_obj->IsUndefined()) {
+        return ThrowException(Exception::TypeError(String::New("mapnik.Image || mapnik.VectorTile expected as fifth arg")));
+    }
+    if (!Image::constructor->HasInstance(image_obj) && !VectorTile::constructor->HasInstance(image_obj)) {
+        return ThrowException(Exception::TypeError(String::New("mapnik.Image || mapnik.VectorTile expected as fifth arg")));
+    }
+    bool is_vtile = false;
+    if (VectorTile::constructor->HasInstance(image_obj)) {
+        is_vtile = true;
     }
 
     Local<Value> sources_obj = args[5];
@@ -328,6 +436,26 @@ Handle<Value> render(const Arguments& args)
             }
             closure->offset_y = bind_opt->IntegerValue();
         }
+        if (options->Has(String::New("tolerance"))) {
+
+            Local<Value> param_val = options->Get(String::New("tolerance"));
+            if (!param_val->IsNumber()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'tolerance' must be an unsigned integer")));
+            }
+            closure->tolerance = param_val->IntegerValue();
+        }
+        if (options->Has(String::New("path_multiplier"))) {
+
+            Local<Value> param_val = options->Get(String::New("path_multiplier"));
+            if (!param_val->IsNumber()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'path_multiplier' must be an unsigned integer")));
+            }
+            closure->path_multiplier = param_val->NumberValue();
+        }
     }
     
     unsigned int i = 0;
@@ -382,11 +510,16 @@ Handle<Value> render(const Arguments& args)
     closure->x = args[1]->IntegerValue();
     closure->y = args[2]->IntegerValue();
     closure->m = node::ObjectWrap::Unwrap<Map>(map_obj);
-    closure->im = node::ObjectWrap::Unwrap<Image>(image_obj);
+    if (is_vtile) {
+        closure->v = node::ObjectWrap::Unwrap<VectorTile>(image_obj);
+        closure->v->_ref();
+    } else {
+        closure->im = node::ObjectWrap::Unwrap<Image>(image_obj);
+        closure->im->_ref();
+    }
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, AsyncRender, (uv_after_work_cb)AfterRender);
     closure->m->_ref();
-    closure->im->_ref();
     return Undefined();
 }
 

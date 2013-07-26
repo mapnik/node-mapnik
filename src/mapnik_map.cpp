@@ -1592,8 +1592,12 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
         typedef mapnik::vector::processor<backend_type> renderer_type;
         backend_type backend(closure->d->get_tile_nonconst(),
                              closure->path_multiplier);
+        mapnik::Map const& map = *closure->m->get();
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(map.buffer_size());
         renderer_type ren(backend,
-                          *closure->m->get(),
+                          map,
+                          m_req,
                           closure->scale_factor,
                           closure->offset_x,
                           closure->offset_y,
