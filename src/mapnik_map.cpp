@@ -1861,6 +1861,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 #if defined(HAVE_CAIRO)
         closure->use_cairo = true;
 #else
+        delete closure;
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
         return ThrowException(Exception::Error(
