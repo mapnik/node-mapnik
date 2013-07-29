@@ -106,6 +106,7 @@ extern "C" {
 
     static void InitMapnik (Handle<Object> target)
     {
+        HandleScope scope;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
