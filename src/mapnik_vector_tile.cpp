@@ -262,7 +262,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
     double tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     for (int j=0; j < layer.features_size(); ++j)
     {
-        double scale_ = (static_cast<double>(layer.extent()) / width) * width/resolution;
+        double scale_ = (static_cast<double>(layer.extent()) / width) * static_cast<double>(width)/resolution;
         Local<Object> feature_obj = Object::New();
         feature_obj->Set(String::NewSymbol("type"),String::New("Feature"));
         Local<Object> geometry = Object::New();
@@ -306,7 +306,8 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         int cmd = -1;
         const int cmd_bits = 3;
         unsigned length = 0;
-        double x = tile_x_, y = tile_y_;
+        double x1 = tile_x_;
+        double y1 = tile_y_;
         unsigned idx = 0;
         for (int k = 0; k < f.geometry_size();)
         {
@@ -323,22 +324,22 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     int32_t dy = f.geometry(k++);
                     dx = ((dx >> 1) ^ (-(dx & 1)));
                     dy = ((dy >> 1) ^ (-(dy & 1)));
-                    x += (double)dx / scale_;
-                    y -= (double)dy / scale_;
-                    double x1 = x;
-                    double y1 = y;
-                    if (tr.forward(x1,y1,zc))
+                    x1 += (static_cast<double>(dx) / scale_);
+                    y1 -= (static_cast<double>(dy) / scale_);
+                    double x2 = x1;
+                    double y2 = y1;
+                    if (tr.forward(x2,y2,zc))
                     {
                         if (g_type == mapnik::datasource::Point)
                         {
-                            g_arr->Set(0,Number::New(x1));
-                            g_arr->Set(1,Number::New(y1));
+                            g_arr->Set(0,Number::New(x2));
+                            g_arr->Set(1,Number::New(y2));
                         }
                         else
                         {
                             Local<Array> v_arr = Array::New(2);
-                            v_arr->Set(0,Number::New(x1));
-                            v_arr->Set(1,Number::New(y1));
+                            v_arr->Set(0,Number::New(x2));
+                            v_arr->Set(1,Number::New(y2));
                             g_arr->Set(idx++,v_arr);
                         }
                     }
