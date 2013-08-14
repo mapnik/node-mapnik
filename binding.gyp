@@ -19,13 +19,16 @@
       'default_configuration': 'Release',
       'configurations': {
           'Debug': {
-              'cflags_cc!': ['-O3', '-DNDEBUG'],
+              'cflags_cc!': ['-O3', '-Os', '-DNDEBUG'],
               'xcode_settings': {
-                'OTHER_CPLUSPLUSFLAGS!':['-O3', '-DNDEBUG']
-              },
+                'OTHER_CPLUSPLUSFLAGS!':['-O3', '-Os', '-DNDEBUG']
+              }
           },
           'Release': {
-
+              'xcode_settings': {
+                'GCC_OPTIMIZATION_LEVEL': '3',
+                'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO'
+              }
           }
       },
       'include_dirs': [
