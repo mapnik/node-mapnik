@@ -2,18 +2,6 @@
 
 all: mapnik.node
 
-OS:=$(shell uname -s)
-
-ifeq ($(NPROCS),)
-	NPROCS:=1
-	ifeq ($(OS),Linux)
-		NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
-	endif
-	ifeq ($(OS),Darwin)
-		NPROCS:=$(shell sysctl -n hw.ncpu)
-	endif
-endif
-
 mapnik.node:
 	`npm explore npm -g -- pwd`/bin/node-gyp-bin/node-gyp build
 
