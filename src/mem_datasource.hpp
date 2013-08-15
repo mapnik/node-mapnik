@@ -14,6 +14,7 @@ using namespace v8;
 #include <mapnik/sql_utils.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/value_types.hpp>
 
 // boost
 #include <boost/scoped_ptr.hpp>
@@ -156,7 +157,7 @@ public:
                                         // if name in q.property_names() ?
                                         Local<Value> value = p_obj->Get(name);
                                         if (value->IsString()) {
-                                            UnicodeString ustr = tr_->transcode(TOSTR(value));
+                                            mapnik::value_unicode_string ustr = tr_->transcode(TOSTR(value));
                                             feature->put_new(TOSTR(name),ustr);
                                         } else if (value->IsNumber()) {
                                             double num = value->NumberValue();

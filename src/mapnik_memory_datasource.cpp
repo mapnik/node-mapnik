@@ -4,6 +4,7 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/memory_datasource.hpp>
+#include <mapnik/value_types.hpp>
 
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_datasource.hpp"
@@ -259,7 +260,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                         // if name in q.property_names() ?
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
-                            UnicodeString ustr = d->tr_->transcode(TOSTR(value));
+                            mapnik::value_unicode_string ustr = d->tr_->transcode(TOSTR(value));
 #if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),ustr);
 #else

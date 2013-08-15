@@ -5,6 +5,7 @@
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/value_types.hpp>
 
 // boost
 #include <boost/version.hpp>
@@ -216,7 +217,7 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                     Local<Value> name = names->Get(i)->ToString();
                     Local<Value> value = attr->Get(name);
                     if (value->IsString()) {
-                        UnicodeString ustr = tr->transcode(TOSTR(value));
+                        mapnik::value_unicode_string ustr = tr->transcode(TOSTR(value));
 #if MAPNIK_VERSION >= 200100
                         fp->get()->put_new(TOSTR(name),ustr);
 #else
