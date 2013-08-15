@@ -1,5 +1,12 @@
 # Changlog
 
+## 1.1.3
+
+ - Gyp binding cleanups
+ - Removed direct icu::UnicodString usage to ensure robust compiles against icu build with `-DUSING_ICU_NAMESPACE=0`
+ - Fixed variable shadowing issue in vtile -> geojson code
+ - Disabled default debug symbol generation to speed up builds
+
 ## 1.1.2
 
  - Upgraded to mapnik-vector-tile 3.0.x API
