@@ -1,5 +1,8 @@
 {
   'includes': [ 'common.gypi' ],
+  'variables': {
+      'runtime_link%':'shared',
+  },
   'conditions': [
       ['OS=="win"', {
         'variables': {
@@ -79,10 +82,18 @@
                 '<!@(pkg-config protobuf --cflags)'
             ],
             'libraries':[
-                '<!@(mapnik-config --libs)', # will bring in -lmapnik and the -L to point to it
+                '<!@(mapnik-config --libs)',
                 '<!@(pkg-config protobuf --libs-only-L)',
                 '-lprotobuf-lite'
-            ]
+            ],
+            'conditions': [
+              ['runtime_link == "static"', {
+                  'libraries': [
+                    '<!@(mapnik-config --ldflags)',
+                    '<!@(mapnik-config --dep-libs)'
+                   ]
+              }]
+            ],
         }]
       ],
       # this has to be per target to correctly
