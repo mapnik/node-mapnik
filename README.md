@@ -1,6 +1,5 @@
+# node-mapnik
 
-# Node-Mapnik
-      
 Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 
 
@@ -47,7 +46,7 @@ For more sample code see https://github.com/mapnik/node-mapnik-sample-code
 ## Depends
 
 * Node >= v0.6
-* Mapnik v2.2.x
+* Mapnik >= v2.2.x
 * Protobuf (protoc and libprotobuf-lite)
 
 ## Installation
@@ -56,26 +55,19 @@ Install Mapnik using the instructions at: https://github.com/mapnik/mapnik/wiki/
 
 Confirm that the `mapnik-config` program is available and on your $PATH.
 
-To install node-mapnik locally for development or testing do:
+Install via npm:
+
+    npm install mapnik
+
+Install locally for development or testing:
 
     git clone git://github.com/mapnik/node-mapnik.git
     cd node-mapnik
-    ./configure
-    make
-
-Or set NODE_PATH to test importing:
-
-    export NODE_PATH=./lib
-    node -e "require.resolve('mapnik')"
-
-Or you can also install via npm
-  
-    npm install mapnik
+    npm install
 
 The above will install node-mapnik locally in a node_modules folder. To install globally do:
 
     npm install -g mapnik
-
 
 ## Using node-mapnik from your node app
 
@@ -88,10 +80,6 @@ To require node-mapnik as a dependency of another package put in your package.js
 To run the tests do:
   
     npm test
-
-Or you can manually install mocha and then just do:
-
-    make test
 
 ## License
 
