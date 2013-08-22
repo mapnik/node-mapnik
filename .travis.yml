@@ -8,3 +8,4 @@ install:
   - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
   - sudo apt-get update
   - sudo apt-get install libprotobuf7 libprotobuf-dev protobuf-compiler libmapnik libmapnik-dev
+  - npm install
