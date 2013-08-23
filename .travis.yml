@@ -1,9 +1,5 @@
 language: node_js
 
-compiler:
- - clang
- - gcc
-
 node_js:
  - "0.10"
  - "0.8"
