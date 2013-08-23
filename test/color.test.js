@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 
 describe('mapnik.Color', function() {
