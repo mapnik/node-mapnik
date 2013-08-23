@@ -61,7 +61,7 @@ Install via npm:
 
     npm install mapnik
 
-Install locally for development or testing:
+Install locally for development:
 
     git clone git://github.com/mapnik/node-mapnik.git
     cd node-mapnik
@@ -81,6 +81,7 @@ To require node-mapnik as a dependency of another package put in your package.js
 
 To run the tests do:
   
+    npm install mocha sphericalmercator
     npm test
 
 ## License
