@@ -1,12 +1,28 @@
 language: node_js
-node_js:
-  - "0.10"
-  - "0.8"
 
-install:
-  - mkdir test/tmp
-  - npm install -g mocha
-  - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
-  - sudo apt-get update
-  - sudo apt-get install libprotobuf7 libprotobuf-dev protobuf-compiler libmapnik libmapnik-dev
-  - npm install
+compiler:
+ - clang
+ - gcc
+
+node_js:
+ - "0.10"
+ - "0.8"
+ - "0.6"
+
+before_install:
+ - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
+ - sudo apt-get update -qq
+ - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler libmapnik libmapnik-dev
+
+before_script: "npm install mocha"
+
+branches:
+  only:
+    - master
+
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#mapnik"
+    use_notice: true
+
