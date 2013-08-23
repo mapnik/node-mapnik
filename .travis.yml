@@ -12,10 +12,6 @@ before_install:
 
 before_script: "npm install mocha sphericalmercator"
 
-script:
- - npm install --verbose
- - npm test
-
 branches:
   only:
     - master
