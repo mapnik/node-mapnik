@@ -8,6 +8,8 @@ mapnik.node:
 clean:
 	@rm -rf ./build
 	rm -f lib/_mapnik.node
+	rm ./test/tmp/*
+	echo > ./test/tmp/placeholder.txt
 
 
 rebuild:
