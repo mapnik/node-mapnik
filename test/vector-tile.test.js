@@ -270,8 +270,8 @@ describe('mapnik.VectorTile ', function() {
         map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
-        var png = map.renderSync('png', new mapnik.Image(256, 256), {});
-        fs.writeFileSync('./test/data/vector_tile/tile0.expected.png', png);
+        //var png = map.renderSync('png', new mapnik.Image(256, 256), {});
+        //fs.writeFileSync('./test/data/vector_tile/tile0.expected.png', png);
 
         map.render(dt, {}, function(err, dt) {
             if (err) throw err;
@@ -292,7 +292,10 @@ describe('mapnik.VectorTile ', function() {
 
         dt.render(map, new mapnik.Image(256, 256), function(err, dt_image) {
             if (err) throw err;
-            dt_image.save('./test/data/vector_tile/tile0.actual.png');
+            var actual = './test/data/vector_tile/tile0.actual.png';
+            var expected = './test/data/vector_tile/tile0.expected.png';
+            dt_image.save(actual);
+            assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length);
             done();
         });
     });
