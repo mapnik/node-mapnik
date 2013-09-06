@@ -15,15 +15,11 @@ rebuild:
 	@./configure
 	@make
 
-test-tmp:
-	@rm -rf test/tmp
-	@mkdir -p test/tmp
-
 ifndef only
-test: test-tmp
+test:
 	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec
 else
-test: test-tmp
+test:
 	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec test/${only}.test.js
 endif
 
