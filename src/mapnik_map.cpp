@@ -1291,10 +1291,11 @@ Handle<Value> Map::zoomToBox(const Arguments& args)
     return Undefined();
 }
 
-typedef struct {
+struct image_baton_t {
     uv_work_t request;
     Map *m;
     Image *im;
+    int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
     unsigned offset_x;
@@ -1302,13 +1303,22 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} image_baton_t;
+    image_baton_t() :
+      buffer_size(0),
+      scale_factor(1.0),
+      scale_denominator(0.0),
+      offset_x(0),
+      offset_y(0),
+      error(false),
+      error_name() {}
+};
 
-typedef struct {
+struct grid_baton_t {
     uv_work_t request;
     Map *m;
     Grid *g;
     std::size_t layer_idx;
+    int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
     unsigned offset_x;
@@ -1316,7 +1326,16 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} grid_baton_t;
+    grid_baton_t() :
+      layer_idx(-1),
+      buffer_size(0),
+      scale_factor(1.0),
+      scale_denominator(0.0),
+      offset_x(0),
+      offset_y(0),
+      error(false),
+      error_name() {}
+};
 
 struct vector_tile_baton_t {
     uv_work_t request;
@@ -1324,6 +1343,7 @@ struct vector_tile_baton_t {
     VectorTile *d;
     unsigned tolerance;
     unsigned path_multiplier;
+    int buffer_size;
     double scale_factor;
     double scale_denominator;
     unsigned offset_x;
@@ -1376,6 +1396,7 @@ Handle<Value> Map::render(const Arguments& args)
     // parse options
 
     // defaults
+    int buffer_size = 0;
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
     unsigned offset_x = 0;
@@ -1391,6 +1412,15 @@ Handle<Value> Map::render(const Arguments& args)
                                       String::New("optional second argument must be an options object")));
 
         options = args[1]->ToObject();
+
+        if (options->Has(String::New("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(String::New("buffer_size"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'buffer_size' must be a number")));
+
+            buffer_size = bind_opt->IntegerValue();
+        }
 
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -1440,6 +1470,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->m = m;
         closure->im = node::ObjectWrap::Unwrap<Image>(obj);
         closure->im->_ref();
+        closure->buffer_size = buffer_size;
         closure->scale_factor = scale_factor;
         closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
@@ -1533,6 +1564,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->g = g;
         closure->g->_ref();
         closure->layer_idx = layer_idx;
+        closure->buffer_size = buffer_size;
         closure->scale_factor = scale_factor;
         closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
@@ -1567,6 +1599,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->m = m;
         closure->d = vector_tile_obj;
         closure->d->_ref();
+        closure->buffer_size = buffer_size;
         closure->scale_factor = scale_factor;
         closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
@@ -1594,7 +1627,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                              closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(map.buffer_size());
+        m_req.set_buffer_size(closure->buffer_size);
         renderer_type ren(backend,
                           map,
                           m_req,

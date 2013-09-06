@@ -300,6 +300,25 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should read back the data tile and render an image with it using negative buffer', function(done) {
+        var dt = new mapnik.VectorTile(0, 0, 0);
+        dt.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        assert.equal(dt.isSolid(), false);
+
+        dt.render(map, new mapnik.Image(256, 256), {buffer_size:-64}, function(err, dt_image) {
+            if (err) throw err;
+            var actual = './test/data/vector_tile/tile0-b.actual.png';
+            var expected = './test/data/vector_tile/tile0-b.expected.png';
+            dt_image.save(actual);
+            assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length);
+            done();
+        });
+    });
+
     it('should read back the data tile and render a grid with it', function(done) {
         var dt = new mapnik.VectorTile(0, 0, 0);
         dt.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
