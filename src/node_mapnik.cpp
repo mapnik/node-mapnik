@@ -155,6 +155,7 @@ extern "C" {
         target->Set(String::NewSymbol("versions"), versions);
 
         // built in support
+        // TODO - detect GRID_RENDERER once we require at least mapnik 2.3.x
         Local<Object> supports = Object::New();
         supports->Set(String::NewSymbol("grid"), True());
 
@@ -164,11 +165,30 @@ extern "C" {
         supports->Set(String::NewSymbol("cairo"), False());
 #endif
 
+#if defined(HAVE_PNG)
+        supports->Set(String::NewSymbol("png"), True());
+#else
+        supports->Set(String::NewSymbol("png"), False());
+#endif
+
 #if defined(HAVE_JPEG)
         supports->Set(String::NewSymbol("jpeg"), True());
 #else
         supports->Set(String::NewSymbol("jpeg"), False());
 #endif
+
+#if defined(HAVE_TIFF)
+        supports->Set(String::NewSymbol("tiff"), True());
+#else
+        supports->Set(String::NewSymbol("tiff"), False());
+#endif
+
+#if defined(HAVE_WEBP)
+        supports->Set(String::NewSymbol("webp"), True());
+#else
+        supports->Set(String::NewSymbol("webp"), False());
+#endif
+
         target->Set(String::NewSymbol("supports"), supports);
 
 #if MAPNIK_VERSION >= 200100
@@ -200,7 +220,12 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "exclusion", mapnik::exclusion)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "contrast", mapnik::contrast)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert", mapnik::invert)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert_rgb", mapnik::invert_rgb)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_merge", mapnik::grain_merge)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_extract", mapnik::grain_extract)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hue", mapnik::hue)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "saturation", mapnik::saturation)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color", mapnik::_color)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "value", mapnik::_value)
 
         target->Set(String::NewSymbol("compositeOp"), composite_ops);
 #endif
