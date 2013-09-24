@@ -49,7 +49,7 @@ For more sample code see https://github.com/mapnik/node-mapnik-sample-code
 
 * Node >= v0.6
 * Mapnik >= v2.2.x
-* Protobuf (protoc and libprotobuf-lite)
+* Protobuf >= 2.3.0 (protoc and libprotobuf-lite)
 
 ## Installation
 
