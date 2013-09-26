@@ -154,13 +154,35 @@ extern "C" {
 #endif
         target->Set(String::NewSymbol("versions"), versions);
 
-        // built in support
-        // TODO - detect GRID_RENDERER once we require at least mapnik 2.3.x
         Local<Object> supports = Object::New();
+#if MAPNIK_VERSION >= 200300
+        #ifdef GRID_RENDERER
         supports->Set(String::NewSymbol("grid"), True());
+        #else
+        supports->Set(String::NewSymbol("grid"), False());
+        #endif
+#else
+        supports->Set(String::NewSymbol("grid"), True());
+#endif
+
+#ifdef SVG_RENDERER
+        supports->Set(String::NewSymbol("svg"), True());
+#else
+        supports->Set(String::NewSymbol("svg"), False());
+#endif
 
 #if defined(HAVE_CAIRO)
         supports->Set(String::NewSymbol("cairo"), True());
+        #ifdef CAIRO_HAS_PDF_SURFACE
+        supports->Set(String::NewSymbol("cairo_pdf"), True());
+        #else
+        supports->Set(String::NewSymbol("cairo_pdf"), False());
+        #endif
+        #ifdef CAIRO_HAS_SVG_SURFACE
+        supports->Set(String::NewSymbol("cairo_svg"), True());
+        #else
+        supports->Set(String::NewSymbol("cairo_svg"), False());
+        #endif
 #else
         supports->Set(String::NewSymbol("cairo"), False());
 #endif
@@ -187,6 +209,18 @@ extern "C" {
         supports->Set(String::NewSymbol("webp"), True());
 #else
         supports->Set(String::NewSymbol("webp"), False());
+#endif
+
+#if defined(MAPNIK_USE_PROJ4)
+        supports->Set(String::NewSymbol("proj4"), True());
+#else
+        supports->Set(String::NewSymbol("proj4"), False());
+#endif
+
+#if defined(MAPNIK_THREADSAFE)
+        supports->Set(String::NewSymbol("threadsafe"), True());
+#else
+        supports->Set(String::NewSymbol("threadsafe"), False());
 #endif
 
         target->Set(String::NewSymbol("supports"), supports);

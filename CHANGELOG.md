@@ -1,5 +1,9 @@
 # Changlog
 
+## 1.2.1
+
+ - Added more details to `mapnik.supports` API including `grid`,`proj4`,`webp`,`jpeg`,`png`,`svg`,`cairo_pdf`,`cairo_svg`, and `threadsafe`
+
 ## 1.2.0
 
  - Map.render (when rendering to a VectorTile) and VectorTile.render now expect `buffer_size` option to be passed and ignores map.BufferSize (#175)
