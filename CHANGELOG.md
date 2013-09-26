@@ -3,6 +3,7 @@
 ## 1.2.1
 
  - Added more details to `mapnik.supports` API including `grid`,`proj4`,`webp`,`jpeg`,`png`,`svg`,`cairo_pdf`,`cairo_svg`, and `threadsafe`
+ - Added more constants for available `comp-op` values
 
 ## 1.2.0
 
