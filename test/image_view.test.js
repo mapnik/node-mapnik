@@ -78,4 +78,19 @@ describe('mapnik.ImageView ', function() {
         });
     });
 
+    it('should support webp encoding', function(done) {
+        var im = new mapnik.Image(256,256);
+        im.background = new mapnik.Color('green');
+        var filename = '/tmp/mapnik-view.webp';
+        im.encode('webp',function(err,buf1) {
+            if (err) throw err;
+            var v = im.view(0,0,256,256);
+            v.encode('webp', function(err,buf2) {
+                if (err) throw err;
+                assert.equal(buf1.length,buf2.length);
+                done();
+            });
+        });
+    });
+
 });
