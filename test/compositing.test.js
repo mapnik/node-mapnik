@@ -14,7 +14,7 @@ describe('mapnik.compositeOp', function() {
                 im2.composite(im1, {comp_op:mapnik.compositeOp[name]}, function(err,im_out) {
                     if (err) throw err;
                     assert.ok(im_out);
-                    var out = 'test/tmp/' + name + '.png';
+                    var out = './test/tmp/' + name + '.png';
                     im_out.demultiplySync();
                     im_out.save(out);
                     assert.ok(exists(out));
@@ -37,7 +37,7 @@ describe('mapnik.compositeOp async multiply', function() {
                         im2.composite(im1, {comp_op:mapnik.compositeOp[name], filters:'invert agg-stack-blur(10,10)'}, function(err,im_out) {
                             if (err) throw err;
                             assert.ok(im_out);
-                            var out = 'test/tmp/' + name + '-async.png';
+                            var out = './test/tmp/' + name + '-async.png';
                             im_out.demultiply(function(err,im_out) {
                                 im_out.save(out);
                                 assert.ok(exists(out));

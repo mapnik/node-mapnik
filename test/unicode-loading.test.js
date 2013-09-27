@@ -57,8 +57,8 @@ describe('Handling unicode paths, filenames, and data', function(){
         map_string += map_post;
         var map = new mapnik.Map(256,256);
         map.fromStringSync(map_string,{base:path.dirname(__dirname)})
-        fs.writeFileSync('/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
-        map.loadSync('/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
+        fs.writeFileSync('./test/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
+        map.loadSync('./test/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
         assert.ok(true);
     });
 
@@ -71,8 +71,8 @@ describe('Handling unicode paths, filenames, and data', function(){
         map_string += map_post;
         var map = new mapnik.Map(256,256);
         map.fromStringSync(map_string,{base:path.dirname(__dirname)})
-        fs.writeFileSync('/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
-        map.loadSync('/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
+        fs.writeFileSync('./test/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
+        map.loadSync('./test/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
         assert.ok(true);
     });
 
@@ -85,7 +85,7 @@ describe('Handling unicode paths, filenames, and data', function(){
         map_string += map_post;
         var map = new mapnik.Map(256,256);
         map.fromStringSync(map_string,{base:path.dirname(__dirname)})
-        var xml_path = '/tmp/mapnik-tmp-map-load'+'区县级行政区划' +'.xml';
+        var xml_path = './test/tmp/mapnik-tmp-map-load'+'区县级行政区划' +'.xml';
 		fs.writeFileSync(xml_path,map_string,'utf-8')
 		assert.ok(existsSync(xml_path));
         map.loadSync(xml_path,{base:path.dirname(__dirname)})
