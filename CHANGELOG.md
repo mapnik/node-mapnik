@@ -1,5 +1,8 @@
 # Changlog
 
+## 1.1.4
+ - Deprecated the `Datasource.features()` call #180
+
 ## 1.1.3
 
  - Gyp binding cleanups

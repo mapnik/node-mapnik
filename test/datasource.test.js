@@ -31,9 +31,15 @@ describe('mapnik.Datasource', function() {
         assert.ok(ds);
         assert.deepEqual(ds.parameters(), options);
 
-        var features = ds.features();
+        var features = [];
+        var featureset = ds.featureset();
+        var feature;
+        while (feature = featureset.next()) {
+            features.push(feature);
+        }
+
         assert.equal(features.length, 245);
-        assert.deepEqual(features[244], {
+        assert.deepEqual(features[244].attributes(), {
             AREA: 1638094,
             FIPS: 'RS',
             ISO2: 'RU',
@@ -44,8 +50,7 @@ describe('mapnik.Datasource', function() {
             POP2005: 143953092,
             REGION: 150,
             SUBREGION: 151,
-            UN: 643,
-            __id__: 245
+            UN: 643
         });
 
         var expected = {

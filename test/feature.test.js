@@ -46,14 +46,16 @@ describe('mapnik.Feature ', function() {
     });
 
     it('should report null values as js null',function() {
-       var extent = '-180,-60,180,60';
-       var ds = new mapnik.MemoryDatasource({'extent': extent});
-       var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name"}};
-       ds.add(feat);
-       var actual_feat = ds.features()[0];
-       assert.ok(actual_feat.null_val === null);
-       assert.equal(actual_feat.feat_id,1);
-       assert.equal(actual_feat.__id__,1);
-       assert.equal(actual_feat.name,'name');
+        var extent = '-180,-60,180,60';
+        var ds = new mapnik.MemoryDatasource({'extent': extent});
+        var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name"}};
+        ds.add(feat);
+        var featureset = ds.featureset();
+        var feature = featureset.next();
+        assert.equal(feature.id(),1);
+        var attr = feature.attributes();
+        assert.ok(attr.null_val === null);
+        assert.equal(attr.feat_id,1);
+        assert.equal(attr.name,'name');
     });
 });

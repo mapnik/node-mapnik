@@ -206,6 +206,7 @@ Handle<Value> Datasource::describe(const Arguments& args)
 Handle<Value> Datasource::features(const Arguments& args)
 {
 
+    std::clog << "Datasource.features() is deprecated and will be removed at node-mapnik 1.2.x (please use Datasource.featureset instead)\n";
     HandleScope scope;
 
     unsigned first = 0;
