@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
@@ -77,5 +77,22 @@ describe('mapnik.ImageView ', function() {
             done();
         });
     });
+
+    if (mapnik.supports.webp) {
+        it('should support webp encoding', function(done) {
+            var im = new mapnik.Image(256,256);
+            im.background = new mapnik.Color('green');
+            var filename = '/tmp/mapnik-view.webp';
+            im.encode('webp',function(err,buf1) {
+                if (err) throw err;
+                var v = im.view(0,0,256,256);
+                v.encode('webp', function(err,buf2) {
+                    if (err) throw err;
+                    assert.equal(buf1.length,buf2.length);
+                    done();
+                });
+            });
+        });
+    }
 
 });

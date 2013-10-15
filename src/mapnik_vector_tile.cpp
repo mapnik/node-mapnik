@@ -714,6 +714,7 @@ struct vector_tile_render_baton_t {
     int y;
     bool zxy_override;
     bool error;
+    int buffer_size;
     double scale_factor;
     double scale_denominator;
     std::string error_name;
@@ -733,6 +734,7 @@ struct vector_tile_render_baton_t {
         y(0),
         zxy_override(false),
         error(false),
+        buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
         use_cairo(true) {}
@@ -791,6 +793,15 @@ Handle<Value> VectorTile::render(const Arguments& args)
         {
             closure->zxy_override = true;
             closure->y = options->Get(String::New("y"))->IntegerValue();
+        }
+        if (options->Has(String::New("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(String::New("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'buffer_size' must be a number")));
+            }
+            closure->buffer_size = bind_opt->IntegerValue();
         }
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -1029,7 +1040,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
         mapnik::request m_req(map_in.width(),map_in.height(),map_extent);
-        m_req.set_buffer_size(map_in.buffer_size());
+        m_req.set_buffer_size(closure->buffer_size);
         mapnik::projection map_proj(map_in.srs(),true);
         double scale_denom = closure->scale_denominator;
         if (scale_denom <= 0.0)

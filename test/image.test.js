@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
@@ -59,9 +59,9 @@ describe('mapnik.Image ', function() {
         assert.equal(v.height(), 256);
         assert.equal(im.encodeSync().length, v.encodeSync().length);
 
-        im.save('test/tmp/image.png');
+        im.save('./test/tmp/image.png');
 
-        var im2 = new mapnik.Image.open('test/tmp/image.png');
+        var im2 = new mapnik.Image.open('./test/tmp/image.png');
         assert.ok(im2 instanceof mapnik.Image);
 
         assert.equal(im2.width(), 256);
@@ -73,7 +73,7 @@ describe('mapnik.Image ', function() {
     it('should be able to open via byte stream', function(done) {
         var im = new mapnik.Image(256, 256);
         // png
-        var filename = 'test/tmp/image2.png'
+        var filename = './test/tmp/image2.png'
         im.save(filename);
         var buffer = fs.readFileSync(filename);
         var im2 = new mapnik.Image.fromBytesSync(buffer);
@@ -82,7 +82,7 @@ describe('mapnik.Image ', function() {
         assert.equal(im2.height(), 256);
         assert.equal(im.encodeSync().length, im2.encodeSync().length);
         // jpeg
-        var filename2 = 'test/tmp/image2.jpeg'
+        var filename2 = './test/tmp/image2.jpeg'
         im.save(filename2);
         var buffer = fs.readFileSync(filename);
         var im3 = new mapnik.Image.fromBytesSync(buffer);
@@ -95,9 +95,9 @@ describe('mapnik.Image ', function() {
 
     it('should be initialized properly via async constructors', function(done) {
         var im = new mapnik.Image(256, 256);
-        im.save('test/tmp/image3.png');
+        im.save('./test/tmp/image3.png');
 
-        mapnik.Image.open('test/tmp/image3.png',function(err,im2) {
+        mapnik.Image.open('./test/tmp/image3.png',function(err,im2) {
             assert.ok(im2 instanceof mapnik.Image);
             assert.equal(im2.width(), 256);
             assert.equal(im2.height(), 256);

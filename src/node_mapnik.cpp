@@ -154,14 +154,43 @@ extern "C" {
 #endif
         target->Set(String::NewSymbol("versions"), versions);
 
-        // built in support
         Local<Object> supports = Object::New();
+#if MAPNIK_VERSION >= 200300
+        #ifdef GRID_RENDERER
         supports->Set(String::NewSymbol("grid"), True());
+        #else
+        supports->Set(String::NewSymbol("grid"), False());
+        #endif
+#else
+        supports->Set(String::NewSymbol("grid"), True());
+#endif
+
+#ifdef SVG_RENDERER
+        supports->Set(String::NewSymbol("svg"), True());
+#else
+        supports->Set(String::NewSymbol("svg"), False());
+#endif
 
 #if defined(HAVE_CAIRO)
         supports->Set(String::NewSymbol("cairo"), True());
+        #ifdef CAIRO_HAS_PDF_SURFACE
+        supports->Set(String::NewSymbol("cairo_pdf"), True());
+        #else
+        supports->Set(String::NewSymbol("cairo_pdf"), False());
+        #endif
+        #ifdef CAIRO_HAS_SVG_SURFACE
+        supports->Set(String::NewSymbol("cairo_svg"), True());
+        #else
+        supports->Set(String::NewSymbol("cairo_svg"), False());
+        #endif
 #else
         supports->Set(String::NewSymbol("cairo"), False());
+#endif
+
+#if defined(HAVE_PNG)
+        supports->Set(String::NewSymbol("png"), True());
+#else
+        supports->Set(String::NewSymbol("png"), False());
 #endif
 
 #if defined(HAVE_JPEG)
@@ -169,6 +198,31 @@ extern "C" {
 #else
         supports->Set(String::NewSymbol("jpeg"), False());
 #endif
+
+#if defined(HAVE_TIFF)
+        supports->Set(String::NewSymbol("tiff"), True());
+#else
+        supports->Set(String::NewSymbol("tiff"), False());
+#endif
+
+#if defined(HAVE_WEBP)
+        supports->Set(String::NewSymbol("webp"), True());
+#else
+        supports->Set(String::NewSymbol("webp"), False());
+#endif
+
+#if defined(MAPNIK_USE_PROJ4)
+        supports->Set(String::NewSymbol("proj4"), True());
+#else
+        supports->Set(String::NewSymbol("proj4"), False());
+#endif
+
+#if defined(MAPNIK_THREADSAFE)
+        supports->Set(String::NewSymbol("threadsafe"), True());
+#else
+        supports->Set(String::NewSymbol("threadsafe"), False());
+#endif
+
         target->Set(String::NewSymbol("supports"), supports);
 
 #if MAPNIK_VERSION >= 200100
@@ -200,7 +254,12 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "exclusion", mapnik::exclusion)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "contrast", mapnik::contrast)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert", mapnik::invert)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert_rgb", mapnik::invert_rgb)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_merge", mapnik::grain_merge)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_extract", mapnik::grain_extract)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hue", mapnik::hue)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "saturation", mapnik::saturation)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color", mapnik::_color)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "value", mapnik::_value)
 
         target->Set(String::NewSymbol("compositeOp"), composite_ops);
 #endif

@@ -1,7 +1,21 @@
 # Changlog
 
-## 1.1.4
+## 1.2.2
+
  - Deprecated the `Datasource.features()` call #180
+
+## 1.2.1
+
+ - Added more details to `mapnik.supports` API including `grid`,`proj4`,`webp`,`jpeg`,`png`,`svg`,`cairo_pdf`,`cairo_svg`, and `threadsafe`
+ - Added more constants for available `comp-op` values
+
+## 1.2.0
+
+ - Map.render (when rendering to a VectorTile) and VectorTile.render now expect `buffer_size` option to be passed and ignores map.BufferSize (#175)
+ - Removed `devDependencies` so that `mocha` and `sphericalmecator` need to be manually installed to run tests
+ - Tweaked gyp `Release` configuration to ensure binaries are stripped and built with highest level of optimization
+ - Added support for detecting `--runtime_link=static` flag to npm install that can trigger linking against all Mapnik depedencies (not just libmapnik)
+ - Added travis.ci support
 
 ## 1.1.3
 
