@@ -58,4 +58,24 @@ describe('mapnik.Feature ', function() {
         assert.equal(attr.feat_id,1);
         assert.equal(attr.name,'name');
     });
+
+    it('should output the same geojson that it read', function () {
+        var expected = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            },
+
+            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"}),
+            f = ds.featureset().next(),
+            feature = JSON.parse(f.toJSON());
+
+        assert.equal(expected.type, feature.type);
+        assert.deepEqual(expected.properties, feature.properties);
+        assert.equal(expected.geometry.type, feature.geometry.type);
+        assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+    });
 });
