@@ -12,10 +12,6 @@ before_install:
 
 before_script: "npm install mocha sphericalmercator"
 
-branches:
-  only:
-    - master
-
 notifications:
   irc:
     channels:
