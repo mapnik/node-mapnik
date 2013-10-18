@@ -76,6 +76,8 @@ describe('mapnik.Feature ', function() {
         assert.equal(expected.type, feature.type);
         assert.deepEqual(expected.properties, feature.properties);
         assert.equal(expected.geometry.type, feature.geometry.type);
-        assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+        if (mapnik.versions.mapnik_number >= 200300) {
+            assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+        }
     });
 });
