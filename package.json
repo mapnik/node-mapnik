@@ -4,7 +4,7 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version"       : "0.7.22",
+  "version"       : "0.7.23",
   "main"          : "./lib/mapnik.js",
   "bugs"          : {
     "email" : "dane@dbsgeo.com",
@@ -29,25 +29,18 @@
         "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
       }
   ],
-  "dependencies"  : {},
   "devDependencies": {
     "mocha": "*",
     "jshint"  : "~0.5.x"
-   },
+  },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
        "mapnik-render.js"  : "./bin/mapnik-render.js"
-   },
-   "directories"  : {
-       "examples" : "examples",
-       "src": "src"
-   },
+  },
   "engines"       : {
-      "node": ">= 0.6.13 && < 0.9.0"
+      "node": ">= 0.6.13 < 0.11.4"
   },
   "scripts"       : {
-      "install" : "node-waf -v configure build",
-      "pretest" : "npm install mocha",
-      "test"    : "make test"
-   }
+      "test"    : "mocha"
+  }
 }

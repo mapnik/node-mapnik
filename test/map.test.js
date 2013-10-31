@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 

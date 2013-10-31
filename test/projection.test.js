@@ -1,14 +1,12 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
 describe('mapnik.Projection ', function() {
     it('should throw with invalid usage', function() {
-        assert.throws(function() { new mapnik.Projection('+init=epsg:foo'); },
-            /failed to initialize projection with: '\+init=epsg:foo'/);
-        assert.throws(function() { new mapnik.Projection('+proj +foo'); },
-            /failed to initialize projection with: '\+proj \+foo'/);
+        assert.throws(function() { new mapnik.Projection('+init=epsg:foo'); } );
+        assert.throws(function() { new mapnik.Projection('+proj +foo'); } );
         assert.throws(function() { new mapnik.Projection(1); });
         assert.throws(function() { new mapnik.Projection({}); });
     });

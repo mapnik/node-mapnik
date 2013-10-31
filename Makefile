@@ -2,51 +2,26 @@
 
 all: mapnik.node
 
-OS:=$(shell uname -s)
-
-ifeq ($(NPROCS),)
-	NPROCS:=1
-	ifeq ($(OS),Linux)
-		NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
-	endif
-	ifeq ($(OS),Darwin)
-		NPROCS:=$(shell sysctl -n hw.ncpu)
-	endif
-endif
-
-gyp:
-	python gen_settings.py
-	python gyp/gyp build.gyp --depth=. -f make --generator-output=./projects/makefiles
-	make -j$(NPROCS) -C ./projects/makefiles/ V=1
-	cp projects/makefiles/out/Default/_mapnik.node lib/_mapnik.node
-
-install: all
-	@node-waf build install
-
 mapnik.node:
-	@node-waf build -j $(NPROCS)
+	`npm explore npm -g -- pwd`/bin/node-gyp-bin/node-gyp build
 
 clean:
-	@node-waf clean distclean
-	@rm -rf ./projects/makefiles/
+	@rm -rf ./build
+	rm -f lib/_mapnik.node
+	rm -f ./test/tmp/*
+	echo > ./test/tmp/placeholder.txt
 
-uninstall:
-	@node-waf uninstall
 
 rebuild:
 	@make clean
 	@./configure
 	@make
 
-test-tmp:
-	@rm -rf test/tmp
-	@mkdir -p test/tmp
-
 ifndef only
-test: test-tmp
+test:
 	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec
 else
-test: test-tmp
+test:
 	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec test/${only}.test.js
 endif
 
@@ -63,4 +38,4 @@ lint:
 	@./node_modules/.bin/jshint lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
 
 
-.PHONY: test lint fix gyp
+.PHONY: test lint fix

@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var exists = require('fs').existsSync || require('path').existsSync;
 

@@ -1,6 +1,5 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
-
 
 describe('mapnik.queryPoint', function() {
     it('should throw with invalid usage', function() {
