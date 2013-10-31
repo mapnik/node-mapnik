@@ -80,6 +80,9 @@
       # this has to be per target to correctly
       # override node-gyp defaults
       'xcode_settings': {
+          'OTHER_CPLUSPLUSFLAGS':[
+              '<!@(mapnik-config --cflags)'
+          ],
           'OTHER_CFLAGS':[
               '<!@(mapnik-config --cflags)'
           ],

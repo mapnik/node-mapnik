@@ -141,7 +141,7 @@ Handle<Value> GridView::isSolid(const Arguments& args)
     closure->pixel = 0;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, EIO_AfterIsSolid);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
     g->Ref();
     return Undefined();
 }
@@ -437,7 +437,7 @@ Handle<Value> GridView::encode(const Arguments& args)
     closure->resolution = resolution;
     closure->add_features = add_features;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, EIO_AfterEncode);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
     g->Ref();
     return Undefined();
 }

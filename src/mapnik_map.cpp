@@ -624,7 +624,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
     closure->geo_coords = geo_coords;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMap, EIO_AfterQueryMap);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMap, (uv_after_work_cb)EIO_AfterQueryMap);
     m->Ref();
     return Undefined();
 }
@@ -911,7 +911,7 @@ Handle<Value> Map::load(const Arguments& args)
     closure->strict = strict;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, EIO_AfterLoad);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, (uv_after_work_cb)EIO_AfterLoad);
     m->Ref();
     return Undefined();
 }
@@ -1156,7 +1156,7 @@ Handle<Value> Map::fromString(const Arguments& args)
     closure->strict = strict;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, EIO_AfterFromString);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, (uv_after_work_cb)EIO_AfterFromString);
     m->Ref();
     return Undefined();
 }
@@ -1407,7 +1407,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_y = offset_y;
         closure->error = false;
         closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, EIO_AfterRenderImage);
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
 
     } else if (Grid::constructor->HasInstance(obj)) {
 
@@ -1499,7 +1499,7 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_y = offset_y;
         closure->error = false;
         closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, EIO_AfterRenderGrid);
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
     } else {
         return ThrowException(Exception::TypeError(String::New("renderable mapnik object expected")));
     }
@@ -1749,7 +1749,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     closure->palette = palette;
     closure->output = output;
 
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, EIO_AfterRenderFile);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, (uv_after_work_cb)EIO_AfterRenderFile);
     m->Ref();
 
     return Undefined();
