@@ -2,6 +2,7 @@
 
 ## 1.2.2
 
+ - Fixed build on OS X against node v0.6.x (tested v0.6.22)
  - Deprecated the `Datasource.features()` call #180
 
 ## 1.2.1
