@@ -42,7 +42,7 @@ describe('mapnik.GridView ', function() {
 
     it('should be painted after rendering', function(done) {
         var map = new mapnik.Map(256, 256);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         var options = {'layer': 0,
                        'fields': ['NAME']

@@ -16,7 +16,7 @@ describe('mapnik.Feature ', function() {
     it('should match known features', function() {
         var options = {
             type: 'shape',
-            file: './examples/data/world_merc.shp'
+            file: './test/data/world_merc.shp'
         };
 
         var ds = new mapnik.Datasource(options);

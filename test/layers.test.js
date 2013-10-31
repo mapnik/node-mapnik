@@ -23,7 +23,7 @@ describe('mapnik.Layer ', function() {
         assert.ok(!layer.datasource);
         var options = {
             type: 'shape',
-            file: './examples/data/world_merc.shp'
+            file: './test/data/world_merc.shp'
         };
 
         var ds = new mapnik.Datasource(options);

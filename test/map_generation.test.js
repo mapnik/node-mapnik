@@ -23,7 +23,7 @@ describe('mapnik rendering ', function() {
     it('should render async (real data)', function(done) {
         var filename = './test/tmp/renderFile2.png';
         var map = new mapnik.Map(600, 400);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         map.renderFile(filename, function(error) {
             assert.ok(!error);
@@ -35,7 +35,7 @@ describe('mapnik rendering ', function() {
     it('should render async to file (png)', function(done) {
         var filename = './test/tmp/renderFile2.png';
         var map = new mapnik.Map(600, 400);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         map.renderFile(filename, function(error) {
             assert.ok(!error);
@@ -48,7 +48,7 @@ describe('mapnik rendering ', function() {
         if (mapnik.supports.cairo) {
                 var filename = './test/tmp/renderFile2.pdf';
                 var map = new mapnik.Map(600, 400);
-                map.loadSync('./examples/stylesheet.xml');
+                map.loadSync('./test/stylesheet.xml');
                 map.zoomAll();
                 map.renderFile(filename, { format: 'pdf' }, function(error) {
                     assert.ok(!error);
@@ -61,7 +61,7 @@ describe('mapnik rendering ', function() {
     it('should render async to file (guessing format)', function(done) {
         var filename = './test/tmp/renderFile.jpg';
         var map = new mapnik.Map(600, 400);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         map.renderFile(filename, function(error) {
             assert.ok(!error);
@@ -73,7 +73,7 @@ describe('mapnik rendering ', function() {
     it('should render async and throw with invalid format', function(done) {
         var filename = './test/tmp/renderFile2.pdf';
         var map = new mapnik.Map(600, 400);
-        map.loadSync('./examples/stylesheet.xml');
+        map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         try {
             map.renderFile(filename, null, function(error) { });

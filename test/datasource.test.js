@@ -24,7 +24,7 @@ describe('mapnik.Datasource', function() {
     it('should validate with known shapefile', function() {
         var options = {
             type: 'shape',
-            file: './examples/data/world_merc.shp'
+            file: './test/data/world_merc.shp'
         };
 
         var ds = new mapnik.Datasource(options);
@@ -85,7 +85,7 @@ describe('mapnik.Datasource', function() {
         // same datasource but from json file (originally converted with ogr2ogr)
         var options = {
             type: 'ogr',
-            file: './examples/data/world_merc.json',
+            file: './test/data/world_merc.json',
             layer_by_index: 0
         };
 

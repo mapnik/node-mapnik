@@ -2,7 +2,7 @@ var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 
-var stylesheet = './examples/stylesheet.xml';
+var stylesheet = './test/stylesheet.xml';
 var reference = fs.readFileSync('./test/support/grid2.json', 'utf8');
 var reference_view = fs.readFileSync('./test/support/grid_view.json', 'utf8');
 var reference__id__ = fs.readFileSync('./test/support/grid__id__.json', 'utf8');
