@@ -99,7 +99,7 @@
       # this has to be per target to correctly
       # override node-gyp defaults
       'xcode_settings': {
-          'OTHER_CPLUSPLUSFLAGS':[
+          'OTHER_CFLAGS':[
               '<!@(mapnik-config --cflags)',
               '<!@(pkg-config protobuf --cflags)'
           ],
