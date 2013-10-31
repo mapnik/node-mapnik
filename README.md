@@ -41,19 +41,15 @@ map.load('./examples/stylesheet.xml', function(err,map) {
 });
 ```
 
-Note: to run these examples locally first do:
-
-    export NODE_PATH=./lib:${NODE_PATH}
-
-For more sample code see 'examples/README.md'
+For more sample code see https://github.com/mapnik/node-mapnik-sample-code
 
 
 ## Depends
 
-* Node v0.6 or v0.8
+* Node >v0.6.13 and < v0.11
 * Mapnik 2.x
 
-Mapnik 2.2.x is targeted, but 2.1.x and 2.0.x is also supported.
+Mapnik 2.2.x is targeted, but 2.1.x and 2.0.x are also supported.
 
 This means that if you are running the Mapnik 2.2 series (current unreleased master) you must be running at least [0eddc2b5a0](https://github.com/mapnik/mapnik/commit/eebc8cc73eb18903b07e3b3e0757c11925962124).
 
@@ -73,10 +69,9 @@ To install node-mapnik locally for development or testing do:
 
     git clone git://github.com/mapnik/node-mapnik.git
     cd node-mapnik
-    ./configure
-    make
+    npm install
 
-Or set NODE_PATH to test importing:
+Set NODE_PATH to test importing:
 
     export NODE_PATH=./lib
     node -e "require.resolve('mapnik')"
@@ -89,43 +84,17 @@ The above will install node-mapnik locally in a node_modules folder. To install 
 
     npm install -g mapnik
 
-
-## Quick rendering test
-
-To see if things are working try rendering a world map with the sample data
-  
-From the source checkout root do:
-  
-    export NODE_PATH=./lib
-    node ./examples/simple/render.js ./examples/stylesheet.xml map.png
-
-
 ## Using node-mapnik from your node app
 
 To require node-mapnik as a dependency of another package put in your package.json:
 
     "dependencies"  : { "mapnik":"*" } // replace * with a given semver version string
 
-  
-## Examples
-
-See the 'examples/README.md' for more usage examples.
-
-For some of the examples you will need:
-
-    npm install generic-pool
-    npm install get
-
-
 ## Tests
 
 To run the tests do:
   
     npm test
-
-Or you can manually install mocha and then just do:
-
-    make test
 
 ## License
 
