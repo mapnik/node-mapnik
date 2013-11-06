@@ -94,28 +94,19 @@
                    ]
               }]
             ],
+            'xcode_settings': {
+              'OTHER_CPLUSPLUSFLAGS':[
+                  '<!@(mapnik-config --cflags)'
+              ],
+              'OTHER_CFLAGS':[
+                  '<!@(mapnik-config --cflags)',
+                  '<!@(pkg-config protobuf --cflags)'
+              ],
+              'GCC_ENABLE_CPP_RTTI': 'YES',
+              'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
+            }
         }]
-      ],
-      # this has to be per target to correctly
-      # override node-gyp defaults
-      'xcode_settings': {
-          'OTHER_CPLUSPLUSFLAGS':[
-              '<!@(mapnik-config --cflags)'
-          ],
-          'OTHER_CFLAGS':[
-              '<!@(mapnik-config --cflags)',
-              '<!@(pkg-config protobuf --cflags)'
-          ],
-          'GCC_ENABLE_CPP_RTTI': 'YES',
-          'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-      },
-      'msvs_settings': {
-          'VCCLCompilerTool': {
-              'ExceptionHandling': 1,
-              'RuntimeTypeInfo':'true',
-              'RuntimeLibrary': '3'  # /MDd
-          }
-      }
+      ]
     },
     {
       'target_name': 'action_after_build',
