@@ -50,7 +50,7 @@
                 '<!@(mapnik-config --dep-includes)',
                 '<@(PROTOBUF_INCLUDES)'
               ],
-            'defines': ['<!@(mapnik-config --defines)'],
+            'defines': ['NOMINMAX','<!@(mapnik-config --defines)'],
             'libraries': [
                 '<!@(mapnik-config --libs)',
                 '<!@(mapnik-config --dep-libs)',
