@@ -631,8 +631,7 @@ Handle<Value> Image::fromBytesSync(const Arguments& args)
             reader->read(0,0,image_ptr->data());
             Image* im = new Image(image_ptr);
             Handle<Value> ext = External::New(im);
-            Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-            return scope.Close(obj);
+            return scope.Close(constructor->GetFunction()->NewInstance(1, &ext));
         }
         return ThrowException(Exception::TypeError(String::New(
                                                        "Failed to load from buffer")));

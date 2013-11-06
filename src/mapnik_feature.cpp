@@ -202,11 +202,11 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     if (args.Length() > 0 ) {
-        Local<Value> value = args[0];
-        if (value->IsNull() || value->IsUndefined()) {
+        Local<Value> val = args[0];
+        if (val->IsNull() || val->IsUndefined()) {
             return ThrowException(Exception::TypeError(String::New("object expected")));
         } else {
-            Local<Object> attr = value->ToObject();
+            Local<Object> attr = val->ToObject();
             try
             {
                 Local<Array> names = attr->GetPropertyNames();
