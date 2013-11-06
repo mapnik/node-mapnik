@@ -33,6 +33,7 @@ public:
     static Handle<Value> fromBytesSync(const Arguments &args);
     static Handle<Value> fromBytes(const Arguments &args);
     static void EIO_FromBytes(uv_work_t* req);
+    static void EIO_AfterFromBytes(uv_work_t* req);
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> painted(const Arguments &args);
     static Handle<Value> composite(const Arguments &args);

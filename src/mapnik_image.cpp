@@ -508,7 +508,16 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} image_ptr_baton_t;
+} image_mem_ptr_baton_t;
+
+typedef struct {
+    uv_work_t request;
+    image_ptr im;
+    std::string filename;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} image_file_ptr_baton_t;
 
 Handle<Value> Image::open(const Arguments& args)
 {
@@ -534,11 +543,9 @@ Handle<Value> Image::open(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    image_ptr_baton_t *closure = new image_ptr_baton_t();
+    image_file_ptr_baton_t *closure = new image_file_ptr_baton_t();
     closure->request.data = closure;
-    std::string filename = TOSTR(args[0]);
-    closure->data = filename.data();
-    closure->dataLength = filename.size();
+    closure->filename = TOSTR(args[0]);
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Open, (uv_after_work_cb)EIO_AfterOpen);
@@ -547,20 +554,19 @@ Handle<Value> Image::open(const Arguments& args)
 
 void Image::EIO_Open(uv_work_t* req)
 {
-    image_ptr_baton_t *closure = static_cast<image_ptr_baton_t *>(req->data);
+    image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);
 
     try
     {
-        std::string filename(closure->data,closure->dataLength);
-        boost::optional<std::string> type = mapnik::type_from_filename(filename);
+        boost::optional<std::string> type = mapnik::type_from_filename(closure->filename);
         if (!type)
         {
             closure->error = true;
-            closure->error_name = "Unsupported image format: " + filename;
+            closure->error_name = "Unsupported image format: " + closure->filename;
         }
         else
         {
-            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->filename,*type));
             if (reader.get())
             {
                 closure->im = boost::make_shared<mapnik::image_32>(reader->width(),reader->height());
@@ -569,7 +575,7 @@ void Image::EIO_Open(uv_work_t* req)
             else
             {
                 closure->error = true;
-                closure->error_name = "Failed to load: " + filename;
+                closure->error_name = "Failed to load: " + closure->filename;
             }
         }
     }
@@ -583,7 +589,7 @@ void Image::EIO_Open(uv_work_t* req)
 void Image::EIO_AfterOpen(uv_work_t* req)
 {
     HandleScope scope;
-    image_ptr_baton_t *closure = static_cast<image_ptr_baton_t *>(req->data);
+    image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);
     TryCatch try_catch;
     if (closure->error || !closure->im)
     {
@@ -674,19 +680,19 @@ Handle<Value> Image::fromBytes(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    image_ptr_baton_t *closure = new image_ptr_baton_t();
+    image_mem_ptr_baton_t *closure = new image_mem_ptr_baton_t();
     closure->request.data = closure;
     closure->data = node::Buffer::Data(obj);
     closure->dataLength = node::Buffer::Length(obj);
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterOpen);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterFromBytes);
     return Undefined();
 }
 
 void Image::EIO_FromBytes(uv_work_t* req)
 {
-    image_ptr_baton_t *closure = static_cast<image_ptr_baton_t *>(req->data);
+    image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
 
     try
     {
@@ -709,6 +715,30 @@ void Image::EIO_FromBytes(uv_work_t* req)
     }
 }
 
+void Image::EIO_AfterFromBytes(uv_work_t* req)
+{
+    HandleScope scope;
+    image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error || !closure->im)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im);
+        Handle<Value> ext = External::New(im);
+        Local<Object> image_obj = constructor->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(ObjectWrap::Unwrap<Image>(image_obj)->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->cb.Dispose();
+    delete closure;
+}
 
 Handle<Value> Image::encodeSync(const Arguments& args)
 {
