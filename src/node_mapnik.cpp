@@ -79,14 +79,20 @@ static std::string format_version(int version)
 static Handle<Value> clearCache(const Arguments& args)
 {
     HandleScope scope;
-#if MAPNIK_VERSION >= 200200
+#if MAPNIK_VERSION >= 200300
+    #if defined(SHAPE_MEMORY_MAPPED_FILE)
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
+    #endif
 #else
-#if MAPNIK_VERSION >= 200100
-    mapnik::marker_cache::instance()->clear();
-    mapnik::mapped_memory_cache::instance()->clear();
-#endif
+    #if MAPNIK_VERSION >= 200200
+        mapnik::marker_cache::instance().clear();
+        mapnik::mapped_memory_cache::instance().clear();
+    #else
+        #if MAPNIK_VERSION >= 200100
+            mapnik::marker_cache::instance()->clear();
+            mapnik::mapped_memory_cache::instance()->clear();
+        #endif
 #endif
     return Undefined();
 }
