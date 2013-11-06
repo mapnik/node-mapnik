@@ -81,8 +81,8 @@ static Handle<Value> clearCache(const Arguments& args)
     HandleScope scope;
 #if MAPNIK_VERSION >= 200300
     #if defined(SHAPE_MEMORY_MAPPED_FILE)
-    mapnik::marker_cache::instance().clear();
-    mapnik::mapped_memory_cache::instance().clear();
+        mapnik::marker_cache::instance().clear();
+        mapnik::mapped_memory_cache::instance().clear();
     #endif
 #else
     #if MAPNIK_VERSION >= 200200
@@ -93,6 +93,7 @@ static Handle<Value> clearCache(const Arguments& args)
             mapnik::marker_cache::instance()->clear();
             mapnik::mapped_memory_cache::instance()->clear();
         #endif
+    #endif
 #endif
     return Undefined();
 }
