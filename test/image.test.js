@@ -98,11 +98,13 @@ describe('mapnik.Image ', function() {
         im.save('./test/tmp/image3.png');
 
         mapnik.Image.open('./test/tmp/image3.png',function(err,im2) {
+            if (err) throw err;
             assert.ok(im2 instanceof mapnik.Image);
             assert.equal(im2.width(), 256);
             assert.equal(im2.height(), 256);
             assert.equal(im.encodeSync().length, im2.encodeSync().length);
             mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                if (err) throw err;
                 assert.ok(im3 instanceof mapnik.Image);
                 assert.equal(im3.width(), 256);
                 assert.equal(im3.height(), 256);
