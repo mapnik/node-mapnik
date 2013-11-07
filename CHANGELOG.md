@@ -2,6 +2,9 @@
 
 ## 1.2.2
 
+ - Fixed windows build against Mapnik 2.3.0
+ - Fixed mapnik.Image.open call - which was string data in invalid way
+ - Upgraded to mapnik-vector-tile@0.3.3
  - Fixed build on OS X against node v0.6.x (tested v0.6.22)
  - Deprecated the `Datasource.features()` call #180
 
