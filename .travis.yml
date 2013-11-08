@@ -6,6 +6,7 @@ node_js:
  - "0.6"
 
 before_install:
+ - sudo apt-add-repository --yes ppa:mapnik/v2.1.0
  - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
  - sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
  - sudo apt-get update -qq
@@ -15,6 +16,10 @@ install:
  - npm install mocha sphericalmercator
 
 before_script:
+ - sudo apt-get -qq install libmapnik=2.1.0* mapnik-utils=2.1.0* libmapnik-dev=2.1.0*
+ - npm install
+ - npm test
+ - sudo apt-get purge libmapnik=2.1.0* mapnik-utils=2.1.0* libmapnik-dev=2.1.0*
  - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
  - npm install
  - npm test
