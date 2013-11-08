@@ -1,5 +1,15 @@
 # Changlog
 
+## 0.7.24
+
+ - Fixed tests after removal of example code (tests depended on it)
+
+## 0.7.23
+
+ - Added node v0.10.x support by moving build system from waf to node-gyp
+ - All changes are in build system with only very minor changes to code
+ - Moved example code to https://github.com/mapnik/node-mapnik-sample-code
+
 ## 0.7.22
 
  - Header include refactoring to ensure clean compiles again Mapnik 2.0.x, 2.1.x, and 2.2.x
