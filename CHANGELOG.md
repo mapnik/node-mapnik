@@ -1,5 +1,10 @@
 # Changlog
 
+## 0.7.25
+
+ - Removed stale file: `build.gyp` which could in some situations break the build because npm
+   tries to rename it and will blow away the main `binding.gyp`
+
 ## 0.7.24
 
  - Fixed tests after removal of example code (tests depended on it)
