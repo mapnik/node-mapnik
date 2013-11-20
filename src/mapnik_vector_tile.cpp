@@ -271,17 +271,17 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         Local<String> js_type = String::New("Unknown");
         switch (g_type)
         {
-        case mapnik::datasource::Point:
+        case mapnik::Point:
         {
             js_type = String::New("Point");
             break;
         }
-        case mapnik::datasource::LineString:
+        case mapnik::LineString:
         {
             js_type = String::New("LineString");
             break;
         }
-        case mapnik::datasource::Polygon:
+        case mapnik::Polygon:
         {
             js_type = String::New("Polygon");
             break;
@@ -293,7 +293,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         }
         geometry->Set(String::NewSymbol("type"),js_type);
         Local<Array> g_arr = Array::New();
-        if (g_type == mapnik::datasource::Polygon)
+        if (g_type == mapnik::Polygon)
         {
             Local<Array> enclosing_array = Array::New(1);
             enclosing_array->Set(0,g_arr);
@@ -330,7 +330,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     double y2 = y1;
                     if (tr.forward(x2,y2,zc))
                     {
-                        if (g_type == mapnik::datasource::Point)
+                        if (g_type == mapnik::Point)
                         {
                             g_arr->Set(0,Number::New(x2));
                             g_arr->Set(1,Number::New(y2));
