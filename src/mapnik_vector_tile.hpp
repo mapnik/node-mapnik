@@ -16,6 +16,7 @@ public:
     static Handle<Value> getData(Arguments const& args);
     static Handle<Value> render(Arguments const& args);
     static Handle<Value> toJSON(Arguments const& args);
+    static Handle<Value> query(Arguments const& args);
     static Handle<Value> names(Arguments const& args);    
     static Handle<Value> toGeoJSON(Arguments const& args);
 #ifdef PROTOBUF_FULL

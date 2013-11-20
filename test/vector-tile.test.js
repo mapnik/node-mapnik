@@ -341,4 +341,17 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should be able to query features from vector tile', function(done) {
+        var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
+        var dt = new mapnik.VectorTile(5,28,12);
+        dt.setData(data);
+        var features = dt.query(139.6142578125,37.17782559332976,{tolerance:0});
+        assert.equal(features.length,1);
+        assert.equal(features[0].id(),89);
+        // tolerance only applies to points and lines currently in mapnik::hit_test
+        var features = dt.query(142.3388671875,39.52099229357195,{tolerance:100000000000000});
+        assert.equal(features.length,0);
+        done();
+    });
+
 });

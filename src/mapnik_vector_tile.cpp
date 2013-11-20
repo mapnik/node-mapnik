@@ -6,6 +6,7 @@
 #include "mapnik_map.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_grid.hpp"
+#include "mapnik_feature.hpp"
 #include "mapnik_cairo_surface.hpp"
 #ifdef SVG_RENDERER
 #include <mapnik/svg/output/svg_renderer.hpp>
@@ -21,6 +22,7 @@
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
+#include <mapnik/geom_util.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/request.hpp>
 #include <mapnik/feature.hpp>
@@ -61,6 +63,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "setData", setData);
     NODE_SET_PROTOTYPE_METHOD(constructor, "setDataSync", setDataSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getData", getData);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "query", query);
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
@@ -162,6 +165,84 @@ Handle<Value> VectorTile::painted(const Arguments& args)
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     return scope.Close(Boolean::New(d->painted()));
+}
+
+Handle<Value> VectorTile::query(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 2 || !args[0]->IsNumber() || !args[1]->IsNumber())
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("expects lon,lat args")));
+    }
+    double tolerance = 10.0; // meters
+    if (args.Length() > 2)
+    {
+        Local<Object> options = Object::New();
+        if (!args[2]->IsObject())
+        {
+            return ThrowException(Exception::TypeError(String::New("optional third argument must be an options object")));
+        }
+        options = args[2]->ToObject();
+        if (options->Has(String::NewSymbol("tolerance")))
+        {
+            Local<Value> tol = options->Get(String::New("tolerance"));
+            if (!tol->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
+            }
+            tolerance = tol->NumberValue();
+        }
+    }
+
+    double lon = args[0]->NumberValue();
+    double lat = args[1]->NumberValue();
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(wgs84,merc);
+    double x = lon;
+    double y = lat;
+    double z = 0;
+    if (!tr.forward(x,y,z))
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("could not reproject lon/lat to mercator")));
+    }
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+    Local<Array> arr = Array::New();
+    mapnik::coord2d pt(x,y);
+    unsigned idx = 0;
+    for (int i=0; i < tiledata.layers_size(); ++i)
+    {
+        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+        boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                    mapnik::vector::tile_datasource>(
+                                        layer,
+                                        d->x_,
+                                        d->y_,
+                                        d->z_,
+                                        d->width()
+                                        );
+        mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+        if (fs)
+        {
+            mapnik::feature_ptr feature;
+            while ((feature = fs->next()))
+            {
+                bool hit = false;
+                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                {
+                   if (mapnik::label::hit_test(geom,x,y,tolerance))
+                   {
+                       hit = true;
+                   }
+                }
+                if (hit) arr->Set(idx++,Feature::New(feature));
+            }
+        }
+    }
+    return scope.Close(arr);
 }
 
 Handle<Value> VectorTile::toJSON(const Arguments& args)

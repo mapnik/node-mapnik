@@ -1,5 +1,9 @@
 # Changlog
 
+## Future
+
+ - Added mapnik.VectorTile.query ability - accepts lon/lat in wgs84 and tolerances (in meters) returns array of features
+
 ## 1.2.2
 
  - Fixed windows build against Mapnik 2.3.0
