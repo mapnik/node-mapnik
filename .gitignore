@@ -8,3 +8,8 @@ lib/_mapnik.node
 lib/mapnik_settings.js
 node_modules/
 src/*.*~
+test/tmp/*png
+test/tmp/*jpg
+test/tmp/*jpeg
+test/tmp/*json
+test/tmp/*xml
