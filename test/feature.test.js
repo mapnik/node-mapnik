@@ -80,4 +80,38 @@ describe('mapnik.Feature ', function() {
             assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
         }
     });
+
+    it('should output WKT', function () {
+        var feature = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            },
+            expected = 'Polygon((1 1,1 2,2 2,2 1,1 1))',
+            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"}),
+            f = ds.featureset().next(),
+            wkt = f.toWKT();
+
+        assert.equal(expected, wkt);
+    });
+
+    it('should output WKB', function () {
+        var feature = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            },
+            expected = new Buffer('01030000000100000005000000000000000000f03f000000000000f03f000000000000f03f0000000000000040000000000000004000000000000000400000000000000040000000000000f03f000000000000f03f000000000000f03f', 'hex'),
+            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"}),
+            f = ds.featureset().next(),
+            wkb = f.toWKB();
+
+        assert.deepEqual(expected, wkb);
+    });
 });

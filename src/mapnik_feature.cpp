@@ -2,6 +2,11 @@
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
 
+// node
+#include <node.h>
+#include <node_buffer.h>
+#include <node_version.h>
+
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
@@ -14,6 +19,8 @@
 
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/json/geojson_generator.hpp>
+#include <mapnik/util/geometry_to_wkt.hpp>
+#include <mapnik/util/geometry_to_wkb.hpp>
 static mapnik::json::feature_generator generator;
 #endif
 
@@ -35,6 +42,8 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "numGeometries", numGeometries);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toWKB", toWKB);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toWKT", toWKT);
     target->Set(String::NewSymbol("Feature"),constructor->GetFunction());
 }
 
@@ -291,4 +300,45 @@ Handle<Value> Feature::toJSON(const Arguments& args)
 #endif
 
     return scope.Close(String::New(json.c_str()));
+}
+
+Handle<Value> Feature::toWKT(const Arguments& args)
+{
+    HandleScope scope;
+
+    std::string wkt;
+#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+
+    if (!mapnik::util::to_wkt(wkt, fp->get()->paths()))
+    {
+        return ThrowException(Exception::Error(
+                                String::New("Failed to generate WKT")));
+    }
+#else
+    return ThrowException(Exception::Error(
+                              String::New("WKT output requires at least boost 1.47 and mapnik 2.1.x")));
+#endif
+
+    return scope.Close(String::New(wkt.c_str()));
+}
+
+Handle<Value> Feature::toWKB(const Arguments& args)
+{
+    HandleScope scope;
+
+    std::string wkt;
+#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+
+    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(fp->get()->paths(), mapnik::util::wkbNDR);
+    #if NODE_VERSION_AT_LEAST(0, 11, 0)
+    return scope.Close(node::Buffer::New(wkb->buffer(), wkb->size()));
+    #else
+    return scope.Close(node::Buffer::New(wkb->buffer(), wkb->size())->handle_);
+    #endif
+#else
+    return ThrowException(Exception::Error(
+                              String::New("WKB output requires at least boost 1.47 and mapnik 2.1.x")));
+#endif
 }
