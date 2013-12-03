@@ -17,6 +17,8 @@ public:
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
+    static Handle<Value> getPixel(const Arguments &args);
+    static Handle<Value> setPixel(const Arguments &args);
     static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
     static void EIO_Encode(uv_work_t* req);

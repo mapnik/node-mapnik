@@ -2,6 +2,7 @@
 
 ## Future
 
+ - Added getPixel/setPixel on mapnik.Image
  - Added mapnik.VectorTile.query ability - accepts lon/lat in wgs84 and tolerances (in meters) returns array of features
 
 ## 1.2.2

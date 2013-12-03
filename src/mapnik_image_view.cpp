@@ -227,8 +227,8 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
 {
     HandleScope scope;
 
-    unsigned x(0);
-    unsigned y(0);
+    int x = 0;
+    int y = 0;
 
     if (args.Length() >= 2) {
         if (!args[0]->IsNumber())
@@ -246,7 +246,8 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
 
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     image_view_ptr view = im->get();
-    if (x < view->width() && y < view->height())
+    if (x >= 0 && x < static_cast<int>(view->width())
+        && y >=0 && y < static_cast<int>(view->height()))
     {
         mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
         mapnik::image_view<mapnik::image_data_32>::pixel_type const pixel = row[x];

@@ -44,6 +44,8 @@ void Image::Initialize(Handle<Object> target) {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Image"));
 
+    NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "setPixel", setPixel);
     NODE_SET_PROTOTYPE_METHOD(constructor, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "view", view);
@@ -174,6 +176,62 @@ void Image::set_prop(Local<String> property,
         Color *c = node::ObjectWrap::Unwrap<Color>(obj);
         im->get()->set_background(*c->get());
     }
+}
+
+Handle<Value> Image::getPixel(const Arguments& args)
+{
+    HandleScope scope;
+    int x = 0;
+    int y = 0;
+    if (args.Length() >= 2) {
+        if (!args[0]->IsNumber())
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'x' must be an integer")));
+        if (!args[1]->IsNumber())
+            return ThrowException(Exception::TypeError(
+                                      String::New("second arg, 'y' must be an integer")));
+        x = args[0]->IntegerValue();
+        y = args[1]->IntegerValue();
+    } else {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must supply x,y to query pixel color")));
+    }
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+    mapnik::image_data_32 const& data = im->this_->data();
+    if (x >= 0 && x < static_cast<int>(data.width())
+        && y >= 0 && y < static_cast<int>(data.height()))
+    {
+        unsigned pixel = data(x,y);
+        unsigned r = pixel & 0xff;
+        unsigned g = (pixel >> 8) & 0xff;
+        unsigned b = (pixel >> 16) & 0xff;
+        unsigned a = (pixel >> 24) & 0xff;
+        return Color::New(mapnik::color(r,g,b,a));
+    }
+    return Undefined();
+}
+
+Handle<Value> Image::setPixel(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 3 || (!args[0]->IsNumber() && !args[1]->IsNumber())) {
+        return ThrowException(Exception::TypeError(String::New("expects three arguments: x, y, and pixel value")));
+    }
+    Local<Object> obj = args[2]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
+        return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as third arg")));
+    Color * color = node::ObjectWrap::Unwrap<Color>(obj);
+    int x = args[0]->IntegerValue();
+    int y = args[1]->IntegerValue();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+    mapnik::image_data_32 & data = im->this_->data();
+    if (x < static_cast<int>(data.width()) && y < static_cast<int>(data.height()))
+    {
+        data(x,y) = color->get()->rgba();
+        return scope.Close(Undefined());
+    }
+    return ThrowException(Exception::TypeError(String::New("invalid pixel requested")));
+    return scope.Close(Undefined());
 }
 
 Handle<Value> Image::clearSync(const Arguments& args)

@@ -184,7 +184,7 @@ describe('mapnik.Image ', function() {
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
         assert.equal(gray_view.isSolidSync(), true);
-        var pixel = gray_view.getPixel(0, 0);
+        var pixel = gray.getPixel(0, 0);
         assert.equal(pixel.r, 255);
         assert.equal(pixel.g, 255);
         assert.equal(pixel.b, 255);
@@ -192,17 +192,28 @@ describe('mapnik.Image ', function() {
 
         gray.background = new mapnik.Color('black');
         gray.setGrayScaleToAlpha();
-        var pixel2 = gray_view.getPixel(0, 0);
+        var pixel2 = gray.getPixel(0, 0);
         assert.equal(pixel2.r, 255);
         assert.equal(pixel2.g, 255);
         assert.equal(pixel2.b, 255);
         assert.equal(pixel2.a, 0);
 
         gray.setGrayScaleToAlpha(new mapnik.Color('green'));
-        var pixel3 = gray_view.getPixel(0, 0);
+        var pixel3 = gray.getPixel(0, 0);
         assert.equal(pixel3.r, 0);
         assert.equal(pixel3.g, 128);
         assert.equal(pixel3.b, 0);
         assert.equal(pixel3.a, 255);
     });
+
+    it('should support setting an individual pixel', function() {
+        var gray = new mapnik.Image(256, 256);
+        gray.setPixel(0,0,new mapnik.Color('white'));
+        var pixel = gray.getPixel(0,0);
+        assert.equal(pixel.r, 255);
+        assert.equal(pixel.g, 255);
+        assert.equal(pixel.b, 255);
+        assert.equal(pixel.a, 255);
+    });
+
 });
