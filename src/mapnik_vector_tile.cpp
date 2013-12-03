@@ -236,6 +236,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
                    if (mapnik::label::hit_test(geom,x,y,tolerance))
                    {
                        hit = true;
+                       break;
                    }
                 }
                 if (hit) arr->Set(idx++,Feature::New(feature));
