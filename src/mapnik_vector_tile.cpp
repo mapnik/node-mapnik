@@ -175,7 +175,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New("expects lon,lat args")));
     }
-    double tolerance = 10.0; // meters
+    double tolerance = 0.0; // meters
     if (args.Length() > 2)
     {
         Local<Object> options = Object::New();
