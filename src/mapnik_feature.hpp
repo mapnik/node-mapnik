@@ -28,6 +28,8 @@ public:
     static Handle<Value> numGeometries(const Arguments &args);
     static Handle<Value> toString(const Arguments &args);
     static Handle<Value> toJSON(const Arguments &args);
+    static Handle<Value> toWKB(const Arguments &args);
+    static Handle<Value> toWKT(const Arguments &args);
 
     // todo
     // how to allow altering of attributes
