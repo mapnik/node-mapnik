@@ -6,11 +6,13 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/value_types.hpp>
+#include <mapnik/geom_util.hpp>
 
 // boost
 #include <boost/version.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/json/geojson_generator.hpp>
@@ -29,6 +31,7 @@ void Feature::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(constructor, "id", id);
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "intersects", intersects);
     NODE_SET_PROTOTYPE_METHOD(constructor, "attributes", attributes);
     NODE_SET_PROTOTYPE_METHOD(constructor, "addGeometry", addGeometry);
     NODE_SET_PROTOTYPE_METHOD(constructor, "addAttributes", addAttributes);
@@ -119,6 +122,49 @@ Handle<Value> Feature::extent(const Arguments& args)
     return scope.Close(a);
 }
 
+Handle<Value> Feature::intersects(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 2 || !args[0]->IsNumber() || !args[1]->IsNumber())
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("expects x,y args (in coordinate system of the data)")));
+    }
+    double tolerance = 0.0; // meters
+    if (args.Length() > 2)
+    {
+        Local<Object> options = Object::New();
+        if (!args[2]->IsObject())
+        {
+            return ThrowException(Exception::TypeError(String::New("optional third argument must be an options object")));
+        }
+        options = args[2]->ToObject();
+        if (options->Has(String::NewSymbol("tolerance")))
+        {
+            Local<Value> tol = options->Get(String::New("tolerance"));
+            if (!tol->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
+            }
+            tolerance = tol->NumberValue();
+        }
+    }
+
+    double x = args[0]->NumberValue();
+    double y = args[1]->NumberValue();
+
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+    bool hit = false;
+    BOOST_FOREACH ( mapnik::geometry_type const& geom, fp->get()->paths() )
+    {
+       if (mapnik::label::hit_test(geom,x,y,tolerance))
+       {
+           hit = true;
+           break;
+       }
+    }
+    return scope.Close(Boolean::New(hit));
+}
 Handle<Value> Feature::attributes(const Arguments& args)
 {
     HandleScope scope;

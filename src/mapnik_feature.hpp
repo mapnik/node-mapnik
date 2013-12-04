@@ -22,6 +22,7 @@ public:
     static Handle<Value> New(mapnik::feature_ptr f_ptr);
     static Handle<Value> id(const Arguments &args);
     static Handle<Value> extent(const Arguments &args);
+    static Handle<Value> intersects(const Arguments &args);
     static Handle<Value> attributes(const Arguments &args);
     static Handle<Value> addGeometry(const Arguments &args);
     static Handle<Value> addAttributes(const Arguments &args);

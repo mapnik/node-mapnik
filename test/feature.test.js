@@ -67,11 +67,10 @@ describe('mapnik.Feature ', function() {
                     type: 'Polygon',
                     coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
                 }
-            },
-
-            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"}),
-            f = ds.featureset().next(),
-            feature = JSON.parse(f.toJSON());
+        };
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"});
+        var f = ds.featureset().next();
+        var feature = JSON.parse(f.toJSON());
 
         assert.equal(expected.type, feature.type);
         assert.deepEqual(expected.properties, feature.properties);
@@ -80,4 +79,34 @@ describe('mapnik.Feature ', function() {
             assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
         }
     });
+
+    it('should allow pt to pt intersect test',function() {
+        var extent = '-180,-60,180,60';
+        var ds = new mapnik.MemoryDatasource({'extent': extent});
+        var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name"}};
+        ds.add(feat);
+        var featureset = ds.featureset();
+        var feature = featureset.next();
+        assert.equal(feature.id(),1);
+        assert.equal(feature.intersects(1,1,{tolerance:1.5}),true);
+        assert.equal(feature.intersects(1,1,{tolerance:0}),false);
+    });
+
+    it('should allow pt in polygon intersect test',function() {
+        var expected = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            };
+
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"});
+        var feature = ds.featureset().next();
+        assert.equal(feature.id(),1);
+        assert.equal(feature.intersects(1.5,1.5),true);
+        assert.equal(feature.intersects(0,0),false);
+    });
+
 });
