@@ -351,6 +351,14 @@ describe('mapnik.VectorTile ', function() {
         // tolerance only applies to points and lines currently in mapnik::hit_test
         var features = vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000});
         assert.equal(features.length,0);
+        // restrict to single layer
+        // first query one that does not exist
+        var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0,layer:'doesnotexist'});
+        assert.equal(features.length,0);
+        // query one that does exist
+        var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0,layer:vtile.names()[0]});
+        assert.equal(features.length,1);
+        assert.equal(features[0].id(),89);
         done();
     });
 

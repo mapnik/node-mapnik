@@ -176,6 +176,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
                                   String::New("expects lon,lat args")));
     }
     double tolerance = 0.0; // meters
+    std::string layer_name("");
     if (args.Length() > 2)
     {
         Local<Object> options = Object::New();
@@ -192,6 +193,15 @@ Handle<Value> VectorTile::query(const Arguments& args)
                 return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
             }
             tolerance = tol->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("layer")))
+        {
+            Local<Value> layer_id = options->Get(String::New("layer"));
+            if (!layer_id->IsString())
+            {
+                return ThrowException(Exception::TypeError(String::New("layer value must be a string")));
+            }
+            layer_name = TOSTR(layer_id);
         }
     }
 
@@ -213,33 +223,79 @@ Handle<Value> VectorTile::query(const Arguments& args)
     Local<Array> arr = Array::New();
     mapnik::coord2d pt(x,y);
     unsigned idx = 0;
-    for (int i=0; i < tiledata.layers_size(); ++i)
+    if (!layer_name.empty())
     {
-        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-        boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
-                                    mapnik::vector::tile_datasource>(
-                                        layer,
-                                        d->x_,
-                                        d->y_,
-                                        d->z_,
-                                        d->width()
-                                        );
-        mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-        if (fs)
-        {
-            mapnik::feature_ptr feature;
-            while ((feature = fs->next()))
+            int tile_layer_idx = -1;
+            for (int j=0; j < tiledata.layers_size(); ++j)
             {
-                bool hit = false;
-                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                if (layer_name == layer.name())
                 {
-                   if (mapnik::label::hit_test(geom,x,y,tolerance))
-                   {
-                       hit = true;
-                       break;
-                   }
+                    tile_layer_idx = j;
+                    break;
                 }
-                if (hit) arr->Set(idx++,Feature::New(feature));
+            }
+            if (tile_layer_idx > -1)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                            mapnik::vector::tile_datasource>(
+                                                layer,
+                                                d->x_,
+                                                d->y_,
+                                                d->z_,
+                                                d->width()
+                                                );
+                mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+                if (fs)
+                {
+                    mapnik::feature_ptr feature;
+                    while ((feature = fs->next()))
+                    {
+                        bool hit = false;
+                        BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                        {
+                           if (mapnik::label::hit_test(geom,x,y,tolerance))
+                           {
+                               hit = true;
+                               break;
+                           }
+                        }
+                        if (hit) arr->Set(idx++,Feature::New(feature));
+                    }
+                }
+            }
+    }
+    else
+    {
+        for (int i=0; i < tiledata.layers_size(); ++i)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                        mapnik::vector::tile_datasource>(
+                                            layer,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+            if (fs)
+            {
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
+                {
+                    bool hit = false;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    {
+                       if (mapnik::label::hit_test(geom,x,y,tolerance))
+                       {
+                           hit = true;
+                           break;
+                       }
+                    }
+                    if (hit) arr->Set(idx++,Feature::New(feature));
+                }
             }
         }
     }
