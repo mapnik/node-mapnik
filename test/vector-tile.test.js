@@ -365,7 +365,7 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it('should read back the vector tile and render an image with it using negative buffer', function(done) {
+    it('should read back the vector tile and render an image with markers', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
         var map = new mapnik.Map(256, 256);
