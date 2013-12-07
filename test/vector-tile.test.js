@@ -362,7 +362,22 @@ describe('mapnik.VectorTile ', function() {
         var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0,layer:vtile.names()[0]});
         assert.equal(features.length,1);
         assert.equal(features[0].id(),89);
-        done();
+        // ensure querying clipped polygons works
+        var pbf = require('fs').readFileSync('./test/data/vector_tile/6.20.34.pbf');
+        var vt = new mapnik.VectorTile(6, 20, 34);
+        vt.setData(pbf,function(err) {
+            if (err) throw err;
+            var json = vt.toJSON();
+            assert.equal(2, json[0].features.length);
+            assert.equal('Brazil', json[0].features[0].properties.name);
+            assert.equal('Bolivia', json[0].features[1].properties.name);
+            var results = vt.query(-64.27521952641217,-16.28853953000943,{tolerance:10})
+            assert.equal(1, results.length);
+            var feat_json = JSON.parse(results[0].toJSON());
+            assert.equal('Bolivia',feat_json.properties.name);
+            assert.equal(86,feat_json.id);
+            done();
+        });
     });
 
     it('should read back the vector tile and render an image with markers', function(done) {
@@ -386,5 +401,4 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
-
 });
