@@ -332,9 +332,11 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var utf = vtile_image.encodeSync('utf');
             var expected_file = './test/data/vector_tile/tile0.expected.grid.json';
+            var actual_file = './test/data/vector_tile/tile0.actual.grid.json';
             if (!existsSync(expected_file)) {
-                fs.writeFileSync(expected_file,JSON.stringify(utf));
+                fs.writeFileSync(expected_file,JSON.stringify(utf,null,1));
             }
+            fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
             var expected = JSON.parse(fs.readFileSync(expected_file));
             assert.deepEqual(utf,expected)
             done();
@@ -347,6 +349,7 @@ describe('mapnik.VectorTile ', function() {
         vtile.setData(data);
         var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0});
         assert.equal(features.length,1);
+        assert.equal(JSON.parse(features[0].toJSON()).properties.NAME,'Japan');
         assert.equal(features[0].id(),89);
         // tolerance only applies to points and lines currently in mapnik::hit_test
         var features = vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000});
