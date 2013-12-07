@@ -52,6 +52,81 @@
 #include <vector>                       // for vector
 
 
+template <typename PathType>
+bool _hit_test(PathType & path, double x, double y, double tol)
+{
+    double x0 = 0;
+    double y0 = 0;
+    path.rewind(0);
+    mapnik::eGeomType geom_type = static_cast<mapnik::eGeomType>(path.type());
+    switch(geom_type)
+    {
+    case mapnik::Point:
+    {
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return false;
+        return mapnik::distance(x, y, x0, y0) <= tol;
+        break;
+    }
+    case mapnik::Polygon:
+    {
+        double x1 = 0;
+        double y1 = 0;
+        bool inside = false;
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return false;
+        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (command == mapnik::SEG_MOVETO)
+            {
+                x0 = x1;
+                y0 = y1;
+                continue;
+            }
+            if ((((y1 <= y) && (y < y0)) ||
+                 ((y0 <= y) && (y < y1))) &&
+                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
+            {
+                inside=!inside;
+            }
+            x0 = x1;
+            y0 = y1;
+        }
+        return inside;
+        break;
+    }
+    case mapnik::LineString:
+    {
+        double x1 = 0;
+        double y1 = 0;
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return false;
+        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (command == mapnik::SEG_MOVETO)
+            {
+                x0 = x1;
+                y0 = y1;
+                continue;
+            }
+            double distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+            if (distance < tol)
+                return true;
+            x0 = x1;
+            y0 = y1;
+        }
+        return false;
+        break;
+    }
+    default:
+        return false;
+        break;
+    }
+    return false;
+}
+
 Persistent<FunctionTemplate> VectorTile::constructor;
 
 void VectorTile::Initialize(Handle<Object> target) {
@@ -255,7 +330,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
                         bool hit = false;
                         BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                         {
-                           if (mapnik::label::hit_test(geom,x,y,tolerance))
+                           if (_hit_test(geom,x,y,tolerance))
                            {
                                hit = true;
                                break;
@@ -288,7 +363,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
                     bool hit = false;
                     BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                     {
-                       if (mapnik::label::hit_test(geom,x,y,tolerance))
+                       if (_hit_test(geom,x,y,tolerance))
                        {
                            hit = true;
                            break;
