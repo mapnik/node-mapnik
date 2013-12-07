@@ -21,6 +21,8 @@
 #include "vector_tile.pb.h"
 
 #include <mapnik/map.hpp>
+#include <mapnik/graphics.hpp>
+#include <mapnik/image_util.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/geom_util.hpp>
 #include <mapnik/version.hpp>
@@ -142,6 +144,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toDebugImage", toDebugImage);
 #ifdef PROTOBUF_FULL
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
 #endif
@@ -620,6 +623,209 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         feature_obj->Set(String::NewSymbol("properties"),att_obj);
         f_arr->Set(j+idx0,feature_obj);
     }
+}
+
+void draw_box(mapnik::CoordTransform const& t_,
+              mapnik::box2d<double> const& extent,
+              mapnik::image_32 & buf,
+              unsigned rgba)
+{
+    mapnik::box2d<double> box = t_.forward(extent);
+    double x0 = box.minx();
+    double x1 = box.maxx();
+    double y0 = box.miny();
+    double y1 = box.maxy();
+    for (double x=x0; x<x1; x++)
+    {
+        buf.setPixel(x, y0, rgba);
+        buf.setPixel(x, y1, rgba);
+    }
+    for (double y=y0; y<y1; y++)
+    {
+        buf.setPixel(x0, y, rgba);
+        buf.setPixel(x1, y, rgba);
+    }
+}
+
+void apply_px(int x0, int y0, unsigned c, int size, mapnik::image_32 & buf) {
+    bool x_in = (x0 >= 0 && x0 < static_cast<int>(buf.width()));
+    bool y_in = (y0 >= 0 && y0 < static_cast<int>(buf.height()));
+    bool in_bounds = (x_in && y_in);
+    if (!in_bounds)
+    {
+        if (!x_in) {
+            if (x0 < 0) x0 = 0;
+            if (x0 > static_cast<int>(buf.width())) x0 = buf.width();
+        }
+        if (!y_in) {
+            if (y0 < 0) y0 = 0;
+            if (y0 > static_cast<int>(buf.width())) y0 = buf.height();
+        }
+        c = 0;
+    }
+    mapnik::image_data_32 & data = buf.data();
+    unsigned current = data(x0,y0);
+    if (current != 0) size--;
+    for (int x=x0-size; x<x0+size; x++)
+    {
+        for (int y=y0-size; y<y0+size; y++)
+        {
+            buf.setPixel(x, y, c);
+        }
+    }
+}
+
+class colors {
+    std::vector<unsigned> colors_;
+    std::size_t size_;
+    std::size_t pos_;
+ public:
+    colors() :
+      colors_() {
+        colors_.push_back(mapnik::color("red").rgba());
+        colors_.push_back(mapnik::color("darkorange").rgba());
+        colors_.push_back(mapnik::color("yellow").rgba());
+        colors_.push_back(mapnik::color("green").rgba());
+        colors_.push_back(mapnik::color("blue").rgba());
+        colors_.push_back(mapnik::color("purple").rgba());
+        size_ = colors_.size();
+      }
+
+    unsigned next()
+    {
+        if (pos_ >= size_) pos_ = 0;
+        return colors_.at(pos_++);
+    }
+
+};
+
+Handle<Value> VectorTile::toDebugImage(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 1)
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be either a layer name (string) or layer index (integer)")));
+    Local<Value> layer_id = args[0];
+    if (! (layer_id->IsString() || layer_id->IsNumber()) )
+        return ThrowException(Exception::TypeError(
+                                  String::New("'layer' argument must be either a layer name (string) or layer index (integer)")));
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+    std::size_t layer_num = tiledata.layers_size();
+    int layer_idx = -1;
+
+    if (layer_id->IsString()) {
+        std::string layer_name = TOSTR(layer_id);
+        bool found = false;
+        unsigned int idx(0);
+        for (unsigned i=0; i < layer_num; ++i)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            if (layer.name() == layer_name)
+            {
+                found = true;
+                layer_idx = idx;
+                break;
+            }
+            ++idx;
+        }
+        if (!found)
+        {
+            std::ostringstream s;
+            s << "Layer name '" << layer_name << "' not found";
+            return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+        }
+    }
+    else if (layer_id->IsNumber())
+    {
+        layer_idx = layer_id->IntegerValue();
+        if (layer_idx < 0) {
+            std::ostringstream s;
+            s << "Zero-based layer index '" << layer_idx << "' not valid"
+              << " must be a positive integer";
+            if (layer_num > 0)
+            {
+                s << "only '" << layer_num << "' layers exist in map";
+            }
+            else
+            {
+                s << "no layers found in map";
+            }
+            return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+        } else if (layer_idx >= static_cast<int>(layer_num)) {
+            std::ostringstream s;
+            s << "Zero-based layer index '" << layer_idx << "' not valid, ";
+            if (layer_num > 0)
+            {
+                s << "only '" << layer_num << "' layers exist in map";
+            }
+            else
+            {
+                s << "no layers found in map";
+            }
+            return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+        }
+    } else {
+        return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
+    }
+
+    try {
+        mapnik::image_32 im(512,512);
+        double minx,miny,maxx,maxy;
+        mapnik::vector::spherical_mercator merc(d->width());
+        merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
+        mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+        int inset = 30;
+        mapnik::CoordTransform tr(im.width()-inset,im.height()-inset,bbox,-(inset/2),-(inset/2));
+        draw_box(tr,bbox,im,4294967295);
+        mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
+        boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                        mapnik::vector::tile_datasource>(
+                                            layer,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+        ds->set_envelope(bbox);
+        mapnik::query q(bbox);
+        mapnik::featureset_ptr fs = ds->features(q);
+        if (fs)
+        {
+            mapnik::feature_ptr feature;
+            colors color_itr;
+            while ((feature = fs->next()))
+            {
+                unsigned color = color_itr.next();
+                BOOST_FOREACH ( mapnik::geometry_type & path, feature->paths() )
+                {
+                    double x0 = 0;
+                    double y0 = 0;
+                    path.rewind(0);
+                    unsigned command;
+                    while (mapnik::SEG_END != (command = path.vertex(&x0, &y0)))
+                    {
+                        if (command == mapnik::SEG_CLOSE) continue;
+                        tr.forward(&x0,&y0);
+                        apply_px(x0,y0,color,2,im);
+                    }
+              }
+            }
+        }
+        std::string s = save_to_string(im, "png");
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
+        #else
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
+        #endif
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
+    return scope.Close(Undefined());
+
 }
 
 Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
