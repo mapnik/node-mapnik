@@ -81,7 +81,6 @@ To require node-mapnik as a dependency of another package put in your package.js
 
 To run the tests do:
   
-    npm install mocha sphericalmercator
     npm test
 
 ## License
