@@ -40,7 +40,10 @@
       "node": ">= 0.6.13 < 0.11.4"
   },
   "scripts"       : {
-      "pretest" : "npm install mocha sphericalmercator",
       "test"    : "mocha"
+  },
+  "devDependencies": {
+    "sphericalmercator": "~1.0.2",
+    "mocha": "~1.15.1"
   }
 }
