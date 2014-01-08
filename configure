@@ -1,3 +1,4 @@
 #!/bin/sh
 
-`npm explore npm -g -- pwd`/bin/node-gyp-bin/node-gyp configure $@
+PATH=$PATH:`npm explore npm -g -- pwd`/bin/node-gyp-bin/
+node-gyp configure $@
