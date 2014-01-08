@@ -6,6 +6,8 @@
  - Added toWKT/toWKB on mapnik.Feature
  - Added getPixel/setPixel on mapnik.Image
  - Added mapnik.VectorTile.query ability - accepts lon/lat in wgs84 and tolerances (in meters) returns array of features
+ - Improvements to node-gyp path resolution in auxiliary Makefile and configure wrapper
+ - Added `mapnik-config --ldflags` to build by default (not just when static linking)
 
 ## 1.2.2
 
@@ -25,7 +27,7 @@
  - Map.render (when rendering to a VectorTile) and VectorTile.render now expect `buffer_size` option to be passed and ignores map.BufferSize (#175)
  - Removed `devDependencies` so that `mocha` and `sphericalmecator` need to be manually installed to run tests
  - Tweaked gyp `Release` configuration to ensure binaries are stripped and built with highest level of optimization
- - Added support for detecting `--runtime_link=static` flag to npm install that can trigger linking against all Mapnik depedencies (not just libmapnik)
+ - Added support for detecting `--runtime_link=static` flag to npm install that can trigger linking against all Mapnik dependencies (not just libmapnik)
  - Added travis.ci support
 
 ## 1.1.3
