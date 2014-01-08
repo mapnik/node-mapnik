@@ -3,7 +3,7 @@
 all: mapnik.node
 
 mapnik.node:
-	`npm explore npm -g -- pwd`/bin/node-gyp-bin/node-gyp build
+	PATH=$$PATH:`npm explore npm -g -- pwd`/bin/node-gyp-bin/ node-gyp build
 
 clean:
 	@rm -rf ./build
