@@ -2,6 +2,7 @@
 
 ## Future
 
+ - Upgraded to mapnik-vector-tile@0.3.4 with multipart geometry fixes
  - Added toWKT/toWKB on mapnik.Feature
  - Added getPixel/setPixel on mapnik.Image
  - Added mapnik.VectorTile.query ability - accepts lon/lat in wgs84 and tolerances (in meters) returns array of features
