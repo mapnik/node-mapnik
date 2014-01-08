@@ -1,6 +1,6 @@
 # Changlog
 
-## Future
+## 1.2.3
 
  - Upgraded to mapnik-vector-tile@0.3.4 with multipart geometry fixes
  - Added toWKT/toWKB on mapnik.Feature
