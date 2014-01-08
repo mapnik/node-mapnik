@@ -83,13 +83,13 @@
             ],
             'libraries':[
                 '<!@(mapnik-config --libs)',
+                '<!@(mapnik-config --ldflags)',
                 '<!@(pkg-config protobuf --libs-only-L)',
                 '-lprotobuf-lite'
             ],
             'conditions': [
               ['runtime_link == "static"', {
                   'libraries': [
-                    '<!@(mapnik-config --ldflags)',
                     '<!@(mapnik-config --dep-libs)'
                    ]
               }]
