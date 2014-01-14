@@ -19,8 +19,15 @@
                     ],
                     'GCC_OPTIMIZATION_LEVEL': '0',
                     'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES'
+                },
+                'msvs_settings': {
+                    'VCCLCompilerTool': {
+                        'ExceptionHandling': 1, # /EHsc
+                        'RuntimeTypeInfo': 'true', # /GR
+                        'RuntimeLibrary': '2' # /MD
+                    }
                 }
-            },
+		    },
             'Release': {
                 'defines': [
                     'NDEBUG'
