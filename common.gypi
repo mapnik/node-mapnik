@@ -28,8 +28,15 @@
               },
               'ldflags': [
                     '-Wl,-s'
-              ]
-          }
+              ],
+              'msvs_settings': {
+                'VCCLCompilerTool': {
+                  'ExceptionHandling': 1, # /EHsc
+                  'RuntimeTypeInfo':'true', # /GR
+                  'RuntimeLibrary': '2'  # /MD http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
+                }
+			  }
+		  }
       }
   }
 }

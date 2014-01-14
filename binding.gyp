@@ -58,16 +58,15 @@
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
-            'VCCLCompilerTool': {
-                'AdditionalOptions': [
-                  '/GR'
-                ],
-                # note: not respected, need to change in C:\Users\mapnik\.node-gyp\*\common.gypi
-                'ExceptionHandling': 1,
-                'RuntimeTypeInfo':'true',
-                'RuntimeLibrary': '2'  # /MD http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
-            },
-            'VCLinkerTool': {
+              'VCCLCompilerTool': {
+                # uneeded now that they are in common.gypi VCCLCompilerTool
+                #'AdditionalOptions': [
+                #  '/GR',
+                #  '/MD',
+                #  '/EHsc'
+                #]
+              },
+              'VCLinkerTool': {
                 'AdditionalOptions': [
                     # https://github.com/mapnik/node-mapnik/issues/74
                     '/FORCE:MULTIPLE'
@@ -76,8 +75,8 @@
                     '<!@(mapnik-config --ldflags)',
                     '<@(PROTOBUF_LIBS)'
                 ],
-            },
-          }
+              },
+            }
         },{
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
