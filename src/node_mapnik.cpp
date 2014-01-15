@@ -303,4 +303,4 @@ extern "C" {
 
 #endif
 
-NODE_MAPNIK_MODULE(_mapnik, node_mapnik::InitMapnik)
+NODE_MAPNIK_MODULE(mapnik, node_mapnik::InitMapnik)

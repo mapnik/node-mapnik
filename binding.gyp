@@ -1,7 +1,10 @@
 {
   'includes': [ 'common.gypi' ],
   'variables': {
+      'std%':'ansi',
       'runtime_link%':'shared',
+      "module_name":"<!(node -e \"console.log(require('./package.json').binary.module_name)\")",
+      "module_path":"<!(node -e \"console.log(require('./package.json').binary.module_path)\")",
   },
   'conditions': [
       ['OS=="win"', {
@@ -14,7 +17,7 @@
   ],
   'targets': [
     {
-      'target_name': '_mapnik',
+      'target_name': '<(module_name)',
       'sources': [
           "src/node_mapnik.cpp",
           "src/mapnik_map.cpp",
@@ -107,13 +110,26 @@
               'GCC_ENABLE_CPP_RTTI': 'YES',
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
             }
+        },
+        ],
+        ['std == "c++11"', {
+            'cflags_cc' : [
+                '-std=c++11',
+            ],
+            'xcode_settings': {
+              'OTHER_CPLUSPLUSFLAGS':['-std=c++11','-stdlib=libc++'],
+              'OTHER_CPLUSPLUSFLAGS':['-stdlib=libc++'],
+              'OTHER_LDFLAGS':['-stdlib=libc++'],
+              'CLANG_CXX_LANGUAGE_STANDARD':'c++11',
+              'MACOSX_DEPLOYMENT_TARGET':'10.7'
+            }
         }]
       ]
     },
     {
       'target_name': 'action_after_build',
       'type': 'none',
-      'dependencies': [ '_mapnik' ],
+      'dependencies': [ '<(module_name)' ],
       'actions': [
           {
             'action_name': 'generate_setting',
@@ -128,8 +144,8 @@
       ],
       'copies': [
           {
-            'files': [ '<(PRODUCT_DIR)/_mapnik.node' ],
-            'destination': './lib/'
+            'files': [ '<(PRODUCT_DIR)/<(module_name).node' ],
+            'destination': '<(module_path)'
           }
       ]
     }

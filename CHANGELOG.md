@@ -2,6 +2,7 @@
 
 ## Future
 
+ - Datasource plugins must now be explicitly registered with `mapnik.register_default_input_plugins`, `mapnik.register_datasource`, or `register_datasources` as all default plugins are no longer automatically registered at startup.
  - Added `mapnik.register_datasource`
 
 ## 1.2.3
