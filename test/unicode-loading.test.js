@@ -8,6 +8,8 @@ var map_pre = '\n<Map>\n  <Layer name="test">\n    <Datasource>'
 var map_param = '\n      <Parameter name="{{{key}}}">{{{value}}}</Parameter>'
 var map_post = '\n    </Datasource>\n  </Layer>\n</Map>'
 
+mapnik.register_default_input_plugins();
+
 describe('Handling unicode paths, filenames, and data', function(){
 
     // beware: folder storage can get messed up

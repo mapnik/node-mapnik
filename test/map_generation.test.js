@@ -5,6 +5,8 @@ var path = require('path');
 var helper = require('./support/helper');
 var exists = require('fs').existsSync || require('path').existsSync;
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+
 describe('mapnik rendering ', function() {
     it('should render async (blank)', function(done) {
         var map = new mapnik.Map(600, 400);

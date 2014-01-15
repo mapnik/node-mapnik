@@ -1,5 +1,6 @@
 var mapnik = require('../');
 var assert = require('assert');
+var path = require('path');
 var fs = require('fs');
 
 var stylesheet = './test/stylesheet.xml';
@@ -8,6 +9,8 @@ var reference_view = fs.readFileSync('./test/support/grid_view.json', 'utf8');
 var reference__id__ = fs.readFileSync('./test/support/grid__id__.json', 'utf8');
 var reference__id__2 = fs.readFileSync('./test/support/grid__id__2.json', 'utf8');
 var reference__id__3 = fs.readFileSync('./test/support/grid__id__3.json', 'utf8');
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik grid rendering ', function() {
 

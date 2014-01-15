@@ -15,6 +15,8 @@ function deepEqualTrunc(json1,json2) {
     return assert.deepEqual(JSON.stringify(json1,trunc_6),JSON.stringify(json2,trunc_6));
 }
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+
 describe('mapnik.VectorTile ', function() {
     // generate test data
     var _vtile;
@@ -384,7 +386,7 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
         var map = new mapnik.Map(256, 256);
-        map.loadSync('./test/markers.xml');
+        map.loadSync('./test/data/markers.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
         assert.equal(vtile.isSolid(), false);

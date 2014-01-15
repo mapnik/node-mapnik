@@ -41,6 +41,7 @@ describe('mapnik.GridView ', function() {
     });
 
     it('should be painted after rendering', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
         map.zoomAll();

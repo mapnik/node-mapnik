@@ -4,6 +4,8 @@ var fs = require('fs');
 var path = require('path');
 var helper = require('./support/helper');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+
 describe('mapnik.Palette ', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword

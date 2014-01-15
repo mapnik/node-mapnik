@@ -2,6 +2,9 @@ var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 
+var path = require('path');
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+
 describe('Convert to GeoJSON', function() {
     it('should convert shapefile', function(done) {
         if (process.versions.node.split('.')[1] !== '6') {

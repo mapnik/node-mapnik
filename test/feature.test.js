@@ -3,6 +3,9 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
+
 describe('mapnik.Feature ', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword

@@ -3,6 +3,8 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+
 describe('mapnik.Datasource', function() {
     it('should throw with invalid usage', function() {
         assert.throws(function() { mapnik.Datasource('foo'); });
