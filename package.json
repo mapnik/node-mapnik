@@ -36,7 +36,7 @@
       }
   ],
   "dependencies"  : {
-      "node-pre-gyp": "https://github.com/mapbox/tilelive.js/tarball/master",
+      "node-pre-gyp": "https://github.com/springmeyer/node-pre-gyp/tarball/master",
       "mapnik-vector-tile": "~0.3.4"
   },
   "bundledDependencies":["node-pre-gyp"],
