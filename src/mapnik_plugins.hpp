@@ -35,6 +35,29 @@ static inline Handle<Value> available_input_plugins(const Arguments& args)
     return scope.Close(a);
 }
 
+static inline Handle<Value> register_datasource(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() != 1 || !args[0]->IsString())
+        return ThrowException(Exception::TypeError(
+                                  String::New("first argument must be a path to a mapnik input plugin (.input)")));
+#if MAPNIK_VERSION >= 200200
+    std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
+#else
+    std::vector<std::string> names_before = mapnik::datasource_cache::instance()->plugin_names();
+#endif
+    std::string path = TOSTR(args[0]);
+#if MAPNIK_VERSION >= 200200
+    mapnik::datasource_cache::instance().register_datasource(path);
+    std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
+#else
+    mapnik::datasource_cache::instance()->register_datasource(path);
+    std::vector<std::string> names_after = mapnik::datasource_cache::instance()->plugin_names();
+#endif
+    if (names_after.size() > names_before.size())
+        return scope.Close(True());
+    return scope.Close(False());
+}
 
 static inline Handle<Value> register_datasources(const Arguments& args)
 {

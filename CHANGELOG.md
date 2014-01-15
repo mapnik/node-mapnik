@@ -1,5 +1,9 @@
 # Changlog
 
+## Future
+
+ - Added `mapnik.register_datasource`
+
 ## 1.2.3
 
  - Upgraded to mapnik-vector-tile@0.3.4 with multipart geometry fixes

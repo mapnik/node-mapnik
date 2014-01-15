@@ -117,6 +117,7 @@ extern "C" {
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
+        NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
         NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
         NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
