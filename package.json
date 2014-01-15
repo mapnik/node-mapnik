@@ -36,16 +36,19 @@
       }
   ],
   "dependencies"  : {
+      "node-pre-gyp": "~0.3.4",
       "mapnik-vector-tile": "~0.3.4"
   },
+  "bundledDependencies":["node-pre-gyp"],
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
        "mapnik-render.js"  : "./bin/mapnik-render.js"
   },
   "engines"       : {
-      "node": ">= 0.6.13 < 0.11.4"
+      "node": ">= 0.8.0 < 0.11.4"
   },
   "scripts"       : {
+      "install": "node-pre-gyp install --fallback-to-build",
       "test"    : "mocha"
   },
   "devDependencies": {
