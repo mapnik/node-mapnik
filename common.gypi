@@ -43,10 +43,7 @@
                     'GCC_OPTIMIZATION_LEVEL': '3',
                     'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
                     'DEAD_CODE_STRIPPING': 'YES',
-                    'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
-                    'OTHER_LDFLAGS': [
-                        '-s' # warns but actually works
-                    ]
+                    'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES'
                 },
                 'ldflags': [
                     '-Wl,-s'
