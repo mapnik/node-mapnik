@@ -137,7 +137,7 @@
               'gen_settings.py'
             ],
             'outputs': [
-              'lib/mapnik_settings.js'
+              'lib/binding/mapnik_settings.js'
             ],
             'action': ['python', 'gen_settings.py']
           },
