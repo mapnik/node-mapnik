@@ -1,6 +1,6 @@
 import os
 
-settings = os.path.join(os.path.dirname(__file__),'lib','mapnik_settings.js')
+settings = os.path.join(os.path.dirname(__file__),'lib/binding','mapnik_settings.js')
 
 # this goes into a mapnik_settings.js file beside the C++ _mapnik.node
 settings_template = """
