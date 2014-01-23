@@ -1,29 +1,40 @@
-language: node_js
+language: cpp
 
-node_js:
- - "0.10"
- - "0.8"
+env:
+  matrix:
+   # static_build == portable, statically linked OSRM and deps
+   # shared_build == non-portable, shared libraries via package manager
+   - NODE_NVM_VERSION="0.10"
+   - NODE_NVM_VERSION="0.8"
+
+env:
+  global:
+   - secure: MhfGTuEEHzWVs/6W+ysVCSaKq0A/zXfYTi3b5emC2B0wnZOc6Gn8rEHpPga9mqzHO2uqmQe8vsWL/4/Za4E6GabgxBGE1DPa1sLxLXHhZ+Q1PCE2livk/nKFMNzKMn8XcBKAtjT945Pc9zG5OE5pfEuu/VwVrMwuba+lKgO9roc=
+   - secure: NIfxD7XGE67Kjgupp1MVEPFVjAfqu+DxBGJ/27tDCqMUQWoCjjJeHo2AkPGGG+3HcUA6t9Ent4vN4hIfhrO9xZzsMyxbwuwf0TyWcrYR8igkFXjsPfkpyToVGWryXTRiTaK8vb+xRfaM+79beJPetMlMdPyPCWKHBkdCg5Pn3Wk=
 
 before_install:
- - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
- - sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
- - sudo apt-get update -qq
- - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler
+# put node-pre-gyp on path
+- export PATH=./node_modules/.bin/:$PATH
+# here we set up the node version on the fly based on the matrix value.
+# This is done manually so that it is easy to flip the 'language' to
+# objective-c in another branch (to run the same travis.yml on OS X)
+- git clone https://github.com/creationix/nvm.git ../.nvm
+- source ../.nvm/nvm.sh
+- nvm install $NODE_NVM_VERSION
+- nvm use $NODE_NVM_VERSION
+- node --version
+- npm --version
 
 install:
- - npm install mocha sphericalmercator
+- source ./scripts/build_against_sdk.sh
 
 before_script:
- - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
- - npm install
- - npm test
- - sudo apt-get purge libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
+- npm test --build-from-source
+- node-pre-gyp clean
 
 script:
- - sudo apt-get -qq install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
- - npm install
- - npm test
- - sudo apt-get purge libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
+- ./node_modules/.bin/node-pre-gyp package publish
+- npm install --fallback-to-build=false
 
 notifications:
   irc:
