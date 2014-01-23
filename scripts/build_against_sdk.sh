@@ -9,7 +9,7 @@ BUILD_DIR="$(pwd)"
 UNAME=$(uname -s);
 
 if [[ "${CXX11:-false}" != false ]]; then
-    HASH="717-g328df74-cpp11"
+    HASH="720-g499d485-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
         CXX_NAME="gcc-4.8"
     else
@@ -67,7 +67,7 @@ fi
 
 cd ../
 rm -rf ./lib/binding/
-npm install 
+npm install --build-from-source
 # copy lib
 cp $MAPNIK_SDK/lib/libmapnik.* lib/binding/
 # copy plugins
@@ -87,7 +87,7 @@ module.exports.env = {
     'GDAL_DATA': path.join(__dirname, 'share/mapnik/gdal'),
     'PROJ_LIB': path.join(__dirname, 'share/mapnik/proj')
 };
-" > lib/mapnik_settings.js
+" > lib/binding/mapnik_settings.js
 # this should be done when the sdk is packaged
 #if [[ $UNAME == 'Darwin' ]]; then
     #install_name_tool -id @loader_path/libmapnik.dylib lib/binding/libmapnik.dylib
