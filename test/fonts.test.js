@@ -11,16 +11,10 @@ function oc(a) {
 }
 
 before(function() {
-    mapnik.register_default_fonts();
     mapnik.register_system_fonts();
 });
 
 describe('mapnik fonts ', function() {
-    it('should auto-register DejaVu fonts', function() {
-        // make sure we have default fonts
-        assert.ok('DejaVu Sans Bold' in oc(mapnik.fonts()));
-    });
-
     it('should auto-register a system font like Times Regular on OS X', function() {
         if (process.platform == 'darwin') {
             assert.ok('Times Regular' in oc(mapnik.fonts()));
@@ -31,7 +25,7 @@ describe('mapnik fonts ', function() {
 
     it('should find new fonts when registering all system fonts', function() {
         // will return true if new fonts are found
-        // but should return false as we now call at startup
+        // but should return false now we called in `before`
         assert.ok(!mapnik.register_system_fonts());
     });
 
