@@ -1,5 +1,10 @@
 # Changlog
 
+## 0.7.26
+
+ - Added missing include in `mapnik_palette.cpp` (#205 @gravitystorm)
+ - Removed stale file: `build.gyp` again?
+
 ## 0.7.25
 
  - Removed stale file: `build.gyp` which could in some situations break the build because npm
