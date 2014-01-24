@@ -11,6 +11,7 @@
 // stl
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 
 Persistent<FunctionTemplate> Palette::constructor;
