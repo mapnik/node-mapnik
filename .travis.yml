@@ -13,6 +13,7 @@ before_install:
 
 install:
  - npm install mocha sphericalmercator
+ - npm explore npm -g -- npm install node-gyp@latest
 
 before_script:
  - sudo apt-get -qq install libmapnik=2.1.0* mapnik-utils=2.1.0* libmapnik-dev=2.1.0*
