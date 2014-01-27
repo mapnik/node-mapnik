@@ -807,7 +807,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
     {
         bool found = false;
         unsigned int idx(0);
-        std::string const & layer_name = TOSTR(layer);
+        std::string layer_name = TOSTR(layer);
         BOOST_FOREACH ( mapnik::layer const& lyr, layers )
         {
             if (lyr.name() == layer_name)
