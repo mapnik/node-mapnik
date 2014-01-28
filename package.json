@@ -9,7 +9,7 @@
   "binary": {
       "module_name": "mapnik",
       "module_path": "./lib/binding/",
-      "remote_uri": "http://node-mapnik.s3-us-west-1.amazonaws.com",
+      "remote_uri": "https://node-mapnik.s3-us-west-1.amazonaws.com",
       "template": "v{version}/{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz"
   },
   "bugs"          : {

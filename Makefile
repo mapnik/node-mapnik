@@ -7,7 +7,7 @@ mapnik.node:
 
 clean:
 	@rm -rf ./build
-	rm -f lib/_mapnik.node
+	rm -rf lib/binding
 	rm ./test/tmp/*
 	echo > ./test/tmp/placeholder.txt
 
