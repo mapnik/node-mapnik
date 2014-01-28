@@ -77,8 +77,6 @@ private:
     unsigned width_;
     unsigned height_;
     bool painted_;
-public:
-    int estimated_size_;
 };
 
 #endif // __NODE_MAPNIK_VECTOR_TILE_H__
