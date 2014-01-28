@@ -2,7 +2,6 @@ var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
-var inflate = require('zlib').inflate;
 var mercator = new(require('sphericalmercator'));
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
