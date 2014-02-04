@@ -44,9 +44,9 @@ public:
     VectorTile(int z, int x, int y, unsigned w=256, unsigned h=256);
 
     void clear() {
-        painted_ = false;
         tiledata_.Clear();
         buffer_.clear();
+        painted(false);
     }
     mapnik::vector::tile & get_tile_nonconst() {
         return tiledata_;
@@ -55,6 +55,7 @@ public:
         return tiledata_;
     }
     void painted(bool painted) {
+        byte_size_ = tiledata_.ByteSize();
         painted_ = painted;
     }
     bool painted() const {
@@ -79,6 +80,7 @@ private:
     unsigned width_;
     unsigned height_;
     bool painted_;
+    int byte_size_;
 };
 
 #endif // __NODE_MAPNIK_VECTOR_TILE_H__

@@ -19,6 +19,7 @@
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
+#include <google/protobuf/io/coded_stream.h>
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -165,7 +166,8 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     tiledata_(),
     width_(w),
     height_(h),
-    painted_(false) {}
+    painted_(false),
+    byte_size_(0) {}
 
 VectorTile::~VectorTile() { }
 
@@ -764,7 +766,6 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
 Handle<Value> VectorTile::setDataSync(const Arguments& args)
 {
     HandleScope scope;
-
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     if (args.Length() < 1 || !args[0]->IsObject())
         return ThrowException(Exception::Error(
@@ -896,26 +897,33 @@ Handle<Value> VectorTile::getData(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
-    mapnik::vector::tile const& tiledata = d->get_tile();
-    // TODO - cache bytesize?
-    int size = tiledata.ByteSize();
-    #if NODE_VERSION_AT_LEAST(0, 11, 0)
-    Local<Object> retbuf = node::Buffer::New(size);
-    // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
-    // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
-    if (tiledata.SerializeToArray(node::Buffer::Data(retbuf),size))
-    {
-        return scope.Close(retbuf);
+    try {
+        mapnik::vector::tile const& tiledata = d->get_tile();
+        // NOTE: GetCachedSize here is only safe if
+        // tiledata.ByteSize() is called after each modification
+        // which will happend if painted(true) is called
+        //int byte_size = tiledata.ByteSize();
+        int byte_size = tiledata.GetCachedSize();
+        int raw_size = d->buffer_.size();
+        // shortcut: return raw data and avoid trip through proto object
+        if (byte_size <= raw_size) {
+            return scope.Close(node::Buffer::New((char*)d->buffer_.data(),raw_size)->handle_);
+        } else {
+            node::Buffer *retbuf = node::Buffer::New(byte_size);
+            // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
+            // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
+            google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
+            google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
+            if (end - start != byte_size) {
+                return ThrowException(Exception::Error(
+                                          String::New("serialization failed, possible race condition")));
+            }
+            return scope.Close(retbuf->handle_);
+        }
+    } catch (std::exception const& ex) {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
     }
-    #else
-    node::Buffer *retbuf = node::Buffer::New(size);
-    // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
-    // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
-    if (tiledata.SerializeToArray(node::Buffer::Data(retbuf),size))
-    {
-        return scope.Close(retbuf->handle_);
-    }
-    #endif
     return Undefined();
 }
 
