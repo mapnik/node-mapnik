@@ -773,14 +773,15 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
         return ThrowException(Exception::Error(
                                   String::New("first arg must be a buffer object")));
-    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
-    unsigned proto_len = node::Buffer::Length(obj);
-    if (proto_len == 0)
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
     {
         return ThrowException(Exception::Error(
                                   String::New("could not parse empty buffer as protobuf")));
     }
-    if (tiledata.ParseFromArray(node::Buffer::Data(obj), proto_len))
+    d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
+    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
+    if (tiledata.ParseFromArray(d->buffer_.data(), d->buffer_.size()))
     {
         d->painted(true);
     }
@@ -795,8 +796,6 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
 typedef struct {
     uv_work_t request;
     VectorTile* d;
-    char *data;
-    size_t dataLength;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -829,8 +828,7 @@ Handle<Value> VectorTile::setData(const Arguments& args)
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
     closure->d = d;
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
+    closure->d->buffer_ = std::string(node::Buffer::Data(obj),node::Buffer::Length(obj));
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
@@ -844,14 +842,14 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 
     try {
         mapnik::vector::tile & tiledata = closure->d->get_tile_nonconst();
-        if (tiledata.ParseFromArray(closure->data, closure->dataLength))
+        if (tiledata.ParseFromArray(closure->d->buffer_.data(), closure->d->buffer_.size()))
         {
             closure->d->painted(true);
         }
         else
         {
             closure->error = true;
-            if (closure->dataLength == 0)
+            if (closure->d->buffer_.size() == 0)
             {
                 closure->error_name = "could not parse empty protobuf";
             }

@@ -46,6 +46,7 @@ public:
     void clear() {
         painted_ = false;
         tiledata_.Clear();
+        buffer_.clear();
     }
     mapnik::vector::tile & get_tile_nonconst() {
         return tiledata_;
@@ -70,6 +71,7 @@ public:
     int z_;
     int x_;
     int y_;
+    std::string buffer_;
 
 private:
     ~VectorTile();
