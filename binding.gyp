@@ -118,7 +118,6 @@
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':['-std=c++11','-stdlib=libc++'],
-              'OTHER_CPLUSPLUSFLAGS':['-stdlib=libc++'],
               'OTHER_LDFLAGS':['-stdlib=libc++'],
               'CLANG_CXX_LANGUAGE_STANDARD':'c++11',
               'MACOSX_DEPLOYMENT_TARGET':'10.7'
