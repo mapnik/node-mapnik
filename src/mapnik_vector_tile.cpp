@@ -19,6 +19,9 @@
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
+#include "vector_tile_processor.hpp"
+#include "vector_tile_backend_pbf.hpp"
+
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -140,6 +143,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "parse", parse);
     NODE_SET_PROTOTYPE_METHOD(constructor, "parseSync", parseSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "addData", addData);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
     NODE_SET_PROTOTYPE_METHOD(constructor, "query", query);
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
@@ -200,6 +204,106 @@ Handle<Value> VectorTile::New(const Arguments& args)
                                   String::New("please provide a z, x, y")));
     }
     return Undefined();
+}
+
+Handle<Value> VectorTile::composite(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 1 || !args[0]->IsArray()) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide an array of VectorTile objects")));
+    }
+    Local<Array> vtiles = Local<Array>::Cast(args[0]);
+    unsigned num_tiles = vtiles->Length();
+    if (num_tiles < 1) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide an array with at least one VectorTile object")));
+    }
+
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    for (unsigned i=0;i < num_tiles;++i) {
+        Local<Value> val = vtiles->Get(i);
+        if (!val->IsObject()) {
+            return ThrowException(Exception::TypeError(
+                                      String::New("must provide an array of VectorTile objects")));
+        }
+        Local<Object> tile_obj = val->ToObject();
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !VectorTile::constructor->HasInstance(tile_obj)) {
+            return ThrowException(Exception::TypeError(
+                                      String::New("must provide an array of VectorTile objects")));
+        }
+        VectorTile* vt = node::ObjectWrap::Unwrap<VectorTile>(tile_obj);
+        // TODO - handle name clashes
+        if (d->z_ == vt->z_ &&
+            d->x_ == vt->x_ &&
+            d->y_ == vt->y_)
+        {
+            d->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
+            d->status_ = VectorTile::LAZY_MERGE;
+        }
+        else
+        {
+            typedef mapnik::vector::backend_pbf backend_type;
+            typedef mapnik::vector::processor<backend_type> renderer_type;
+            // TODO - inherit?
+            unsigned path_multiplier = 16;
+            int buffer_size = 256;
+            double scale_factor = 1.0;
+            unsigned offset_x = 0;
+            unsigned offset_y = 0;
+            unsigned tolerance = 1;
+            // ensure data is in tile object
+            vt->parse();
+            mapnik::vector::tile const& tiledata = vt->get_tile();
+            mapnik::vector::tile new_tiledata;
+            backend_type backend(new_tiledata,
+                                    path_multiplier);
+            mapnik::box2d<double> extent;
+            mapnik::vector::spherical_mercator merc(d->width());
+            double minx,miny,maxx,maxy;
+            merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
+            mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
+            mapnik::request m_req(d->width(),d->height(),extent);
+            m_req.set_buffer_size(buffer_size);
+            std::string merc_srs("+init=epsg:3857");
+            mapnik::Map map(d->width(),d->height(),merc_srs);
+            unsigned idx = 0;
+            BOOST_FOREACH (std::string const& name, vt->lazy_names())
+            {
+                mapnik::layer lyr(name,merc_srs);
+                mapnik::vector::tile_layer const& layer = tiledata.layers(idx++);
+                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                mapnik::vector::tile_datasource>(
+                                                    layer,
+                                                    vt->x_,
+                                                    vt->y_,
+                                                    vt->z_,
+                                                    vt->width()
+                                                    );
+                ds->set_envelope(m_req.get_buffered_extent());
+                lyr.set_datasource(ds);
+                map.addLayer(lyr);
+            }
+            renderer_type ren(backend,
+                              map,
+                              m_req,
+                              scale_factor,
+                              offset_x,
+                              offset_y,
+                              tolerance);
+            ren.apply();
+            std::string new_message;
+            if (!new_tiledata.SerializeToString(&new_message))
+            {
+                return ThrowException(Exception::Error(
+                          String::New("could not serialize new data for vt")));
+            }
+            d->buffer_.append(new_message.data(),new_message.size());
+            d->status_ = VectorTile::LAZY_MERGE;
+
+        }
+    }
+    return scope.Close(Undefined());
 }
 
 #ifdef PROTOBUF_FULL

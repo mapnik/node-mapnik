@@ -42,6 +42,7 @@ public:
     static void EIO_AfterParse(uv_work_t* req);
     static Handle<Value> parseSync(Arguments const& args);
     static Handle<Value> addData(Arguments const& args);
+    static Handle<Value> composite(Arguments const& args);
     // methods common to mapnik.Image
     static Handle<Value> width(Arguments const& args);
     static Handle<Value> height(Arguments const& args);
