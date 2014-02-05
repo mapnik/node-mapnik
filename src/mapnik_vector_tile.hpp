@@ -5,11 +5,20 @@
 #include <node_object_wrap.h>
 #include "uv.h"
 #include "vector_tile.pb.h"
+#include <stdexcept>
+#include <google/protobuf/io/coded_stream.h>
+#include "pbf.hpp"
 
 using namespace v8;
 
 class VectorTile: public node::ObjectWrap {
 public:
+    enum parsing_status {
+        START = 1,
+        LAZY_SET = 2,
+        LAZY_MERGE = 3,
+        PARSED = 4
+    };
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(Arguments const&args);
@@ -28,6 +37,11 @@ public:
     static void EIO_SetData(uv_work_t* req);
     static void EIO_AfterSetData(uv_work_t* req);
     static Handle<Value> setDataSync(Arguments const& args);
+    static Handle<Value> parse(Arguments const& args);
+    static void EIO_Parse(uv_work_t* req);
+    static void EIO_AfterParse(uv_work_t* req);
+    static Handle<Value> parseSync(Arguments const& args);
+    static Handle<Value> addData(Arguments const& args);
     // methods common to mapnik.Image
     static Handle<Value> width(Arguments const& args);
     static Handle<Value> height(Arguments const& args);
@@ -51,7 +65,77 @@ public:
     mapnik::vector::tile & get_tile_nonconst() {
         return tiledata_;
     }
-    mapnik::vector::tile const& get_tile() const {
+    std::vector<std::string> lazy_names()
+    {
+        std::vector<std::string> names;
+        protobuf::message item(buffer_.data(),buffer_.size());
+        while (item.next()) {
+            if (item.tag == 3) {
+                uint64_t len = item.varint();
+                protobuf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+                while (layermsg.next()) {
+                    if (layermsg.tag == 1) {
+                        names.push_back(layermsg.string());
+                    } else {
+                        layermsg.skip();
+                    }
+                }
+                item.skipBytes(len);
+            } else {
+                item.skip();
+            }
+        }
+        return names;
+    }
+
+    void parse()
+    {
+        switch (status_)
+        {
+        case START:
+        {
+            // do nothing
+            break;
+        }
+        case PARSED:
+        {
+            // do nothing
+            break;
+        }
+        case LAZY_SET:
+        {
+            if (tiledata_.ParseFromArray(buffer_.data(), buffer_.size()))
+            {
+                painted(true);
+            }
+            else
+            {
+                throw std::runtime_error("could not parse buffer as protobuf");
+            }
+            status_ = PARSED;
+            break;
+        }
+        case LAZY_MERGE:
+        {
+            unsigned remaining = buffer_.size() - byte_size_;
+            const char * data = buffer_.data() + byte_size_;
+            google::protobuf::io::CodedInputStream input(
+                  reinterpret_cast<const google::protobuf::uint8*>(
+                      data), remaining);
+            if (tiledata_.MergeFromCodedStream(&input))
+            {
+                painted(true);
+            }
+            else
+            {
+                throw std::runtime_error("could not merge buffer as protobuf");
+            }
+            status_ = PARSED;
+            break;
+        }
+        }
+    }
+    mapnik::vector::tile const& get_tile() {
         return tiledata_;
     }
     void painted(bool painted) {
@@ -73,7 +157,7 @@ public:
     int x_;
     int y_;
     std::string buffer_;
-
+    parsing_status status_;
 private:
     ~VectorTile();
     mapnik::vector::tile tiledata_;

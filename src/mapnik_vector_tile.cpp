@@ -19,7 +19,6 @@
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
-#include <google/protobuf/io/coded_stream.h>
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -51,7 +50,6 @@
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
-
 
 template <typename PathType>
 bool _hit_test(PathType & path, double x, double y, double tol)
@@ -139,6 +137,9 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "setData", setData);
     NODE_SET_PROTOTYPE_METHOD(constructor, "setDataSync", setDataSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getData", getData);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "parse", parse);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "parseSync", parseSync);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addData", addData);
     NODE_SET_PROTOTYPE_METHOD(constructor, "query", query);
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
@@ -163,6 +164,8 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     z_(z),
     x_(x),
     y_(y),
+    buffer_(),
+    status_(VectorTile::START),
     tiledata_(),
     width_(w),
     height_(h),
@@ -213,14 +216,28 @@ Handle<Value> VectorTile::names(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
-    mapnik::vector::tile const& tiledata = d->get_tile();
-    Local<Array> arr = Array::New(tiledata.layers_size());
-    for (int i=0; i < tiledata.layers_size(); ++i)
+    int raw_size = d->buffer_.size();
+    if (d->byte_size_ <= raw_size)
     {
-        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-        arr->Set(i, String::New(layer.name().c_str()));
+        std::vector<std::string> names = d->lazy_names();
+        Local<Array> arr = Array::New(names.size());
+        unsigned idx = 0;
+        BOOST_FOREACH ( std::string const& name, names )
+        {
+            arr->Set(idx++,String::New(name.c_str()));
+        }
+        return scope.Close(arr);
+    } else {
+        mapnik::vector::tile const& tiledata = d->get_tile();
+        Local<Array> arr = Array::New(tiledata.layers_size());
+        for (int i=0; i < tiledata.layers_size(); ++i)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            arr->Set(i, String::New(layer.name().c_str()));
+        }
+        return scope.Close(arr);
     }
-    return scope.Close(arr);
+    return scope.Close(Undefined());
 }
 
 Handle<Value> VectorTile::width(const Arguments& args)
@@ -763,6 +780,112 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
     }
 }
 
+Handle<Value> VectorTile::parseSync(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    try
+    {
+        d->parse();
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
+    return Undefined();
+}
+
+typedef struct {
+    uv_work_t request;
+    VectorTile* d;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} vector_tile_parse_baton_t;
+
+Handle<Value> VectorTile::parse(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        return parseSync(args);
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    vector_tile_parse_baton_t *closure = new vector_tile_parse_baton_t();
+    closure->request.data = closure;
+    closure->d = d;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Parse, (uv_after_work_cb)EIO_AfterParse);
+    d->Ref();
+    return Undefined();
+}
+
+void VectorTile::EIO_Parse(uv_work_t* req)
+{
+    vector_tile_parse_baton_t *closure = static_cast<vector_tile_parse_baton_t *>(req->data);
+    try
+    {
+        closure->d->parse();
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterParse(uv_work_t* req)
+{
+    HandleScope scope;
+    vector_tile_parse_baton_t *closure = static_cast<vector_tile_parse_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[1] = { Local<Value>::New(Null()) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->d->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> VectorTile::addData(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    if (args.Length() < 1 || !args[0]->IsObject())
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a buffer object")));
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+        return ThrowException(Exception::Error(
+                                  String::New("first arg must be a buffer object")));
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("cannot accept empty buffer as protobuf")));
+    }
+    d->buffer_.append(node::Buffer::Data(obj),buffer_size);
+    d->status_ = VectorTile::LAZY_MERGE;
+    return Undefined();
+}
+
 Handle<Value> VectorTile::setDataSync(const Arguments& args)
 {
     HandleScope scope;
@@ -778,19 +901,10 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
     if (buffer_size <= 0)
     {
         return ThrowException(Exception::Error(
-                                  String::New("could not parse empty buffer as protobuf")));
+                                  String::New("cannot accept empty buffer as protobuf")));
     }
     d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
-    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
-    if (tiledata.ParseFromArray(d->buffer_.data(), d->buffer_.size()))
-    {
-        d->painted(true);
-    }
-    else
-    {
-        return ThrowException(Exception::Error(
-                                  String::New("could not parse buffer as protobuf")));
-    }
+    d->status_ = VectorTile::LAZY_SET;
     return Undefined();
 }
 
@@ -898,23 +1012,21 @@ Handle<Value> VectorTile::getData(const Arguments& args)
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     try {
-        mapnik::vector::tile const& tiledata = d->get_tile();
-        // NOTE: GetCachedSize here is only safe if
-        // tiledata.ByteSize() is called after each modification
-        // which will happend if painted(true) is called
-        //int byte_size = tiledata.ByteSize();
-        int byte_size = tiledata.GetCachedSize();
-        int raw_size = d->buffer_.size();
         // shortcut: return raw data and avoid trip through proto object
-        if (byte_size <= raw_size) {
+        int raw_size = d->buffer_.size();
+        if (d->byte_size_ <= raw_size) {
             return scope.Close(node::Buffer::New((char*)d->buffer_.data(),raw_size)->handle_);
         } else {
-            node::Buffer *retbuf = node::Buffer::New(byte_size);
+            // NOTE: tiledata.ByteSize() must be called
+            // after each modification of tiledata otherwise the
+            // SerializeWithCachedSizesToArray will throw
+            mapnik::vector::tile const& tiledata = d->get_tile();
+            node::Buffer *retbuf = node::Buffer::New(d->byte_size_);
             // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
             // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
             google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
             google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
-            if (end - start != byte_size) {
+            if (end - start != d->byte_size_) {
                 return ThrowException(Exception::Error(
                                           String::New("serialization failed, possible race condition")));
             }
