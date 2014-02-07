@@ -4,6 +4,6 @@ call node -e "console.log(process.version + ' ' + process.arch)"
 set PROJ_LIB=C:\mapnik-v2.3.0\share\proj
 set GDAL_DATA=C:\mapnik-v2.3.0\share\gdal
 rd /q /s build
-del lib\\_mapnik.node
+rd /q /s lib\binding
 call npm install
 npm test
