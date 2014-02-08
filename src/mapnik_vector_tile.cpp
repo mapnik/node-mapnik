@@ -220,7 +220,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                                   String::New("must provide an array with at least one VectorTile object")));
     }
 
-    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     for (unsigned i=0;i < num_tiles;++i) {
         Local<Value> val = vtiles->Get(i);
         if (!val->IsObject()) {
@@ -234,17 +234,16 @@ Handle<Value> VectorTile::composite(const Arguments& args)
         }
         VectorTile* vt = node::ObjectWrap::Unwrap<VectorTile>(tile_obj);
         // TODO - handle name clashes
-        if (d->z_ == vt->z_ &&
-            d->x_ == vt->x_ &&
-            d->y_ == vt->y_)
+        if (target_vt->z_ == vt->z_ &&
+            target_vt->x_ == vt->x_ &&
+            target_vt->y_ == vt->y_)
         {
-            d->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
-            d->status_ = VectorTile::LAZY_MERGE;
+            target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
+            target_vt->status_ = VectorTile::LAZY_MERGE;
         }
         else
         {
-            typedef mapnik::vector::backend_pbf backend_type;
-            typedef mapnik::vector::processor<backend_type> renderer_type;
+
             // TODO - inherit?
             unsigned path_multiplier = 16;
             int buffer_size = 256;
@@ -252,26 +251,35 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             unsigned offset_x = 0;
             unsigned offset_y = 0;
             unsigned tolerance = 1;
-            // ensure data is in tile object
-            vt->parse();
-            mapnik::vector::tile const& tiledata = vt->get_tile();
+            double scale_denominator = 0.0;
+            mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
+
+            // set up to render to new vtile
+            typedef mapnik::vector::backend_pbf backend_type;
+            typedef mapnik::vector::processor<backend_type> renderer_type;
             mapnik::vector::tile new_tiledata;
             backend_type backend(new_tiledata,
                                     path_multiplier);
-            mapnik::box2d<double> extent;
-            mapnik::vector::spherical_mercator merc(d->width());
+            
+            // get mercator extent of target tile
+            mapnik::vector::spherical_mercator merc(target_vt->width());
             double minx,miny,maxx,maxy;
-            merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
+            merc.xyz(target_vt->x_,target_vt->y_,target_vt->z_,minx,miny,maxx,maxy);
             mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
-            mapnik::request m_req(d->width(),d->height(),extent);
+            // create request
+            mapnik::request m_req(target_vt->width(),target_vt->height(),map_extent);
             m_req.set_buffer_size(buffer_size);
-            std::string merc_srs("+init=epsg:3857");
-            mapnik::Map map(d->width(),d->height(),merc_srs);
-            unsigned idx = 0;
-            BOOST_FOREACH (std::string const& name, vt->lazy_names())
+            // create map
+            std::string merc_srs("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over");
+            mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
+            map.set_maximum_extent(max_extent);
+            // ensure data is in tile object
+            vt->parse();
+            mapnik::vector::tile const& tiledata = vt->get_tile();
+            for (int i=0; i < tiledata.layers_size(); ++i)
             {
-                mapnik::layer lyr(name,merc_srs);
-                mapnik::vector::tile_layer const& layer = tiledata.layers(idx++);
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                mapnik::layer lyr(layer.name(),merc_srs);
                 boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
                                                 mapnik::vector::tile_datasource>(
                                                     layer,
@@ -291,16 +299,15 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                               offset_x,
                               offset_y,
                               tolerance);
-            ren.apply();
+            ren.apply(scale_denominator);
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
             {
                 return ThrowException(Exception::Error(
                           String::New("could not serialize new data for vt")));
             }
-            d->buffer_.append(new_message.data(),new_message.size());
-            d->status_ = VectorTile::LAZY_MERGE;
-
+            target_vt->buffer_.append(new_message.data(),new_message.size());
+            target_vt->status_ = VectorTile::LAZY_MERGE;
         }
     }
     return scope.Close(Undefined());
