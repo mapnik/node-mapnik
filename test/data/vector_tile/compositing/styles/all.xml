@@ -1,0 +1,27 @@
+<Map srs="+init=epsg:3857">
+
+    <Style name="lines">
+        <Rule>
+            <LineSymbolizer clip="false"
+                            stroke-width="2"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke-opacity=".5" />
+        </Rule>
+    </Style>
+
+    <Layer name="lines" srs="+init=epsg:3857">
+        <StyleName>lines</StyleName>
+    </Layer>
+
+    <Style name="points">
+        <Rule>
+            <MarkersSymbolizer clip="false" width="10" opacity=".5"/>
+        </Rule>
+    </Style>
+
+    <Layer name="points" srs="+init=epsg:3857">
+        <StyleName>points</StyleName>
+    </Layer>
+    
+</Map>
