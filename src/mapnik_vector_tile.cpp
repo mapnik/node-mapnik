@@ -1365,13 +1365,18 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             }
             else
             {
-#if defined(SVG_RENDERER)
+#if MAPNIK_VERSION >= 200300
+  #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
                 std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
                 svg_ren ren(map_in, m_req, output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
                 ren.end_map_processing(map_in);
+  #else
+                closure->error = true;
+                closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
+  #endif
 #else
                 closure->error = true;
                 closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
