@@ -101,7 +101,8 @@
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                  '<!@(mapnik-config --cflags)'
+                  '<!@(mapnik-config --cflags)',
+                  '<!@(pkg-config protobuf --cflags)'
               ],
               'OTHER_CFLAGS':[
                   '<!@(mapnik-config --cflags)',

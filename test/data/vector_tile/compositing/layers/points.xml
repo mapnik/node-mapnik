@@ -1,0 +1,19 @@
+<Map srs="+init=epsg:3857" buffer-size="256">
+
+    <Style name="points">
+        <Rule>
+            <MarkersSymbolizer width="60"/>
+        </Rule>
+    </Style>
+
+    <Layer name="points" srs="+init=epsg:4326">
+        <StyleName>points</StyleName>
+        <Datasource>
+            <Parameter name="type">csv</Parameter>
+            <Parameter name="inline">
+x,y
+0,0
+            </Parameter>
+        </Datasource>
+    </Layer>    
+</Map>

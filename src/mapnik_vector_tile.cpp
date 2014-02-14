@@ -19,6 +19,9 @@
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
+#include "vector_tile_processor.hpp"
+#include "vector_tile_backend_pbf.hpp"
+
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -50,7 +53,6 @@
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
-
 
 template <typename PathType>
 bool _hit_test(PathType & path, double x, double y, double tol)
@@ -138,6 +140,10 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "setData", setData);
     NODE_SET_PROTOTYPE_METHOD(constructor, "setDataSync", setDataSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "getData", getData);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "parse", parse);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "parseSync", parseSync);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addData", addData);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
     NODE_SET_PROTOTYPE_METHOD(constructor, "query", query);
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
@@ -162,10 +168,13 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     z_(z),
     x_(x),
     y_(y),
+    buffer_(),
+    status_(VectorTile::START),
     tiledata_(),
     width_(w),
     height_(h),
-    painted_(false) {}
+    painted_(false),
+    byte_size_(0) {}
 
 VectorTile::~VectorTile() { }
 
@@ -197,6 +206,192 @@ Handle<Value> VectorTile::New(const Arguments& args)
     return Undefined();
 }
 
+Handle<Value> VectorTile::composite(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 1 || !args[0]->IsArray()) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide an array of VectorTile objects and an optional options object")));
+    }
+    Local<Array> vtiles = Local<Array>::Cast(args[0]);
+    unsigned num_tiles = vtiles->Length();
+    if (num_tiles < 1) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide an array with at least one VectorTile object and an optional options object")));
+    }
+
+    // options needed for re-rendering tiles
+    // unclear yet to what extent these need to be user
+    // driven, but we expose here to avoid hardcoding
+    unsigned path_multiplier = 16;
+    int buffer_size = 256;
+    double scale_factor = 1.0;
+    unsigned offset_x = 0;
+    unsigned offset_y = 0;
+    unsigned tolerance = 1;
+    double scale_denominator = 0.0;
+    // not options yet, likely should never be....
+    mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
+    std::string merc_srs("+init=epsg:3857");
+
+    Local<Object> options = Object::New();
+
+    if (args.Length() > 1) {
+        // options object
+        if (!args[1]->IsObject())
+        {
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second argument must be an options object")));
+        }
+        options = args[1]->ToObject();
+        if (options->Has(String::New("path_multiplier"))) {
+
+            Local<Value> param_val = options->Get(String::New("path_multiplier"));
+            if (!param_val->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'path_multiplier' must be an unsigned integer")));
+            }
+            path_multiplier = param_val->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("tolerance")))
+        {
+            Local<Value> tol = options->Get(String::New("tolerance"));
+            if (!tol->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
+            }
+            tolerance = tol->NumberValue();
+        }
+        if (options->Has(String::New("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(String::New("buffer_size"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'buffer_size' must be a number")));
+            }
+            buffer_size = bind_opt->IntegerValue();
+        }
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                        String::New("optional arg 'scale' must be a number")));
+            }
+            scale_factor = bind_opt->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("scale_denominator")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                        String::New("optional arg 'scale_denominator' must be a number")));
+            }
+            scale_denominator = bind_opt->NumberValue();
+        }
+        if (options->Has(String::New("offset_x"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_x"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'offset_x' must be a number")));
+            }
+            offset_x = bind_opt->IntegerValue();
+        }
+        if (options->Has(String::New("offset_y"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_y"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'offset_y' must be a number")));
+            }
+            offset_y = bind_opt->IntegerValue();
+        }
+    }
+
+    VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    for (unsigned i=0;i < num_tiles;++i) {
+        Local<Value> val = vtiles->Get(i);
+        if (!val->IsObject()) {
+            return ThrowException(Exception::TypeError(
+                                      String::New("must provide an array of VectorTile objects")));
+        }
+        Local<Object> tile_obj = val->ToObject();
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !VectorTile::constructor->HasInstance(tile_obj)) {
+            return ThrowException(Exception::TypeError(
+                                      String::New("must provide an array of VectorTile objects")));
+        }
+        VectorTile* vt = node::ObjectWrap::Unwrap<VectorTile>(tile_obj);
+        // TODO - handle name clashes
+        if (target_vt->z_ == vt->z_ &&
+            target_vt->x_ == vt->x_ &&
+            target_vt->y_ == vt->y_)
+        {
+            target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
+            target_vt->status_ = VectorTile::LAZY_MERGE;
+        }
+        else
+        {
+            // set up to render to new vtile
+            typedef mapnik::vector::backend_pbf backend_type;
+            typedef mapnik::vector::processor<backend_type> renderer_type;
+            mapnik::vector::tile new_tiledata;
+            backend_type backend(new_tiledata,
+                                    path_multiplier);
+            
+            // get mercator extent of target tile
+            mapnik::vector::spherical_mercator merc(target_vt->width());
+            double minx,miny,maxx,maxy;
+            merc.xyz(target_vt->x_,target_vt->y_,target_vt->z_,minx,miny,maxx,maxy);
+            mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
+            // create request
+            mapnik::request m_req(target_vt->width(),target_vt->height(),map_extent);
+            m_req.set_buffer_size(buffer_size);
+            // create map
+            mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
+            map.set_maximum_extent(max_extent);
+            // ensure data is in tile object
+            vt->parse();
+            mapnik::vector::tile const& tiledata = vt->get_tile();
+            for (int i=0; i < tiledata.layers_size(); ++i)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                mapnik::layer lyr(layer.name(),merc_srs);
+                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                mapnik::vector::tile_datasource>(
+                                                    layer,
+                                                    vt->x_,
+                                                    vt->y_,
+                                                    vt->z_,
+                                                    vt->width()
+                                                    );
+                ds->set_envelope(m_req.get_buffered_extent());
+                lyr.set_datasource(ds);
+                map.addLayer(lyr);
+            }
+            renderer_type ren(backend,
+                              map,
+                              m_req,
+                              scale_factor,
+                              offset_x,
+                              offset_y,
+                              tolerance);
+            ren.apply(scale_denominator);
+            std::string new_message;
+            if (!new_tiledata.SerializeToString(&new_message))
+            {
+                return ThrowException(Exception::Error(
+                          String::New("could not serialize new data for vt")));
+            }
+            target_vt->buffer_.append(new_message.data(),new_message.size());
+            target_vt->status_ = VectorTile::LAZY_MERGE;
+        }
+    }
+    return scope.Close(Undefined());
+}
+
 #ifdef PROTOBUF_FULL
 Handle<Value> VectorTile::toString(const Arguments& args)
 {
@@ -211,14 +406,28 @@ Handle<Value> VectorTile::names(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
-    mapnik::vector::tile const& tiledata = d->get_tile();
-    Local<Array> arr = Array::New(tiledata.layers_size());
-    for (int i=0; i < tiledata.layers_size(); ++i)
+    int raw_size = d->buffer_.size();
+    if (d->byte_size_ <= raw_size)
     {
-        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-        arr->Set(i, String::New(layer.name().c_str()));
+        std::vector<std::string> names = d->lazy_names();
+        Local<Array> arr = Array::New(names.size());
+        unsigned idx = 0;
+        BOOST_FOREACH ( std::string const& name, names )
+        {
+            arr->Set(idx++,String::New(name.c_str()));
+        }
+        return scope.Close(arr);
+    } else {
+        mapnik::vector::tile const& tiledata = d->get_tile();
+        Local<Array> arr = Array::New(tiledata.layers_size());
+        for (int i=0; i < tiledata.layers_size(); ++i)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            arr->Set(i, String::New(layer.name().c_str()));
+        }
+        return scope.Close(arr);
     }
-    return scope.Close(arr);
+    return scope.Close(Undefined());
 }
 
 Handle<Value> VectorTile::width(const Arguments& args)
@@ -765,10 +974,93 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
     }
 }
 
-Handle<Value> VectorTile::setDataSync(const Arguments& args)
+Handle<Value> VectorTile::parseSync(const Arguments& args)
 {
     HandleScope scope;
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    try
+    {
+        d->parse();
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
+    return Undefined();
+}
 
+typedef struct {
+    uv_work_t request;
+    VectorTile* d;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} vector_tile_parse_baton_t;
+
+Handle<Value> VectorTile::parse(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        return parseSync(args);
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    vector_tile_parse_baton_t *closure = new vector_tile_parse_baton_t();
+    closure->request.data = closure;
+    closure->d = d;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Parse, (uv_after_work_cb)EIO_AfterParse);
+    d->Ref();
+    return Undefined();
+}
+
+void VectorTile::EIO_Parse(uv_work_t* req)
+{
+    vector_tile_parse_baton_t *closure = static_cast<vector_tile_parse_baton_t *>(req->data);
+    try
+    {
+        closure->d->parse();
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterParse(uv_work_t* req)
+{
+    HandleScope scope;
+    vector_tile_parse_baton_t *closure = static_cast<vector_tile_parse_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error) {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[1] = { Local<Value>::New(Null()) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->d->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> VectorTile::addData(const Arguments& args)
+{
+    HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     if (args.Length() < 1 || !args[0]->IsObject())
         return ThrowException(Exception::Error(
@@ -777,30 +1069,42 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
         return ThrowException(Exception::Error(
                                   String::New("first arg must be a buffer object")));
-    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
-    unsigned proto_len = node::Buffer::Length(obj);
-    if (proto_len == 0)
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
     {
         return ThrowException(Exception::Error(
-                                  String::New("could not parse empty buffer as protobuf")));
+                                  String::New("cannot accept empty buffer as protobuf")));
     }
-    if (tiledata.ParseFromArray(node::Buffer::Data(obj), proto_len))
-    {
-        d->painted(true);
-    }
-    else
+    d->buffer_.append(node::Buffer::Data(obj),buffer_size);
+    d->status_ = VectorTile::LAZY_MERGE;
+    return Undefined();
+}
+
+Handle<Value> VectorTile::setDataSync(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    if (args.Length() < 1 || !args[0]->IsObject())
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a buffer object")));
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+        return ThrowException(Exception::Error(
+                                  String::New("first arg must be a buffer object")));
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
     {
         return ThrowException(Exception::Error(
-                                  String::New("could not parse buffer as protobuf")));
+                                  String::New("cannot accept empty buffer as protobuf")));
     }
+    d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
+    d->status_ = VectorTile::LAZY_SET;
     return Undefined();
 }
 
 typedef struct {
     uv_work_t request;
     VectorTile* d;
-    char *data;
-    size_t dataLength;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -833,8 +1137,7 @@ Handle<Value> VectorTile::setData(const Arguments& args)
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
     closure->d = d;
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
+    closure->d->buffer_ = std::string(node::Buffer::Data(obj),node::Buffer::Length(obj));
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
@@ -848,14 +1151,14 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 
     try {
         mapnik::vector::tile & tiledata = closure->d->get_tile_nonconst();
-        if (tiledata.ParseFromArray(closure->data, closure->dataLength))
+        if (tiledata.ParseFromArray(closure->d->buffer_.data(), closure->d->buffer_.size()))
         {
             closure->d->painted(true);
         }
         else
         {
             closure->error = true;
-            if (closure->dataLength == 0)
+            if (closure->d->buffer_.size() == 0)
             {
                 closure->error_name = "could not parse empty protobuf";
             }
@@ -902,26 +1205,31 @@ Handle<Value> VectorTile::getData(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
-    mapnik::vector::tile const& tiledata = d->get_tile();
-    // TODO - cache bytesize?
-    int size = tiledata.ByteSize();
-    #if NODE_VERSION_AT_LEAST(0, 11, 0)
-    Local<Object> retbuf = node::Buffer::New(size);
-    // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
-    // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
-    if (tiledata.SerializeToArray(node::Buffer::Data(retbuf),size))
-    {
-        return scope.Close(retbuf);
+    try {
+        // shortcut: return raw data and avoid trip through proto object
+        int raw_size = d->buffer_.size();
+        if (d->byte_size_ <= raw_size) {
+            return scope.Close(node::Buffer::New((char*)d->buffer_.data(),raw_size)->handle_);
+        } else {
+            // NOTE: tiledata.ByteSize() must be called
+            // after each modification of tiledata otherwise the
+            // SerializeWithCachedSizesToArray will throw
+            mapnik::vector::tile const& tiledata = d->get_tile();
+            node::Buffer *retbuf = node::Buffer::New(d->byte_size_);
+            // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
+            // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
+            google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
+            google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
+            if (end - start != d->byte_size_) {
+                return ThrowException(Exception::Error(
+                                          String::New("serialization failed, possible race condition")));
+            }
+            return scope.Close(retbuf->handle_);
+        }
+    } catch (std::exception const& ex) {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
     }
-    #else
-    node::Buffer *retbuf = node::Buffer::New(size);
-    // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
-    // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
-    if (tiledata.SerializeToArray(node::Buffer::Data(retbuf),size))
-    {
-        return scope.Close(retbuf->handle_);
-    }
-    #endif
     return Undefined();
 }
 
