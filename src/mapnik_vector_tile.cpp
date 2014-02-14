@@ -211,13 +211,104 @@ Handle<Value> VectorTile::composite(const Arguments& args)
     HandleScope scope;
     if (args.Length() < 1 || !args[0]->IsArray()) {
         return ThrowException(Exception::TypeError(
-                                  String::New("must provide an array of VectorTile objects")));
+                                  String::New("must provide an array of VectorTile objects and an optional options object")));
     }
     Local<Array> vtiles = Local<Array>::Cast(args[0]);
     unsigned num_tiles = vtiles->Length();
     if (num_tiles < 1) {
         return ThrowException(Exception::TypeError(
-                                  String::New("must provide an array with at least one VectorTile object")));
+                                  String::New("must provide an array with at least one VectorTile object and an optional options object")));
+    }
+
+    // options needed for re-rendering tiles
+    // unclear yet to what extent these need to be user
+    // driven, but we expose here to avoid hardcoding
+    unsigned path_multiplier = 16;
+    int buffer_size = 256;
+    double scale_factor = 1.0;
+    unsigned offset_x = 0;
+    unsigned offset_y = 0;
+    unsigned tolerance = 1;
+    double scale_denominator = 0.0;
+    // not options yet, likely should never be....
+    mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
+    std::string merc_srs("+init=epsg:3857");
+
+    Local<Object> options = Object::New();
+
+    if (args.Length() > 1) {
+        // options object
+        if (!args[1]->IsObject())
+        {
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second argument must be an options object")));
+        }
+        options = args[1]->ToObject();
+        if (options->Has(String::New("path_multiplier"))) {
+
+            Local<Value> param_val = options->Get(String::New("path_multiplier"));
+            if (!param_val->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'path_multiplier' must be an unsigned integer")));
+            }
+            path_multiplier = param_val->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("tolerance")))
+        {
+            Local<Value> tol = options->Get(String::New("tolerance"));
+            if (!tol->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
+            }
+            tolerance = tol->NumberValue();
+        }
+        if (options->Has(String::New("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(String::New("buffer_size"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'buffer_size' must be a number")));
+            }
+            buffer_size = bind_opt->IntegerValue();
+        }
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                        String::New("optional arg 'scale' must be a number")));
+            }
+            scale_factor = bind_opt->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("scale_denominator")))
+        {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                        String::New("optional arg 'scale_denominator' must be a number")));
+            }
+            scale_denominator = bind_opt->NumberValue();
+        }
+        if (options->Has(String::New("offset_x"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_x"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'offset_x' must be a number")));
+            }
+            offset_x = bind_opt->IntegerValue();
+        }
+        if (options->Has(String::New("offset_y"))) {
+            Local<Value> bind_opt = options->Get(String::New("offset_y"));
+            if (!bind_opt->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'offset_y' must be a number")));
+            }
+            offset_y = bind_opt->IntegerValue();
+        }
     }
 
     VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.This());
@@ -243,17 +334,6 @@ Handle<Value> VectorTile::composite(const Arguments& args)
         }
         else
         {
-
-            // TODO - inherit?
-            unsigned path_multiplier = 16;
-            int buffer_size = 256;
-            double scale_factor = 1.0;
-            unsigned offset_x = 0;
-            unsigned offset_y = 0;
-            unsigned tolerance = 1;
-            double scale_denominator = 0.0;
-            mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
-
             // set up to render to new vtile
             typedef mapnik::vector::backend_pbf backend_type;
             typedef mapnik::vector::processor<backend_type> renderer_type;
@@ -270,7 +350,6 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             mapnik::request m_req(target_vt->width(),target_vt->height(),map_extent);
             m_req.set_buffer_size(buffer_size);
             // create map
-            std::string merc_srs("+init=epsg:3857");
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
             // ensure data is in tile object

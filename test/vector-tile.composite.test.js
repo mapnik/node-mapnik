@@ -76,7 +76,9 @@ describe('mapnik.VectorTile ', function() {
         var coords = [0,0,0];
         var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
         var vtiles = [get_tile_at('lines',coords),get_tile_at('points',coords)]
-        vtile.composite(vtiles)
+        // NOTE: options here will have no impact in the case of concatenation
+        var opts = {};
+        vtile.composite(vtiles,opts);
         assert.deepEqual(vtile.names(),['lines','points']);
         vtile.parse(function(err) {
             if (err) throw err;
@@ -102,7 +104,7 @@ describe('mapnik.VectorTile ', function() {
                 vtiles.push(get_tile_at('points',[coords[0],coords[1],coords[2]]));                
             }
         });
-        vtile.composite(vtiles)
+        vtile.composite(vtiles);
         assert.deepEqual(vtile.names(),["lines","points","lines","points","lines","points","lines","points"]);
         vtile.parse(function(err) {
             if (err) throw err;
@@ -127,7 +129,7 @@ describe('mapnik.VectorTile ', function() {
     it('should render by overzooming', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])]
-        vtile.composite(vtiles)
+        vtile.composite(vtiles);
         assert.deepEqual(vtile.names(),['lines','points']);
         vtile.parse(function(err) {
             if (err) throw err;
@@ -149,10 +151,34 @@ describe('mapnik.VectorTile ', function() {
         })
     });
 
+    it('should render with custom buffer_size', function(done) {
+        var vtile = new mapnik.VectorTile(2,1,1);
+        var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])]
+        var opts = {buffer_size:-256}; // will lead to dropped data
+        vtile.composite(vtiles,opts);
+        assert.deepEqual(vtile.names(),['lines','points']);
+        vtile.parse(function(err) {
+            if (err) throw err;
+            var json_result = vtile.toJSON();
+            assert.equal(json_result.length,2);
+            assert.equal(json_result[0].features.length,0);
+            assert.equal(json_result[1].features.length,0);
+            var map = new mapnik.Map(256,256);
+            map.loadSync(data_base +'/styles/all.xml');
+            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
+                if (err) throw err;
+                var actual = im.encodeSync('png32');
+                var expected_file = data_base +'/expected/2-1-1-empty.png';
+                assert.ok(compare_to_image(actual,expected_file));
+                done();
+            })
+        })
+    });
+
     it('should render by overzooming (drops point)', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_tile_at('lines',[2,1,1]),get_tile_at('points',[2,0,1])]
-        vtile.composite(vtiles)
+        vtile.composite(vtiles);
         assert.deepEqual(vtile.names(),['lines','points']);
         vtile.parse(function(err) {
             if (err) throw err;
