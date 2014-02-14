@@ -783,7 +783,10 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                 }
                 else
                 {
-                    throw std::runtime_error("Unknown command type");
+                    std::stringstream msg;
+                    msg << "Unknown command type (layer_to_geojson): "
+                        << cmd;
+                    throw std::runtime_error(msg.str());
                 }
             }
         }
@@ -963,7 +966,8 @@ Handle<Value> VectorTile::toGeoJSON(const Arguments& args)
                 return scope.Close(layer_obj);
             }
         }
-    } catch (std::exception const& ex)
+    }
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
@@ -1673,13 +1677,18 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             }
             else
             {
-#if defined(SVG_RENDERER)
+#if MAPNIK_VERSION >= 200300
+  #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
                 std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
                 svg_ren ren(map_in, m_req, output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
                 ren.end_map_processing(map_in);
+  #else
+                closure->error = true;
+                closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
+  #endif
 #else
                 closure->error = true;
                 closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
@@ -1831,10 +1840,25 @@ Handle<Value> VectorTile::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
-    std::string key;
-    bool is_solid = mapnik::vector::is_solid_extent(d->get_tile(),key);
-    if (is_solid) return scope.Close(String::New(key.c_str()));
-    else return scope.Close(False());
+    try
+    {
+        std::string key;
+        bool is_solid = mapnik::vector::is_solid_extent(d->get_tile(),key);
+        if (is_solid)
+        {
+            return scope.Close(String::New(key.c_str()));
+        }
+        else
+        {
+            return scope.Close(False());
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::TypeError(
+                                  String::New(ex.what())));
+    }
+    return scope.Close(Undefined());
 }
 
 typedef struct {
@@ -1875,7 +1899,14 @@ Handle<Value> VectorTile::isSolid(const Arguments& args)
 void VectorTile::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
-    closure->result = mapnik::vector::is_solid_extent(closure->d->get_tile(),closure->key);
+    try {
+        closure->result = mapnik::vector::is_solid_extent(closure->d->get_tile(),closure->key);
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
 }
 
 void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
