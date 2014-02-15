@@ -156,13 +156,11 @@ describe('mapnik.VectorTile ', function() {
         var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])]
         var opts = {buffer_size:-256}; // will lead to dropped data
         vtile.composite(vtiles,opts);
-        assert.deepEqual(vtile.names(),['lines','points']);
+        assert.deepEqual(vtile.names(),[]);
         vtile.parse(function(err) {
             if (err) throw err;
             var json_result = vtile.toJSON();
-            assert.equal(json_result.length,2);
-            assert.equal(json_result[0].features.length,0);
-            assert.equal(json_result[1].features.length,0);
+            assert.equal(json_result.length,0);
             var map = new mapnik.Map(256,256);
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
@@ -179,13 +177,12 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_tile_at('lines',[2,1,1]),get_tile_at('points',[2,0,1])]
         vtile.composite(vtiles);
-        assert.deepEqual(vtile.names(),['lines','points']);
+        assert.deepEqual(vtile.names(),["lines"]);
         vtile.parse(function(err) {
             if (err) throw err;
             var json_result = vtile.toJSON();
-            assert.equal(json_result.length,2);
+            assert.equal(json_result.length,1);
             assert.equal(json_result[0].features.length,2);
-            assert.equal(json_result[1].features.length,0);
             var map = new mapnik.Map(256,256);
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {

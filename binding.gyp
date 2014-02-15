@@ -17,7 +17,28 @@
   ],
   'targets': [
     {
+      'target_name': 'action_before_build',
+      'type': 'none',
+      'actions': [
+          {
+            'action_name': 'generate_protoc_files',
+            'inputs': [
+              './node_modules/mapnik-vector-tile/proto/vector_tile.proto'
+            ],
+            'outputs': [
+              './node_modules/mapnik-vector-tile/src/vector_tile.pb.cc',
+              './node_modules/mapnik-vector-tile/src/vector_tile.pb.h'
+            ],
+            'action': [ 'protoc',
+                        '-I./node_modules/mapnik-vector-tile/proto/',
+                        '--cpp_out=./node_modules/mapnik-vector-tile/src/',
+                        './node_modules/mapnik-vector-tile/proto/vector_tile.proto']
+          }
+      ]
+    },
+    {
       'target_name': '<(module_name)',
+      'dependencies': [ 'action_before_build' ],
       'sources': [
           "src/node_mapnik.cpp",
           "src/mapnik_map.cpp",
@@ -140,7 +161,7 @@
               'lib/binding/mapnik_settings.js'
             ],
             'action': ['python', 'gen_settings.py']
-          },
+          }
       ],
       'copies': [
           {
