@@ -2,6 +2,7 @@
 
 ## Future
 
+ - VectorTile.composite API
  - Fixed exception handling for `VectorTile.isSolid`
  - Started using node-pre-gyp@0.3.0 for builds
  - Datasource plugins must now be explicitly registered with `mapnik.register_default_input_plugins`, `mapnik.register_datasource`, or `register_datasources` as all default plugins are no longer automatically registered at startup.
