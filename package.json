@@ -36,7 +36,7 @@
       }
   ],
   "dependencies"  : {
-      "mapnik-vector-tile": "~0.3.5"
+      "mapnik-vector-tile": "~0.3.6"
   },
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
