@@ -1,5 +1,9 @@
 # Changlog
 
+## 1.3.0-alpha3
+
+ - Updated to mapnik-vector-tile@0.3.6 with more encoding fixes
+
 ## 1.3.0-alpha2
 
  - Updated to mapnik-vector-tile@0.3.5 which triggers VT layers without features to no longer be encoded
