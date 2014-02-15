@@ -1518,41 +1518,34 @@ template <typename Renderer> void process_layers(Renderer & ren,
         mapnik::layer const& lyr = layers[i];
         if (lyr.visible(scale_denom))
         {
-            int tile_layer_idx = -1;
             for (int j=0; j < tiledata.layers_size(); ++j)
             {
                 mapnik::vector::tile_layer const& layer = tiledata.layers(j);
                 if (lyr.name() == layer.name())
                 {
-                    tile_layer_idx = j;
-                    break;
+                    mapnik::layer lyr_copy(lyr);
+                    boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                                                    mapnik::vector::tile_datasource>(
+                                                        layer,
+                                                        closure->d->x_,
+                                                        closure->d->y_,
+                                                        closure->d->z_,
+                                                        closure->d->width()
+                                                        );
+                    ds->set_envelope(m_req.get_buffered_extent());
+                    lyr_copy.set_datasource(ds);
+                    std::set<std::string> names;
+                    ren.apply_to_layer(lyr_copy,
+                                       ren,
+                                       map_proj,
+                                       m_req.scale(),
+                                       scale_denom,
+                                       m_req.width(),
+                                       m_req.height(),
+                                       m_req.extent(),
+                                       m_req.buffer_size(),
+                                       names);
                 }
-            }
-            if (tile_layer_idx > -1)
-            {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                mapnik::layer lyr_copy(lyr);
-                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
-                                                mapnik::vector::tile_datasource>(
-                                                    layer,
-                                                    closure->d->x_,
-                                                    closure->d->y_,
-                                                    closure->d->z_,
-                                                    closure->d->width()
-                                                    );
-                ds->set_envelope(m_req.get_buffered_extent());
-                lyr_copy.set_datasource(ds);
-                std::set<std::string> names;
-                ren.apply_to_layer(lyr_copy,
-                                   ren,
-                                   map_proj,
-                                   m_req.scale(),
-                                   scale_denom,
-                                   m_req.width(),
-                                   m_req.height(),
-                                   m_req.extent(),
-                                   m_req.buffer_size(),
-                                   names);
             }
         }
     }
