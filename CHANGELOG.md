@@ -1,5 +1,9 @@
 # Changlog
 
+## 1.3.0-alpha2
+
+ - Every layer in a vector tile that matches a layer in the mapnik.Map is now rendered and not just the first (#213)
+
 ## 1.3.0-alpha
 
  - VectorTile.composite API
