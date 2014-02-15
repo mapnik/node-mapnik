@@ -1,6 +1,6 @@
 # Changlog
 
-## Future
+## 1.3.0-alpha
 
  - VectorTile.composite API
  - Fixed exception handling for `VectorTile.isSolid`
