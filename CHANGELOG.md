@@ -1,5 +1,9 @@
 # Changlog
 
+## 1.2.4
+
+ - Fixed package.json to stick to mapnik-vector-tile@0.3.4
+
 ## 1.2.3
 
  - Upgraded to mapnik-vector-tile@0.3.4 with multipart geometry fixes
