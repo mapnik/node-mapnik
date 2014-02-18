@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0-alpha4
+
+ - Updated to mapnik-vector-tile@0.4.0 with more encoding fixes
+
 ## 1.3.0-alpha3
 
  - Updated to mapnik-vector-tile@0.3.6 with more encoding fixes
