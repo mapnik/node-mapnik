@@ -24,7 +24,9 @@
 #include "mapnik_grid.hpp"
 #include "mapnik_cairo_surface.hpp"
 #include "mapnik_grid_view.hpp"
+#ifdef NODE_MAPNIK_EXPRESSION
 #include "mapnik_expression.hpp"
+#endif
 #include "utils.hpp"
 
 #ifdef MAPNIK_DEBUG
@@ -144,7 +146,9 @@ extern "C" {
         // Not production safe, so disabling indefinitely
         //JSDatasource::Initialize(target);
         MemoryDatasource::Initialize(target);
+        #ifdef NODE_MAPNIK_EXPRESSION
         Expression::Initialize(target);
+        #endif
         CairoSurface::Initialize(target);
 
         // versions of deps

@@ -7,6 +7,7 @@
  - Added VectorTile.composite API
  - Fixed exception handling for `VectorTile.isSolid`
  - Datasource plugins must now be explicitly registered with `mapnik.register_default_input_plugins`, `mapnik.register_datasource`, or `register_datasources` as all default plugins are no longer automatically registered at startup.
+ - Disabled `mapnik.Expression` object since this is not used by any known applications
  - Added `mapnik.register_datasource` to register a single datasource plugin.
 
 ## 1.2.3

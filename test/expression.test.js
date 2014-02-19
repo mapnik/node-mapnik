@@ -1,6 +1,9 @@
 var mapnik = require('../');
 var assert = require('assert');
 
+// enable with CXXFLAGS=-DNODE_MAPNIK_EXPRESSION
+if (mapnik.Expression) {
+
 describe('mapnik.Expression', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword
@@ -31,3 +34,5 @@ describe('mapnik.Expression', function() {
         assert.equal(expr.evaluate(feature).toString(), 'true');
     });
 });
+
+}

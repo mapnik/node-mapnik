@@ -1,3 +1,5 @@
+#ifdef NODE_MAPNIK_EXPRESSION
+
 #include <node.h>
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
@@ -119,3 +121,5 @@ Handle<Value> Expression::evaluate(const Arguments& args)
     mapnik::value value_obj = boost::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
     return scope.Close(boost::apply_visitor(node_mapnik::value_converter(),value_obj.base()));
 }
+
+#endif
