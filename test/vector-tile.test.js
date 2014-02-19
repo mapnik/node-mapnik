@@ -309,7 +309,11 @@ describe('mapnik.VectorTile ', function() {
             image.save('./test/data/vector_tile/tile3.actual.png', 'png32');
             var e = fs.readFileSync('./test/data/vector_tile/tile3.expected.png');
             var a = fs.readFileSync('./test/data/vector_tile/tile3.actual.png');
-            assert.equal(e.length,a.length)
+            if (mapnik.versions.mapnik_number >= 300000) {
+                assert.ok(Math.abs(e.length - a.length) < 100);
+            } else {
+                assert.equal(e.length,a.length)
+            }
             done();
         });
     });
@@ -366,7 +370,13 @@ describe('mapnik.VectorTile ', function() {
             var actual = './test/data/vector_tile/tile0-b.actual.png';
             var expected = './test/data/vector_tile/tile0-b.expected.png';
             vtile_image.save(actual, 'png32');
-            assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length);
+            var a = fs.readFileSync(actual);
+            var e = fs.readFileSync(expected)
+            if (mapnik.versions.mapnik_number >= 300000) {
+                assert.ok(Math.abs(e.length - a.length) < 100);
+            } else {
+                assert.equal(e.length,a.length);
+            }
             done();
         });
     });
@@ -453,7 +463,13 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(expected, 'png32');
             }
             vtile_image.save(actual, 'png32');
-            assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length);
+            var a = fs.readFileSync(actual);
+            var e = fs.readFileSync(expected)
+            if (mapnik.versions.mapnik_number >= 300000) {
+                assert.ok(Math.abs(e.length - a.length) < 200);
+            } else {
+                assert.equal(e.length,a.length);
+            }
             done();
         });
     });
