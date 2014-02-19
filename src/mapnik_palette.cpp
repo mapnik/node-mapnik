@@ -1,5 +1,3 @@
-// boost
-#include <boost/make_shared.hpp>
 
 // node-mapnik
 #include "mapnik_palette.hpp"
@@ -14,6 +12,9 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> Palette::constructor;
 
@@ -32,7 +33,7 @@ void Palette::Initialize(Handle<Object> target) {
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
     ObjectWrap(),
-    palette_(boost::make_shared<mapnik::rgba_palette>(palette, type)) {}
+    palette_(MAPNIK_MAKE_SHARED<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }

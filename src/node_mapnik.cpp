@@ -4,6 +4,7 @@
 // node
 #include <node.h>
 #include <node_version.h>
+#include "mapnik3x_compatibility.hpp"
 
 // node-mapnik
 #include "mapnik_vector_tile.hpp"

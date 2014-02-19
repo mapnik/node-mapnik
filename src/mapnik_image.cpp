@@ -17,16 +17,17 @@
 #include <mapnik/image_filter.hpp> // filter_visitor
 #endif
 
-// boost
-#include <boost/make_shared.hpp>
-#include <boost/optional/optional.hpp>
-
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
 #include "utils.hpp"
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
+#include <boost/optional/optional.hpp>
+#include <boost/foreach.hpp>
 
 // std
 #include <exception>
@@ -82,7 +83,7 @@ void Image::Initialize(Handle<Object> target) {
 
 Image::Image(unsigned int width, unsigned int height) :
     ObjectWrap(),
-    this_(boost::make_shared<mapnik::image_32>(width,height)),
+    this_(MAPNIK_MAKE_SHARED<mapnik::image_32>(width,height)),
     estimated_size_(width * height * 4)
 {
     V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
@@ -535,10 +536,10 @@ Handle<Value> Image::openSync(const Arguments& args)
         boost::optional<std::string> type = mapnik::type_from_filename(filename);
         if (type)
         {
-            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
             if (reader.get())
             {
-                boost::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+                MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
                 reader->read(0,0,image_ptr->data());
                 Image* im = new Image(image_ptr);
                 Handle<Value> ext = External::New(im);
@@ -624,10 +625,10 @@ void Image::EIO_Open(uv_work_t* req)
         }
         else
         {
-            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->filename,*type));
+            MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->filename,*type));
             if (reader.get())
             {
-                closure->im = boost::make_shared<mapnik::image_32>(reader->width(),reader->height());
+                closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
                 reader->read(0,0,closure->im->data());
             }
             else
@@ -688,10 +689,10 @@ Handle<Value> Image::fromBytesSync(const Arguments& args)
 
     try
     {
-        std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
         if (reader.get())
         {
-            boost::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+            MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
             reader->read(0,0,image_ptr->data());
             Image* im = new Image(image_ptr);
             Handle<Value> ext = External::New(im);
@@ -754,10 +755,10 @@ void Image::EIO_FromBytes(uv_work_t* req)
 
     try
     {
-        std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
         if (reader.get())
         {
-            closure->im = boost::make_shared<mapnik::image_32>(reader->width(),reader->height());
+            closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
             reader->read(0,0,closure->im->data());
         }
         else

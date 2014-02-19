@@ -19,9 +19,6 @@
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/box2d.hpp>             // for box2d
-#if MAPNIK_VERSION >= 200100
-#include <mapnik/building_symbolizer.hpp>  // for building_symbolizer
-#endif
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/datasource.hpp>        // for featureset_ptr
 #include <mapnik/feature_type_style.hpp>  // for rules, feature_type_style
@@ -31,26 +28,13 @@
 #include <mapnik/image_data.hpp>        // for image_data_32
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
-#include <mapnik/line_pattern_symbolizer.hpp>
-#include <mapnik/line_symbolizer.hpp>   // for line_symbolizer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
-#include <mapnik/markers_symbolizer.hpp>  // for markers_symbolizer
 #include <mapnik/params.hpp>            // for parameters
-#include <mapnik/point_symbolizer.hpp>  // for point_symbolizer
-#include <mapnik/polygon_pattern_symbolizer.hpp>
-#include <mapnik/polygon_symbolizer.hpp>  // for polygon_symbolizer
-#include <mapnik/raster_symbolizer.hpp>  // for raster_symbolizer
 #include <mapnik/rule.hpp>              // for rule, rule::symbolizers, etc
 #include <mapnik/save_map.hpp>          // for save_map, etc
-#include <mapnik/shield_symbolizer.hpp>  // for shield_symbolizer
-#include <mapnik/text_symbolizer.hpp>   // for text_symbolizer
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
 #include <mapnik/scale_denominator.hpp>
-
-#if MAPNIK_VERSION < 200100
-#include <mapnik/glyph_symbolizer.hpp>
-#endif
 
 // stl
 #include <exception>                    // for exception
@@ -68,9 +52,7 @@
 #include <boost/variant/static_visitor.hpp>  // for static_visitor
 #include <boost/variant/variant.hpp>    // for variant
 
-#if MAPNIK_VERSION < 200100
-#define key_name get_key
-#endif
+#include "mapnik3x_compatibility.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -120,30 +102,20 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "background", get_prop, set_prop);
     ATTR(constructor, "parameters", get_prop, set_prop);
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "size", size);
-
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
 }
 
 Map::Map(int width, int height) :
     ObjectWrap(),
-    map_(boost::make_shared<mapnik::Map>(width,height)),
-    in_use_(0),
-    estimated_size_(0) {}
+    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height)),
+    in_use_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
     ObjectWrap(),
-    map_(boost::make_shared<mapnik::Map>(width,height,srs)),
-    in_use_(0),
-    estimated_size_(0) {}
+    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
+    in_use_(0) {}
 
-Map::~Map()
-{
-    if (estimated_size_ > 0)
-    {
-        V8::AdjustAmountOfExternalAllocatedMemory(-estimated_size_);
-    }
-}
+Map::~Map() { }
 
 void Map::acquire() {
     ++in_use_;
@@ -197,106 +169,6 @@ Handle<Value> Map::New(const Arguments& args)
                                   String::New("please provide Map width and height and optional srs")));
     }
     return Undefined();
-}
-
-class sizeof_symbolizer : public boost::static_visitor<>
-{
-public:
-    sizeof_symbolizer( int * usage):
-        usage_(usage),
-        factor_(21 /*arbitrary*/) {}
-
-    void operator () ( mapnik::point_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::line_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::line_pattern_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::polygon_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::polygon_pattern_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::raster_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::shield_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::text_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::building_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::markers_symbolizer const& sym)
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-#if MAPNIK_VERSION < 200100
-    void operator () ( mapnik::glyph_symbolizer const& sym)
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-#endif
-    void operator () ( mapnik::symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    int * usage_;
-    int factor_;
-};
-
-int Map::estimate_map_size()
-{
-    // very rough estimate of memory usage of a map
-    int mem_usage = 0;
-    mapnik::Map::const_style_iterator sty_itr = map_->styles().begin();
-    for (; sty_itr != map_->styles().end(); ++sty_itr)
-    {
-        mapnik::feature_type_style const& style = sty_itr->second;
-        mapnik::rules::const_iterator rule_itr = style.get_rules().begin();
-        for (; rule_itr != style.get_rules().end(); ++rule_itr)
-        {
-            mapnik::rule::symbolizers::const_iterator begin = rule_itr->get_symbolizers().begin();
-            mapnik::rule::symbolizers::const_iterator end = rule_itr->get_symbolizers().end();
-            sizeof_symbolizer detector( &mem_usage);
-            std::for_each( begin, end , boost::apply_visitor( detector ));
-        }
-    }
-    estimated_size_ = mem_usage;
-    return mem_usage;
-}
-
-Handle<Value> Map::size(const Arguments& args)
-{
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
-    return scope.Close(Integer::New(m->estimate_map_size()));
 }
 
 Handle<Value> Map::get_prop(Local<String> property,
@@ -772,8 +644,7 @@ Handle<Value> Map::add_layer(const Arguments &args) {
         return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
     Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
     Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
-    // TODO - addLayer should be add_layer in mapnik
-    m->map_->addLayer(*l->get());
+    m->map_->MAPNIK_ADD_LAYER(*l->get());
     return Undefined();
 }
 
@@ -970,7 +841,6 @@ void Map::EIO_AfterLoad(uv_work_t* req)
     } else {
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-        V8::AdjustAmountOfExternalAllocatedMemory(closure->m->estimate_map_size());
     }
 
     if (try_catch.HasCaught()) {
@@ -1044,7 +914,6 @@ Handle<Value> Map::loadSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
 }
 
@@ -1107,7 +976,6 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
 }
 
@@ -1203,7 +1071,6 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     } else {
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-        V8::AdjustAmountOfExternalAllocatedMemory(closure->m->estimate_map_size());
     }
 
     if (try_catch.HasCaught()) {

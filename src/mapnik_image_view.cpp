@@ -13,14 +13,14 @@
 #include <mapnik/image_util.hpp>
 #include <mapnik/graphics.hpp>
 
-// boost
-#include <boost/make_shared.hpp>
-
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // std
 #include <exception>
@@ -89,7 +89,7 @@ Handle<Value> ImageView::New(Image * JSImage ,
 {
     HandleScope scope;
     ImageView* imv = new ImageView(JSImage);
-    imv->this_ = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
+    imv->this_ = MAPNIK_MAKE_SHARED<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
     Handle<Value> ext = External::New(imv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);

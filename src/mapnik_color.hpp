@@ -3,14 +3,15 @@
 
 #include <node_object_wrap.h>           // for ObjectWrap
 #include <v8.h>                         // for Handle, AccessorInfo, etc
+#include "mapnik3x_compatibility.hpp"
 
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
 namespace mapnik { class color; }
-typedef boost::shared_ptr<mapnik::color> color_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::color> color_ptr;
 
 class Color: public node::ObjectWrap {
 public:

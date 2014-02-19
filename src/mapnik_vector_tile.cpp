@@ -45,7 +45,7 @@
 #endif // CAIRO_HAS_SVG_SURFACE
 #endif
 
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 #include <boost/foreach.hpp>
 
 #include <set>                          // for set, etc
@@ -60,17 +60,17 @@ bool _hit_test(PathType & path, double x, double y, double tol)
     double x0 = 0;
     double y0 = 0;
     path.rewind(0);
-    mapnik::eGeomType geom_type = static_cast<mapnik::eGeomType>(path.type());
+    MAPNIK_GEOM_TYPE geom_type = static_cast<MAPNIK_GEOM_TYPE>(path.type());
     switch(geom_type)
     {
-    case mapnik::Point:
+    case MAPNIK_POINT:
     {
         unsigned command = path.vertex(&x0, &y0);
         if (command == mapnik::SEG_END) return false;
         return mapnik::distance(x, y, x0, y0) <= tol;
         break;
     }
-    case mapnik::Polygon:
+    case MAPNIK_POLYGON:
     {
         double x1 = 0;
         double y1 = 0;
@@ -98,7 +98,7 @@ bool _hit_test(PathType & path, double x, double y, double tol)
         return inside;
         break;
     }
-    case mapnik::LineString:
+    case MAPNIK_LINESTRING:
     {
         double x1 = 0;
         double y1 = 0;
@@ -359,7 +359,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             {
                 mapnik::vector::tile_layer const& layer = tiledata.layers(i);
                 mapnik::layer lyr(layer.name(),merc_srs);
-                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                                 mapnik::vector::tile_datasource>(
                                                     layer,
                                                     vt->x_,
@@ -369,7 +369,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                                                     );
                 ds->set_envelope(m_req.get_buffered_extent());
                 lyr.set_datasource(ds);
-                map.addLayer(lyr);
+                map.MAPNIK_ADD_LAYER(lyr);
             }
             renderer_type ren(backend,
                               map,
@@ -523,7 +523,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
                 if (tile_layer_idx > -1)
                 {
                     mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                    boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                                 mapnik::vector::tile_datasource>(
                                                     layer,
                                                     d->x_,
@@ -556,7 +556,7 @@ Handle<Value> VectorTile::query(const Arguments& args)
             for (int i=0; i < tiledata.layers_size(); ++i)
             {
                 mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-                boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                             mapnik::vector::tile_datasource>(
                                                 layer,
                                                 d->x_,
@@ -700,17 +700,17 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         Local<String> js_type = String::New("Unknown");
         switch (g_type)
         {
-        case mapnik::Point:
+        case MAPNIK_POINT:
         {
             js_type = String::New("Point");
             break;
         }
-        case mapnik::LineString:
+        case MAPNIK_LINESTRING:
         {
             js_type = String::New("LineString");
             break;
         }
-        case mapnik::Polygon:
+        case MAPNIK_POLYGON:
         {
             js_type = String::New("Polygon");
             break;
@@ -722,7 +722,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         }
         geometry->Set(String::NewSymbol("type"),js_type);
         Local<Array> g_arr = Array::New();
-        if (g_type == mapnik::Polygon)
+        if (g_type == MAPNIK_POLYGON)
         {
             Local<Array> enclosing_array = Array::New(1);
             enclosing_array->Set(0,g_arr);
@@ -759,7 +759,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     double y2 = y1;
                     if (tr.forward(x2,y2,zc))
                     {
-                        if (g_type == mapnik::Point)
+                        if (g_type == MAPNIK_POINT)
                         {
                             g_arr->Set(0,Number::New(x2));
                             g_arr->Set(1,Number::New(y2));
@@ -1524,7 +1524,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                 if (lyr.name() == layer.name())
                 {
                     mapnik::layer lyr_copy(lyr);
-                    boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                                     mapnik::vector::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,
@@ -1621,7 +1621,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     }
 
                     mapnik::layer lyr_copy(lyr);
-                    boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
+                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                                     mapnik::vector::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,

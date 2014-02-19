@@ -15,7 +15,7 @@
 // boost
 #include <boost/version.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/json/geojson_generator.hpp>
@@ -56,7 +56,7 @@ Feature::Feature(int id) :
     this_() {
 #if MAPNIK_VERSION >= 200100
     // TODO - accept/require context object to reused
-    ctx_ = boost::make_shared<mapnik::context_type>();
+    ctx_ = MAPNIK_MAKE_SHARED<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
 #else
     this_ = mapnik::feature_factory::create(id);
@@ -142,8 +142,8 @@ Handle<Value> Feature::attributes(const Arguments& args)
     mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
-        node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
-        boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
+        node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
+        boost::apply_visitor( serializer, MAPNIK_GET<1>(*itr).base() );
     }
 #else
     std::map<std::string,mapnik::value> const& fprops = fp->get()->props();
@@ -183,14 +183,7 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
 
                 try
                 {
-                    std::auto_ptr<mapnik::geometry_type> geom_ptr = g->get();
-                    if (geom_ptr.get()) {
-                        fp->get()->add_geometry(geom_ptr.get());
-                        geom_ptr.release();
-                    } else {
-                        return ThrowException(Exception::Error(
-                                                  String::New("empty geometry!")));
-                    }
+                    fp->get()->add_geometry(g->get().get());
                 }
                 catch (std::exception const& ex )
                 {

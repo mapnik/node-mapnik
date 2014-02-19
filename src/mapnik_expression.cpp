@@ -11,7 +11,7 @@
 #include <mapnik/expression_evaluator.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <exception>                    // for exception

@@ -1,8 +1,9 @@
-// boost
-#include <boost/make_shared.hpp>
 
 #include "mapnik_projection.hpp"
 #include "utils.hpp"
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> Projection::constructor;
 
@@ -22,7 +23,7 @@ void Projection::Initialize(Handle<Object> target) {
 
 Projection::Projection(std::string const& name) :
     ObjectWrap(),
-    projection_(boost::make_shared<mapnik::projection>(name)) {}
+    projection_(MAPNIK_MAKE_SHARED<mapnik::projection>(name)) {}
 
 Projection::~Projection()
 {
@@ -186,7 +187,7 @@ void ProjTransform::Initialize(Handle<Object> target) {
 ProjTransform::ProjTransform(mapnik::projection const& src,
                              mapnik::projection const& dest) :
     ObjectWrap(),
-    this_(boost::make_shared<mapnik::proj_transform>(src,dest)) {}
+    this_(MAPNIK_MAKE_SHARED<mapnik::proj_transform>(src,dest)) {}
 
 ProjTransform::~ProjTransform()
 {

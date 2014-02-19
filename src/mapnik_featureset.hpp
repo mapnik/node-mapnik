@@ -4,6 +4,7 @@
 #include <v8.h>
 #include <node_object_wrap.h>
 #include <mapnik/datasource_cache.hpp>
+#include "mapnik3x_compatibility.hpp"
 
 using namespace v8;
 

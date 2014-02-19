@@ -5,12 +5,13 @@
 #include <node_object_wrap.h>
 #include <mapnik/image_view.hpp>
 #include <mapnik/image_data.hpp>        // for image_data_32
-#include <boost/shared_ptr.hpp>
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
 
 class Image;
 using namespace v8;
 
-typedef boost::shared_ptr<mapnik::image_view<mapnik::image_data_32> > image_view_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::image_view<mapnik::image_data_32> > image_view_ptr;
 
 class ImageView: public node::ObjectWrap {
 public:

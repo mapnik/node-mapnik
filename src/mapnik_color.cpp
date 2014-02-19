@@ -12,7 +12,7 @@
 #include <exception>                    // for exception
 
 // boost
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> Color::constructor;
 
@@ -69,14 +69,14 @@ Handle<Value> Color::New(const Arguments& args)
 
         if (args.Length() == 1 && args[0]->IsString()){
 
-            c_p = boost::make_shared<mapnik::color>(TOSTR(args[0]));
+            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(TOSTR(args[0]));
 
         } else if (args.Length() == 3) {
 
             int r = args[0]->IntegerValue();
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
-            c_p = boost::make_shared<mapnik::color>(r,g,b);
+            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b);
 
         } else if (args.Length() == 4) {
 
@@ -84,7 +84,7 @@ Handle<Value> Color::New(const Arguments& args)
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
             int a = args[3]->IntegerValue();
-            c_p = boost::make_shared<mapnik::color>(r,g,b,a);
+            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,a);
         } else {
             return ThrowException(Exception::Error(
                                       String::New("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values")));
@@ -119,7 +119,7 @@ Handle<Value> Color::New(const Arguments& args)
 Handle<Value> Color::New(mapnik::color const& color) {
     HandleScope scope;
     Color* c = new Color();
-    c->this_ = boost::make_shared<mapnik::color>(color);
+    c->this_ = MAPNIK_MAKE_SHARED<mapnik::color>(color);
     Handle<Value> ext = External::New(c);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);

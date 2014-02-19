@@ -147,10 +147,10 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                     mapnik::feature_impl::iterator f_end = fp->end();
                     for ( ;f_itr!=f_end; ++f_itr)
                     {
-                        node_mapnik::params_to_object serializer( feat , boost::get<0>(*f_itr));
+                        node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*f_itr));
                         // need to call base() since this is a mapnik::value
                         // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, boost::get<1>(*f_itr).base() );
+                        boost::apply_visitor( serializer, MAPNIK_GET<1>(*f_itr).base() );
                     }
 #else
                     std::map<std::string,mapnik::value> const& fprops = fp->props();

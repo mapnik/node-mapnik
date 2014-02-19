@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <google/protobuf/io/coded_stream.h>
 #include "pbf.hpp"
+#include "mapnik3x_compatibility.hpp"
 
 using namespace v8;
 

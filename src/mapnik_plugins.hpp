@@ -11,7 +11,7 @@
 
 // stl
 #include <vector>
-
+#include "mapnik3x_compatibility.hpp"
 #include "utils.hpp"
 
 using namespace v8;

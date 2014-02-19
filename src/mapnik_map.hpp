@@ -4,16 +4,16 @@
 #include <v8.h>
 #include <uv.h>
 #include <node_object_wrap.h>
-
+#include "mapnik3x_compatibility.hpp"
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 
 using namespace v8;
 
 namespace mapnik { class Map; }
 
-typedef boost::shared_ptr<mapnik::Map> map_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::Map> map_ptr;
 
 class Map: public node::ObjectWrap {
 public:
@@ -77,12 +77,9 @@ public:
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
 
-    static Handle<Value> size(const Arguments &args);
-
     void acquire();
     void release();
     int active() const;
-    int estimate_map_size();
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
@@ -92,7 +89,6 @@ private:
     ~Map();
     map_ptr map_;
     int in_use_;
-    int estimated_size_;
 };
 
 #endif

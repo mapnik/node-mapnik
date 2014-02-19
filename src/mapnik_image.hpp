@@ -3,13 +3,14 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
-#include <boost/shared_ptr.hpp>
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
 namespace mapnik { class image_32; }
 
-typedef boost::shared_ptr<mapnik::image_32> image_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr;
 
 class Image: public node::ObjectWrap {
 public:

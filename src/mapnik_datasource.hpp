@@ -3,14 +3,15 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
+#include "mapnik3x_compatibility.hpp"
 
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
 namespace mapnik { class datasource; }
 
-typedef boost::shared_ptr<mapnik::datasource> datasource_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::datasource> datasource_ptr;
 
 class Datasource: public node::ObjectWrap {
 public:

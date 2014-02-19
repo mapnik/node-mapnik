@@ -3,7 +3,7 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
-
+#include "mapnik3x_compatibility.hpp"
 #include <boost/scoped_ptr.hpp>
 #include <mapnik/memory_datasource.hpp>
 

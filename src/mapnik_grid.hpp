@@ -5,11 +5,13 @@
 #include <uv.h>
 #include <node_object_wrap.h>
 #include <mapnik/grid/grid.hpp>
-#include <boost/shared_ptr.hpp>
+#include "mapnik3x_compatibility.hpp"
+
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
-typedef boost::shared_ptr<mapnik::grid> grid_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::grid> grid_ptr;
 
 class Grid: public node::ObjectWrap {
 public:

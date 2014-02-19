@@ -8,16 +8,17 @@
 // mapnik
 #include <mapnik/version.hpp>
 
-// boost
-#include "boost/ptr_container/ptr_sequence_adapter.hpp"
-#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
-#include <boost/make_shared.hpp>
-#include "boost/cstdint.hpp"            // for uint16_t
 
 #include "mapnik_grid.hpp"
 #include "mapnik_grid_view.hpp"
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
+
+// boost
+#include "boost/ptr_container/ptr_sequence_adapter.hpp"
+#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
+#include MAPNIK_MAKE_SHARED_INCLUDE
+#include "boost/cstdint.hpp"            // for uint16_t
 
 // std
 #include <exception>
@@ -55,7 +56,7 @@ void Grid::Initialize(Handle<Object> target) {
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
     ObjectWrap(),
-    this_(boost::make_shared<mapnik::grid>(width,height,key,resolution)),
+    this_(MAPNIK_MAKE_SHARED<mapnik::grid>(width,height,key,resolution)),
     estimated_size_(width * height) {
 #if MAPNIK_VERSION <= 200100
     this_->painted(false);
