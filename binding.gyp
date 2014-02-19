@@ -52,7 +52,6 @@
           "src/mapnik_memory_datasource.cpp",
           "src/mapnik_palette.cpp",
           "src/mapnik_projection.cpp",
-          "src/mapnik_proj_transform.cpp",
           "src/mapnik_layer.cpp",
           "src/mapnik_datasource.cpp",
           "src/mapnik_featureset.cpp",

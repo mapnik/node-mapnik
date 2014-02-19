@@ -6,7 +6,6 @@
 #include "v8.h"                         // for String, Handle, Object, etc
 
 #include "mapnik_datasource.hpp"
-//#include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 
 // boost
