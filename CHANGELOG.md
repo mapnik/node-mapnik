@@ -1,21 +1,10 @@
 # Changelog
 
-## 1.3.0-alpha4
+## 1.3.0
 
- - Updated to mapnik-vector-tile@0.4.0 with more encoding fixes
-
-## 1.3.0-alpha3
-
- - Updated to mapnik-vector-tile@0.3.6 with more encoding fixes
-
-## 1.3.0-alpha2
-
- - Updated to mapnik-vector-tile@0.3.5 which triggers VT layers without features to no longer be encoded
+ - Updated to mapnik-vector-tile@0.4.0 with more encoding fixes and triggers VT layers without features to no longer be encoded
  - Every layer in a vector tile that matches a layer in the mapnik.Map is now rendered and not just the first (#213)
-
-## 1.3.0-alpha
-
- - VectorTile.composite API
+ - Added VectorTile.composite API
  - Fixed exception handling for `VectorTile.isSolid`
  - Datasource plugins must now be explicitly registered with `mapnik.register_default_input_plugins`, `mapnik.register_datasource`, or `register_datasources` as all default plugins are no longer automatically registered at startup.
  - Added `mapnik.register_datasource` to register a single datasource plugin.
