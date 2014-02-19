@@ -35,10 +35,13 @@ var tiles = [[0,0,0],
              [2,0,1],
              [2,1,1]];
 
+function get_data_at(name,coords) {
+    return fs.readFileSync(data_base +'/tiles/'+name+'-'+coords.join('-')+'.vector.pbf');
+}
+
 function get_tile_at(name,coords) {
     var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
-    var data = fs.readFileSync(data_base +'/tiles/'+name+'-'+coords.join('-')+'.vector.pbf');
-    vt.setData(data);
+    vt.setData(get_data_at(name,coords));
     return vt
 }
 
@@ -76,13 +79,26 @@ describe('mapnik.VectorTile ', function() {
         var coords = [0,0,0];
         var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
         var vtiles = [get_tile_at('lines',coords),get_tile_at('points',coords)]
-        // NOTE: options here will have no impact in the case of concatenation
-        var opts = {};
+        var expected_length = get_data_at('lines',coords).length + get_data_at('points',coords).length;
+        // alternative method of getting combined length
+        var expected_length2 = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
+        // Let's confirm they match
+        assert.equal(expected_length,expected_length2);
+        // Now composite the tiles together
+        var opts = {}; // NOTE: options here will have no impact in the case of concatenation
         vtile.composite(vtiles,opts);
+        // It is safe to call vt.getData after vt.composite without calling vt.parse
+        var composited_data = vtile.getData();
+        assert.equal(composited_data.length,expected_length);
+        // It is also safe to call vtile.names() without vt.parse because vt.names() can
+        // operate on the raw protobuf data and does not need parsed data
+        // In the future other functions will gain this ability.
         assert.deepEqual(vtile.names(),['lines','points']);
+        // Now we parse in order to be able to test rendering
         vtile.parse(function(err) {
             if (err) throw err;
-            assert.equal(vtile.getData().length,Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length)
+            // ensure the lengths still match
+            assert.equal(vtile.getData().length,expected_length);
             var map = new mapnik.Map(256,256);
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),function(err,im) {
@@ -95,44 +111,20 @@ describe('mapnik.VectorTile ', function() {
         })
     });
 
-    it('should render by underzooming or mosaicing', function(done) {
-        var vtile = new mapnik.VectorTile(0,0,0);
-        var vtiles = [];
-        tiles.forEach(function(coords) {
-            if (coords[0] == 1) {
-                vtiles.push(get_tile_at('lines',[coords[0],coords[1],coords[2]]));
-                vtiles.push(get_tile_at('points',[coords[0],coords[1],coords[2]]));                
-            }
-        });
-        vtile.composite(vtiles);
-        assert.deepEqual(vtile.names(),["lines","points","lines","points","lines","points","lines","points"]);
-        vtile.parse(function(err) {
-            if (err) throw err;
-            var json_result = vtile.toJSON();
-            assert.equal(json_result.length,8);
-            assert.equal(json_result[0].features.length,2);
-            assert.equal(json_result[1].features.length,1);
-            // tile is actually bigger because of how geometries are encoded
-            assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length)
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
-                if (err) throw err;
-                var actual = im.encodeSync('png32');
-                var expected_file = data_base +'/expected/0-0-0-mosaic.png';
-                assert.ok(compare_to_image(actual,expected_file));
-                done();
-            })
-        })
-    });
-
     it('should render by overzooming', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])]
+        // raw length of input buffers
+        var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
         vtile.composite(vtiles);
+        var new_length = vtile.getData().length;
+        // re-rendered data should be different length
+        assert.notEqual(new_length,original_length);
         assert.deepEqual(vtile.names(),['lines','points']);
         vtile.parse(function(err) {
             if (err) throw err;
+            // length should be the same before and after parse
+            assert.equal(new_length,vtile.getData().length);
             var json_result = vtile.toJSON();
             assert.equal(json_result.length,2);
             assert.equal(json_result[0].features.length,2);
@@ -189,6 +181,38 @@ describe('mapnik.VectorTile ', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1-no-point.png';
+                assert.ok(compare_to_image(actual,expected_file));
+                done();
+            })
+        })
+    });
+
+    // NOTE: this is a unintended usecase, but it can be done, so let's test it
+    it('should render by underzooming or mosaicing', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var vtiles = [];
+        tiles.forEach(function(coords) {
+            if (coords[0] == 1) {
+                vtiles.push(get_tile_at('lines',[coords[0],coords[1],coords[2]]));
+                vtiles.push(get_tile_at('points',[coords[0],coords[1],coords[2]]));
+            }
+        });
+        vtile.composite(vtiles);
+        assert.deepEqual(vtile.names(),["lines","points","lines","points","lines","points","lines","points"]);
+        vtile.parse(function(err) {
+            if (err) throw err;
+            var json_result = vtile.toJSON();
+            assert.equal(json_result.length,8);
+            assert.equal(json_result[0].features.length,2);
+            assert.equal(json_result[1].features.length,1);
+            // tile is actually bigger because of how geometries are encoded
+            assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length)
+            var map = new mapnik.Map(256,256);
+            map.loadSync(data_base +'/styles/all.xml');
+            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
+                if (err) throw err;
+                var actual = im.encodeSync('png32');
+                var expected_file = data_base +'/expected/0-0-0-mosaic.png';
                 assert.ok(compare_to_image(actual,expected_file));
                 done();
             })
