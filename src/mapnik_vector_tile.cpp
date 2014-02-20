@@ -223,7 +223,12 @@ void VectorTile::parse_proto()
     case LAZY_SET:
     {
         status_ = PARSED;
-        if (tiledata_.ParseFromArray(buffer_.data(), buffer_.size()))
+        std::size_t bytes = buffer_.size();
+        if (bytes == 0)
+        {
+            throw std::runtime_error("cannot parse 0 length buffer as protobuf");
+        }
+        if (tiledata_.ParseFromArray(buffer_.data(), bytes))
         {
             painted(true);
         }
@@ -236,7 +241,12 @@ void VectorTile::parse_proto()
     case LAZY_MERGE:
     {
         status_ = PARSED;
-        unsigned remaining = buffer_.size() - byte_size_;
+        std::size_t bytes = buffer_.size();
+        if (bytes == 0)
+        {
+            throw std::runtime_error("cannot parse 0 length buffer as protobuf");
+        }
+        unsigned remaining = bytes - byte_size_;
         const char * data = buffer_.data() + byte_size_;
         google::protobuf::io::CodedInputStream input(
               reinterpret_cast<const google::protobuf::uint8*>(
@@ -1244,6 +1254,7 @@ Handle<Value> VectorTile::getData(const Arguments& args)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     try {
         // shortcut: return raw data and avoid trip through proto object
+        // TODO  - safe for null string?
         int raw_size = d->buffer_.size();
         if (d->byte_size_ <= raw_size) {
             return scope.Close(node::Buffer::New((char*)d->buffer_.data(),raw_size)->handle_);
