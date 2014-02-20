@@ -1,6 +1,6 @@
 # Changelog
 
-## Future
+## 1.3.1
 
  - Support for Mapnik 3.x
 
