@@ -89,54 +89,7 @@ public:
         }
         return names;
     }
-
-    void parse()
-    {
-        switch (status_)
-        {
-        case START:
-        {
-            // do nothing
-            break;
-        }
-        case PARSED:
-        {
-            // do nothing
-            break;
-        }
-        case LAZY_SET:
-        {
-            if (tiledata_.ParseFromArray(buffer_.data(), buffer_.size()))
-            {
-                painted(true);
-            }
-            else
-            {
-                throw std::runtime_error("could not parse buffer as protobuf");
-            }
-            status_ = PARSED;
-            break;
-        }
-        case LAZY_MERGE:
-        {
-            unsigned remaining = buffer_.size() - byte_size_;
-            const char * data = buffer_.data() + byte_size_;
-            google::protobuf::io::CodedInputStream input(
-                  reinterpret_cast<const google::protobuf::uint8*>(
-                      data), remaining);
-            if (tiledata_.MergeFromCodedStream(&input))
-            {
-                painted(true);
-            }
-            else
-            {
-                throw std::runtime_error("could not merge buffer as protobuf");
-            }
-            status_ = PARSED;
-            break;
-        }
-        }
-    }
+    void parse_proto();
     mapnik::vector::tile const& get_tile() {
         return tiledata_;
     }

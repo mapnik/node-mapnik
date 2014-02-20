@@ -206,6 +206,54 @@ Handle<Value> VectorTile::New(const Arguments& args)
     return Undefined();
 }
 
+void VectorTile::parse_proto()
+{
+    switch (status_)
+    {
+    case START:
+    {
+        // do nothing
+        break;
+    }
+    case PARSED:
+    {
+        // do nothing
+        break;
+    }
+    case LAZY_SET:
+    {
+        status_ = PARSED;
+        if (tiledata_.ParseFromArray(buffer_.data(), buffer_.size()))
+        {
+            painted(true);
+        }
+        else
+        {
+            throw std::runtime_error("could not parse buffer as protobuf");
+        }
+        break;
+    }
+    case LAZY_MERGE:
+    {
+        status_ = PARSED;
+        unsigned remaining = buffer_.size() - byte_size_;
+        const char * data = buffer_.data() + byte_size_;
+        google::protobuf::io::CodedInputStream input(
+              reinterpret_cast<const google::protobuf::uint8*>(
+                  data), remaining);
+        if (tiledata_.MergeFromCodedStream(&input))
+        {
+            painted(true);
+        }
+        else
+        {
+            throw std::runtime_error("could not merge buffer as protobuf");
+        }
+        break;
+    }
+    }
+}
+
 Handle<Value> VectorTile::composite(const Arguments& args)
 {
     HandleScope scope;
@@ -353,7 +401,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
             // ensure data is in tile object
-            vt->parse();
+            vt->parse_proto();
             mapnik::vector::tile const& tiledata = vt->get_tile();
             for (int i=0; i < tiledata.layers_size(); ++i)
             {
@@ -980,7 +1028,7 @@ Handle<Value> VectorTile::parseSync(const Arguments& args)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     try
     {
-        d->parse();
+        d->parse_proto();
     }
     catch (std::exception const& ex)
     {
@@ -1027,7 +1075,7 @@ void VectorTile::EIO_Parse(uv_work_t* req)
     vector_tile_parse_baton_t *closure = static_cast<vector_tile_parse_baton_t *>(req->data);
     try
     {
-        closure->d->parse();
+        closure->d->parse_proto();
     }
     catch (std::exception const& ex)
     {
@@ -1105,6 +1153,8 @@ Handle<Value> VectorTile::setDataSync(const Arguments& args)
 typedef struct {
     uv_work_t request;
     VectorTile* d;
+    char *data;
+    size_t dataLength;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1137,7 +1187,8 @@ Handle<Value> VectorTile::setData(const Arguments& args)
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
     closure->d = d;
-    closure->d->buffer_ = std::string(node::Buffer::Data(obj),node::Buffer::Length(obj));
+    closure->data = node::Buffer::Data(obj);
+    closure->dataLength = node::Buffer::Length(obj);
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
@@ -1149,24 +1200,10 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 {
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
 
-    try {
-        mapnik::vector::tile & tiledata = closure->d->get_tile_nonconst();
-        if (tiledata.ParseFromArray(closure->d->buffer_.data(), closure->d->buffer_.size()))
-        {
-            closure->d->painted(true);
-        }
-        else
-        {
-            closure->error = true;
-            if (closure->d->buffer_.size() == 0)
-            {
-                closure->error_name = "could not parse empty protobuf";
-            }
-            else
-            {
-                closure->error_name = "could not parse protobuf";
-            }
-        }
+    try
+    {
+        closure->d->buffer_ = std::string(closure->data,closure->dataLength);
+        closure->d->status_ = VectorTile::LAZY_SET;
     }
     catch (std::exception const& ex)
     {

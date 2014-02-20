@@ -108,8 +108,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
         assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
         vtile.setData(new Buffer('foo'),function(err,success) {
-            assert.ok(err);
-            done();
+            if (err) throw err;
+            vtile.parse(function(err) {
+                assert.ok(err);
+                done();
+            });
         })
     });
 
