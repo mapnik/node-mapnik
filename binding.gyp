@@ -18,6 +18,7 @@
   'targets': [
     {
       'target_name': 'action_before_build',
+      'hard_dependency': 1,
       'type': 'none',
       'actions': [
           {
@@ -26,12 +27,12 @@
               './node_modules/mapnik-vector-tile/proto/vector_tile.proto'
             ],
             'outputs': [
-              './node_modules/mapnik-vector-tile/src/vector_tile.pb.cc',
-              './node_modules/mapnik-vector-tile/src/vector_tile.pb.h'
+              '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc',
+              '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h'
             ],
             'action': [ 'protoc',
                         '-I./node_modules/mapnik-vector-tile/proto/',
-                        '--cpp_out=./node_modules/mapnik-vector-tile/src/',
+                        '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
                         './node_modules/mapnik-vector-tile/proto/vector_tile.proto']
           }
       ]
@@ -58,10 +59,11 @@
           "src/mapnik_expression.cpp",
           "src/mapnik_cairo_surface.cpp",
           "src/mapnik_vector_tile.cpp",
-          "node_modules/mapnik-vector-tile/src/vector_tile.pb.cc"
+          "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
       ],
       'include_dirs': [
           './node_modules/mapnik-vector-tile/src/',
+          '<(SHARED_INTERMEDIATE_DIR)/',
           './src'
       ],
       'conditions': [
