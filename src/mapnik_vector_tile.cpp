@@ -169,7 +169,7 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     x_(x),
     y_(y),
     buffer_(),
-    status_(VectorTile::START),
+    status_(VectorTile::LAZY_DONE),
     tiledata_(),
     width_(w),
     height_(h),
@@ -210,19 +210,14 @@ void VectorTile::parse_proto()
 {
     switch (status_)
     {
-    case START:
+    case LAZY_DONE:
     {
-        // do nothing
-        break;
-    }
-    case PARSED:
-    {
-        // do nothing
+        // no-op
         break;
     }
     case LAZY_SET:
     {
-        status_ = PARSED;
+        status_ = LAZY_DONE;
         std::size_t bytes = buffer_.size();
         if (bytes == 0)
         {
@@ -240,7 +235,7 @@ void VectorTile::parse_proto()
     }
     case LAZY_MERGE:
     {
-        status_ = PARSED;
+        status_ = LAZY_DONE;
         std::size_t bytes = buffer_.size();
         if (bytes == 0)
         {
@@ -411,32 +406,73 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
             // ensure data is in tile object
-            vt->parse_proto();
-            mapnik::vector::tile const& tiledata = vt->get_tile();
-            for (int i=0; i < tiledata.layers_size(); ++i)
+            if (vt->status_ == LAZY_DONE) // tile is already parsed, we're good
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-                mapnik::layer lyr(layer.name(),merc_srs);
-                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                mapnik::vector::tile_datasource>(
-                                                    layer,
-                                                    vt->x_,
-                                                    vt->y_,
-                                                    vt->z_,
-                                                    vt->width()
-                                                    );
-                ds->set_envelope(m_req.get_buffered_extent());
-                lyr.set_datasource(ds);
-                map.MAPNIK_ADD_LAYER(lyr);
+                mapnik::vector::tile const& tiledata = vt->get_tile();
+                for (int i=0; i < tiledata.layers_size(); ++i)
+                {
+                    mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                    mapnik::layer lyr(layer.name(),merc_srs);
+                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                    mapnik::vector::tile_datasource>(
+                                                        layer,
+                                                        vt->x_,
+                                                        vt->y_,
+                                                        vt->z_,
+                                                        vt->width()
+                                                        );
+                    ds->set_envelope(m_req.get_buffered_extent());
+                    lyr.set_datasource(ds);
+                    map.MAPNIK_ADD_LAYER(lyr);
+                }
+                renderer_type ren(backend,
+                                  map,
+                                  m_req,
+                                  scale_factor,
+                                  offset_x,
+                                  offset_y,
+                                  tolerance);
+                ren.apply(scale_denominator);
             }
-            renderer_type ren(backend,
-                              map,
-                              m_req,
-                              scale_factor,
-                              offset_x,
-                              offset_y,
-                              tolerance);
-            ren.apply(scale_denominator);
+            else // tile is not pre-parsed so parse into new object to avoid mutating input
+            {
+                std::size_t bytes = vt->buffer_.size();
+                if (bytes > 1) // throw instead?
+                {
+                    mapnik::vector::tile tiledata;
+                    if (tiledata.ParseFromArray(vt->buffer_.data(), bytes))
+                    {
+                        for (int i=0; i < tiledata.layers_size(); ++i)
+                        {
+                            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                            mapnik::layer lyr(layer.name(),merc_srs);
+                            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                            mapnik::vector::tile_datasource>(
+                                                                layer,
+                                                                vt->x_,
+                                                                vt->y_,
+                                                                vt->z_,
+                                                                vt->width()
+                                                                );
+                            ds->set_envelope(m_req.get_buffered_extent());
+                            lyr.set_datasource(ds);
+                            map.MAPNIK_ADD_LAYER(lyr);
+                        }
+                        renderer_type ren(backend,
+                                          map,
+                                          m_req,
+                                          scale_factor,
+                                          offset_x,
+                                          offset_y,
+                                          tolerance);
+                        ren.apply(scale_denominator);
+                    }
+                    else
+                    {
+                        // throw here?
+                    }
+                }
+            }
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
             {

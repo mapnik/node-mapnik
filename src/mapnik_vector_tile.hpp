@@ -15,10 +15,9 @@ using namespace v8;
 class VectorTile: public node::ObjectWrap {
 public:
     enum parsing_status {
-        START = 1,
+        LAZY_DONE = 1,
         LAZY_SET = 2,
-        LAZY_MERGE = 3,
-        PARSED = 4
+        LAZY_MERGE = 3
     };
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
