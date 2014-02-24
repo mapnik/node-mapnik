@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2
+
+ - Pinned mapnik-vector-tile dependency to v0.4.1
+
 ## 1.3.1
 
  - Support for Mapnik 3.x
