@@ -3,7 +3,7 @@
 Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 
 [![Build Status](https://secure.travis-ci.org/mapnik/node-mapnik.png)](https://travis-ci.org/mapnik/node-mapnik)
-
+[![NPM](https://nodei.co/npm/mapnik.png)](https://nodei.co/npm/mapnik/)
 
 ## Example
 
