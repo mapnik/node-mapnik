@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.4
+
+ - Made vt.composite reentrant
+
 ## 1.3.3
 
  - Updated to mapnik-vector-tile@0.4.2
