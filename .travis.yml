@@ -24,6 +24,7 @@ before_install:
  - node --version
  - npm --version
  - sudo apt-get update -qq
+ - npm install mocha sphericalmercator
 
 install:
  # test building and packaging binary against Mapnik v2.3.x SDK
