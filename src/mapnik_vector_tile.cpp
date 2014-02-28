@@ -53,6 +53,7 @@
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
+#include "pbf.hpp"
 
 template <typename PathType>
 bool _hit_test(PathType & path, double x, double y, double tol)
@@ -204,6 +205,29 @@ Handle<Value> VectorTile::New(const Arguments& args)
                                   String::New("please provide a z, x, y")));
     }
     return Undefined();
+}
+
+std::vector<std::string> VectorTile::lazy_names()
+{
+    std::vector<std::string> names;
+    pbf::message item(buffer_.data(),buffer_.size());
+    while (item.next()) {
+        if (item.tag == 3) {
+            uint64_t len = item.varint();
+            pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+            while (layermsg.next()) {
+                if (layermsg.tag == 1) {
+                    names.push_back(layermsg.string());
+                } else {
+                    layermsg.skip();
+                }
+            }
+            item.skipBytes(len);
+        } else {
+            item.skip();
+        }
+    }
+    return names;
 }
 
 void VectorTile::parse_proto()

@@ -7,7 +7,8 @@
 #include "vector_tile.pb.h"
 #include <stdexcept>
 #include <google/protobuf/io/coded_stream.h>
-#include "pbf.hpp"
+#include <vector>
+#include <string>
 #include "mapnik3x_compatibility.hpp"
 
 using namespace v8;
@@ -66,28 +67,7 @@ public:
     mapnik::vector::tile & get_tile_nonconst() {
         return tiledata_;
     }
-    std::vector<std::string> lazy_names()
-    {
-        std::vector<std::string> names;
-        protobuf::message item(buffer_.data(),buffer_.size());
-        while (item.next()) {
-            if (item.tag == 3) {
-                uint64_t len = item.varint();
-                protobuf::message layermsg(item.getData(),static_cast<std::size_t>(len));
-                while (layermsg.next()) {
-                    if (layermsg.tag == 1) {
-                        names.push_back(layermsg.string());
-                    } else {
-                        layermsg.skip();
-                    }
-                }
-                item.skipBytes(len);
-            } else {
-                item.skip();
-            }
-        }
-        return names;
-    }
+    std::vector<std::string> lazy_names();
     void parse_proto();
     mapnik::vector::tile const& get_tile() {
         return tiledata_;

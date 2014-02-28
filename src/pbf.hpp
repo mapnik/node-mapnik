@@ -25,11 +25,16 @@
 #define UNLIKELY(x) (x)
 #endif
 
-namespace protobuf {
+namespace pbf {
 
-#define FORCEINLINE inline __attribute__((always_inline))
-#define NOINLINE __attribute__((noinline))
-#define PBF_INLINE FORCEINLINE
+#ifdef _WINDOWS
+    // TODO - windows support for force inline? http://msdn.microsoft.com/en-us/library/z8y1yy88.aspx
+    #define PBF_INLINE
+#else
+    #define FORCEINLINE inline __attribute__((always_inline))
+    #define NOINLINE __attribute__((noinline))
+    #define PBF_INLINE FORCEINLINE
+#endif
 
 class message {
     typedef const char * value_type;
