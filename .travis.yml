@@ -27,7 +27,7 @@ before_install:
 
 install:
  # test building and packaging binary against Mapnik v2.3.x SDK
- - source ./scripts/build_against_sdk.sh
+ - ./scripts/build_against_sdk.sh
  - npm test
  - node-pre-gyp package testpackage --overwrite
  - npm test
