@@ -1,29 +1,12 @@
-#ifndef __PBF_HPP__
-#define __PBF_HPP__
-
-/*
- * Some parts are from upb - a minimalist implementation of protocol buffers.
- *
- * Copyright (c) 2008-2011 Google Inc.  See LICENSE for details.
- * Author: Josh Haberman <jhaberman@gmail.com>
- */
+#ifndef __NODE_MAPNIK_PBF_HPP__
+#define __NODE_MAPNIK_PBF_HPP__
 
 #include <stdint.h>
 #include <stdexcept>
 #include <string>
 #include <cstring>
 #include <cassert>
-
-#undef LIKELY
-#undef UNLIKELY
-
-#if defined(__GNUC__) && __GNUC__ >= 4
-#define LIKELY(x)   (__builtin_expect((x), 1))
-#define UNLIKELY(x) (__builtin_expect((x), 0))
-#else
-#define LIKELY(x)   (x)
-#define UNLIKELY(x) (x)
-#endif
+#include <sstream>
 
 namespace pbf {
 
@@ -48,7 +31,6 @@ public:
 
     PBF_INLINE bool next();
     PBF_INLINE uint64_t varint();
-    PBF_INLINE uint64_t varint2();
     PBF_INLINE int64_t svarint();
     PBF_INLINE std::string string();
     PBF_INLINE float float32();
@@ -78,6 +60,13 @@ bool message::next()
 }
 
 
+/*
+ * varint adapted from upb - a minimalist implementation of protocol buffers.
+ *
+ * Copyright (c) 2008-2011 Google Inc.  See LICENSE for details.
+ * Author: Josh Haberman <jhaberman@gmail.com>
+ */
+
 uint64_t message::varint()
 {
     int8_t byte = static_cast<int8_t>(0x80);
@@ -95,42 +84,6 @@ uint64_t message::varint()
     }
 
     return result;
-}
-
-static const int8_t kMaxVarintLength64 = 10;
-
-uint64_t message::varint2() {
-  const int8_t* begin = reinterpret_cast<const int8_t*>(data_);
-  const int8_t* iend = reinterpret_cast<const int8_t*>(end_);
-  const int8_t* p = begin;
-  uint64_t val = 0;
-
-  if (LIKELY(iend - begin >= kMaxVarintLength64)) {  // fast path
-    int64_t b;
-    do {
-      b = *p++; val  = static_cast<uint64_t>((b & 0x7f)     ); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) <<  7); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 14); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 21); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 28); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 35); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 42); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 49); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 56); if (b >= 0) break;
-      b = *p++; val |= static_cast<uint64_t>((b & 0x7f) << 63); if (b >= 0) break;
-      throw std::invalid_argument("Invalid varint value");  // too big
-    } while (false);
-  } else {
-    int shift = 0;
-    while (p != iend && *p < 0) {
-      val |= static_cast<uint64_t>(*p++ & 0x7f) << shift;
-      shift += 7;
-    }
-    if (p == iend) throw std::invalid_argument("Invalid varint value");
-    val |= static_cast<uint64_t>(*p++) << shift;
-  }
-  data_ = reinterpret_cast<value_type>(p);
-  return val;
 }
 
 int64_t message::svarint()
@@ -194,9 +147,9 @@ void message::skipValue(uint64_t val)
             skipBytes(4);
             break;
         default:
-            char msg[80];
-            snprintf(msg, 80, "cannot skip unknown type %lld", val & 0x7);
-            throw std::runtime_error(msg);
+            std::stringstream msg;
+            msg << "cannot skip unknown type " << (val & 0x7);
+            throw std::runtime_error(msg.str());
     }
 }
 
@@ -215,4 +168,4 @@ message::value_type message::getData()
 
 }
 
-#endif // __PBF_HPP__
+#endif // __NODE_MAPNIK_PBF_HPP__
