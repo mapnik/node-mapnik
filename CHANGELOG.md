@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+ - First series to default to providing binaries with `npm install` (bundling Mapnik v2.3.x at f202197)
+
 ## 1.3.4
 
  - Made vt.composite reentrant
