@@ -23,26 +23,9 @@ before_install:
  - nvm use $NODE_NVM_VERSION
  - node --version
  - npm --version
- # now install deps
- - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
- - sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
  - sudo apt-get update -qq
- - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
- - npm install mocha sphericalmercator
 
 install:
- - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
- - npm install --build-from-source
- - npm test
- - sudo apt-get purge libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
-
-before_script:
- - sudo apt-get -qq install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
- - npm install --build-from-source
- - npm test
- - sudo apt-get purge libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
-
-script:
  # test building and packaging binary against Mapnik v2.3.x SDK
  - source ./scripts/build_against_sdk.sh
  - npm test
@@ -52,6 +35,22 @@ script:
  - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
  - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
+before_script:
+ - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
+ - sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
+ - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
+ - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
+
+script:
+ - npm install --build-from-source
+ - npm test
+ - sudo apt-get purge libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
+
+after_script:
+ - sudo apt-get -qq install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
+ - npm install --build-from-source
+ - npm test
+ - sudo apt-get purge libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
 
 after_success:
   - echo 'after success'
