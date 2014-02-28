@@ -9,6 +9,9 @@ env:
    - secure: NIfxD7XGE67Kjgupp1MVEPFVjAfqu+DxBGJ/27tDCqMUQWoCjjJeHo2AkPGGG+3HcUA6t9Ent4vN4hIfhrO9xZzsMyxbwuwf0TyWcrYR8igkFXjsPfkpyToVGWryXTRiTaK8vb+xRfaM+79beJPetMlMdPyPCWKHBkdCg5Pn3Wk=
 
 before_install:
+ # check if tag exists and matches package.json
+ - scripts/validate_tag.sh
+ - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
  # put node-pre-gyp on path
  - export PATH=./node_modules/.bin/:$PATH
  # here we set up the node version on the fly based on the matrix value.
@@ -45,10 +48,9 @@ script:
  - npm test
  - node-pre-gyp package testpackage --overwrite
  - npm test
- - PUBLISH=false
- - if [ "[publish]" = `git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n'` ]; then echo yes;PUBLISH=true; fi;
- #- if [[ `git describe --contains $( git rev-parse HEAD )` ]]; then echo yes;PUBLISH=true; fi;
- - if [[ $PUBLISH == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
+ - PUBLISH_BINARY=false
+ - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
+ - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
 
 after_success:
