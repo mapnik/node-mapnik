@@ -5,6 +5,7 @@
       'runtime_link%':'shared',
       "module_name":"<!(node -e \"console.log(require('./package.json').binary.module_name)\")",
       "module_path":"<!(node -e \"console.log(require('./package.json').binary.module_path)\")",
+      'NODEMAPNIK_DIR%':'.'
   },
   'conditions': [
       ['OS=="win"', {
@@ -12,6 +13,7 @@
           'PROTOBUF_INCLUDES%':'C:/dev2/protobuf/vsprojects/include',
           'PROTOBUF_LIBS%':'C:/dev2/protobuf/vsprojects/Release',
           'PROTOBUF_LIBRARY%':'libprotobuf-lite.lib',
+          'NODEMAPNIK_DIR%':'C:/dev2/node-mapnik'
         }
       }]
   ],
@@ -24,16 +26,16 @@
           {
             'action_name': 'generate_protoc_files',
             'inputs': [
-              './node_modules/mapnik-vector-tile/proto/vector_tile.proto'
+              '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto'
             ],
             'outputs': [
               '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc',
               '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h'
             ],
             'action': [ 'protoc',
-                        '-I./node_modules/mapnik-vector-tile/proto/',
+                        '-I<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/',
                         '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
-                        './node_modules/mapnik-vector-tile/proto/vector_tile.proto']
+                        '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto']
           }
       ]
     },
