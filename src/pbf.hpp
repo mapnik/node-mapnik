@@ -69,7 +69,7 @@ bool message::next()
 
 uint64_t message::varint()
 {
-    int8_t byte = static_cast<int8_t>(0x80);
+    int8_t byte(0x80);
     uint64_t result = 0;
     int bitpos;
     for (bitpos = 0; bitpos < 70 && (byte & 0x80); bitpos += 7) {
