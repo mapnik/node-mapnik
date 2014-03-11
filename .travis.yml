@@ -1,5 +1,9 @@
 language: cpp
 
+compiler:
+ - gcc
+ - clang
+
 env:
   matrix:
    - NODE_NVM_VERSION="0.10"
@@ -44,6 +48,8 @@ before_script:
  - sudo apt-get update -qq
  - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
  - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
+ - which ${CXX}
+ - ${CXX} --version
 
 script:
  - npm install --build-from-source
