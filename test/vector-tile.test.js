@@ -450,7 +450,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should be able to query features from vector tile', function(done) {
+    it('should be able to query polygon features from vector tile', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
@@ -487,6 +487,39 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(86,feat_json.id);
             done();
         });
+    });
+
+    it('should be able to query point features from vector tile', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.fromGeoJSON(JSON.stringify(geojson),"layer-name");
+        // console.log(JSON.stringify(vtile.toGeoJSON(0),null,1));
+        // at z0 we need a large tolerance because of loss of precision in point coords
+        // because the points have been rounded to -121.9921875,47.98992166741417
+        var features = vtile.query(-122,48,{tolerance:10000});
+        assert.equal(features.length,1);
+        assert.equal(features[0].id(),1);
+        assert.equal(features[0].distance,1);
+        assert.equal(features[0].layer,1);
+        done();
     });
 
     it('should read back the vector tile and render an image with markers', function(done) {
