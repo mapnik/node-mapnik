@@ -101,7 +101,7 @@ Confirm that the `mapnik-config` program is available and on your $PATH.
 
 Then run:
 
-    npm install mapnik
+    npm install mapnik --build-from-source
 
 ## Using node-mapnik from your node app
 
