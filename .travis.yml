@@ -35,10 +35,10 @@ install:
  - ./scripts/build_against_sdk.sh
  - rm -rf sdk
  - npm test
- - node-pre-gyp package testpackage --overwrite
+ - node-pre-gyp package testpackage
  - npm test
  - PUBLISH_BINARY=false
- - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
+ - if [[ ${CXX} == "g++"]] && test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
  - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
 before_script:
@@ -48,8 +48,6 @@ before_script:
  - sudo apt-get update -qq
  - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
  - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
- - which ${CXX}
- - ${CXX} --version
 
 script:
  - npm install --build-from-source
