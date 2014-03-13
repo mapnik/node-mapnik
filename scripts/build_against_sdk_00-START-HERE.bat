@@ -32,6 +32,8 @@ call nodist update 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 call node -e "console.log(process.version + ' ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
+call npm install -g node-gyp
+IF ERRORLEVEL 1 GOTO ERROR
 call npm install --build-from-source 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 
@@ -40,9 +42,10 @@ IF ERRORLEVEL 1 GOTO ERROR
 
 call npm test 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
-::call node-pre-gyp build package
-call node-pre-gyp package
+call node-pre-gyp build package
 IF ERRORLEVEL 1 GOTO ERROR
+::call node-pre-gyp package
+::IF ERRORLEVEL 1 GOTO ERROR
 
 GOTO DONE
 
