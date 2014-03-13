@@ -4,7 +4,7 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version"       : "1.4.0",
+  "version"       : "1.4.1-alpha",
   "main"          : "./lib/mapnik.js",
   "binary": {
       "module_name": "mapnik",
