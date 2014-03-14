@@ -7,9 +7,13 @@ Try{
         "$env:MAPNIK_LIB_DIR\mapnik.dll",
         "$env:MAPNIK_LIB_DIR\icuuc48.dll",
         "$env:MAPNIK_LIB_DIR\icuin48.dll",
-        "$env:MAPNIK_LIB_DIR\libxml2.dll",
         "$env:MAPNIK_LIB_DIR\cairo.dll"
     )
+
+    ##add libxml to deps, if not compiled static
+    if($env:LIB_XML_STATIC -ne '1'){
+        $deps += "$env:MAPNIK_LIB_DIR\libxml2.dll"
+    }
 
 	###COPY INPUT PLUGINS TO BINDING DIR
 	Write-Output "$msg_prefix copying input plugins to binding dir: $env:N_MAPNIK_BINDING_DIR"
