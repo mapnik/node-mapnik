@@ -24,6 +24,8 @@ SET PATH=node_modules\.bin;%PATH%
 SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
 SET N_MAPNIK_BINDING_DIR=%CD%\lib\binding
+SET N_MAPNIK_LIB_MAPNIK=%N_MAPNIK_BINDING_DIR%\mapnik
+SET N_MAPNIK_LIB_SHARE=%N_MAPNIK_BINDING_DIR%\share
 SET N_MAPNIK_STAGE_DIR=%CD%\build\stage
 SET PROJ_LIB=%MAPNIK_DIR%\share\proj
 SET GDAL_DATA=%MAPNIK_DIR%\share\gdal
@@ -32,16 +34,24 @@ SET DL_DIR=%BASE_DIR%\dl
 powershell scripts\build_against_sdk_01-download-deps.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
-git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
+::TODO: rmdir doesn't work correctly every time
+::maybe use powershell to delete
+::RMDIR /Q /S %NODIST_DIR% 2>&1
+::IF ERRORLEVEL 1 GOTO ERROR
+::git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
+::IF ERRORLEVEL 1 GOTO ERROR
 set NODIST_X64=0
-call nodist stable 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
 call nodist update 2>&1
+IF ERRORLEVEL 1 GOTO ERROR
+call nodist stable 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
-::call npm install -g node-gyp
-::IF ERRORLEVEL 1 GOTO ERROR
+::nodist npm node-gyp is here
+::C:\dev2\nodist\bin\node_modules\npm\node_modules\node-gyp
+::node-pre-gyp@0.5.4 doesn't find it
+call npm install -g node-gyp
+IF ERRORLEVEL 1 GOTO ERROR
 call npm install --build-from-source 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 
@@ -51,6 +61,10 @@ IF ERRORLEVEL 1 GOTO ERROR
 call npm test 2>&1
 ::comment following line, if the script should continue after failed tests
 ::IF ERRORLEVEL 1 GOTO ERROR
+
+powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
+IF ERRORLEVEL 1 GOTO ERROR
+
 call node-pre-gyp build package
 IF ERRORLEVEL 1 GOTO ERROR
 
