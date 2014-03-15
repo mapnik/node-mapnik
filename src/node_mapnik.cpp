@@ -280,6 +280,8 @@ extern "C" {
 
 } // namespace node_mapnik
 
+// TODO - remove this hack at node v0.12.x
+// https://github.com/joyent/node/commit/bd8a5755dceda415eee147bc06574f5a30abb0d0#commitcomment-5686345
 #if NODE_VERSION_AT_LEAST(0, 9, 0)
 
 #define NODE_MAPNIK_MODULE(modname, regfunc)                          \
