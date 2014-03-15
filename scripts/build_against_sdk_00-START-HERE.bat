@@ -50,6 +50,8 @@ call nodist stable 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
+call npm install aws-sdk
+IF ERRORLEVEL 1 GOTO ERROR
 ::nodist npm node-gyp is here
 ::C:\dev2\nodist\bin\node_modules\npm\node_modules\node-gyp
 ::node-pre-gyp@0.5.4 doesn't find it
@@ -69,6 +71,8 @@ powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
 call node-pre-gyp build package
+IF ERRORLEVEL 1 GOTO ERROR
+call node-pre-gyp publish
 IF ERRORLEVEL 1 GOTO ERROR
 
 GOTO DONE
