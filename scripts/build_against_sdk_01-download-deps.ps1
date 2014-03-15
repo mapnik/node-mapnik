@@ -1,6 +1,7 @@
 $msg_prefix='====================== '
 
 Try{
+
     $mapnik220 = False
     if($env:MAPNIK_VERSION -eq "2.2.0"){
         $mapnik220=True
@@ -65,7 +66,7 @@ Try{
         #there's a bug in powershell for this command to work
         #Remove-Item $env:NODIST_DIR -Recurse -Force -ErrorAction Stop
         Get-ChildItem -Path $env:NODIST_DIR -Recurse | Remove-Item -Recurse -Force
-        Remove-Item $env:NODIST_DIR
+        Remove-Item $env:NODIST_DIR -Recurse -Force
     }
 }
 Catch {

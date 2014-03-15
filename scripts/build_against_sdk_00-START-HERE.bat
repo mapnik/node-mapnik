@@ -40,6 +40,7 @@ IF ERRORLEVEL 1 GOTO ERROR
 ::moved to powershell script
 ::RMDIR /Q /S %NODIST_DIR% 2>&1
 ::IF ERRORLEVEL 1 GOTO ERROR
+::git clone https://github.com/marcelklehr/nodist.git %NODIST_DIR% 2>&1
 git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 set NODIST_X64=0
