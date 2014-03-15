@@ -35,11 +35,11 @@ powershell scripts\build_against_sdk_01-download-deps.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
 ::TODO: rmdir doesn't work correctly every time
-::maybe use powershell to delete
+::moved to powershell script
 ::RMDIR /Q /S %NODIST_DIR% 2>&1
 ::IF ERRORLEVEL 1 GOTO ERROR
-::git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
-::IF ERRORLEVEL 1 GOTO ERROR
+git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
+IF ERRORLEVEL 1 GOTO ERROR
 set NODIST_X64=0
 call nodist update 2>&1
 IF ERRORLEVEL 1 GOTO ERROR

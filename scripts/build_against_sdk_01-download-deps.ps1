@@ -60,6 +60,13 @@ Try{
 	Write-Output "$msg_prefix extracting protobuf src: $env:BASE_DIR"
 	invoke-expression "7z -y x $protosrc_local -o$env:BASE_DIR | FIND /V `"ing  `""
 
+	Write-Output "$msg_prefix deleting nodist dir: $env:NODIST_DIR"
+    If (Test-Path($env:NODIST_DIR)){
+        #there's a bug in powershell for this command to work
+        #Remove-Item $env:NODIST_DIR -Recurse -Force -ErrorAction Stop
+        Get-ChildItem -Path $env:NODIST_DIR -Recurse | Remove-Item -Recurse -Force
+        Remove-Item $env:NODIST_DIR
+    }
 }
 Catch {
 	Write-Output "`n`n$msg_prefix`n!!!!EXCEPTION!!!`n$msg_prefix`n`n"

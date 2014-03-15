@@ -11,7 +11,7 @@ module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
     'GDAL_DATA': path.join(__dirname, 'share/gdal'),
     'PROJ_LIB': path.join(__dirname, 'share/proj')
-};" > $file
+};" | Out-File -Encoding UTF8 $file
 }
 Catch {
 	Write-Output "`n`n$msg_prefix`n!!!!EXCEPTION!!!`n$msg_prefix`n`n"
