@@ -21,7 +21,7 @@ SET PATH=%MAPNIK_DIR%\lib;%PATH%
 SET PATH=%MAPNIK_DIR%\bin;%PATH%
 ::add bundled node-pre-gyp to path
 SET PATH=node_modules\.bin;%PATH%
-SET PATH=%BASE_DIR;%PATH%
+SET PATH=%BASE_DIR%;%PATH%
 
 SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
