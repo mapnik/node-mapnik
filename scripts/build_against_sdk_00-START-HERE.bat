@@ -72,6 +72,8 @@ IF ERRORLEVEL 1 GOTO ERROR
 
 call node-pre-gyp build package
 IF ERRORLEVEL 1 GOTO ERROR
+call node-pre-gyp unpublish
+IF ERRORLEVEL 1 GOTO ERROR
 call node-pre-gyp publish
 IF ERRORLEVEL 1 GOTO ERROR
 
