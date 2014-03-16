@@ -2,9 +2,10 @@ $msg_prefix='====================== '
 
 Try{
 
+    Write-Output "$msg_prefix MAPNIK_VERSION: $env:MAPNIK_VERSION"
     $mapnik220 = False
     if($env:MAPNIK_VERSION -eq "2.2.0"){
-        $mapnik220=True
+        $mapnik220=$True
     }
 
     if($mapnik220){
