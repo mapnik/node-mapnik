@@ -2,9 +2,10 @@ $msg_prefix='====================== '
 
 Try{
 
+    Write-Output "$msg_prefix MAPNIK_VERSION: $env:MAPNIK_VERSION"
     $mapnik220 = False
     if($env:MAPNIK_VERSION -eq "2.2.0"){
-        $mapnik220=True
+        $mapnik220=$True
     }
 
     if($mapnik220){
@@ -16,7 +17,7 @@ Try{
 
     $cairohdrs_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/cairo-hdrs.7z'
     $cairohdrs_local="$env:DL_DIR\cairo-hdrs.7z"
-    $cairohdrs_dir=$mapnik_dir + '\include'
+    $cairohdrs_dir=$env:MAPNIK_DIR + '\include'
 
     $protobin_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/protobuf-bin.7z'
     $protobin_local="$env:DL_DIR\protobuf-bin.7z"
