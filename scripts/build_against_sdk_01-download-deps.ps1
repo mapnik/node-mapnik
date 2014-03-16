@@ -17,7 +17,7 @@ Try{
 
     $cairohdrs_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/cairo-hdrs.7z'
     $cairohdrs_local="$env:DL_DIR\cairo-hdrs.7z"
-    $cairohdrs_dir=$mapnik_dir + '\include'
+    $cairohdrs_dir=$env:MAPNIK_DIR + '\include'
 
     $protobin_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/protobuf-bin.7z'
     $protobin_local="$env:DL_DIR\protobuf-bin.7z"
