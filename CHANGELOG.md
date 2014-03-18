@@ -1,5 +1,9 @@
 # Changelog
 
+## Future
+
+ - `mapnik.register_system_fonts()` now registers opentype fonts as well as truetype fonts on linux (#231)
+
 ## 1.4.0
 
  - First series to default to providing binaries with `npm install` (bundling Mapnik v2.3.x at f202197)
