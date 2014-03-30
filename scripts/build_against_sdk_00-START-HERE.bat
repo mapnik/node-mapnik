@@ -8,7 +8,7 @@
 :: open an admin prompt and enter: powershell Set-ExecutionPolicy Unrestricted
 :: ============ ENV VARS
 ::Supported mapnik versions: 2.2.0, 2.3.0
-SET MAPNIK_VERSION=2.2.0
+SET MAPNIK_VERSION=2.3.0
 SET MAPNIK_DIR=C:\mapnik-v%MAPNIK_VERSION%
 SET LIB_XML_STATIC=1
 
