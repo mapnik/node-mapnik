@@ -36,6 +36,22 @@
                         '-I<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/',
                         '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
                         '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto']
+          },
+          {
+            'action_name': 'generate_setting',
+            'inputs': [
+              'gen_settings.py'
+            ],
+            'outputs': [
+              '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js'
+            ],
+            'action': ['python', 'gen_settings.py', '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js']
+          }
+      ],
+      'copies': [
+          {
+            'files': [ '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js' ],
+            'destination': '<(module_path)'
           }
       ]
     },
@@ -151,18 +167,6 @@
       'target_name': 'action_after_build',
       'type': 'none',
       'dependencies': [ '<(module_name)' ],
-      'actions': [
-          {
-            'action_name': 'generate_setting',
-            'inputs': [
-              'gen_settings.py'
-            ],
-            'outputs': [
-              'lib/binding/mapnik_settings.js'
-            ],
-            'action': ['python', 'gen_settings.py']
-          }
-      ],
       'copies': [
           {
             'files': [ '<(PRODUCT_DIR)/<(module_name).node' ],
