@@ -15,7 +15,7 @@ if [[ "${CXX11:-false}" != false ]]; then
         CXX_NAME="clang-3.3"
     fi
 else
-    HASH="434-g68aaec5-cpp03"
+    HASH="442-gce1ff99-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
         CXX_NAME="gcc-4.6"
     else
@@ -96,4 +96,4 @@ module.exports.env = {
     #  install_name_tool -change /usr/local/lib/libmapnik.dylib @loader_path/../../libmapnik.dylib $lib;
     #done
 #fi
-#rm -rf $BUILD_DIR
+rm -rf $BUILD_DIR
