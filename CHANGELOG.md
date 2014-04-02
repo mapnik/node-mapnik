@@ -1,7 +1,9 @@
 # Changelog
 
-## Future
+## 1.4.1
 
+ - Binaries updated to use Mapnik v.2.3x at 818e87d.
+ - Improved build support for OS X Mavericks by autodetecting if linking against libc++ should be preferred.
  - `mapnik.register_system_fonts()` now registers opentype fonts as well as truetype fonts on linux (#231)
 
 ## 1.4.0
