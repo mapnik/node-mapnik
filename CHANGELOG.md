@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2
+
+ - Fix publishing of mapnik package to npm to include node-pre-gyp.
+
 ## 1.4.1
 
  - Binaries updated to use Mapnik v.2.3x at 818e87d.
