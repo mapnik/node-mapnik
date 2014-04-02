@@ -309,9 +309,14 @@ describe('mapnik.VectorTile ', function() {
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
         vtile.render(map, new mapnik.Image(256,256), function(err,image) {
             if (err) throw err;
-            image.save('./test/data/vector_tile/tile3.actual.png', 'png32');
-            var e = fs.readFileSync('./test/data/vector_tile/tile3.expected.png');
-            var a = fs.readFileSync('./test/data/vector_tile/tile3.actual.png');
+            var expected = './test/data/vector_tile/tile3.expected.png';
+            var actual = './test/data/vector_tile/tile3.actual.png';
+            if (!existsSync(expected)) {
+                image.save(expected, 'png32');
+            }
+            image.save(actual, 'png32');
+            var e = fs.readFileSync(expected);
+            var a = fs.readFileSync(actual);
             if (mapnik.versions.mapnik_number >= 300000) {
                 assert.ok(Math.abs(e.length - a.length) < 100);
             } else {
@@ -352,6 +357,9 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile0.actual.png';
             var expected = './test/data/vector_tile/tile0.expected.png';
+            if (!existsSync(expected)) {
+                vtile_image.save(expected, 'png32');
+            }
             vtile_image.save(actual, 'png32');
             assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length);
             done();
@@ -372,6 +380,9 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile0-b.actual.png';
             var expected = './test/data/vector_tile/tile0-b.expected.png';
+            if (!existsSync(expected)) {
+                vtile_image.save(expected, 'png32');
+            }
             vtile_image.save(actual, 'png32');
             var a = fs.readFileSync(actual);
             var e = fs.readFileSync(expected)
