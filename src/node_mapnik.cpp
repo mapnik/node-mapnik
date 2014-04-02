@@ -30,9 +30,8 @@
 #endif
 #include "utils.hpp"
 
-#ifdef MAPNIK_DEBUG
 #include <libxml/parser.h>
-#endif
+#include <libxml/xmlversion.h>
 
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
@@ -96,18 +95,16 @@ static Handle<Value> clearCache(const Arguments& args)
         #endif
     #endif
 #endif
-    return Undefined();
+    return scope.Close(Undefined());
 }
 
 static Handle<Value> shutdown(const Arguments& args)
 {
     HandleScope scope;
     google::protobuf::ShutdownProtobufLibrary();
-#ifdef MAPNIK_DEBUG
     // http://lists.fedoraproject.org/pipermail/devel/2010-January/129117.html
     xmlCleanupParser();
-#endif
-    return Undefined();
+    return scope.Close(Undefined());
 }
 
 extern "C" {
@@ -116,6 +113,11 @@ extern "C" {
     {
         HandleScope scope;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
+        // https://mail.gnome.org/archives/xml/2007-October/msg00004.html
+        // calls http://xmlsoft.org/html/libxml-xmlversion.html#xmlCheckVersion
+        // which internall calls http://xmlsoft.org/html/libxml-parser.html#xmlInitParser
+        // see 'parserInternals.c' for details / requires xmlCleanupParser(); at exit
+        LIBXML_TEST_VERSION;
 
         // module level functions
         NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
@@ -154,12 +156,13 @@ extern "C" {
 
         // versions of deps
         Local<Object> versions = Object::New();
-        versions->Set(String::NewSymbol("node"), String::New(NODE_VERSION+1));
+        versions->Set(String::NewSymbol("node"), String::New(NODE_VERSION+1)); // NOTE: +1 strips the v in v0.10.26
         versions->Set(String::NewSymbol("v8"), String::New(V8::GetVersion()));
         versions->Set(String::NewSymbol("boost"), String::New(format_version(BOOST_VERSION).c_str()));
         versions->Set(String::NewSymbol("boost_number"), Integer::New(BOOST_VERSION));
         versions->Set(String::NewSymbol("mapnik"), String::New(format_version(MAPNIK_VERSION).c_str()));
         versions->Set(String::NewSymbol("mapnik_number"), Integer::New(MAPNIK_VERSION));
+        versions->Set(String::NewSymbol("libxml"), String::New(LIBXML_DOTTED_VERSION));
 #if defined(HAVE_CAIRO)
         versions->Set(String::NewSymbol("cairo"), String::New(CAIRO_VERSION_STRING));
 #endif
