@@ -52,6 +52,7 @@
   },
   "scripts"       : {
       "test"    : "mocha",
+      "prepublish": "npm ls",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
