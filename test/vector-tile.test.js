@@ -361,7 +361,9 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(expected, 'png32');
             }
             vtile_image.save(actual, 'png32');
-            assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length);
+            var a = fs.readFileSync(actual);
+            var e = fs.readFileSync(expected)
+            assert.ok(Math.abs(e.length - a.length) < 100);
             done();
         });
     });
@@ -386,11 +388,7 @@ describe('mapnik.VectorTile ', function() {
             vtile_image.save(actual, 'png32');
             var a = fs.readFileSync(actual);
             var e = fs.readFileSync(expected)
-            if (mapnik.versions.mapnik_number >= 300000) {
-                assert.ok(Math.abs(e.length - a.length) < 100);
-            } else {
-                assert.equal(e.length,a.length);
-            }
+            assert.ok(Math.abs(e.length - a.length) < 100);
             done();
         });
     });
@@ -479,11 +477,7 @@ describe('mapnik.VectorTile ', function() {
             vtile_image.save(actual, 'png32');
             var a = fs.readFileSync(actual);
             var e = fs.readFileSync(expected)
-            if (mapnik.versions.mapnik_number >= 300000) {
-                assert.ok(Math.abs(e.length - a.length) < 200);
-            } else {
-                assert.equal(e.length,a.length);
-            }
+            assert.ok(Math.abs(e.length - a.length) < 100);
             done();
         });
     });
