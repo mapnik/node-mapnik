@@ -88,12 +88,6 @@ module.exports.env = {
     'PROJ_LIB': path.join(__dirname, 'share/mapnik/proj')
 };
 " > lib/binding/mapnik_settings.js
-# this should be done when the sdk is packaged
-#if [[ $UNAME == 'Darwin' ]]; then
-    #install_name_tool -id @loader_path/libmapnik.dylib lib/binding/libmapnik.dylib
-    # relativize plugins
-    #for lib in `ls lib/binding/mapnik/input/*input`; do
-    #  install_name_tool -change /usr/local/lib/libmapnik.dylib @loader_path/../../libmapnik.dylib $lib;
-    #done
-#fi
+
+# cleanup
 rm -rf $BUILD_DIR
