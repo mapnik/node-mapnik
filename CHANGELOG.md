@@ -2,7 +2,8 @@
 
 ## 1.4.2
 
- - Fix publishing of mapnik package to npm to include node-pre-gyp.
+ - Now initializing and cleaning up global libxml structures (#239)
+ - Fix publishing of mapnik package to npm to include bundled node-pre-gyp.
 
 ## 1.4.1
 
