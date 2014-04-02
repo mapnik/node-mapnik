@@ -67,7 +67,7 @@ fi
 cd ../
 rm -rf ./lib/binding/
 mkdir -p ./lib/binding/
-npm install --build-from-source
+npm install --build-from-source $1
 # copy lib
 cp $MAPNIK_SDK/lib/libmapnik.* lib/binding/
 # copy plugins
