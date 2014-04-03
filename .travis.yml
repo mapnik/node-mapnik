@@ -29,6 +29,7 @@ before_install:
  - npm --version
  - npm install mocha sphericalmercator aws-sdk
  - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
+ - PUBLISH_BINARY=false
 
 install:
  # test building and packaging binary against Mapnik v2.3.x SDK
@@ -37,12 +38,11 @@ install:
  - npm test
  - node-pre-gyp package testpackage
  - npm test
- - PUBLISH_BINARY=false
  - if [[ ${CXX} == "g++" ]] && test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
  - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
 before_script:
- - if [[ "$platform" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
+ - if [[ $PUBLISH_BINARY == false ]] && [[ "$platform" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
 
 script:
  - true
