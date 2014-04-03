@@ -11,6 +11,7 @@ Notable changes in Mapnik 2.3.x include:
  - postgis.input now links to fewer authentication libraries by only linking to libararies libpq was built against
 
 Notable changes in the Mapnik SDK include:
+ - ICU upgraded to 53.1 from 52.1
  - jpeg-turbo 1.3.1 is now used in place of libjpeg 8d (better performance likely)
  - sqlite3 upgraded to 3080401 from 3080200
  - webp upgraded to 0.4.0 from 0.3.1 (better performance likely)
