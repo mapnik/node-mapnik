@@ -1,5 +1,11 @@
 # Changelog
 
+## Future
+
+Notable changes in the Mapnik SDK include:
+ - Libtiff upgraded to CVS head at https://github.com/vadz/libtiff/commit/f696451cb05a8f33ec477eadcadd10fae9f58c39
+ - Libfiff now built with `--enable-chunky-strip-read`
+
 ## 1.4.2
 
  - Now initializing and cleaning up global libxml structures to ensure safe async map loading (#239)
