@@ -27,8 +27,8 @@ before_install:
  - nvm use $NODE_NVM_VERSION
  - node --version
  - npm --version
- - sudo apt-get update -qq
  - npm install mocha sphericalmercator aws-sdk
+ - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 
 install:
  # test building and packaging binary against Mapnik v2.3.x SDK
@@ -42,27 +42,13 @@ install:
  - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
 before_script:
- - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
- - sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
- - sudo apt-add-repository --yes ppa:mapnik/nightly-trunk
- - sudo apt-get update -qq
- - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
- - sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
+ - if [[ "$platform" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
 
 script:
- - npm install --build-from-source
- - npm test
- - sudo apt-get purge libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
+ - true
 
 after_script:
- - sudo apt-get -qq install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
- - npm install --build-from-source
- - npm test
- - sudo apt-get purge libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*
- - sudo apt-get -qq install libmapnik=3.0.0* mapnik-utils=3.0.0* libmapnik-dev=3.0.0* mapnik-input-plugin*
- - mapnik-config --version
- - npm install --build-from-source
- - npm test
+ - true
 
 after_success:
   - echo 'after success'
