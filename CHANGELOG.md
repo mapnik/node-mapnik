@@ -6,11 +6,29 @@
  - Fix publishing of mapnik package to npm to include bundled node-pre-gyp.
  - Binaries updated to use Mapnik v2.3.x at ce1ff99 and mapnik-packaging@49d8c3b.
 
+Notable changes in Mapnik 2.3.x include:
+ - mapnik line joins are now faster by discarding more nearly coincident points
+ - postgis.input now links to fewer authentication libraries by only linking to onces libpq was built against
+
+Notable changes in the Mapnik SDK include:
+ - jpeg-turbo 1.3.1 is now used in place of libjpeg 8d
+ - sqlite3 upgraded to 3080401 from 3080200
+ - webp upgraded to 0.4.0 from 0.3.1
+ - postgres upgraded to 9.3.3 from 9.3.1
+ - fontconfig upgraded to 2.11.0 from 2.10.0
+ - libpng upgraded to 1.6.10 from 1.6.8
+ - gdal upgraded to git master @ 0c10ddaa71
+
 ## 1.4.1
 
  - Binaries updated to use Mapnik v.2.3.x at 818e87d.
  - Improved build support for OS X Mavericks by autodetecting if linking against libc++ should be preferred.
  - `mapnik.register_system_fonts()` now registers opentype fonts as well as truetype fonts on linux (#231)
+
+Notable changes in Mapnik 2.3.x include:
+ - a potential double free was fixed in mapnik::projection
+ - postgis plugin error reporting was fixed
+ - postgis plugin !bbox! token replacement was fixed to use max<float> instead of max<double>
 
 ## 1.4.0
 
