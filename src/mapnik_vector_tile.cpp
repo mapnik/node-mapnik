@@ -433,30 +433,34 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             if (vt->status_ == LAZY_DONE) // tile is already parsed, we're good
             {
                 mapnik::vector::tile const& tiledata = vt->get_tile();
-                for (int i=0; i < tiledata.layers_size(); ++i)
+                unsigned num_layers = tiledata.layers_size();
+                if (num_layers > 0)
                 {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-                    mapnik::layer lyr(layer.name(),merc_srs);
-                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                    mapnik::vector::tile_datasource>(
-                                                        layer,
-                                                        vt->x_,
-                                                        vt->y_,
-                                                        vt->z_,
-                                                        vt->width()
-                                                        );
-                    ds->set_envelope(m_req.get_buffered_extent());
-                    lyr.set_datasource(ds);
-                    map.MAPNIK_ADD_LAYER(lyr);
+                    for (int i=0; i < tiledata.layers_size(); ++i)
+                    {
+                        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                        mapnik::layer lyr(layer.name(),merc_srs);
+                        MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                        mapnik::vector::tile_datasource>(
+                                                            layer,
+                                                            vt->x_,
+                                                            vt->y_,
+                                                            vt->z_,
+                                                            vt->width()
+                                                            );
+                        ds->set_envelope(m_req.get_buffered_extent());
+                        lyr.set_datasource(ds);
+                        map.MAPNIK_ADD_LAYER(lyr);
+                    }
+                    renderer_type ren(backend,
+                                      map,
+                                      m_req,
+                                      scale_factor,
+                                      offset_x,
+                                      offset_y,
+                                      tolerance);
+                    ren.apply(scale_denominator);
                 }
-                renderer_type ren(backend,
-                                  map,
-                                  m_req,
-                                  scale_factor,
-                                  offset_x,
-                                  offset_y,
-                                  tolerance);
-                ren.apply(scale_denominator);
             }
             else // tile is not pre-parsed so parse into new object to avoid mutating input
             {
@@ -466,30 +470,34 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                     mapnik::vector::tile tiledata;
                     if (tiledata.ParseFromArray(vt->buffer_.data(), bytes))
                     {
-                        for (int i=0; i < tiledata.layers_size(); ++i)
+                        unsigned num_layers = tiledata.layers_size();
+                        if (num_layers > 0)
                         {
-                            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-                            mapnik::layer lyr(layer.name(),merc_srs);
-                            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                            mapnik::vector::tile_datasource>(
-                                                                layer,
-                                                                vt->x_,
-                                                                vt->y_,
-                                                                vt->z_,
-                                                                vt->width()
-                                                                );
-                            ds->set_envelope(m_req.get_buffered_extent());
-                            lyr.set_datasource(ds);
-                            map.MAPNIK_ADD_LAYER(lyr);
+                            for (int i=0; i < tiledata.layers_size(); ++i)
+                            {
+                                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                                mapnik::layer lyr(layer.name(),merc_srs);
+                                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                                mapnik::vector::tile_datasource>(
+                                                                    layer,
+                                                                    vt->x_,
+                                                                    vt->y_,
+                                                                    vt->z_,
+                                                                    vt->width()
+                                                                    );
+                                ds->set_envelope(m_req.get_buffered_extent());
+                                lyr.set_datasource(ds);
+                                map.MAPNIK_ADD_LAYER(lyr);
+                            }
+                            renderer_type ren(backend,
+                                              map,
+                                              m_req,
+                                              scale_factor,
+                                              offset_x,
+                                              offset_y,
+                                              tolerance);
+                            ren.apply(scale_denominator);
                         }
-                        renderer_type ren(backend,
-                                          map,
-                                          m_req,
-                                          scale_factor,
-                                          offset_x,
-                                          offset_y,
-                                          tolerance);
-                        ren.apply(scale_denominator);
                     }
                     else
                     {
