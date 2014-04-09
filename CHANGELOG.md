@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.7.28
+
+ - Fixed linking with latest clang on OSX Mavericks: `lazy symbol binding failed`
+
 ## 0.7.27
 
  - Fixed build with latest clang on OS X Mavericks: `atom not found in symbolIndex`

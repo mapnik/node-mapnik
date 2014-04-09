@@ -1,6 +1,17 @@
 {
+  'variables': {
+      "prefers_libcpp":"<!(python -c \"import os;import platform;u=platform.uname();print((u[0] == 'Darwin' and int(u[2][0:2]) >= 13) and '-stdlib=libstdc++' not in os.environ.get('CXXFLAGS','') and '-mmacosx-version-min' not in os.environ.get('CXXFLAGS',''))\")"
+  },
   'target_defaults': {
       'default_configuration': 'Release',
+      'conditions': [
+            [ '"<(prefers_libcpp)"=="True"', {
+                'xcode_settings': {
+                  'MACOSX_DEPLOYMENT_TARGET':'10.9'
+                }
+              }
+            ]
+      ],
       'configurations': {
           'Debug': {
               'defines!': [ 'NDEBUG' ],
