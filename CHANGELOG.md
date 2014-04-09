@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.7.27
+
+ - Fixed build with latest clang on OS X Mavericks: `atom not found in symbolIndex`
+
 ## 0.7.26
 
  - Added missing include in `mapnik_palette.cpp` (#205 @gravitystorm)
