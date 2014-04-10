@@ -1447,18 +1447,21 @@ Handle<Value> Map::render(const Arguments& args)
         if (options->Has(String::New("tolerance"))) {
 
             Local<Value> param_val = options->Get(String::New("tolerance"));
-            if (!param_val->IsNumber())
+            if (!param_val->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("option 'tolerance' must be an unsigned integer")));
+            }
             closure->tolerance = param_val->IntegerValue();
         }
 
         if (options->Has(String::New("path_multiplier"))) {
-
             Local<Value> param_val = options->Get(String::New("path_multiplier"));
-            if (!param_val->IsNumber())
+            if (!param_val->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("option 'path_multiplier' must be an unsigned integer")));
+            }
             closure->path_multiplier = param_val->NumberValue();
         }
 
