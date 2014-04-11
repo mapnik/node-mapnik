@@ -28,6 +28,7 @@
 #include <mapnik/geom_util.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/request.hpp>
+#include <mapnik/graphics.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/datasource.hpp>
@@ -1360,6 +1361,8 @@ struct vector_tile_render_baton_t {
     int z;
     int x;
     int y;
+    unsigned width;
+    unsigned height;
     bool zxy_override;
     bool error;
     int buffer_size;
@@ -1380,6 +1383,8 @@ struct vector_tile_render_baton_t {
         z(0),
         x(0),
         y(0),
+        width(0),
+        height(0),
         zxy_override(false),
         error(false),
         buffer_size(0),
@@ -1479,12 +1484,16 @@ Handle<Value> VectorTile::render(const Arguments& args)
     {
         Image *im = node::ObjectWrap::Unwrap<Image>(im_obj);
         closure->im = im;
+        closure->width = im->get()->width();
+        closure->height = im->get()->height();
         closure->im->_ref();
     }
     else if (CairoSurface::constructor->HasInstance(im_obj))
     {
         CairoSurface *c = node::ObjectWrap::Unwrap<CairoSurface>(im_obj);
         closure->c = c;
+        closure->width = c->width();
+        closure->height = c->height();
         closure->c->_ref();
         if (options->Has(String::New("renderer")))
         {
@@ -1514,6 +1523,8 @@ Handle<Value> VectorTile::render(const Arguments& args)
     {
         Grid *g = node::ObjectWrap::Unwrap<Grid>(im_obj);
         closure->g = g;
+        closure->width = g->get()->width();
+        closure->height = g->get()->height();
         closure->g->_ref();
 
         std::size_t layer_idx = 0;
@@ -1680,7 +1691,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             merc.xyz(closure->d->x_,closure->d->y_,closure->d->z_,minx,miny,maxx,maxy);
         }
         mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
-        mapnik::request m_req(map_in.width(),map_in.height(),map_extent);
+        mapnik::request m_req(closure->width,closure->height,map_extent);
         m_req.set_buffer_size(closure->buffer_size);
         mapnik::projection map_proj(map_in.srs(),true);
         double scale_denom = closure->scale_denominator;
