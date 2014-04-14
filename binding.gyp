@@ -3,8 +3,6 @@
   'variables': {
       'std%':'ansi',
       'runtime_link%':'shared',
-      "module_name":"<!(node -e \"console.log(require('./package.json').binary.module_name)\")",
-      "module_path":"<!(node -e \"console.log(require('./package.json').binary.module_path)\")",
       'NODEMAPNIK_DIR%':'.'
   },
   'conditions': [
