@@ -2,8 +2,14 @@
 
 all: mapnik.node
 
-mapnik.node:
-	PATH=$$PATH:`npm explore npm -g -- pwd`/bin/node-gyp-bin/ node-gyp build
+./node_modules/mapnik-vector-tile:
+	npm install mapnik-vector-tile sphericalmercator mocha
+
+./node_modules/.bin/node-pre-gyp: ./node_modules/mapnik-vector-tile
+	npm install node-pre-gyp
+
+mapnik.node: ./node_modules/.bin/node-pre-gyp
+	./node_modules/.bin/node-pre-gyp build
 
 clean:
 	@rm -rf ./build
