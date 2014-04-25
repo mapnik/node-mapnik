@@ -5,6 +5,7 @@ Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 [![NPM](https://nodei.co/npm/mapnik.png)](https://nodei.co/npm/mapnik/)
 
 [![Build Status](https://secure.travis-ci.org/mapnik/node-mapnik.png)](https://travis-ci.org/mapnik/node-mapnik)
+[![Build status](https://ci.appveyor.com/api/projects/status/g7f7ow5rv6ac1wt7)](https://ci.appveyor.com/project/springmeyer/node-mapnik)
 
 ## Usage
 
