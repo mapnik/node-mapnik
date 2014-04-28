@@ -7,7 +7,7 @@ branches:
     - master
 
 # environment variables
-environment:
+#environment:
   # my_var1: value1
   # my_var2: value2
   # this is how to set encrypted variable. Go to "Encrypt data" page in account menu to encrypt data.
