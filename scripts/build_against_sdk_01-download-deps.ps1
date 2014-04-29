@@ -11,7 +11,8 @@ Try{
     if($mapnik220){
         $mapnik_remote='http://mapnik.s3.amazonaws.com/dist/v2.2.0/mapnik-win-sdk-v2.2.0.zip'
     } else {
-        $mapnik_remote='https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v2.3.0-f59dc36a19.zip'
+        ##$mapnik_remote='https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v2.3.0-f59dc36a19.zip'
+        $mapnik_remote='http://www.BergWerk-GIS.at/dl/mapbox/mapnik-v2.3.0.zip'
     }
     $mapnik_local="$env:DL_DIR\mapnik-sdk$env:MAPNIK_VERSION.zip"
 
