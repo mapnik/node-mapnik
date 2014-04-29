@@ -46,9 +46,9 @@ git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 set NODIST_X64=0
 call nodist update 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
+::IF ERRORLEVEL 1 GOTO ERROR
 call nodist stable 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
+::IF ERRORLEVEL 1 GOTO ERROR
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
 call npm install aws-sdk
