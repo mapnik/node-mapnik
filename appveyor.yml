@@ -1,5 +1,7 @@
 version: 1.0.{build}
 
+clone_folder: c:\dev2\node-mapnik
+
 # branches to build
 branches:
   # whitelist
