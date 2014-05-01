@@ -37,18 +37,6 @@ SET DL_DIR=%BASE_DIR%\dl
 powershell scripts\build_against_sdk_01-download-deps.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
-::TODO: rmdir doesn't work correctly every time
-::moved to powershell script
-::RMDIR /Q /S %NODIST_DIR% 2>&1
-::IF ERRORLEVEL 1 GOTO ERROR
-::git clone https://github.com/marcelklehr/nodist.git %NODIST_DIR% 2>&1
-git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
-set NODIST_X64=0
-call nodist update 2>&1
-::IF ERRORLEVEL 1 GOTO ERROR
-call nodist stable 2>&1
-::IF ERRORLEVEL 1 GOTO ERROR
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
 call npm install aws-sdk

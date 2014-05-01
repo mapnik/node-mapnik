@@ -12,20 +12,13 @@ Try{
         $mapnik_remote='http://mapnik.s3.amazonaws.com/dist/v2.2.0/mapnik-win-sdk-v2.2.0.zip'
     } else {
         ##$mapnik_remote='https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v2.3.0-f59dc36a19.zip'
-        $mapnik_remote='http://www.BergWerk-GIS.at/dl/mapbox/mapnik-v2.3.0.zip'
+        $mapnik_remote='http://www.BergWerk-GIS.at/dl/mapbox/mapnik-v2.3.0.7z'
     }
-    $mapnik_local="$env:DL_DIR\mapnik-sdk$env:MAPNIK_VERSION.zip"
+    $mapnik_local="$env:DL_DIR\mapnik-sdk$env:MAPNIK_VERSION.7z"
 
     $cairohdrs_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/cairo-hdrs.7z'
     $cairohdrs_local="$env:DL_DIR\cairo-hdrs.7z"
     $cairohdrs_dir=$env:MAPNIK_DIR + '\include'
-
-    $protobin_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/protobuf-bin.7z'
-    $protobin_local="$env:DL_DIR\protobuf-bin.7z"
-    $protobin_dir=$env:BASE_DIR
-
-    $protosrc_remote='https://raw.github.com/BergWerkGIS/node-mapnik-build-deps/master/protobuf-src.7z'
-    $protosrc_local="$env:DL_DIR\protobuf-src.7z"
 
     ###CREATE DOWNLOAD DIR
     if(!(Test-Path -Path $env:DL_DIR )){
@@ -43,10 +36,7 @@ Try{
     	Write-Output "$msg_prefix downloading cairohdrs: $cairohdrs_remote"
 	    (new-object net.webclient).DownloadFile($cairohdrs_remote, $cairohdrs_local)
     }
-	Write-Output "$msg_prefix downloading protoc-bin: $protobin_remote"
-	(new-object net.webclient).DownloadFile($protobin_remote, $protobin_local)
-	Write-Output "$msg_prefix downloading protobuf src: $protosrc_remote"
-	(new-object net.webclient).DownloadFile($protosrc_remote, $protosrc_local)
+
 	Write-Output "$msg_prefix dependencies downloaded $msg_prefix"
 
 	###EXTRACT DEPENDENCIES
@@ -58,10 +48,6 @@ Try{
 	    Write-Output "$msg_prefix extracting cairo hdrs: $cairohdrs_dir"
 	    invoke-expression "7z -y e $cairohdrs_local -o$cairohdrs_dir | FIND /V `"ing  `""
     }
-	Write-Output "$msg_prefix extracting protoc.exe: $protobin_dir"
-	invoke-expression "7z -y e $protobin_local -o$protobin_dir | FIND /V `"ing  `""
-	Write-Output "$msg_prefix extracting protobuf src: $env:BASE_DIR"
-	invoke-expression "7z -y x $protosrc_local -o$env:BASE_DIR | FIND /V `"ing  `""
 
 	Write-Output "$msg_prefix deleting nodist dir: $env:NODIST_DIR"
     If (Test-Path($env:NODIST_DIR)){
