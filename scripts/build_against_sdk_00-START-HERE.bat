@@ -45,7 +45,7 @@ IF ERRORLEVEL 1 GOTO ERROR
 ::nodist npm node-gyp is here
 ::C:\dev2\nodist\bin\node_modules\npm\node_modules\node-gyp
 ::node-pre-gyp@0.5.4 doesn't find it
-call npm install -g node-gyp
+call npm install node-gyp
 IF ERRORLEVEL 1 GOTO ERROR
 call npm install --build-from-source 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
