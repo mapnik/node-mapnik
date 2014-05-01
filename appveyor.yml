@@ -33,7 +33,8 @@ install:
   # by default, all script lines are interpreted as batch
   # to run script as a PowerShell command prepend it with ps:
   # batch commands start from cmd:
-  - echo WindowsSDKDir: %WindowsSDKDir%
+  - echo WindowsSDKDir:
+  - echo %WindowsSDKDir%
   - echo %PATH%
   #- SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
   - echo %PATH%
