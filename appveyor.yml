@@ -3,8 +3,12 @@ version: 1.0.{build}
 clone_folder: c:\dev2\node-mapnik
 
 environment:
+  node_pre_gyp_accessKeyId:
+    secure: gX0sHZ0FHmCAPWH7zuKEi7J1jIMdPEk5DzO38SgGKa4=
+  node_pre_gyp_secretAccessKey:
+    secure: TGX9/Wb26kCr4QPh2PPVbNp/ZW1JaFugEzcnULXfB7xMO5rnH5shXpPvOZxgMNqV
   matrix:
-#    - nodejs_version: 0.8
+    - nodejs_version: 0.8
     - nodejs_version: 0.10
 
 platform:
