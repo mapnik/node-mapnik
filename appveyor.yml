@@ -34,7 +34,7 @@ install:
   # to run script as a PowerShell command prepend it with ps:
   # batch commands start from cmd:
   - echo %PATH%
-  - SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
+  #- SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
   - echo %PATH%
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   - node --version

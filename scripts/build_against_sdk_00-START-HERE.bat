@@ -22,6 +22,7 @@ SET PATH=%MAPNIK_DIR%\bin;%PATH%
 ::add bundled node-pre-gyp to path
 SET PATH=node_modules\.bin;%PATH%
 SET PATH=%BASE_DIR%;%PATH%
+SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
 
 SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
