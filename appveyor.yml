@@ -39,12 +39,12 @@ install:
   #- SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
   #- echo %PATH%
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
-  - npm install -g node-gyp
-  - node-gyp --version
-  - where node
-  - cd "C:\Program Files (x86)\nodejs\node_modules\npm"
-  - npm install node-gyp@latest
-  - cd "C:\dev2\node-mapnik"
+  - #npm install -g node-gyp
+  - #node-gyp --version
+  - #where node
+  - #cd "C:\Program Files (x86)\nodejs\node_modules\npm"
+  - #npm install node-gyp@latest
+  - #cd "C:\dev2\node-mapnik"
   - node --version
   - npm --version
   - node-gyp --version
