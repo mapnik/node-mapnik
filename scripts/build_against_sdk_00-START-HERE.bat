@@ -60,7 +60,7 @@ call npm test 2>&1
 powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
-call node-pre-gyp build package
+call node-pre-gyp build package --msvs_version=2013
 IF ERRORLEVEL 1 GOTO ERROR
 call node-pre-gyp unpublish
 IF ERRORLEVEL 1 GOTO ERROR
