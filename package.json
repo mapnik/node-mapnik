@@ -52,7 +52,7 @@
   },
   "scripts"       : {
       "test"    : "mocha",
-      "install": "node-pre-gyp install --fallback-to-build --msvs_version=2013"
+      "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
     "sphericalmercator": "~1.0.2",

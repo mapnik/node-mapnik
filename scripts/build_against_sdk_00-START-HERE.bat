@@ -47,7 +47,7 @@ IF ERRORLEVEL 1 GOTO ERROR
 ::node-pre-gyp@0.5.4 doesn't find it
 call npm install node-gyp
 IF ERRORLEVEL 1 GOTO ERROR
-call npm install --build-from-source 2>&1
+call npm install --build-from-source --msvs_version=2013 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 
 powershell scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
