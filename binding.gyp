@@ -8,8 +8,8 @@
   'conditions': [
       ['OS=="win"', {
         'variables': {
-          'PROTOBUF_INCLUDES%':'C:/dev2/protobuf/vsprojects/include',
-          'PROTOBUF_LIBS%':'C:/dev2/protobuf/vsprojects/Release',
+          'PROTOBUF_INCLUDES%':'C:/mapnik-v2.3.0/include/mapnik/protobuf',
+          'PROTOBUF_LIBS%':'C:/mapnik-v2.3.0/lib',
           'PROTOBUF_LIBRARY%':'libprotobuf-lite.lib',
           'NODEMAPNIK_DIR%':'C:/dev2/node-mapnik'
         }

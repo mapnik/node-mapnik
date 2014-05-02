@@ -22,6 +22,7 @@ SET PATH=%MAPNIK_DIR%\bin;%PATH%
 ::add bundled node-pre-gyp to path
 SET PATH=node_modules\.bin;%PATH%
 SET PATH=%BASE_DIR%;%PATH%
+SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
 
 SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
@@ -29,6 +30,7 @@ SET N_MAPNIK_BINDING_DIR=%CD%\lib\binding
 SET N_MAPNIK_LIB_MAPNIK=%N_MAPNIK_BINDING_DIR%\mapnik
 SET N_MAPNIK_LIB_SHARE=%N_MAPNIK_BINDING_DIR%\share
 SET N_MAPNIK_STAGE_DIR=%CD%\build\stage
+SET PYTHONPATH=%MAPNIK_DIR%\python\2.7\site-packages;
 SET PROJ_LIB=%MAPNIK_DIR%\share\proj
 SET GDAL_DATA=%MAPNIK_DIR%\share\gdal
 SET DL_DIR=%BASE_DIR%\dl
@@ -36,18 +38,6 @@ SET DL_DIR=%BASE_DIR%\dl
 powershell scripts\build_against_sdk_01-download-deps.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
-::TODO: rmdir doesn't work correctly every time
-::moved to powershell script
-::RMDIR /Q /S %NODIST_DIR% 2>&1
-::IF ERRORLEVEL 1 GOTO ERROR
-::git clone https://github.com/marcelklehr/nodist.git %NODIST_DIR% 2>&1
-git clone https://github.com/BergWerkGIS/nodist.git %NODIST_DIR% 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
-set NODIST_X64=0
-call nodist update 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
-call nodist stable 2>&1
-IF ERRORLEVEL 1 GOTO ERROR
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
 call npm install aws-sdk
@@ -55,9 +45,9 @@ IF ERRORLEVEL 1 GOTO ERROR
 ::nodist npm node-gyp is here
 ::C:\dev2\nodist\bin\node_modules\npm\node_modules\node-gyp
 ::node-pre-gyp@0.5.4 doesn't find it
-call npm install -g node-gyp
+call npm install node-gyp
 IF ERRORLEVEL 1 GOTO ERROR
-call npm install --build-from-source 2>&1
+call npm install --build-from-source --msvs_version=2013 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 
 powershell scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
@@ -70,7 +60,7 @@ call npm test 2>&1
 powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
-call node-pre-gyp build package
+call node-pre-gyp build package --msvs_version=2013
 IF ERRORLEVEL 1 GOTO ERROR
 call node-pre-gyp unpublish
 IF ERRORLEVEL 1 GOTO ERROR
