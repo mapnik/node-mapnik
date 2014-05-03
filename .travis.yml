@@ -32,6 +32,8 @@ before_install:
  - PUBLISH_BINARY=false
 
 install:
+ # try to work around clang 3.4 breakage with -fno-tree-vrp and -fno-tree-sink
+ - export CXXFLAGS="-Wno-error=unused-command-line-argument-hard-error-in-future"
  # test building and packaging binary against Mapnik v2.3.x SDK
  - ./scripts/build_against_sdk.sh
  - rm -rf sdk
