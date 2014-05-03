@@ -5,10 +5,10 @@ all: mapnik.node
 ./node_modules/mapnik-vector-tile:
 	npm install mapnik-vector-tile sphericalmercator mocha
 
-./node_modules/.bin/node-pre-gyp: ./node_modules/mapnik-vector-tile
+./node_modules/.bin/node-pre-gyp:
 	npm install node-pre-gyp
 
-mapnik.node: ./node_modules/.bin/node-pre-gyp
+mapnik.node: ./node_modules/.bin/node-pre-gyp ./node_modules/mapnik-vector-tile
 	./node_modules/.bin/node-pre-gyp build
 
 clean:
