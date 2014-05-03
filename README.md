@@ -72,7 +72,7 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 
 ## Installing
 
-By default, binaries are provided for:
+By default, binaries when installing node-mapnik >= 1.4.2 and:
 
  - 64 bit OS X and 64 bit Linux
  - Node v0.8.x and v0.10.x
@@ -81,9 +81,11 @@ On those platforms no external dependencies are needed.
 
 Just do:
 
-    npm install mapnik
+    npm install mapnik@1.x
 
 However other platforms will fall back to a source compile: see [Source Build](#source-build) for details.
+
+Note: This will install the latest node-mapnik 1.x series, which is recommended. There is also an [older 0.7.x series](https://github.com/mapnik/node-mapnik/tree/v0.7.x) which is not recommended to use unless you need to support Mapnik 2.1 or older (e.g. for CartoDB). The 0.7.x series does not provide binaries so you need to follow the [Source Build](#source-build).
 
 ## Source Build
 
