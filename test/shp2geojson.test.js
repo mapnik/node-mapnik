@@ -22,9 +22,11 @@ describe('Convert to GeoJSON', function() {
             }
             var actual = './test/tmp/world_merc.converted.geojson';
             var expected = './test/data/world_merc.converted.geojson';
+            // TODO - master vs 2.3.x writes polygons vs multipolygons after 
+            // https://github.com/mapnik/mapnik/commit/ecc5acbdb953e172fcc652b55ed19b8b581e2146
             fs.writeFileSync(actual,JSON.stringify(geojson,null,2));
             if (mapnik.versions.mapnik_number >= 200300) {
-                assert.equal(fs.readFileSync(actual).length,fs.readFileSync(expected).length)
+                assert.ok(Math.abs(fs.readFileSync(actual).length-fs.readFileSync(expected).length) < 3000)
             }
         }
         done();
