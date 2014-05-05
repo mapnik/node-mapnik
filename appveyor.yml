@@ -4,9 +4,9 @@ clone_folder: c:\dev2\node-mapnik
 
 environment:
   node_pre_gyp_accessKeyId:
-    secure: gX0sHZ0FHmCAPWH7zuKEi7J1jIMdPEk5DzO38SgGKa4=
+    secure: T1Pel/pv9SVfiVvZW8TLZnvZX6M4HQTiR7LUZnF1tuY=
   node_pre_gyp_secretAccessKey:
-    secure: TGX9/Wb26kCr4QPh2PPVbNp/ZW1JaFugEzcnULXfB7xMO5rnH5shXpPvOZxgMNqV
+    secure: s1us6xb8U2EqlaVYtoVMtulfgMdX4VVEKgTF+Eft104gWja1GG0Blf6cMJtG7Yu3
   matrix:
     - nodejs_version: 0.8
     - nodejs_version: 0.10
@@ -20,17 +20,6 @@ branches:
   # whitelist
   only:
     - master
-
-# environment variables
-#environment:
-  # my_var1: value1
-  # my_var2: value2
-  # this is how to set encrypted variable. Go to "Encrypt data" page in account menu to encrypt data.
-  #node_pre_gyp_accessKeyId:
-  #  secure: gX0sHZ0FHmCAPWH7zuKEi7J1jIMdPEk5DzO38SgGKa4=
-  #node_pre_gyp_secretAccessKey:
-  #  secure: TGX9/Wb26kCr4QPh2PPVbNp/ZW1JaFugEzcnULXfB7xMO5rnH5shXpPvOZxgMNqV
-
 
 # scripts that run after cloning repository
 install:
