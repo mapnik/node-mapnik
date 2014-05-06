@@ -7,6 +7,15 @@ cd $CURRENT_DIR/../sdk
 BUILD_DIR="$(pwd)"
 UNAME=$(uname -s);
 
+function upgrade_gcc {
+    echo "adding gcc-4.8 ppa"
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    echo "updating apt"
+    sudo apt-get update -qq -y
+    echo "installing C++11 compiler"
+    sudo apt-get install -qq -y gcc-4.8 g++-4.8
+}
+
 if [[ "${CXX11:-false}" != false ]]; then
     HASH="1048-g439fc9f-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
@@ -17,7 +26,10 @@ if [[ "${CXX11:-false}" != false ]]; then
 else
     HASH="467-g91f57bd-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
-        CXX_NAME="gcc-4.6"
+        export CXX_NAME="gcc-4.8"
+        export CC="gcc-4.8";
+        export CXX="g++-4.8";
+        upgrade_gcc
     else
         CXX_NAME="clang-3.3"
     fi
@@ -52,11 +64,6 @@ if [ ! -d ${TARBALL_NAME} ]; then
 fi
 
 if [[ $UNAME == 'Linux' ]]; then
-    # todo - c++11 branch of node-mapnik
-    if [[ "${CXX11:-false}" != false ]]; then
-        export CC="gcc-4.8";
-        export CXX="g++-4.8";
-    fi
     export CXXFLAGS="-Wno-unused-local-typedefs"
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
     #sudo apt-get install chrpath -y
