@@ -8,14 +8,14 @@ BUILD_DIR="$(pwd)"
 UNAME=$(uname -s);
 
 if [[ "${CXX11:-false}" != false ]]; then
-    HASH="721-gcd4c645-cpp11"
+    HASH="1048-g439fc9f-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
         CXX_NAME="gcc-4.8"
     else
         CXX_NAME="clang-3.3"
     fi
 else
-    HASH="442-gce1ff99-cpp03"
+    HASH="467-g91f57bd-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
         CXX_NAME="gcc-4.6"
     else
