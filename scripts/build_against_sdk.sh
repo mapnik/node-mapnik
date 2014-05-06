@@ -20,16 +20,16 @@ if [[ "${CXX11:-false}" != false ]]; then
     HASH="1048-g439fc9f-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
         CXX_NAME="gcc-4.8"
+        CC="gcc-4.8";
+        CXX="g++-4.8";
+        upgrade_gcc
     else
         CXX_NAME="clang-3.3"
     fi
 else
     HASH="467-g91f57bd-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
-        export CXX_NAME="gcc-4.8"
-        export CC="gcc-4.8";
-        export CXX="g++-4.8";
-        upgrade_gcc
+        export CXX_NAME="gcc-4.6"
     else
         CXX_NAME="clang-3.3"
     fi
