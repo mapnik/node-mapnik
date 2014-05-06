@@ -46,12 +46,6 @@
 // boost
 #include <boost/foreach.hpp>            // for auto_any_base, etc
 #include <boost/optional/optional.hpp>  // for optional
-#include <boost/smart_ptr/make_shared.hpp>  // for make_shared
-#include <boost/variant/detail/apply_visitor_delayed.hpp>
-#include <boost/variant/detail/apply_visitor_unary.hpp>
-#include <boost/variant/static_visitor.hpp>  // for static_visitor
-#include <boost/variant/variant.hpp>    // for variant
-
 #include "mapnik3x_compatibility.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;

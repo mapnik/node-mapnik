@@ -8,16 +8,13 @@
 #include "mapnik_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
 
-// boost
-#include <boost/smart_ptr/make_shared.hpp>  // for make_shared
-#include <boost/variant/detail/apply_visitor_unary.hpp>
-#include <boost/variant/variant.hpp>    // for variant
-
 // mapnik
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
+
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <limits>
