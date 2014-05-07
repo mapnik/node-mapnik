@@ -56,6 +56,12 @@
 #include <vector>                       // for vector
 #include "pbf.hpp"
 
+// fromGeoJSON
+#include "vector_tile_processor.hpp"
+#include "vector_tile_backend_pbf.hpp"
+#include <mapnik/datasource_cache.hpp>
+#include <mapnik/save_map.hpp>
+
 template <typename PathType>
 bool _hit_test(PathType & path, double x, double y, double tol)
 {
@@ -150,6 +156,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "fromGeoJSON", fromGeoJSON);
 #ifdef PROTOBUF_FULL
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
 #endif
@@ -1185,6 +1192,52 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
     delete closure;
 }
 
+Handle<Value> VectorTile::fromGeoJSON(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    if (args.Length() < 1 || !args[0]->IsString())
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a GeoJSON string")));
+    if (args.Length() < 2 || !args[1]->IsString())
+        return ThrowException(Exception::Error(
+                                  String::New("second argument must be a layer name (string)")));
+    std::string geojson_string = TOSTR(args[0]);
+    std::string geojson_name = TOSTR(args[1]);
+    try
+    {
+        typedef mapnik::vector::backend_pbf backend_type;
+        typedef mapnik::vector::processor<backend_type> renderer_type;
+        backend_type backend(d->get_tile_nonconst(),16);
+        mapnik::Map map(d->width_,d->height_,"+init=epsg:3857");
+        mapnik::vector::spherical_mercator merc(d->width_);
+        double minx,miny,maxx,maxy;
+        merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
+        map.zoom_to_box(mapnik::box2d<double>(minx,miny,maxx,maxy));
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(8);
+        mapnik::parameters p;
+        // TODO - use mapnik core GeoJSON parser
+        p["type"]="ogr";
+        p["file"]=geojson_string;
+        p["layer_by_index"]="0";
+        mapnik::layer lyr(geojson_name,"+init=epsg:4326");
+        lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
+        map.addLayer(lyr);
+        renderer_type ren(backend,
+                          map,
+                          m_req);
+        ren.apply();
+        d->painted(ren.painted());
+        return True();
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
+}
+
 Handle<Value> VectorTile::addData(const Arguments& args)
 {
     HandleScope scope;
@@ -1576,7 +1629,7 @@ Handle<Value> VectorTile::render(const Arguments& args)
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
                     if (layer_num > 0)
                     {
-                        s << "only '" << layers.size() << "' layers exist in map";
+                        s << "only '" << layer_num << "' layers exist in map";
                     }
                     else
                     {

@@ -29,6 +29,7 @@ public:
     static Handle<Value> query(Arguments const& args);
     static Handle<Value> names(Arguments const& args);    
     static Handle<Value> toGeoJSON(Arguments const& args);
+    static Handle<Value> fromGeoJSON(Arguments const& args);
 #ifdef PROTOBUF_FULL
     static Handle<Value> toString(Arguments const& args);
 #endif

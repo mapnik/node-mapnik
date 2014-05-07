@@ -54,6 +54,38 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
+    it('should be able to create a vector tile from geojson', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.fromGeoJSON(JSON.stringify(geojson),"layer-name")
+        var out = vtile.toGeoJSON(0);
+        assert.equal(out.type,'FeatureCollection');
+        assert.equal(out.features.length,1);
+        assert.equal(out.features[0].properties.name,'geojson data');
+        var coords = out.features[0].geometry.coordinates
+        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
+        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+        done();
+    });
+
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.VectorTile(); });
