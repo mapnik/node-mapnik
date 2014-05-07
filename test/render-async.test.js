@@ -1,6 +1,9 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var exists = require('fs').existsSync || require('path').existsSync;
+var path = require('path');
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik async rendering', function() {
     it('should render to a file', function(done) {
@@ -16,6 +19,7 @@ describe('mapnik async rendering', function() {
     it('should render to an image', function(done) {
         var map = new mapnik.Map(256, 256);
         map.load('./test/stylesheet.xml', function(err,map) {
+            if (err) throw err;
             map.zoomAll();
             var im = new mapnik.Image(map.width, map.height);
             map.render(im, function(err, im) {

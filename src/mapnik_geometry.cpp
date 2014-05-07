@@ -5,7 +5,7 @@
 #include <mapnik/wkt/wkt_factory.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> Geometry::constructor;
 
@@ -20,11 +20,11 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                "Point",mapnik::Point)
+                                "Point",MAPNIK_POINT)
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                "LineString",mapnik::LineString)
+                                "LineString",MAPNIK_LINESTRING)
     NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
-                                "Polygon",mapnik::Polygon)
+                                "Polygon",MAPNIK_POLYGON)
     target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
 }
 
@@ -63,10 +63,10 @@ Handle<Value> Geometry::extent(const Arguments& args)
 {
     HandleScope scope;
 
-    Geometry* g = ObjectWrap::Unwrap<Geometry>(args.This());
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.This());
 
     Local<Array> a = Array::New(4);
-    mapnik::box2d<double> const& e = g->get()->envelope();
+    mapnik::box2d<double> const& e = g->this_->envelope();
     a->Set(0, Number::New(e.minx()));
     a->Set(1, Number::New(e.miny()));
     a->Set(2, Number::New(e.maxx()));
@@ -79,9 +79,9 @@ Handle<Value> Geometry::type(const Arguments& args)
 {
     HandleScope scope;
 
-    Geometry* g = ObjectWrap::Unwrap<Geometry>(args.This());
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.This());
 
-    mapnik::eGeomType type = g->get()->type();
+    MAPNIK_GEOM_TYPE type = g->this_->type();
     // TODO - can we return the actual symbol?
     //return scope.Close(constructor->GetFunction()->Get(String::NewSymbol("Point")));
     return scope.Close(Integer::New(static_cast<int>(type)));

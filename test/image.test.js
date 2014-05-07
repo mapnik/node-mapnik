@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
@@ -30,6 +30,15 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { im.save('foo','foo'); });
     });
 
+    it('should throw with invalid binary read from buffer', function() {
+        assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(0)); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
+        var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + Array(48).join('\0'), 'binary');
+        assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
+        buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
+        assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
+    });
+
     it('should throw with invalid encoding format 3', function(done) {
         var im = new mapnik.Image(256, 256);
         im.encode('foo',function(err) {
@@ -50,9 +59,9 @@ describe('mapnik.Image ', function() {
         assert.equal(v.height(), 256);
         assert.equal(im.encodeSync().length, v.encodeSync().length);
 
-        im.save('test/tmp/image.png');
+        im.save('./test/tmp/image.png');
 
-        var im2 = new mapnik.Image.open('test/tmp/image.png');
+        var im2 = new mapnik.Image.open('./test/tmp/image.png');
         assert.ok(im2 instanceof mapnik.Image);
 
         assert.equal(im2.width(), 256);
@@ -60,6 +69,51 @@ describe('mapnik.Image ', function() {
 
         assert.equal(im.encodeSync().length, im2.encodeSync().length);
     });
+
+    it('should be able to open via byte stream', function(done) {
+        var im = new mapnik.Image(256, 256);
+        // png
+        var filename = './test/tmp/image2.png'
+        im.save(filename);
+        var buffer = fs.readFileSync(filename);
+        var im2 = new mapnik.Image.fromBytesSync(buffer);
+        assert.ok(im2 instanceof mapnik.Image);
+        assert.equal(im2.width(), 256);
+        assert.equal(im2.height(), 256);
+        assert.equal(im.encodeSync().length, im2.encodeSync().length);
+        // jpeg
+        var filename2 = './test/tmp/image2.jpeg'
+        im.save(filename2);
+        var buffer = fs.readFileSync(filename);
+        var im3 = new mapnik.Image.fromBytesSync(buffer);
+        assert.ok(im3 instanceof mapnik.Image);
+        assert.equal(im3.width(), 256);
+        assert.equal(im3.height(), 256);
+        assert.equal(im.encodeSync().length, im3.encodeSync().length);
+        done();
+    });
+
+    it('should be initialized properly via async constructors', function(done) {
+        var im = new mapnik.Image(256, 256);
+        im.save('./test/tmp/image3.png');
+
+        mapnik.Image.open('./test/tmp/image3.png',function(err,im2) {
+            if (err) throw err;
+            assert.ok(im2 instanceof mapnik.Image);
+            assert.equal(im2.width(), 256);
+            assert.equal(im2.height(), 256);
+            assert.equal(im.encodeSync().length, im2.encodeSync().length);
+            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                if (err) throw err;
+                assert.ok(im3 instanceof mapnik.Image);
+                assert.equal(im3.width(), 256);
+                assert.equal(im3.height(), 256);
+                assert.equal(im.encodeSync().length, im3.encodeSync().length);
+                done();
+            });
+        });
+    });
+
 
     it('should not be painted after rendering', function(done) {
         var im_blank = new mapnik.Image(4, 4);
@@ -130,7 +184,7 @@ describe('mapnik.Image ', function() {
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
         assert.equal(gray_view.isSolidSync(), true);
-        var pixel = gray_view.getPixel(0, 0);
+        var pixel = gray.getPixel(0, 0);
         assert.equal(pixel.r, 255);
         assert.equal(pixel.g, 255);
         assert.equal(pixel.b, 255);
@@ -138,17 +192,28 @@ describe('mapnik.Image ', function() {
 
         gray.background = new mapnik.Color('black');
         gray.setGrayScaleToAlpha();
-        var pixel2 = gray_view.getPixel(0, 0);
+        var pixel2 = gray.getPixel(0, 0);
         assert.equal(pixel2.r, 255);
         assert.equal(pixel2.g, 255);
         assert.equal(pixel2.b, 255);
         assert.equal(pixel2.a, 0);
 
         gray.setGrayScaleToAlpha(new mapnik.Color('green'));
-        var pixel3 = gray_view.getPixel(0, 0);
+        var pixel3 = gray.getPixel(0, 0);
         assert.equal(pixel3.r, 0);
         assert.equal(pixel3.g, 128);
         assert.equal(pixel3.b, 0);
         assert.equal(pixel3.a, 255);
     });
+
+    it('should support setting an individual pixel', function() {
+        var gray = new mapnik.Image(256, 256);
+        gray.setPixel(0,0,new mapnik.Color('white'));
+        var pixel = gray.getPixel(0,0);
+        assert.equal(pixel.r, 255);
+        assert.equal(pixel.g, 255);
+        assert.equal(pixel.b, 255);
+        assert.equal(pixel.a, 255);
+    });
+
 });

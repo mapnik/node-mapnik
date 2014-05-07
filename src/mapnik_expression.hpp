@@ -3,6 +3,7 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
+#include "mapnik3x_compatibility.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -13,7 +14,7 @@
 #endif
 
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 

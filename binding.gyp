@@ -1,145 +1,175 @@
 {
+  'includes': [ 'common.gypi' ],
+  'variables': {
+      'std%':'ansi',
+      'runtime_link%':'shared',
+      'NODEMAPNIK_DIR%':'.'
+  },
   'conditions': [
       ['OS=="win"', {
         'variables': {
-          'copy_command%': 'copy',
-          'bin_name':'call'
-        },
-      },{
-        'variables': {
-          'copy_command%': 'cp',
-          'bin_name':'node'
-        },
+          'PROTOBUF_INCLUDES%':'C:/mapnik-v2.3.0/include/mapnik/protobuf',
+          'PROTOBUF_LIBS%':'C:/mapnik-v2.3.0/lib',
+          'PROTOBUF_LIBRARY%':'libprotobuf-lite.lib',
+          'NODEMAPNIK_DIR%':'C:/dev2/node-mapnik'
+        }
       }]
   ],
-  'target_defaults': {
-      'default_configuration': 'Release',
-      'configurations': {
-          'Debug': {
-              'cflags_cc!': ['-O3', '-DNDEBUG'],
-              'xcode_settings': {
-                'OTHER_CPLUSPLUSFLAGS!':['-O3', '-DNDEBUG']
-              },
-              'msvs_settings': {
-                 'VCCLCompilerTool': {
-                     'ExceptionHandling': 1,
-                     'RuntimeTypeInfo':'true',
-                     'RuntimeLibrary': '3'  # /MDd
-                 }
-              }
+  'targets': [
+    {
+      'target_name': 'action_before_build',
+      'hard_dependency': 1,
+      'type': 'none',
+      'actions': [
+          {
+            'action_name': 'generate_protoc_files',
+            'inputs': [
+              '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto'
+            ],
+            'outputs': [
+              '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc',
+              '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h'
+            ],
+            'action': [ 'protoc',
+                        '-I<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/',
+                        '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
+                        '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto']
           },
-          'Release': {
-
+          {
+            'action_name': 'generate_setting',
+            'inputs': [
+              'gen_settings.py'
+            ],
+            'outputs': [
+              '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js'
+            ],
+            'action': ['python', 'gen_settings.py', '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js']
           }
-      },
+      ],
+      'copies': [
+          {
+            'files': [ '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js' ],
+            'destination': '<(module_path)'
+          }
+      ]
+    },
+    {
+      'target_name': '<(module_name)',
+      'dependencies': [ 'action_before_build' ],
+      'sources': [
+          "src/node_mapnik.cpp",
+          "src/mapnik_map.cpp",
+          "src/mapnik_color.cpp",
+          "src/mapnik_geometry.cpp",
+          "src/mapnik_feature.cpp",
+          "src/mapnik_image.cpp",
+          "src/mapnik_image_view.cpp",
+          "src/mapnik_grid.cpp",
+          "src/mapnik_grid_view.cpp",
+          "src/mapnik_memory_datasource.cpp",
+          "src/mapnik_palette.cpp",
+          "src/mapnik_projection.cpp",
+          "src/mapnik_layer.cpp",
+          "src/mapnik_datasource.cpp",
+          "src/mapnik_featureset.cpp",
+          "src/mapnik_expression.cpp",
+          "src/mapnik_cairo_surface.cpp",
+          "src/mapnik_vector_tile.cpp",
+          "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
+      ],
       'include_dirs': [
           './node_modules/mapnik-vector-tile/src/',
+          '<(SHARED_INTERMEDIATE_DIR)/',
           './src'
       ],
       'conditions': [
         ['OS=="win"', {
             'include_dirs':[
-              '<!@(mapnik-config --includes)',
-              '<!@(mapnik-config --dep-includes)'
+                '<!@(mapnik-config --includes)',
+                '<!@(mapnik-config --dep-includes)',
+                '<@(PROTOBUF_INCLUDES)'
               ],
-            'defines': ['<!@(mapnik-config --defines)'],
+            'defines': ['NOMINMAX','<!@(mapnik-config --defines)'],
             'libraries': [
-              '<!@(mapnik-config --libs)',
-              '<!@(mapnik-config --dep-libs)'],
+                '<!@(mapnik-config --libs)',
+                '<!@(mapnik-config --dep-libs)',
+                '<@(PROTOBUF_LIBRARY)'
+            ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
             'msvs_settings': {
-            'VCCLCompilerTool': {
-              # note: not respected, need to change in C:\Users\mapnik\.node-gyp\0.10.3\common.gypi
-              'ExceptionHandling': 1,
-              'RuntimeTypeInfo':'true',
-              'RuntimeLibrary': '2'  # /MD
-            },
-            'VCLinkerTool': {
-              'AdditionalOptions': [
-                # https://github.com/mapnik/node-mapnik/issues/74
-                '/FORCE:MULTIPLE'
+              'VCCLCompilerTool': {
+                # uneeded now that they are in common.gypi VCCLCompilerTool
+                #'AdditionalOptions': [
+                #  '/GR',
+                #  '/MD',
+                #  '/EHsc'
+                #]
+              },
+              'VCLinkerTool': {
+                'AdditionalOptions': [
+                    # https://github.com/mapnik/node-mapnik/issues/74
+                    '/FORCE:MULTIPLE'
+                ],
+                'AdditionalLibraryDirectories': [
+                    '<!@(mapnik-config --ldflags)',
+                    '<@(PROTOBUF_LIBS)'
+                ],
+              },
+            }
+        },{
+            'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
+            'cflags_cc' : [
+                '<!@(mapnik-config --cflags)',
+                '<!@(pkg-config protobuf --cflags)'
+            ],
+            'libraries':[
+                '<!@(mapnik-config --libs)',
+                '<!@(mapnik-config --ldflags)',
+                '<!@(pkg-config protobuf --libs-only-L)',
+                '-lprotobuf-lite'
+            ],
+            'conditions': [
+              ['runtime_link == "static"', {
+                  'libraries': [
+                    '<!@(mapnik-config --dep-libs)'
+                   ]
+              }]
+            ],
+            'xcode_settings': {
+              'OTHER_CPLUSPLUSFLAGS':[
+                  '<!@(mapnik-config --cflags)',
+                  '<!@(pkg-config protobuf --cflags)'
               ],
-              'AdditionalLibraryDirectories': [
-                 #http://stackoverflow.com/questions/757418/should-i-compile-with-md-or-mt
-                 '<!@(mapnik-config --ldflags)'
+              'OTHER_CFLAGS':[
+                  '<!@(mapnik-config --cflags)',
+                  '<!@(pkg-config protobuf --cflags)'
               ],
-            },
-          }
-        }],
-        ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="netbsd" or OS=="mac"', {
-          'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
-          'cflags_cc' : [
-              '<!@(mapnik-config --cflags)',
-              '<!@(pkg-config protobuf --cflags)'
-          ],
-          'libraries':[
-            '<!@(mapnik-config --libs)', # will bring in -lmapnik and the -L to point to it
-            '<!@(pkg-config protobuf --libs-only-L)',
-            '-lprotobuf-lite'
-          ]
+              'GCC_ENABLE_CPP_RTTI': 'YES',
+              'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
+            }
+        },
+        ],
+        ['std == "c++11"', {
+            'cflags_cc' : [
+                '-std=c++11',
+            ],
+            'xcode_settings': {
+              'OTHER_CPLUSPLUSFLAGS':['-std=c++11','-stdlib=libc++'],
+              'OTHER_LDFLAGS':['-stdlib=libc++'],
+              'CLANG_CXX_LANGUAGE_STANDARD':'c++11'
+            }
         }]
       ]
-  },
-  'targets': [
-    {
-      'target_name': '_mapnik',
-      'sources': ["src/node_mapnik.cpp",
-                   "src/mapnik_map.cpp",
-                   "src/mapnik_color.cpp",
-                   "src/mapnik_geometry.cpp",
-                   "src/mapnik_feature.cpp",
-                   "src/mapnik_image.cpp",
-                   "src/mapnik_image_view.cpp",
-                   "src/mapnik_grid.cpp",
-                   "src/mapnik_grid_view.cpp",
-                   "src/mapnik_js_datasource.cpp",
-                   "src/mapnik_memory_datasource.cpp",
-                   "src/mapnik_palette.cpp",
-                   "src/mapnik_projection.cpp",
-                   "src/mapnik_proj_transform.cpp",
-                   "src/mapnik_layer.cpp",
-                   "src/mapnik_datasource.cpp",
-                   "src/mapnik_featureset.cpp",
-                   "src/mapnik_expression.cpp",
-                   "src/mapnik_query.cpp",
-                   "src/mapnik_vector_tile.cpp",
-                   "node_modules/mapnik-vector-tile/src/vector_tile.pb.cc"
-      ],
-      # this has to be per target to correctly
-      # override node-gyp defaults
-      'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS':[
-           '<!@(mapnik-config --cflags)'
-        ],
-        'GCC_ENABLE_CPP_RTTI': 'YES',
-        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
-      }
     },
     {
       'target_name': 'action_after_build',
       'type': 'none',
-      'dependencies': [ '_mapnik' ],
-'actions': [
-        {
-          'action_name': 'generate_setting',
-          'inputs': [
-            'gen_settings.py'
-          ],
-          'outputs': [
-            'lib/mapnik_settings.js'
-          ],
-          'action': ['python', 'gen_settings.py']
-        },
-        {
-          'action_name': 'move_node_module',
-          'inputs': [
-            '<@(PRODUCT_DIR)/_mapnik.node'
-          ],
-          'outputs': [
-            'lib/_mapnik.node'
-          ],
-          'action': ['<@(copy_command)', '<@(PRODUCT_DIR)/_mapnik.node', 'lib/_mapnik.node']
-        }
+      'dependencies': [ '<(module_name)' ],
+      'copies': [
+          {
+            'files': [ '<(PRODUCT_DIR)/<(module_name).node' ],
+            'destination': '<(module_path)'
+          }
       ]
     }
   ]

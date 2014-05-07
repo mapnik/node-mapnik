@@ -1,30 +1,26 @@
+# node-mapnik
 
-# Node-Mapnik
-      
 Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 
+[![NPM](https://nodei.co/npm/mapnik.png)](https://nodei.co/npm/mapnik/)
 
-## Example
+[![Build Status](https://secure.travis-ci.org/mapnik/node-mapnik.png)](https://travis-ci.org/mapnik/node-mapnik)
+[![Build status](https://ci.appveyor.com/api/projects/status/g7f7ow5rv6ac1wt7)](https://ci.appveyor.com/project/springmeyer/node-mapnik)
 
-Render a map synchronously:
+## Usage
 
-```js
-var mapnik = require('mapnik');
-
-var map = new mapnik.Map(256, 256);
-map.loadSync('./examples/stylesheet.xml');
-map.zoomAll();
-map.renderFileSync('map.png');
-```
-
-Render a map asynchronously:
+Render a map from a stylesheet:
 
 ```js
 var mapnik = require('mapnik');
 var fs = require('fs');
 
+// register fonts and datasource plugins
+mapnik.register_default_fonts();
+mapnik.register_default_input_plugins();
+
 var map = new mapnik.Map(256, 256);
-map.load('./examples/stylesheet.xml', function(err,map) {
+map.load('./test/stylesheet.xml', function(err,map) {
     if (err) throw err;
     map.zoomAll();
     var im = new mapnik.Image(256, 256);
@@ -41,64 +37,74 @@ map.load('./examples/stylesheet.xml', function(err,map) {
 });
 ```
 
-Note: to run these examples locally first do:
+Convert a jpeg image to a png:
 
-    export NODE_PATH=./lib:${NODE_PATH}
+```js
+var mapnik = require('mapnik');
+new mapnik.Image.open('input.jpg').save('output.png');
+````
 
-For more sample code see https://github.com/mapnik/node-mapnik-sample-code
+Convert a shapefile to GeoJSON:
 
+```js
+var mapnik = require('mapnik');
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+var ds = new mapnik.Datasource({type:'shape',file:'test/data/world_merc.shp'});
+var featureset = ds.featureset()
+var geojson = {
+  "type": "FeatureCollection",
+  "features": [
+  ]
+}
+var feat = featureset.next();
+while (feat) {
+    geojson.features.push(JSON.parse(feat.toJSON()));
+    feat = featureset.next();
+}
+fs.writeFileSync("output.geojson",JSON.stringify(geojson,null,2));
+```
+
+For more sample code see [the tests](./test) and [sample code](https://github.com/mapnik/node-mapnik-sample-code).
 
 ## Depends
 
-* Node v0.6 or v0.8
-* Mapnik 2.x
+* Node v0.10.x or v0.8.x
 
-Mapnik 2.2.x is targeted, but 2.1.x and 2.0.x is also supported.
+## Installing
 
-This means that if you are running the Mapnik 2.2 series (current unreleased master) you must be running at least [0eddc2b5a0](https://github.com/mapnik/mapnik/commit/eebc8cc73eb18903b07e3b3e0757c11925962124).
+By default, binaries when installing node-mapnik >= 1.4.2 and:
 
-This means that if you are running the Mapnik 2.0.x series some minor test failures are expected:
+ - 64 bit OS X and 64 bit Linux
+ - Node v0.8.x and v0.10.x
 
- * 6-7 test failures are expected using Mapnik 2.0.0
- * 4-5 test failures are expected using Mapnik 2.0.2
- * 0 test failures are expected using Mapnik 2.1.0-pre
+On those platforms no external dependencies are needed.
 
-## Installation
+Just do:
 
-First install Mapnik - for more details see: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
+    npm install mapnik@1.x
+
+However other platforms will fall back to a source compile: see [Source Build](#source-build) for details.
+
+Note: This will install the latest node-mapnik 1.x series, which is recommended. There is also an [older 0.7.x series](https://github.com/mapnik/node-mapnik/tree/v0.7.x) which is not recommended to use unless you need to support Mapnik 2.1 or older (e.g. for CartoDB). The 0.7.x series does not provide binaries so you need to follow the [Source Build](#source-build).
+
+## Source Build
+
+To build from source you need:
+
+ - Mapnik >= v2.2.x
+ - Protobuf >= 2.3.0 (protoc and libprotobuf-lite)
+
+To build with OS X Mavericks you need to ensure the bindings link to libc++. An easy way to do this is to set:
+
+    export CXXFLAGS=-mmacosx-version-min=10.9
+
+Install Mapnik using the instructions at: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
 
 Confirm that the `mapnik-config` program is available and on your $PATH.
 
-To install node-mapnik locally for development or testing do:
+Then run:
 
-    git clone git://github.com/mapnik/node-mapnik.git
-    cd node-mapnik
-    ./configure
-    make
-
-Or set NODE_PATH to test importing:
-
-    export NODE_PATH=./lib
-    node -e "require.resolve('mapnik')"
-
-Or you can also install via npm
-  
-    npm install mapnik
-
-The above will install node-mapnik locally in a node_modules folder. To install globally do:
-
-    npm install -g mapnik
-
-
-## Quick rendering test
-
-To see if things are working try rendering a world map with the sample data
-  
-From the source checkout root do:
-  
-    export NODE_PATH=./lib
-    node ./examples/simple/render.js ./examples/stylesheet.xml map.png
-
+    npm install mapnik --build-from-source
 
 ## Using node-mapnik from your node app
 
@@ -106,26 +112,11 @@ To require node-mapnik as a dependency of another package put in your package.js
 
     "dependencies"  : { "mapnik":"*" } // replace * with a given semver version string
 
-  
-## Examples
-
-See the 'examples/README.md' for more usage examples.
-
-For some of the examples you will need:
-
-    npm install generic-pool
-    npm install get
-
-
 ## Tests
 
 To run the tests do:
   
     npm test
-
-Or you can manually install mocha and then just do:
-
-    make test
 
 ## License
 

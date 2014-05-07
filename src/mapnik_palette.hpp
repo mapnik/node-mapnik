@@ -3,15 +3,15 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
-
+#include "mapnik3x_compatibility.hpp"
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 #include <mapnik/palette.hpp>
 
 using namespace v8;
 
-typedef boost::shared_ptr<mapnik::rgba_palette> palette_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::rgba_palette> palette_ptr;
 
 class Palette: public node::ObjectWrap {
 public:

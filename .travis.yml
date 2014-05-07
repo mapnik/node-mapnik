@@ -1,0 +1,61 @@
+language: cpp
+
+compiler:
+ - gcc
+
+env:
+  matrix:
+   - NODE_NVM_VERSION="0.10"
+   - NODE_NVM_VERSION="0.10" CXX11=true
+   - NODE_NVM_VERSION="0.8"
+  global:
+   - secure: MhfGTuEEHzWVs/6W+ysVCSaKq0A/zXfYTi3b5emC2B0wnZOc6Gn8rEHpPga9mqzHO2uqmQe8vsWL/4/Za4E6GabgxBGE1DPa1sLxLXHhZ+Q1PCE2livk/nKFMNzKMn8XcBKAtjT945Pc9zG5OE5pfEuu/VwVrMwuba+lKgO9roc=
+   - secure: NIfxD7XGE67Kjgupp1MVEPFVjAfqu+DxBGJ/27tDCqMUQWoCjjJeHo2AkPGGG+3HcUA6t9Ent4vN4hIfhrO9xZzsMyxbwuwf0TyWcrYR8igkFXjsPfkpyToVGWryXTRiTaK8vb+xRfaM+79beJPetMlMdPyPCWKHBkdCg5Pn3Wk=
+
+before_install:
+ # check if tag exists and matches package.json
+ - scripts/validate_tag.sh
+ - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+ # put node-pre-gyp on path
+ - export PATH=./node_modules/.bin/:$PATH
+ # here we set up the node version on the fly based on the matrix value.
+ # This is done manually so that it is easy to flip the 'language' to
+ # objective-c in another branch (to run the same travis.yml on OS X)
+ - git clone https://github.com/creationix/nvm.git ../.nvm
+ - source ../.nvm/nvm.sh
+ - nvm install $NODE_NVM_VERSION
+ - nvm use $NODE_NVM_VERSION
+ - node --version
+ - npm --version
+ - npm install mocha sphericalmercator aws-sdk
+ - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
+ - PUBLISH_BINARY=false
+
+install:
+ # test building and packaging binary against Mapnik v2.3.x SDK
+ - ./scripts/build_against_sdk.sh
+ - rm -rf sdk
+ - npm test
+ - node-pre-gyp package testpackage
+ - npm test
+ - if [[ ${CXX} == "g++" ]] && test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
+ - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
+
+before_script:
+ - if [[ $PUBLISH_BINARY == false ]] && [[ "$platform" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
+
+script:
+ - true
+
+after_script:
+ - true
+
+after_success:
+  - echo 'after success'
+
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#mapnik"
+    use_notice: true
+

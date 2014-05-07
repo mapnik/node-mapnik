@@ -4,6 +4,7 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/memory_datasource.hpp>
+#include <mapnik/value_types.hpp>
 
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_datasource.hpp"
@@ -15,7 +16,7 @@
 #include <exception>
 
 // boost
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -88,7 +89,7 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
-    d->datasource_ = boost::make_shared<mapnik::memory_datasource>();
+    d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
     return args.This();
 }
 
@@ -104,7 +105,7 @@ Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
 Handle<Value> MemoryDatasource::parameters(const Arguments& args)
 {
     HandleScope scope;
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
     Local<Object> ds = Object::New();
     if (d->datasource_) {
         mapnik::parameters::const_iterator it = d->datasource_->params().begin();
@@ -121,7 +122,7 @@ Handle<Value> MemoryDatasource::parameters(const Arguments& args)
 Handle<Value> MemoryDatasource::describe(const Arguments& args)
 {
     HandleScope scope;
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
     Local<Object> description = Object::New();
     if (d->datasource_) {
         try {
@@ -153,7 +154,7 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
         last = args[1]->IntegerValue();
     }
 
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
@@ -178,25 +179,32 @@ Handle<Value> MemoryDatasource::featureset(const Arguments& args)
 
     HandleScope scope;
 
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
 
-    if (d->datasource_) {
-        mapnik::query q(d->datasource_->envelope());
-        mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
-        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-        while (itr != end)
-        {
-            q.add_property_name(itr->get_name());
-            ++itr;
+    try
+    {
+        if (d->datasource_) {
+            mapnik::query q(d->datasource_->envelope());
+            mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
+            std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+            std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+            std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+            while (itr != end)
+            {
+                q.add_property_name(itr->get_name());
+                ++itr;
+            }
+            mapnik::featureset_ptr fs = d->datasource_->features(q);
+            if (fs)
+            {
+                return scope.Close(Featureset::New(fs));
+            }
         }
-
-        mapnik::featureset_ptr fs = d->datasource_->features(q);
-        if (fs)
-        {
-            return scope.Close(Featureset::New(fs));
-        }
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
     }
 
     return Undefined();
@@ -213,7 +221,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                                   String::New("accepts one argument: an object including x and y (or wkt) and properties")));
     }
 
-    MemoryDatasource* d = ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
 
     Local<Object> obj = args[0]->ToObject();
 
@@ -227,10 +235,10 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
         Local<Value> y = obj->Get(String::New("y"));
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
-            mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::Point);
+            mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
             pt->move_to(x->NumberValue(),y->NumberValue());
 #if MAPNIK_VERSION >= 200100
-            mapnik::context_ptr ctx = boost::make_shared<mapnik::context_type>();
+            mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
 #else
             mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
@@ -252,7 +260,7 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                         // if name in q.property_names() ?
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
-                            UnicodeString ustr = d->tr_->transcode(TOSTR(value));
+                            mapnik::value_unicode_string ustr = d->tr_->transcode(TOSTR(value));
 #if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),ustr);
 #else

@@ -10,17 +10,17 @@
 #include <mapnik/grid/grid_view.hpp>    // for grid_view, hit_grid_view, etc
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
-// boost
-#include <boost/make_shared.hpp>
-#include "boost/cstdint.hpp"            // for uint16_t
-#include "boost/ptr_container/ptr_sequence_adapter.hpp"
-#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
 
 #include "mapnik_grid_view.hpp"
 #include "mapnik_grid.hpp"
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
 
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
+#include "boost/cstdint.hpp"            // for uint16_t
+#include "boost/ptr_container/ptr_sequence_adapter.hpp"
+#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
 // std
 #include <exception>
 
@@ -87,7 +87,7 @@ Handle<Value> GridView::New(Grid * JSGrid,
 {
     HandleScope scope;
     GridView* gv = new GridView(JSGrid);
-    gv->this_ = boost::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
+    gv->this_ = MAPNIK_MAKE_SHARED<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
     Handle<Value> ext = External::New(gv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
@@ -97,7 +97,7 @@ Handle<Value> GridView::width(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     return scope.Close(Integer::New(g->get()->width()));
 }
 
@@ -105,7 +105,7 @@ Handle<Value> GridView::height(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     return scope.Close(Integer::New(g->get()->height()));
 }
 
@@ -123,7 +123,7 @@ typedef struct {
 Handle<Value> GridView::isSolid(const Arguments& args)
 {
     HandleScope scope;
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     if (args.Length() == 0) {
         return isSolidSync(args);
@@ -212,7 +212,7 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
 Handle<Value> GridView::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     grid_view_ptr view = g->get();
     if (view->width() > 0 && view->height() > 0)
     {
@@ -254,7 +254,7 @@ Handle<Value> GridView::getPixel(const Arguments& args)
                                   String::New("must supply x,y to query pixel color")));
     }
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
     grid_view_ptr view = g->get();
     if (x < view->width() && y < view->height())
     {
@@ -270,7 +270,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");
@@ -379,7 +379,7 @@ Handle<Value> GridView::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");
@@ -525,7 +525,7 @@ Handle<Value> GridView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");
@@ -613,7 +613,7 @@ Handle<Value> GridView::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    GridView* g = ObjectWrap::Unwrap<GridView>(args.This());
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.This());
 
     // defaults
     std::string format("utf");

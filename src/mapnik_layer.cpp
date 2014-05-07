@@ -6,19 +6,15 @@
 #include "v8.h"                         // for String, Handle, Object, etc
 
 #include "mapnik_datasource.hpp"
-//#include "mapnik_js_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
-
-// boost
-#include <boost/smart_ptr/make_shared.hpp>  // for make_shared
-#include <boost/variant/detail/apply_visitor_unary.hpp>
-#include <boost/variant/variant.hpp>    // for variant
 
 // mapnik
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
+
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <limits>
@@ -57,11 +53,11 @@ void Layer::Initialize(Handle<Object> target) {
 
 Layer::Layer(std::string const& name):
     ObjectWrap(),
-    layer_(boost::make_shared<mapnik::layer>(name)) {}
+    layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name)) {}
 
 Layer::Layer(std::string const& name, std::string const& srs):
     ObjectWrap(),
-    layer_(boost::make_shared<mapnik::layer>(name,srs)) {}
+    layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name,srs)) {}
 
 Layer::Layer():
     ObjectWrap(),
@@ -118,7 +114,7 @@ Handle<Value> Layer::New(mapnik::layer const& lay_ref) {
     HandleScope scope;
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
-    l->layer_ = boost::make_shared<mapnik::layer>(lay_ref);
+    l->layer_ = MAPNIK_MAKE_SHARED<mapnik::layer>(lay_ref);
     Handle<Value> ext = External::New(l);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
@@ -128,7 +124,7 @@ Handle<Value> Layer::get_prop(Local<String> property,
                               const AccessorInfo& info)
 {
     HandleScope scope;
-    Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(info.This());
     std::string a = TOSTR(property);
     if (a == "name")
         return scope.Close(String::New(l->layer_->name().c_str()));
@@ -158,7 +154,7 @@ void Layer::set_prop(Local<String> property,
                      const AccessorInfo& info)
 {
     HandleScope scope;
-    Layer* l = ObjectWrap::Unwrap<Layer>(info.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(info.This());
     std::string a = TOSTR(property);
     if (a == "name")
     {
@@ -201,17 +197,17 @@ void Layer::set_prop(Local<String> property,
             ThrowException(Exception::TypeError(String::New("mapnik.Datasource, or mapnik.MemoryDatasource instance expected")));
         } else {
             if (Datasource::constructor->HasInstance(obj)) {
-                Datasource *d = ObjectWrap::Unwrap<Datasource>(obj);
+                Datasource *d = node::ObjectWrap::Unwrap<Datasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
             /*else if (JSDatasource::constructor->HasInstance(obj))
             {
-                JSDatasource *d = ObjectWrap::Unwrap<JSDatasource>(obj);
+                JSDatasource *d = node::ObjectWrap::Unwrap<JSDatasource>(obj);
                 l->layer_->set_datasource(d->get());
             }*/
             else if (MemoryDatasource::constructor->HasInstance(obj))
             {
-                MemoryDatasource *d = ObjectWrap::Unwrap<MemoryDatasource>(obj);
+                MemoryDatasource *d = node::ObjectWrap::Unwrap<MemoryDatasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
             else
@@ -226,7 +222,7 @@ Handle<Value> Layer::describe(const Arguments& args)
 {
     HandleScope scope;
 
-    Layer* l = ObjectWrap::Unwrap<Layer>(args.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(args.This());
 
     Local<Object> description = Object::New();
     mapnik::layer const& layer = *l->layer_;

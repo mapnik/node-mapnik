@@ -150,7 +150,7 @@ Handle<Value> Datasource::New(mapnik::datasource_ptr ds_ptr) {
 Handle<Value> Datasource::parameters(const Arguments& args)
 {
     HandleScope scope;
-    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
     Local<Object> ds = Object::New();
     mapnik::parameters::const_iterator it = d->datasource_->params().begin();
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
@@ -165,7 +165,7 @@ Handle<Value> Datasource::parameters(const Arguments& args)
 Handle<Value> Datasource::extent(const Arguments& args)
 {
     HandleScope scope;
-    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
     mapnik::box2d<double> e;
     try
     {
@@ -188,7 +188,7 @@ Handle<Value> Datasource::extent(const Arguments& args)
 Handle<Value> Datasource::describe(const Arguments& args)
 {
     HandleScope scope;
-    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
     Local<Object> description = Object::New();
     try
     {
@@ -206,6 +206,7 @@ Handle<Value> Datasource::describe(const Arguments& args)
 Handle<Value> Datasource::features(const Arguments& args)
 {
 
+    std::clog << "Datasource.features() is deprecated and will be removed at node-mapnik 1.3.x (please use Datasource.featureset instead)\n";
     HandleScope scope;
 
     unsigned first = 0;
@@ -220,7 +221,7 @@ Handle<Value> Datasource::features(const Arguments& args)
         last = args[1]->IntegerValue();
     }
 
-    Datasource* d = ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
 
     // TODO - we don't know features.length at this point
     Local<Array> a = Array::New(0);
@@ -242,7 +243,7 @@ Handle<Value> Datasource::featureset(const Arguments& args)
 
     HandleScope scope;
 
-    Datasource* ds = ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* ds = node::ObjectWrap::Unwrap<Datasource>(args.This());
 
     mapnik::featureset_ptr fs;
     try

@@ -14,13 +14,11 @@
 // node
 #include <node.h>
 #include <node_buffer.h>
+#include <node_version.h>
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/box2d.hpp>             // for box2d
-#if MAPNIK_VERSION >= 200100
-#include <mapnik/building_symbolizer.hpp>  // for building_symbolizer
-#endif
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/datasource.hpp>        // for featureset_ptr
 #include <mapnik/feature_type_style.hpp>  // for rules, feature_type_style
@@ -30,25 +28,13 @@
 #include <mapnik/image_data.hpp>        // for image_data_32
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
-#include <mapnik/line_pattern_symbolizer.hpp>
-#include <mapnik/line_symbolizer.hpp>   // for line_symbolizer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
-#include <mapnik/markers_symbolizer.hpp>  // for markers_symbolizer
 #include <mapnik/params.hpp>            // for parameters
-#include <mapnik/point_symbolizer.hpp>  // for point_symbolizer
-#include <mapnik/polygon_pattern_symbolizer.hpp>
-#include <mapnik/polygon_symbolizer.hpp>  // for polygon_symbolizer
-#include <mapnik/raster_symbolizer.hpp>  // for raster_symbolizer
 #include <mapnik/rule.hpp>              // for rule, rule::symbolizers, etc
 #include <mapnik/save_map.hpp>          // for save_map, etc
-#include <mapnik/shield_symbolizer.hpp>  // for shield_symbolizer
-#include <mapnik/text_symbolizer.hpp>   // for text_symbolizer
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
-
-#if MAPNIK_VERSION < 200100
-#include <mapnik/glyph_symbolizer.hpp>
-#endif
+#include <mapnik/scale_denominator.hpp>
 
 // stl
 #include <exception>                    // for exception
@@ -60,15 +46,7 @@
 // boost
 #include <boost/foreach.hpp>            // for auto_any_base, etc
 #include <boost/optional/optional.hpp>  // for optional
-#include <boost/smart_ptr/make_shared.hpp>  // for make_shared
-#include <boost/variant/detail/apply_visitor_delayed.hpp>
-#include <boost/variant/detail/apply_visitor_unary.hpp>
-#include <boost/variant/static_visitor.hpp>  // for static_visitor
-#include <boost/variant/variant.hpp>    // for variant
-
-#if MAPNIK_VERSION < 200100
-#define key_name get_key
-#endif
+#include "mapnik3x_compatibility.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -113,34 +91,25 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(constructor, "height", get_prop, set_prop);
     ATTR(constructor, "bufferSize", get_prop, set_prop);
     ATTR(constructor, "extent", get_prop, set_prop);
+    ATTR(constructor, "bufferedExtent", get_prop, set_prop);
     ATTR(constructor, "maximumExtent", get_prop, set_prop);
     ATTR(constructor, "background", get_prop, set_prop);
     ATTR(constructor, "parameters", get_prop, set_prop);
-
-    NODE_SET_PROTOTYPE_METHOD(constructor, "size", size);
 
     target->Set(String::NewSymbol("Map"),constructor->GetFunction());
 }
 
 Map::Map(int width, int height) :
     ObjectWrap(),
-    map_(boost::make_shared<mapnik::Map>(width,height)),
-    in_use_(0),
-    estimated_size_(0) {}
+    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height)),
+    in_use_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
     ObjectWrap(),
-    map_(boost::make_shared<mapnik::Map>(width,height,srs)),
-    in_use_(0),
-    estimated_size_(0) {}
+    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
+    in_use_(0) {}
 
-Map::~Map()
-{
-    if (estimated_size_ > 0)
-    {
-        V8::AdjustAmountOfExternalAllocatedMemory(-estimated_size_);
-    }
-}
+Map::~Map() { }
 
 void Map::acquire() {
     ++in_use_;
@@ -196,111 +165,11 @@ Handle<Value> Map::New(const Arguments& args)
     return Undefined();
 }
 
-class sizeof_symbolizer : public boost::static_visitor<>
-{
-public:
-    sizeof_symbolizer( int * usage):
-        usage_(usage),
-        factor_(21 /*arbitrary*/) {}
-
-    void operator () ( mapnik::point_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::line_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::line_pattern_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::polygon_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::polygon_pattern_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::raster_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::shield_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::text_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::building_symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    void operator () ( mapnik::markers_symbolizer const& sym)
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-#if MAPNIK_VERSION < 200100
-    void operator () ( mapnik::glyph_symbolizer const& sym)
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-#endif
-    void operator () ( mapnik::symbolizer const& sym )
-    {
-        *usage_ += (sizeof(sym)*factor_);
-    }
-
-    int * usage_;
-    int factor_;
-};
-
-int Map::estimate_map_size()
-{
-    // very rough estimate of memory usage of a map
-    int mem_usage = 0;
-    mapnik::Map::const_style_iterator sty_itr = map_->styles().begin();
-    for (; sty_itr != map_->styles().end(); ++sty_itr)
-    {
-        mapnik::feature_type_style const& style = sty_itr->second;
-        mapnik::rules::const_iterator rule_itr = style.get_rules().begin();
-        for (; rule_itr != style.get_rules().end(); ++rule_itr)
-        {
-            mapnik::rule::symbolizers::const_iterator begin = rule_itr->get_symbolizers().begin();
-            mapnik::rule::symbolizers::const_iterator end = rule_itr->get_symbolizers().end();
-            sizeof_symbolizer detector( &mem_usage);
-            std::for_each( begin, end , boost::apply_visitor( detector ));
-        }
-    }
-    estimated_size_ = mem_usage;
-    return mem_usage;
-}
-
-Handle<Value> Map::size(const Arguments& args)
-{
-    HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    return scope.Close(Integer::New(m->estimate_map_size()));
-}
-
 Handle<Value> Map::get_prop(Local<String> property,
                             const AccessorInfo& info)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(info.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(info.This());
     std::string a = TOSTR(property);
     if(a == "extent") {
         Local<Array> arr = Array::New(4);
@@ -309,6 +178,17 @@ Handle<Value> Map::get_prop(Local<String> property,
         arr->Set(1, Number::New(e.miny()));
         arr->Set(2, Number::New(e.maxx()));
         arr->Set(3, Number::New(e.maxy()));
+        return scope.Close(arr);
+    }
+    else if(a == "bufferedExtent") {
+        boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
+        if (!e)
+            return Undefined();
+        Local<Array> arr = Array::New(4);
+        arr->Set(0, Number::New(e->minx()));
+        arr->Set(1, Number::New(e->miny()));
+        arr->Set(2, Number::New(e->maxx()));
+        arr->Set(3, Number::New(e->maxy()));
         return scope.Close(arr);
     }
     else if(a == "maximumExtent") {
@@ -359,7 +239,7 @@ void Map::set_prop(Local<String> property,
                    const AccessorInfo& info)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = node::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
     if(a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
@@ -424,7 +304,7 @@ void Map::set_prop(Local<String> property,
         Local<Object> obj = value->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
-        Color *c = ObjectWrap::Unwrap<Color>(obj);
+        Color *c = node::ObjectWrap::Unwrap<Color>(obj);
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
@@ -468,14 +348,14 @@ void Map::set_prop(Local<String> property,
 Handle<Value> Map::scale(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     return scope.Close(Number::New(m->map_->scale()));
 }
 
 Handle<Value> Map::scaleDenominator(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     return scope.Close(Number::New(m->map_->scale_denominator()));
 }
 
@@ -528,7 +408,7 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
         y = args[1]->NumberValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     Local<Object> options = Object::New();
     int layer_idx = -1;
@@ -736,7 +616,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
 Handle<Value> Map::layers(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     Local<Array> a = Array::New(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
@@ -756,10 +636,9 @@ Handle<Value> Map::add_layer(const Arguments &args) {
     Local<Object> obj = args[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !Layer::constructor->HasInstance(obj))
         return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
-    Layer *l = ObjectWrap::Unwrap<Layer>(obj);
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    // TODO - addLayer should be add_layer in mapnik
-    m->map_->addLayer(*l->get());
+    Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    m->map_->MAPNIK_ADD_LAYER(*l->get());
     return Undefined();
 }
 
@@ -771,7 +650,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New("Please provide layer name or index")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
     Local<Value> layer = args[0];
@@ -793,7 +672,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
     {
         bool found = false;
         unsigned int idx(0);
-        std::string const & layer_name = TOSTR(layer);
+        std::string layer_name = TOSTR(layer);
         BOOST_FOREACH ( mapnik::layer const& lyr, layers )
         {
             if (lyr.name() == layer_name)
@@ -824,7 +703,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
 Handle<Value> Map::clear(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     m->map_->remove_all();
     return Undefined();
 }
@@ -841,7 +720,7 @@ Handle<Value> Map::resize(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("width and height must be integers")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
     return Undefined();
 }
@@ -897,7 +776,7 @@ Handle<Value> Map::load(const Arguments& args)
         strict = param_val->BooleanValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
@@ -956,7 +835,6 @@ void Map::EIO_AfterLoad(uv_work_t* req)
     } else {
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-        V8::AdjustAmountOfExternalAllocatedMemory(closure->m->estimate_map_size());
     }
 
     if (try_catch.HasCaught()) {
@@ -976,7 +854,7 @@ Handle<Value> Map::loadSync(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to a mapnik stylesheet")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string stylesheet = TOSTR(args[0]);
     bool strict = false;
     std::string base_path;
@@ -1030,7 +908,6 @@ Handle<Value> Map::loadSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
 }
 
@@ -1080,7 +957,7 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
         }
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     std::string stylesheet = TOSTR(args[0]);
 
@@ -1093,7 +970,6 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    V8::AdjustAmountOfExternalAllocatedMemory(m->estimate_map_size());
     return Undefined();
 }
 
@@ -1135,7 +1011,7 @@ Handle<Value> Map::fromString(const Arguments& args)
         strict = param_val->BooleanValue();
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
@@ -1189,7 +1065,6 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     } else {
         Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-        V8::AdjustAmountOfExternalAllocatedMemory(closure->m->estimate_map_size());
     }
 
     if (try_catch.HasCaught()) {
@@ -1209,7 +1084,7 @@ Handle<Value> Map::save(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be a path to map.xml to save")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string filename = TOSTR(args[0]);
     bool explicit_defaults = false;
     mapnik::save_map(*m->map_,filename,explicit_defaults);
@@ -1219,7 +1094,7 @@ Handle<Value> Map::save(const Arguments& args)
 Handle<Value> Map::to_string(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
     return scope.Close(String::New(map_string.c_str()));
@@ -1228,8 +1103,9 @@ Handle<Value> Map::to_string(const Arguments& args)
 Handle<Value> Map::zoomAll(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
-    try {
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    try
+    {
         m->map_->zoom_all();
     }
     catch (std::exception const& ex)
@@ -1243,7 +1119,7 @@ Handle<Value> Map::zoomAll(const Arguments& args)
 Handle<Value> Map::zoomToBox(const Arguments& args)
 {
     HandleScope scope;
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     double minx;
     double miny;
@@ -1276,30 +1152,51 @@ Handle<Value> Map::zoomToBox(const Arguments& args)
     return Undefined();
 }
 
-typedef struct {
+struct image_baton_t {
     uv_work_t request;
     Map *m;
     Image *im;
+    int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
+    double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} image_baton_t;
+    image_baton_t() :
+      buffer_size(0),
+      scale_factor(1.0),
+      scale_denominator(0.0),
+      offset_x(0),
+      offset_y(0),
+      error(false),
+      error_name() {}
+};
 
-typedef struct {
+struct grid_baton_t {
     uv_work_t request;
     Map *m;
     Grid *g;
     std::size_t layer_idx;
+    int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
+    double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} grid_baton_t;
+    grid_baton_t() :
+      layer_idx(-1),
+      buffer_size(0),
+      scale_factor(1.0),
+      scale_denominator(0.0),
+      offset_x(0),
+      offset_y(0),
+      error(false),
+      error_name() {}
+};
 
 struct vector_tile_baton_t {
     uv_work_t request;
@@ -1307,7 +1204,9 @@ struct vector_tile_baton_t {
     VectorTile *d;
     unsigned tolerance;
     unsigned path_multiplier;
+    int buffer_size;
     double scale_factor;
+    double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
@@ -1317,6 +1216,7 @@ struct vector_tile_baton_t {
         tolerance(1),
         path_multiplier(16),
         scale_factor(1.0),
+        scale_denominator(0.0),
         offset_x(0),
         offset_y(0),
         error(false) {}
@@ -1343,7 +1243,7 @@ Handle<Value> Map::render(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
 
     if (m->active() != 0) {
         std::ostringstream s;
@@ -1357,7 +1257,9 @@ Handle<Value> Map::render(const Arguments& args)
     // parse options
 
     // defaults
+    int buffer_size = 0;
     double scale_factor = 1.0;
+    double scale_denominator = 0.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
 
@@ -1372,6 +1274,15 @@ Handle<Value> Map::render(const Arguments& args)
 
         options = args[1]->ToObject();
 
+        if (options->Has(String::New("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(String::New("buffer_size"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'buffer_size' must be a number")));
+
+            buffer_size = bind_opt->IntegerValue();
+        }
+
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
             if (!bind_opt->IsNumber())
@@ -1379,6 +1290,15 @@ Handle<Value> Map::render(const Arguments& args)
                                           String::New("optional arg 'scale' must be a number")));
 
             scale_factor = bind_opt->NumberValue();
+        }
+
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
         }
 
         if (options->Has(String::New("offset_x"))) {
@@ -1409,9 +1329,11 @@ Handle<Value> Map::render(const Arguments& args)
         image_baton_t *closure = new image_baton_t();
         closure->request.data = closure;
         closure->m = m;
-        closure->im = ObjectWrap::Unwrap<Image>(obj);
+        closure->im = node::ObjectWrap::Unwrap<Image>(obj);
         closure->im->_ref();
+        closure->buffer_size = buffer_size;
         closure->scale_factor = scale_factor;
+        closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
@@ -1420,7 +1342,7 @@ Handle<Value> Map::render(const Arguments& args)
 
     } else if (Grid::constructor->HasInstance(obj)) {
 
-        Grid * g = ObjectWrap::Unwrap<Grid>(obj);
+        Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
 
         std::size_t layer_idx = 0;
 
@@ -1503,7 +1425,9 @@ Handle<Value> Map::render(const Arguments& args)
         closure->g = g;
         closure->g->_ref();
         closure->layer_idx = layer_idx;
+        closure->buffer_size = buffer_size;
         closure->scale_factor = scale_factor;
+        closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
@@ -1512,23 +1436,26 @@ Handle<Value> Map::render(const Arguments& args)
     } else if (VectorTile::constructor->HasInstance(obj)) {
 
         vector_tile_baton_t *closure = new vector_tile_baton_t();
-        VectorTile * vector_tile_obj = ObjectWrap::Unwrap<VectorTile>(obj);
+        VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
 
         if (options->Has(String::New("tolerance"))) {
 
             Local<Value> param_val = options->Get(String::New("tolerance"));
-            if (!param_val->IsNumber())
+            if (!param_val->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("option 'tolerance' must be an unsigned integer")));
+            }
             closure->tolerance = param_val->IntegerValue();
         }
 
         if (options->Has(String::New("path_multiplier"))) {
-
             Local<Value> param_val = options->Get(String::New("path_multiplier"));
-            if (!param_val->IsNumber())
+            if (!param_val->IsNumber()) {
+                delete closure;
                 return ThrowException(Exception::TypeError(
                                           String::New("option 'path_multiplier' must be an unsigned integer")));
+            }
             closure->path_multiplier = param_val->NumberValue();
         }
 
@@ -1536,7 +1463,9 @@ Handle<Value> Map::render(const Arguments& args)
         closure->m = m;
         closure->d = vector_tile_obj;
         closure->d->_ref();
+        closure->buffer_size = buffer_size;
         closure->scale_factor = scale_factor;
+        closure->scale_denominator = scale_denominator;
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
@@ -1560,13 +1489,17 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
         typedef mapnik::vector::processor<backend_type> renderer_type;
         backend_type backend(closure->d->get_tile_nonconst(),
                              closure->path_multiplier);
+        mapnik::Map const& map = *closure->m->get();
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(closure->buffer_size);
         renderer_type ren(backend,
-                          *closure->m->get(),
+                          map,
+                          m_req,
                           closure->scale_factor,
                           closure->offset_x,
                           closure->offset_y,
                           closure->tolerance);
-        ren.apply();
+        ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
 
     }
@@ -1636,7 +1569,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
                                                 closure->offset_x,
                                                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
-        ren.apply(layer,attributes);
+        ren.apply(layer,attributes,closure->scale_denominator);
 
     }
     catch (std::exception const& ex)
@@ -1687,7 +1620,7 @@ void Map::EIO_RenderImage(uv_work_t* req)
                                                    closure->scale_factor,
                                                    closure->offset_x,
                                                    closure->offset_y);
-        ren.apply();
+        ren.apply(closure->scale_denominator);
     }
     catch (std::exception const& ex)
     {
@@ -1730,6 +1663,7 @@ typedef struct {
     std::string output;
     palette_ptr palette;
     double scale_factor;
+    double scale_denominator;
     bool use_cairo;
     bool error;
     std::string error_name;
@@ -1746,7 +1680,8 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
     // defaults
     std::string format = "png";
-    double scale_factor = 10.;
+    double scale_factor = 1.0;
+    double scale_denominator = 0.0;
     palette_ptr palette;
 
     Local<Value> callback = args[args.Length()-1];
@@ -1778,7 +1713,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -1789,12 +1724,21 @@ Handle<Value> Map::renderFile(const Arguments& args)
             scale_factor = bind_opt->NumberValue();
         }
 
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
+        }
+
     } else if (!args[1]->IsFunction()) {
         return ThrowException(Exception::TypeError(
                                   String::New("optional argument must be an object")));
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string output = TOSTR(args[0]);
 
     //maybe do this in the async part?
@@ -1814,6 +1758,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 #if defined(HAVE_CAIRO)
         closure->use_cairo = true;
 #else
+        delete closure;
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
         return ThrowException(Exception::Error(
@@ -1827,6 +1772,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
 
     closure->m = m;
     closure->scale_factor = scale_factor;
+    closure->scale_denominator = scale_denominator;
     closure->error = false;
     closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
 
@@ -1847,22 +1793,27 @@ void Map::EIO_RenderFile(uv_work_t* req)
 
     try
     {
-        if(closure->use_cairo) {
+        if(closure->use_cairo)
+        {
 #if defined(HAVE_CAIRO)
+#if MAPNIK_VERSION > 200200
+            // https://github.com/mapnik/mapnik/issues/1930
+            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
+#else
 #if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
 #else
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
 #endif
+#endif
 #else
-
 #endif
         }
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im,closure->scale_factor);
-            ren.apply();
+            ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
                 mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output,*closure->palette);
@@ -1916,6 +1867,55 @@ Handle<Value> Map::renderSync(const Arguments& args)
 
     std::string format = TOSTR(args[0]);
     palette_ptr palette;
+    double scale_factor = 1.0;
+    double scale_denominator = 0.0;
+
+    if (args.Length() >= 2){
+        if (!args[1]->IsObject())
+            return ThrowException(Exception::TypeError(
+                                      String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
+
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(String::New("format")))
+        {
+            Local<Value> format_opt = options->Get(String::New("format"));
+            if (!format_opt->IsString())
+                return ThrowException(Exception::TypeError(
+                                          String::New("'format' must be a String")));
+
+            format = TOSTR(format_opt);
+        }
+
+        if (options->Has(String::New("palette")))
+        {
+            Local<Value> format_opt = options->Get(String::New("palette"));
+            if (!format_opt->IsObject())
+                return ThrowException(Exception::TypeError(
+                                          String::New("'palette' must be an object")));
+
+            Local<Object> obj = format_opt->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
+                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
+        }
+        if (options->Has(String::New("scale"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale' must be a number")));
+
+            scale_factor = bind_opt->NumberValue();
+        }
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
+        }
+    }
 
     // options hash
     if (args.Length() >= 2) {
@@ -1936,17 +1936,17 @@ Handle<Value> Map::renderSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string s;
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
-        mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im);
-        ren.apply();
+        mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
+        ren.apply(scale_denominator);
 
         if (palette.get())
         {
@@ -1961,8 +1961,11 @@ Handle<Value> Map::renderSync(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
-    node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
-    return scope.Close(retbuf->handle_);
+    #if NODE_VERSION_AT_LEAST(0, 11, 0)
+    return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
+    #else
+    return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
+    #endif
 }
 
 Handle<Value> Map::renderFileSync(const Arguments& args)
@@ -1978,6 +1981,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
     // defaults
     double scale_factor = 1.0;
+    double scale_denominator = 0.0;
     std::string format = "png";
     palette_ptr palette;
 
@@ -2008,7 +2012,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
         if (options->Has(String::New("scale"))) {
             Local<Value> bind_opt = options->Get(String::New("scale"));
@@ -2018,9 +2022,17 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 
             scale_factor = bind_opt->NumberValue();
         }
+        if (options->Has(String::New("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
+            if (!bind_opt->IsNumber())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'scale_denominator' must be a number")));
+
+            scale_denominator = bind_opt->NumberValue();
+        }
     }
 
-    Map* m = ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
     std::string output = TOSTR(args[0]);
 
     if (format.empty()) {
@@ -2039,10 +2051,14 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
+#if MAPNIK_VERSION > 200200
+            mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
+#else
 #if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
 #else
             mapnik::save_to_cairo_file(*m->map_,output,format);
+#endif
 #endif
 #else
             std::ostringstream s("");
@@ -2055,7 +2071,7 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
             mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
-            ren.apply();
+            ren.apply(scale_denominator);
 
             if (palette.get())
             {

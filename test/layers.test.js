@@ -1,4 +1,4 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
@@ -15,6 +15,7 @@ describe('mapnik.Layer ', function() {
     });
 
     it('should initialize properly', function() {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
         var layer = new mapnik.Layer('foo', '+init=epsg:4326');
         assert.equal(layer.name, 'foo');
         assert.equal(layer.srs, '+init=epsg:4326');

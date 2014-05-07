@@ -5,14 +5,15 @@
 #include <node_object_wrap.h>
 
 // mapnik
+#include "mapnik3x_compatibility.hpp"
 #include <mapnik/•.hpp>
 
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
-typedef boost::shared_ptr<mapnik::•> •_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::•> •_ptr;
 
 class •: public node::ObjectWrap {
 public:

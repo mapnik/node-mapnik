@@ -1,0 +1,21 @@
+<Map srs="+init=epsg:3857">
+
+    <Style name="lines">
+        <Rule>
+            <LineSymbolizer />
+        </Rule>
+    </Style>
+
+    <Layer name="lines" srs="+init=epsg:4326">
+        <StyleName>lines</StyleName>
+        <Datasource>
+            <Parameter name="type">csv</Parameter>
+            <Parameter name="inline">
+wkt
+"LINESTRING(-180 60, 180 -60)"
+"LINESTRING(-180 -60, 180 60)"
+            </Parameter>
+        </Datasource>
+    </Layer>
+    
+</Map>

@@ -2,17 +2,25 @@
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
 
+// node
+#include <node.h>
+#include <node_buffer.h>
+#include <node_version.h>
+
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/value_types.hpp>
 
 // boost
 #include <boost/version.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/json/geojson_generator.hpp>
+#include <mapnik/util/geometry_to_wkt.hpp>
+#include <mapnik/util/geometry_to_wkb.hpp>
 static mapnik::json::feature_generator generator;
 #endif
 
@@ -34,6 +42,8 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "numGeometries", numGeometries);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toWKB", toWKB);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "toWKT", toWKT);
     target->Set(String::NewSymbol("Feature"),constructor->GetFunction());
 }
 
@@ -46,7 +56,7 @@ Feature::Feature(int id) :
     this_() {
 #if MAPNIK_VERSION >= 200100
     // TODO - accept/require context object to reused
-    ctx_ = boost::make_shared<mapnik::context_type>();
+    ctx_ = MAPNIK_MAKE_SHARED<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
 #else
     this_ = mapnik::feature_factory::create(id);
@@ -98,7 +108,7 @@ Handle<Value> Feature::id(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     return scope.Close(Number::New(fp->get()->id()));
 }
 
@@ -106,7 +116,7 @@ Handle<Value> Feature::extent(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     Local<Array> a = Array::New(4);
     mapnik::box2d<double> const& e = fp->get()->envelope();
@@ -122,7 +132,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     Local<Object> feat = Object::New();
 
@@ -132,8 +142,8 @@ Handle<Value> Feature::attributes(const Arguments& args)
     mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
-        node_mapnik::params_to_object serializer( feat , boost::get<0>(*itr));
-        boost::apply_visitor( serializer, boost::get<1>(*itr).base() );
+        node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
+        boost::apply_visitor( serializer, MAPNIK_GET<1>(*itr).base() );
     }
 #else
     std::map<std::string,mapnik::value> const& fprops = fp->get()->props();
@@ -151,7 +161,7 @@ Handle<Value> Feature::attributes(const Arguments& args)
 Handle<Value> Feature::numGeometries(const Arguments& args)
 {
     HandleScope scope;
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     return scope.Close(Integer::New(fp->get()->num_geometries()));
 }
 
@@ -160,7 +170,7 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     if (args.Length() >= 1 ) {
         Local<Value> value = args[0];
@@ -169,18 +179,11 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
         } else {
             Local<Object> obj = value->ToObject();
             if (Geometry::constructor->HasInstance(obj)) {
-                Geometry* g = ObjectWrap::Unwrap<Geometry>(obj);
+                Geometry* g = node::ObjectWrap::Unwrap<Geometry>(obj);
 
                 try
                 {
-                    std::auto_ptr<mapnik::geometry_type> geom_ptr = g->get();
-                    if (geom_ptr.get()) {
-                        fp->get()->add_geometry(geom_ptr.get());
-                        geom_ptr.release();
-                    } else {
-                        return ThrowException(Exception::Error(
-                                                  String::New("empty geometry!")));
-                    }
+                    fp->get()->add_geometry(g->get().get());
                 }
                 catch (std::exception const& ex )
                 {
@@ -198,14 +201,14 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
 
     if (args.Length() > 0 ) {
-        Local<Value> value = args[0];
-        if (value->IsNull() || value->IsUndefined()) {
+        Local<Value> val = args[0];
+        if (val->IsNull() || val->IsUndefined()) {
             return ThrowException(Exception::TypeError(String::New("object expected")));
         } else {
-            Local<Object> attr = value->ToObject();
+            Local<Object> attr = val->ToObject();
             try
             {
                 Local<Array> names = attr->GetPropertyNames();
@@ -216,7 +219,7 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                     Local<Value> name = names->Get(i)->ToString();
                     Local<Value> value = attr->Get(name);
                     if (value->IsString()) {
-                        UnicodeString ustr = tr->transcode(TOSTR(value));
+                        mapnik::value_unicode_string ustr = tr->transcode(TOSTR(value));
 #if MAPNIK_VERSION >= 200100
                         fp->get()->put_new(TOSTR(name),ustr);
 #else
@@ -267,7 +270,7 @@ Handle<Value> Feature::toString(const Arguments& args)
 {
     HandleScope scope;
 
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     return scope.Close(String::New(fp->get()->to_string().c_str()));
 }
 
@@ -277,7 +280,7 @@ Handle<Value> Feature::toJSON(const Arguments& args)
 
     std::string json;
 #if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
-    Feature* fp = ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
     // TODO - create once?
     if (!generator.generate(json,*(fp->get())))
     {
@@ -290,4 +293,45 @@ Handle<Value> Feature::toJSON(const Arguments& args)
 #endif
 
     return scope.Close(String::New(json.c_str()));
+}
+
+Handle<Value> Feature::toWKT(const Arguments& args)
+{
+    HandleScope scope;
+
+    std::string wkt;
+#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+
+    if (!mapnik::util::to_wkt(wkt, fp->get()->paths()))
+    {
+        return ThrowException(Exception::Error(
+                                String::New("Failed to generate WKT")));
+    }
+#else
+    return ThrowException(Exception::Error(
+                              String::New("WKT output requires at least boost 1.47 and mapnik 2.1.x")));
+#endif
+
+    return scope.Close(String::New(wkt.c_str()));
+}
+
+Handle<Value> Feature::toWKB(const Arguments& args)
+{
+    HandleScope scope;
+
+    std::string wkt;
+#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+
+    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(fp->get()->paths(), mapnik::util::wkbNDR);
+    #if NODE_VERSION_AT_LEAST(0, 11, 0)
+    return scope.Close(node::Buffer::New(wkb->buffer(), wkb->size()));
+    #else
+    return scope.Close(node::Buffer::New(wkb->buffer(), wkb->size())->handle_);
+    #endif
+#else
+    return ThrowException(Exception::Error(
+                              String::New("WKB output requires at least boost 1.47 and mapnik 2.1.x")));
+#endif
 }

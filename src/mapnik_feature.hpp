@@ -3,6 +3,7 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
+#include "mapnik3x_compatibility.hpp"
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -10,7 +11,7 @@
 #include <mapnik/datasource.hpp> // feature_ptr and featureset_ptr
 
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
@@ -28,6 +29,8 @@ public:
     static Handle<Value> numGeometries(const Arguments &args);
     static Handle<Value> toString(const Arguments &args);
     static Handle<Value> toJSON(const Arguments &args);
+    static Handle<Value> toWKB(const Arguments &args);
+    static Handle<Value> toWKT(const Arguments &args);
 
     // todo
     // how to allow altering of attributes

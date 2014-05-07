@@ -1,6 +1,8 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik.Map', function() {
     it('should throw with invalid usage', function() {

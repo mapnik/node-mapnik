@@ -5,6 +5,7 @@
 #include <v8.h>
 #include <uv.h>
 #include <node_buffer.h>
+#include <node_version.h>
 
 // mapnik
 #include <mapnik/color.hpp>             // for color
@@ -12,14 +13,14 @@
 #include <mapnik/image_util.hpp>
 #include <mapnik/graphics.hpp>
 
-// boost
-#include <boost/make_shared.hpp>
-
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // std
 #include <exception>
@@ -88,7 +89,7 @@ Handle<Value> ImageView::New(Image * JSImage ,
 {
     HandleScope scope;
     ImageView* imv = new ImageView(JSImage);
-    imv->this_ = boost::make_shared<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
+    imv->this_ = MAPNIK_MAKE_SHARED<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
     Handle<Value> ext = External::New(imv);
     Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
     return scope.Close(obj);
@@ -108,7 +109,7 @@ typedef struct {
 Handle<Value> ImageView::isSolid(const Arguments& args)
 {
     HandleScope scope;
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
 
     if (args.Length() == 0) {
         return isSolidSync(args);
@@ -200,7 +201,7 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 Handle<Value> ImageView::isSolidSync(const Arguments& args)
 {
     HandleScope scope;
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     image_view_ptr view = im->get();
     if (view->width() > 0 && view->height() > 0)
     {
@@ -226,8 +227,8 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
 {
     HandleScope scope;
 
-    unsigned x(0);
-    unsigned y(0);
+    int x = 0;
+    int y = 0;
 
     if (args.Length() >= 2) {
         if (!args[0]->IsNumber())
@@ -243,9 +244,10 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
                                   String::New("must supply x,y to query pixel color")));
     }
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     image_view_ptr view = im->get();
-    if (x < view->width() && y < view->height())
+    if (x >= 0 && x < static_cast<int>(view->width())
+        && y >=0 && y < static_cast<int>(view->height()))
     {
         mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
         mapnik::image_view<mapnik::image_data_32>::pixel_type const pixel = row[x];
@@ -263,7 +265,7 @@ Handle<Value> ImageView::width(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     return scope.Close(Integer::New(im->get()->width()));
 }
 
@@ -271,7 +273,7 @@ Handle<Value> ImageView::height(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     return scope.Close(Integer::New(im->get()->height()));
 }
 
@@ -280,7 +282,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -312,7 +314,7 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -327,8 +329,11 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             s = save_to_string(image, format);
         }
 
-        node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
-        return scope.Close(retbuf->handle_);
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
+        #else
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
+        #endif
     }
     catch (std::exception const& ex)
     {
@@ -353,7 +358,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -385,7 +390,7 @@ Handle<Value> ImageView::encode(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -443,8 +448,11 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        node::Buffer *retbuf = node::Buffer::New((char*)closure->result.data(),closure->result.size());
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())) };
+        #else
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())->handle_) };
+        #endif
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
@@ -485,7 +493,7 @@ Handle<Value> ImageView::save(const Arguments& args)
         }
     }
 
-    ImageView* im = ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
     try
     {
         save_to_file(*im->get(),filename);

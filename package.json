@@ -4,8 +4,14 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version"       : "1.0.0",
+  "version"       : "1.4.2",
   "main"          : "./lib/mapnik.js",
+  "binary": {
+      "module_name": "mapnik",
+      "module_path": "./lib/binding/",
+      "remote_path": "v{version}",
+      "host": "https://node-mapnik.s3-us-west-1.amazonaws.com"
+  },
   "bugs"          : {
     "email" : "dane@dbsgeo.com",
     "url"   : "http://github.com/mapnik/node-mapnik/issues"
@@ -30,25 +36,26 @@
       }
   ],
   "dependencies"  : {
-      "mapnik-vector-tile": "~0.0.4"
+      "mapnik-vector-tile": "0.4.2",
+      "node-pre-gyp":"~0.5.0"
   },
-  "devDependencies": {
-      "mocha": "*",
-      "jshint"  : "~0.5.x",
-      "sphericalmercator":"*"
-   },
+  "bundledDependencies": [
+      "mapnik-vector-tile",
+      "node-pre-gyp"
+  ],
   "bin"           : {
        "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
        "mapnik-render.js"  : "./bin/mapnik-render.js"
-   },
-   "directories"  : {
-       "examples" : "examples",
-       "src": "src"
-   },
+  },
   "engines"       : {
-      "node": ">= 0.6.13 && < 0.11.0"
+      "node": ">= 0.8.0 < 0.11.4"
   },
   "scripts"       : {
-      "test"    : "mocha"
-   }
+      "test"    : "mocha",
+      "install": "node-pre-gyp install --fallback-to-build"
+  },
+  "devDependencies": {
+    "sphericalmercator": "~1.0.2",
+    "mocha": "~1.15.1"
+  }
 }

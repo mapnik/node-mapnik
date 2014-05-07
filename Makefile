@@ -2,24 +2,20 @@
 
 all: mapnik.node
 
-OS:=$(shell uname -s)
+./node_modules/mapnik-vector-tile:
+	npm install mapnik-vector-tile sphericalmercator mocha
 
-ifeq ($(NPROCS),)
-	NPROCS:=1
-	ifeq ($(OS),Linux)
-		NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
-	endif
-	ifeq ($(OS),Darwin)
-		NPROCS:=$(shell sysctl -n hw.ncpu)
-	endif
-endif
+./node_modules/.bin/node-pre-gyp:
+	npm install node-pre-gyp
 
-mapnik.node:
-	`npm explore npm -g -- pwd`/bin/node-gyp-bin/node-gyp build
+mapnik.node: ./node_modules/.bin/node-pre-gyp ./node_modules/mapnik-vector-tile
+	./node_modules/.bin/node-pre-gyp build
 
 clean:
 	@rm -rf ./build
-	rm -f lib/_mapnik.node
+	rm -rf lib/binding
+	rm ./test/tmp/*
+	echo > ./test/tmp/placeholder.txt
 
 
 rebuild:
@@ -27,15 +23,11 @@ rebuild:
 	@./configure
 	@make
 
-test-tmp:
-	@rm -rf test/tmp
-	@mkdir -p test/tmp
-
 ifndef only
-test: test-tmp
+test:
 	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec
 else
-test: test-tmp
+test:
 	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec test/${only}.test.js
 endif
 

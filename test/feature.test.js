@@ -1,7 +1,10 @@
-var mapnik = require('mapnik');
+var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
 
 describe('mapnik.Feature ', function() {
     it('should throw with invalid usage', function() {
@@ -46,14 +49,72 @@ describe('mapnik.Feature ', function() {
     });
 
     it('should report null values as js null',function() {
-       var extent = '-180,-60,180,60';
-       var ds = new mapnik.MemoryDatasource({'extent': extent});
-       var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name"}};
-       ds.add(feat);
-       var actual_feat = ds.features()[0];
-       assert.ok(actual_feat.null_val === null);
-       assert.equal(actual_feat.feat_id,1);
-       assert.equal(actual_feat.__id__,1);
-       assert.equal(actual_feat.name,'name');
+        var extent = '-180,-60,180,60';
+        var ds = new mapnik.MemoryDatasource({'extent': extent});
+        var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name"}};
+        ds.add(feat);
+        var featureset = ds.featureset();
+        var feature = featureset.next();
+        assert.equal(feature.id(),1);
+        var attr = feature.attributes();
+        assert.ok(attr.null_val === null);
+        assert.equal(attr.feat_id,1);
+        assert.equal(attr.name,'name');
+    });
+
+    it('should output the same geojson that it read', function () {
+        var expected = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            },
+
+            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"}),
+            f = ds.featureset().next(),
+            feature = JSON.parse(f.toJSON());
+
+        assert.equal(expected.type, feature.type);
+        assert.deepEqual(expected.properties, feature.properties);
+        assert.equal(expected.geometry.type, feature.geometry.type);
+        if (mapnik.versions.mapnik_number >= 200300) {
+            assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+        }
+    });
+
+    it('should output WKT', function () {
+        var feature = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            },
+            expected = 'Polygon((1 1,1 2,2 2,2 1,1 1))',
+            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"}),
+            f = ds.featureset().next(),
+            wkt = f.toWKT();
+
+        assert.equal(expected, wkt);
+    });
+
+    it('should output WKB', function () {
+        var feature = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+                }
+            },
+            expected = new Buffer('01030000000100000005000000000000000000f03f000000000000f03f000000000000f03f0000000000000040000000000000004000000000000000400000000000000040000000000000f03f000000000000f03f000000000000f03f', 'hex'),
+            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"}),
+            f = ds.featureset().next(),
+            wkb = f.toWKB();
+
+        assert.deepEqual(expected, wkb);
     });
 });

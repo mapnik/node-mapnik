@@ -3,13 +3,14 @@
 
 #include <v8.h>
 #include <node_object_wrap.h>
-#include <boost/shared_ptr.hpp>
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
 namespace mapnik { class image_32; }
 
-typedef boost::shared_ptr<mapnik::image_32> image_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr;
 
 class Image: public node::ObjectWrap {
 public:
@@ -17,6 +18,8 @@ public:
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
 
+    static Handle<Value> getPixel(const Arguments &args);
+    static Handle<Value> setPixel(const Arguments &args);
     static Handle<Value> encodeSync(const Arguments &args);
     static Handle<Value> encode(const Arguments &args);
     static void EIO_Encode(uv_work_t* req);
@@ -26,12 +29,24 @@ public:
     static Handle<Value> width(const Arguments &args);
     static Handle<Value> height(const Arguments &args);
     static Handle<Value> view(const Arguments &args);
+    static Handle<Value> openSync(const Arguments &args);
     static Handle<Value> open(const Arguments &args);
+    static void EIO_Open(uv_work_t* req);
+    static void EIO_AfterOpen(uv_work_t* req);
+    static Handle<Value> fromBytesSync(const Arguments &args);
+    static Handle<Value> fromBytes(const Arguments &args);
+    static void EIO_FromBytes(uv_work_t* req);
+    static void EIO_AfterFromBytes(uv_work_t* req);
     static Handle<Value> save(const Arguments &args);
     static Handle<Value> painted(const Arguments &args);
     static Handle<Value> composite(const Arguments &args);
+    static Handle<Value> premultiplySync(const Arguments& args);
     static Handle<Value> premultiply(const Arguments& args);
+    static void EIO_Premultiply(uv_work_t* req);
+    static Handle<Value> demultiplySync(const Arguments& args);
     static Handle<Value> demultiply(const Arguments& args);
+    static void EIO_Demultiply(uv_work_t* req);
+    static void EIO_AfterMultiply(uv_work_t* req);
     static Handle<Value> clearSync(const Arguments& args);
     static Handle<Value> clear(const Arguments& args);
     static void EIO_Clear(uv_work_t* req);

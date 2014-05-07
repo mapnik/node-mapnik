@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "utils.hpp"
+#include "mapnik3x_compatibility.hpp"
 
 using namespace v8;
 

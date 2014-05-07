@@ -6,13 +6,14 @@
 
 // mapnik
 #include <mapnik/geometry.hpp>
+#include "mapnik3x_compatibility.hpp"
 
 // boost
-#include <boost/shared_ptr.hpp>
+#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
-typedef std::auto_ptr<mapnik::geometry_type> geometry_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::geometry_type> geometry_ptr;
 
 class Geometry: public node::ObjectWrap {
 public:

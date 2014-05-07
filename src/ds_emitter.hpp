@@ -61,40 +61,47 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         description->Set(String::NewSymbol("fields"), fields);
 
         Local<String> js_type = String::New("unknown");
-#if MAPNIK_VERSION >= 200100
-        boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
-        if (geom_type)
+        if (ds->type() == mapnik::datasource::Raster)
         {
-            mapnik::datasource::geometry_t g_type = *geom_type;
-            switch (g_type)
-            {
-            case mapnik::datasource::Point:
-            {
-                js_type = String::New("point");
-                break;
-            }
-            case mapnik::datasource::LineString:
-            {
-                js_type = String::New("linestring");
-                break;
-            }
-            case mapnik::datasource::Polygon:
-            {
-                js_type = String::New("polygon");
-                break;
-            }
-            case mapnik::datasource::Collection:
-            {
-                js_type = String::New("collection");
-                break;
-            }
-            default:
-            {
-                break;
-            }
-            }
+            js_type = String::New("raster");
         }
+        else
+        {
+#if MAPNIK_VERSION >= 200100
+            boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
+            if (geom_type)
+            {
+                mapnik::datasource::geometry_t g_type = *geom_type;
+                switch (g_type)
+                {
+                case mapnik::datasource::Point:
+                {
+                    js_type = String::New("point");
+                    break;
+                }
+                case mapnik::datasource::LineString:
+                {
+                    js_type = String::New("linestring");
+                    break;
+                }
+                case mapnik::datasource::Polygon:
+                {
+                    js_type = String::New("polygon");
+                    break;
+                }
+                case mapnik::datasource::Collection:
+                {
+                    js_type = String::New("collection");
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+                }
+            }
 #endif
+        }
         description->Set(String::NewSymbol("geometry_type"), js_type);
     }
     catch (std::exception const& ex)
@@ -140,10 +147,10 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                     mapnik::feature_impl::iterator f_end = fp->end();
                     for ( ;f_itr!=f_end; ++f_itr)
                     {
-                        node_mapnik::params_to_object serializer( feat , boost::get<0>(*f_itr));
+                        node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*f_itr));
                         // need to call base() since this is a mapnik::value
                         // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, boost::get<1>(*f_itr).base() );
+                        boost::apply_visitor( serializer, MAPNIK_GET<1>(*f_itr).base() );
                     }
 #else
                     std::map<std::string,mapnik::value> const& fprops = fp->props();

@@ -1,3 +1,5 @@
+#ifdef NODE_MAPNIK_EXPRESSION
+
 #include <node.h>
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
@@ -9,7 +11,7 @@
 #include <mapnik/expression_evaluator.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <exception>                    // for exception
@@ -91,7 +93,7 @@ Handle<Value> Expression::toString(const Arguments& args)
 {
     HandleScope scope;
 
-    Expression* e = ObjectWrap::Unwrap<Expression>(args.This());
+    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.This());
     return scope.Close(String::New( mapnik::to_expression_string(*e->get()).c_str() ));
 }
 
@@ -113,9 +115,11 @@ Handle<Value> Expression::evaluate(const Arguments& args)
         return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a mapnik.Feature")));
     }
 
-    Feature* f = ObjectWrap::Unwrap<Feature>(obj);
+    Feature* f = node::ObjectWrap::Unwrap<Feature>(obj);
 
-    Expression* e = ObjectWrap::Unwrap<Expression>(args.This());
+    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.This());
     mapnik::value value_obj = boost::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
     return scope.Close(boost::apply_visitor(node_mapnik::value_converter(),value_obj.base()));
 }
+
+#endif

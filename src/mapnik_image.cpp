@@ -1,6 +1,7 @@
 // node
 #include <node.h>
 #include <node_buffer.h>
+#include <node_version.h>
 
 // mapnik
 #include <mapnik/color.hpp>             // for color
@@ -12,11 +13,9 @@
 
 #if MAPNIK_VERSION >= 200100
 #include <mapnik/image_compositing.hpp>
+#include <mapnik/image_filter_types.hpp>
+#include <mapnik/image_filter.hpp> // filter_visitor
 #endif
-
-// boost
-#include <boost/make_shared.hpp>
-#include <boost/optional/optional.hpp>
 
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
@@ -24,6 +23,11 @@
 #include "mapnik_color.hpp"
 
 #include "utils.hpp"
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
+#include <boost/optional/optional.hpp>
+#include <boost/foreach.hpp>
 
 // std
 #include <exception>
@@ -41,6 +45,8 @@ void Image::Initialize(Handle<Object> target) {
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(String::NewSymbol("Image"));
 
+    NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "setPixel", setPixel);
     NODE_SET_PROTOTYPE_METHOD(constructor, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(constructor, "view", view);
@@ -50,7 +56,9 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
     NODE_SET_PROTOTYPE_METHOD(constructor, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "premultiplySync", premultiplySync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "premultiply", premultiply);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "demultiplySync", demultiplySync);
     NODE_SET_PROTOTYPE_METHOD(constructor, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clearSync", clear);
@@ -61,13 +69,21 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_METHOD(constructor->GetFunction(),
                     "open",
                     Image::open);
-
+    NODE_SET_METHOD(constructor->GetFunction(),
+                    "fromBytes",
+                    Image::fromBytes);
+    NODE_SET_METHOD(constructor->GetFunction(),
+                    "openSync",
+                    Image::openSync);
+    NODE_SET_METHOD(constructor->GetFunction(),
+                    "fromBytesSync",
+                    Image::fromBytesSync);
     target->Set(String::NewSymbol("Image"),constructor->GetFunction());
 }
 
 Image::Image(unsigned int width, unsigned int height) :
     ObjectWrap(),
-    this_(boost::make_shared<mapnik::image_32>(width,height)),
+    this_(MAPNIK_MAKE_SHARED<mapnik::image_32>(width,height)),
     estimated_size_(width * height * 4)
 {
     V8::AdjustAmountOfExternalAllocatedMemory(estimated_size_);
@@ -102,19 +118,27 @@ Handle<Value> Image::New(const Arguments& args)
         return args.This();
     }
 
-    if (args.Length() == 2)
+    try
     {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
+        if (args.Length() == 2)
+        {
+            if (!args[0]->IsNumber() || !args[1]->IsNumber())
+                return ThrowException(Exception::Error(
+                                          String::New("Image 'width' and 'height' must be a integers")));
+            Image* im = new Image(args[0]->IntegerValue(),args[1]->IntegerValue());
+            im->Wrap(args.This());
+            return args.This();
+        }
+        else
+        {
             return ThrowException(Exception::Error(
-                                      String::New("Image 'width' and 'height' must be a integers")));
-        Image* im = new Image(args[0]->IntegerValue(),args[1]->IntegerValue());
-        im->Wrap(args.This());
-        return args.This();
+                                      String::New("please provide Image width and height")));
+        }
     }
-    else
+    catch (std::exception const& ex)
     {
         return ThrowException(Exception::Error(
-                                  String::New("please provide Image width and height")));
+                                  String::New(ex.what())));
     }
     return Undefined();
 }
@@ -123,7 +147,7 @@ Handle<Value> Image::get_prop(Local<String> property,
                               const AccessorInfo& info)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
+    Image* im = node::ObjectWrap::Unwrap<Image>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "background") {
         boost::optional<mapnik::color> c = im->get()->get_background();
@@ -140,7 +164,7 @@ void Image::set_prop(Local<String> property,
                      const AccessorInfo& info)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(info.Holder());
+    Image* im = node::ObjectWrap::Unwrap<Image>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "background") {
         if (!value->IsObject())
@@ -150,16 +174,72 @@ void Image::set_prop(Local<String> property,
         Local<Object> obj = value->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
-        Color *c = ObjectWrap::Unwrap<Color>(obj);
+        Color *c = node::ObjectWrap::Unwrap<Color>(obj);
         im->get()->set_background(*c->get());
     }
+}
+
+Handle<Value> Image::getPixel(const Arguments& args)
+{
+    HandleScope scope;
+    int x = 0;
+    int y = 0;
+    if (args.Length() >= 2) {
+        if (!args[0]->IsNumber())
+            return ThrowException(Exception::TypeError(
+                                      String::New("first arg, 'x' must be an integer")));
+        if (!args[1]->IsNumber())
+            return ThrowException(Exception::TypeError(
+                                      String::New("second arg, 'y' must be an integer")));
+        x = args[0]->IntegerValue();
+        y = args[1]->IntegerValue();
+    } else {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must supply x,y to query pixel color")));
+    }
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+    mapnik::image_data_32 const& data = im->this_->data();
+    if (x >= 0 && x < static_cast<int>(data.width())
+        && y >= 0 && y < static_cast<int>(data.height()))
+    {
+        unsigned pixel = data(x,y);
+        unsigned r = pixel & 0xff;
+        unsigned g = (pixel >> 8) & 0xff;
+        unsigned b = (pixel >> 16) & 0xff;
+        unsigned a = (pixel >> 24) & 0xff;
+        return Color::New(mapnik::color(r,g,b,a));
+    }
+    return Undefined();
+}
+
+Handle<Value> Image::setPixel(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 3 || (!args[0]->IsNumber() && !args[1]->IsNumber())) {
+        return ThrowException(Exception::TypeError(String::New("expects three arguments: x, y, and pixel value")));
+    }
+    Local<Object> obj = args[2]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
+        return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as third arg")));
+    Color * color = node::ObjectWrap::Unwrap<Color>(obj);
+    int x = args[0]->IntegerValue();
+    int y = args[1]->IntegerValue();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+    mapnik::image_data_32 & data = im->this_->data();
+    if (x < static_cast<int>(data.width()) && y < static_cast<int>(data.height()))
+    {
+        data(x,y) = color->get()->rgba();
+        return scope.Close(Undefined());
+    }
+    return ThrowException(Exception::TypeError(String::New("invalid pixel requested")));
+    return scope.Close(Undefined());
 }
 
 Handle<Value> Image::clearSync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200200
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     im->get()->clear();
 #endif
     return Undefined();
@@ -177,7 +257,7 @@ typedef struct {
 Handle<Value> Image::clear(const Arguments& args)
 {
     HandleScope scope;
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     if (args.Length() == 0) {
         return clearSync(args);
@@ -225,7 +305,7 @@ void Image::EIO_AfterClear(uv_work_t* req)
     }
     else
     {
-        Local<Value> argv[2] = { Local<Value>::New(Null()) };
+        Local<Value> argv[1] = { Local<Value>::New(Null()) };
         closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     }
     if (try_catch.HasCaught())
@@ -241,7 +321,7 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     if (args.Length() == 0) {
         im->this_->set_grayscale_to_alpha();
     } else {
@@ -254,7 +334,7 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
             return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as second arg")));
 
-        Color * color = ObjectWrap::Unwrap<Color>(obj);
+        Color * color = node::ObjectWrap::Unwrap<Color>(obj);
 
         mapnik::image_data_32 & data = im->this_->data();
         for (unsigned int y = 0; y < data.height(); ++y)
@@ -282,12 +362,93 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
     return Undefined();
 }
 
-Handle<Value> Image::premultiply(const Arguments& args)
+typedef struct {
+    uv_work_t request;
+    Image* im;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} image_op_baton_t;
+
+
+Handle<Value> Image::premultiplySync(const Arguments& args)
 {
     HandleScope scope;
 #if MAPNIK_VERSION >= 200100
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     im->get()->premultiply();
+#endif
+    return Undefined();
+}
+
+Handle<Value> Image::premultiply(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        return premultiplySync(args);
+    }
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_op_baton_t *closure = new image_op_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Premultiply, (uv_after_work_cb)EIO_AfterMultiply);
+    im->Ref();
+    return Undefined();
+}
+
+void Image::EIO_Premultiply(uv_work_t* req)
+{
+    image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
+
+    try
+    {
+        closure->im->get()->premultiply();
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterMultiply(uv_work_t* req)
+{
+    HandleScope scope;
+    image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->im->Unref();
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> Image::demultiplySync(const Arguments& args)
+{
+    HandleScope scope;
+#if MAPNIK_VERSION >= 200100
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+    im->get()->demultiply();
 #endif
     return Undefined();
 }
@@ -295,18 +456,47 @@ Handle<Value> Image::premultiply(const Arguments& args)
 Handle<Value> Image::demultiply(const Arguments& args)
 {
     HandleScope scope;
-#if MAPNIK_VERSION >= 200100
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
-    im->get()->demultiply();
-#endif
+    if (args.Length() == 0) {
+        return demultiplySync(args);
+    }
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_op_baton_t *closure = new image_op_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Demultiply, (uv_after_work_cb)EIO_AfterMultiply);
+    im->Ref();
     return Undefined();
+}
+
+void Image::EIO_Demultiply(uv_work_t* req)
+{
+    image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
+
+    try
+    {
+        closure->im->get()->demultiply();
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
 }
 
 Handle<Value> Image::painted(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(Boolean::New(im->get()->painted()));
 }
 
@@ -314,7 +504,7 @@ Handle<Value> Image::width(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(Integer::New(im->get()->width()));
 }
 
@@ -322,28 +512,34 @@ Handle<Value> Image::height(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(Integer::New(im->get()->height()));
 }
 
-Handle<Value> Image::open(const Arguments& args)
+Handle<Value> Image::openSync(const Arguments& args)
 {
     HandleScope scope;
+
+    if (args.Length() < 1) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a string argument")));
+    }
 
     if (!args[0]->IsString()) {
         return ThrowException(Exception::TypeError(String::New(
                                                        "Argument must be a string")));
     }
 
-    try {
+    try
+    {
         std::string filename = TOSTR(args[0]);
         boost::optional<std::string> type = mapnik::type_from_filename(filename);
         if (type)
         {
-            std::auto_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
             if (reader.get())
             {
-                boost::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+                MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
                 reader->read(0,0,image_ptr->data());
                 Image* im = new Image(image_ptr);
                 Handle<Value> ext = External::New(im);
@@ -361,14 +557,253 @@ Handle<Value> Image::open(const Arguments& args)
         return ThrowException(Exception::Error(
                                   String::New(ex.what())));
     }
+}
 
+typedef struct {
+    uv_work_t request;
+    image_ptr im;
+    const char *data;
+    size_t dataLength;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} image_mem_ptr_baton_t;
+
+typedef struct {
+    uv_work_t request;
+    image_ptr im;
+    std::string filename;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} image_file_ptr_baton_t;
+
+Handle<Value> Image::open(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() == 1) {
+        return openSync(args);
+    }
+
+    if (args.Length() < 2) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a string argument")));
+    }
+
+    if (!args[0]->IsString()) {
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "Argument must be a string")));
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_file_ptr_baton_t *closure = new image_file_ptr_baton_t();
+    closure->request.data = closure;
+    closure->filename = TOSTR(args[0]);
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Open, (uv_after_work_cb)EIO_AfterOpen);
+    return Undefined();
+}
+
+void Image::EIO_Open(uv_work_t* req)
+{
+    image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);
+
+    try
+    {
+        boost::optional<std::string> type = mapnik::type_from_filename(closure->filename);
+        if (!type)
+        {
+            closure->error = true;
+            closure->error_name = "Unsupported image format: " + closure->filename;
+        }
+        else
+        {
+            MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->filename,*type));
+            if (reader.get())
+            {
+                closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
+                reader->read(0,0,closure->im->data());
+            }
+            else
+            {
+                closure->error = true;
+                closure->error_name = "Failed to load: " + closure->filename;
+            }
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterOpen(uv_work_t* req)
+{
+    HandleScope scope;
+    image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error || !closure->im)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im);
+        Handle<Value> ext = External::New(im);
+        Local<Object> image_obj = constructor->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(ObjectWrap::Unwrap<Image>(image_obj)->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->cb.Dispose();
+    delete closure;
+}
+
+Handle<Value> Image::fromBytesSync(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() < 1 || !args[0]->IsObject()) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a buffer argument")));
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined())
+        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a Buffer")));
+    if (!node::Buffer::HasInstance(obj)) {
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "first argument must be a buffer")));
+    }
+
+    try
+    {
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
+        if (reader.get())
+        {
+            MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+            reader->read(0,0,image_ptr->data());
+            Image* im = new Image(image_ptr);
+            Handle<Value> ext = External::New(im);
+            return scope.Close(constructor->GetFunction()->NewInstance(1, &ext));
+        }
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "Failed to load from buffer")));
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New(ex.what())));
+    }
+}
+
+Handle<Value> Image::fromBytes(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() == 1) {
+        return fromBytesSync(args);
+    }
+
+    if (args.Length() < 2) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a buffer argument")));
+    }
+
+    if (!args[0]->IsObject()) {
+        return ThrowException(Exception::TypeError(
+                                  String::New("must provide a buffer argument")));
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined())
+        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a Buffer")));
+    if (!node::Buffer::HasInstance(obj)) {
+        return ThrowException(Exception::TypeError(String::New(
+                                                       "first argument must be a buffer")));
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction())
+        return ThrowException(Exception::TypeError(
+                                  String::New("last argument must be a callback function")));
+
+    image_mem_ptr_baton_t *closure = new image_mem_ptr_baton_t();
+    closure->request.data = closure;
+    closure->data = node::Buffer::Data(obj);
+    closure->dataLength = node::Buffer::Length(obj);
+    closure->error = false;
+    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterFromBytes);
+    return Undefined();
+}
+
+void Image::EIO_FromBytes(uv_work_t* req)
+{
+    image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
+
+    try
+    {
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
+        if (reader.get())
+        {
+            closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
+            reader->read(0,0,closure->im->data());
+        }
+        else
+        {
+            closure->error = true;
+            closure->error_name = "Failed to load from buffer";
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterFromBytes(uv_work_t* req)
+{
+    HandleScope scope;
+    image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
+    TryCatch try_catch;
+    if (closure->error || !closure->im)
+    {
+        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im);
+        Handle<Value> ext = External::New(im);
+        Local<Object> image_obj = constructor->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(ObjectWrap::Unwrap<Image>(image_obj)->handle_) };
+        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+    }
+    if (try_catch.HasCaught()) {
+        node::FatalException(try_catch);
+    }
+    closure->cb.Dispose();
+    delete closure;
 }
 
 Handle<Value> Image::encodeSync(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -387,9 +822,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
         if (!args[1]->IsObject())
             return ThrowException(Exception::TypeError(
                                       String::New("optional second arg must be an options object")));
-
         Local<Object> options = args[1]->ToObject();
-
         if (options->Has(String::New("palette")))
         {
             Local<Value> format_opt = options->Get(String::New("palette"));
@@ -400,8 +833,7 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             Local<Object> obj = format_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
-
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -415,8 +847,12 @@ Handle<Value> Image::encodeSync(const Arguments& args)
             s = save_to_string(*(im->this_), format);
         }
 
-        node::Buffer *retbuf = node::Buffer::New((char*)s.data(),s.size());
-        return scope.Close(retbuf->handle_);
+        // https://github.com/joyent/node/commit/3a2f273bd73bc94a6e93f342d629106a9f022f2d#src/node_buffer.h
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
+        #else
+        return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
+        #endif
     }
     catch (std::exception const& ex)
     {
@@ -440,7 +876,7 @@ Handle<Value> Image::encode(const Arguments& args)
 {
     HandleScope scope;
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
 
     std::string format = "png";
     palette_ptr palette;
@@ -472,7 +908,7 @@ Handle<Value> Image::encode(const Arguments& args)
             if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
                 return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
 
-            palette = ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
@@ -530,8 +966,11 @@ void Image::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        node::Buffer *retbuf = node::Buffer::New((char*)closure->result.data(),closure->result.size());
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(retbuf->handle_) };
+        #if NODE_VERSION_AT_LEAST(0, 11, 0)
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())) };
+        #else
+        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())->handle_) };
+        #endif
         closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
     }
 
@@ -558,7 +997,7 @@ Handle<Value> Image::view(const Arguments& args)
     unsigned w = args[2]->IntegerValue();
     unsigned h = args[3]->IntegerValue();
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     return scope.Close(ImageView::New(im,x,y,w,h));
 }
 
@@ -592,7 +1031,7 @@ Handle<Value> Image::save(const Arguments& args)
         }
     }
 
-    Image* im = ObjectWrap::Unwrap<Image>(args.This());
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
     try
     {
         mapnik::save_to_file<mapnik::image_data_32>(im->get()->data(),filename, format);
@@ -612,6 +1051,10 @@ typedef struct {
     Image* im1;
     Image* im2;
     mapnik::composite_mode_e mode;
+    int dx;
+    int dy;
+    float opacity;
+    std::vector<mapnik::filter::filter_type> filters;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -621,19 +1064,14 @@ Handle<Value> Image::composite(const Arguments& args)
 {
     HandleScope scope;
 
-    if (args.Length() < 2){
+    if (args.Length() < 1){
         return ThrowException(Exception::TypeError(
-                                  String::New("requires two arguments: an image mask and a compositeOp")));
+                                  String::New("requires at least one argument: an image mask")));
     }
 
     if (!args[0]->IsObject()) {
         return ThrowException(Exception::TypeError(
                                   String::New("first argument must be an image mask")));
-    }
-
-    if (!args[1]->IsNumber()) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("second argument must be an compositeOp value")));
     }
 
     Local<Object> im2 = args[0]->ToObject();
@@ -646,16 +1084,96 @@ Handle<Value> Image::composite(const Arguments& args)
         return ThrowException(Exception::TypeError(
                                   String::New("last argument must be a callback function")));
 
-    composite_image_baton_t *closure = new composite_image_baton_t();
-    closure->request.data = closure;
-    closure->im1 = ObjectWrap::Unwrap<Image>(args.This());
-    closure->im2 = ObjectWrap::Unwrap<Image>(im2);
-    closure->mode = static_cast<mapnik::composite_mode_e>(args[1]->IntegerValue());
-    closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
-    closure->im1->Ref();
-    closure->im2->Ref();
+    try
+    {
+        mapnik::composite_mode_e mode = mapnik::src_over;
+        float opacity = 1.0;
+        std::vector<mapnik::filter::filter_type> filters;
+        int dx = 0;
+        int dy = 0;
+        if (args.Length() >= 2) {
+            if (!args[1]->IsObject())
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional second arg must be an options object")));
+
+            Local<Object> options = args[1]->ToObject();
+
+            if (options->Has(String::New("comp_op")))
+            {
+                Local<Value> opt = options->Get(String::New("comp_op"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("comp_op must be a mapnik.compositeOp value")));
+                }
+                mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
+            }
+
+            if (options->Has(String::New("opacity")))
+            {
+                Local<Value> opt = options->Get(String::New("opacity"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("opacity must be a floating point number")));
+                }
+                opacity = opt->NumberValue();
+            }
+
+            if (options->Has(String::New("dx")))
+            {
+                Local<Value> opt = options->Get(String::New("dx"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("dx must be an integer")));
+                }
+                dx = opt->IntegerValue();
+            }
+
+            if (options->Has(String::New("dy")))
+            {
+                Local<Value> opt = options->Get(String::New("dy"));
+                if (!opt->IsNumber()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("dy must be an integer")));
+                }
+                dy = opt->IntegerValue();
+            }
+
+            if (options->Has(String::New("image_filters")))
+            {
+                Local<Value> opt = options->Get(String::New("image_filters"));
+                if (!opt->IsString()) {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("image_filters argument must string of filter names")));
+                }
+                std::string filter_str = TOSTR(opt);
+                bool result = mapnik::filter::parse_image_filters(filter_str, filters);
+                if (!result)
+                {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("could not parse image_filters")));
+                }
+            }
+        }
+
+        composite_image_baton_t *closure = new composite_image_baton_t();
+        closure->request.data = closure;
+        closure->im1 = node::ObjectWrap::Unwrap<Image>(args.This());
+        closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
+        closure->mode = mode;
+        closure->opacity = opacity;
+        closure->filters = filters;
+        closure->dx = dx;
+        closure->dy = dy;
+        closure->error = false;
+        closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
+        closure->im1->Ref();
+        closure->im2->Ref();
+    }
+    catch (std::exception const& ex)
+    {
+        return ThrowException(Exception::Error(String::New(ex.what())));
+    }
     return Undefined();
 }
 
@@ -665,7 +1183,15 @@ void Image::EIO_Composite(uv_work_t* req)
 
     try
     {
-        mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode);
+        if (closure->filters.size() > 0)
+        {
+            mapnik::filter::filter_visitor<mapnik::image_32> visitor(*closure->im2->this_);
+            BOOST_FOREACH(mapnik::filter::filter_type const& filter_tag, closure->filters)
+            {
+                boost::apply_visitor(visitor, filter_tag);
+            }
+        }
+        mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode, closure->opacity, closure->dx, closure->dy);
     }
     catch (std::exception const& ex)
     {

@@ -9,6 +9,7 @@
 
 // core types
 #include <mapnik/unicode.hpp>
+#include <mapnik/value_types.hpp>
 #include <mapnik/value.hpp>
 #include <mapnik/version.hpp>
 
@@ -78,7 +79,7 @@ public:
         ds_->Set(String::NewSymbol(key_.c_str()), String::New(val.c_str()) );
     }
 
-    void operator () ( UnicodeString const& val)
+    void operator () ( mapnik::value_unicode_string const& val)
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);
@@ -117,7 +118,7 @@ struct value_converter: public boost::static_visitor<Handle<Value> >
         return String::New(val.c_str());
     }
 
-    Handle<Value> operator () ( UnicodeString const& val) const
+    Handle<Value> operator () ( mapnik::value_unicode_string const& val) const
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);

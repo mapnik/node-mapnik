@@ -1,5 +1,3 @@
-// boost
-#include <boost/make_shared.hpp>
 
 // node-mapnik
 #include "mapnik_palette.hpp"
@@ -7,12 +5,16 @@
 
 // node
 #include <node_buffer.h>
+#include <node_version.h>
 
 // stl
 #include <vector>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+
+// boost
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> Palette::constructor;
 
@@ -31,7 +33,7 @@ void Palette::Initialize(Handle<Object> target) {
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
     ObjectWrap(),
-    palette_(boost::make_shared<mapnik::rgba_palette>(palette, type)) {}
+    palette_(MAPNIK_MAKE_SHARED<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }
@@ -83,7 +85,7 @@ Handle<Value> Palette::New(const Arguments& args) {
 Handle<Value> Palette::ToString(const Arguments& args)
 {
     HandleScope scope;
-    palette_ptr p = ObjectWrap::Unwrap<Palette>(args.This())->palette_;
+    palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.This())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     unsigned length = colors.size();
@@ -113,7 +115,7 @@ Handle<Value> Palette::ToBuffer(const Arguments& args)
 {
     HandleScope scope;
 
-    palette_ptr p = ObjectWrap::Unwrap<Palette>(args.This())->palette_;
+    palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.This())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     unsigned length = colors.size();
@@ -127,7 +129,9 @@ Handle<Value> Palette::ToBuffer(const Arguments& args)
         palette[pos++] = colors[i].b;
         palette[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
     }
-
-    node::Buffer *buffer = node::Buffer::New(palette, length * 4);
-    return scope.Close(buffer->handle_);
+    #if NODE_VERSION_AT_LEAST(0, 11, 0)
+    return scope.Close(node::Buffer::New(palette, length * 4));
+    #else
+    return scope.Close(node::Buffer::New(palette, length * 4)->handle_);
+    #endif
 }
