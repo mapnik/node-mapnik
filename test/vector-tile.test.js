@@ -459,6 +459,8 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(features.length,1);
         assert.equal(JSON.parse(features[0].toJSON()).properties.NAME,'Japan');
         assert.equal(features[0].id(),89);
+        assert.equal(features[0].distance,0);
+        assert.equal(features[0].layer,'world');
         // tolerance only applies to points and lines currently in mapnik::hit_test
         var features = vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000});
         assert.equal(features.length,0);
@@ -470,6 +472,8 @@ describe('mapnik.VectorTile ', function() {
         var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0,layer:vtile.names()[0]});
         assert.equal(features.length,1);
         assert.equal(features[0].id(),89);
+        assert.equal(features[0].distance,0);
+        assert.equal(features[0].layer,'world');
         // ensure querying clipped polygons works
         var pbf = require('fs').readFileSync('./test/data/vector_tile/6.20.34.pbf');
         var vt = new mapnik.VectorTile(6, 20, 34);
@@ -480,9 +484,11 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(2, json[0].features.length);
             assert.equal('Brazil', json[0].features[0].properties.name);
             assert.equal('Bolivia', json[0].features[1].properties.name);
-            var results = vt.query(-64.27521952641217,-16.28853953000943,{tolerance:10})
-            assert.equal(1, results.length);
-            var feat_json = JSON.parse(results[0].toJSON());
+            var features = vt.query(-64.27521952641217,-16.28853953000943,{tolerance:10})
+            assert.equal(1, features.length);
+            assert.equal(features[0].distance,0);
+            assert.equal(features[0].layer,'data');
+            var feat_json = JSON.parse(features[0].toJSON());
             assert.equal('Bolivia',feat_json.properties.name);
             assert.equal(86,feat_json.id);
             done();
@@ -517,8 +523,8 @@ describe('mapnik.VectorTile ', function() {
         var features = vtile.query(-122,48,{tolerance:10000});
         assert.equal(features.length,1);
         assert.equal(features[0].id(),1);
-        assert.equal(features[0].distance,1);
-        assert.equal(features[0].layer,1);
+        assert.ok(Math.abs(features[0].distance - 1888.66) < 1);
+        assert.equal(features[0].layer,'layer-name');
         done();
     });
 

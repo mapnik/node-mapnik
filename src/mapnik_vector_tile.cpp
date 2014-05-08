@@ -63,7 +63,7 @@
 #include <mapnik/save_map.hpp>
 
 template <typename PathType>
-bool _hit_test(PathType & path, double x, double y, double tol)
+bool _hit_test(PathType & path, double x, double y, double tol, double & distance)
 {
     double x0 = 0;
     double y0 = 0;
@@ -75,7 +75,8 @@ bool _hit_test(PathType & path, double x, double y, double tol)
     {
         unsigned command = path.vertex(&x0, &y0);
         if (command == mapnik::SEG_END) return false;
-        return mapnik::distance(x, y, x0, y0) <= tol;
+        distance = mapnik::distance(x, y, x0, y0);
+        return distance <= tol;
         break;
     }
     case MAPNIK_POLYGON:
@@ -121,7 +122,7 @@ bool _hit_test(PathType & path, double x, double y, double tol)
                 y0 = y1;
                 continue;
             }
-            double distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+            distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
             if (distance < tol)
                 return true;
             x0 = x1;
@@ -672,15 +673,23 @@ Handle<Value> VectorTile::query(const Arguments& args)
                         while ((feature = fs->next()))
                         {
                             bool hit = false;
+                            double distance = 0.0;
                             BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                             {
-                               if (_hit_test(geom,x,y,tolerance))
+                               if (_hit_test(geom,x,y,tolerance,distance))
                                {
                                    hit = true;
                                    break;
                                }
                             }
-                            if (hit) arr->Set(idx++,Feature::New(feature));
+                            if (hit)
+                            {
+                                Handle<Value> feat = Feature::New(feature);
+                                Local<Object> feat_obj = feat->ToObject();
+                                feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
+                                feat_obj->Set(String::New("distance"),Number::New(distance));
+                                arr->Set(idx++,feat);
+                            }
                         }
                     }
                 }
@@ -705,15 +714,23 @@ Handle<Value> VectorTile::query(const Arguments& args)
                     while ((feature = fs->next()))
                     {
                         bool hit = false;
+                        double distance = 0.0;
                         BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                         {
-                           if (_hit_test(geom,x,y,tolerance))
+                           if (_hit_test(geom,x,y,tolerance,distance))
                            {
                                hit = true;
                                break;
                            }
                         }
-                        if (hit) arr->Set(idx++,Feature::New(feature));
+                        if (hit)
+                        {
+                            Handle<Value> feat = Feature::New(feature);
+                            Local<Object> feat_obj = feat->ToObject();
+                            feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
+                            feat_obj->Set(String::New("distance"),Number::New(distance));
+                            arr->Set(idx++,feat);
+                        }
                     }
                 }
             }
