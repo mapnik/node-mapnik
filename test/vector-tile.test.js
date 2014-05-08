@@ -113,6 +113,13 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should accept optional width/height', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0,{width:512,height:512});
+        assert.equal(vtile.width(), 512);
+        assert.equal(vtile.height(), 512);
+        done();
+    });
+
     it('should be able to setData/parse (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         // tile1 represents a "solid" vector tile with one layer

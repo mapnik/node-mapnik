@@ -58,7 +58,7 @@ public:
     static void EIO_AfterIsSolid(uv_work_t* req);
     static Handle<Value> isSolidSync(Arguments const& args);
 
-    VectorTile(int z, int x, int y, unsigned w=256, unsigned h=256);
+    VectorTile(int z, int x, int y, unsigned w, unsigned h);
 
     void clear() {
         tiledata_.Clear();

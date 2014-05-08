@@ -194,17 +194,50 @@ Handle<Value> VectorTile::New(const Arguments& args)
     if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
 
-    if (args.Length() == 3)
+    if (args.Length() >= 3)
     {
         if (!args[0]->IsNumber() ||
             !args[1]->IsNumber() ||
             !args[2]->IsNumber())
+        {
             return ThrowException(Exception::Error(
                                       String::New("required args (z, x, and y) must be a integers")));
+        }
+        unsigned width = 256;
+        unsigned height = 256;
+        Local<Object> options = Object::New();
+        if (args.Length() > 3) {
+            if (!args[3]->IsObject())
+            {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional fourth argument must be an options object")));
+            }
+            options = args[3]->ToObject();
+            if (options->Has(String::New("width"))) {
+                Local<Value> opt = options->Get(String::New("width"));
+                if (!opt->IsNumber())
+                {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("optional arg 'width' must be a number")));
+                }
+                width = opt->IntegerValue();
+            }
+            if (options->Has(String::New("height"))) {
+                Local<Value> opt = options->Get(String::New("height"));
+                if (!opt->IsNumber())
+                {
+                    return ThrowException(Exception::TypeError(
+                                              String::New("optional arg 'height' must be a number")));
+                }
+                height = opt->IntegerValue();
+            }
+        }
+
         VectorTile* d = new VectorTile(args[0]->IntegerValue(),
                                    args[1]->IntegerValue(),
-                                   args[2]->IntegerValue()
-            );
+                                   args[2]->IntegerValue(),
+                                   width,height);
+
         d->Wrap(args.This());
         return args.This();
     }
