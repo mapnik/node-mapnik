@@ -1273,7 +1273,7 @@ Handle<Value> VectorTile::fromGeoJSON(const Arguments& args)
         p["layer_by_index"]="0";
         mapnik::layer lyr(geojson_name,"+init=epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
-        map.addLayer(lyr);
+        map.MAPNIK_ADD_LAYER(lyr);
         renderer_type ren(backend,
                           map,
                           m_req);
