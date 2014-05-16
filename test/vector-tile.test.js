@@ -562,19 +562,23 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should be able to encode image data into vector tile', function(done) {
+    it('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
+        // first we render a geotiff into an image tile
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/raster_layer.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
         map.render(vtile,{},function(err,vtile) {
             if (err) throw err;
+            // now this vtile contains a 256/256 image
+            // let's render it out to an actual image tile
+            // to make sure it looks right
             var map2 = new mapnik.Map(256, 256);
             map2.loadSync('./test/data/vector_tile/raster_layer.xml');
             vtile.render(map2, new mapnik.Image(256, 256), {}, function(err, vtile_image) {
                 if (err) throw err;
-                var actual = './test/data/vector_tile/tile-raster.actual.png';
-                var expected = './test/data/vector_tile/tile-raster.expected.png';
+                var actual = './test/data/vector_tile/tile-raster.actual.jpg';
+                var expected = './test/data/vector_tile/tile-raster.expected.jpg';
                 if (!existsSync(expected)) {
                     vtile_image.save(expected, 'jpeg80');
                 }
