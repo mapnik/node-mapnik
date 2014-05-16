@@ -564,7 +564,7 @@ describe('mapnik.VectorTile ', function() {
 
     // currently skipping since this segfaults at exit
     // https://github.com/mapnik/node-mapnik/issues/251
-    it('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
+    it.skip('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         // first we render a geotiff into an image tile
         var map = new mapnik.Map(256, 256);
