@@ -56,7 +56,7 @@
 #include <vector>                       // for vector
 #include "pbf.hpp"
 
-// fromGeoJSON
+// addGeoJSON
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
@@ -157,7 +157,8 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "fromGeoJSON", fromGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addGeoJSON", addGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addImage", addImage);
 #ifdef PROTOBUF_FULL
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
 #endif
@@ -504,7 +505,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                     ren.apply(scale_denominator);
                 }
             }
-            else // tile is not pre-parsed so parse into new object to avoid mutating input
+            else // tile is not pre-parsed so parse into new object to avoid needing to mutate input
             {
                 std::size_t bytes = vt->buffer_.size();
                 if (bytes > 1) // throw instead?
@@ -575,7 +576,7 @@ Handle<Value> VectorTile::names(const Arguments& args)
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     int raw_size = d->buffer_.size();
-    if (d->byte_size_ <= raw_size)
+    if (raw_size > 0 && d->byte_size_ <= raw_size)
     {
         std::vector<std::string> names = d->lazy_names();
         Local<Array> arr = Array::New(names.size());
@@ -796,7 +797,15 @@ Handle<Value> VectorTile::toJSON(const Arguments& args)
         {
             Local<Object> feature_obj = Object::New();
             mapnik::vector::tile_feature const& f = layer.features(j);
-            feature_obj->Set(String::NewSymbol("id"),Number::New(f.id()));
+            if (f.has_id())
+            {
+                feature_obj->Set(String::NewSymbol("id"),Number::New(f.id()));
+            }
+            if (f.has_raster())
+            {
+                std::string const& raster = f.raster();
+                feature_obj->Set(String::NewSymbol("raster"),node::Buffer::New((char*)raster.data(),raster.size())->handle_);
+            }
             feature_obj->Set(String::NewSymbol("type"),Integer::New(f.type()));
             Local<Array> g_arr = Array::New();
             for (int k = 0; k < f.geometry_size();++k)
@@ -1242,7 +1251,42 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
     delete closure;
 }
 
-Handle<Value> VectorTile::fromGeoJSON(const Arguments& args)
+Handle<Value> VectorTile::addImage(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    if (args.Length() < 1 || !args[0]->IsObject())
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a Buffer representing encoded image data")));
+    if (args.Length() < 2 || !args[1]->IsString())
+        return ThrowException(Exception::Error(
+                                  String::New("second argument must be a layer name (string)")));
+    std::string layer_name = TOSTR(args[1]);
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a Buffer representing encoded image data")));
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("cannot accept empty buffer as image")));
+    }
+    // how to ensure buffer width/height?
+    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
+    mapnik::vector::tile_layer * new_layer = tiledata.add_layers();
+    new_layer->set_name(layer_name);
+    new_layer->set_version(1);
+    new_layer->set_extent(256 * 16);
+    // no need
+    // current_feature_->set_id(feature.id());
+    mapnik::vector::tile_feature * new_feature = new_layer->add_features();
+    new_feature->set_raster(std::string(node::Buffer::Data(obj),buffer_size));
+    //d->status_ = VectorTile::LAZY_MERGE;
+    return Undefined();
+
+}
+Handle<Value> VectorTile::addGeoJSON(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
