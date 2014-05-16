@@ -76,7 +76,7 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.fromGeoJSON(JSON.stringify(geojson),"layer-name")
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name")
         var out = vtile.toGeoJSON(0);
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
@@ -524,7 +524,7 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.fromGeoJSON(JSON.stringify(geojson),"layer-name");
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
         // console.log(JSON.stringify(vtile.toGeoJSON(0),null,1));
         // at z0 we need a large tolerance because of loss of precision in point coords
         // because the points have been rounded to -121.9921875,47.98992166741417
@@ -564,7 +564,7 @@ describe('mapnik.VectorTile ', function() {
 
     // currently skipping since this segfaults at exit
     // https://github.com/mapnik/node-mapnik/issues/251
-    it.skip('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
+    it('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         // first we render a geotiff into an image tile
         var map = new mapnik.Map(256, 256);
