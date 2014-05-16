@@ -78,7 +78,7 @@ Handle<Value> Datasource::New(const Arguments& args)
         d->Wrap(args.This());
         return args.This();
     }
-    if (!args.Length() == 1){
+    if (args.Length() != 1){
         return ThrowException(Exception::TypeError(
                                   String::New("accepts only one argument, an object of key:value datasource options")));
     }

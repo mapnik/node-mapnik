@@ -71,7 +71,7 @@ Handle<Value> Projection::forward(const Arguments& args)
 
     try
     {
-        if (!args.Length() == 1)
+        if (args.Length() != 1)
             return ThrowException(Exception::Error(
                                       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
         else
@@ -123,7 +123,7 @@ Handle<Value> Projection::inverse(const Arguments& args)
 
     try
     {
-        if (!args.Length() == 1)
+        if (args.Length() != 1)
             return ThrowException(Exception::Error(
                                       String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
         else
@@ -233,7 +233,7 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
     HandleScope scope;
     ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.This());
 
-    if (!args.Length() == 1)
+    if (args.Length() != 1)
         return ThrowException(Exception::Error(
                                   String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
     else
@@ -297,7 +297,7 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
     HandleScope scope;
     ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.This());
 
-    if (!args.Length() == 1)
+    if (args.Length() != 1)
         return ThrowException(Exception::Error(
                                   String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
     else

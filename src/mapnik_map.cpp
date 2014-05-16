@@ -646,7 +646,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
 {
     HandleScope scope;
 
-    if (!args.Length() == 1)
+    if (args.Length() != 1)
         return ThrowException(Exception::Error(
                                   String::New("Please provide layer name or index")));
 
