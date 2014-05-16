@@ -15,6 +15,7 @@ function deepEqualTrunc(json1,json2) {
 }
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 describe('mapnik.VectorTile ', function() {
     // generate test data
@@ -560,4 +561,30 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+
+    it('should be able to encode image data into vector tile', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/raster_layer.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        map.render(vtile,{},function(err,vtile) {
+            if (err) throw err;
+            var map2 = new mapnik.Map(256, 256);
+            map2.loadSync('./test/data/vector_tile/raster_layer.xml');
+            vtile.render(map2, new mapnik.Image(256, 256), {}, function(err, vtile_image) {
+                if (err) throw err;
+                var actual = './test/data/vector_tile/tile-raster.actual.png';
+                var expected = './test/data/vector_tile/tile-raster.expected.png';
+                if (!existsSync(expected)) {
+                    vtile_image.save(expected, 'jpeg80');
+                }
+                vtile_image.save(actual, 'jpeg80');
+                var a = fs.readFileSync(actual);
+                var e = fs.readFileSync(expected)
+                assert.ok(Math.abs(e.length - a.length) < 10);
+                done();
+            });
+        });
+    });
+
 });
