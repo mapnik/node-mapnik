@@ -1282,7 +1282,10 @@ Handle<Value> VectorTile::addImage(const Arguments& args)
     // current_feature_->set_id(feature.id());
     mapnik::vector::tile_feature * new_feature = new_layer->add_features();
     new_feature->set_raster(std::string(node::Buffer::Data(obj),buffer_size));
-    //d->status_ = VectorTile::LAZY_MERGE;
+    // report that we have data
+    d->painted(true);
+    // cache modified size
+    tiledata.ByteSize();
     return Undefined();
 
 }
@@ -1472,12 +1475,13 @@ Handle<Value> VectorTile::getData(const Arguments& args)
         // shortcut: return raw data and avoid trip through proto object
         // TODO  - safe for null string?
         int raw_size = d->buffer_.size();
-        if (d->byte_size_ <= raw_size) {
+        if (raw_size > 0 && d->byte_size_ <= raw_size) {
             return scope.Close(node::Buffer::New((char*)d->buffer_.data(),raw_size)->handle_);
         } else {
             // NOTE: tiledata.ByteSize() must be called
             // after each modification of tiledata otherwise the
-            // SerializeWithCachedSizesToArray will throw
+            // SerializeWithCachedSizesToArray will throw:
+            // Error: CHECK failed: !coded_out.HadError()
             mapnik::vector::tile const& tiledata = d->get_tile();
             node::Buffer *retbuf = node::Buffer::New(d->byte_size_);
             // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
