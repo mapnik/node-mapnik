@@ -576,7 +576,7 @@ describe('mapnik.VectorTile ', function() {
             // now render out with fancy styling
             var map2 = new mapnik.Map(256, 256);
             map2.loadSync('./test/data/vector_tile/raster_style.xml');
-            vtile.render(map2, new mapnik.Image(256, 256), {}, function(err, vtile_image) {
+            vtile.render(map2, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
                 if (err) throw err;
                 var actual = './test/data/vector_tile/tile-raster.actual.jpg';
                 var expected = './test/data/vector_tile/tile-raster.expected.jpg';
@@ -604,7 +604,7 @@ describe('mapnik.VectorTile ', function() {
         // now render out with fancy styling
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/raster_style.xml');
-        vtile.render(map, new mapnik.Image(256, 256), {}, function(err, vtile_image) {
+        vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile-raster2.actual.png';
             var expected = './test/data/vector_tile/tile-raster2.expected.png';
