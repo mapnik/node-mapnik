@@ -618,4 +618,22 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+
+    it('should include image in getData pbf output', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0);
+        var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
+        // push image into a named vtile layer
+        vtile.addImage(image_buffer,'raster');
+        assert.deepEqual(vtile.names(),['raster']);
+        var json_obj = vtile.toJSON();
+        assert.equal(json_obj[0].name,'raster');
+        assert.equal(json_obj[0].features[0].raster.length,12146);
+        // getData from the image vtile
+        var vtile2 = new mapnik.VectorTile(1, 0, 0);
+        vtile2.setData(vtile.getData());
+        vtile2.parse();
+        var json_obj2 = vtile2.toJSON();
+        assert.deepEqual(json_obj, json_obj2);
+        done();
+    });
 });
