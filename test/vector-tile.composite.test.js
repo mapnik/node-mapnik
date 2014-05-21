@@ -8,6 +8,8 @@ var overwrite_expected_data = false;
 
 var data_base = './test/data/vector_tile/compositing';
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
+
 function render_data(name,coords,callback) {
     var map = new mapnik.Map(256, 256);
     map.loadSync(data_base +'/layers/'+name+'.xml');
@@ -23,6 +25,19 @@ function render_data(name,coords,callback) {
         var tilename = data_base +'/tiles/'+name+'.vector.pbf';
         fs.writeFileSync(tilename,tiledata);
         return callback();
+    })
+}
+
+function render_fresh_tile(name,coords,callback) {
+    var map = new mapnik.Map(256, 256);
+    map.loadSync(data_base +'/layers/'+name+'.xml');
+    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
+    var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
+    name = name + '-' + coords.join('-');
+    map.extent = extent;
+    map.render(vtile,{buffer_size:5},function(err,vtile) {
+        if (err) return callback(err);
+        return callback(null,vtile);
     })
 }
 
@@ -63,7 +78,6 @@ describe('mapnik.VectorTile ', function() {
     // generate test data
     before(function(done) {
         if (overwrite_expected_data) {
-            mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
             var remaining = tiles.length;
             tiles.forEach(function(e){
                 render_data('lines',e,function(err) {
@@ -79,6 +93,18 @@ describe('mapnik.VectorTile ', function() {
         } else {
             done();
         }
+    });
+
+    it.only('should support compositing tiles that were just rendered to', function(done) {
+        render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
+            if (err) throw err;
+            assert.equal(vtile1.getData().length,49);
+            var vtile2 = new mapnik.VectorTile(1,0,0);
+            vtile2.composite([vtile1,vtile1],{});
+            assert.equal(vtile2.getData().length,98);
+            assert.deepEqual(vtile2.names(),["lines","lines"]);
+            done();
+        });
     });
 
     it('should render with simple concatenation', function(done) {

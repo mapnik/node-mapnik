@@ -460,6 +460,18 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                 target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
                 target_vt->status_ = VectorTile::LAZY_MERGE;
             }
+            else if (vt->byte_size_ > 0)
+            {
+                std::string new_message;
+                mapnik::vector::tile const& tiledata = vt->get_tile();
+                if (!tiledata.SerializeToString(&new_message))
+                {
+                    return ThrowException(Exception::Error(
+                              String::New("could not serialize new data for vt")));
+                }
+                target_vt->buffer_.append(new_message.data(),new_message.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
         }
         else
         {
