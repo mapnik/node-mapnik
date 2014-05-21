@@ -253,21 +253,25 @@ Handle<Value> VectorTile::New(const Arguments& args)
 std::vector<std::string> VectorTile::lazy_names()
 {
     std::vector<std::string> names;
-    pbf::message item(buffer_.data(),buffer_.size());
-    while (item.next()) {
-        if (item.tag == 3) {
-            uint64_t len = item.varint();
-            pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
-            while (layermsg.next()) {
-                if (layermsg.tag == 1) {
-                    names.push_back(layermsg.string());
-                } else {
-                    layermsg.skip();
+    std::size_t bytes = buffer_.size();
+    if (bytes > 0)
+    {
+        pbf::message item(buffer_.data(),bytes);
+        while (item.next()) {
+            if (item.tag == 3) {
+                uint64_t len = item.varint();
+                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+                while (layermsg.next()) {
+                    if (layermsg.tag == 1) {
+                        names.push_back(layermsg.string());
+                    } else {
+                        layermsg.skip();
+                    }
                 }
+                item.skipBytes(len);
+            } else {
+                item.skip();
             }
-            item.skipBytes(len);
-        } else {
-            item.skip();
         }
     }
     return names;
@@ -449,8 +453,11 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             target_vt->x_ == vt->x_ &&
             target_vt->y_ == vt->y_)
         {
-            target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
-            target_vt->status_ = VectorTile::LAZY_MERGE;
+            std::size_t bytes = vt->buffer_.size();
+            if (bytes > 0) {
+                target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
         }
         else
         {
