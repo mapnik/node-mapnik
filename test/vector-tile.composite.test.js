@@ -45,6 +45,12 @@ function get_tile_at(name,coords) {
     return vt
 }
 
+function get_image_vtile() {
+    var vt = new mapnik.VectorTile(0,0,0);
+    vt.addImage(fs.readFileSync(__dirname + '/data/vector_tile/cloudless_1_0_0.jpg'), 'raster');
+    return vt;
+}
+
 function compare_to_image(actual,expected_file) {
     if (!existsSync(expected_file)) {
         fs.writeFileSync(expected_file,actual);
@@ -105,6 +111,31 @@ describe('mapnik.VectorTile ', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/concat.png';
+                assert.ok(compare_to_image(actual,expected_file));
+                done();
+            })
+        })
+    });
+
+    it('should render with image concatenation', function(done) {
+        var coords = [0,0,0];
+        var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
+        var vtiles = [
+            get_image_vtile(),
+            get_tile_at('lines',coords),
+            get_tile_at('points',coords)
+        ];
+        vtile.composite(vtiles,{});
+        assert.deepEqual(vtile.names(),['raster','lines','points']);
+        vtile.parse(function(err) {
+            if (err) throw err;
+            assert.deepEqual(vtile.toJSON().map(function(l) { return l.name }), ['raster','lines','points']);
+            var map = new mapnik.Map(256,256);
+            map.loadSync(data_base +'/styles/all.xml');
+            vtile.render(map,new mapnik.Image(256,256),function(err,im) {
+                if (err) throw err;
+                var actual = im.encodeSync('png32');
+                var expected_file = data_base +'/expected/image_concat.png';
                 assert.ok(compare_to_image(actual,expected_file));
                 done();
             })
