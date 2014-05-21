@@ -5,6 +5,7 @@ compiler:
 
 env:
   matrix:
+   - NODE_NVM_VERSION="0.11"
    - NODE_NVM_VERSION="0.10"
    - NODE_NVM_VERSION="0.8"
   global:

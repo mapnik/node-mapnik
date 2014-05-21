@@ -2,9 +2,6 @@
 #define __NODE_MAPNIK_PLUGINS_H__
 
 
-// v8
-#include <v8.h>
-
 // mapnik
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/version.hpp>
@@ -19,28 +16,30 @@ using namespace v8;
 namespace node_mapnik {
 
 
-static inline Handle<Value> available_input_plugins(const Arguments& args)
+static inline NAN_METHOD(available_input_plugins)
 {
-    HandleScope scope;
+    NanScope();
 #if MAPNIK_VERSION >= 200200
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
 #else
     std::vector<std::string> names = mapnik::datasource_cache::instance()->plugin_names();
 #endif
-    Local<Array> a = Array::New(names.size());
+    Local<Array> a = NanNew<Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, String::New(names[i].c_str()));
+        a->Set(i, NanNew(names[i].c_str()));
     }
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-static inline Handle<Value> register_datasource(const Arguments& args)
+static inline NAN_METHOD(register_datasource)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() != 1 || !args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a mapnik input plugin (.input)")));
+    {
+        NanThrowTypeError("first argument must be a path to a mapnik input plugin (.input)");
+        NanReturnUndefined();
+    }
 #if MAPNIK_VERSION >= 200200
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
 #else
@@ -55,16 +54,18 @@ static inline Handle<Value> register_datasource(const Arguments& args)
     std::vector<std::string> names_after = mapnik::datasource_cache::instance()->plugin_names();
 #endif
     if (names_after.size() > names_before.size())
-        return scope.Close(True());
-    return scope.Close(False());
+        NanReturnValue(NanTrue());
+    NanReturnValue(NanFalse());
 }
 
-static inline Handle<Value> register_datasources(const Arguments& args)
+static inline NAN_METHOD(register_datasources)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() != 1 || !args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a directory of mapnik input plugins")));
+    {
+        NanThrowTypeError("first argument must be a path to a directory of mapnik input plugins");
+        NanReturnUndefined();
+    }
 #if MAPNIK_VERSION >= 200200
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
 #else
@@ -79,8 +80,8 @@ static inline Handle<Value> register_datasources(const Arguments& args)
     std::vector<std::string> names_after = mapnik::datasource_cache::instance()->plugin_names();
 #endif
     if (names_after.size() > names_before.size())
-        return scope.Close(True());
-    return scope.Close(False());
+        NanReturnValue(NanTrue());
+    NanReturnValue(NanFalse());
 }
 
 

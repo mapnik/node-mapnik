@@ -7,13 +7,14 @@ Persistent<FunctionTemplate> •::constructor;
 
 void •::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(•::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("•"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(•::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("•"));
 
-    target->Set(String::NewSymbol("•"),constructor->GetFunction());
+    target->Set(NanNew("•"),constructor->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 •::•(std::string const& name) :
@@ -24,7 +25,7 @@ ObjectWrap(),
 {
 }
 
-Handle<Value> •::New(const Arguments& args)
+NAN_METHOD(•::New)
 {
-    HandleScope scope;
+    NanScope();
 }

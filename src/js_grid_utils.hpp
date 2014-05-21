@@ -1,9 +1,6 @@
 #ifndef __NODE_MAPNIK_GRID_UTILS_H__
 #define __NODE_MAPNIK_GRID_UTILS_H__
 
-// v8
-#include <v8.h>
-
 // mapnik
 #include <mapnik/feature.hpp>           // for feature_impl, etc
 #include <mapnik/grid/grid.hpp>         // for grid
@@ -155,6 +152,7 @@ static void write_features(T const& grid_type,
                            Local<Object>& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
+    NanScope();
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     if (g_features.size() <= 0)
     {
@@ -176,19 +174,19 @@ static void write_features(T const& grid_type,
         }
 
         bool found = false;
-        Local<Object> feat = Object::New();
+        Local<Object> feat = NanNew<Object>();
         mapnik::feature_ptr feature = feat_itr->second;
         BOOST_FOREACH ( std::string const& attr, attributes )
         {
             if (attr == "__id__")
             {
-                feat->Set(String::NewSymbol(attr.c_str()),Integer::New(feature->id()));
+                feat->Set(NanNew(attr.c_str()), NanNew<Integer>(feature->id()));
             }
             else if (feature->has_key(attr))
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
-                feat->Set(String::NewSymbol(attr.c_str()),
+                feat->Set(NanNew(attr.c_str()),
                     boost::apply_visitor(node_mapnik::value_converter(),
                     attr_val.base()));
             }
@@ -196,7 +194,7 @@ static void write_features(T const& grid_type,
 
         if (found)
         {
-            feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
+            feature_data->Set(NanNew(feat_itr->first.c_str()), feat);
         }
     }
 }
@@ -210,6 +208,7 @@ static void grid2utf(T const& grid_type,
     Local<Array>& l,
     std::vector<typename T::lookup_type>& key_order)
 {
+    NanScope();
     typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
     typedef typename keys_type::const_iterator keys_iterator;
 
@@ -254,7 +253,7 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
-        l->Set(row_idx, String::New(line.get(),array_size));
+        l->Set(row_idx, NanNew<String>(line.get(),array_size));
         ++row_idx;
     }
 }
@@ -267,6 +266,7 @@ static void grid2utf(T const& grid_type,
     std::vector<typename T::lookup_type>& key_order,
     unsigned int resolution)
 {
+    NanScope();
     typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
     typedef typename keys_type::const_iterator keys_iterator;
 
@@ -311,7 +311,7 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
-        l->Set(row_idx, String::New(line.get(),array_size));
+        l->Set(row_idx, NanNew<String>(line.get(),array_size));
         ++row_idx;
     }
 }
@@ -322,6 +322,7 @@ static void write_features(T const& grid_type,
                            Local<Object>& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
+    NanScope();
     std::string const& key = grid_type.get_key();
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type const& g_features = grid_type.get_grid_features();
@@ -340,7 +341,7 @@ static void write_features(T const& grid_type,
             // only serialize features visible in the grid
             if(std::find(key_order.begin(), key_order.end(), join_value) != key_order.end())
             {
-                Local<Object> feat = Object::New();
+                Local<Object> feat = NanNew<Object>();
                 std::map<std::string,mapnik::value>::const_iterator it = props.begin();
                 std::map<std::string,mapnik::value>::const_iterator end = props.end();
                 bool found = false;
@@ -358,7 +359,7 @@ static void write_features(T const& grid_type,
 
                 if (found)
                 {
-                    feature_data->Set(String::NewSymbol(feat_itr->first.c_str()), feat);
+                    feature_data->Set(NanNew(feat_itr->first.c_str()), feat);
                 }
             }
         }

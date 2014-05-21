@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_FEATURESET_H__
 #define __NODE_MAPNIK_FEATURESET_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include <mapnik/datasource_cache.hpp>
 #include "mapnik3x_compatibility.hpp"
 
@@ -14,9 +13,9 @@ class Featureset: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
     static Handle<Value> New(mapnik::featureset_ptr fs_ptr);
-    static Handle<Value> next(const Arguments &args);
+    static NAN_METHOD(next);
 
     Featureset();
 

@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_IMAGE_H__
 #define __NODE_MAPNIK_IMAGE_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_SHARED_INCLUDE
 
@@ -16,49 +15,51 @@ class Image: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
-    static Handle<Value> getPixel(const Arguments &args);
-    static Handle<Value> setPixel(const Arguments &args);
-    static Handle<Value> encodeSync(const Arguments &args);
-    static Handle<Value> encode(const Arguments &args);
+    static NAN_METHOD(getPixel);
+    static NAN_METHOD(setPixel);
+    static NAN_METHOD(encodeSync);
+    static NAN_METHOD(encode);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
-    static Handle<Value> setGrayScaleToAlpha(const Arguments &args);
-    static Handle<Value> width(const Arguments &args);
-    static Handle<Value> height(const Arguments &args);
-    static Handle<Value> view(const Arguments &args);
-    static Handle<Value> openSync(const Arguments &args);
-    static Handle<Value> open(const Arguments &args);
+    static NAN_METHOD(setGrayScaleToAlpha);
+    static NAN_METHOD(width);
+    static NAN_METHOD(height);
+    static NAN_METHOD(view);
+    static Local<Value> _openSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(openSync);
+    static NAN_METHOD(open);
     static void EIO_Open(uv_work_t* req);
     static void EIO_AfterOpen(uv_work_t* req);
-    static Handle<Value> fromBytesSync(const Arguments &args);
-    static Handle<Value> fromBytes(const Arguments &args);
+    static Local<Value> _fromBytesSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(fromBytesSync);
+    static NAN_METHOD(fromBytes);
     static void EIO_FromBytes(uv_work_t* req);
     static void EIO_AfterFromBytes(uv_work_t* req);
-    static Handle<Value> save(const Arguments &args);
-    static Handle<Value> painted(const Arguments &args);
-    static Handle<Value> composite(const Arguments &args);
-    static Handle<Value> premultiplySync(const Arguments& args);
-    static Handle<Value> premultiply(const Arguments& args);
+    static NAN_METHOD(save);
+    static NAN_METHOD(painted);
+    static NAN_METHOD(composite);
+    static Local<Value> _premultiplySync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(premultiplySync);
+    static NAN_METHOD(premultiply);
     static void EIO_Premultiply(uv_work_t* req);
-    static Handle<Value> demultiplySync(const Arguments& args);
-    static Handle<Value> demultiply(const Arguments& args);
+    static Local<Value> _demultiplySync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(demultiplySync);
+    static NAN_METHOD(demultiply);
     static void EIO_Demultiply(uv_work_t* req);
     static void EIO_AfterMultiply(uv_work_t* req);
-    static Handle<Value> clearSync(const Arguments& args);
-    static Handle<Value> clear(const Arguments& args);
+    static Local<Value> _clearSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(clearSync);
+    static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
 
-    static Handle<Value> get_prop(Local<String> property,
-                                  const AccessorInfo& info);
-    static void set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info);
+    static NAN_GETTER(get_prop);
+    static NAN_SETTER(set_prop);
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 

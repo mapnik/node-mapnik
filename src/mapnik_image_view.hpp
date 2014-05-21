@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_IMAGE_VIEW_H__
 #define __NODE_MAPNIK_IMAGE_VIEW_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include <mapnik/image_view.hpp>
 #include <mapnik/image_data.hpp>        // for image_data_32
 #include "mapnik3x_compatibility.hpp"
@@ -17,25 +16,26 @@ class ImageView: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
     static Handle<Value> New(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
-    static Handle<Value> encodeSync(const Arguments &args);
-    static Handle<Value> encode(const Arguments &args);
+    static NAN_METHOD(encodeSync);
+    static NAN_METHOD(encode);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
-    //static Handle<Value> view(const Arguments &args);
-    static Handle<Value> width(const Arguments &args);
-    static Handle<Value> height(const Arguments &args);
-    //static Handle<Value> open(const Arguments &args);
-    static Handle<Value> save(const Arguments &args);
-    static Handle<Value> isSolid(const Arguments &args);
+    //static NAN_METHOD(view);
+    static NAN_METHOD(width);
+    static NAN_METHOD(height);
+    //static NAN_METHOD(open);
+    static NAN_METHOD(save);
+    static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
-    static Handle<Value> isSolidSync(const Arguments &args);
-    static Handle<Value> getPixel(const Arguments &args);
+    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(isSolidSync);
+    static NAN_METHOD(getPixel);
 
     ImageView(Image * JSImage);
     inline image_view_ptr get() { return this_; }

@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_LAYER_H__
 #define __NODE_MAPNIK_LAYER_H__
 
-#include <node_object_wrap.h>           // for ObjectWrap
-#include <v8.h>                         // for Handle, AccessorInfo, etc
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 // stl
 #include <string>
@@ -19,17 +18,13 @@ class Layer: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
     static Handle<Value> New(mapnik::layer const& lay_ref);
-    static Handle<Value> describe(const Arguments &args);
+    static NAN_METHOD(describe);
 
-    static Handle<Value> get_prop(Local<String> property,
-                                  const AccessorInfo& info);
-    static void set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info);
-
+    static NAN_GETTER(get_prop);
+    static NAN_SETTER(set_prop);
 
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);

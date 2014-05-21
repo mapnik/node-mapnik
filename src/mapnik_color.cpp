@@ -1,9 +1,6 @@
 #include "mapnik_color.hpp"
 
-#include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD
-#include "node_object_wrap.h"           // for ObjectWrap
 #include "utils.hpp"                    // for ATTR, TOSTR
-#include "v8.h"                         // for Handle, String, Integer, etc
 
 // mapnik
 #include <mapnik/color.hpp>             // for color
@@ -19,24 +16,24 @@ Persistent<FunctionTemplate> Color::constructor;
 
 void Color::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Color::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Color"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Color::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Color"));
 
     // methods
-    NODE_SET_PROTOTYPE_METHOD(constructor, "hex", hex);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "hex", hex);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
 
     // properties
-    ATTR(constructor, "r", get_prop, set_prop);
-    ATTR(constructor, "g", get_prop, set_prop);
-    ATTR(constructor, "b", get_prop, set_prop);
-    ATTR(constructor, "a", get_prop, set_prop);
+    ATTR(lcons, "r", get_prop, set_prop);
+    ATTR(lcons, "g", get_prop, set_prop);
+    ATTR(lcons, "b", get_prop, set_prop);
+    ATTR(lcons, "a", get_prop, set_prop);
 
-
-    target->Set(String::NewSymbol("Color"),constructor->GetFunction());
+    target->Set(NanNew("Color"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Color::Color() :
@@ -47,20 +44,23 @@ Color::~Color()
 {
 }
 
-Handle<Value> Color::New(const Arguments& args)
+NAN_METHOD(Color::New)
 {
-    HandleScope scope;
+    NanScope();
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
         //std::clog << "external!\n";
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Color* c = static_cast<Color*>(ptr);
         c->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
 
     color_ptr c_p;
@@ -86,18 +86,16 @@ Handle<Value> Color::New(const Arguments& args)
             int a = args[3]->IntegerValue();
             c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,a);
         } else {
-            return ThrowException(Exception::Error(
-                                      String::New("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values")));
-
-
+            NanThrowTypeError("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values");
+            NanReturnUndefined();
         }
         // todo allow int,int,int and int,int,int,int contructor
 
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
     if (c_p)
@@ -105,54 +103,53 @@ Handle<Value> Color::New(const Arguments& args)
         Color* c = new Color();
         c->Wrap(args.This());
         c->this_ = c_p;
-        return args.This();
+        NanReturnValue(args.This());
     }
     else
     {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened, please file bug")));
+        NanThrowError("unknown exception happened, please file bug");
+        NanReturnUndefined();
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }
 
 Handle<Value> Color::New(mapnik::color const& color) {
-    HandleScope scope;
+    NanEscapableScope();
     Color* c = new Color();
     c->this_ = MAPNIK_MAKE_SHARED<mapnik::color>(color);
-    Handle<Value> ext = External::New(c);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(c);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 }
 
 
-Handle<Value> Color::get_prop(Local<String> property,
-                              const AccessorInfo& info)
+NAN_GETTER(Color::get_prop)
 {
-    HandleScope scope;
-    Color* c = node::ObjectWrap::Unwrap<Color>(info.This());
+    NanScope();
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.Holder());
     std::string a = TOSTR(property);
     if (a == "a")
-        return scope.Close(Integer::New(c->get()->alpha()));
+        NanReturnValue(NanNew<Integer>(c->get()->alpha()));
     else if (a == "r")
-        return scope.Close(Integer::New(c->get()->red()));
+        NanReturnValue(NanNew<Integer>(c->get()->red()));
     else if (a == "g")
-        return scope.Close(Integer::New(c->get()->green()));
+        NanReturnValue(NanNew<Integer>(c->get()->green()));
     else if (a == "b")
-        return scope.Close(Integer::New(c->get()->blue()));
-    return Undefined();
+        NanReturnValue(NanNew<Integer>(c->get()->blue()));
+    NanReturnUndefined();
 }
 
-void Color::set_prop(Local<String> property,
-                     Local<Value> value,
-                     const AccessorInfo& info)
+NAN_SETTER(Color::set_prop)
 {
-    HandleScope scope;
-    Color* c = node::ObjectWrap::Unwrap<Color>(info.This());
+    NanScope();
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.Holder());
     std::string a = TOSTR(property);
     if (!value->IsNumber())
-        ThrowException(Exception::TypeError(
-                           String::New("color channel value must be an integer")));
+    {
+        NanThrowTypeError("color channel value must be an integer");
+        return;
+    }
     if (a == "a") {
         c->get()->set_alpha(value->IntegerValue());
     } else if (a == "r") {
@@ -164,20 +161,20 @@ void Color::set_prop(Local<String> property,
     }
 }
 
-Handle<Value> Color::toString(const Arguments& args)
+NAN_METHOD(Color::toString)
 {
-    HandleScope scope;
+    NanScope();
 
-    Color* c = node::ObjectWrap::Unwrap<Color>(args.This());
-    return scope.Close(String::New( c->get()->to_string().c_str() ));
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.Holder());
+    NanReturnValue(NanNew(c->get()->to_string().c_str()));
 }
 
 
-Handle<Value> Color::hex(const Arguments& args)
+NAN_METHOD(Color::hex)
 {
-    HandleScope scope;
+    NanScope();
 
-    Color* c = node::ObjectWrap::Unwrap<Color>(args.This());
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.Holder());
     std::string hex = c->get()->to_hex_string();
-    return scope.Close(String::New( hex.c_str() ));
+    NanReturnValue(NanNew(hex.c_str()));
 }

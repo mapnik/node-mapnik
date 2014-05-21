@@ -11,21 +11,22 @@ Persistent<FunctionTemplate> Geometry::constructor;
 
 void Geometry::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Geometry::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Geometry"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Geometry::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Geometry"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "type", type);
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+    NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "type", type);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "Point",MAPNIK_POINT)
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "LineString",MAPNIK_LINESTRING)
-    NODE_MAPNIK_DEFINE_CONSTANT(constructor->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "Polygon",MAPNIK_POLYGON)
-    target->Set(String::NewSymbol("Geometry"),constructor->GetFunction());
+    target->Set(NanNew("Geometry"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Geometry::Geometry() :
@@ -36,53 +37,55 @@ Geometry::~Geometry()
 {
 }
 
-Handle<Value> Geometry::New(const Arguments& args)
+NAN_METHOD(Geometry::New)
 {
-    HandleScope scope;
-    //if (!args.IsConstructCall())
-    //    return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    NanScope();
+    //if (!args.IsConstructCall()) {
+    //    NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+    //    NanReturnUndefined();
+    //}
 
     if (args[0]->IsExternal())
     {
         //std::clog << "external!\n";
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Geometry* g =  static_cast<Geometry*>(ptr);
         g->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     else
     {
-        return ThrowException(Exception::Error(
-                                  String::New("a mapnik.Geometry cannot be created directly - rather you should create mapnik.Path objects which can contain one or more geometries")));
+        NanThrowError("a mapnik.Geometry cannot be created directly - rather you should create mapnik.Path objects which can contain one or more geometries");
+        NanReturnUndefined();
     }
-    return args.This();
+    NanReturnValue(args.This());
 }
 
-Handle<Value> Geometry::extent(const Arguments& args)
+NAN_METHOD(Geometry::extent)
 {
-    HandleScope scope;
+    NanScope();
 
-    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.This());
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
 
-    Local<Array> a = Array::New(4);
+    Local<Array> a = NanNew<Array>(4);
     mapnik::box2d<double> const& e = g->this_->envelope();
-    a->Set(0, Number::New(e.minx()));
-    a->Set(1, Number::New(e.miny()));
-    a->Set(2, Number::New(e.maxx()));
-    a->Set(3, Number::New(e.maxy()));
+    a->Set(0, NanNew<Number>(e.minx()));
+    a->Set(1, NanNew<Number>(e.miny()));
+    a->Set(2, NanNew<Number>(e.maxx()));
+    a->Set(3, NanNew<Number>(e.maxy()));
 
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-Handle<Value> Geometry::type(const Arguments& args)
+NAN_METHOD(Geometry::type)
 {
-    HandleScope scope;
+    NanScope();
 
-    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.This());
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
 
     MAPNIK_GEOM_TYPE type = g->this_->type();
     // TODO - can we return the actual symbol?
-    //return scope.Close(constructor->GetFunction()->Get(String::NewSymbol("Point")));
-    return scope.Close(Integer::New(static_cast<int>(type)));
+    //NanReturnValue(constructor->GetFunction()->Get(NanNew("Point")));
+    NanReturnValue(NanNew(static_cast<int>(type)));
 }

@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_•_H__
 #define __NODE_MAPNIK_•_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 
 // mapnik
 #include "mapnik3x_compatibility.hpp"
@@ -19,7 +18,7 @@ class •: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
     •(std::string const& name);
     •(std::string const& name, std::string const& srs);

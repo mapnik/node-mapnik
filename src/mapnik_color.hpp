@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_COLOR_H__
 #define __NODE_MAPNIK_COLOR_H__
 
-#include <node_object_wrap.h>           // for ObjectWrap
-#include <v8.h>                         // for Handle, AccessorInfo, etc
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 
 // boost
@@ -17,16 +16,13 @@ class Color: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
     static Handle<Value> New(mapnik::color const& color);
-    static Handle<Value> toString(const Arguments &args);
-    static Handle<Value> hex(const Arguments &args);
+    static NAN_METHOD(toString);
+    static NAN_METHOD(hex);
 
-    static Handle<Value> get_prop(Local<String> property,
-                                  const AccessorInfo& info);
-    static void set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info);
+    static NAN_GETTER(get_prop);
+    static NAN_SETTER(set_prop);
     Color();
     inline color_ptr get() { return this_; }
 

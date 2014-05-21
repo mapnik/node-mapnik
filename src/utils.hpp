@@ -1,8 +1,8 @@
 #ifndef __NODE_MAPNIK_UTILS_H__
 #define __NODE_MAPNIK_UTILS_H__
 
-// v8
-#include <v8.h>
+// nan
+#include <nan.h>
 
 // stl
 #include <string>
@@ -19,31 +19,32 @@
 #define TOSTR(obj) (*String::Utf8Value((obj)->ToString()))
 
 #define FUNCTION_ARG(I, VAR)                                            \
-    if (args.Length() <= (I) || !args[I]->IsFunction())                 \
-        return ThrowException(Exception::TypeError(                     \
-                                  String::New("Argument " #I " must be a function"))); \
-    Local<Function> VAR = Local<Function>::Cast(args[I]);
+    if (args.Length() <= (I) || !args[I]->IsFunction()) {               \
+        NanThrowTypeError("Argument " #I " must be a function");        \
+        NanReturnUndefined();                                           \
+    }                                                                   \
+    Local<Function> VAR = args[I].As<Function>();
 
 #define ATTR(t, name, get, set)                                         \
-    t->InstanceTemplate()->SetAccessor(String::NewSymbol(name), get, set);
+    t->InstanceTemplate()->SetAccessor(NanNew(name), get, set);
 
-#define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)     \
-    (target)->Set(v8::String::NewSymbol(name),                  \
-                  v8::Integer::New(constant),                   \
-                  static_cast<v8::PropertyAttribute>(           \
+#define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
+    (target)->Set(NanNew(name),                                         \
+                  NanNew<Integer>(constant),                            \
+                  static_cast<v8::PropertyAttribute>(                   \
                       v8::ReadOnly|v8::DontDelete));
 
-#define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)     \
-    (target)->Set(v8::String::NewSymbol(name),                  \
-                  v8::Number::New(constant),                   \
-                  static_cast<v8::PropertyAttribute>(           \
+#define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)      \
+    (target)->Set(NanNew(name),                                         \
+                  NanNew<Number>(constant),                             \
+                  static_cast<v8::PropertyAttribute>(                   \
                       v8::ReadOnly|v8::DontDelete));
 
 
 using namespace v8;
 
 namespace node_mapnik {
-	
+
 #if MAPNIK_VERSION >= 200200
 	typedef mapnik::value_integer value_integer;
 #else
@@ -60,35 +61,35 @@ public:
 
     void operator () ( value_integer val )
     {
-        ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
+        ds_->Set(NanNew(key_.c_str()), NanNew<Number>(val) );
     }
 
     void operator () ( bool val )
     {
-        ds_->Set(String::NewSymbol(key_.c_str()), Boolean::New(val) );
+        ds_->Set(NanNew(key_.c_str()), NanNew<Boolean>(val) );
     }
 
     void operator () ( double val )
     {
-        ds_->Set(String::NewSymbol(key_.c_str()), Number::New(val) );
+        ds_->Set(NanNew(key_.c_str()), NanNew<Number>(val) );
     }
 
     void operator () ( std::string const& val )
     {
 
-        ds_->Set(String::NewSymbol(key_.c_str()), String::New(val.c_str()) );
+        ds_->Set(NanNew(key_.c_str()), NanNew<String>(val.c_str()) );
     }
 
     void operator () ( mapnik::value_unicode_string const& val)
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);
-        ds_->Set(String::NewSymbol(key_.c_str()), String::New(buffer.c_str()) );
+        ds_->Set(NanNew(key_.c_str()), NanNew<String>(buffer.c_str()) );
     }
 
     void operator () ( mapnik::value_null const& val )
     {
-        ds_->Set(String::NewSymbol(key_.c_str()), Null() );
+        ds_->Set(NanNew(key_.c_str()), NanNull() );
     }
 
 private:
@@ -100,34 +101,34 @@ struct value_converter: public boost::static_visitor<Handle<Value> >
 {
     Handle<Value> operator () ( value_integer val ) const
     {
-        return Number::New(val);
+        return NanNew<Number>(val);
     }
 
     Handle<Value> operator () ( bool val ) const
     {
-        return Boolean::New(val);
+        return NanNew<Boolean>(val);
     }
 
     Handle<Value> operator () ( double val ) const
     {
-        return Number::New(val);
+        return NanNew<Number>(val);
     }
 
     Handle<Value> operator () ( std::string const& val ) const
     {
-        return String::New(val.c_str());
+        return NanNew<String>(val.c_str());
     }
 
     Handle<Value> operator () ( mapnik::value_unicode_string const& val) const
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);
-        return String::New(buffer.c_str());
+        return NanNew<String>(buffer.c_str());
     }
 
     Handle<Value> operator () ( mapnik::value_null const& val ) const
     {
-        return Undefined();
+        return NanUndefined();
     }
 };
 

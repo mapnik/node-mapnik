@@ -1,9 +1,7 @@
 #ifndef __NODE_MAPNIK_VECTOR_TILE_H__
 #define __NODE_MAPNIK_VECTOR_TILE_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
-#include "uv.h"
+#include <nan.h>
 #include "vector_tile.pb.h"
 #include <stdexcept>
 #include <google/protobuf/io/coded_stream.h>
@@ -22,41 +20,45 @@ public:
     };
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(Arguments const&args);
-    static Handle<Value> getData(Arguments const& args);
-    static Handle<Value> render(Arguments const& args);
-    static Handle<Value> toJSON(Arguments const& args);
-    static Handle<Value> query(Arguments const& args);
-    static Handle<Value> names(Arguments const& args);    
-    static Handle<Value> toGeoJSON(Arguments const& args);
-    static Handle<Value> fromGeoJSON(Arguments const& args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(getData);
+    static NAN_METHOD(render);
+    static NAN_METHOD(toJSON);
+    static NAN_METHOD(query);
+    static NAN_METHOD(names);
+    static NAN_METHOD(toGeoJSON);
+    static NAN_METHOD(fromGeoJSON);
 #ifdef PROTOBUF_FULL
-    static Handle<Value> toString(Arguments const& args);
+    static NAN_METHOD(toString);
 #endif
     static void EIO_RenderTile(uv_work_t* req);
     static void EIO_AfterRenderTile(uv_work_t* req);
-    static Handle<Value> setData(Arguments const& args);
+    static NAN_METHOD(setData);
     static void EIO_SetData(uv_work_t* req);
     static void EIO_AfterSetData(uv_work_t* req);
-    static Handle<Value> setDataSync(Arguments const& args);
-    static Handle<Value> parse(Arguments const& args);
+    static Local<Value> _setDataSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(setDataSync);
+    static NAN_METHOD(parse);
     static void EIO_Parse(uv_work_t* req);
     static void EIO_AfterParse(uv_work_t* req);
-    static Handle<Value> parseSync(Arguments const& args);
-    static Handle<Value> addData(Arguments const& args);
-    static Handle<Value> composite(Arguments const& args);
+    static NAN_METHOD(parseSync);
+    static Local<Value> _parseSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(addData);
+    static NAN_METHOD(composite);
     // methods common to mapnik.Image
-    static Handle<Value> width(Arguments const& args);
-    static Handle<Value> height(Arguments const& args);
-    static Handle<Value> painted(Arguments const& args);
-    static Handle<Value> clearSync(const Arguments& args);
-    static Handle<Value> clear(const Arguments& args);
+    static NAN_METHOD(width);
+    static NAN_METHOD(height);
+    static NAN_METHOD(painted);
+    static NAN_METHOD(clearSync);
+    static Local<Value> _clearSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
-    static Handle<Value> isSolid(Arguments const& args);
+    static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
-    static Handle<Value> isSolidSync(Arguments const& args);
+    static NAN_METHOD(isSolidSync);
+    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
 

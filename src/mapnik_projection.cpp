@@ -1,4 +1,3 @@
-
 #include "mapnik_projection.hpp"
 #include "utils.hpp"
 
@@ -9,16 +8,17 @@ Persistent<FunctionTemplate> Projection::constructor;
 
 void Projection::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Projection::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Projection"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Projection::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Projection"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "forward", forward);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "inverse", inverse);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "forward", forward);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "inverse", inverse);
 
-    target->Set(String::NewSymbol("Projection"),constructor->GetFunction());
+    target->Set(NanNew("Projection"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Projection::Projection(std::string const& name) :
@@ -31,65 +31,69 @@ Projection::~Projection()
 
 bool Projection::HasInstance(Handle<Value> val)
 {
+    NanScope();
     if (!val->IsObject()) return false;
-    Local<Object> obj = val->ToObject();
+    Handle<Object> obj = val.As<Object>();
 
-    if (constructor->HasInstance(obj))
+    if (NanNew(constructor)->HasInstance(obj))
         return true;
 
     return false;
 }
 
-Handle<Value> Projection::New(const Arguments& args)
+NAN_METHOD(Projection::New)
 {
-    HandleScope scope;
+    NanScope();
 
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args.Length() <= 0 || !args[0]->IsString()) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("please provide a proj4 intialization string")));
+        NanThrowTypeError("please provide a proj4 intialization string");
+        NanReturnUndefined();
     }
     try
     {
         Projection* p = new Projection(TOSTR(args[0]));
         p->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 }
 
-Handle<Value> Projection::forward(const Arguments& args)
+NAN_METHOD(Projection::forward)
 {
-    HandleScope scope;
-    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.This());
+    NanScope();
+    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.Holder());
 
     try
     {
-        if (args.Length() != 1)
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-        else
-        {
-            if (!args[0]->IsArray())
-                return ThrowException(Exception::Error(
-                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-            Local<Array> a = Local<Array>::Cast(args[0]);
+        if (args.Length() != 1) {
+            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
+        } else {
+            if (!args[0]->IsArray()) {
+                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                NanReturnUndefined();
+            }
+            Local<Array> a = args[0].As<Array>();
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
                 double x = a->Get(0)->NumberValue();
                 double y = a->Get(1)->NumberValue();
                 p->projection_->forward(x,y);
-                Local<Array> arr = Array::New(2);
-                arr->Set(0, Number::New(x));
-                arr->Set(1, Number::New(y));
-                return scope.Close(arr);
+                Local<Array> arr = NanNew<Array>(2);
+                arr->Set(0, NanNew(x));
+                arr->Set(1, NanNew(y));
+                NanReturnValue(arr);
             }
             else if (array_length == 4)
             {
@@ -99,49 +103,51 @@ Handle<Value> Projection::forward(const Arguments& args)
                 double maxy = a->Get(3)->NumberValue();
                 p->projection_->forward(minx,miny);
                 p->projection_->forward(maxx,maxy);
-                Local<Array> arr = Array::New(4);
-                arr->Set(0, Number::New(minx));
-                arr->Set(1, Number::New(miny));
-                arr->Set(2, Number::New(maxx));
-                arr->Set(3, Number::New(maxy));
-                return scope.Close(arr);
+                Local<Array> arr = NanNew<Array>(4);
+                arr->Set(0, NanNew(minx));
+                arr->Set(1, NanNew(miny));
+                arr->Set(2, NanNew(maxx));
+                arr->Set(3, NanNew(maxy));
+                NanReturnValue(arr);
             }
             else
-                return ThrowException(Exception::Error(
-                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+            {
+                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                NanReturnUndefined();
+            }
         }
     } catch (std::exception const & ex) {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 }
 
-Handle<Value> Projection::inverse(const Arguments& args)
+NAN_METHOD(Projection::inverse)
 {
-    HandleScope scope;
-    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.This());
+    NanScope();
+    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.Holder());
 
     try
     {
-        if (args.Length() != 1)
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-        else
-        {
-            if (!args[0]->IsArray())
-                return ThrowException(Exception::Error(
-                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-            Local<Array> a = Local<Array>::Cast(args[0]);
+        if (args.Length() != 1) {
+            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
+        } else {
+            if (!args[0]->IsArray()) {
+                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                NanReturnUndefined();
+            }
+            Local<Array> a = args[0].As<Array>();
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
                 double x = a->Get(0)->NumberValue();
                 double y = a->Get(1)->NumberValue();
                 p->projection_->inverse(x,y);
-                Local<Array> arr = Array::New(2);
-                arr->Set(0, Number::New(x));
-                arr->Set(1, Number::New(y));
-                return scope.Close(arr);
+                Local<Array> arr = NanNew<Array>(2);
+                arr->Set(0, NanNew(x));
+                arr->Set(1, NanNew(y));
+                NanReturnValue(arr);
             }
             else if (array_length == 4)
             {
@@ -151,20 +157,22 @@ Handle<Value> Projection::inverse(const Arguments& args)
                 double maxy = a->Get(3)->NumberValue();
                 p->projection_->inverse(minx,miny);
                 p->projection_->inverse(maxx,maxy);
-                Local<Array> arr = Array::New(4);
-                arr->Set(0, Number::New(minx));
-                arr->Set(1, Number::New(miny));
-                arr->Set(2, Number::New(maxx));
-                arr->Set(3, Number::New(maxy));
-                return scope.Close(arr);
+                Local<Array> arr = NanNew<Array>(4);
+                arr->Set(0, NanNew(minx));
+                arr->Set(1, NanNew(miny));
+                arr->Set(2, NanNew(maxx));
+                arr->Set(3, NanNew(maxy));
+                NanReturnValue(arr);
             }
             else
-                return ThrowException(Exception::Error(
-                                          String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+            {
+                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                NanReturnUndefined();
+            }
         }
     } catch (std::exception const & ex) {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 }
 
@@ -172,16 +180,17 @@ Persistent<FunctionTemplate> ProjTransform::constructor;
 
 void ProjTransform::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(ProjTransform::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("ProjTransform"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(ProjTransform::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("ProjTransform"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "forward", forward);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "backward", backward);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "forward", forward);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "backward", backward);
 
-    target->Set(String::NewSymbol("ProjTransform"),constructor->GetFunction());
+    target->Set(NanNew("ProjTransform"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 ProjTransform::ProjTransform(mapnik::projection const& src,
@@ -193,24 +202,30 @@ ProjTransform::~ProjTransform()
 {
 }
 
-Handle<Value> ProjTransform::New(const Arguments& args)
+NAN_METHOD(ProjTransform::New)
 {
-    HandleScope scope;
-    if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
-
-    if (args.Length() != 2 || !args[0]->IsObject()  || !args[1]->IsObject()) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("please provide two arguments: a pair of mapnik.Projection objects")));
+    NanScope();
+    if (!args.IsConstructCall()) {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
     }
 
-    Local<Object> src_obj = args[0]->ToObject();
-    if (src_obj->IsNull() || src_obj->IsUndefined() || !Projection::HasInstance(src_obj))
-        return ThrowException(Exception::TypeError(String::New("mapnik.Projection expected for first argument")));
+    if (args.Length() != 2 || !args[0]->IsObject()  || !args[1]->IsObject()) {
+        NanThrowTypeError("please provide two arguments: a pair of mapnik.Projection objects");
+        NanReturnUndefined();
+    }
 
-    Local<Object> dest_obj = args[1]->ToObject();
-    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Projection::HasInstance(dest_obj))
-        return ThrowException(Exception::TypeError(String::New("mapnik.Projection expected for second argument")));
+    Local<Object> src_obj = args[0].As<Object>();
+    if (src_obj->IsNull() || src_obj->IsUndefined() || !Projection::HasInstance(src_obj)) {
+        NanThrowTypeError("mapnik.Projection expected for first argument");
+        NanReturnUndefined();
+    }
+
+    Local<Object> dest_obj = args[1].As<Object>();
+    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Projection::HasInstance(dest_obj)) {
+        NanThrowTypeError("mapnik.Projection expected for second argument");
+        NanReturnUndefined();
+    }
 
     Projection *p1 = node::ObjectWrap::Unwrap<Projection>(src_obj);
     Projection *p2 = node::ObjectWrap::Unwrap<Projection>(dest_obj);
@@ -219,30 +234,30 @@ Handle<Value> ProjTransform::New(const Arguments& args)
     {
         ProjTransform* p = new ProjTransform(*p1->get(),*p2->get());
         p->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 }
 
-Handle<Value> ProjTransform::forward(const Arguments& args)
+NAN_METHOD(ProjTransform::forward)
 {
-    HandleScope scope;
-    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.This());
+    NanScope();
+    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.Holder());
 
-    if (args.Length() != 1)
-        return ThrowException(Exception::Error(
-                                  String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-    else
-    {
-        if (!args[0]->IsArray())
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+    if (args.Length() != 1) {
+        NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+        NanReturnUndefined();
+    } else {
+        if (!args[0]->IsArray()) {
+            NanThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
+        }
 
-        Local<Array> a = Local<Array>::Cast(args[0]);
+        Local<Array> a = args[0].As<Array>();
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
@@ -254,14 +269,14 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
                 std::ostringstream s;
                 s << "Failed to forward project "
                   << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                return ThrowException(Exception::Error(
-                                          String::New(s.str().c_str())));
+                NanThrowError(s.str().c_str());
+                NanReturnUndefined();
 
             }
-            Local<Array> arr = Array::New(2);
-            arr->Set(0, Number::New(x));
-            arr->Set(1, Number::New(y));
-            return scope.Close(arr);
+            Local<Array> arr = NanNew<Array>(2);
+            arr->Set(0, NanNew(x));
+            arr->Set(1, NanNew(y));
+            NanReturnValue(arr);
         }
         else if (array_length == 4)
         {
@@ -274,41 +289,40 @@ Handle<Value> ProjTransform::forward(const Arguments& args)
                 std::ostringstream s;
                 s << "Failed to forward project "
                   << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                return ThrowException(Exception::Error(
-                                          String::New(s.str().c_str())));
-
+                NanThrowError(s.str().c_str());
+                NanReturnUndefined();
             }
-            Local<Array> arr = Array::New(4);
-            arr->Set(0, Number::New(box.minx()));
-            arr->Set(1, Number::New(box.miny()));
-            arr->Set(2, Number::New(box.maxx()));
-            arr->Set(3, Number::New(box.maxy()));
-            return scope.Close(arr);
+            Local<Array> arr = NanNew<Array>(4);
+            arr->Set(0, NanNew(box.minx()));
+            arr->Set(1, NanNew(box.miny()));
+            arr->Set(2, NanNew(box.maxx()));
+            arr->Set(3, NanNew(box.maxy()));
+            NanReturnValue(arr);
         }
         else
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-
+        {
+            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
+        }
     }
 }
 
-Handle<Value> ProjTransform::backward(const Arguments& args)
+NAN_METHOD(ProjTransform::backward)
 {
-    HandleScope scope;
-    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.This());
+    NanScope();
+    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.Holder());
 
-    if (args.Length() != 1)
-        return ThrowException(Exception::Error(
-                                  String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-    else
-    {
+    if (args.Length() != 1) {
+        NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+        NanReturnUndefined();
+    } else {
         if (!args[0]->IsArray())
         {
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
+            NanThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
         }
 
-        Local<Array> a = Local<Array>::Cast(args[0]);
+        Local<Array> a = args[0].As<Array>();
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
@@ -320,14 +334,13 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
                 std::ostringstream s;
                 s << "Failed to back project "
                   << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
-                return ThrowException(Exception::Error(
-                                          String::New(s.str().c_str())));
-
+                NanThrowError(s.str().c_str());
+                NanReturnUndefined();
             }
-            Local<Array> arr = Array::New(2);
-            arr->Set(0, Number::New(x));
-            arr->Set(1, Number::New(y));
-            return scope.Close(arr);
+            Local<Array> arr = NanNew<Array>(2);
+            arr->Set(0, NanNew(x));
+            arr->Set(1, NanNew(y));
+            NanReturnValue(arr);
         }
         else if (array_length == 4)
         {
@@ -340,20 +353,20 @@ Handle<Value> ProjTransform::backward(const Arguments& args)
                 std::ostringstream s;
                 s << "Failed to back project "
                   << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                return ThrowException(Exception::Error(
-                                          String::New(s.str().c_str())));
-
+                NanThrowError(s.str().c_str());
+                NanReturnUndefined();
             }
-            Local<Array> arr = Array::New(4);
-            arr->Set(0, Number::New(box.minx()));
-            arr->Set(1, Number::New(box.miny()));
-            arr->Set(2, Number::New(box.maxx()));
-            arr->Set(3, Number::New(box.maxy()));
-            return scope.Close(arr);
+            Local<Array> arr = NanNew<Array>(4);
+            arr->Set(0, NanNew(box.minx()));
+            arr->Set(1, NanNew(box.miny()));
+            arr->Set(2, NanNew(box.maxx()));
+            arr->Set(3, NanNew(box.maxy()));
+            NanReturnValue(arr);
         }
         else
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")));
-
+        {
+            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
+        }
     }
 }

@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_GEOMETRY_H__
 #define __NODE_MAPNIK_GEOMETRY_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 
 // mapnik
 #include <mapnik/geometry.hpp>
@@ -19,10 +18,10 @@ class Geometry: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
-    static Handle<Value> fromWKT(const Arguments &args);
-    static Handle<Value> extent(const Arguments &args);
-    static Handle<Value> type(const Arguments &args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(fromWKT);
+    static NAN_METHOD(extent);
+    static NAN_METHOD(type);
 
     Geometry();
     inline geometry_ptr get() { return this_; }
