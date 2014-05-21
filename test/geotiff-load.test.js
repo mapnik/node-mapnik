@@ -15,6 +15,7 @@ describe('reading GeoTIFF in threads', function() {
         assert.ok(ds);
         var fs = ds.featureset();
         assert.ok(fs);
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.load('./test/data/vector_tile/raster_layer.xml',{},function(err,map) { if (err) throw err; });
