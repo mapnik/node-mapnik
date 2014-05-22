@@ -95,7 +95,7 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
-    it.only('should support compositing tiles that were just rendered to', function(done) {
+    it('should support compositing tiles that were just rendered to', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
             assert.equal(vtile1.getData().length,49);
