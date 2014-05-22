@@ -5,20 +5,12 @@ var fs = require('fs');
 var existsSync = require('fs').existsSync || require('path').existsSync;
 
 describe('reading GeoTIFF in threads', function() {
-    // puts unnatural and odd load on opening geotiff
+    // puts unnatural, odd, and intentionally racey load on opening geotiff
     it('should be able to open geotiff various ways without crashing', function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
-        var ds = new mapnik.Datasource({'type':'gdal','file':'./test/data/vector_tile/natural_earth.tif'});
-        var map = new mapnik.Map(256, 256);
-        map.load('./test/data/vector_tile/raster_layer.xml',{},function(err,map) { if (err) throw err; });
-        assert.ok(ds);
-        var fs = ds.featureset();
-        assert.ok(fs);
         mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.load('./test/data/vector_tile/raster_layer.xml',{},function(err,map) { if (err) throw err; });
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
         map.render(vtile,{},function(err,vtile) {
             if (err) throw err;
         });
