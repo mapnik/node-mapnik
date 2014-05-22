@@ -5,7 +5,7 @@ CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
 npm install aws-sdk
 rm -rf sdk
-source ./scripts/build_against_sdk.sh
+source ./scripts/build_against_sdk.sh " "
 npm test
 ./node_modules/.bin/node-pre-gyp package testpackage
 npm test
