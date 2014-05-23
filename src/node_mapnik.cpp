@@ -33,6 +33,9 @@
 #include <libxml/parser.h>
 #include <libxml/xmlversion.h>
 
+//#include <gdal_priv.h>
+//#include <ogr_api.h>
+
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
 #include <mapnik/version.hpp>
@@ -104,6 +107,8 @@ static Handle<Value> shutdown(const Arguments& args)
     google::protobuf::ShutdownProtobufLibrary();
     // http://lists.fedoraproject.org/pipermail/devel/2010-January/129117.html
     xmlCleanupParser();
+    //GDALDestroyDriverManager();
+    //OGRCleanupAll();
     return scope.Close(Undefined());
 }
 

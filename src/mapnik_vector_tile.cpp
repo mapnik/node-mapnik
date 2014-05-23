@@ -56,7 +56,7 @@
 #include <vector>                       // for vector
 #include "pbf.hpp"
 
-// fromGeoJSON
+// addGeoJSON
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
@@ -157,7 +157,8 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "fromGeoJSON", fromGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addGeoJSON", addGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "addImage", addImage);
 #ifdef PROTOBUF_FULL
     NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
 #endif
@@ -252,21 +253,25 @@ Handle<Value> VectorTile::New(const Arguments& args)
 std::vector<std::string> VectorTile::lazy_names()
 {
     std::vector<std::string> names;
-    pbf::message item(buffer_.data(),buffer_.size());
-    while (item.next()) {
-        if (item.tag == 3) {
-            uint64_t len = item.varint();
-            pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
-            while (layermsg.next()) {
-                if (layermsg.tag == 1) {
-                    names.push_back(layermsg.string());
-                } else {
-                    layermsg.skip();
+    std::size_t bytes = buffer_.size();
+    if (bytes > 0)
+    {
+        pbf::message item(buffer_.data(),bytes);
+        while (item.next()) {
+            if (item.tag == 3) {
+                uint64_t len = item.varint();
+                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+                while (layermsg.next()) {
+                    if (layermsg.tag == 1) {
+                        names.push_back(layermsg.string());
+                    } else {
+                        layermsg.skip();
+                    }
                 }
+                item.skipBytes(len);
+            } else {
+                item.skip();
             }
-            item.skipBytes(len);
-        } else {
-            item.skip();
         }
     }
     return names;
@@ -292,6 +297,7 @@ void VectorTile::parse_proto()
         if (tiledata_.ParseFromArray(buffer_.data(), bytes))
         {
             painted(true);
+            cache_bytesize();
         }
         else
         {
@@ -315,6 +321,7 @@ void VectorTile::parse_proto()
         if (tiledata_.MergeFromCodedStream(&input))
         {
             painted(true);
+            cache_bytesize();
         }
         else
         {
@@ -448,8 +455,23 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             target_vt->x_ == vt->x_ &&
             target_vt->y_ == vt->y_)
         {
-            target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
-            target_vt->status_ = VectorTile::LAZY_MERGE;
+            int bytes = static_cast<int>(vt->buffer_.size());
+            if (bytes > 0 && vt->byte_size_ <= bytes) {
+                target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
+            else if (vt->byte_size_ > 0)
+            {
+                std::string new_message;
+                mapnik::vector::tile const& tiledata = vt->get_tile();
+                if (!tiledata.SerializeToString(&new_message))
+                {
+                    return ThrowException(Exception::Error(
+                              String::New("could not serialize new data for vt")));
+                }
+                target_vt->buffer_.append(new_message.data(),new_message.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
         }
         else
         {
@@ -504,7 +526,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                     ren.apply(scale_denominator);
                 }
             }
-            else // tile is not pre-parsed so parse into new object to avoid mutating input
+            else // tile is not pre-parsed so parse into new object to avoid needing to mutate input
             {
                 std::size_t bytes = vt->buffer_.size();
                 if (bytes > 1) // throw instead?
@@ -575,7 +597,7 @@ Handle<Value> VectorTile::names(const Arguments& args)
     HandleScope scope;
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     int raw_size = d->buffer_.size();
-    if (d->byte_size_ <= raw_size)
+    if (raw_size > 0 && d->byte_size_ <= raw_size)
     {
         std::vector<std::string> names = d->lazy_names();
         Local<Array> arr = Array::New(names.size());
@@ -796,7 +818,15 @@ Handle<Value> VectorTile::toJSON(const Arguments& args)
         {
             Local<Object> feature_obj = Object::New();
             mapnik::vector::tile_feature const& f = layer.features(j);
-            feature_obj->Set(String::NewSymbol("id"),Number::New(f.id()));
+            if (f.has_id())
+            {
+                feature_obj->Set(String::NewSymbol("id"),Number::New(f.id()));
+            }
+            if (f.has_raster())
+            {
+                std::string const& raster = f.raster();
+                feature_obj->Set(String::NewSymbol("raster"),node::Buffer::New((char*)raster.data(),raster.size())->handle_);
+            }
             feature_obj->Set(String::NewSymbol("type"),Integer::New(f.type()));
             Local<Array> g_arr = Array::New();
             for (int k = 0; k < f.geometry_size();++k)
@@ -1242,7 +1272,45 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
     delete closure;
 }
 
-Handle<Value> VectorTile::fromGeoJSON(const Arguments& args)
+Handle<Value> VectorTile::addImage(const Arguments& args)
+{
+    HandleScope scope;
+    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    if (args.Length() < 1 || !args[0]->IsObject())
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a Buffer representing encoded image data")));
+    if (args.Length() < 2 || !args[1]->IsString())
+        return ThrowException(Exception::Error(
+                                  String::New("second argument must be a layer name (string)")));
+    std::string layer_name = TOSTR(args[1]);
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+        return ThrowException(Exception::Error(
+                                  String::New("first argument must be a Buffer representing encoded image data")));
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
+    {
+        return ThrowException(Exception::Error(
+                                  String::New("cannot accept empty buffer as image")));
+    }
+    // how to ensure buffer width/height?
+    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
+    mapnik::vector::tile_layer * new_layer = tiledata.add_layers();
+    new_layer->set_name(layer_name);
+    new_layer->set_version(1);
+    new_layer->set_extent(256 * 16);
+    // no need
+    // current_feature_->set_id(feature.id());
+    mapnik::vector::tile_feature * new_feature = new_layer->add_features();
+    new_feature->set_raster(std::string(node::Buffer::Data(obj),buffer_size));
+    // report that we have data
+    d->painted(true);
+    // cache modified size
+    d->cache_bytesize();
+    return Undefined();
+
+}
+Handle<Value> VectorTile::addGeoJSON(const Arguments& args)
 {
     HandleScope scope;
     VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
@@ -1279,6 +1347,7 @@ Handle<Value> VectorTile::fromGeoJSON(const Arguments& args)
                           m_req);
         ren.apply();
         d->painted(ren.painted());
+        d->cache_bytesize();
         return True();
     }
     catch (std::exception const& ex)
@@ -1427,24 +1496,29 @@ Handle<Value> VectorTile::getData(const Arguments& args)
     try {
         // shortcut: return raw data and avoid trip through proto object
         // TODO  - safe for null string?
-        int raw_size = d->buffer_.size();
-        if (d->byte_size_ <= raw_size) {
+        int raw_size = static_cast<int>(d->buffer_.size());
+        if (raw_size > 0 && d->byte_size_ <= raw_size) {
             return scope.Close(node::Buffer::New((char*)d->buffer_.data(),raw_size)->handle_);
         } else {
-            // NOTE: tiledata.ByteSize() must be called
-            // after each modification of tiledata otherwise the
-            // SerializeWithCachedSizesToArray will throw
-            mapnik::vector::tile const& tiledata = d->get_tile();
-            node::Buffer *retbuf = node::Buffer::New(d->byte_size_);
-            // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
-            // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
-            google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
-            google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
-            if (end - start != d->byte_size_) {
-                return ThrowException(Exception::Error(
-                                          String::New("serialization failed, possible race condition")));
+            if (d->byte_size_ <= 0) {
+                return scope.Close(node::Buffer::New(0)->handle_);
+            } else {
+                // NOTE: tiledata.ByteSize() must be called
+                // after each modification of tiledata otherwise the
+                // SerializeWithCachedSizesToArray will throw:
+                // Error: CHECK failed: !coded_out.HadError()
+                mapnik::vector::tile const& tiledata = d->get_tile();
+                node::Buffer *retbuf = node::Buffer::New(d->byte_size_);
+                // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
+                // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
+                google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
+                google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
+                if (end - start != d->byte_size_) {
+                    return ThrowException(Exception::Error(
+                                              String::New("serialization failed, possible race condition")));
+                }
+                return scope.Close(retbuf->handle_);
             }
-            return scope.Close(retbuf->handle_);
         }
     } catch (std::exception const& ex) {
         return ThrowException(Exception::Error(
