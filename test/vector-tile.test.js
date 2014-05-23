@@ -587,7 +587,7 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(actual, 'jpeg80');
                 var a = fs.readFileSync(actual);
                 var e = fs.readFileSync(expected)
-                assert.ok(Math.abs(e.length - a.length) < 10);
+                assert.ok(Math.abs(e.length - a.length) < 300);
                 done();
             });
         });
@@ -615,7 +615,7 @@ describe('mapnik.VectorTile ', function() {
             vtile_image.save(actual, 'png32');
             var a = fs.readFileSync(actual);
             var e = fs.readFileSync(expected)
-            assert.ok(Math.abs(e.length - a.length) < 10);
+            assert.ok(Math.abs(e.length - a.length) < 300);
             done();
         });
     });
