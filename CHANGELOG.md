@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.4
+
+ - Updated to mapnik-vector-tile@0.5.0
+ - Subtle VectorTile.composite bugs fixed to handle both tiles created from `setData` and those just rendered to.
+ - `VectorTile.fromGeoJSON` method changed to `VectorTile.addGeoJSON`
+ - Removed initializing and cleaning up global libxml2 structures because XML2 is no longer the default in node-mapnik binaries (#239)
+ - Added support for pre-pending PATH when set in `mapnik_settings.js` (#258)
+
+Notable changes in the Mapnik SDK include:
+ - GDAL now built `--with-threads-no` and with a much more minimal set of drivers (https://github.com/mapnik/mapnik-packaging/commit/c572d73818ee4c9836171ae9fd49e950c6710d58)
+ - Mapnik now build with rapidxml/ptree xml parser rather than libxml2 (meaning no xincludes or entities are supported)
+
 ## 1.4.3
 
  - VectorTile constructor now accepts optional 4th arg of options which respects `width` or `height`
@@ -16,7 +28,7 @@ Notable changes in the Mapnik SDK include:
 
 ## 1.4.2
 
- - Now initializing and cleaning up global libxml structures to ensure safe async map loading (#239)
+ - Now initializing and cleaning up global libxml2 structures to ensure safe async map loading (#239)
  - Fix publishing of mapnik package to npm to include bundled node-pre-gyp.
  - Binaries updated to use Mapnik v2.3.x at ce1ff99 and mapnik-packaging@49d8c3b.
 
