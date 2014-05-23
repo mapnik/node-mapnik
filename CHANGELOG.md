@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.5
+
+ - Updated to use Mapnik 2.3.x SDK with rapidxml parsing fix: https://github.com/mapnik/mapnik/issues/2253
+
 ## 1.4.4
 
  - Updated to mapnik-vector-tile@0.5.0

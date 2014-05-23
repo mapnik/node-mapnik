@@ -29,7 +29,7 @@ if [[ "${CXX11:-false}" != false ]]; then
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="483-ged3afe5-cpp03"
+    HASH="491-g30c6bc5-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
         export CXX_NAME="gcc-4.6"
     else
