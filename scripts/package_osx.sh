@@ -3,7 +3,7 @@ set -u -e
 
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
-npm install aws-sdk
+npm cache clean
 rm -rf sdk
 source ./scripts/build_against_sdk.sh " "
 npm test
