@@ -1501,6 +1501,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->tolerance);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
+        closure->d->cache_bytesize();
 
     }
     catch (std::exception const& ex)
