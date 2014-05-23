@@ -30,9 +30,6 @@
 #endif
 #include "utils.hpp"
 
-#include <libxml/parser.h>
-#include <libxml/xmlversion.h>
-
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
 #include <mapnik/version.hpp>
@@ -102,8 +99,6 @@ static Handle<Value> shutdown(const Arguments& args)
 {
     HandleScope scope;
     google::protobuf::ShutdownProtobufLibrary();
-    // http://lists.fedoraproject.org/pipermail/devel/2010-January/129117.html
-    xmlCleanupParser();
     return scope.Close(Undefined());
 }
 
@@ -113,11 +108,6 @@ extern "C" {
     {
         HandleScope scope;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
-        // https://mail.gnome.org/archives/xml/2007-October/msg00004.html
-        // calls http://xmlsoft.org/html/libxml-xmlversion.html#xmlCheckVersion
-        // which internall calls http://xmlsoft.org/html/libxml-parser.html#xmlInitParser
-        // see 'parserInternals.c' for details / requires xmlCleanupParser(); at exit
-        LIBXML_TEST_VERSION;
 
         // module level functions
         NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
@@ -162,7 +152,6 @@ extern "C" {
         versions->Set(String::NewSymbol("boost_number"), Integer::New(BOOST_VERSION));
         versions->Set(String::NewSymbol("mapnik"), String::New(format_version(MAPNIK_VERSION).c_str()));
         versions->Set(String::NewSymbol("mapnik_number"), Integer::New(MAPNIK_VERSION));
-        versions->Set(String::NewSymbol("libxml"), String::New(LIBXML_DOTTED_VERSION));
 #if defined(HAVE_CAIRO)
         versions->Set(String::NewSymbol("cairo"), String::New(CAIRO_VERSION_STRING));
 #endif
