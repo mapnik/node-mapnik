@@ -7,6 +7,7 @@
  - `VectorTile.fromGeoJSON` method changed to `VectorTile.addGeoJSON`
  - Removed initializing and cleaning up global libxml2 structures because XML2 is no longer the default in node-mapnik binaries (#239)
  - Added support for pre-pending PATH when set in `mapnik_settings.js` (#258)
+ - Binaries updated to use Mapnik v2.3.x at ed3afe5 and mapnik-packaging@5f9f0e0375
 
 Notable changes in the Mapnik SDK include:
  - GDAL now built `--with-threads-no` and with a much more minimal set of drivers (https://github.com/mapnik/mapnik-packaging/commit/c572d73818ee4c9836171ae9fd49e950c6710d58)
