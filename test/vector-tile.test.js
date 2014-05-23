@@ -571,7 +571,7 @@ describe('mapnik.VectorTile ', function() {
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/raster_layer.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
-        map.render(vtile,{},function(err,vtile) {
+        map.render(vtile,{image_scaling:"bilinear",image_format:"jpeg"},function(err,vtile) {
             if (err) throw err;
             // now this vtile contains a 256/256 image
             // now render out with fancy styling

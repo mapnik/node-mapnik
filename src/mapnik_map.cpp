@@ -1209,6 +1209,8 @@ struct vector_tile_baton_t {
     double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
+    std::string image_format;
+    mapnik::scaling_method_e scaling_method;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1219,6 +1221,8 @@ struct vector_tile_baton_t {
         scale_denominator(0.0),
         offset_x(0),
         offset_y(0),
+        image_format("jpeg"),
+        scaling_method(mapnik::SCALING_NEAR),
         error(false) {}
 };
 
@@ -1438,8 +1442,34 @@ Handle<Value> Map::render(const Arguments& args)
         vector_tile_baton_t *closure = new vector_tile_baton_t();
         VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
 
-        if (options->Has(String::New("tolerance"))) {
+        if (options->Has(String::New("image_scaling"))) {
+            Local<Value> param_val = options->Get(String::New("image_scaling"));
+            if (!param_val->IsString()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'image_scaling' must be an unsigned integer")));
+            }
+            std::string image_scaling = TOSTR(param_val);
+            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            if (!method) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')")));
+            }
+            closure->scaling_method = *method;
+        }
 
+        if (options->Has(String::New("image_format"))) {
+            Local<Value> param_val = options->Get(String::New("image_format"));
+            if (!param_val->IsString()) {
+                delete closure;
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'image_format' must be a string")));
+            }
+            closure->image_format = TOSTR(param_val);
+        }
+
+        if (options->Has(String::New("tolerance"))) {
             Local<Value> param_val = options->Get(String::New("tolerance"));
             if (!param_val->IsNumber()) {
                 delete closure;
@@ -1498,7 +1528,9 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->scale_factor,
                           closure->offset_x,
                           closure->offset_y,
-                          closure->tolerance);
+                          closure->tolerance,
+                          closure->image_format,
+                          closure->scaling_method);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
         closure->d->cache_bytesize();
