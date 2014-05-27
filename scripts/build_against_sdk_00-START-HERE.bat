@@ -37,17 +37,11 @@ IF ERRORLEVEL 1 GOTO ERROR
 
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
-::call npm install node-gyp
-::IF ERRORLEVEL 1 GOTO ERROR
 call npm install --build-from-source --msvs_version=2013 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 
 powershell scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
 IF ERRORLEVEL 1 GOTO ERROR
-
-call npm test 2>&1
-::comment following line, if the script should continue after failed tests
-::IF ERRORLEVEL 1 GOTO ERROR
 
 powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF ERRORLEVEL 1 GOTO ERROR
