@@ -1,26 +1,8 @@
 $msg_prefix='====================== '
 
 Try{
-    $mapnik230 = False
-    if($env:MAPNIK_VERSION -eq "2.3.0"){
-        $mapnik230=$True
-    }
 
-    ##DEPENDENCIES
-    if($mapnik230){
-        $deps = Get-ChildItem -Path $env:MAPNIK_LIB_DIR -Filter *.dll | % { $_.FullName }
-    } else {
-        $deps = @(
-            "$env:MAPNIK_LIB_DIR\icuuc48.dll",
-            "$env:MAPNIK_LIB_DIR\icuin48.dll",
-            "$env:MAPNIK_LIB_DIR\mapnik.dll",
-            "$env:MAPNIK_LIB_DIR\cairo.dll"
-        )
-    }
-    ##add libxml to deps, if not compiled static
-    if($env:LIB_XML_STATIC -ne '1'){
-        $deps += "$env:MAPNIK_LIB_DIR\libxml2.dll"
-    }
+    $deps = Get-ChildItem -Path $env:MAPNIK_LIB_DIR -Filter *.dll | % { $_.FullName }
 
     ##DELETE mapnik AND share DIRECTORIES, IF THEY EXIST
     ##POWERSHELL BEHAVES STRANGE IF THEY DO
