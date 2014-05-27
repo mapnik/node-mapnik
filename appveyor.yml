@@ -41,6 +41,8 @@ install:
   - node --version
   - npm --version
   #- node-gyp --version
+  - icacls lib\
+  - ps: Get-ChildItem -Path lib\ | Get-Acl
   - scripts\build_against_sdk_00-START-HERE.bat
   - icacls lib\binding\
   - ps: Get-ChildItem -Path lib\binding | Get-Acl
