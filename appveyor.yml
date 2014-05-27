@@ -27,6 +27,8 @@ install:
   - scripts\build_against_sdk_00-START-HERE.bat
   - icacls lib\binding\
   - ps: Get-ChildItem -Path lib\binding | Get-Acl
+  - ps: Get-ChildItem -Path lib\binding\mapnik | Get-Acl
+  - ps: Get-ChildItem -Path lib\binding\mapnik\fonts | Get-Acl
   - npm test 2>&1
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
