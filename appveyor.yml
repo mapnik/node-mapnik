@@ -22,20 +22,16 @@ install:
   - npm --version
   # upgrade node-gyp to ensure it knows about msvs 2013
   - npm install node-gyp --no-color --loglevel=info
-  #- icacls lib\
   - ps: Get-ChildItem -Path lib\ | Get-Acl
   - scripts\build_against_sdk_00-START-HERE.bat
-  - icacls lib\binding\
-  #- ps: Get-ChildItem -Path lib\binding | Get-Acl
-  #- ps: Get-ChildItem -Path lib\binding\mapnik | Get-Acl
-  #- ps: Get-ChildItem -Path lib\binding\mapnik\fonts | Get-Acl
   - npm test --no-color
   - npm test --no-color 2>&1
   - cmd: npm test --no-color 2>&1
-  - node-pre-gyp --no-color package
+  - node-pre-gyp --no-color --loglevel=verbose package
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
-  - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp --no-color publish
+  #- if not "%CM%" == "%CM:[publish binary]=%"
+  - node-pre-gyp --no-color --loglevel=verbose unpublish publish
 
 build: off
 test: off
