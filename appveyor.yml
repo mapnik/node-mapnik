@@ -8,7 +8,7 @@ environment:
   node_pre_gyp_secretAccessKey:
     secure: s1us6xb8U2EqlaVYtoVMtulfgMdX4VVEKgTF+Eft104gWja1GG0Blf6cMJtG7Yu3
   matrix:
-#    - nodejs_version: 0.8
+    - nodejs_version: 0.8
     - nodejs_version: 0.10
 
 platform:
@@ -22,21 +22,16 @@ install:
   - npm --version
   # upgrade node-gyp to ensure it knows about msvs 2013
   - npm install node-gyp --no-color --loglevel=info
-  - ps: Get-ChildItem -Path lib\ | Get-Acl
   - scripts\build_against_sdk_00-START-HERE.bat
   - npm test --no-color
   - npm test --no-color 2>&1
-  - cmd: npm test --no-color 2>&1
   - node-pre-gyp --no-color --loglevel=verbose package
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
   #- if not "%CM%" == "%CM:[publish binary]=%"
-  - node-pre-gyp --no-color --loglevel=verbose unpublish 1>output.txt 2>&1
-  - node-pre-gyp --no-color --loglevel=verbose publish  1>output.txt 2>&1
+  - node-pre-gyp --no-color --loglevel=verbose unpublish
+  - node-pre-gyp --no-color --loglevel=verbose publish
 
 build: off
 test: off
 deploy: off
-
-artifacts:
-  - path: output.txt
