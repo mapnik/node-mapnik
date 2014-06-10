@@ -57,6 +57,6 @@
   "devDependencies": {
     "sphericalmercator": "~1.0.2",
     "mocha": "~1.15.1",
-    "aws-sdk": "~2.0.0-rc.15"
+    "aws-sdk": "~2.0.0-rc.19"
   }
 }
