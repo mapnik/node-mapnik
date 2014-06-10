@@ -29,7 +29,7 @@ if [[ "${CXX11:-false}" != false ]]; then
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="491-g30c6bc5-cpp03"
+    HASH="503-ga7e6f3a-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
         export CXX_NAME="gcc-4.6"
     else
@@ -63,6 +63,16 @@ fi
 if [ ! -d ${TARBALL_NAME} ]; then
     echo "unpacking ${TARBALL_NAME}"
     tar xf ${TARBALL_NAME}.${COMPRESSION}
+fi
+
+if [[ ! `which pkg-config` ]]; then
+    echo 'pkg-config not installed'
+    exit 1
+fi
+
+if [[ ! `which node` ]]; then
+    echo 'node not installed'
+    exit 1
 fi
 
 if [[ $UNAME == 'Linux' ]]; then
