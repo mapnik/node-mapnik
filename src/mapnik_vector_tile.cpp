@@ -1322,11 +1322,43 @@ Handle<Value> VectorTile::addGeoJSON(const Arguments& args)
                                   String::New("second argument must be a layer name (string)")));
     std::string geojson_string = TOSTR(args[0]);
     std::string geojson_name = TOSTR(args[1]);
+
+    Local<Object> options = Object::New();
+    unsigned tolerance = 1;
+    unsigned path_multiplier = 16;
+
+    if (args.Length() > 2) {
+        // options object
+        if (!args[2]->IsObject())
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional third argument must be an options object")));
+
+        options = args[2]->ToObject();
+
+        if (options->Has(String::New("tolerance"))) {
+            Local<Value> param_val = options->Get(String::New("tolerance"));
+            if (!param_val->IsNumber()) {
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'tolerance' must be an unsigned integer")));
+            }
+            tolerance = param_val->IntegerValue();
+        }
+
+        if (options->Has(String::New("path_multiplier"))) {
+            Local<Value> param_val = options->Get(String::New("path_multiplier"));
+            if (!param_val->IsNumber()) {
+                return ThrowException(Exception::TypeError(
+                                          String::New("option 'path_multiplier' must be an unsigned integer")));
+            }
+            path_multiplier = param_val->NumberValue();
+        }
+    }
+
     try
     {
         typedef mapnik::vector::backend_pbf backend_type;
         typedef mapnik::vector::processor<backend_type> renderer_type;
-        backend_type backend(d->get_tile_nonconst(),16);
+        backend_type backend(d->get_tile_nonconst(),path_multiplier);
         mapnik::Map map(d->width_,d->height_,"+init=epsg:3857");
         mapnik::vector::spherical_mercator merc(d->width_);
         double minx,miny,maxx,maxy;
@@ -1344,7 +1376,11 @@ Handle<Value> VectorTile::addGeoJSON(const Arguments& args)
         map.MAPNIK_ADD_LAYER(lyr);
         renderer_type ren(backend,
                           map,
-                          m_req);
+                          m_req,
+                          1,
+                          0,
+                          0,
+                          tolerance);
         ren.apply();
         d->painted(ren.painted());
         d->cache_bytesize();
