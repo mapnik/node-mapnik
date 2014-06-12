@@ -51,8 +51,8 @@ public:
     }
     ~ImageReader() {
         if (surface) {
-            //free(surface);
-            //surface = NULL;
+            free(surface);
+            surface = NULL;
         }
     }
     unsigned width;
