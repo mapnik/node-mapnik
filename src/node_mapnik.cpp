@@ -29,6 +29,7 @@
 #include "mapnik_expression.hpp"
 #endif
 #include "utils.hpp"
+#include "blend.hpp"
 
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
@@ -110,6 +111,7 @@ extern "C" {
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
+        NODE_SET_METHOD(target, "blend",node_mapnik::Blend);
         NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
         NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
