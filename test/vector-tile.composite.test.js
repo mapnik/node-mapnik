@@ -74,7 +74,7 @@ function compare_to_image(actual,expected_file) {
     return actual.length == expected.length;
 }
 
-describe('mapnik.VectorTile ', function() {
+describe('mapnik.VectorTile.composite', function() {
     // generate test data
     before(function(done) {
         if (overwrite_expected_data) {
@@ -276,6 +276,38 @@ describe('mapnik.VectorTile ', function() {
                 done();
             })
         })
+    });
+
+    it.skip('should contain two raster layers', function(done) {
+        // two tiles that do not overlap
+        var vt = new mapnik.VectorTile(0,0,0);
+        var im = new mapnik.Image(vt.width(),vt.height());
+        im.background = new mapnik.Color('green');
+        vt.addImage(im.encodeSync('webp'), 'green');
+        var vt2 = new mapnik.VectorTile(0,0,0);
+        var im2 = new mapnik.Image(vt.width(),vt.height());
+        im2.background = new mapnik.Color('blue');
+        vt2.addImage(im2.encodeSync('webp'), 'blue');
+        vt.composite([vt2]);
+        assert.deepEqual(vt.names(),['green','blue']);
+        done();
+    });
+
+    it.skip('should not contain non-overlapping data', function(done) {
+        // two tiles that do not overlap
+        var vt = new mapnik.VectorTile(1,0,0);
+        var im = new mapnik.Image(vt.width(),vt.height());
+        im.background = new mapnik.Color('green');
+        vt.addImage(im.encodeSync('webp'), 'green');
+        var vt2 = new mapnik.VectorTile(1,1,0);
+        var im2 = new mapnik.Image(vt.width(),vt.height());
+        im2.background = new mapnik.Color('blue');
+        vt2.addImage(im2.encodeSync('webp'), 'blue');
+        vt.composite([vt2]);
+        assert.deepEqual(vt.names(),['green']);
+        vt.parse();
+        assert.deepEqual(vt.names(),['green']);
+        done();
     });
 
 });
