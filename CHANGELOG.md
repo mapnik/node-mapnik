@@ -7,6 +7,7 @@
 Notable changes in the Mapnik SDK include:
  - GDAL now built `--with-threads=yes`
  - GDAL dependency now included as a shared library
+ - Now building GDAL master (2.x) at https://github.com/OSGeo/gdal/commit/c0410a07c8b23e65071789a484fca0f3391fe0ff
 
 ## 1.4.5
 
