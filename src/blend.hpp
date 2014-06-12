@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-
+#include "mapnik_palette.hpp"
 #include "reader.hpp"
 #include "tint.hpp"
 
@@ -79,6 +79,8 @@ enum EncoderType {
 #define TYPE_EXCEPTION(message)                                                \
     ThrowException(Exception::TypeError(String::New(message)))
 
+v8::Handle<v8::Value> rgb2hsl2(const v8::Arguments& args);
+v8::Handle<v8::Value> hsl2rgb2(const v8::Arguments& args);
 v8::Handle<v8::Value> Blend(const v8::Arguments& args);
 WORKER_BEGIN(Work_Blend);
 WORKER_BEGIN(Work_AfterBlend);
@@ -98,6 +100,7 @@ struct BlendBaton {
     bool reencode;
     int width;
     int height;
+    palette_ptr palette;
     unsigned int matte;
     int compression;
     AlphaMode mode;

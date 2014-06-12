@@ -72,9 +72,15 @@ Handle<Value> Palette::New(const Arguments& args) {
 
     try
     {
+
         Palette* p = new Palette(palette, type);
-        p->Wrap(args.This());
-        return args.This();
+        if (!p->palette()->valid()) {
+            delete p;
+            return ThrowException(Exception::TypeError(String::New("Invalid palette length")));
+        } else {
+            p->Wrap(args.This());
+            return args.This();
+        }
     }
     catch (std::exception const& ex)
     {

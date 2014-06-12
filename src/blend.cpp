@@ -2,6 +2,7 @@
 #include <mapnik/png_io.hpp>
 #include <mapnik/jpeg_io.hpp>
 #include <mapnik/webp_io.hpp>
+#include "mapnik_palette.hpp"
 #include "reader.hpp"
 #include "blend.hpp"
 #include "tint.hpp"
@@ -32,6 +33,48 @@ static unsigned int hexToUInt32Color(char *hex) {
     } else {
         return 0xFF000000 | ((color & 0xFF) << 16) | (color & 0xFF00) | ((color & 0xFF0000) >> 16);
     }
+}
+
+Handle<Value> rgb2hsl2(const Arguments& args) {
+    HandleScope scope;
+    if (args.Length() != 3) {
+        return TYPE_EXCEPTION("Please pass r,g,b integer values as three arguments");
+    }
+    if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
+        return TYPE_EXCEPTION("Please pass r,g,b integer values as three arguments");
+    }
+    unsigned r,g,b;
+    r = args[0]->IntegerValue();
+    g = args[1]->IntegerValue();
+    b = args[2]->IntegerValue();
+    Local<Array> hsl = Array::New(3);
+    double h,s,l;
+    rgb2hsl(r,g,b,h,s,l);
+    hsl->Set(0,Number::New(h));
+    hsl->Set(1,Number::New(s));
+    hsl->Set(2,Number::New(l));
+    return scope.Close(hsl);
+}
+
+Handle<Value> hsl2rgb2(const Arguments& args) {
+    HandleScope scope;
+    if (args.Length() != 3) {
+        return TYPE_EXCEPTION("Please pass hsl fractional values as three arguments");
+    }
+    if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
+        return TYPE_EXCEPTION("Please pass hsl fractional values as three arguments");
+    }
+    double h,s,l;
+    h = args[0]->NumberValue();
+    s = args[1]->NumberValue();
+    l = args[2]->NumberValue();
+    Local<Array> rgb = Array::New(3);
+    unsigned r,g,b;
+    hsl2rgb(h,s,l,r,g,b);
+    rgb->Set(0,Integer::New(r));
+    rgb->Set(1,Integer::New(g));
+    rgb->Set(2,Integer::New(b));
+    return scope.Close(rgb);
 }
 
 static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string & msg) {
@@ -144,6 +187,11 @@ Handle<Value> Blend(const Arguments& args) {
             if (baton->matte && !baton->reencode) {
                 baton->reencode = true;
             }
+        }
+
+        Local<Value> palette_val = options->Get(String::NewSymbol("palette"));
+        if (!palette_val.IsEmpty() && palette_val->IsObject()) {
+            baton->palette = ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
         }
 
         Local<Value> mode_val = options->Get(String::NewSymbol("mode"));
@@ -384,22 +432,25 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
                 throw std::runtime_error("version mismatch");
             }
             // see for more details: https://github.com/mapnik/mapnik/wiki/Image-IO#webp-output-options
-            bool alpha = true;
             config.quality = baton->quality;
-            config.method = baton->compression;
+            if (baton->compression > 0) {
+                config.method = baton->compression;
+            }
             mapnik::save_as_webp(baton->stream,image,config,alpha);
         } else {
             // Save as PNG.
             mapnik::png_options opts;
             opts.compression = baton->compression;
             if (baton->encoder == BLEND_ENCODER_MINIZ) opts.use_miniz = true;
-            if (baton->quality > 0) {
+            if (baton->palette && baton->palette->valid()) {
+                mapnik::save_as_png8_pal(baton->stream, image, *baton->palette, opts);
+            } else if (baton->quality > 0) {
                 opts.colors = baton->quality;
                 // Paletted PNG.
                 if (alpha && baton->mode == BLEND_MODE_HEXTREE) {
-                    save_as_png8_hex(baton->stream, image, opts);
+                    mapnik::save_as_png8_hex(baton->stream, image, opts);
                 } else {
-                    save_as_png8_oct(baton->stream, image, opts);
+                    mapnik::save_as_png8_oct(baton->stream, image, opts);
                 }
             } else {
                 mapnik::save_as_png(baton->stream, image, opts);
