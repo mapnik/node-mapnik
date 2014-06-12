@@ -310,4 +310,63 @@ describe('mapnik.VectorTile.composite', function() {
         done();
     });
 
+    it('non intersecting layers should be discarded when compositing', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        // two tiles that do not overlap
+        var vt1 = new mapnik.VectorTile(1,0,0); // north america
+        var vt2 = new mapnik.VectorTile(1,0,1); // south america
+        // point in 1,0,0
+        var geojson1 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100,60]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vt1.addGeoJSON(JSON.stringify(geojson1),"na");
+        assert.deepEqual(vt1.names(),["na"]);
+        // clone from raw buffer
+        var vt1b = new mapnik.VectorTile(1,0,0);
+        vt1b.setData(vt1.getData());
+        assert.deepEqual(vt1b.names(),["na"]);
+
+        // point in 1,0,1
+        var geojson2 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100,-60]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vt2.addGeoJSON(JSON.stringify(geojson2),"sa");
+        assert.deepEqual(vt2.names(),["sa"]);
+        // clone from raw buffer
+        var vt2b = new mapnik.VectorTile(1,0,1);
+        vt2b.setData(vt2.getData());
+        assert.deepEqual(vt2b.names(),["sa"]);
+
+        vt1.composite([vt2],{buffer_size:0});
+        assert.deepEqual(vt1.names(),["na"]);
+
+        vt1b.composite([vt2b],{buffer_size:0});
+        assert.deepEqual(vt1b.names(),["na"]);
+        done();
+    });
+
 });
