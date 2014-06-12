@@ -469,8 +469,11 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                     return ThrowException(Exception::Error(
                               String::New("could not serialize new data for vt")));
                 }
-                target_vt->buffer_.append(new_message.data(),new_message.size());
-                target_vt->status_ = VectorTile::LAZY_MERGE;
+                if (!new_message.empty())
+                {
+                    target_vt->buffer_.append(new_message.data(),new_message.size());
+                    target_vt->status_ = VectorTile::LAZY_MERGE;
+                }
             }
         }
         else
@@ -575,8 +578,11 @@ Handle<Value> VectorTile::composite(const Arguments& args)
                 return ThrowException(Exception::Error(
                           String::New("could not serialize new data for vt")));
             }
-            target_vt->buffer_.append(new_message.data(),new_message.size());
-            target_vt->status_ = VectorTile::LAZY_MERGE;
+            if (!new_message.empty())
+            {
+                target_vt->buffer_.append(new_message.data(),new_message.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
         }
     }
     return scope.Close(Undefined());

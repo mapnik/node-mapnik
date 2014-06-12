@@ -369,4 +369,38 @@ describe('mapnik.VectorTile.composite', function() {
         done();
     });
 
+    it('compositing a non-intersecting layer into an empty layer should not throw when parsed', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        // two tiles that do not overlap
+        var vt1 = new mapnik.VectorTile(1,0,0); // north america
+        var vt2 = new mapnik.VectorTile(1,0,1); // south america
+        // point in 1,0,1
+        var geojson2 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100,-60]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vt2.addGeoJSON(JSON.stringify(geojson2),"sa");
+        assert.deepEqual(vt2.names(),["sa"]);
+        // clone from raw buffer
+        var vt2b = new mapnik.VectorTile(1,0,1);
+        vt2b.setData(vt2.getData());
+        assert.deepEqual(vt2b.names(),["sa"]);
+        vt1.composite([vt2],{buffer_size:0});
+        // should not throw because it is valid that tile is still empty
+        vt1.parse();
+        assert.deepEqual(vt1.names(),[]);
+        done();
+    });
+
 });
