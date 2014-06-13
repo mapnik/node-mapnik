@@ -3,6 +3,7 @@ set -u -e
 
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
+./node_modules/.bin/node-pre-gyp info
 npm cache clean
 rm -rf sdk
 source ./scripts/build_against_sdk.sh " "
