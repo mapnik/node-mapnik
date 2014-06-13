@@ -207,9 +207,6 @@ describe('mapnik.VectorTile.composite', function() {
         vtile.composite(vtiles,opts);
         assert.deepEqual(vtile.names(),[]);
         vtile.parse(function(err) {
-            assert.ok(err);
-            assert.equal(err.message,'cannot parse 0 length buffer as protobuf');
-            // now continue rendering empty tile
             var json_result = vtile.toJSON();
             assert.equal(json_result.length,0);
             var map = new mapnik.Map(256,256);
