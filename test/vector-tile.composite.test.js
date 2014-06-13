@@ -74,7 +74,7 @@ function compare_to_image(actual,expected_file) {
     return actual.length == expected.length;
 }
 
-describe('mapnik.VectorTile ', function() {
+describe('mapnik.VectorTile.composite', function() {
     // generate test data
     before(function(done) {
         if (overwrite_expected_data) {
@@ -207,9 +207,6 @@ describe('mapnik.VectorTile ', function() {
         vtile.composite(vtiles,opts);
         assert.deepEqual(vtile.names(),[]);
         vtile.parse(function(err) {
-            assert.ok(err);
-            assert.equal(err.message,'cannot parse 0 length buffer as protobuf');
-            // now continue rendering empty tile
             var json_result = vtile.toJSON();
             assert.equal(json_result.length,0);
             var map = new mapnik.Map(256,256);
@@ -276,6 +273,131 @@ describe('mapnik.VectorTile ', function() {
                 done();
             })
         })
+    });
+
+    it.skip('should contain two raster layers', function(done) {
+        // two tiles that do not overlap
+        var vt = new mapnik.VectorTile(0,0,0);
+        var im = new mapnik.Image(vt.width(),vt.height());
+        im.background = new mapnik.Color('green');
+        vt.addImage(im.encodeSync('webp'), 'green');
+        var vt2 = new mapnik.VectorTile(0,0,0);
+        var im2 = new mapnik.Image(vt.width(),vt.height());
+        im2.background = new mapnik.Color('blue');
+        vt2.addImage(im2.encodeSync('webp'), 'blue');
+        vt.composite([vt2]);
+        assert.deepEqual(vt.names(),['green','blue']);
+        done();
+    });
+
+    it.skip('should not contain non-overlapping data', function(done) {
+        // two tiles that do not overlap
+        var vt = new mapnik.VectorTile(1,0,0);
+        var im = new mapnik.Image(vt.width(),vt.height());
+        im.background = new mapnik.Color('green');
+        vt.addImage(im.encodeSync('webp'), 'green');
+        var vt2 = new mapnik.VectorTile(1,1,0);
+        var im2 = new mapnik.Image(vt.width(),vt.height());
+        im2.background = new mapnik.Color('blue');
+        vt2.addImage(im2.encodeSync('webp'), 'blue');
+        vt.composite([vt2]);
+        assert.deepEqual(vt.names(),['green']);
+        vt.parse();
+        assert.deepEqual(vt.names(),['green']);
+        done();
+    });
+
+    it('non intersecting layers should be discarded when compositing', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        // two tiles that do not overlap
+        var vt1 = new mapnik.VectorTile(1,0,0); // north america
+        var vt2 = new mapnik.VectorTile(1,0,1); // south america
+        // point in 1,0,0
+        var geojson1 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100,60]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vt1.addGeoJSON(JSON.stringify(geojson1),"na");
+        assert.deepEqual(vt1.names(),["na"]);
+        // clone from raw buffer
+        var vt1b = new mapnik.VectorTile(1,0,0);
+        vt1b.setData(vt1.getData());
+        assert.deepEqual(vt1b.names(),["na"]);
+
+        // point in 1,0,1
+        var geojson2 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100,-60]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vt2.addGeoJSON(JSON.stringify(geojson2),"sa");
+        assert.deepEqual(vt2.names(),["sa"]);
+        // clone from raw buffer
+        var vt2b = new mapnik.VectorTile(1,0,1);
+        vt2b.setData(vt2.getData());
+        assert.deepEqual(vt2b.names(),["sa"]);
+
+        vt1.composite([vt2],{buffer_size:0});
+        assert.deepEqual(vt1.names(),["na"]);
+
+        vt1b.composite([vt2b],{buffer_size:0});
+        assert.deepEqual(vt1b.names(),["na"]);
+        done();
+    });
+
+    it('compositing a non-intersecting layer into an empty layer should not throw when parsed', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        // two tiles that do not overlap
+        var vt1 = new mapnik.VectorTile(1,0,0); // north america
+        var vt2 = new mapnik.VectorTile(1,0,1); // south america
+        // point in 1,0,1
+        var geojson2 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100,-60]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vt2.addGeoJSON(JSON.stringify(geojson2),"sa");
+        assert.deepEqual(vt2.names(),["sa"]);
+        // clone from raw buffer
+        var vt2b = new mapnik.VectorTile(1,0,1);
+        vt2b.setData(vt2.getData());
+        assert.deepEqual(vt2b.names(),["sa"]);
+        vt1.composite([vt2],{buffer_size:0});
+        // should not throw because it is valid that tile is still empty
+        vt1.parse();
+        assert.deepEqual(vt1.names(),[]);
+        done();
     });
 
 });

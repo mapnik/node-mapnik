@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.6
+ - vtile.parse no longer throws if `vtile` was previously composited but no new data resulted.
+ - Fixed compile problem on some linux/bsd systems
+ - Binaries updated to use Mapnik v2.3.x at g7960be5 and mapnik-packaging@f007d6f1a6
+
+Notable changes in the Mapnik SDK include:
+ - GDAL now built `--with-threads=yes`
+ - GDAL dependency now included as a shared library
+ - Now building GDAL master (2.x) at https://github.com/OSGeo/gdal/commit/c0410a07c8b23e65071789a484fca0f3391fe0ff
+
 ## 1.4.5
 
  - Updated to use Mapnik 2.3.x SDK with rapidxml parsing fix: https://github.com/mapnik/mapnik/issues/2253
@@ -14,7 +24,7 @@
  - Binaries updated to use Mapnik v2.3.x at ed3afe5 and mapnik-packaging@5f9f0e0375
 
 Notable changes in the Mapnik SDK include:
- - GDAL now built `--with-threads-no` and with a much more minimal set of drivers (https://github.com/mapnik/mapnik-packaging/commit/c572d73818ee4c9836171ae9fd49e950c6710d58)
+ - GDAL now built `--with-threads=no` and with a much more minimal set of drivers (https://github.com/mapnik/mapnik-packaging/commit/c572d73818ee4c9836171ae9fd49e950c6710d58)
  - Mapnik now build with rapidxml/ptree xml parser rather than libxml2 (meaning no xincludes or entities are supported)
 
 ## 1.4.3
