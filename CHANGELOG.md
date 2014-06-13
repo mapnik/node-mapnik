@@ -3,6 +3,7 @@
 ## 1.4.6
  - vtile.parse no longer throws if `vtile` was previously composited but no new data resulted.
  - Fixed compile problem on some linux/bsd systems
+ - Binaries updated to use Mapnik v2.3.x at g7960be5 and mapnik-packaging@f007d6f1a6
 
 Notable changes in the Mapnik SDK include:
  - GDAL now built `--with-threads=yes`
