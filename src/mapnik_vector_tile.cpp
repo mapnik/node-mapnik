@@ -138,6 +138,76 @@ bool _hit_test(PathType & path, double x, double y, double tol, double & distanc
     return false;
 }
 
+template <typename PathType>
+double path_to_point_distance(PathType & path, double x, double y)
+{
+    double x0 = 0;
+    double y0 = 0;
+    double distance = -1;
+    path.rewind(0);
+    MAPNIK_GEOM_TYPE geom_type = static_cast<MAPNIK_GEOM_TYPE>(path.type());
+    switch(geom_type)
+    {
+    case MAPNIK_POINT:
+    {
+        unsigned command;
+        bool first = true;
+        while (mapnik::SEG_END != (command = path.vertex(&x0, &y0)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (first)
+            {
+                distance = mapnik::distance(x, y, x0, y0);
+                first = false;
+                continue;
+            }
+            double d = mapnik::distance(x, y, x0, y0);
+            if (d < distance) distance = d;
+        }
+        return distance;
+        break;
+    }
+    case MAPNIK_POLYGON:
+    case MAPNIK_LINESTRING:
+    {
+        double x1 = 0;
+        double y1 = 0;
+        double distance = -1;
+        bool first = true;
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return distance;
+        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (command == mapnik::SEG_MOVETO)
+            {
+                x0 = x1;
+                y0 = y1;
+                continue;
+            }
+            if (first)
+            {
+                distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+                first = false;
+            }
+            else
+            {
+                double d = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+                if (d >= 0 && d < distance) distance = d;
+            }
+            x0 = x1;
+            y0 = y1;
+        }
+        return distance;
+        break;
+    }
+    default:
+        return distance;
+        break;
+    }
+    return distance;
+}
+
 Persistent<FunctionTemplate> VectorTile::constructor;
 
 void VectorTile::Initialize(Handle<Object> target) {
@@ -733,17 +803,23 @@ Handle<Value> VectorTile::query(const Arguments& args)
                         mapnik::feature_ptr feature;
                         while ((feature = fs->next()))
                         {
-                            bool hit = false;
-                            double distance = 0.0;
+                            double distance = -1;
                             BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                             {
-                               if (_hit_test(geom,x,y,tolerance,distance))
-                               {
-                                   hit = true;
-                                   break;
-                               }
+                                double d = path_to_point_distance(geom,x,y);
+                                if (d >= 0)
+                                {
+                                    if (distance >= 0)
+                                    {
+                                        if (d < distance) distance = d;
+                                    }
+                                    else
+                                    {
+                                        distance = d;
+                                    }
+                                }
                             }
-                            if (hit)
+                            if (distance >= 0)
                             {
                                 Handle<Value> feat = Feature::New(feature);
                                 Local<Object> feat_obj = feat->ToObject();
@@ -774,17 +850,23 @@ Handle<Value> VectorTile::query(const Arguments& args)
                     mapnik::feature_ptr feature;
                     while ((feature = fs->next()))
                     {
-                        bool hit = false;
-                        double distance = 0.0;
+                        double distance = -1;
                         BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                         {
-                           if (_hit_test(geom,x,y,tolerance,distance))
-                           {
-                               hit = true;
-                               break;
-                           }
+                            double d = path_to_point_distance(geom,x,y);
+                            if (d >= 0)
+                            {
+                                if (distance >= 0)
+                                {
+                                    if (d < distance) distance = d;
+                                }
+                                else
+                                {
+                                    distance = d;
+                                }
+                            }
                         }
-                        if (hit)
+                        if (distance >= 0)
                         {
                             Handle<Value> feat = Feature::New(feature);
                             Local<Object> feat_obj = feat->ToObject();
