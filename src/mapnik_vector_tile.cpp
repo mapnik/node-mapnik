@@ -168,11 +168,37 @@ double path_to_point_distance(PathType & path, double x, double y)
         break;
     }
     case MAPNIK_POLYGON:
+    {
+        double x1 = 0;
+        double y1 = 0;
+        bool inside = false;
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return distance;
+        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (command == mapnik::SEG_MOVETO)
+            {
+                x0 = x1;
+                y0 = y1;
+                continue;
+            }
+            if ((((y1 <= y) && (y < y0)) ||
+                 ((y0 <= y) && (y < y1))) &&
+                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
+            {
+                inside=!inside;
+            }
+            x0 = x1;
+            y0 = y1;
+        }
+        return inside ? 0 : -1;
+        break;
+    }
     case MAPNIK_LINESTRING:
     {
         double x1 = 0;
         double y1 = 0;
-        double distance = -1;
         bool first = true;
         unsigned command = path.vertex(&x0, &y0);
         if (command == mapnik::SEG_END) return distance;
