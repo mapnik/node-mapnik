@@ -247,19 +247,19 @@ NAN_METHOD(Image::setPixel)
 
 NAN_METHOD(Image::compare)
 {
-    HandleScope scope;
+    NanScope();
 
     if (args.Length() < 1 || !args[0]->IsObject()) {
         NanThrowTypeError("first argument should be a mapnik.Image");
         NanReturnUndefined();
     }
     Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined() || !Image::constructor->HasInstance(obj)) {
+    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Image::constructor)->HasInstance(obj)) {
         NanThrowTypeError("mapnik.Image expected as first arg");
         NanReturnUndefined();
     }
 
-    Local<Object> options = Object::New();
+    Local<Object> options = NanNew<Object>();
     int threshold = 16;
     unsigned alpha = true;
     unsigned difference = 0;
@@ -273,8 +273,8 @@ NAN_METHOD(Image::compare)
 
         options = args[1]->ToObject();
 
-        if (options->Has(String::New("threshold"))) {
-            Local<Value> bind_opt = options->Get(String::New("threshold"));
+        if (options->Has(NanNew("threshold"))) {
+            Local<Value> bind_opt = options->Get(NanNew("threshold"));
             if (!bind_opt->IsNumber()) {
                 NanThrowTypeError("optional arg 'threshold' must be a number");
                 NanReturnUndefined();
@@ -282,8 +282,8 @@ NAN_METHOD(Image::compare)
             threshold = bind_opt->IntegerValue();
         }
 
-        if (options->Has(String::New("alpha"))) {
-            Local<Value> bind_opt = options->Get(String::New("alpha"));
+        if (options->Has(NanNew("alpha"))) {
+            Local<Value> bind_opt = options->Get(NanNew("alpha"));
             if (!bind_opt->IsBoolean()) {
                 NanThrowTypeError("optional arg 'alpha' must be a boolean");
                 NanReturnUndefined();

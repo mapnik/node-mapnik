@@ -467,8 +467,8 @@ NAN_METHOD(VectorTile::composite)
                 mapnik::vector::tile const& tiledata = vt->get_tile();
                 if (!tiledata.SerializeToString(&new_message))
                 {
-                    return ThrowException(Exception::Error(
-                              String::New("could not serialize new data for vt")));
+                    NanThrowTypeError("could not serialize new data for vt");
+                    NanReturnUndefined();
                 }
                 if (!new_message.empty())
                 {
@@ -835,10 +835,10 @@ NAN_METHOD(VectorTile::toJSON)
             if (f.has_raster())
             {
                 std::string const& raster = f.raster();
-                feature_obj->Set(NanNew("raster"),node::Buffer::New((char*)raster.data(),raster.size())->handle_);
+                feature_obj->Set(NanNew("raster"),NanNewBufferHandle((char*)raster.data(),raster.size()));
             }
             feature_obj->Set(NanNew("type"),NanNew<Integer>(f.type()));
-            Local<Array> g_arr = Array::New();
+            Local<Array> g_arr = NanNew<Array>();
             for (int k = 0; k < f.geometry_size();++k)
             {
                 g_arr->Set(k,NanNew<Number>(f.geometry(k)));
@@ -1307,32 +1307,33 @@ NAN_METHOD(VectorTile::addGeoJSON)
     std::string geojson_string = TOSTR(args[0]);
     std::string geojson_name = TOSTR(args[1]);
 
-    Local<Object> options = Object::New();
+    Local<Object> options = NanNew<Object>();
     unsigned tolerance = 1;
     unsigned path_multiplier = 16;
 
     if (args.Length() > 2) {
         // options object
-        if (!args[2]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional third argument must be an options object")));
+        if (!args[2]->IsObject()) {
+            NanThrowError("optional third argument must be an options object");
+            NanReturnUndefined();
+        }
 
         options = args[2]->ToObject();
 
-        if (options->Has(String::New("tolerance"))) {
-            Local<Value> param_val = options->Get(String::New("tolerance"));
+        if (options->Has(NanNew("tolerance"))) {
+            Local<Value> param_val = options->Get(NanNew("tolerance"));
             if (!param_val->IsNumber()) {
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'tolerance' must be an unsigned integer")));
+                NanThrowError("option 'tolerance' must be an unsigned integer");
+                NanReturnUndefined();
             }
             tolerance = param_val->IntegerValue();
         }
 
-        if (options->Has(String::New("path_multiplier"))) {
-            Local<Value> param_val = options->Get(String::New("path_multiplier"));
+        if (options->Has(NanNew("path_multiplier"))) {
+            Local<Value> param_val = options->Get(NanNew("path_multiplier"));
             if (!param_val->IsNumber()) {
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'path_multiplier' must be an unsigned integer")));
+                NanThrowError("option 'path_multiplier' must be an unsigned integer");
+                NanReturnUndefined();
             }
             path_multiplier = param_val->NumberValue();
         }
@@ -1381,22 +1382,25 @@ NAN_METHOD(VectorTile::addImage)
 {
     NanScope();
     VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
-    if (args.Length() < 1 || !args[0]->IsObject())
-        return ThrowException(Exception::Error(
-                                  String::New("first argument must be a Buffer representing encoded image data")));
-    if (args.Length() < 2 || !args[1]->IsString())
-        return ThrowException(Exception::Error(
-                                  String::New("second argument must be a layer name (string)")));
+    if (args.Length() < 1 || !args[0]->IsObject()) {
+        NanThrowError("first argument must be a Buffer representing encoded image data");
+        NanReturnUndefined();
+    }
+    if (args.Length() < 2 || !args[1]->IsString()) {
+        NanThrowError("second argument must be a layer name (string)");
+        NanReturnUndefined();
+    }
     std::string layer_name = TOSTR(args[1]);
     Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
-        return ThrowException(Exception::Error(
-                                  String::New("first argument must be a Buffer representing encoded image data")));
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
+        NanThrowError("first argument must be a Buffer representing encoded image data");
+        NanReturnUndefined();
+    }
     std::size_t buffer_size = node::Buffer::Length(obj);
     if (buffer_size <= 0)
     {
-        return ThrowException(Exception::Error(
-                                  String::New("cannot accept empty buffer as image")));
+        NanThrowError("cannot accept empty buffer as image");
+        NanReturnUndefined();
     }
     // how to ensure buffer width/height?
     mapnik::vector::tile & tiledata = d->get_tile_nonconst();

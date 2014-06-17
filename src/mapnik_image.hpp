@@ -57,7 +57,7 @@ public:
     static void EIO_AfterClear(uv_work_t* req);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
-    static Handle<Value> compare(const Arguments& args);
+    static NAN_METHOD(compare);
 
     static NAN_GETTER(get_prop);
     static NAN_SETTER(set_prop);
