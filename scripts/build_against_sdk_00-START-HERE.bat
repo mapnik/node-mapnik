@@ -10,13 +10,10 @@
 ::Supported mapnik versions: 2.2.0, 2.3.0
 SET MAPNIK_VERSION=2.3.0
 SET MAPNIK_DIR=C:\mapnik-v%MAPNIK_VERSION%
-SET LIB_XML_STATIC=1
 
 SET BASE_DIR=C:\dev2
-SET NODIST_DIR=%BASE_DIR%\nodist
 SET PATH=C:\Program Files\7-Zip;%PATH%
 SET PATH=c:\Python27;%PATH%
-SET PATH=%NODIST_DIR%\bin;%PATH%
 SET PATH=%MAPNIK_DIR%\lib;%PATH%
 SET PATH=%MAPNIK_DIR%\bin;%PATH%
 ::add bundled node-pre-gyp to path
@@ -40,31 +37,13 @@ IF ERRORLEVEL 1 GOTO ERROR
 
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
-call npm install aws-sdk
-IF ERRORLEVEL 1 GOTO ERROR
-::nodist npm node-gyp is here
-::C:\dev2\nodist\bin\node_modules\npm\node_modules\node-gyp
-::node-pre-gyp@0.5.4 doesn't find it
-call npm install node-gyp
-IF ERRORLEVEL 1 GOTO ERROR
-call npm install --build-from-source --msvs_version=2013 2>&1
+call npm install --no-color --build-from-source --msvs_version=2013 2>&1
 IF ERRORLEVEL 1 GOTO ERROR
 
 powershell scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
-call npm test 2>&1
-::comment following line, if the script should continue after failed tests
-::IF ERRORLEVEL 1 GOTO ERROR
-
 powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
-IF ERRORLEVEL 1 GOTO ERROR
-
-call node-pre-gyp build package --msvs_version=2013
-IF ERRORLEVEL 1 GOTO ERROR
-call node-pre-gyp unpublish
-IF ERRORLEVEL 1 GOTO ERROR
-call node-pre-gyp publish
 IF ERRORLEVEL 1 GOTO ERROR
 
 GOTO DONE

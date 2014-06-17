@@ -27,7 +27,8 @@ public:
     static NAN_METHOD(query);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
-    static NAN_METHOD(fromGeoJSON);
+    static NAN_METHOD(addGeoJSON);
+    static NAN_METHOD(addImage);
 #ifdef PROTOBUF_FULL
     static NAN_METHOD(toString);
 #endif
@@ -66,6 +67,7 @@ public:
         tiledata_.Clear();
         buffer_.clear();
         painted(false);
+        byte_size_ = 0;
     }
     mapnik::vector::tile & get_tile_nonconst() {
         return tiledata_;
@@ -75,8 +77,10 @@ public:
     mapnik::vector::tile const& get_tile() {
         return tiledata_;
     }
-    void painted(bool painted) {
+    void cache_bytesize() {
         byte_size_ = tiledata_.ByteSize();
+    }
+    void painted(bool painted) {
         painted_ = painted;
     }
     bool painted() const {

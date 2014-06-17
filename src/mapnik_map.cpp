@@ -1247,6 +1247,8 @@ struct vector_tile_baton_t {
     double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
+    std::string image_format;
+    mapnik::scaling_method_e scaling_method;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1257,6 +1259,8 @@ struct vector_tile_baton_t {
         scale_denominator(0.0),
         offset_x(0),
         offset_y(0),
+        image_format("jpeg"),
+        scaling_method(mapnik::SCALING_NEAR),
         error(false) {}
 };
 
@@ -1490,8 +1494,34 @@ NAN_METHOD(Map::render)
         vector_tile_baton_t *closure = new vector_tile_baton_t();
         VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
 
-        if (options->Has(NanNew("tolerance"))) {
+        if (options->Has(NanNew("image_scaling"))) {
+            Local<Value> param_val = options->Get(NanNew("image_scaling"));
+            if (!param_val->IsString()) {
+                delete closure;
+                NanThrowTypeError("option 'image_scaling' must be an unsigned integer");
+                NanReturnUndefined();
+            }
+            std::string image_scaling = TOSTR(param_val);
+            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            if (!method) {
+                delete closure;
+                NanThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                NanReturnUndefined();
+            }
+            closure->scaling_method = *method;
+        }
 
+        if (options->Has(NanNew("image_format"))) {
+            Local<Value> param_val = options->Get(NanNew("image_format"));
+            if (!param_val->IsString()) {
+                delete closure;
+                NanThrowTypeError("option 'image_format' must be a string");
+                NanReturnUndefined();
+            }
+            closure->image_format = TOSTR(param_val);
+        }
+
+        if (options->Has(NanNew("tolerance"))) {
             Local<Value> param_val = options->Get(NanNew("tolerance"));
             if (!param_val->IsNumber()) {
                 delete closure;
@@ -1551,9 +1581,12 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->scale_factor,
                           closure->offset_x,
                           closure->offset_y,
-                          closure->tolerance);
+                          closure->tolerance,
+                          closure->image_format,
+                          closure->scaling_method);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
+        closure->d->cache_bytesize();
 
     }
     catch (std::exception const& ex)

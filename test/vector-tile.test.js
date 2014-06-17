@@ -15,6 +15,7 @@ function deepEqualTrunc(json1,json2) {
 }
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 describe('mapnik.VectorTile ', function() {
     // generate test data
@@ -75,7 +76,8 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.fromGeoJSON(JSON.stringify(geojson),"layer-name")
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        assert.equal(vtile.getData().length,58);
         var out = vtile.toGeoJSON(0);
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
@@ -523,7 +525,7 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.fromGeoJSON(JSON.stringify(geojson),"layer-name");
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
         // console.log(JSON.stringify(vtile.toGeoJSON(0),null,1));
         // at z0 we need a large tolerance because of loss of precision in point coords
         // because the points have been rounded to -121.9921875,47.98992166741417
@@ -559,5 +561,80 @@ describe('mapnik.VectorTile ', function() {
             //assert.ok(Math.abs(e.length - a.length) < 100);
             done();
         });
+    });
+
+    // currently skipping since this segfaults at exit
+    // https://github.com/mapnik/node-mapnik/issues/251
+    it('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        // first we render a geotiff into an image tile
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/raster_layer.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        map.render(vtile,{image_scaling:"bilinear",image_format:"jpeg"},function(err,vtile) {
+            if (err) throw err;
+            // now this vtile contains a 256/256 image
+            // now render out with fancy styling
+            var map2 = new mapnik.Map(256, 256);
+            map2.loadSync('./test/data/vector_tile/raster_style.xml');
+            vtile.render(map2, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
+                if (err) throw err;
+                var actual = './test/data/vector_tile/tile-raster.actual.jpg';
+                var expected = './test/data/vector_tile/tile-raster.expected.jpg';
+                if (!existsSync(expected)) {
+                    vtile_image.save(expected, 'jpeg80');
+                }
+                vtile_image.save(actual, 'jpeg80');
+                var a = fs.readFileSync(actual);
+                var e = fs.readFileSync(expected)
+                assert.ok(Math.abs(e.length - a.length) < 300);
+                done();
+            });
+        });
+    });
+
+    it('should be able to push an image tile directly into a vector tile layer without decoding', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0);
+        var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
+        // push image into a named vtile layer
+        vtile.addImage(image_buffer,'raster');
+        assert.deepEqual(vtile.names(),['raster']);
+        var json_obj = vtile.toJSON();
+        assert.equal(json_obj[0].name,'raster');
+        assert.equal(json_obj[0].features[0].raster.length,12146);
+        // now render out with fancy styling
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/raster_style.xml');
+        vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
+            if (err) throw err;
+            var actual = './test/data/vector_tile/tile-raster2.actual.png';
+            var expected = './test/data/vector_tile/tile-raster2.expected.png';
+            if (!existsSync(expected)) {
+                vtile_image.save(expected, 'png32');
+            }
+            vtile_image.save(actual, 'png32');
+            var a = fs.readFileSync(actual);
+            var e = fs.readFileSync(expected)
+            assert.ok(Math.abs(e.length - a.length) < 300);
+            done();
+        });
+    });
+
+    it('should include image in getData pbf output', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0);
+        var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
+        // push image into a named vtile layer
+        vtile.addImage(image_buffer,'raster');
+        assert.deepEqual(vtile.names(),['raster']);
+        var json_obj = vtile.toJSON();
+        assert.equal(json_obj[0].name,'raster');
+        assert.equal(json_obj[0].features[0].raster.length,12146);
+        // getData from the image vtile
+        var vtile2 = new mapnik.VectorTile(1, 0, 0);
+        vtile2.setData(vtile.getData());
+        vtile2.parse();
+        var json_obj2 = vtile2.toJSON();
+        assert.deepEqual(json_obj, json_obj2);
+        done();
     });
 });

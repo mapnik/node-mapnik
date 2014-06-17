@@ -24,9 +24,6 @@
 #endif
 #include "utils.hpp"
 
-#include <libxml/parser.h>
-#include <libxml/xmlversion.h>
-
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
 #include <mapnik/version.hpp>
@@ -96,8 +93,6 @@ static NAN_METHOD(shutdown)
 {
     NanScope();
     google::protobuf::ShutdownProtobufLibrary();
-    // http://lists.fedoraproject.org/pipermail/devel/2010-January/129117.html
-    xmlCleanupParser();
     NanReturnUndefined();
 }
 
@@ -107,11 +102,6 @@ extern "C" {
     {
         NanScope();
         GOOGLE_PROTOBUF_VERIFY_VERSION;
-        // https://mail.gnome.org/archives/xml/2007-October/msg00004.html
-        // calls http://xmlsoft.org/html/libxml-xmlversion.html#xmlCheckVersion
-        // which internall calls http://xmlsoft.org/html/libxml-parser.html#xmlInitParser
-        // see 'parserInternals.c' for details / requires xmlCleanupParser(); at exit
-        LIBXML_TEST_VERSION;
 
         // module level functions
         NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
@@ -156,7 +146,6 @@ extern "C" {
         versions->Set(NanNew("boost_number"), NanNew(BOOST_VERSION));
         versions->Set(NanNew("mapnik"), NanNew(format_version(MAPNIK_VERSION).c_str()));
         versions->Set(NanNew("mapnik_number"), NanNew(MAPNIK_VERSION));
-        versions->Set(NanNew("libxml"), NanNew(LIBXML_DOTTED_VERSION));
 #if defined(HAVE_CAIRO)
         versions->Set(NanNew("cairo"), NanNew(CAIRO_VERSION_STRING));
 #endif

@@ -1,65 +1,63 @@
 {
-  "name": "mapnik",
-  "description": "Tile rendering library for node",
-  "url": "http://github.com/mapnik/node-mapnik",
-  "homepage": "http://mapnik.org",
-  "author": "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version": "1.4.3",
-  "main": "./lib/mapnik.js",
+  "name"          : "mapnik",
+  "description"   : "Tile rendering library for node",
+  "url"           : "http://github.com/mapnik/node-mapnik",
+  "homepage"      : "http://mapnik.org",
+  "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
+  "version"       : "1.4.7",
+  "main"          : "./lib/mapnik.js",
   "binary": {
-    "module_name": "mapnik",
-    "module_path": "./lib/binding/",
-    "remote_path": "v{version}",
-    "host": "https://node-mapnik.s3-us-west-1.amazonaws.com"
+      "module_name": "mapnik",
+      "module_path": "./lib/binding/",
+      "remote_path": "v{version}",
+      "host": "https://node-mapnik.s3-us-west-1.amazonaws.com"
   },
-  "bugs": {
-    "email": "dane@dbsgeo.com",
-    "url": "http://github.com/mapnik/node-mapnik/issues"
+  "bugs"          : {
+    "email" : "dane@dbsgeo.com",
+    "url"   : "http://github.com/mapnik/node-mapnik/issues"
   },
-  "keywords": [
-    "map",
-    "graphics",
-    "canvas",
-    "tile",
-    "mapnik",
-    "carto"
+  "keywords"      : [
+      "map",
+      "graphics",
+      "canvas",
+      "tile",
+      "mapnik",
+      "carto"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mapnik/node-mapnik.git"
+  "repository"   :  {
+           "type" : "git",
+           "url"  : "git://github.com/mapnik/node-mapnik.git"
   },
-  "contributors": [
-    "Konstantin Käfer"
+  "contributors"  : ["Konstantin Käfer"],
+  "licenses"      : [
+      {
+        "type": "BSD",
+        "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
+      }
   ],
-  "licenses": [
-    {
-      "type": "BSD",
-      "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
-    }
-  ],
-  "dependencies": {
-    "mapnik-vector-tile": "0.4.2",
-    "nan": "~1.2.0",
-    "node-pre-gyp": "~0.5.0"
+  "dependencies"  : {
+      "nan": "~1.2.0",
+      "mapnik-vector-tile": "~0.5.1",
+      "node-pre-gyp":"https://github.com/mapbox/node-pre-gyp/tarball/master"
   },
   "bundledDependencies": [
-    "mapnik-vector-tile",
-    "node-pre-gyp"
+      "mapnik-vector-tile",
+      "node-pre-gyp"
   ],
-  "bin": {
-    "mapnik-inspect.js": "./bin/mapnik-inspect.js",
-    "mapnik-render.js": "./bin/mapnik-render.js"
+  "bin"           : {
+       "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
+       "mapnik-render.js"  : "./bin/mapnik-render.js"
   },
-  "engines": {
-    "node": ">= 0.8.0 < 0.11.4"
+  "engines"       : {
+      "node": ">= 0.8.0 < 0.11.4"
   },
-  "scripts": {
-    "test": "mocha",
-    "install": "node-pre-gyp install --fallback-to-build"
+  "scripts"       : {
+      "test"    : "mocha -R spec --no-colors",
+      "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
     "sphericalmercator": "~1.0.2",
     "mocha": "~1.15.1",
-    "aws-sdk": "~2.0.0-rc.15"
+    "aws-sdk": "~2.0.0-rc.19"
   }
 }

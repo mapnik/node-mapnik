@@ -10,7 +10,8 @@ module.exports.paths = {
 module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
     'GDAL_DATA': path.join(__dirname, 'share/gdal'),
-    'PROJ_LIB': path.join(__dirname, 'share/proj')
+    'PROJ_LIB': path.join(__dirname, 'share/proj'),
+    'PATH': __dirname
 };" | Out-File -Encoding UTF8 $file
 }
 Catch {

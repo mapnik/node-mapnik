@@ -216,4 +216,35 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel.a, 255);
     });
 
+    it('should support comparing images', function() {
+        // if width/height don't match should throw
+        assert.throws(function() { new mapnik.Image(256, 256).compare(new mapnik.Image(256, 255)) });
+        var one = new mapnik.Image(256, 256);
+        // two blank images should exactly match
+        assert.equal(one.compare(new mapnik.Image(256, 256)),0);
+        // here we set one pixel different
+        one.setPixel(0,0,new mapnik.Color('white'));
+        assert.equal(one.compare(new mapnik.Image(256, 256)),1);
+        // here we set all pixels to be different
+        one.background = new mapnik.Color('white');
+        assert.equal(one.compare(new mapnik.Image(256, 256)),one.width()*one.height());
+        // now lets test comparing just rgb and not alpha
+        var two = new mapnik.Image(256, 256);
+        // white image but fully alpha
+        two.background = new mapnik.Color('rgba(255,255,255,0)');
+        // if we consider alpha all pixels should be different
+        assert.equal(one.compare(two),one.width()*one.height());
+        // but ignoring alpha all pixels should pass as the same
+        assert.equal(one.compare(two,{alpha:false}),0);
+        // now lets test the threshold option
+        // a minorly different color should trigger differences
+        var blank = new mapnik.Image(256, 256);
+        var blank2 = new mapnik.Image(256, 256);
+        blank2.setPixel(0,0,new mapnik.Color('rgba(16,16,16,0)'));
+        // should pass because threshold is 16 by default
+        assert.equal(blank.compare(blank2),0);
+        // with 15 or below threshold should fail
+        assert.equal(blank.compare(blank2,{threshold:15}),1);
+    });
+
 });

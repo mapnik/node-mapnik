@@ -29,7 +29,7 @@ if [[ "${CXX11:-false}" != false ]]; then
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="468-g94e78f2-cpp03"
+    HASH="514-g49c01f8-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
         export CXX_NAME="gcc-4.6"
     else
@@ -65,6 +65,16 @@ if [ ! -d ${TARBALL_NAME} ]; then
     tar xf ${TARBALL_NAME}.${COMPRESSION}
 fi
 
+if [[ ! `which pkg-config` ]]; then
+    echo 'pkg-config not installed'
+    exit 1
+fi
+
+if [[ ! `which node` ]]; then
+    echo 'node not installed'
+    exit 1
+fi
+
 if [[ $UNAME == 'Linux' ]]; then
     export CXXFLAGS="-Wno-unused-local-typedefs"
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
@@ -77,6 +87,7 @@ cd ../
 rm -rf ./lib/binding/
 mkdir -p ./lib/binding/
 npm install --build-from-source $1
+npm ls
 # copy lib
 cp $MAPNIK_SDK/lib/libmapnik.* lib/binding/
 # copy plugins
