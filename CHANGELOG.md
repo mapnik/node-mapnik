@@ -1,5 +1,9 @@
 # Changelog
 
+## vNext
+ - Auto-registers fonts found in paths via the `MAPNIK_FONT_PATH` environment
+   variable
+
 ## 1.4.6
  - vtile.parse no longer throws if `vtile` was previously composited but no new data resulted.
  - Fixed compile problem on some linux/bsd systems
