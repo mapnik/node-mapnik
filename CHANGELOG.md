@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.4.7
+ - Added `mapnik.Image.compare` function to compare the pixels of two images.
  - Fixed build issue leading to broken `ogr.input` Mapnik plugin
  - Auto-registers fonts found in paths via the `MAPNIK_FONT_PATH` environment
    variable

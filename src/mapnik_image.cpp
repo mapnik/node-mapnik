@@ -34,6 +34,7 @@
 #include <memory>                       // for auto_ptr, etc
 #include <ostream>                      // for operator<<, basic_ostream
 #include <sstream>                      // for basic_ostringstream, etc
+#include <cstdlib>
 
 Persistent<FunctionTemplate> Image::constructor;
 
@@ -62,6 +63,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(constructor, "clearSync", clear);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "compare", compare);
 
     ATTR(constructor, "background", get_prop, set_prop);
 
@@ -235,6 +237,94 @@ Handle<Value> Image::setPixel(const Arguments& args)
     return scope.Close(Undefined());
 }
 
+Handle<Value> Image::compare(const Arguments& args)
+{
+    HandleScope scope;
+
+    if (args.Length() < 1 || !args[0]->IsObject()) {
+        return ThrowException(Exception::TypeError(String::New("first argument should be a mapnik.Image")));
+    }
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !Image::constructor->HasInstance(obj)) {
+        return ThrowException(Exception::TypeError(String::New("mapnik.Image expected as first arg")));
+    }
+
+    Local<Object> options = Object::New();
+    int threshold = 16;
+    unsigned alpha = true;
+    unsigned difference = 0;
+
+    if (args.Length() > 1) {
+
+        if (!args[1]->IsObject()) {
+            return ThrowException(Exception::TypeError(
+                                      String::New("optional second argument must be an options object")));
+        }
+
+        options = args[1]->ToObject();
+
+        if (options->Has(String::New("threshold"))) {
+            Local<Value> bind_opt = options->Get(String::New("threshold"));
+            if (!bind_opt->IsNumber()) {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'threshold' must be a number")));
+            }
+            threshold = bind_opt->IntegerValue();
+        }
+
+        if (options->Has(String::New("alpha"))) {
+            Local<Value> bind_opt = options->Get(String::New("alpha"));
+            if (!bind_opt->IsBoolean()) {
+                return ThrowException(Exception::TypeError(
+                                          String::New("optional arg 'alpha' must be a boolean")));
+            }
+            alpha = bind_opt->BooleanValue();
+        }
+
+    }
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.This());
+    Image* im2 = node::ObjectWrap::Unwrap<Image>(obj);
+    if (im->this_->width() != im2->this_->width() ||
+        im->this_->height() != im2->this_->height()) {
+            return ThrowException(Exception::TypeError(
+                                      String::New("image dimensions do not match")));
+    }
+    mapnik::image_data_32 const& data = im->this_->data();
+    mapnik::image_data_32 const& data2 = im2->this_->data();
+    for (unsigned int y = 0; y < data.height(); ++y)
+    {
+        const unsigned int* row_from = data.getRow(y);
+        const unsigned int* row_from2 = data2.getRow(y);
+        for (unsigned int x = 0; x < data.width(); ++x)
+        {
+            unsigned rgba = row_from[x];
+            unsigned rgba2 = row_from2[x];
+            unsigned r = rgba & 0xff;
+            unsigned g = (rgba >> 8 ) & 0xff;
+            unsigned b = (rgba >> 16) & 0xff;
+            unsigned r2 = rgba2 & 0xff;
+            unsigned g2 = (rgba2 >> 8 ) & 0xff;
+            unsigned b2 = (rgba2 >> 16) & 0xff;
+            if (std::abs(static_cast<int>(r - r2)) > threshold ||
+                std::abs(static_cast<int>(g - g2)) > threshold ||
+                std::abs(static_cast<int>(b - b2)) > threshold) {
+                ++difference;
+                continue;
+            }
+            if (alpha) {
+                unsigned a = (rgba >> 24) & 0xff;
+                unsigned a2 = (rgba2 >> 24) & 0xff;
+                if (std::abs(static_cast<int>(a - a2)) > threshold) {
+                    ++difference;
+                    continue;
+                }
+            }
+        }
+    }
+
+    return scope.Close(Integer::New(difference));
+}
+
 Handle<Value> Image::clearSync(const Arguments& args)
 {
     HandleScope scope;
@@ -327,12 +417,12 @@ Handle<Value> Image::setGrayScaleToAlpha(const Arguments& args)
     } else {
         if (!args[0]->IsObject())
             return ThrowException(Exception::TypeError(
-                                      String::New("optional second arg must be a mapnik.Color")));
+                                      String::New("optional first arg must be a mapnik.Color")));
 
         Local<Object> obj = args[0]->ToObject();
 
         if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
-            return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as second arg")));
+            return ThrowException(Exception::TypeError(String::New("mapnik.Color expected as first arg")));
 
         Color * color = node::ObjectWrap::Unwrap<Color>(obj);
 

@@ -53,6 +53,7 @@ public:
     static void EIO_AfterClear(uv_work_t* req);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
+    static Handle<Value> compare(const Arguments& args);
 
     static Handle<Value> get_prop(Local<String> property,
                                   const AccessorInfo& info);
