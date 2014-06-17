@@ -1,6 +1,7 @@
 # Changelog
 
-## vNext
+## 1.4.7
+ - Fixed build issue leading to broken `ogr.input` Mapnik plugin
  - Auto-registers fonts found in paths via the `MAPNIK_FONT_PATH` environment
    variable
 
