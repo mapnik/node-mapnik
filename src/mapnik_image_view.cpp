@@ -1,12 +1,4 @@
 
-// node
-#include <node.h>                       // for NODE_SET_PROTOTYPE_METHOD, etc
-#include <node_object_wrap.h>           // for ObjectWrap
-#include <v8.h>
-#include <uv.h>
-#include <node_buffer.h>
-#include <node_version.h>
-
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/image_view.hpp>        // for image_view, etc
@@ -29,22 +21,23 @@ Persistent<FunctionTemplate> ImageView::constructor;
 
 void ImageView::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(ImageView::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("ImageView"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(ImageView::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("ImageView"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "encodeSync", encodeSync);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "encode", encode);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "width", width);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "height", height);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolid", isSolid);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "isSolidSync", isSolidSync);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "getPixel", getPixel);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "encodeSync", encodeSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "encode", encode);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "save", save);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "getPixel", getPixel);
 
-    target->Set(String::NewSymbol("ImageView"),constructor->GetFunction());
+    target->Set(NanNew("ImageView"),lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 
@@ -60,24 +53,28 @@ ImageView::~ImageView()
     JSImage_->_unref();
 }
 
-Handle<Value> ImageView::New(const Arguments& args)
+NAN_METHOD(ImageView::New)
 {
-    HandleScope scope;
+    NanScope();
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
         //std::clog << "image view external!\n";
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         ImageView* im =  static_cast<ImageView*>(ptr);
         im->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     } else {
-        return ThrowException(String::New("Cannot create this object from Javascript"));
+        NanThrowError("Cannot create this object from Javascript");
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
 Handle<Value> ImageView::New(Image * JSImage ,
@@ -87,12 +84,12 @@ Handle<Value> ImageView::New(Image * JSImage ,
                              unsigned h
     )
 {
-    HandleScope scope;
+    NanEscapableScope();
     ImageView* imv = new ImageView(JSImage);
     imv->this_ = MAPNIK_MAKE_SHARED<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
-    Handle<Value> ext = External::New(imv);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(imv);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 
 }
 
@@ -106,19 +103,20 @@ typedef struct {
     mapnik::image_view<mapnik::image_data_32>::pixel_type pixel;
 } is_solid_image_view_baton_t;
 
-Handle<Value> ImageView::isSolid(const Arguments& args)
+NAN_METHOD(ImageView::isSolid)
 {
-    HandleScope scope;
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
+    NanScope();
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
 
     if (args.Length() == 0) {
-        return isSolidSync(args);
+        NanReturnValue(_isSolidSync(args));
     }
     // ensure callback is a function
-    Local<Value> callback = args[args.Length()-1];
-    if (!args[args.Length()-1]->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
 
     is_solid_image_view_baton_t *closure = new is_solid_image_view_baton_t();
     closure->request.data = closure;
@@ -126,10 +124,10 @@ Handle<Value> ImageView::isSolid(const Arguments& args)
     closure->result = true;
     closure->pixel = 0;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
     im->Ref();
-    return Undefined();
+    NanReturnUndefined();
 }
 
 void ImageView::EIO_IsSolid(uv_work_t* req)
@@ -163,45 +161,44 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
 
 void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
     is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    TryCatch try_catch;
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     }
     else
     {
         if (closure->result)
         {
-            Local<Value> argv[3] = { Local<Value>::New(Null()),
-                                     Local<Value>::New(Boolean::New(closure->result)),
-                                     Local<Value>::New(Number::New(closure->pixel)),
+            Local<Value> argv[3] = { NanNull(),
+                                     NanNew(closure->result),
+                                     NanNew<Number>(closure->pixel),
             };
-            closure->cb->Call(Context::GetCurrent()->Global(), 3, argv);
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 3, argv);
         }
         else
         {
-            Local<Value> argv[2] = { Local<Value>::New(Null()),
-                                     Local<Value>::New(Boolean::New(closure->result))
-            };
-            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+            Local<Value> argv[2] = { NanNull(), NanNew(closure->result) };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
     }
-    if (try_catch.HasCaught())
-    {
-        node::FatalException(try_catch);
-    }
     closure->im->Unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
 
-Handle<Value> ImageView::isSolidSync(const Arguments& args)
+NAN_METHOD(ImageView::isSolidSync)
 {
-    HandleScope scope;
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
+    NanScope();
+    NanReturnValue(_isSolidSync(args));
+}
+
+Local<Value> ImageView::_isSolidSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
     image_view_ptr view = im->get();
     if (view->width() > 0 && view->height() > 0)
     {
@@ -214,37 +211,39 @@ Handle<Value> ImageView::isSolidSync(const Arguments& args)
             {
                 if (first_pixel != row[x])
                 {
-                    return scope.Close(False());
+                    return NanEscapeScope(NanFalse());
                 }
             }
         }
     }
-    return scope.Close(True());
+    return NanEscapeScope(NanTrue());
 }
 
 
-Handle<Value> ImageView::getPixel(const Arguments& args)
+NAN_METHOD(ImageView::getPixel)
 {
-    HandleScope scope;
+    NanScope();
 
     int x = 0;
     int y = 0;
 
     if (args.Length() >= 2) {
-        if (!args[0]->IsNumber())
-            return ThrowException(Exception::TypeError(
-                                      String::New("first arg, 'x' must be an integer")));
-        if (!args[1]->IsNumber())
-            return ThrowException(Exception::TypeError(
-                                      String::New("second arg, 'y' must be an integer")));
+        if (!args[0]->IsNumber()) {
+            NanThrowTypeError("first arg, 'x' must be an integer");
+            NanReturnUndefined();
+        }
+        if (!args[1]->IsNumber()) {
+            NanThrowTypeError("second arg, 'y' must be an integer");
+            NanReturnUndefined();
+        }
         x = args[0]->IntegerValue();
         y = args[1]->IntegerValue();
     } else {
-        return ThrowException(Exception::TypeError(
-                                  String::New("must supply x,y to query pixel color")));
+        NanThrowTypeError("must supply x,y to query pixel color");
+        NanReturnUndefined();
     }
 
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
     image_view_ptr view = im->get();
     if (x >= 0 && x < static_cast<int>(view->width())
         && y >=0 && y < static_cast<int>(view->height()))
@@ -255,64 +254,69 @@ Handle<Value> ImageView::getPixel(const Arguments& args)
         unsigned g = (pixel >> 8) & 0xff;
         unsigned b = (pixel >> 16) & 0xff;
         unsigned a = (pixel >> 24) & 0xff;
-        return Color::New(mapnik::color(r,g,b,a));
+        NanReturnValue(Color::New(mapnik::color(r,g,b,a)));
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
 
-Handle<Value> ImageView::width(const Arguments& args)
+NAN_METHOD(ImageView::width)
 {
-    HandleScope scope;
+    NanScope();
 
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
-    return scope.Close(Integer::New(im->get()->width()));
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
+    NanReturnValue(NanNew<Integer>(im->get()->width()));
 }
 
-Handle<Value> ImageView::height(const Arguments& args)
+NAN_METHOD(ImageView::height)
 {
-    HandleScope scope;
+    NanScope();
 
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
-    return scope.Close(Integer::New(im->get()->height()));
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
+    NanReturnValue(NanNew<Integer>(im->get()->height()));
 }
 
 
-Handle<Value> ImageView::encodeSync(const Arguments& args)
+NAN_METHOD(ImageView::encodeSync)
 {
-    HandleScope scope;
+    NanScope();
 
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
 
     std::string format = "png";
     palette_ptr palette;
 
     // accept custom format
     if (args.Length() >= 1) {
-        if (!args[0]->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("first arg, 'format' must be a string")));
+        if (!args[0]->IsString()) {
+            NanThrowTypeError("first arg, 'format' must be a string");
+            NanReturnUndefined();
+        }
         format = TOSTR(args[0]);
     }
 
     // options hash
     if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional second arg must be an options object")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("optional second arg must be an options object");
+            NanReturnUndefined();
+        }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[1].As<Object>();
 
-        if (options->Has(String::New("palette")))
+        if (options->Has(NanNew("palette")))
         {
-            Local<Value> format_opt = options->Get(String::New("palette"));
-            if (!format_opt->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'palette' must be an object")));
+            Local<Value> format_opt = options->Get(NanNew("palette"));
+            if (!format_opt->IsObject()) {
+                NanThrowTypeError("'palette' must be an object");
+                NanReturnUndefined();
+            }
 
-            Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+            Local<Object> obj = format_opt.As<Object>();
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
@@ -329,16 +333,12 @@ Handle<Value> ImageView::encodeSync(const Arguments& args)
             s = save_to_string(image, format);
         }
 
-        #if NODE_VERSION_AT_LEAST(0, 11, 0)
-        return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
-        #else
-        return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
-        #endif
+        NanReturnValue(NanNewBufferHandle((char*)s.data(),s.size()));
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 }
 
@@ -354,51 +354,57 @@ typedef struct {
 } encode_image_view_baton_t;
 
 
-Handle<Value> ImageView::encode(const Arguments& args)
+NAN_METHOD(ImageView::encode)
 {
-    HandleScope scope;
+    NanScope();
 
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
 
     std::string format = "png";
     palette_ptr palette;
 
     // accept custom format
     if (args.Length() > 1){
-        if (!args[0]->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("first arg, 'format' must be a string")));
+        if (!args[0]->IsString()) {
+            NanThrowTypeError("first arg, 'format' must be a string");
+            NanReturnUndefined();
+        }
         format = TOSTR(args[0]);
     }
 
     // options hash
     if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional second arg must be an options object")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("optional second arg must be an options object");
+            NanReturnUndefined();
+        }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[1].As<Object>();
 
-        if (options->Has(String::New("palette")))
+        if (options->Has(NanNew("palette")))
         {
-            Local<Value> format_opt = options->Get(String::New("palette"));
-            if (!format_opt->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'palette' must be an object")));
+            Local<Value> format_opt = options->Get(NanNew("palette"));
+            if (!format_opt->IsObject()) {
+                NanThrowTypeError("'palette' must be an object");
+                NanReturnUndefined();
+            }
 
-            Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+            Local<Object> obj = format_opt.As<Object>();
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
     // ensure callback is a function
-    Local<Value> callback = args[args.Length()-1];
-    if (!args[args.Length()-1]->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
 
     encode_image_view_baton_t *closure = new encode_image_view_baton_t();
     closure->request.data = closure;
@@ -406,10 +412,10 @@ Handle<Value> ImageView::encode(const Arguments& args)
     closure->format = format;
     closure->palette = palette;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
     im->Ref();
-    return Undefined();
+    NanReturnUndefined();
 }
 
 void ImageView::EIO_Encode(uv_work_t* req)
@@ -436,43 +442,33 @@ void ImageView::EIO_Encode(uv_work_t* req)
 
 void ImageView::EIO_AfterEncode(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
 
-    TryCatch try_catch;
-
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     }
     else
     {
-        #if NODE_VERSION_AT_LEAST(0, 11, 0)
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())) };
-        #else
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(node::Buffer::New((char*)closure->result.data(),closure->result.size())->handle_) };
-        #endif
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-    }
-
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
+        Local<Value> argv[2] = { NanNull(), NanNewBufferHandle((char*)closure->result.data(), closure->result.size()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
     closure->im->Unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
 
-Handle<Value> ImageView::save(const Arguments& args)
+NAN_METHOD(ImageView::save)
 {
-    HandleScope scope;
+    NanScope();
 
     if (args.Length() == 0 || !args[0]->IsString()){
-        return ThrowException(Exception::TypeError(
-                                  String::New("filename required")));
+        NanThrowTypeError("filename required");
+        NanReturnUndefined();
     }
 
     std::string filename = TOSTR(args[0]);
@@ -480,30 +476,31 @@ Handle<Value> ImageView::save(const Arguments& args)
     std::string format("");
 
     if (args.Length() >= 2) {
-        if (!args[1]->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("both 'filename' and 'format' arguments must be strings")));
+        if (!args[1]->IsString()) {
+            NanThrowTypeError("both 'filename' and 'format' arguments must be strings");
+            NanReturnUndefined();
+        }
 
         format = mapnik::guess_type(TOSTR(args[1]));
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << filename << "\n";
-            return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
+            NanThrowError(s.str().c_str());
+            NanReturnUndefined();
         }
     }
 
-    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.This());
+    ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
     try
     {
         save_to_file(*im->get(),filename);
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
 

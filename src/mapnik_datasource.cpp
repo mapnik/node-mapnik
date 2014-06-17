@@ -3,11 +3,6 @@
 #include "utils.hpp"
 #include "ds_emitter.hpp"
 
-// node
-#include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD
-#include "node_object_wrap.h"           // for ObjectWrap
-#include "v8.h"                         // for String, Handle, Object, etc
-
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
 #include <mapnik/box2d.hpp>             // for box2d
@@ -26,20 +21,21 @@ Persistent<FunctionTemplate> Datasource::constructor;
 
 void Datasource::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Datasource::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Datasource"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Datasource::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Datasource"));
 
     // methods
-    NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "parameters", parameters);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "features", features);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
 
-    target->Set(String::NewSymbol("Datasource"),constructor->GetFunction());
+    target->Set(NanNew("Datasource"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Datasource::Datasource() :
@@ -50,44 +46,50 @@ Datasource::~Datasource()
 {
 }
 
-Handle<Value> Datasource::New(const Arguments& args)
+NAN_METHOD(Datasource::New)
 {
-    HandleScope scope;
+    NanScope();
 
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
         //std::clog << "external!\n";
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Datasource* d =  static_cast<Datasource*>(ptr);
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
-            args.This()->Set(String::NewSymbol("type"),
-                             String::NewSymbol("raster"),
+            args.This()->Set(NanNew("type"),
+                             NanNew("raster"),
                              static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         else
         {
-            args.This()->Set(String::NewSymbol("type"),
-                             String::NewSymbol("vector"),
+            args.This()->Set(NanNew("type"),
+                             NanNew("vector"),
                              static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         d->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
-    if (args.Length() != 1){
-        return ThrowException(Exception::TypeError(
-                                  String::New("accepts only one argument, an object of key:value datasource options")));
+    if (args.Length() != 1)
+    {
+        NanThrowTypeError("accepts only one argument, an object of key:value datasource options");
+        NanReturnUndefined();
     }
 
     if (!args[0]->IsObject())
-        return ThrowException(Exception::TypeError(
-                                  String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
+    {
+        NanThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
+        NanReturnUndefined();
+    }
 
-    Local<Object> options = args[0]->ToObject();
+    Local<Object> options = args[0].As<Object>();
 
     mapnik::parameters params;
     Local<Array> names = options->GetPropertyNames();
@@ -112,46 +114,46 @@ Handle<Value> Datasource::New(const Arguments& args)
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
     if (ds)
     {
         if (ds->type() == mapnik::datasource::Raster)
         {
-            args.This()->Set(String::NewSymbol("type"),
-                             String::NewSymbol("raster"),
+            args.This()->Set(NanNew("type"),
+                             NanNew("raster"),
                              static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         else
         {
-            args.This()->Set(String::NewSymbol("type"),
-                             String::NewSymbol("vector"),
+            args.This()->Set(NanNew("type"),
+                             NanNew("vector"),
                              static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
         }
         Datasource* d = new Datasource();
         d->Wrap(args.This());
         d->datasource_ = ds;
-        return args.This();
+        NanReturnValue(args.This());
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
 Handle<Value> Datasource::New(mapnik::datasource_ptr ds_ptr) {
-    HandleScope scope;
+    NanEscapableScope();
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
-    Handle<Value> ext = External::New(d);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(d);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 }
 
-Handle<Value> Datasource::parameters(const Arguments& args)
+NAN_METHOD(Datasource::parameters)
 {
-    HandleScope scope;
+    NanScope();
     Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
-    Local<Object> ds = Object::New();
+    Local<Object> ds = NanNew<Object>();
     mapnik::parameters::const_iterator it = d->datasource_->params().begin();
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
     for (; it != end; ++it)
@@ -159,13 +161,13 @@ Handle<Value> Datasource::parameters(const Arguments& args)
         node_mapnik::params_to_object serializer( ds , it->first);
         boost::apply_visitor( serializer, it->second );
     }
-    return scope.Close(ds);
+    NanReturnValue(ds);
 }
 
-Handle<Value> Datasource::extent(const Arguments& args)
+NAN_METHOD(Datasource::extent)
 {
-    HandleScope scope;
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
+    NanScope();
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
     mapnik::box2d<double> e;
     try
     {
@@ -173,41 +175,41 @@ Handle<Value> Datasource::extent(const Arguments& args)
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
-    Local<Array> a = Array::New(4);
-    a->Set(0, Number::New(e.minx()));
-    a->Set(1, Number::New(e.miny()));
-    a->Set(2, Number::New(e.maxx()));
-    a->Set(3, Number::New(e.maxy()));
-    return scope.Close(a);
+    Local<Array> a = NanNew<Array>(4);
+    a->Set(0, NanNew<Number>(e.minx()));
+    a->Set(1, NanNew<Number>(e.miny()));
+    a->Set(2, NanNew<Number>(e.maxx()));
+    a->Set(3, NanNew<Number>(e.maxy()));
+    NanReturnValue(a);
 }
 
-Handle<Value> Datasource::describe(const Arguments& args)
+NAN_METHOD(Datasource::describe)
 {
-    HandleScope scope;
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
-    Local<Object> description = Object::New();
+    NanScope();
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
+    Local<Object> description = NanNew<Object>();
     try
     {
         node_mapnik::describe_datasource(description,d->datasource_);
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
-    return scope.Close(description);
+    NanReturnValue(description);
 }
 
-Handle<Value> Datasource::features(const Arguments& args)
+NAN_METHOD(Datasource::features)
 {
 
     std::clog << "Datasource.features() is deprecated and will be removed at node-mapnik 1.3.x (please use Datasource.featureset instead)\n";
-    HandleScope scope;
+    NanScope();
 
     unsigned first = 0;
     unsigned last = 0;
@@ -215,35 +217,37 @@ Handle<Value> Datasource::features(const Arguments& args)
     if (args.Length() == 2)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
-            return ThrowException(Exception::Error(
-                                      String::New("Index of 'first' and 'last' feature must be an integer")));
+        {
+            NanThrowTypeError("Index of 'first' and 'last' feature must be an integer");
+            NanReturnUndefined();
+        }
         first = args[0]->IntegerValue();
         last = args[1]->IntegerValue();
     }
 
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
 
     // TODO - we don't know features.length at this point
-    Local<Array> a = Array::New(0);
+    Local<Array> a = NanNew<Array>(0);
     try
     {
         node_mapnik::datasource_features(a,d->datasource_,first,last);
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-Handle<Value> Datasource::featureset(const Arguments& args)
+NAN_METHOD(Datasource::featureset)
 {
 
-    HandleScope scope;
+    NanScope();
 
-    Datasource* ds = node::ObjectWrap::Unwrap<Datasource>(args.This());
+    Datasource* ds = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
 
     mapnik::featureset_ptr fs;
     try
@@ -263,14 +267,14 @@ Handle<Value> Datasource::featureset(const Arguments& args)
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
     if (fs)
     {
-        return scope.Close(Featureset::New(fs));
+        NanReturnValue(Featureset::New(fs));
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }

@@ -2,9 +2,6 @@
 #define __NODE_MAPNIK_FONTS_H__
 
 
-// v8
-#include <v8.h>
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/font_engine_freetype.hpp>
@@ -19,15 +16,17 @@ using namespace v8;
 
 namespace node_mapnik {
 
-static inline Handle<Value> register_fonts(const Arguments& args)
+static inline NAN_METHOD(register_fonts)
 {
-    HandleScope scope;
+    NanScope();
 
     try
     {
         if (args.Length() == 0 || !args[0]->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("first argument must be a path to a directory of fonts")));
+        {
+            NanThrowTypeError("first argument must be a path to a directory of fonts");
+            NanReturnUndefined();
+        }
 
         bool found = false;
 
@@ -36,16 +35,20 @@ static inline Handle<Value> register_fonts(const Arguments& args)
         // option hash
         if (args.Length() == 2){
             if (!args[1]->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("second argument is optional, but if provided must be an object, eg. { recurse:Boolean }")));
-
-            Local<Object> options = args[1]->ToObject();
-            if (options->Has(String::New("recurse")))
             {
-                Local<Value> recurse_opt = options->Get(String::New("recurse"));
+                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse:Boolean }");
+                NanReturnUndefined();
+            }
+
+            Local<Object> options = args[1].As<Object>();
+            if (options->Has(NanNew("recurse")))
+            {
+                Local<Value> recurse_opt = options->Get(NanNew("recurse"));
                 if (!recurse_opt->IsBoolean())
-                    return ThrowException(Exception::TypeError(
-                                              String::New("'recurse' must be a Boolean")));
+                {
+                    NanThrowTypeError("'recurse' must be a Boolean");
+                    NanReturnUndefined();
+                }
 
                 bool recurse = recurse_opt->BooleanValue();
                 std::string path = TOSTR(args[0]);
@@ -62,48 +65,48 @@ static inline Handle<Value> register_fonts(const Arguments& args)
         if (names_after.size() == names_before.size())
             found = false;
 
-        return scope.Close(Boolean::New(found));
+        NanReturnValue(NanNew(found));
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 }
 
-static inline Handle<Value> available_font_faces(const Arguments& args)
+static inline NAN_METHOD(available_font_faces)
 {
-    HandleScope scope;
+    NanScope();
     std::vector<std::string> const& names = mapnik::freetype_engine::face_names();
-    Local<Array> a = Array::New(names.size());
+    Local<Array> a = NanNew<Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, String::New(names[i].c_str()));
+        a->Set(i, NanNew(names[i].c_str()));
     }
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-static inline Handle<Value> available_font_files(const Arguments& args)
+static inline NAN_METHOD(available_font_files)
 {
-    HandleScope scope;
+    NanScope();
 #if MAPNIK_VERSION >= 200100
     std::map<std::string,std::pair<int,std::string> > const& mapping = mapnik::freetype_engine::get_mapping();
-    Local<Object> obj = Object::New();
+    Local<Object> obj = NanNew<Object>();
     std::map<std::string,std::pair<int,std::string> >::const_iterator itr;
     for (itr = mapping.begin();itr!=mapping.end();++itr)
     {
-        obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.second.c_str()));
+        obj->Set(NanNew(itr->first.c_str()), NanNew(itr->second.second.c_str()));
     }
 #else
     std::map<std::string,std::string> const& mapping = mapnik::freetype_engine::get_mapping();
-    Local<Object> obj = Object::New();
+    Local<Object> obj = NanNew<Object>();
     std::map<std::string,std::string>::const_iterator itr;
     for (itr = mapping.begin();itr!=mapping.end();++itr)
     {
-        obj->Set(String::NewSymbol(itr->first.c_str()),String::New(itr->second.c_str()));
+        obj->Set(NanNew(itr->first.c_str()), NanNew(itr->second.c_str()));
     }
 #endif
-    return scope.Close(obj);
+    NanReturnValue(obj);
 }
 
 

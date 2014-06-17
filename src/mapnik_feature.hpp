@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_FEATURE_H__
 #define __NODE_MAPNIK_FEATURE_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 
 // mapnik
@@ -19,18 +18,18 @@ class Feature: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
     static Handle<Value> New(mapnik::feature_ptr f_ptr);
-    static Handle<Value> id(const Arguments &args);
-    static Handle<Value> extent(const Arguments &args);
-    static Handle<Value> attributes(const Arguments &args);
-    static Handle<Value> addGeometry(const Arguments &args);
-    static Handle<Value> addAttributes(const Arguments &args);
-    static Handle<Value> numGeometries(const Arguments &args);
-    static Handle<Value> toString(const Arguments &args);
-    static Handle<Value> toJSON(const Arguments &args);
-    static Handle<Value> toWKB(const Arguments &args);
-    static Handle<Value> toWKT(const Arguments &args);
+    static NAN_METHOD(id);
+    static NAN_METHOD(extent);
+    static NAN_METHOD(attributes);
+    static NAN_METHOD(addGeometry);
+    static NAN_METHOD(addAttributes);
+    static NAN_METHOD(numGeometries);
+    static NAN_METHOD(toString);
+    static NAN_METHOD(toJSON);
+    static NAN_METHOD(toWKB);
+    static NAN_METHOD(toWKT);
 
     // todo
     // how to allow altering of attributes

@@ -1,9 +1,7 @@
 #ifndef __NODE_MAPNIK_MAP_H__
 #define __NODE_MAPNIK_MAP_H__
 
-#include <v8.h>
-#include <uv.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 // boost
 #include MAPNIK_SHARED_INCLUDE
@@ -20,20 +18,20 @@ public:
 
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
-    static Handle<Value> loadSync(const Arguments &args);
-    static Handle<Value> load(const Arguments &args);
+    static NAN_METHOD(loadSync);
+    static NAN_METHOD(load);
     static void EIO_Load(uv_work_t* req);
     static void EIO_AfterLoad(uv_work_t* req);
 
-    static Handle<Value> fromStringSync(const Arguments &args);
-    static Handle<Value> fromString(const Arguments &args);
+    static NAN_METHOD(fromStringSync);
+    static NAN_METHOD(fromString);
     static void EIO_FromString(uv_work_t* req);
     static void EIO_AfterFromString(uv_work_t* req);
 
     // async rendering
-    static Handle<Value> render(const Arguments &args);
+    static NAN_METHOD(render);
     static void EIO_RenderImage(uv_work_t* req);
     static void EIO_AfterRenderImage(uv_work_t* req);
     static void EIO_RenderGrid(uv_work_t* req);
@@ -41,38 +39,35 @@ public:
     static void EIO_RenderVectorTile(uv_work_t* req);
     static void EIO_AfterRenderVectorTile(uv_work_t* req);
 
-    static Handle<Value> renderFile(const Arguments &args);
+    static NAN_METHOD(renderFile);
     static void EIO_RenderFile(uv_work_t* req);
     static void EIO_AfterRenderFile(uv_work_t* req);
 
     // sync rendering
-    static Handle<Value> renderSync(const Arguments &args);
-    static Handle<Value> renderFileSync(const Arguments &args);
+    static NAN_METHOD(renderSync);
+    static NAN_METHOD(renderFileSync);
 
-    static Handle<Value> save(const Arguments &args);
-    static Handle<Value> to_string(const Arguments &args);
+    static NAN_METHOD(save);
+    static NAN_METHOD(to_string);
 
-    static Handle<Value> clear(const Arguments &args);
-    static Handle<Value> resize(const Arguments &args);
-    static Handle<Value> zoomAll(const Arguments &args);
-    static Handle<Value> zoomToBox(const Arguments &args);
-    static Handle<Value> layers(const Arguments &args);
-    static Handle<Value> scale(const Arguments &args);
-    static Handle<Value> scaleDenominator(const Arguments &args);
-    static Handle<Value> queryPoint(const Arguments &args);
-    static Handle<Value> queryMapPoint(const Arguments &args);
-    static Handle<Value> abstractQueryPoint(const Arguments &args, bool geo_coords);
+    static NAN_METHOD(clear);
+    static NAN_METHOD(resize);
+    static NAN_METHOD(zoomAll);
+    static NAN_METHOD(zoomToBox);
+    static NAN_METHOD(layers);
+    static NAN_METHOD(scale);
+    static NAN_METHOD(scaleDenominator);
+    static NAN_METHOD(queryPoint);
+    static NAN_METHOD(queryMapPoint);
+    static Handle<Value> abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords);
     static void EIO_QueryMap(uv_work_t* req);
     static void EIO_AfterQueryMap(uv_work_t* req);
 
-    static Handle<Value> add_layer(const Arguments &args);
-    static Handle<Value> get_layer(const Arguments &args);
+    static NAN_METHOD(add_layer);
+    static NAN_METHOD(get_layer);
 
-    static Handle<Value> get_prop(Local<String> property,
-                                  const AccessorInfo& info);
-    static void set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info);
+    static NAN_GETTER(get_prop);
+    static NAN_SETTER(set_prop);
 
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);

@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_PROJECTION_H__
 #define __NODE_MAPNIK_PROJECTION_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 
 // boost
 #include "mapnik3x_compatibility.hpp"
@@ -19,10 +18,10 @@ class Projection: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
-    static Handle<Value> inverse(const Arguments& args);
-    static Handle<Value> forward(const Arguments& args);
+    static NAN_METHOD(inverse);
+    static NAN_METHOD(forward);
     static bool HasInstance(Handle<Value> val);
 
     explicit Projection(std::string const& name);
@@ -40,10 +39,10 @@ class ProjTransform: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
-    static Handle<Value> forward(const Arguments& args);
-    static Handle<Value> backward(const Arguments& args);
+    static NAN_METHOD(forward);
+    static NAN_METHOD(backward);
 
     ProjTransform(mapnik::projection const& src,
                   mapnik::projection const& dest);

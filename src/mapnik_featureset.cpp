@@ -6,15 +6,16 @@ Persistent<FunctionTemplate> Featureset::constructor;
 
 void Featureset::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Featureset::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Featureset"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Featureset::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Featureset"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "next", next);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "next", next);
 
-    target->Set(String::NewSymbol("Featureset"),constructor->GetFunction());
+    target->Set(NanNew("Featureset"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Featureset::Featureset() :
@@ -25,31 +26,34 @@ Featureset::~Featureset()
 {
 }
 
-Handle<Value> Featureset::New(const Arguments& args)
+NAN_METHOD(Featureset::New)
 {
-    HandleScope scope;
+    NanScope();
 
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Featureset* fs =  static_cast<Featureset*>(ptr);
         fs->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
 
-    return ThrowException(Exception::TypeError(
-                              String::New("Sorry a Featureset cannot currently be created, only accessed via an existing datasource")));
+    NanThrowTypeError("Sorry a Featureset cannot currently be created, only accessed via an existing datasource");
+    NanReturnUndefined();
 }
 
-Handle<Value> Featureset::next(const Arguments& args)
+NAN_METHOD(Featureset::next)
 {
-    HandleScope scope;
+    NanScope();
 
-    Featureset* fs = node::ObjectWrap::Unwrap<Featureset>(args.This());
+    Featureset* fs = node::ObjectWrap::Unwrap<Featureset>(args.Holder());
 
     if (fs->this_) {
         mapnik::feature_ptr fp;
@@ -59,23 +63,23 @@ Handle<Value> Featureset::next(const Arguments& args)
         }
         catch (std::exception const& ex)
         {
-            return ThrowException(Exception::Error(
-                                      String::New(ex.what())));
+            NanThrowError(ex.what());
+            NanReturnUndefined();
         }
 
         if (fp) {
-            return scope.Close(Feature::New(fp));
+            NanReturnValue(Feature::New(fp));
         }
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
 Handle<Value> Featureset::New(mapnik::featureset_ptr fs_ptr)
 {
-    HandleScope scope;
+    NanEscapableScope();
     Featureset* fs = new Featureset();
     fs->this_ = fs_ptr;
-    Handle<Value> ext = External::New(fs);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(fs);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 }

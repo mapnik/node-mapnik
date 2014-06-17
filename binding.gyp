@@ -81,7 +81,8 @@
       'include_dirs': [
           './node_modules/mapnik-vector-tile/src/',
           '<(SHARED_INTERMEDIATE_DIR)/',
-          './src'
+          './src',
+          "<!(node -e \"require('nan')\")"
       ],
       'conditions': [
         ['OS=="win"', {

@@ -35,51 +35,55 @@ static unsigned int hexToUInt32Color(char *hex) {
     }
 }
 
-Handle<Value> rgb2hsl2(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(rgb2hsl2) {
+    NanScope();
     if (args.Length() != 3) {
-        return TYPE_EXCEPTION("Please pass r,g,b integer values as three arguments");
+        NanThrowTypeError("Please pass r,g,b integer values as three arguments");
+        NanReturnUndefined();
     }
     if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-        return TYPE_EXCEPTION("Please pass r,g,b integer values as three arguments");
+        NanThrowTypeError("Please pass r,g,b integer values as three arguments");
+        NanReturnUndefined();
     }
     unsigned r,g,b;
     r = args[0]->IntegerValue();
     g = args[1]->IntegerValue();
     b = args[2]->IntegerValue();
-    Local<Array> hsl = Array::New(3);
+    Local<Array> hsl = NanNew<Array>(3);
     double h,s,l;
     rgb2hsl(r,g,b,h,s,l);
-    hsl->Set(0,Number::New(h));
-    hsl->Set(1,Number::New(s));
-    hsl->Set(2,Number::New(l));
-    return scope.Close(hsl);
+    hsl->Set(0,NanNew<Number>(h));
+    hsl->Set(1,NanNew<Number>(s));
+    hsl->Set(2,NanNew<Number>(l));
+    NanReturnValue(hsl);
 }
 
-Handle<Value> hsl2rgb2(const Arguments& args) {
-    HandleScope scope;
+NAN_METHOD(hsl2rgb2) {
+    NanScope();
     if (args.Length() != 3) {
-        return TYPE_EXCEPTION("Please pass hsl fractional values as three arguments");
+        NanThrowTypeError("Please pass hsl fractional values as three arguments");
+        NanReturnUndefined();
     }
     if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-        return TYPE_EXCEPTION("Please pass hsl fractional values as three arguments");
+        NanThrowTypeError("Please pass hsl fractional values as three arguments");
+        NanReturnUndefined();
     }
     double h,s,l;
     h = args[0]->NumberValue();
     s = args[1]->NumberValue();
     l = args[2]->NumberValue();
-    Local<Array> rgb = Array::New(3);
+    Local<Array> rgb = NanNew<Array>(3);
     unsigned r,g,b;
     hsl2rgb(h,s,l,r,g,b);
-    rgb->Set(0,Integer::New(r));
-    rgb->Set(1,Integer::New(g));
-    rgb->Set(2,Integer::New(b));
-    return scope.Close(rgb);
+    rgb->Set(0,NanNew<Integer>(r));
+    rgb->Set(1,NanNew<Integer>(g));
+    rgb->Set(2,NanNew<Integer>(b));
+    NanReturnValue(rgb);
 }
 
 static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string & msg) {
-    HandleScope scope;
-    Local<Value> hue = tint->Get(String::NewSymbol("h"));
+    NanScope();
+    Local<Value> hue = tint->Get(NanNew("h"));
     if (!hue.IsEmpty() && hue->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(hue);
         if (val_array->Length() != 2) {
@@ -88,7 +92,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.h0 = val_array->Get(0)->NumberValue();
         tinter.h1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> sat = tint->Get(String::NewSymbol("s"));
+    Local<Value> sat = tint->Get(NanNew("s"));
     if (!sat.IsEmpty() && sat->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(sat);
         if (val_array->Length() != 2) {
@@ -97,7 +101,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.s0 = val_array->Get(0)->NumberValue();
         tinter.s1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> light = tint->Get(String::NewSymbol("l"));
+    Local<Value> light = tint->Get(NanNew("l"));
     if (!light.IsEmpty() && light->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(light);
         if (val_array->Length() != 2) {
@@ -106,7 +110,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.l0 = val_array->Get(0)->NumberValue();
         tinter.l1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> alpha = tint->Get(String::NewSymbol("a"));
+    Local<Value> alpha = tint->Get(NanNew("a"));
     if (!alpha.IsEmpty() && alpha->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(alpha);
         if (val_array->Length() != 2) {
@@ -115,73 +119,83 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.a0 = val_array->Get(0)->NumberValue();
         tinter.a1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> debug = tint->Get(String::NewSymbol("debug"));
+    Local<Value> debug = tint->Get(NanNew("debug"));
     if (!debug.IsEmpty()) {
         tinter.debug = debug->BooleanValue();
     }
 }
-Handle<Value> Blend(const Arguments& args) {
-    HandleScope scope;
+
+NAN_METHOD(Blend) {
+    NanScope();
     std::auto_ptr<BlendBaton> baton(new BlendBaton());
 
     Local<Object> options;
     if (args.Length() == 0 || !args[0]->IsArray()) {
-        return TYPE_EXCEPTION("First argument must be an array of Buffers.");
+        NanThrowTypeError("First argument must be an array of Buffers.");
+        NanReturnUndefined();
     } else if (args.Length() == 1) {
-        return TYPE_EXCEPTION("Second argument must be a function");
+        NanThrowTypeError("Second argument must be a function");
+        NanReturnUndefined();
     } else if (args.Length() == 2) {
         // No options provided.
         if (!args[1]->IsFunction()) {
-            return TYPE_EXCEPTION("Second argument must be a function.");
+            NanThrowTypeError("Second argument must be a function.");
+            NanReturnUndefined();
         }
-        baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[1]));
+        NanAssignPersistent(baton->callback,args[1].As<Function>());
     } else if (args.Length() >= 3) {
         if (!args[1]->IsObject()) {
-            return TYPE_EXCEPTION("Second argument must be a an options object.");
+            NanThrowTypeError("Second argument must be a an options object.");
+            NanReturnUndefined();
         }
         options = Local<Object>::Cast(args[1]);
 
         if (!args[2]->IsFunction()) {
-            return TYPE_EXCEPTION("Third argument must be a function.");
+            NanThrowTypeError("Third argument must be a function.");
+            NanReturnUndefined();
         }
-        baton->callback = Persistent<Function>::New(Local<Function>::Cast(args[2]));
+        NanAssignPersistent(baton->callback,args[2].As<Function>());
     }
 
     // Validate options
     if (!options.IsEmpty()) {
-        baton->quality = options->Get(String::NewSymbol("quality"))->Int32Value();
+        baton->quality = options->Get(NanNew("quality"))->Int32Value();
 
-        Local<Value> format_val = options->Get(String::NewSymbol("format"));
+        Local<Value> format_val = options->Get(NanNew("format"));
         if (!format_val.IsEmpty() && format_val->IsString()) {
-            if (strcmp(*String::AsciiValue(format_val), "jpeg") == 0 ||
-                    strcmp(*String::AsciiValue(format_val), "jpg") == 0) {
+            if (strcmp(*String::Utf8Value(format_val), "jpeg") == 0 ||
+                    strcmp(*String::Utf8Value(format_val), "jpg") == 0) {
                 baton->format = BLEND_FORMAT_JPEG;
                 if (baton->quality == 0) baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
-                    return TYPE_EXCEPTION("JPEG quality is range 0-100.");
+                    NanThrowTypeError("JPEG quality is range 0-100.");
+                    NanReturnUndefined();
                 }
-            } else if (strcmp(*String::AsciiValue(format_val), "png") == 0) {
+            } else if (strcmp(*String::Utf8Value(format_val), "png") == 0) {
                 if (baton->quality == 1 || baton->quality > 256) {
-                    return TYPE_EXCEPTION("PNG images must be quantized between 2 and 256 colors.");
+                    NanThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
+                    NanReturnUndefined();
                 }
-            } else if (strcmp(*String::AsciiValue(format_val), "webp") == 0) {
+            } else if (strcmp(*String::Utf8Value(format_val), "webp") == 0) {
                 baton->format = BLEND_FORMAT_WEBP;
                 if (baton->quality == 0) baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
-                    return TYPE_EXCEPTION("WebP quality is range 0-100.");
+                    NanThrowTypeError("WebP quality is range 0-100.");
+                    NanReturnUndefined();
                 }
             } else {
-                return TYPE_EXCEPTION("Invalid output format.");
+                NanThrowTypeError("Invalid output format.");
+                NanReturnUndefined();
             }
         }
 
-        baton->reencode = options->Get(String::NewSymbol("reencode"))->BooleanValue();
-        baton->width = options->Get(String::NewSymbol("width"))->Int32Value();
-        baton->height = options->Get(String::NewSymbol("height"))->Int32Value();
+        baton->reencode = options->Get(NanNew("reencode"))->BooleanValue();
+        baton->width = options->Get(NanNew("width"))->Int32Value();
+        baton->height = options->Get(NanNew("height"))->Int32Value();
 
-        Local<Value> matte_val = options->Get(String::NewSymbol("matte"));
+        Local<Value> matte_val = options->Get(NanNew("matte"));
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            baton->matte = hexToUInt32Color(*String::AsciiValue(matte_val->ToString()));
+            baton->matte = hexToUInt32Color(*String::Utf8Value(matte_val->ToString()));
 
             // Make sure we're reencoding in the case of single alpha PNGs
             if (baton->matte && !baton->reencode) {
@@ -189,33 +203,33 @@ Handle<Value> Blend(const Arguments& args) {
             }
         }
 
-        Local<Value> palette_val = options->Get(String::NewSymbol("palette"));
+        Local<Value> palette_val = options->Get(NanNew("palette"));
         if (!palette_val.IsEmpty() && palette_val->IsObject()) {
             baton->palette = ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
         }
 
-        Local<Value> mode_val = options->Get(String::NewSymbol("mode"));
+        Local<Value> mode_val = options->Get(NanNew("mode"));
         if (!mode_val.IsEmpty() && mode_val->IsString()) {
-            if (strcmp(*String::AsciiValue(mode_val), "octree") == 0 ||
-                strcmp(*String::AsciiValue(mode_val), "o") == 0) {
+            if (strcmp(*String::Utf8Value(mode_val), "octree") == 0 ||
+                strcmp(*String::Utf8Value(mode_val), "o") == 0) {
                 baton->mode = BLEND_MODE_OCTREE;
             }
-            else if (strcmp(*String::AsciiValue(mode_val), "hextree") == 0 ||
-                strcmp(*String::AsciiValue(mode_val), "h") == 0) {
+            else if (strcmp(*String::Utf8Value(mode_val), "hextree") == 0 ||
+                strcmp(*String::Utf8Value(mode_val), "h") == 0) {
                 baton->mode = BLEND_MODE_HEXTREE;
             }
         }
 
-        Local<Value> encoder_val = options->Get(String::NewSymbol("encoder"));
+        Local<Value> encoder_val = options->Get(NanNew("encoder"));
         if (!encoder_val.IsEmpty() && encoder_val->IsString()) {
-            if (strcmp(*String::AsciiValue(encoder_val), "miniz") == 0) {
+            if (strcmp(*String::Utf8Value(encoder_val), "miniz") == 0) {
                 baton->encoder = BLEND_ENCODER_MINIZ;
             }
             // default is libpng
         }
 
-        if (options->Has(String::NewSymbol("compression"))) {
-            baton->compression = options->Get(String::NewSymbol("compression"))->Int32Value();
+        if (options->Has(NanNew("compression"))) {
+            baton->compression = options->Get(NanNew("compression"))->Int32Value();
         }
 
         int min_compression = Z_NO_COMPRESSION;
@@ -232,24 +246,26 @@ Handle<Value> Blend(const Arguments& args) {
             std::ostringstream msg;
             msg << "Compression level must be between "
                 << min_compression << " and " << max_compression;
-            return TYPE_EXCEPTION(msg.str().c_str());
+            NanThrowTypeError(msg.str().c_str());
+            NanReturnUndefined();
         }
     }
 
     Local<Array> images = Local<Array>::Cast(args[0]);
     uint32_t length = images->Length();
     if (length < 1 && !baton->reencode) {
-        return TYPE_EXCEPTION("First argument must contain at least one Buffer.");
+        NanThrowTypeError("First argument must contain at least one Buffer.");
+        NanReturnUndefined();
     } else if (length == 1 && !baton->reencode) {
         Local<Value> buffer = images->Get(0);
         if (Buffer::HasInstance(buffer)) {
             // Directly pass through buffer if it's the only one.
             Local<Value> argv[] = {
-                Local<Value>::New(Null()),
+                NanNull(),
                 buffer
             };
-            TRY_CATCH_CALL(Context::GetCurrent()->Global(), baton->callback, 2, argv);
-            return scope.Close(Undefined());
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
+            NanReturnUndefined();
         } else {
             // Check whether the argument is a complex image with offsets etc.
             // In that case, we don't throw but continue going through the blend
@@ -257,40 +273,43 @@ Handle<Value> Blend(const Arguments& args) {
             bool valid = false;
             if (buffer->IsObject()) {
                 Local<Object> props = buffer->ToObject();
-                valid = props->Has(String::NewSymbol("buffer")) &&
-                        Buffer::HasInstance(props->Get(String::NewSymbol("buffer")));
+                valid = props->Has(NanNew("buffer")) &&
+                        Buffer::HasInstance(props->Get(NanNew("buffer")));
             }
             if (!valid) {
-                return TYPE_EXCEPTION("All elements must be Buffers or objects with a 'buffer' property.");
+                NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+                NanReturnUndefined();
             }
         }
     }
 
     if (!(length >= 1 || (baton->width > 0 && baton->height > 0))) {
-        return TYPE_EXCEPTION("Without buffers, you have to specify width and height.");
+        NanThrowTypeError("Without buffers, you have to specify width and height.");
+        NanReturnUndefined();
     }
 
     if (baton->width < 0 || baton->height < 0) {
-        return TYPE_EXCEPTION("Image dimensions must be greater than 0.");
+        NanThrowTypeError("Image dimensions must be greater than 0.");
+        NanReturnUndefined();
     }
 
     for (uint32_t i = 0; i < length; i++) {
         ImagePtr image(new BImage());
         Local<Value> buffer = images->Get(i);
         if (Buffer::HasInstance(buffer)) {
-            image->buffer = Persistent<Object>::New(buffer->ToObject());
+            NanAssignPersistent(image->buffer,buffer.As<Object>());
         } else if (buffer->IsObject()) {
             Local<Object> props = buffer->ToObject();
-            if (props->Has(String::NewSymbol("buffer"))) {
-                buffer = props->Get(String::NewSymbol("buffer"));
+            if (props->Has(NanNew("buffer"))) {
+                buffer = props->Get(NanNew("buffer"));
                 if (Buffer::HasInstance(buffer)) {
-                    image->buffer = Persistent<Object>::New(buffer->ToObject());
+                    NanAssignPersistent(image->buffer,buffer.As<Object>());
                 }
             }
-            image->x = props->Get(String::NewSymbol("x"))->Int32Value();
-            image->y = props->Get(String::NewSymbol("y"))->Int32Value();
+            image->x = props->Get(NanNew("x"))->Int32Value();
+            image->y = props->Get(NanNew("y"))->Int32Value();
 
-            Local<Value> tint_val = props->Get(String::NewSymbol("tint"));
+            Local<Value> tint_val = props->Get(NanNew("tint"));
             if (!tint_val.IsEmpty() && tint_val->IsObject()) {
                 Local<Object> tint = tint_val->ToObject();
                 if (!tint.IsEmpty()) {
@@ -298,24 +317,26 @@ Handle<Value> Blend(const Arguments& args) {
                     std::string msg;
                     parseTintOps(tint,image->tint,msg);
                     if (!msg.empty()) {
-                        return TYPE_EXCEPTION(msg.c_str());
+                        NanThrowTypeError(msg.c_str());
+                        NanReturnUndefined();
                     }
                 }
             }
         }
 
         if (image->buffer.IsEmpty()) {
-            return TYPE_EXCEPTION("All elements must be Buffers or objects with a 'buffer' property.");
+            NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+            NanReturnUndefined();
         }
 
-        image->data = (unsigned char*)node::Buffer::Data(image->buffer);
-        image->dataLength = node::Buffer::Length(image->buffer);
+        image->data = (unsigned char*)node::Buffer::Data(NanNew(image->buffer));
+        image->dataLength = node::Buffer::Length(NanNew(image->buffer));
         baton->images.push_back(image);
     }
 
-    QUEUE_WORK(baton.release(), Work_Blend, (uv_after_work_cb)Work_AfterBlend);
+    uv_queue_work(uv_default_loop(), &(baton.release())->request, Work_Blend, (uv_after_work_cb)Work_AfterBlend);
 
-    return scope.Close(Undefined());
+    NanReturnUndefined();
 }
 
 
@@ -461,7 +482,7 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
     }
 }
 
-WORKER_BEGIN(Work_Blend) {
+void Work_Blend(uv_work_t* req) {
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
 
     int total = baton->images.size();
@@ -482,7 +503,7 @@ WORKER_BEGIN(Work_Blend) {
         // Error out on invalid images.
         if (layer.get() == NULL || layer->width == 0 || layer->height == 0) {
             baton->message = layer->message;
-            WORKER_END();
+            return;
         }
 
         int visibleWidth = (int)layer->width + image->x;
@@ -504,13 +525,13 @@ WORKER_BEGIN(Work_Blend) {
             (int)layer->width == baton->width && (int)layer->height == baton->height)
         {
             baton->stream.write((char *)image->data, image->dataLength);
-            WORKER_END();
+            return;
         }
 
         if (!layer->decode()) {
             // Decoding failed.
             baton->message = layer->message;
-            WORKER_END();
+            return;
         }
         else if (layer->warnings.size()) {
             std::vector<std::string>::iterator pos = layer->warnings.begin();
@@ -543,13 +564,13 @@ WORKER_BEGIN(Work_Blend) {
         std::ostringstream msg;
         msg << "Image dimensions " << baton->width << "x" << baton->height << " are invalid";
         baton->message = msg.str();
-        WORKER_END();
+        return;
     }
 
     unsigned int *target = (unsigned int *)malloc(sizeof(unsigned int) * pixels);
     if (!target) {
         baton->message = "Memory allocation failed";
-        WORKER_END();
+        return;
     }
 
     // When we don't actually have transparent pixels, we don't need to set
@@ -572,43 +593,34 @@ WORKER_BEGIN(Work_Blend) {
     Blend_Encode(image, baton, alpha);
     free(target);
     target = NULL;
-    WORKER_END();
 }
 
-WORKER_BEGIN(Work_AfterBlend) {
-    HandleScope scope;
+void Work_AfterBlend(uv_work_t* req) {
+    NanScope();
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
 
     if (!baton->message.length()) {
-        Local<Array> warnings = Array::New();
+        Local<Array> warnings = NanNew<Array>();
         std::vector<std::string>::iterator pos = baton->warnings.begin();
         std::vector<std::string>::iterator end = baton->warnings.end();
         for (int i = 0; pos != end; pos++, i++) {
-            warnings->Set(i, String::New((*pos).c_str()));
+            warnings->Set(i, NanNew((*pos).c_str()));
         }
 
         std::string result = baton->stream.str();
         Local<Value> argv[] = {
-            Local<Value>::New(Null()),
-#if NODE_VERSION_AT_LEAST(0, 11, 0)
-            Local<Value>::New(Buffer::New((char *)result.data(), result.length())),
-#else
-            Local<Value>::New(Buffer::New((char *)result.data(), result.length())->handle_),
-#endif
-            Local<Value>::New(warnings)
+            NanNull(),
+            NanNewBufferHandle((char *)result.data(), result.length()),
+            warnings
         };
-        TRY_CATCH_CALL(Context::GetCurrent()->Global(), baton->callback, 3, argv);
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 3, argv);
     } else {
         Local<Value> argv[] = {
-            Local<Value>::New(Exception::Error(String::New(baton->message.c_str())))
+            NanError(baton->message.c_str())
         };
-
-        assert(!baton->callback.IsEmpty());
-        TRY_CATCH_CALL(Context::GetCurrent()->Global(), baton->callback, 1, argv);
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 1, argv);
     }
-
     delete baton;
-    WORKER_END();
 }
 
 }

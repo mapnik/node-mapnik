@@ -3,6 +3,7 @@ set -u -e
 
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
+./node_modules/.bin/node-pre-gyp info
 npm cache clean
 rm -rf sdk
 source ./scripts/build_against_sdk.sh " "
@@ -13,6 +14,7 @@ npm test
 rm -rf {build,lib/binding}
 npm install --fallback-to-build=false
 npm test
+
 # now do node v0.8.x binaries
 source ./scripts/build_against_sdk.sh --target=0.8.26
 ~/.nvm/v0.8.26/bin/npm test
@@ -21,3 +23,12 @@ source ./scripts/build_against_sdk.sh --target=0.8.26
 rm -rf {build,lib/binding}
 ~/.nvm/v0.8.26/bin/npm install --fallback-to-build=false
 ~/.nvm/v0.8.26/bin/npm test
+
+# now do node v0.11.x binaries
+source ./scripts/build_against_sdk.sh --target=0.11.13
+~/.nvm/v0.11.13/bin/npm test
+~/.nvm/v0.11.13/bin/node ./node_modules/.bin/node-pre-gyp package testpackage
+~/.nvm/v0.11.13/bin/node ./node_modules/.bin/node-pre-gyp publish info
+rm -rf {build,lib/binding}
+~/.nvm/v0.11.13/bin/npm install --fallback-to-build=false
+~/.nvm/v0.11.13/bin/npm test

@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_CAIRO_H__
 #define __NODE_MAPNIK_CAIRO_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 #include <iostream>
 #include <sstream>
@@ -21,10 +20,10 @@ public:
     typedef std::stringstream i_stream;
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
-    static Handle<Value> getData(const Arguments &args);
-    static Handle<Value> width(const Arguments &args);
-    static Handle<Value> height(const Arguments &args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(getData);
+    static NAN_METHOD(width);
+    static NAN_METHOD(height);
     void _ref() { Ref(); }
     void _unref() { Unref(); }
     CairoSurface(std::string const& format, unsigned int width, unsigned int height);

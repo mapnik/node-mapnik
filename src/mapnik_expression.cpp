@@ -1,6 +1,5 @@
 #ifdef NODE_MAPNIK_EXPRESSION
 
-#include <node.h>
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
@@ -20,16 +19,17 @@ Persistent<FunctionTemplate> Expression::constructor;
 
 void Expression::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Expression::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Expression"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Expression::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lconst->SetClassName(NanNew("Expression"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "evaluate", evaluate);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "evaluate", evaluate);
 
-    target->Set(String::NewSymbol("Expression"),constructor->GetFunction());
+    target->Set(NanNew("Expression"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Expression::Expression() :
@@ -40,20 +40,23 @@ Expression::~Expression()
 {
 }
 
-Handle<Value> Expression::New(const Arguments& args)
+NAN_METHOD(Expression::New)
 {
-    HandleScope scope;
+    NanScope();
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
         //std::clog << "external!\n";
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Expression* e = static_cast<Expression*>(ptr);
         e->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
 
     mapnik::expression_ptr e_ptr;
@@ -63,14 +66,14 @@ Handle<Value> Expression::New(const Arguments& args)
             e_ptr = mapnik::parse_expression(TOSTR(args[0]),"utf8");
 
         } else {
-            return ThrowException(Exception::Error(
-                                      String::New("invalid arguments: accepts a single argument of string type")));
+            NanThrowTypeError("invalid arguments: accepts a single argument of string type");
+            NanReturnUndefined();
         }
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
     if (e_ptr)
@@ -78,48 +81,50 @@ Handle<Value> Expression::New(const Arguments& args)
         Expression* e = new Expression();
         e->Wrap(args.This());
         e->this_ = e_ptr;
-        return args.This();
+        NanReturnValue(args.This());
     }
     else
     {
-        return ThrowException(Exception::Error(
-                                  String::New("unknown exception happened, please file bug")));
+        NanThrowError("unknown exception happened, please file bug");
+        NanReturnUndefined();
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Expression::toString(const Arguments& args)
+NAN_METHOD(Expression::toString)
 {
-    HandleScope scope;
+    NanScope();
 
-    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.This());
-    return scope.Close(String::New( mapnik::to_expression_string(*e->get()).c_str() ));
+    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
+    NanReturnValue(NanNew(mapnik::to_expression_string(*e->get()).c_str()));
 }
 
-Handle<Value> Expression::evaluate(const Arguments& args)
+NAN_METHOD(Expression::evaluate)
 {
-    HandleScope scope;
+    NanScope();
 
     if (args.Length() < 1) {
-        return ThrowException(Exception::Error(
-                                  String::New("requires a mapnik.Feature as an argument")));
+        NanThrowError("requires a mapnik.Feature as an argument");
+        NanReturnUndefined();
     }
 
-    Local<Object> obj = args[0]->ToObject();
+    Local<Object> obj = args[0].As<Object>();
     if (obj->IsNull() || obj->IsUndefined()) {
-        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a mapnik.Feature not null/undefined")));
+        NanThrowTypeError("first argument is invalid, must be a mapnik.Feature not null/undefined");
+        NanReturnUndefined();
     }
 
-    if (!Feature::constructor->HasInstance(obj)) {
-        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a mapnik.Feature")));
+    if (!NanNew(Feature::constructor)->HasInstance(obj)) {
+        NanThrowTypeError("first argument is invalid, must be a mapnik.Feature");
+        NanReturnUndefined();
     }
 
     Feature* f = node::ObjectWrap::Unwrap<Feature>(obj);
 
-    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.This());
+    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
     mapnik::value value_obj = boost::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
-    return scope.Close(boost::apply_visitor(node_mapnik::value_converter(),value_obj.base()));
+    NanReturnValue(boost::apply_visitor(node_mapnik::value_converter(),value_obj.base()));
 }
 
 #endif

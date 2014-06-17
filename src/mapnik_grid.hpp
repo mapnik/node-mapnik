@@ -1,9 +1,7 @@
 #ifndef __NODE_MAPNIK_GRID_H__
 #define __NODE_MAPNIK_GRID_H__
 
-#include <v8.h>
-#include <uv.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include <mapnik/grid/grid.hpp>
 #include "mapnik3x_compatibility.hpp"
 
@@ -17,28 +15,26 @@ class Grid: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
-    static Handle<Value> encodeSync(const Arguments &args);
-    static Handle<Value> encode(const Arguments &args);
+    static NAN_METHOD(encodeSync);
+    static NAN_METHOD(encode);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
-    static Handle<Value> fields(const Arguments &args);
-    static Handle<Value> view(const Arguments &args);
-    static Handle<Value> width(const Arguments &args);
-    static Handle<Value> height(const Arguments &args);
-    static Handle<Value> painted(const Arguments &args);
-    static Handle<Value> clearSync(const Arguments& args);
-    static Handle<Value> clear(const Arguments& args);
+    static NAN_METHOD(fields);
+    static NAN_METHOD(view);
+    static NAN_METHOD(width);
+    static NAN_METHOD(height);
+    static NAN_METHOD(painted);
+    static Local<Value> _clearSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(clearSync);
+    static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
 
-    static Handle<Value> get_prop(Local<String> property,
-                                  const AccessorInfo& info);
-    static void set_prop(Local<String> property,
-                         Local<Value> value,
-                         const AccessorInfo& info);
+    static NAN_GETTER(get_prop);
+    static NAN_SETTER(set_prop);
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
