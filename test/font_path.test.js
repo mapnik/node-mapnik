@@ -9,6 +9,9 @@ describe('mapnik fonts ', function() {
                                         '/System/Library/Fonts/']
                                          .join(separator);
 
+        // ensure the module is reloaded so that the newly set
+        // process.env.MAPNIK_FONT_PATH takes effect
+        delete require.cache[require.resolve('../')];
         var mapnik = require('../');
 
         assert.ok(mapnik.fonts().indexOf('DejaVu Sans Mono Bold Oblique') >= 0);
