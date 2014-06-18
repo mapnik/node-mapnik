@@ -97,7 +97,7 @@
                 '<!@(mapnik-config --dep-libs)',
                 '<@(PROTOBUF_LIBRARY)'
             ],
-            'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
+            'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
               'VCCLCompilerTool': {
                 # uneeded now that they are in common.gypi VCCLCompilerTool
