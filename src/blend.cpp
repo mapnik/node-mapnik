@@ -8,8 +8,10 @@
 #include "tint.hpp"
 
 #include <sstream>
+#include <cstring>
+#include <cstdlib>
 
-#include <node_version.h>
+#include MAPNIK_MAKE_SHARED_INCLUDE
 
 using namespace v8;
 using namespace node;
@@ -127,7 +129,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
 
 NAN_METHOD(Blend) {
     NanScope();
-    std::auto_ptr<BlendBaton> baton(new BlendBaton());
+    MAPNIK_UNIQUE_PTR<BlendBaton> baton(new BlendBaton());
 
     Local<Object> options;
     if (args.Length() == 0 || !args[0]->IsArray()) {
@@ -294,7 +296,7 @@ NAN_METHOD(Blend) {
     }
 
     for (uint32_t i = 0; i < length; i++) {
-        ImagePtr image(new BImage());
+        ImagePtr image = MAPNIK_MAKE_SHARED<BImage>();
         Local<Value> buffer = images->Get(i);
         if (Buffer::HasInstance(buffer)) {
             NanAssignPersistent(image->buffer,buffer.As<Object>());
@@ -498,7 +500,7 @@ void Work_Blend(uv_work_t* req) {
         if (!alpha) break;
 
         BImage *image = &**rit;
-        std::auto_ptr<ImageReader> layer(new ImageReader(image->data, image->dataLength));
+        MAPNIK_UNIQUE_PTR<ImageReader> layer(new ImageReader(image->data, image->dataLength));
 
         // Error out on invalid images.
         if (layer.get() == NULL || layer->width == 0 || layer->height == 0) {

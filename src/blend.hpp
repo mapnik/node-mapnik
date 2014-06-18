@@ -1,25 +1,23 @@
-#ifndef NODE_BLEND_SRC_BLEND_H
-#define NODE_BLEND_SRC_BLEND_H
+#ifndef NODE_MAPNIK_BLEND_HPP
+#define NODE_MAPNIK_BLEND_HPP
 
 #include <v8.h>
 #include <node.h>
 #include <nan.h>
 
 // stl
-#include <iostream>
 #include <sstream>
-#include <memory>
-#include <cstring>
-#include <cstdlib>
 #include <string>
 #include <vector>
 #include "mapnik_palette.hpp"
 #include "reader.hpp"
 #include "tint.hpp"
 
-namespace node_mapnik {
+#include "mapnik3x_compatibility.hpp"
+// boost
+#include MAPNIK_SHARED_INCLUDE
 
-typedef v8::Persistent<v8::Object> PersistentObject;
+namespace node_mapnik {
 
 struct BImage {
     BImage() :
@@ -30,16 +28,16 @@ struct BImage {
         width(0),
         height(0),
         tint() {}
-    PersistentObject buffer;
+    v8::Persistent<v8::Object> buffer;
     unsigned char *data;
     size_t dataLength;
     int x, y;
     int width, height;
     Tinter tint;
-    std::auto_ptr<ImageReader> reader;
+    MAPNIK_UNIQUE_PTR<ImageReader> reader;
 };
 
-typedef boost::shared_ptr<BImage> ImagePtr;
+typedef MAPNIK_SHARED_PTR<BImage> ImagePtr;
 typedef std::vector<ImagePtr> Images;
 
 enum BlendFormat {
@@ -109,4 +107,4 @@ struct BlendBaton {
 
 }
 
-#endif
+#endif // NODE_MAPNIK_BLEND_HPP
