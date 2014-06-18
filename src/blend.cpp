@@ -1,7 +1,10 @@
 #include <mapnik/image_data.hpp>
 #include <mapnik/png_io.hpp>
 #include <mapnik/jpeg_io.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 200300
 #include <mapnik/webp_io.hpp>
+#endif
 #include "mapnik_palette.hpp"
 #include "reader.hpp"
 #include "blend.hpp"
@@ -442,6 +445,7 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
 }
 
 static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, bool alpha) {
+#if MAPNIK_VERSION >= 200300
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
             if (baton->quality == 0) baton->quality = 80;
@@ -482,6 +486,9 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
     } catch (const std::exception& ex) {
         baton->message = ex.what();
     }
+#else
+        baton->message = "Encoding impossible >= Mapnik 2.3.x required";
+#endif
 }
 
 void Work_Blend(uv_work_t* req) {
@@ -591,8 +598,10 @@ void Work_Blend(uv_work_t* req) {
         }
     }
 
+#if MAPNIK_VERSION >= 200300
     mapnik::image_data_32 image(baton->width, baton->height, (unsigned int*)target);
     Blend_Encode(image, baton, alpha);
+#endif
     free(target);
     target = NULL;
 }

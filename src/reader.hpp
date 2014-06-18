@@ -1,6 +1,7 @@
 #ifndef NODE_BLEND_SRC_READER_H
 #define NODE_BLEND_SRC_READER_H
 
+#include <mapnik/version.hpp>
 #include <mapnik/image_reader.hpp>
 #include <assert.h>
 #include <cstdlib>
@@ -22,7 +23,9 @@ public:
             reader_ = std::auto_ptr<mapnik::image_reader>(mapnik::get_image_reader((const char*)source,len));            
             if (reader_.get())
             {
+#if MAPNIK_VERSION >= 200300
                 alpha = reader_->has_alpha();
+#endif
                 width = reader_->width();
                 height = reader_->height();
                 surface = (unsigned int*)malloc(width * height * 4);
@@ -38,9 +41,13 @@ public:
         try {
             if (reader_.get())
             {
+#if MAPNIK_VERSION >= 200300
                 mapnik::image_data_32 im(reader_->width(),reader_->height(),surface);
                 reader_->read(0,0,im);
                 return true;
+#else
+                message = "Could not decode image (>= Mapnik 2.3.x required)";
+#endif
             } else {
                 message = "Could not decode image";
             }
