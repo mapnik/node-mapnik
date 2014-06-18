@@ -66,12 +66,12 @@ function get_image_vtile() {
     return vt;
 }
 
-function compare_to_image(actual,expected_file) {
+function compare_to_image(actual,expected_file, tolerance) {
     if (!existsSync(expected_file)) {
         fs.writeFileSync(expected_file,actual);
     }
     var expected = fs.readFileSync(expected_file);
-    return actual.length == expected.length;
+    return Math.abs(actual.length - expected.length) < tolerance;
 }
 
 describe('mapnik.VectorTile.composite', function() {
@@ -137,7 +137,7 @@ describe('mapnik.VectorTile.composite', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/concat.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(actual,expected_file,1));
                 done();
             })
         })
@@ -162,7 +162,7 @@ describe('mapnik.VectorTile.composite', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/image_concat.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(actual,expected_file,300));
                 done();
             })
         })
@@ -194,7 +194,7 @@ describe('mapnik.VectorTile.composite', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(actual,expected_file,1));
                 done();
             })
         })
@@ -215,7 +215,7 @@ describe('mapnik.VectorTile.composite', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1-empty.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(actual,expected_file,1));
                 done();
             })
         })
@@ -237,7 +237,7 @@ describe('mapnik.VectorTile.composite', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1-no-point.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(actual,expected_file,1));
                 done();
             })
         })
@@ -269,7 +269,7 @@ describe('mapnik.VectorTile.composite', function() {
                 if (err) throw err;
                 var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/0-0-0-mosaic.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(actual,expected_file,1));
                 done();
             })
         })
