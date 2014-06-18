@@ -4,6 +4,9 @@
 
  - Now supporting node v0.11.x via Nan@1.2.0
 
+Notable changes in the Mapnik SDK include:
+ - Now building GDAL master (2.x) at https://github.com/OSGeo/gdal/commit/1106e43682056645c8c5e0dbf6ebcb69f8bf23cc
+
 ## 1.4.7
  - Added `mapnik.Image.compare` function to compare the pixels of two images.
  - Fixed build issue leading to broken `ogr.input` Mapnik plugin
