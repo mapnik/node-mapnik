@@ -4,7 +4,7 @@ clone_folder: c:\dev2\node-mapnik
 
 environment:
   node_pre_gyp_accessKeyId:
-    secure: T1Pel/pv9SVfiVvZW8TLZnvZX6M4HQTiR7LUZnF1tuY=
+    secure: 9JxHOXxgQ7UaXFCQh4ihEBDElQgE4l0XareRstBCpLk=
   node_pre_gyp_secretAccessKey:
     secure: s1us6xb8U2EqlaVYtoVMtulfgMdX4VVEKgTF+Eft104gWja1GG0Blf6cMJtG7Yu3
   matrix:
