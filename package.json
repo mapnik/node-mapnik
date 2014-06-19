@@ -58,6 +58,6 @@
   "devDependencies": {
     "sphericalmercator": "~1.0.2",
     "mocha": "~1.15.1",
-    "aws-sdk": "~2.0.0-rc.19"
+    "aws-sdk": "https://github.com/aws/aws-sdk-js/tarball/master"
   }
 }

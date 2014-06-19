@@ -16,6 +16,12 @@ platform:
 #  - x64
   - x86
 
+matrix:
+  allow_failures:
+    - nodejs_version: 0.8
+    - nodejs_version: 0.10
+    - nodejs_version: 0.11
+
 install:
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:Platform
   - node -e "console.log('node version ' + process.version + ' architecture ' + process.arch);"
