@@ -58,6 +58,7 @@
       'dependencies': [ 'action_before_build' ],
       'sources': [
           "src/node_mapnik.cpp",
+          "src/blend.cpp",
           "src/mapnik_map.cpp",
           "src/mapnik_color.cpp",
           "src/mapnik_geometry.cpp",
