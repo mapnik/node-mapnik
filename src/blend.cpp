@@ -1,6 +1,8 @@
 #include <mapnik/image_data.hpp>
 #include <mapnik/png_io.hpp>
+#define XMD_H
 #include <mapnik/jpeg_io.hpp>
+#undef XMD_H
 #include <mapnik/version.hpp>
 #if MAPNIK_VERSION >= 200300
 #include <mapnik/webp_io.hpp>
