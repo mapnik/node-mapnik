@@ -9,7 +9,7 @@ all: mapnik.node
 	npm install node-pre-gyp
 
 mapnik.node: ./node_modules/.bin/node-pre-gyp ./node_modules/mapnik-vector-tile
-	./node_modules/.bin/node-pre-gyp build
+	./node_modules/.bin/node-pre-gyp build --loglevel=silent
 
 clean:
 	@rm -rf ./build
