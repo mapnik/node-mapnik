@@ -49,7 +49,7 @@
        "mapnik-render.js"  : "./bin/mapnik-render.js"
   },
   "engines"       : {
-      "node": ">= 0.8.0 < 0.11.4"
+      "node": ">= 0.8.0 < 0.13"
   },
   "scripts"       : {
       "test"    : "mocha -R spec",
