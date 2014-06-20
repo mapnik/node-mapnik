@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.11
+
+ - Fixed shasum error in npm package by republishing with node v0.10.x (rather than node v0.11.13).
+
 ## 1.4.10
 
  - Fixed version of bundled node-pre-gyp
