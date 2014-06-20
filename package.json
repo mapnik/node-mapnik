@@ -52,12 +52,12 @@
       "node": ">= 0.8.0 < 0.11.4"
   },
   "scripts"       : {
-      "test"    : "mocha -R spec --no-colors",
+      "test"    : "mocha -R spec",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
     "sphericalmercator": "~1.0.2",
-    "mocha": "~1.15.1",
+    "mocha": "1.x",
     "aws-sdk": "~2.0.0-rc.19"
   }
 }
