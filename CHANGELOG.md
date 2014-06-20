@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.4.8
+## 1.4.9
 
  - New mapnik.blend function that implements the node-blend API (https://github.com/mapbox/node-blend#usage)
  - Now supporting node v0.11.x via Nan@1.2.0
@@ -11,6 +11,10 @@ Notable changes in the Mapnik SDK include:
  - Mapnik image-filters now support correct alpha blending.
  - Mapnik PNG miniz encoding fixed.
  - Mapnik can now register fonts from directories containing non-ascii characters on windows.
+
+## 1.4.8
+
+ - Never happened (npm shasum for published package was busted)
 
 ## 1.4.7
  - Added `mapnik.Image.compare` function to compare the pixels of two images.
