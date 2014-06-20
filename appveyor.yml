@@ -9,6 +9,7 @@ environment:
     secure: s1us6xb8U2EqlaVYtoVMtulfgMdX4VVEKgTF+Eft104gWja1GG0Blf6cMJtG7Yu3
   matrix:
   - nodejs_version: 0.10
+  - nodejs_version: 0.11
 
 platform:
 #  - x64
@@ -18,6 +19,8 @@ matrix:
   allow_failures:
     - platform: x86
       nodejs_version: 0.10
+    - platform: x86
+      nodejs_version: 0.11
 
 install:
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:Platform

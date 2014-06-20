@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.10
+
+ - Fixed version of bundled node-pre-gyp
+
 ## 1.4.9
 
  - New mapnik.blend function that implements the node-blend API (https://github.com/mapbox/node-blend#usage)
