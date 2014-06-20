@@ -37,7 +37,7 @@ install:
   - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp publish
 
 artifacts:
-  - path: build
+  - path: build\stage
     name: BuildFiles
 
 build: off
