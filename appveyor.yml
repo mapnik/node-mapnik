@@ -36,6 +36,10 @@ install:
   - ECHO commit message %CM%
   - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp publish
 
+artifacts:
+  - path: build
+    name: BuildFiles
+
 build: off
 test: off
 deploy: off
