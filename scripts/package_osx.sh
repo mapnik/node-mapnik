@@ -3,32 +3,28 @@ set -u -e
 
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
+source ~/.nvm/nvm.sh
+nvm install 0.10
+nvm use 0.10
+npm install node-pre-gyp
+npm install aws-sdk
 ./node_modules/.bin/node-pre-gyp info
 npm cache clean
 rm -rf sdk
-source ./scripts/build_against_sdk.sh " "
-npm test
-./node_modules/.bin/node-pre-gyp package testpackage
-npm test
-./node_modules/.bin/node-pre-gyp publish info
-rm -rf {build,lib/binding}
-npm install --fallback-to-build=false
-npm test
 
-# now do node v0.8.x binaries
-source ./scripts/build_against_sdk.sh --target=0.8.26
-~/.nvm/v0.8.26/bin/npm test
-~/.nvm/v0.8.26/bin/node ./node_modules/.bin/node-pre-gyp package testpackage
-~/.nvm/v0.8.26/bin/node ./node_modules/.bin/node-pre-gyp publish info
-rm -rf {build,lib/binding}
-~/.nvm/v0.8.26/bin/npm install --fallback-to-build=false
-~/.nvm/v0.8.26/bin/npm test
+function doit () {
+    NVER=$1
+    nvm install $1
+    nvm use $1
+    source ./scripts/build_against_sdk.sh --target=$1
+    npm test
+    node ./node_modules/.bin/node-pre-gyp package testpackage
+    node ./node_modules/.bin/node-pre-gyp publish info
+    rm -rf {build,lib/binding}
+    npm install --fallback-to-build=false
+    npm test
+}
 
-# now do node v0.11.x binaries
-source ./scripts/build_against_sdk.sh --target=0.11.13
-~/.nvm/v0.11.13/bin/npm test
-~/.nvm/v0.11.13/bin/node ./node_modules/.bin/node-pre-gyp package testpackage
-~/.nvm/v0.11.13/bin/node ./node_modules/.bin/node-pre-gyp publish info
-rm -rf {build,lib/binding}
-~/.nvm/v0.11.13/bin/npm install --fallback-to-build=false
-~/.nvm/v0.11.13/bin/npm test
+doit 0.10.29
+doit 0.8.26
+doit 0.11.13
