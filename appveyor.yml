@@ -12,8 +12,8 @@ environment:
   - nodejs_version: 0.11
 
 platform:
-#  - x64
   - x86
+#  - x64
 
 matrix:
   allow_failures:
