@@ -23,7 +23,6 @@
 
 // std
 #include <exception>
-#include <memory>                       // for auto_ptr, etc
 #include <ostream>                      // for operator<<, basic_ostream
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>

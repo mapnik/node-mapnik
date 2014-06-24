@@ -1,6 +1,8 @@
 #ifndef NODE_BLEND_SRC_READER_H
 #define NODE_BLEND_SRC_READER_H
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
 #include <mapnik/version.hpp>
 #include <mapnik/image_reader.hpp>
 #include <assert.h>
@@ -20,7 +22,7 @@ public:
       length(len),
       pos(0) {
         try {
-            reader_ = std::auto_ptr<mapnik::image_reader>(mapnik::get_image_reader((const char*)source,len));            
+            reader_ = MAPNIK_UNIQUE_PTR<mapnik::image_reader>(mapnik::get_image_reader((const char*)source,len));
             if (reader_.get())
             {
 #if MAPNIK_VERSION >= 200300
@@ -69,7 +71,7 @@ public:
 
     std::string message;
     std::vector<std::string> warnings;
-    std::auto_ptr<mapnik::image_reader> reader_;
+    MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader_;
 protected:
     unsigned char* source;
     size_t length;
