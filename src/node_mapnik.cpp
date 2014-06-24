@@ -28,11 +28,9 @@
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
 #include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200100
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/mapped_memory_cache.hpp>
 #include <mapnik/image_compositing.hpp>
-#endif
 
 // boost
 #include <boost/version.hpp>
@@ -77,15 +75,8 @@ static NAN_METHOD(clearCache)
         mapnik::mapped_memory_cache::instance().clear();
     #endif
 #else
-    #if MAPNIK_VERSION >= 200200
         mapnik::marker_cache::instance().clear();
         mapnik::mapped_memory_cache::instance().clear();
-    #else
-        #if MAPNIK_VERSION >= 200100
-            mapnik::marker_cache::instance()->clear();
-            mapnik::mapped_memory_cache::instance()->clear();
-        #endif
-    #endif
 #endif
     NanReturnUndefined();
 }
@@ -226,7 +217,6 @@ extern "C" {
 
         target->Set(NanNew("supports"), supports);
 
-#if MAPNIK_VERSION >= 200100
         Local<Object> composite_ops = NanNew<Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
@@ -263,7 +253,6 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "value", mapnik::_value)
 
         target->Set(NanNew("compositeOp"), composite_ops);
-#endif
     }
 
 }

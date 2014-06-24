@@ -6,11 +6,7 @@
 
 // mapnik
 #include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200100
 #include <mapnik/expression.hpp>
-#else
-#include <mapnik/filter_factory.hpp>
-#endif
 
 // boost
 #include MAPNIK_SHARED_INCLUDE

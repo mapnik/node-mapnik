@@ -246,12 +246,8 @@ NAN_METHOD(MemoryDatasource::add)
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
             pt->move_to(x->NumberValue(),y->NumberValue());
-#if MAPNIK_VERSION >= 200100
             mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
-#else
-            mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
-#endif
             ++(d->feature_id_);
             feature->add_geometry(pt);
             if (obj->Has(NanNew("properties")))
@@ -270,34 +266,18 @@ NAN_METHOD(MemoryDatasource::add)
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
                             mapnik::value_unicode_string ustr = d->tr_->transcode(TOSTR(value));
-#if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),ustr);
-#else
-                            boost::put(*feature,TOSTR(name),ustr);
-#endif
                         } else if (value->IsNumber()) {
                             double num = value->NumberValue();
                             // todo - round
                             if (num == value->IntegerValue()) {
-#if MAPNIK_VERSION >= 200100
                                 feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
-#else
-                                boost::put(*feature,TOSTR(name),static_cast<int>(value->IntegerValue()));
-#endif
                             } else {
                                 double dub_val = value->NumberValue();
-#if MAPNIK_VERSION >= 200100
                                 feature->put_new(TOSTR(name),dub_val);
-#else
-                                boost::put(*feature,TOSTR(name),dub_val);
-#endif
                             }
                         } else if (value->IsNull()) {
-#if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),mapnik::value_null());
-#else
-                            boost::put(*feature,TOSTR(name),mapnik::value_null());
-#endif
                         } else {
                             std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                         }

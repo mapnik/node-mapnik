@@ -5,12 +5,9 @@
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
-
-#if MAPNIK_VERSION >= 200100
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
 #include <mapnik/image_filter.hpp> // filter_visitor
-#endif
 
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
@@ -342,10 +339,8 @@ NAN_METHOD(Image::clearSync)
 
 Local<Value> Image::_clearSync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
-#if MAPNIK_VERSION >= 200200
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     im->get()->clear();
-#endif
     return NanEscapeScope(NanUndefined());
 }
 
@@ -384,7 +379,6 @@ NAN_METHOD(Image::clear)
 
 void Image::EIO_Clear(uv_work_t* req)
 {
-#if MAPNIK_VERSION >= 200200
     clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
     try
     {
@@ -395,7 +389,6 @@ void Image::EIO_Clear(uv_work_t* req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-#endif
 }
 
 void Image::EIO_AfterClear(uv_work_t* req)
@@ -483,10 +476,8 @@ NAN_METHOD(Image::premultiplySync)
 
 Local<Value> Image::_premultiplySync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
-#if MAPNIK_VERSION >= 200100
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     im->get()->premultiply();
-#endif
     return NanEscapeScope(NanUndefined());
 }
 
@@ -557,10 +548,8 @@ NAN_METHOD(Image::demultiplySync)
 
 Local<Value> Image::_demultiplySync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
-#if MAPNIK_VERSION >= 200100
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     im->get()->demultiply();
-#endif
     return NanEscapeScope(NanUndefined());
 }
 
@@ -1164,8 +1153,6 @@ NAN_METHOD(Image::save)
     NanReturnUndefined();
 }
 
-#if MAPNIK_VERSION >= 200100
-
 typedef struct {
     uv_work_t request;
     Image* im1;
@@ -1347,16 +1334,3 @@ void Image::EIO_AfterComposite(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
-
-#else
-
-NAN_METHOD(Image::composite)
-{
-    NanScope();
-
-    NanThrowTypeError("compositing is only supported if node-mapnik is built against >= Mapnik 2.1.x");
-    NanReturnUndefined();
-
-}
-
-#endif

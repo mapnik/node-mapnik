@@ -89,7 +89,6 @@ static inline NAN_METHOD(available_font_faces)
 static inline NAN_METHOD(available_font_files)
 {
     NanScope();
-#if MAPNIK_VERSION >= 200100
     std::map<std::string,std::pair<int,std::string> > const& mapping = mapnik::freetype_engine::get_mapping();
     Local<Object> obj = NanNew<Object>();
     std::map<std::string,std::pair<int,std::string> >::const_iterator itr;
@@ -97,15 +96,6 @@ static inline NAN_METHOD(available_font_files)
     {
         obj->Set(NanNew(itr->first.c_str()), NanNew(itr->second.second.c_str()));
     }
-#else
-    std::map<std::string,std::string> const& mapping = mapnik::freetype_engine::get_mapping();
-    Local<Object> obj = NanNew<Object>();
-    std::map<std::string,std::string>::const_iterator itr;
-    for (itr = mapping.begin();itr!=mapping.end();++itr)
-    {
-        obj->Set(NanNew(itr->first.c_str()), NanNew(itr->second.c_str()));
-    }
-#endif
     NanReturnValue(obj);
 }
 

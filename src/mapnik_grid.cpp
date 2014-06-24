@@ -41,11 +41,7 @@ void Grid::Initialize(Handle<Object> target) {
     ATTR(lcons, "key", get_prop, set_prop);
 
     target->Set(NanNew("Grid"), lcons->GetFunction());
-#if MAPNIK_VERSION < 200100
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(), "base_mask", 0);
-#else
     NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(lcons->GetFunction(), "base_mask", mapnik::grid::base_mask);
-#endif
 
     NanAssignPersistent(constructor, lcons);
 }
@@ -54,9 +50,6 @@ Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsi
     ObjectWrap(),
     this_(MAPNIK_MAKE_SHARED<mapnik::grid>(width,height,key,resolution)),
     estimated_size_(width * height) {
-#if MAPNIK_VERSION <= 200100
-    this_->painted(false);
-#endif
     NanAdjustExternalMemory(estimated_size_);
 }
 
@@ -149,10 +142,8 @@ NAN_METHOD(Grid::clearSync)
 Local<Value> Grid::_clearSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
-#if MAPNIK_VERSION >= 200200
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
     g->get()->clear();
-#endif
     return NanEscapeScope(NanUndefined());
 }
 
@@ -192,7 +183,6 @@ NAN_METHOD(Grid::clear)
 
 void Grid::EIO_Clear(uv_work_t* req)
 {
-#if MAPNIK_VERSION >= 200200
     clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
     try
     {
@@ -203,7 +193,6 @@ void Grid::EIO_Clear(uv_work_t* req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-#endif
 }
 
 void Grid::EIO_AfterClear(uv_work_t* req)
@@ -315,9 +304,6 @@ NAN_METHOD(Grid::view)
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
     NanReturnValue(GridView::New(g,x,y,w,h));
 }
-
-
-#if MAPNIK_VERSION >= 200100
 
 NAN_METHOD(Grid::encodeSync) // format, resolution
 {
@@ -580,211 +566,3 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
-
-
-#else
-
-NAN_METHOD(Grid::encodeSync) // format, resolution
-{
-    NanScope();
-
-    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-
-    // defaults
-    std::string format("utf");
-    unsigned int resolution = 4;
-    bool add_features = true;
-
-    // accept custom format
-    if (args.Length() >= 1){
-        if (!args[0]->IsString())
-        {
-            NanThrowTypeError("first arg, 'format' must be a string");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[0]);
-    }
-
-    // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
-        {
-            NanThrowTypeError("optional second arg must be an options object");
-            NanReturnUndefined();
-        }
-
-        Local<Object> options = args[1].As<Object>();
-
-        if (options->Has(NanNew("resolution")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("resolution"));
-            if (!bind_opt->IsNumber())
-            {
-                NanThrowTypeError("'resolution' must be an Integer");
-                NanReturnUndefined();
-            }
-
-            resolution = bind_opt->IntegerValue();
-        }
-
-        if (options->Has(NanNew("features")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("features"));
-            if (!bind_opt->IsBoolean())
-            {
-                NanThrowTypeError("'features' must be an Boolean");
-                NanReturnUndefined();
-            }
-
-            add_features = bind_opt->BooleanValue();
-        }
-    }
-
-    try {
-
-        Local<Array> grid_array = NanNew<Array>();
-        std::vector<mapnik::grid::lookup_type> key_order;
-        node_mapnik::grid2utf<mapnik::grid>(*g->get(),grid_array,key_order,resolution);
-
-        // convert key order to proper javascript array
-        Local<Array> keys_a = NanNew<Array>(key_order.size());
-        std::vector<std::string>::iterator it;
-        unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
-        {
-            keys_a->Set(i, NanNew((*it).c_str()));
-        }
-
-        // gather feature data
-        Local<Object> feature_data = NanNew<Object>();
-        if (add_features) {
-            node_mapnik::write_features<mapnik::grid>(*g->get(),
-                                                      feature_data,
-                                                      key_order
-                );
-        }
-
-        // Create the return hash.
-        Local<Object> json = NanNew<Object>();
-        json->Set(NanNew("grid"), grid_array);
-        json->Set(NanNew("keys"), keys_a);
-        json->Set(NanNew("data"), feature_data);
-        return json;
-
-    }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-}
-
-// @TODO: convert this to EIO. It's currently doing all the work in the main
-// thread, and just provides an async interface.
-NAN_METHOD(Grid::encode) // format, resolution
-{
-    NanScope();
-
-    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-
-    // defaults
-    std::string format("utf");
-    unsigned int resolution = 4;
-    bool add_features = true;
-
-    // accept custom format
-    if (args.Length() >= 1){
-        if (!args[0]->IsString())
-        {
-            NanThrowTypeError("first arg, 'format' must be a string");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[0]);
-    }
-
-    // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
-        {
-            NanThrowTypeError("optional second arg must be an options object");
-            NanReturnUndefined();
-        }
-
-        Local<Object> options = args[1]->ToObject();
-
-        if (options->Has(NanNew("resolution")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("resolution"));
-            if (!bind_opt->IsNumber())
-            {
-                NanThrowTypeError("'resolution' must be an Integer");
-                NanReturnUndefined();
-            }
-
-            resolution = bind_opt->IntegerValue();
-        }
-
-        if (options->Has(NanNew("features")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("features"));
-            if (!bind_opt->IsBoolean())
-            {
-                NanThrowTypeError("'features' must be an Boolean");
-                NanReturnUndefined();
-            }
-
-            add_features = bind_opt->BooleanValue();
-        }
-    }
-
-    // ensure callback is a function
-    if (!args[args.Length()-1]->IsFunction())
-    {
-        NanThrowTypeError("last argument must be a callback function");
-        NanReturnUndefined();
-    }
-    Local<Function> callback = args[args.Length() - 1].As<Function>();
-
-    try {
-
-        Local<Array> grid_array = NanNew<Array>();
-        std::vector<mapnik::grid::lookup_type> key_order;
-        node_mapnik::grid2utf<mapnik::grid>(*g->get(), grid_array, key_order, resolution);
-
-        // convert key order to proper javascript array
-        Local<Array> keys_a = NanNew<Array>(key_order.size());
-        std::vector<std::string>::iterator it;
-        unsigned int i;
-        for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
-        {
-            keys_a->Set(i, NanNew((*it).c_str()));
-        }
-
-        // gather feature data
-        Local<Object> feature_data = NanNew<Object>();
-        if (add_features) {
-            node_mapnik::write_features<mapnik::grid>(*g->get(),
-                                                      feature_data,
-                                                      key_order
-                );
-        }
-
-        // Create the return hash.
-        Local<Object> json = NanNew<Object>();
-        json->Set(NanNew("grid"), grid_array);
-        json->Set(NanNew("keys"), keys_a);
-        json->Set(NanNew("data"), feature_data);
-
-        Local<Value> argv[2] = { NanNull(), NanNew(json) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), callback, 2, argv);
-    }
-    catch (std::exception const& ex)
-    {
-        Local<Value> argv[1] = { NanError(ex.what()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), callback, 1, argv);
-    }
-
-    NanReturnUndefined();
-}
-
-#endif

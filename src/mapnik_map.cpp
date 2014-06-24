@@ -223,7 +223,6 @@ NAN_GETTER(Map::get_prop)
     }
     else if (a == "parameters") {
         Local<Object> ds = NanNew<Object>();
-#if MAPNIK_VERSION >= 200100
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
@@ -232,7 +231,6 @@ NAN_GETTER(Map::get_prop)
             node_mapnik::params_to_object serializer( ds , it->first);
             boost::apply_visitor( serializer, it->second );
         }
-#endif
         NanReturnValue(ds);
     }
     NanReturnUndefined();
@@ -313,7 +311,6 @@ NAN_SETTER(Map::set_prop)
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
-#if MAPNIK_VERSION >= 200100
         if (!value->IsObject()) {
             NanThrowTypeError("object expected for map.parameters");
             return;
@@ -349,7 +346,6 @@ NAN_SETTER(Map::set_prop)
             i++;
         }
         m->map_->set_extra_parameters(params);
-#endif
     }
 }
 
@@ -827,12 +823,7 @@ void Map::EIO_Load(uv_work_t* req)
 
     try
     {
-#if MAPNIK_VERSION >= 200200
         mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_path);
-#else
-        mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict);
-#endif
-
     }
     catch (std::exception const& ex)
     {
@@ -918,11 +909,7 @@ NAN_METHOD(Map::loadSync)
 
     try
     {
-#if MAPNIK_VERSION >= 200200
         mapnik::load_map(*m->map_,stylesheet,strict,base_path);
-#else
-        mapnik::load_map(*m->map_,stylesheet,strict);
-#endif
     }
     catch (std::exception const& ex)
     {
@@ -1876,11 +1863,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
             // https://github.com/mapnik/mapnik/issues/1930
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
 #else
-#if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
-#else
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
-#endif
 #endif
 #else
 #endif
@@ -2141,11 +2124,7 @@ NAN_METHOD(Map::renderFileSync)
 #if MAPNIK_VERSION > 200200
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
 #else
-#if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
-#else
-            mapnik::save_to_cairo_file(*m->map_,output,format);
-#endif
 #endif
 #else
             std::ostringstream s("");

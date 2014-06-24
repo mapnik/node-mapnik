@@ -139,7 +139,6 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             {
                 if ((idx >= first) && (idx <= last || last == 0)) {
                     Local<Object> feat = NanNew<Object>();
-#if MAPNIK_VERSION >= 200100
                     mapnik::feature_impl::iterator f_itr = fp->begin();
                     mapnik::feature_impl::iterator f_end = fp->end();
                     for ( ;f_itr!=f_end; ++f_itr)
@@ -149,21 +148,8 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                         // not a mapnik::value_holder
                         boost::apply_visitor( serializer, MAPNIK_GET<1>(*f_itr).base() );
                     }
-#else
-                    std::map<std::string,mapnik::value> const& fprops = fp->props();
-                    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-                    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-                    for (; it != end; ++it)
-                    {
-                        node_mapnik::params_to_object serializer( feat , it->first);
-                        // need to call base() since this is a mapnik::value
-                        // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, it->second.base() );
-                    }
-#endif
                     // add feature id
                     feat->Set(NanNew("__id__"), NanNew<Number>(fp->id()));
-
                     a->Set(idx, feat);
                 }
                 ++idx;
