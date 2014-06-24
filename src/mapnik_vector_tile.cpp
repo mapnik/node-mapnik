@@ -35,7 +35,7 @@
 #include <mapnik/scale_denominator.hpp>
 
 #ifdef HAVE_CAIRO
-#if MAPNIK_VERSION >= 30000
+#if MAPNIK_VERSION >= 300000
 #include <mapnik/cairo/cairo_renderer.hpp>
 #else
 #include <mapnik/cairo_renderer.hpp>
