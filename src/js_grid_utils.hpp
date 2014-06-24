@@ -10,82 +10,31 @@
 
 // boost
 #include <boost/foreach.hpp>
-#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
 
 // stl
 #include <cmath> // ceil
 #include <stdint.h>  // for uint16_t
+
+#if MAPNIK_VERSION >= 300000
+#include <memory>
+#else
+#include <boost/shared_array.hpp>
+#endif
 
 using namespace v8;
 using namespace node;
 
 namespace node_mapnik {
 
-template <typename T>
-static void grid2utf(T const& grid_type,
-                     boost::ptr_vector<uint16_t> & lines,
-                     std::vector<typename T::lookup_type>& key_order)
-{
-    typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
-    typedef typename keys_type::const_iterator keys_iterator;
-
-    typename T::data_type const& data = grid_type.data();
-    typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
-    typename T::feature_key_type::const_iterator feature_pos;
-
-    keys_type keys;
-    // start counting at utf8 codepoint 32, aka space character
-    uint16_t codepoint = 32;
-
-    unsigned array_size = data.width();
-    for (unsigned y = 0; y < data.height(); ++y)
-    {
-        uint16_t idx = 0;
-        uint16_t* line = new uint16_t[array_size];
-        typename T::value_type const* row = data.getRow(y);
-        for (unsigned x = 0; x < data.width(); ++x)
-        {
-            typename T::value_type feature_id = row[x];
-            feature_pos = feature_keys.find(feature_id);
-            if (feature_pos != feature_keys.end())
-            {
-                typename T::lookup_type const& val = feature_pos->second;
-                keys_iterator key_pos = keys.find(val);
-                if (key_pos == keys.end())
-                {
-                    // Create a new entry for this key. Skip the codepoints that
-                    // can't be encoded directly in JSON.
-                    if (codepoint == 34) ++codepoint;      // Skip "
-                    else if (codepoint == 92) ++codepoint; // Skip backslash
-                    if (feature_id == mapnik::grid::base_mask)
-                    {
-                        keys[""] = codepoint;
-                        key_order.push_back("");
-                    }
-                    else
-                    {
-                        keys[val] = codepoint;
-                        key_order.push_back(val);
-                    }
-                    line[idx++] = static_cast<uint16_t>(codepoint);
-                    ++codepoint;
-                }
-                else
-                {
-                    line[idx++] = static_cast<uint16_t>(key_pos->second);
-                }
-            }
-            // else, shouldn't get here...
-        }
-        lines.push_back(line);
-    }
-}
-
-// requires mapnik >= r2957
+#if MAPNIK_VERSION >= 300000
+typedef std::unique_ptr<uint16_t[]> grid_line_type;
+#else
+typedef boost::shared_array<uint16_t> grid_line_type;
+#endif
 
 template <typename T>
 static void grid2utf(T const& grid_type,
-                     boost::ptr_vector<uint16_t> & lines,
+                     std::vector<grid_line_type> & lines,
                      std::vector<typename T::lookup_type>& key_order,
                      unsigned int resolution)
 {
@@ -103,7 +52,7 @@ static void grid2utf(T const& grid_type,
     for (unsigned y = 0; y < grid_type.height(); y=y+resolution)
     {
         uint16_t idx = 0;
-        uint16_t* line = new uint16_t[array_size];
+        grid_line_type line(new uint16_t[array_size]);
         typename T::value_type const* row = grid_type.getRow(y);
         for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
         {
@@ -140,7 +89,11 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
+#if MAPNIK_VERSION >= 300000
+        lines.push_back(std::move(line));
+#else
         lines.push_back(line);
+#endif
     }
 }
 

@@ -9,11 +9,8 @@
 #include "utils.hpp"
 
 // boost
-#include "boost/ptr_container/ptr_sequence_adapter.hpp"
-#include "boost/ptr_container/ptr_vector.hpp"  // for ptr_vector
 #include MAPNIK_MAKE_SHARED_INCLUDE
-#include "boost/cstdint.hpp"            // for uint16_t
-
+#include <boost/cstdint.hpp>           // for uint16_t
 // std
 #include <exception>
 
@@ -363,7 +360,7 @@ NAN_METHOD(Grid::encodeSync) // format, resolution
 
     try {
 
-        boost::ptr_vector<uint16_t> lines;
+        std::vector<node_mapnik::grid_line_type> lines;
         std::vector<mapnik::grid::lookup_type> key_order;
         node_mapnik::grid2utf<mapnik::grid>(*g->get(),lines,key_order,resolution);
 
@@ -392,7 +389,8 @@ NAN_METHOD(Grid::encodeSync) // format, resolution
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
         for (unsigned j=0;j<lines.size();++j)
         {
-            grid_array->Set(j, NanNew(&lines[j],array_size));
+            node_mapnik::grid_line_type const & line = lines[j];
+            grid_array->Set(j, NanNew(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);
@@ -414,7 +412,7 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-    boost::ptr_vector<uint16_t> lines;
+    std::vector<node_mapnik::grid_line_type> lines;
     unsigned int resolution;
     bool add_features;
     std::vector<mapnik::grid::lookup_type> key_order;
@@ -552,7 +550,8 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(closure->resolution));
         for (unsigned j=0;j<closure->lines.size();++j)
         {
-            grid_array->Set(j, NanNew(&closure->lines[j],array_size));
+            node_mapnik::grid_line_type const & line = closure->lines[j];
+            grid_array->Set(j, NanNew(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);

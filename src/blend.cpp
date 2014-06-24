@@ -564,7 +564,11 @@ void Work_Blend(uv_work_t* req) {
         // Convenience aliases.
         image->width = layer->width;
         image->height = layer->height;
+#if MAPNIK_VERSION >= 300000
+        image->reader = std::move(layer);
+#else
         image->reader = layer;
+#endif
         size++;
 
     }

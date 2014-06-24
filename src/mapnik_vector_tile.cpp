@@ -35,7 +35,11 @@
 #include <mapnik/scale_denominator.hpp>
 
 #ifdef HAVE_CAIRO
+#if MAPNIK_VERSION >= 30000
+#include <mapnik/cairo/cairo_renderer.hpp>
+#else
 #include <mapnik/cairo_renderer.hpp>
+#endif
 #include <cairo.h>
 #ifdef CAIRO_HAS_SVG_SURFACE
 #include <cairo-svg.h>
@@ -1969,6 +1973,9 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         {
             mapnik::grid_renderer<mapnik::grid> ren(map_in,
                                                     m_req,
+#if MAPNIK_VERSION >= 300000
+                                                    mapnik::attributes(),
+#endif
                                                     *closure->g->get(),
                                                     closure->scale_factor);
             ren.start_map_processing(map_in);
@@ -2048,7 +2055,11 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                        static_cast<double>(closure->c->height())
                                                     ),mapnik::cairo_surface_closer());
                 mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
-                mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,c_context,closure->scale_factor);
+                mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,
+#if MAPNIK_VERSION >= 300000
+                                                                mapnik::attributes(),
+#endif
+                                                                c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
                 ren.end_map_processing(map_in);
@@ -2063,7 +2074,11 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
   #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
                 std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
-                svg_ren ren(map_in, m_req, output_stream_iterator, closure->scale_factor);
+                svg_ren ren(map_in, m_req,
+#if MAPNIK_VERSION >= 300000
+                            mapnik::attributes(),
+#endif
+                            output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
                 ren.end_map_processing(map_in);
@@ -2080,7 +2095,11 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         // render all layers with agg
         else
         {
-            mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,*closure->im->get(),closure->scale_factor);
+            mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,
+#if MAPNIK_VERSION >= 300000
+                                                    mapnik::attributes(),
+#endif
+                                                    *closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);
             process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
             ren.end_map_processing(map_in);

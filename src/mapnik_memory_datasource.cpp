@@ -94,7 +94,11 @@ NAN_METHOD(MemoryDatasource::New)
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
+#if MAPNIK_VERSION >= 300000
+    d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+#else
     d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
+#endif
     NanReturnValue(args.This());
 }
 
