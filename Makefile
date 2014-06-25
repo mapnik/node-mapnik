@@ -8,6 +8,9 @@ all: mapnik.node
 mapnik.node: ./node_modules
 	./node_modules/.bin/node-pre-gyp build --loglevel=silent
 
+debug:
+	./node_modules/.bin/node-pre-gyp rebuild --debug
+
 verbose:
 	./node_modules/.bin/node-pre-gyp rebuild --loglevel=verbose
 
