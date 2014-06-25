@@ -2,19 +2,20 @@
 
 all: mapnik.node
 
-./node_modules/mapnik-vector-tile:
-	npm install mapnik-vector-tile sphericalmercator mocha
+./node_modules:
+	npm install --build-from-source
 
-./node_modules/.bin/node-pre-gyp:
-	npm install node-pre-gyp
-
-mapnik.node: ./node_modules/.bin/node-pre-gyp ./node_modules/mapnik-vector-tile
+mapnik.node: ./node_modules
 	./node_modules/.bin/node-pre-gyp build --loglevel=silent
+
+verbose:
+	./node_modules/.bin/node-pre-gyp rebuild --loglevel=verbose
 
 clean:
 	@rm -rf ./build
 	rm -rf lib/binding
 	rm ./test/tmp/*
+	rm -rf ./node_modules
 	echo > ./test/tmp/placeholder.txt
 
 grind:
@@ -22,7 +23,6 @@ grind:
 
 rebuild:
 	@make clean
-	@./configure
 	@make
 
 ifndef only
