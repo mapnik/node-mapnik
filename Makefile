@@ -17,6 +17,8 @@ clean:
 	rm ./test/tmp/*
 	echo > ./test/tmp/placeholder.txt
 
+grind:
+	valgrind --leak-check=full node node_modules/.bin/_mocha
 
 rebuild:
 	@make clean
