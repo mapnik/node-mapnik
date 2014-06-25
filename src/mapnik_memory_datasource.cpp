@@ -90,6 +90,7 @@ NAN_METHOD(MemoryDatasource::New)
         params[TOSTR(name)] = TOSTR(value);
         i++;
     }
+    params["type"] = "memory";
 
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
