@@ -10,6 +10,7 @@ environment:
   matrix:
   - nodejs_version: 0.10
   - nodejs_version: 0.11
+  - nodejs_version: 0.8
 
 platform:
   - x86
@@ -21,6 +22,8 @@ matrix:
       nodejs_version: 0.10
     - platform: x86
       nodejs_version: 0.11
+    - platform: x86
+      nodejs_version: 0.8
 
 install:
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:Platform
