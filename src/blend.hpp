@@ -59,8 +59,6 @@ enum EncoderType {
 NAN_METHOD(rgb2hsl2);
 NAN_METHOD(hsl2rgb2);
 NAN_METHOD(Blend);
-static void Work_Blend(uv_work_t* req);
-static void Work_AfterBlend(uv_work_t* req);
 
 struct BlendBaton {
     uv_work_t request;

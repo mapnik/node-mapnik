@@ -132,221 +132,6 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
     }
 }
 
-NAN_METHOD(Blend) {
-    NanScope();
-    MAPNIK_UNIQUE_PTR<BlendBaton> baton(new BlendBaton());
-
-    Local<Object> options;
-    if (args.Length() == 0 || !args[0]->IsArray()) {
-        NanThrowTypeError("First argument must be an array of Buffers.");
-        NanReturnUndefined();
-    } else if (args.Length() == 1) {
-        NanThrowTypeError("Second argument must be a function");
-        NanReturnUndefined();
-    } else if (args.Length() == 2) {
-        // No options provided.
-        if (!args[1]->IsFunction()) {
-            NanThrowTypeError("Second argument must be a function.");
-            NanReturnUndefined();
-        }
-        NanAssignPersistent(baton->callback,args[1].As<Function>());
-    } else if (args.Length() >= 3) {
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("Second argument must be a an options object.");
-            NanReturnUndefined();
-        }
-        options = Local<Object>::Cast(args[1]);
-
-        if (!args[2]->IsFunction()) {
-            NanThrowTypeError("Third argument must be a function.");
-            NanReturnUndefined();
-        }
-        NanAssignPersistent(baton->callback,args[2].As<Function>());
-    }
-
-    // Validate options
-    if (!options.IsEmpty()) {
-        baton->quality = options->Get(NanNew("quality"))->Int32Value();
-
-        Local<Value> format_val = options->Get(NanNew("format"));
-        if (!format_val.IsEmpty() && format_val->IsString()) {
-            if (strcmp(*String::Utf8Value(format_val), "jpeg") == 0 ||
-                    strcmp(*String::Utf8Value(format_val), "jpg") == 0) {
-                baton->format = BLEND_FORMAT_JPEG;
-                if (baton->quality == 0) baton->quality = 80;
-                else if (baton->quality < 0 || baton->quality > 100) {
-                    NanThrowTypeError("JPEG quality is range 0-100.");
-                    NanReturnUndefined();
-                }
-            } else if (strcmp(*String::Utf8Value(format_val), "png") == 0) {
-                if (baton->quality == 1 || baton->quality > 256) {
-                    NanThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
-                    NanReturnUndefined();
-                }
-            } else if (strcmp(*String::Utf8Value(format_val), "webp") == 0) {
-                baton->format = BLEND_FORMAT_WEBP;
-                if (baton->quality == 0) baton->quality = 80;
-                else if (baton->quality < 0 || baton->quality > 100) {
-                    NanThrowTypeError("WebP quality is range 0-100.");
-                    NanReturnUndefined();
-                }
-            } else {
-                NanThrowTypeError("Invalid output format.");
-                NanReturnUndefined();
-            }
-        }
-
-        baton->reencode = options->Get(NanNew("reencode"))->BooleanValue();
-        baton->width = options->Get(NanNew("width"))->Int32Value();
-        baton->height = options->Get(NanNew("height"))->Int32Value();
-
-        Local<Value> matte_val = options->Get(NanNew("matte"));
-        if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            baton->matte = hexToUInt32Color(*String::Utf8Value(matte_val->ToString()));
-
-            // Make sure we're reencoding in the case of single alpha PNGs
-            if (baton->matte && !baton->reencode) {
-                baton->reencode = true;
-            }
-        }
-
-        Local<Value> palette_val = options->Get(NanNew("palette"));
-        if (!palette_val.IsEmpty() && palette_val->IsObject()) {
-            baton->palette = ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
-        }
-
-        Local<Value> mode_val = options->Get(NanNew("mode"));
-        if (!mode_val.IsEmpty() && mode_val->IsString()) {
-            if (strcmp(*String::Utf8Value(mode_val), "octree") == 0 ||
-                strcmp(*String::Utf8Value(mode_val), "o") == 0) {
-                baton->mode = BLEND_MODE_OCTREE;
-            }
-            else if (strcmp(*String::Utf8Value(mode_val), "hextree") == 0 ||
-                strcmp(*String::Utf8Value(mode_val), "h") == 0) {
-                baton->mode = BLEND_MODE_HEXTREE;
-            }
-        }
-
-        Local<Value> encoder_val = options->Get(NanNew("encoder"));
-        if (!encoder_val.IsEmpty() && encoder_val->IsString()) {
-            if (strcmp(*String::Utf8Value(encoder_val), "miniz") == 0) {
-                baton->encoder = BLEND_ENCODER_MINIZ;
-            }
-            // default is libpng
-        }
-
-        if (options->Has(NanNew("compression"))) {
-            baton->compression = options->Get(NanNew("compression"))->Int32Value();
-        }
-
-        int min_compression = Z_NO_COMPRESSION;
-        int max_compression = Z_BEST_COMPRESSION;
-        if (baton->format == BLEND_FORMAT_PNG) {
-            if (baton->compression < 0) baton->compression = Z_DEFAULT_COMPRESSION;
-            if (baton->encoder == BLEND_ENCODER_MINIZ) max_compression = 10; // MZ_UBER_COMPRESSION
-        } else if (baton->format == BLEND_FORMAT_WEBP) {
-            min_compression = 0, max_compression = 6;
-            if (baton->compression < 0) baton->compression = -1;
-        }
-
-        if (baton->compression > max_compression) {
-            std::ostringstream msg;
-            msg << "Compression level must be between "
-                << min_compression << " and " << max_compression;
-            NanThrowTypeError(msg.str().c_str());
-            NanReturnUndefined();
-        }
-    }
-
-    Local<Array> images = Local<Array>::Cast(args[0]);
-    uint32_t length = images->Length();
-    if (length < 1 && !baton->reencode) {
-        NanThrowTypeError("First argument must contain at least one Buffer.");
-        NanReturnUndefined();
-    } else if (length == 1 && !baton->reencode) {
-        Local<Value> buffer = images->Get(0);
-        if (Buffer::HasInstance(buffer)) {
-            // Directly pass through buffer if it's the only one.
-            Local<Value> argv[] = {
-                NanNull(),
-                buffer
-            };
-            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
-            NanReturnUndefined();
-        } else {
-            // Check whether the argument is a complex image with offsets etc.
-            // In that case, we don't throw but continue going through the blend
-            // process below.
-            bool valid = false;
-            if (buffer->IsObject()) {
-                Local<Object> props = buffer->ToObject();
-                valid = props->Has(NanNew("buffer")) &&
-                        Buffer::HasInstance(props->Get(NanNew("buffer")));
-            }
-            if (!valid) {
-                NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
-                NanReturnUndefined();
-            }
-        }
-    }
-
-    if (!(length >= 1 || (baton->width > 0 && baton->height > 0))) {
-        NanThrowTypeError("Without buffers, you have to specify width and height.");
-        NanReturnUndefined();
-    }
-
-    if (baton->width < 0 || baton->height < 0) {
-        NanThrowTypeError("Image dimensions must be greater than 0.");
-        NanReturnUndefined();
-    }
-
-    for (uint32_t i = 0; i < length; i++) {
-        ImagePtr image = MAPNIK_MAKE_SHARED<BImage>();
-        Local<Value> buffer = images->Get(i);
-        if (Buffer::HasInstance(buffer)) {
-            NanAssignPersistent(image->buffer,buffer.As<Object>());
-        } else if (buffer->IsObject()) {
-            Local<Object> props = buffer->ToObject();
-            if (props->Has(NanNew("buffer"))) {
-                buffer = props->Get(NanNew("buffer"));
-                if (Buffer::HasInstance(buffer)) {
-                    NanAssignPersistent(image->buffer,buffer.As<Object>());
-                }
-            }
-            image->x = props->Get(NanNew("x"))->Int32Value();
-            image->y = props->Get(NanNew("y"))->Int32Value();
-
-            Local<Value> tint_val = props->Get(NanNew("tint"));
-            if (!tint_val.IsEmpty() && tint_val->IsObject()) {
-                Local<Object> tint = tint_val->ToObject();
-                if (!tint.IsEmpty()) {
-                    baton->reencode = true;
-                    std::string msg;
-                    parseTintOps(tint,image->tint,msg);
-                    if (!msg.empty()) {
-                        NanThrowTypeError(msg.c_str());
-                        NanReturnUndefined();
-                    }
-                }
-            }
-        }
-
-        if (image->buffer.IsEmpty()) {
-            NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
-            NanReturnUndefined();
-        }
-
-        image->data = (unsigned char*)node::Buffer::Data(NanNew(image->buffer));
-        image->dataLength = node::Buffer::Length(NanNew(image->buffer));
-        baton->images.push_back(image);
-    }
-
-    uv_queue_work(uv_default_loop(), &(baton.release())->request, Work_Blend, (uv_after_work_cb)Work_AfterBlend);
-
-    NanReturnUndefined();
-}
-
-
 static inline void Blend_CompositePixel(unsigned int& target, unsigned int& source) {
     if (source <= 0x00FFFFFF) {
         // Top pixel is fully transparent.
@@ -638,6 +423,220 @@ void Work_AfterBlend(uv_work_t* req) {
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 1, argv);
     }
     delete baton;
+}
+
+NAN_METHOD(Blend) {
+    NanScope();
+    MAPNIK_UNIQUE_PTR<BlendBaton> baton(new BlendBaton());
+
+    Local<Object> options;
+    if (args.Length() == 0 || !args[0]->IsArray()) {
+        NanThrowTypeError("First argument must be an array of Buffers.");
+        NanReturnUndefined();
+    } else if (args.Length() == 1) {
+        NanThrowTypeError("Second argument must be a function");
+        NanReturnUndefined();
+    } else if (args.Length() == 2) {
+        // No options provided.
+        if (!args[1]->IsFunction()) {
+            NanThrowTypeError("Second argument must be a function.");
+            NanReturnUndefined();
+        }
+        NanAssignPersistent(baton->callback,args[1].As<Function>());
+    } else if (args.Length() >= 3) {
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("Second argument must be a an options object.");
+            NanReturnUndefined();
+        }
+        options = Local<Object>::Cast(args[1]);
+
+        if (!args[2]->IsFunction()) {
+            NanThrowTypeError("Third argument must be a function.");
+            NanReturnUndefined();
+        }
+        NanAssignPersistent(baton->callback,args[2].As<Function>());
+    }
+
+    // Validate options
+    if (!options.IsEmpty()) {
+        baton->quality = options->Get(NanNew("quality"))->Int32Value();
+
+        Local<Value> format_val = options->Get(NanNew("format"));
+        if (!format_val.IsEmpty() && format_val->IsString()) {
+            if (strcmp(*String::Utf8Value(format_val), "jpeg") == 0 ||
+                    strcmp(*String::Utf8Value(format_val), "jpg") == 0) {
+                baton->format = BLEND_FORMAT_JPEG;
+                if (baton->quality == 0) baton->quality = 80;
+                else if (baton->quality < 0 || baton->quality > 100) {
+                    NanThrowTypeError("JPEG quality is range 0-100.");
+                    NanReturnUndefined();
+                }
+            } else if (strcmp(*String::Utf8Value(format_val), "png") == 0) {
+                if (baton->quality == 1 || baton->quality > 256) {
+                    NanThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
+                    NanReturnUndefined();
+                }
+            } else if (strcmp(*String::Utf8Value(format_val), "webp") == 0) {
+                baton->format = BLEND_FORMAT_WEBP;
+                if (baton->quality == 0) baton->quality = 80;
+                else if (baton->quality < 0 || baton->quality > 100) {
+                    NanThrowTypeError("WebP quality is range 0-100.");
+                    NanReturnUndefined();
+                }
+            } else {
+                NanThrowTypeError("Invalid output format.");
+                NanReturnUndefined();
+            }
+        }
+
+        baton->reencode = options->Get(NanNew("reencode"))->BooleanValue();
+        baton->width = options->Get(NanNew("width"))->Int32Value();
+        baton->height = options->Get(NanNew("height"))->Int32Value();
+
+        Local<Value> matte_val = options->Get(NanNew("matte"));
+        if (!matte_val.IsEmpty() && matte_val->IsString()) {
+            baton->matte = hexToUInt32Color(*String::Utf8Value(matte_val->ToString()));
+
+            // Make sure we're reencoding in the case of single alpha PNGs
+            if (baton->matte && !baton->reencode) {
+                baton->reencode = true;
+            }
+        }
+
+        Local<Value> palette_val = options->Get(NanNew("palette"));
+        if (!palette_val.IsEmpty() && palette_val->IsObject()) {
+            baton->palette = ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
+        }
+
+        Local<Value> mode_val = options->Get(NanNew("mode"));
+        if (!mode_val.IsEmpty() && mode_val->IsString()) {
+            if (strcmp(*String::Utf8Value(mode_val), "octree") == 0 ||
+                strcmp(*String::Utf8Value(mode_val), "o") == 0) {
+                baton->mode = BLEND_MODE_OCTREE;
+            }
+            else if (strcmp(*String::Utf8Value(mode_val), "hextree") == 0 ||
+                strcmp(*String::Utf8Value(mode_val), "h") == 0) {
+                baton->mode = BLEND_MODE_HEXTREE;
+            }
+        }
+
+        Local<Value> encoder_val = options->Get(NanNew("encoder"));
+        if (!encoder_val.IsEmpty() && encoder_val->IsString()) {
+            if (strcmp(*String::Utf8Value(encoder_val), "miniz") == 0) {
+                baton->encoder = BLEND_ENCODER_MINIZ;
+            }
+            // default is libpng
+        }
+
+        if (options->Has(NanNew("compression"))) {
+            baton->compression = options->Get(NanNew("compression"))->Int32Value();
+        }
+
+        int min_compression = Z_NO_COMPRESSION;
+        int max_compression = Z_BEST_COMPRESSION;
+        if (baton->format == BLEND_FORMAT_PNG) {
+            if (baton->compression < 0) baton->compression = Z_DEFAULT_COMPRESSION;
+            if (baton->encoder == BLEND_ENCODER_MINIZ) max_compression = 10; // MZ_UBER_COMPRESSION
+        } else if (baton->format == BLEND_FORMAT_WEBP) {
+            min_compression = 0, max_compression = 6;
+            if (baton->compression < 0) baton->compression = -1;
+        }
+
+        if (baton->compression > max_compression) {
+            std::ostringstream msg;
+            msg << "Compression level must be between "
+                << min_compression << " and " << max_compression;
+            NanThrowTypeError(msg.str().c_str());
+            NanReturnUndefined();
+        }
+    }
+
+    Local<Array> images = Local<Array>::Cast(args[0]);
+    uint32_t length = images->Length();
+    if (length < 1 && !baton->reencode) {
+        NanThrowTypeError("First argument must contain at least one Buffer.");
+        NanReturnUndefined();
+    } else if (length == 1 && !baton->reencode) {
+        Local<Value> buffer = images->Get(0);
+        if (Buffer::HasInstance(buffer)) {
+            // Directly pass through buffer if it's the only one.
+            Local<Value> argv[] = {
+                NanNull(),
+                buffer
+            };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
+            NanReturnUndefined();
+        } else {
+            // Check whether the argument is a complex image with offsets etc.
+            // In that case, we don't throw but continue going through the blend
+            // process below.
+            bool valid = false;
+            if (buffer->IsObject()) {
+                Local<Object> props = buffer->ToObject();
+                valid = props->Has(NanNew("buffer")) &&
+                        Buffer::HasInstance(props->Get(NanNew("buffer")));
+            }
+            if (!valid) {
+                NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+                NanReturnUndefined();
+            }
+        }
+    }
+
+    if (!(length >= 1 || (baton->width > 0 && baton->height > 0))) {
+        NanThrowTypeError("Without buffers, you have to specify width and height.");
+        NanReturnUndefined();
+    }
+
+    if (baton->width < 0 || baton->height < 0) {
+        NanThrowTypeError("Image dimensions must be greater than 0.");
+        NanReturnUndefined();
+    }
+
+    for (uint32_t i = 0; i < length; i++) {
+        ImagePtr image = MAPNIK_MAKE_SHARED<BImage>();
+        Local<Value> buffer = images->Get(i);
+        if (Buffer::HasInstance(buffer)) {
+            NanAssignPersistent(image->buffer,buffer.As<Object>());
+        } else if (buffer->IsObject()) {
+            Local<Object> props = buffer->ToObject();
+            if (props->Has(NanNew("buffer"))) {
+                buffer = props->Get(NanNew("buffer"));
+                if (Buffer::HasInstance(buffer)) {
+                    NanAssignPersistent(image->buffer,buffer.As<Object>());
+                }
+            }
+            image->x = props->Get(NanNew("x"))->Int32Value();
+            image->y = props->Get(NanNew("y"))->Int32Value();
+
+            Local<Value> tint_val = props->Get(NanNew("tint"));
+            if (!tint_val.IsEmpty() && tint_val->IsObject()) {
+                Local<Object> tint = tint_val->ToObject();
+                if (!tint.IsEmpty()) {
+                    baton->reencode = true;
+                    std::string msg;
+                    parseTintOps(tint,image->tint,msg);
+                    if (!msg.empty()) {
+                        NanThrowTypeError(msg.c_str());
+                        NanReturnUndefined();
+                    }
+                }
+            }
+        }
+
+        if (image->buffer.IsEmpty()) {
+            NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+            NanReturnUndefined();
+        }
+
+        image->data = (unsigned char*)node::Buffer::Data(NanNew(image->buffer));
+        image->dataLength = node::Buffer::Length(NanNew(image->buffer));
+        baton->images.push_back(image);
+    }
+
+    uv_queue_work(uv_default_loop(), &(baton.release())->request, Work_Blend, (uv_after_work_cb)Work_AfterBlend);
+
+    NanReturnUndefined();
 }
 
 }
