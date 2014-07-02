@@ -1606,7 +1606,7 @@ NAN_METHOD(VectorTile::getData)
 struct vector_tile_render_baton_t {
     uv_work_t request;
     Map* m;
-    VectorTile* d;
+    VectorTile * d;
     Image * im;
     CairoSurface * c;
     Grid * g;
@@ -1621,6 +1621,9 @@ struct vector_tile_render_baton_t {
     int buffer_size;
     double scale_factor;
     double scale_denominator;
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     std::string error_name;
     Persistent<Function> cb;
     std::string result;
@@ -1643,6 +1646,9 @@ struct vector_tile_render_baton_t {
         buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
+#if MAPNIK_VERSION >= 300000
+        variables(),
+#endif
         use_cairo(true) {}
 };
 
@@ -1974,7 +1980,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             mapnik::grid_renderer<mapnik::grid> ren(map_in,
                                                     m_req,
 #if MAPNIK_VERSION >= 300000
-                                                    mapnik::attributes(),
+                                                    closure->variables,
 #endif
                                                     *closure->g->get(),
                                                     closure->scale_factor);
@@ -2057,7 +2063,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
                 mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,
 #if MAPNIK_VERSION >= 300000
-                                                                mapnik::attributes(),
+                                                                closure->variables,
 #endif
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
@@ -2076,7 +2082,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
                 svg_ren ren(map_in, m_req,
 #if MAPNIK_VERSION >= 300000
-                            mapnik::attributes(),
+                            closure->variables,
 #endif
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
@@ -2097,7 +2103,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         {
             mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,
 #if MAPNIK_VERSION >= 300000
-                                                    mapnik::attributes(),
+                                                    closure->variables,
 #endif
                                                     *closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);

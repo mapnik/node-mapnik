@@ -1186,6 +1186,9 @@ struct image_baton_t {
     double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1195,6 +1198,9 @@ struct image_baton_t {
       scale_denominator(0.0),
       offset_x(0),
       offset_y(0),
+#if MAPNIK_VERSION >= 300000
+      variables(),
+#endif
       error(false),
       error_name() {}
 };
@@ -1236,6 +1242,9 @@ struct vector_tile_baton_t {
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1248,6 +1257,9 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
+#if MAPNIK_VERSION >= 300000
+        variables(),
+#endif
         error(false) {}
 };
 
@@ -1676,7 +1688,14 @@ void Map::EIO_RenderImage(uv_work_t* req)
 
     try
     {
-        mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,
+        mapnik::Map const& map = *closure->m->map_;
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(closure->buffer_size);
+        mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   closure->variables,
+#endif
                                                    *closure->im->get(),
                                                    closure->scale_factor,
                                                    closure->offset_x,
@@ -1720,6 +1739,10 @@ typedef struct {
     double scale_factor;
     double scale_denominator;
     bool use_cairo;
+    int buffer_size; // TODO - no effect until mapnik::request is used
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1739,6 +1762,7 @@ NAN_METHOD(Map::renderFile)
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
     palette_ptr palette;
+    int buffer_size = 0;
 
     Local<Value> callback = args[args.Length()-1];
 
@@ -1796,6 +1820,16 @@ NAN_METHOD(Map::renderFile)
             scale_denominator = bind_opt->NumberValue();
         }
 
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+
+            buffer_size = bind_opt->IntegerValue();
+        }
+
     } else if (!args[1]->IsFunction()) {
         NanThrowTypeError("optional argument must be an object");
         NanReturnUndefined();
@@ -1836,6 +1870,7 @@ NAN_METHOD(Map::renderFile)
     closure->m = m;
     closure->scale_factor = scale_factor;
     closure->scale_denominator = scale_denominator;
+    closure->buffer_size = buffer_size;
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
 
@@ -1871,7 +1906,16 @@ void Map::EIO_RenderFile(uv_work_t* req)
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im,closure->scale_factor);
+            mapnik::Map const& map = *closure->m->map_;
+            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+            m_req.set_buffer_size(closure->buffer_size);
+            mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   closure->variables,
+#endif
+                                                   im,
+                                                   closure->scale_factor);
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
@@ -1923,6 +1967,7 @@ NAN_METHOD(Map::renderSync)
     palette_ptr palette;
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
+    int buffer_size = 0;
 
     if (args.Length() >= 2){
         if (!args[1]->IsObject()) {
@@ -1976,6 +2021,15 @@ NAN_METHOD(Map::renderSync)
 
             scale_denominator = bind_opt->NumberValue();
         }
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+
+            buffer_size = bind_opt->IntegerValue();
+        }
     }
 
     // options hash
@@ -2010,7 +2064,16 @@ NAN_METHOD(Map::renderSync)
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
-        mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
+        mapnik::Map const& map = *m->map_;
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(buffer_size);
+        mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   mapnik::attributes(),
+#endif
+                                                   im,
+                                                   scale_factor);
         ren.apply(scale_denominator);
 
         if (palette.get())
@@ -2045,6 +2108,7 @@ NAN_METHOD(Map::renderFileSync)
     // defaults
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
+    int buffer_size = 0;
     std::string format = "png";
     palette_ptr palette;
 
@@ -2100,6 +2164,15 @@ NAN_METHOD(Map::renderFileSync)
 
             scale_denominator = bind_opt->NumberValue();
         }
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+
+            buffer_size = bind_opt->IntegerValue();
+        }
     }
 
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
@@ -2136,7 +2209,17 @@ NAN_METHOD(Map::renderFileSync)
         else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
+            mapnik::Map const& map = *m->map_;
+            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+            m_req.set_buffer_size(buffer_size);
+            mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   mapnik::attributes(),
+#endif
+                                                   im,
+                                                   scale_factor);
+
             ren.apply(scale_denominator);
 
             if (palette.get())
