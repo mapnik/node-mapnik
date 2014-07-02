@@ -1,5 +1,10 @@
 # Changelog
 
+## Future
+
+Notable changes in the Mapnik SDK include:
+ - Windows binaries now have WEBP support enabled
+
 ## 1.4.11
 
  - Fixed shasum error in npm package by republishing with node v0.10.x (rather than node v0.11.13).
