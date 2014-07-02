@@ -247,4 +247,67 @@ describe('mapnik.Image ', function() {
         assert.equal(blank.compare(blank2,{threshold:15}),1);
     });
 
+    it('should be able to open jpeg', function(done) {
+        var im = new mapnik.Image(10,10);
+        im.background = new mapnik.Color('green');
+        var filename = './test/data/images/10x10.png';
+        // sync open
+        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+        // sync fromBytes
+        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync())));
+        // async open
+        mapnik.Image.open(filename,function(err,im2) {
+            if (err) throw err;
+            assert.equal(0,im.compare(im2));
+            // async fromBytes
+            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                if (err) throw err;
+                assert.equal(0,im.compare(im3));
+                done();
+            });
+        });
+    });
+
+    it('should be able to open tiff', function(done) {
+        var im = new mapnik.Image(10,10);
+        im.background = new mapnik.Color('green');
+        var filename = './test/data/images/10x10.tiff';
+        // sync open
+        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+        // sync fromBytes
+        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync())));
+        // async open
+        mapnik.Image.open(filename,function(err,im2) {
+            if (err) throw err;
+            assert.equal(0,im.compare(im2));
+            // async fromBytes
+            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                if (err) throw err;
+                assert.equal(0,im.compare(im3));
+                done();
+            });
+        });
+    });
+
+    it('should be able to open webp', function(done) {
+        var im = new mapnik.Image(10,10);
+        im.background = new mapnik.Color('green');
+        var filename = './test/data/images/10x10.webp';
+        // sync open
+        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+        // sync fromBytes
+        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync())));
+        // async open
+        mapnik.Image.open(filename,function(err,im2) {
+            if (err) throw err;
+            assert.equal(0,im.compare(im2));
+            // async fromBytes
+            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                if (err) throw err;
+                assert.equal(0,im.compare(im3));
+                done();
+            });
+        });
+    });
+
 });
