@@ -27,7 +27,8 @@ public:
     static Handle<Value> render(Arguments const& args);
     static Handle<Value> toJSON(Arguments const& args);
     static Handle<Value> query(Arguments const& args);
-    static Handle<Value> names(Arguments const& args);    
+    static Handle<Value> queryMany(Arguments const& args);
+    static Handle<Value> names(Arguments const& args);
     static Handle<Value> toGeoJSON(Arguments const& args);
     static Handle<Value> addGeoJSON(Arguments const& args);
     static Handle<Value> addImage(Arguments const& args);

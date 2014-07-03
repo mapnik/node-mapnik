@@ -250,6 +250,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(constructor, "addData", addData);
     NODE_SET_PROTOTYPE_METHOD(constructor, "composite", composite);
     NODE_SET_PROTOTYPE_METHOD(constructor, "query", query);
+    NODE_SET_PROTOTYPE_METHOD(constructor, "queryMany", queryMany);
     NODE_SET_PROTOTYPE_METHOD(constructor, "names", names);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(constructor, "toGeoJSON", toGeoJSON);
@@ -580,7 +581,7 @@ Handle<Value> VectorTile::composite(const Arguments& args)
             mapnik::vector::tile new_tiledata;
             backend_type backend(new_tiledata,
                                     path_multiplier);
-            
+
             // get mercator extent of target tile
             mapnik::vector::spherical_mercator merc(target_vt->width());
             double minx,miny,maxx,maxy;
@@ -913,6 +914,195 @@ Handle<Value> VectorTile::query(const Arguments& args)
     return scope.Close(arr);
 }
 
+Handle<Value> VectorTile::queryMany(const Arguments& args)
+{
+    HandleScope scope;
+    if (args.Length() < 2 || !args[0]->IsArray())
+    {
+        return ThrowException(Exception::Error(String::New("expects [lon,lat] args")));
+    }
+
+    double tolerance = 0.0; // meters
+    std::string layer_name("");
+    Local<Array> queryArray = Local<Array>::Cast(args[0]);
+
+    if (args.Length() > 1)
+    {
+        Local<Object> options = Object::New();
+        if (!args[2]->IsObject())
+        {
+            return ThrowException(Exception::TypeError(String::New("optional third argument must be an options object")));
+        }
+        options = args[2]->ToObject();
+        if (options->Has(String::NewSymbol("tolerance")))
+        {
+            Local<Value> tol = options->Get(String::New("tolerance"));
+            if (!tol->IsNumber())
+            {
+                return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
+            }
+            tolerance = tol->NumberValue();
+        }
+        if (options->Has(String::NewSymbol("layer")))
+        {
+            Local<Value> layer_id = options->Get(String::New("layer"));
+            if (!layer_id->IsString())
+            {
+                return ThrowException(Exception::TypeError(String::New("layer value must be a string")));
+            }
+            layer_name = TOSTR(layer_id);
+        }
+    }
+
+    Local<Array> largeArr = Array::New();
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(wgs84,merc);
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+
+    for (uint32_t p = 0; p < queryArray->Length(); p++)
+    {
+        Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
+        Local<Array> arr = Array::New();
+
+        if(queryArray->Get(p)->IsArray()){
+            return ThrowException(Exception::TypeError(String::New("List of points must be an array")));
+        }
+
+        if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
+            return ThrowException(Exception::TypeError(String::New("lng lat must be numbers")));
+        }
+
+        double lon = placeInArray->Get(0)->NumberValue();
+        double lat = placeInArray->Get(0)->NumberValue();
+
+        try  {
+            double x = lon;
+            double y = lat;
+            double z = 0;
+            if (!tr.forward(x,y,z))
+            {
+                return ThrowException(Exception::Error(
+                                          String::New("could not reproject lon/lat to mercator")));
+            }
+            mapnik::coord2d pt(x,y);
+            unsigned idx = 0;
+            if (!layer_name.empty())
+            {
+                    int tile_layer_idx = -1;
+                    for (int j=0; j < tiledata.layers_size(); ++j)
+                    {
+                        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                        if (layer_name == layer.name())
+                        {
+                            tile_layer_idx = j;
+                            break;
+                        }
+                    }
+                    if (tile_layer_idx > -1)
+                    {
+                        mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                        MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                    mapnik::vector::tile_datasource>(
+                                                        layer,
+                                                        d->x_,
+                                                        d->y_,
+                                                        d->z_,
+                                                        d->width()
+                                                        );
+                        mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+                        if (fs)
+                        {
+                            mapnik::feature_ptr feature;
+                            while ((feature = fs->next()))
+                            {
+                                double distance = -1;
+                                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                                {
+                                    double d = path_to_point_distance(geom,x,y);
+                                    if (d >= 0)
+                                    {
+                                        if (distance >= 0)
+                                        {
+                                            if (d < distance) distance = d;
+                                        }
+                                        else
+                                        {
+                                            distance = d;
+                                        }
+                                    }
+                                }
+                                if (distance >= 0)
+                                {
+                                    Handle<Value> feat = Feature::New(feature);
+                                    Local<Object> feat_obj = feat->ToObject();
+                                    feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
+                                    feat_obj->Set(String::New("distance"),Number::New(distance));
+                                    arr->Set(idx++,feat);
+                                }
+                            }
+                        }
+                    }
+            }
+            else
+            {
+                for (int i=0; i < tiledata.layers_size(); ++i)
+                {
+                    mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                mapnik::vector::tile_datasource>(
+                                                    layer,
+                                                    d->x_,
+                                                    d->y_,
+                                                    d->z_,
+                                                    d->width()
+                                                    );
+                    mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+                    if (fs)
+                    {
+                        mapnik::feature_ptr feature;
+                        while ((feature = fs->next()))
+                        {
+                            double distance = -1;
+                            BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                            {
+                                double d = path_to_point_distance(geom,x,y);
+                                if (d >= 0)
+                                {
+                                    if (distance >= 0)
+                                    {
+                                        if (d < distance) distance = d;
+                                    }
+                                    else
+                                    {
+                                        distance = d;
+                                    }
+                                }
+                            }
+                            if (distance >= 0)
+                            {
+                                Handle<Value> feat = Feature::New(feature);
+                                Local<Object> feat_obj = feat->ToObject();
+                                feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
+                                feat_obj->Set(String::New("distance"),Number::New(distance));
+                                arr->Set(idx++,feat);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (std::exception const& ex)
+        {
+            return ThrowException(Exception::Error(
+                                      String::New(ex.what())));
+        }
+        largeArr->Set(p,arr);
+    }
+    return scope.Close(largeArr);
+}
+
 Handle<Value> VectorTile::toJSON(const Arguments& args)
 {
     HandleScope scope;
@@ -1124,7 +1314,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         {
             std::size_t key_name = f.tags(m);
             std::size_t key_value = f.tags(m + 1);
-    
+
             if (key_name < static_cast<std::size_t>(layer.keys_size())
                 && key_value < static_cast<std::size_t>(layer.values_size()))
             {
