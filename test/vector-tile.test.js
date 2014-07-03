@@ -401,10 +401,7 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected)) {
                 vtile_image.save(expected, 'png32');
             }
-            vtile_image.save(actual, 'png32');
-            var a = fs.readFileSync(actual);
-            var e = fs.readFileSync(expected)
-            assert.ok(Math.abs(e.length - a.length) < 100);
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
     });
@@ -426,10 +423,7 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected)) {
                 vtile_image.save(expected, 'png32');
             }
-            vtile_image.save(actual, 'png32');
-            var a = fs.readFileSync(actual);
-            var e = fs.readFileSync(expected)
-            assert.ok(Math.abs(e.length - a.length) < 100);
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
     });
@@ -554,17 +548,11 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected)) {
                 vtile_image.save(expected, 'png32');
             }
-            vtile_image.save(actual, 'png32');
-            var a = fs.readFileSync(actual);
-            var e = fs.readFileSync(expected)
-            // TODO - difference in master vs 2.3.x due to https://github.com/mapnik/mapnik/commit/ecc5acbdb953e172fcc652b55ed19b8b581e2146
-            //assert.ok(Math.abs(e.length - a.length) < 100);
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
     });
 
-    // currently skipping since this segfaults at exit
-    // https://github.com/mapnik/node-mapnik/issues/251
     it('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         // first we render a geotiff into an image tile
@@ -577,17 +565,14 @@ describe('mapnik.VectorTile ', function() {
             // now render out with fancy styling
             var map2 = new mapnik.Map(256, 256);
             map2.loadSync('./test/data/vector_tile/raster_style.xml');
-            vtile.render(map2, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
+            vtile.render(map2, new mapnik.Image(256, 256), {z:2,x:0,y:0,buffer_size:256}, function(err, vtile_image) {
                 if (err) throw err;
                 var actual = './test/data/vector_tile/tile-raster.actual.jpg';
                 var expected = './test/data/vector_tile/tile-raster.expected.jpg';
                 if (!existsSync(expected)) {
                     vtile_image.save(expected, 'jpeg80');
                 }
-                vtile_image.save(actual, 'jpeg80');
-                var a = fs.readFileSync(actual);
-                var e = fs.readFileSync(expected)
-                assert.ok(Math.abs(e.length - a.length) < 300);
+                assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
                 done();
             });
         });
@@ -612,10 +597,7 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected)) {
                 vtile_image.save(expected, 'png32');
             }
-            vtile_image.save(actual, 'png32');
-            var a = fs.readFileSync(actual);
-            var e = fs.readFileSync(expected)
-            assert.ok(Math.abs(e.length - a.length) < 300);
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
     });
