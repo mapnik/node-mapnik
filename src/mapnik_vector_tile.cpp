@@ -929,11 +929,11 @@ Handle<Value> VectorTile::queryMany(const Arguments& args)
     if (args.Length() > 1)
     {
         Local<Object> options = Object::New();
-        if (!args[2]->IsObject())
+        if (!args[1]->IsObject())
         {
-            return ThrowException(Exception::TypeError(String::New("optional third argument must be an options object")));
+            return ThrowException(Exception::TypeError(String::New("optional second argument must be an options object")));
         }
-        options = args[2]->ToObject();
+        options = args[1]->ToObject();
         if (options->Has(String::NewSymbol("tolerance")))
         {
             Local<Value> tol = options->Get(String::New("tolerance"));
@@ -966,7 +966,7 @@ Handle<Value> VectorTile::queryMany(const Arguments& args)
         Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
         Local<Array> arr = Array::New();
 
-        if(queryArray->Get(p)->IsArray()){
+        if(!queryArray->Get(p)->IsArray()){
             return ThrowException(Exception::TypeError(String::New("List of points must be an array")));
         }
 
@@ -975,7 +975,7 @@ Handle<Value> VectorTile::queryMany(const Arguments& args)
         }
 
         double lon = placeInArray->Get(0)->NumberValue();
-        double lat = placeInArray->Get(0)->NumberValue();
+        double lat = placeInArray->Get(1)->NumberValue();
 
         try  {
             double x = lon;
@@ -986,6 +986,7 @@ Handle<Value> VectorTile::queryMany(const Arguments& args)
                 return ThrowException(Exception::Error(
                                           String::New("could not reproject lon/lat to mercator")));
             }
+
             mapnik::coord2d pt(x,y);
             unsigned idx = 0;
             if (!layer_name.empty())
@@ -1012,6 +1013,7 @@ Handle<Value> VectorTile::queryMany(const Arguments& args)
                                                         d->width()
                                                         );
                         mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+
                         if (fs)
                         {
                             mapnik::feature_ptr feature;
@@ -1059,6 +1061,7 @@ Handle<Value> VectorTile::queryMany(const Arguments& args)
                                                     d->width()
                                                     );
                     mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+
                     if (fs)
                     {
                         mapnik::feature_ptr feature;
