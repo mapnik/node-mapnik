@@ -1601,6 +1601,8 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
 
+    closure->m->release();
+
     if (closure->error) {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
@@ -1609,7 +1611,6 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
-    closure->m->release();
     closure->m->Unref();
     closure->d->_unref();
     NanDisposePersistent(closure->cb);
@@ -1665,6 +1666,8 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
 
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
 
+    closure->m->release();
+
     if (closure->error) {
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
@@ -1675,7 +1678,6 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
-    closure->m->release();
     closure->m->Unref();
     closure->g->_unref();
     NanDisposePersistent(closure->cb);
@@ -1715,6 +1717,8 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
 
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
 
+    closure->m->release();
+
     if (closure->error) {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
@@ -1723,7 +1727,6 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
-    closure->m->release();
     closure->m->Unref();
     closure->im->_unref();
     NanDisposePersistent(closure->cb);
@@ -1938,6 +1941,8 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
 
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
 
+    closure->m->release();
+
     if (closure->error) {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
@@ -1946,7 +1951,6 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     }
 
-    closure->m->release();
     closure->m->Unref();
     NanDisposePersistent(closure->cb);
     delete closure;
