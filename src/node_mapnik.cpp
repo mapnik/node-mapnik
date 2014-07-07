@@ -1,9 +1,3 @@
-// v8
-#include <v8.h>
-
-// node
-#include <node.h>
-#include <node_version.h>
 #include "mapnik3x_compatibility.hpp"
 
 // node-mapnik
@@ -29,15 +23,14 @@
 #include "mapnik_expression.hpp"
 #endif
 #include "utils.hpp"
+#include "blend.hpp"
 
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
 #include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200100
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/mapped_memory_cache.hpp>
 #include <mapnik/image_compositing.hpp>
-#endif
 
 // boost
 #include <boost/version.hpp>
@@ -60,10 +53,10 @@ using namespace v8;
  * until real work has been done.  This indicates that V8 has done
  * as much cleanup as it will be able to do.
  */
-static Handle<Value> gc(const Arguments& args)
+static NAN_METHOD(gc)
 {
-    HandleScope scope;
-    return scope.Close(Boolean::New(V8::IdleNotification()));
+    NanScope();
+    NanReturnValue(NanNew(V8::IdleNotification()));
 }
 
 static std::string format_version(int version)
@@ -73,43 +66,39 @@ static std::string format_version(int version)
     return s.str();
 }
 
-static Handle<Value> clearCache(const Arguments& args)
+static NAN_METHOD(clearCache)
 {
-    HandleScope scope;
+    NanScope();
 #if MAPNIK_VERSION >= 200300
     #if defined(SHAPE_MEMORY_MAPPED_FILE)
         mapnik::marker_cache::instance().clear();
         mapnik::mapped_memory_cache::instance().clear();
     #endif
 #else
-    #if MAPNIK_VERSION >= 200200
         mapnik::marker_cache::instance().clear();
         mapnik::mapped_memory_cache::instance().clear();
-    #else
-        #if MAPNIK_VERSION >= 200100
-            mapnik::marker_cache::instance()->clear();
-            mapnik::mapped_memory_cache::instance()->clear();
-        #endif
-    #endif
 #endif
-    return scope.Close(Undefined());
+    NanReturnUndefined();
 }
 
-static Handle<Value> shutdown(const Arguments& args)
+static NAN_METHOD(shutdown)
 {
-    HandleScope scope;
+    NanScope();
     google::protobuf::ShutdownProtobufLibrary();
-    return scope.Close(Undefined());
+    NanReturnUndefined();
 }
 
 extern "C" {
 
     static void InitMapnik (Handle<Object> target)
     {
-        HandleScope scope;
+        NanScope();
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
+        NODE_SET_METHOD(target, "blend",node_mapnik::Blend);
+        NODE_SET_METHOD(target, "rgb2hsl2", rgb2hsl2);
+        NODE_SET_METHOD(target, "hsl2rgb2", hsl2rgb2);
         NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
         NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
@@ -145,91 +134,90 @@ extern "C" {
         CairoSurface::Initialize(target);
 
         // versions of deps
-        Local<Object> versions = Object::New();
-        versions->Set(String::NewSymbol("node"), String::New(NODE_VERSION+1)); // NOTE: +1 strips the v in v0.10.26
-        versions->Set(String::NewSymbol("v8"), String::New(V8::GetVersion()));
-        versions->Set(String::NewSymbol("boost"), String::New(format_version(BOOST_VERSION).c_str()));
-        versions->Set(String::NewSymbol("boost_number"), Integer::New(BOOST_VERSION));
-        versions->Set(String::NewSymbol("mapnik"), String::New(format_version(MAPNIK_VERSION).c_str()));
-        versions->Set(String::NewSymbol("mapnik_number"), Integer::New(MAPNIK_VERSION));
+        Local<Object> versions = NanNew<Object>();
+        versions->Set(NanNew("node"), NanNew(NODE_VERSION+1)); // NOTE: +1 strips the v in v0.10.26
+        versions->Set(NanNew("v8"), NanNew(V8::GetVersion()));
+        versions->Set(NanNew("boost"), NanNew(format_version(BOOST_VERSION).c_str()));
+        versions->Set(NanNew("boost_number"), NanNew(BOOST_VERSION));
+        versions->Set(NanNew("mapnik"), NanNew(format_version(MAPNIK_VERSION).c_str()));
+        versions->Set(NanNew("mapnik_number"), NanNew(MAPNIK_VERSION));
 #if defined(HAVE_CAIRO)
-        versions->Set(String::NewSymbol("cairo"), String::New(CAIRO_VERSION_STRING));
+        versions->Set(NanNew("cairo"), NanNew(CAIRO_VERSION_STRING));
 #endif
-        target->Set(String::NewSymbol("versions"), versions);
+        target->Set(NanNew("versions"), versions);
 
-        Local<Object> supports = Object::New();
+        Local<Object> supports = NanNew<Object>();
 #if MAPNIK_VERSION >= 200300
         #ifdef GRID_RENDERER
-        supports->Set(String::NewSymbol("grid"), True());
+        supports->Set(NanNew("grid"), NanTrue());
         #else
-        supports->Set(String::NewSymbol("grid"), False());
+        supports->Set(NanNew("grid"), NanFalse());
         #endif
 #else
-        supports->Set(String::NewSymbol("grid"), True());
+        supports->Set(NanNew("grid"), NanTrue());
 #endif
 
 #ifdef SVG_RENDERER
-        supports->Set(String::NewSymbol("svg"), True());
+        supports->Set(NanNew("svg"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("svg"), False());
+        supports->Set(NanNew("svg"), NanFalse());
 #endif
 
 #if defined(HAVE_CAIRO)
-        supports->Set(String::NewSymbol("cairo"), True());
+        supports->Set(NanNew("cairo"), NanTrue());
         #ifdef CAIRO_HAS_PDF_SURFACE
-        supports->Set(String::NewSymbol("cairo_pdf"), True());
+        supports->Set(NanNew("cairo_pdf"), NanTrue());
         #else
-        supports->Set(String::NewSymbol("cairo_pdf"), False());
+        supports->Set(NanNew("cairo_pdf"), NanFalse());
         #endif
         #ifdef CAIRO_HAS_SVG_SURFACE
-        supports->Set(String::NewSymbol("cairo_svg"), True());
+        supports->Set(NanNew("cairo_svg"), NanTrue());
         #else
-        supports->Set(String::NewSymbol("cairo_svg"), False());
+        supports->Set(NanNew("cairo_svg"), NanFalse());
         #endif
 #else
-        supports->Set(String::NewSymbol("cairo"), False());
+        supports->Set(NanNew("cairo"), NanFalse());
 #endif
 
 #if defined(HAVE_PNG)
-        supports->Set(String::NewSymbol("png"), True());
+        supports->Set(NanNew("png"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("png"), False());
+        supports->Set(NanNew("png"), NanFalse());
 #endif
 
 #if defined(HAVE_JPEG)
-        supports->Set(String::NewSymbol("jpeg"), True());
+        supports->Set(NanNew("jpeg"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("jpeg"), False());
+        supports->Set(NanNew("jpeg"), NanFalse());
 #endif
 
 #if defined(HAVE_TIFF)
-        supports->Set(String::NewSymbol("tiff"), True());
+        supports->Set(NanNew("tiff"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("tiff"), False());
+        supports->Set(NanNew("tiff"), NanFalse());
 #endif
 
 #if defined(HAVE_WEBP)
-        supports->Set(String::NewSymbol("webp"), True());
+        supports->Set(NanNew("webp"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("webp"), False());
+        supports->Set(NanNew("webp"), NanFalse());
 #endif
 
 #if defined(MAPNIK_USE_PROJ4)
-        supports->Set(String::NewSymbol("proj4"), True());
+        supports->Set(NanNew("proj4"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("proj4"), False());
+        supports->Set(NanNew("proj4"), NanFalse());
 #endif
 
 #if defined(MAPNIK_THREADSAFE)
-        supports->Set(String::NewSymbol("threadsafe"), True());
+        supports->Set(NanNew("threadsafe"), NanTrue());
 #else
-        supports->Set(String::NewSymbol("threadsafe"), False());
+        supports->Set(NanNew("threadsafe"), NanFalse());
 #endif
 
-        target->Set(String::NewSymbol("supports"), supports);
+        target->Set(NanNew("supports"), supports);
 
-#if MAPNIK_VERSION >= 200100
-        Local<Object> composite_ops = Object::New();
+        Local<Object> composite_ops = NanNew<Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst", mapnik::dst)
@@ -264,8 +252,7 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color", mapnik::_color)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "value", mapnik::_value)
 
-        target->Set(String::NewSymbol("compositeOp"), composite_ops);
-#endif
+        target->Set(NanNew("compositeOp"), composite_ops);
     }
 
 }
@@ -278,7 +265,7 @@ extern "C" {
 
 #define NODE_MAPNIK_MODULE(modname, regfunc)                          \
   extern "C" {                                                        \
-    MAPNIK_EXP node::node_module_struct modname ## _module =         \
+    MAPNIK_EXP node::node_module_struct modname ## _module =          \
     {                                                                 \
       NODE_STANDARD_MODULE_STUFF,                                     \
       (node::addon_register_func)regfunc,                             \
@@ -290,14 +277,18 @@ extern "C" {
 
 #define NODE_MAPNIK_MODULE(modname, regfunc)                          \
   extern "C" {                                                        \
-    MAPNIK_EXP node::node_module_struct modname ## _module =         \
+    MAPNIK_EXP node::node_module_struct modname ## _module =          \
     {                                                                 \
       NODE_STANDARD_MODULE_STUFF,                                     \
-      regfunc,                             \
+      regfunc,                                                        \
       NODE_STRINGIFY(modname)                                         \
     };                                                                \
   }
 
 #endif
 
+#if NODE_MODULE_VERSION > 0x000B
+NODE_MODULE(mapnik, node_mapnik::InitMapnik)
+#else
 NODE_MAPNIK_MODULE(mapnik, node_mapnik::InitMapnik)
+#endif

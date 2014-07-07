@@ -1,4 +1,3 @@
-
 #include "mapnik_map.hpp"
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
@@ -10,11 +9,6 @@
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "mapnik_vector_tile.hpp"
-
-// node
-#include <node.h>
-#include <node_buffer.h>
-#include <node_version.h>
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
@@ -52,51 +46,52 @@ Persistent<FunctionTemplate> Map::constructor;
 
 void Map::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Map::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Map"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Map::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Map"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "load", load);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "loadSync", loadSync);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "fromStringSync", fromStringSync);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "fromString", fromString);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "save", save);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "clear", clear);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toXML", to_string);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "resize", resize);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fromString", fromString);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "save", save);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toXML", to_string);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "resize", resize);
 
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "render", render);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "renderSync", renderSync);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "renderFile", renderFile);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "renderFileSync", renderFileSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "render", render);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "renderSync", renderSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "renderFile", renderFile);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "renderFileSync", renderFileSync);
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "zoomAll", zoomAll);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "zoomToBox", zoomToBox); //setExtent
-    NODE_SET_PROTOTYPE_METHOD(constructor, "scale", scale);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "scaleDenominator", scaleDenominator);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "queryPoint", queryPoint);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "queryMapPoint", queryMapPoint);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "zoomAll", zoomAll);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "zoomToBox", zoomToBox); //setExtent
+    NODE_SET_PROTOTYPE_METHOD(lcons, "scale", scale);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "scaleDenominator", scaleDenominator);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "queryPoint", queryPoint);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "queryMapPoint", queryMapPoint);
 
     // layer access
-    NODE_SET_PROTOTYPE_METHOD(constructor, "add_layer", add_layer);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "get_layer", get_layer);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "layers", layers);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "add_layer", add_layer);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "get_layer", get_layer);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "layers", layers);
 
     // properties
-    ATTR(constructor, "srs", get_prop, set_prop);
-    ATTR(constructor, "width", get_prop, set_prop);
-    ATTR(constructor, "height", get_prop, set_prop);
-    ATTR(constructor, "bufferSize", get_prop, set_prop);
-    ATTR(constructor, "extent", get_prop, set_prop);
-    ATTR(constructor, "bufferedExtent", get_prop, set_prop);
-    ATTR(constructor, "maximumExtent", get_prop, set_prop);
-    ATTR(constructor, "background", get_prop, set_prop);
-    ATTR(constructor, "parameters", get_prop, set_prop);
+    ATTR(lcons, "srs", get_prop, set_prop);
+    ATTR(lcons, "width", get_prop, set_prop);
+    ATTR(lcons, "height", get_prop, set_prop);
+    ATTR(lcons, "bufferSize", get_prop, set_prop);
+    ATTR(lcons, "extent", get_prop, set_prop);
+    ATTR(lcons, "bufferedExtent", get_prop, set_prop);
+    ATTR(lcons, "maximumExtent", get_prop, set_prop);
+    ATTR(lcons, "background", get_prop, set_prop);
+    ATTR(lcons, "parameters", get_prop, set_prop);
 
-    target->Set(String::NewSymbol("Map"),constructor->GetFunction());
+    target->Set(NanNew("Map"),lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Map::Map(int width, int height) :
@@ -123,103 +118,111 @@ int Map::active() const {
     return in_use_;
 }
 
-Handle<Value> Map::New(const Arguments& args)
+NAN_METHOD(Map::New)
 {
-    HandleScope scope;
+    NanScope();
 
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     // accept a reference or v8:External?
     if (args[0]->IsExternal())
     {
-        return ThrowException(String::New("No support yet for passing v8:External wrapper around C++ void*"));
+        NanThrowError("No support yet for passing v8:External wrapper around C++ void*");
+        NanReturnUndefined();
     }
 
     if (args.Length() == 2)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
-            return ThrowException(Exception::Error(
-                                      String::New("'width' and 'height' must be a integers")));
+        {
+            NanThrowTypeError("'width' and 'height' must be integers");
+            NanReturnUndefined();
+        }
         Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue());
         m->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     else if (args.Length() == 3)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
-            return ThrowException(Exception::Error(
-                                      String::New("'width' and 'height' must be a integers")));
+        {
+            NanThrowTypeError("'width' and 'height' must be integers");
+            NanReturnUndefined();
+        }
         if (!args[2]->IsString())
-            return ThrowException(Exception::Error(
-                                      String::New("'srs' value must be a string")));
-        Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue(),TOSTR(args[2]));
+        {
+            NanThrowError("'srs' value must be a string");
+            NanReturnUndefined();
+        }
+        Map* m = new Map(args[0]->IntegerValue(), args[1]->IntegerValue(), TOSTR(args[2]));
         m->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     else
     {
-        return ThrowException(Exception::Error(
-                                  String::New("please provide Map width and height and optional srs")));
+        NanThrowError("please provide Map width and height and optional srs");
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::get_prop(Local<String> property,
-                            const AccessorInfo& info)
+NAN_GETTER(Map::get_prop)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(info.This());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string a = TOSTR(property);
     if(a == "extent") {
-        Local<Array> arr = Array::New(4);
+        Local<Array> arr = NanNew<Array>(4);
         mapnik::box2d<double> const& e = m->map_->get_current_extent();
-        arr->Set(0, Number::New(e.minx()));
-        arr->Set(1, Number::New(e.miny()));
-        arr->Set(2, Number::New(e.maxx()));
-        arr->Set(3, Number::New(e.maxy()));
-        return scope.Close(arr);
+        arr->Set(0, NanNew<Number>(e.minx()));
+        arr->Set(1, NanNew<Number>(e.miny()));
+        arr->Set(2, NanNew<Number>(e.maxx()));
+        arr->Set(3, NanNew<Number>(e.maxy()));
+        NanReturnValue(arr);
     }
     else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
         if (!e)
-            return Undefined();
-        Local<Array> arr = Array::New(4);
-        arr->Set(0, Number::New(e->minx()));
-        arr->Set(1, Number::New(e->miny()));
-        arr->Set(2, Number::New(e->maxx()));
-        arr->Set(3, Number::New(e->maxy()));
-        return scope.Close(arr);
+            NanReturnUndefined();
+        Local<Array> arr = NanNew<Array>(4);
+        arr->Set(0, NanNew<Number>(e->minx()));
+        arr->Set(1, NanNew<Number>(e->miny()));
+        arr->Set(2, NanNew<Number>(e->maxx()));
+        arr->Set(3, NanNew<Number>(e->maxy()));
+        NanReturnValue(arr);
     }
     else if(a == "maximumExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
         if (!e)
-            return Undefined();
-        Local<Array> arr = Array::New(4);
-        arr->Set(0, Number::New(e->minx()));
-        arr->Set(1, Number::New(e->miny()));
-        arr->Set(2, Number::New(e->maxx()));
-        arr->Set(3, Number::New(e->maxy()));
-        return scope.Close(arr);
+            NanReturnUndefined();
+        Local<Array> arr = NanNew<Array>(4);
+        arr->Set(0, NanNew<Number>(e->minx()));
+        arr->Set(1, NanNew<Number>(e->miny()));
+        arr->Set(2, NanNew<Number>(e->maxx()));
+        arr->Set(3, NanNew<Number>(e->maxy()));
+        NanReturnValue(arr);
     }
     else if(a == "width")
-        return scope.Close(Integer::New(m->map_->width()));
+        NanReturnValue(NanNew<Integer>(m->map_->width()));
     else if(a == "height")
-        return scope.Close(Integer::New(m->map_->height()));
+        NanReturnValue(NanNew<Integer>(m->map_->height()));
     else if (a == "srs")
-        return scope.Close(String::New(m->map_->srs().c_str()));
+        NanReturnValue(NanNew(m->map_->srs().c_str()));
     else if(a == "bufferSize")
-        return scope.Close(Integer::New(m->map_->buffer_size()));
+        NanReturnValue(NanNew<Integer>(m->map_->buffer_size()));
     else if (a == "background") {
         boost::optional<mapnik::color> c = m->map_->background();
         if (c)
-            return scope.Close(Color::New(*c));
+            NanReturnValue(Color::New(*c));
         else
-            return Undefined();
+            NanReturnUndefined();
     }
     else if (a == "parameters") {
-        Local<Object> ds = Object::New();
-#if MAPNIK_VERSION >= 200100
+        Local<Object> ds = NanNew<Object>();
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
@@ -228,28 +231,25 @@ Handle<Value> Map::get_prop(Local<String> property,
             node_mapnik::params_to_object serializer( ds , it->first);
             boost::apply_visitor( serializer, it->second );
         }
-#endif
-        return scope.Close(ds);
+        NanReturnValue(ds);
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
-void Map::set_prop(Local<String> property,
-                   Local<Value> value,
-                   const AccessorInfo& info)
+NAN_SETTER(Map::set_prop)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(info.Holder());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string a = TOSTR(property);
     if(a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
-            ThrowException(Exception::Error(
-                               String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
+            NanThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
+            return;
         } else {
-            Local<Array> arr = Local<Array>::Cast(value);
+            Local<Array> arr = value.As<Array>();
             if (arr->Length() != 4) {
-                ThrowException(Exception::Error(
-                                   String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
+                NanThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
+                return;
             } else {
                 double minx = arr->Get(0)->NumberValue();
                 double miny = arr->Get(1)->NumberValue();
@@ -266,56 +266,61 @@ void Map::set_prop(Local<String> property,
     else if (a == "srs")
     {
         if (!value->IsString()) {
-            ThrowException(Exception::Error(
-                               String::New("'srs' must be a string")));
+            NanThrowError("'srs' must be a string");
+            return;
         } else {
             m->map_->set_srs(TOSTR(value));
         }
     }
     else if (a == "bufferSize") {
         if (!value->IsNumber()) {
-            ThrowException(Exception::Error(
-                               String::New("Must provide an integer bufferSize")));
+            NanThrowTypeError("Must provide an integer bufferSize");
+            return;
         } else {
             m->map_->set_buffer_size(value->IntegerValue());
         }
     }
     else if (a == "width") {
         if (!value->IsNumber()) {
-            ThrowException(Exception::Error(
-                               String::New("Must provide an integer width")));
+            NanThrowTypeError("Must provide an integer width");
+            return;
         } else {
             m->map_->set_width(value->IntegerValue());
         }
     }
     else if (a == "height") {
         if (!value->IsNumber()) {
-            ThrowException(Exception::Error(
-                               String::New("Must provide an integer height")));
+            NanThrowTypeError("Must provide an integer height");
+            return;
         } else {
             m->map_->set_height(value->IntegerValue());
         }
     }
     else if (a == "background") {
-        if (!value->IsObject())
-            ThrowException(Exception::TypeError(
-                               String::New("mapnik.Color expected")));
+        if (!value->IsObject()) {
+            NanThrowTypeError("mapnik.Color expected");
+            return;
+        }
 
-        Local<Object> obj = value->ToObject();
-        if (obj->IsNull() || obj->IsUndefined() || !Color::constructor->HasInstance(obj))
-            ThrowException(Exception::TypeError(String::New("mapnik.Color expected")));
+        Local<Object> obj = value.As<Object>();
+        if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) {
+            NanThrowTypeError("mapnik.Color expected");
+            return;
+        }
         Color *c = node::ObjectWrap::Unwrap<Color>(obj);
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
-#if MAPNIK_VERSION >= 200100
-        if (!value->IsObject())
-            ThrowException(Exception::TypeError(
-                               String::New("object expected for map.parameters")));
+        if (!value->IsObject()) {
+            NanThrowTypeError("object expected for map.parameters");
+            return;
+        }
 
         Local<Object> obj = value->ToObject();
-        if (obj->IsNull() || obj->IsUndefined())
-            ThrowException(Exception::TypeError(String::New("object expected for map.parameters, cannot be null/undefined")));
+        if (obj->IsNull() || obj->IsUndefined()) {
+            NanThrowTypeError("object expected for map.parameters, cannot be null/undefined");
+            return;
+        }
 
         mapnik::parameters params;
         Local<Array> names = obj->GetPropertyNames();
@@ -341,22 +346,21 @@ void Map::set_prop(Local<String> property,
             i++;
         }
         m->map_->set_extra_parameters(params);
-#endif
     }
 }
 
-Handle<Value> Map::scale(const Arguments& args)
+NAN_METHOD(Map::scale)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
-    return scope.Close(Number::New(m->map_->scale()));
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    NanReturnValue(NanNew<Number>(m->map_->scale()));
 }
 
-Handle<Value> Map::scaleDenominator(const Arguments& args)
+NAN_METHOD(Map::scaleDenominator)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
-    return scope.Close(Number::New(m->map_->scale_denominator()));
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    NanReturnValue(NanNew<Number>(m->map_->scale_denominator()));
 }
 
 typedef struct {
@@ -373,34 +377,34 @@ typedef struct {
 } query_map_baton_t;
 
 
-Handle<Value> Map::queryMapPoint(const Arguments& args)
+NAN_METHOD(Map::queryMapPoint)
 {
-    HandleScope scope;
+    NanScope();
     abstractQueryPoint(args,false);
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::queryPoint(const Arguments& args)
+NAN_METHOD(Map::queryPoint)
 {
-    HandleScope scope;
+    NanScope();
     abstractQueryPoint(args,true);
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
+Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() < 3)
     {
-        return ThrowException(Exception::TypeError(
-                                  String::New("requires at least three arguments, a x,y query and a callback")));
+        NanThrowError("requires at least three arguments, a x,y query and a callback");
+        return NanUndefined();
     }
 
     double x,y;
     if (!args[0]->IsNumber() || !args[1]->IsNumber())
     {
-        return ThrowException(Exception::TypeError(
-                                  String::New("x,y arguments must be numbers")));
+        NanThrowTypeError("x,y arguments must be numbers");
+        return NanUndefined();
     }
     else
     {
@@ -408,27 +412,29 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
         y = args[1]->NumberValue();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
-    Local<Object> options = Object::New();
+    Local<Object> options = NanNew<Object>();
     int layer_idx = -1;
 
     if (args.Length() > 3)
     {
         // options object
-        if (!args[2]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional third argument must be an options object")));
+        if (!args[2]->IsObject()) {
+            NanThrowTypeError("optional third argument must be an options object");
+            return NanUndefined();
+        }
 
         options = args[2]->ToObject();
 
-        if (options->Has(String::New("layer")))
+        if (options->Has(NanNew("layer")))
         {
             std::vector<mapnik::layer> const& layers = m->map_->layers();
-            Local<Value> layer_id = options->Get(String::New("layer"));
-            if (! (layer_id->IsString() || layer_id->IsNumber()) )
-                return ThrowException(Exception::TypeError(
-                                          String::New("'layer' option required for map query and must be either a layer name(string) or layer index (integer)")));
+            Local<Value> layer_id = options->Get(NanNew("layer"));
+            if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+                NanThrowTypeError("'layer' option required for map query and must be either a layer name(string) or layer index (integer)");
+                return NanUndefined();
+            }
 
             if (layer_id->IsString()) {
                 bool found = false;
@@ -448,7 +454,8 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                    NanThrowTypeError(s.str().c_str());
+                    return NanUndefined();
                 }
             }
             else if (layer_id->IsNumber())
@@ -468,7 +475,8 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
                     {
                         s << "no layers found in map";
                     }
-                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                    NanThrowTypeError(s.str().c_str());
+                    return NanUndefined();
                 } else if (layer_idx >= static_cast<int>(layer_num)) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
@@ -480,19 +488,22 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
                     {
                         s << "no layers found in map";
                     }
-                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                    NanThrowTypeError(s.str().c_str());
+                    return NanUndefined();
                 }
             } else {
-                return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
+                NanThrowTypeError("layer id must be a string or index number");
+                return NanUndefined();
             }
         }
     }
 
     // ensure function callback
-    Local<Value> callback = args[args.Length()-1];
-    if (!callback->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    Local<Value> callback = args[args.Length() - 1];
+    if (!callback->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        return NanUndefined();
+    }
 
     query_map_baton_t *closure = new query_map_baton_t();
     closure->request.data = closure;
@@ -502,10 +513,10 @@ Handle<Value> Map::abstractQueryPoint(const Arguments& args, bool geo_coords)
     closure->layer_idx = static_cast<std::size_t>(layer_idx);
     closure->geo_coords = geo_coords;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMap, (uv_after_work_cb)EIO_AfterQueryMap);
     m->Ref();
-    return Undefined();
+    return NanUndefined();
 }
 
 void Map::EIO_QueryMap(uv_work_t* req)
@@ -566,91 +577,88 @@ void Map::EIO_QueryMap(uv_work_t* req)
 
 void Map::EIO_AfterQueryMap(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
 
-    TryCatch try_catch;
-
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
         std::size_t num_result = closure->featuresets.size();
         if (num_result >= 1)
         {
-            Local<Array> a = Array::New(num_result);
+            Local<Array> a = NanNew<Array>(num_result);
             typedef std::map<std::string,mapnik::featureset_ptr> fs_itr;
             fs_itr::const_iterator it = closure->featuresets.begin();
             fs_itr::const_iterator end = closure->featuresets.end();
             unsigned idx = 0;
             for (; it != end; ++it)
             {
-                Local<Object> obj = Object::New();
-                obj->Set(String::NewSymbol("layer"), String::New(it->first.c_str()));
-                obj->Set(String::NewSymbol("featureset"), Featureset::New(it->second));
+                Local<Object> obj = NanNew<Object>();
+                obj->Set(NanNew("layer"), NanNew(it->first.c_str()));
+                obj->Set(NanNew("featureset"), Featureset::New(it->second));
                 a->Set(idx, obj);
                 ++idx;
             }
             closure->featuresets.clear();
-            Local<Value> argv[2] = { Local<Value>::New(Null()), a };
-            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+            Local<Value> argv[2] = { NanNull(), a };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
         else
         {
-            Local<Value> argv[2] = { Local<Value>::New(Null()),
-                                     Local<Value>::New(Undefined()) };
-            closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+            Local<Value> argv[2] = { NanNull(), NanUndefined() };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
     }
 
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-    }
-
     closure->m->Unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
-Handle<Value> Map::layers(const Arguments& args)
+NAN_METHOD(Map::layers)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
-    Local<Array> a = Array::New(layers.size());
+    Local<Array> a = NanNew<Array>(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
     {
         a->Set(i, Layer::New(layers[i]));
     }
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-Handle<Value> Map::add_layer(const Arguments &args) {
-    HandleScope scope;
+NAN_METHOD(Map::add_layer) {
+    NanScope();
 
-    if (!args[0]->IsObject())
-        return ThrowException(Exception::TypeError(
-                                  String::New("mapnik.Layer expected")));
+    if (!args[0]->IsObject()) {
+        NanThrowTypeError("mapnik.Layer expected");
+        NanReturnUndefined();
+    }
 
-    Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined() || !Layer::constructor->HasInstance(obj))
-        return ThrowException(Exception::TypeError(String::New("mapnik.Layer expected")));
+    Local<Object> obj = args[0].As<Object>();
+    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Layer::constructor)->HasInstance(obj)) {
+        NanThrowTypeError("mapnik.Layer expected");
+        NanReturnUndefined();
+    }
     Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     m->map_->MAPNIK_ADD_LAYER(*l->get());
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::get_layer(const Arguments& args)
+NAN_METHOD(Map::get_layer)
 {
-    HandleScope scope;
+    NanScope();
 
-    if (args.Length() != 1)
-        return ThrowException(Exception::Error(
-                                  String::New("Please provide layer name or index")));
+    if (args.Length() != 1) {
+        NanThrowError("Please provide layer name or index");
+        NanReturnUndefined();
+    }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
     Local<Value> layer = args[0];
@@ -660,12 +668,12 @@ Handle<Value> Map::get_layer(const Arguments& args)
 
         if (index < layers.size())
         {
-            return scope.Close(Layer::New(layers[index]));
+            NanReturnValue(Layer::New(layers[index]));
         }
         else
         {
-            return ThrowException(Exception::TypeError(
-                                      String::New("invalid layer index")));
+            NanThrowTypeError("invalid layer index");
+            NanReturnUndefined();
         }
     }
     else if (layer->IsString())
@@ -678,7 +686,7 @@ Handle<Value> Map::get_layer(const Arguments& args)
             if (lyr.name() == layer_name)
             {
                 found = true;
-                return scope.Close(Layer::New(layers[idx]));
+                NanReturnValue(Layer::New(layers[idx]));
             }
             ++idx;
         }
@@ -686,43 +694,45 @@ Handle<Value> Map::get_layer(const Arguments& args)
         {
             std::ostringstream s;
             s << "Layer name '" << layer_name << "' not found";
-            return ThrowException(Exception::TypeError(
-                                      String::New(s.str().c_str())));
+            NanThrowTypeError(s.str().c_str());
+            NanReturnUndefined();
         }
 
     }
     else
     {
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be either a layer name(string) or layer index (integer)")));
+        NanThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
+        NanReturnUndefined();
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::clear(const Arguments& args)
+NAN_METHOD(Map::clear)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     m->map_->remove_all();
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::resize(const Arguments& args)
+NAN_METHOD(Map::resize)
 {
-    HandleScope scope;
+    NanScope();
 
-    if (args.Length() != 2)
-        return ThrowException(Exception::Error(
-                                  String::New("Please provide width and height")));
+    if (args.Length() != 2) {
+        NanThrowError("Please provide width and height");
+        NanReturnUndefined();
+    }
 
-    if (!args[0]->IsNumber() || !args[1]->IsNumber())
-        return ThrowException(Exception::TypeError(
-                                  String::New("width and height must be integers")));
+    if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
+        NanThrowTypeError("width and height must be integers");
+        NanReturnUndefined();
+    }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
-    return Undefined();
+    NanReturnUndefined();
 }
 
 
@@ -738,56 +748,62 @@ typedef struct {
 } load_xml_baton_t;
 
 
-Handle<Value> Map::load(const Arguments& args)
+NAN_METHOD(Map::load)
 {
-    HandleScope scope;
+    NanScope();
 
-    if (args.Length() < 2)
-        return ThrowException(Exception::Error(
-                                  String::New("please provide a stylesheet path, options, and callback")));
+    if (args.Length() < 2) {
+        NanThrowError("please provide a stylesheet path, options, and callback");
+        NanReturnUndefined();
+    }
 
     // ensure stylesheet path is a string
     Local<Value> stylesheet = args[0];
-    if (!stylesheet->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a mapnik stylesheet")));
+    if (!stylesheet->IsString()) {
+        NanThrowTypeError("first argument must be a path to a mapnik stylesheet");
+        NanReturnUndefined();
+    }
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
-    if (!callback->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    if (!callback->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
 
     // ensure options object
-    if (!args[1]->IsObject())
-        return ThrowException(Exception::TypeError(
-                                  String::New("options must be an object, eg {strict: true}")));
+    if (!args[1]->IsObject()) {
+        NanThrowTypeError("options must be an object, eg {strict: true}");
+        NanReturnUndefined();
+    }
 
-    Local<Object> options = args[1]->ToObject();
+    Local<Object> options = args[1].As<Object>();
 
     bool strict = false;
-    Local<String> param = String::New("strict");
+    Local<String> param = NanNew("strict");
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
-        if (!param_val->IsBoolean())
-            return ThrowException(Exception::TypeError(
-                                      String::New("'strict' must be a Boolean")));
+        if (!param_val->IsBoolean()) {
+            NanThrowTypeError("'strict' must be a Boolean");
+            NanReturnUndefined();
+        }
         strict = param_val->BooleanValue();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
-    param = String::New("base");
+    param = NanNew("base");
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
-        if (!param_val->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("'base' must be a string representing a filesystem path")));
+        if (!param_val->IsString()) {
+            NanThrowTypeError("'base' must be a string representing a filesystem path");
+            NanReturnUndefined();
+        }
         closure->base_path = TOSTR(param_val);
     }
 
@@ -795,10 +811,10 @@ Handle<Value> Map::load(const Arguments& args)
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, (uv_after_work_cb)EIO_AfterLoad);
     m->Ref();
-    return Undefined();
+    NanReturnUndefined();
 }
 
 void Map::EIO_Load(uv_work_t* req)
@@ -807,12 +823,7 @@ void Map::EIO_Load(uv_work_t* req)
 
     try
     {
-#if MAPNIK_VERSION >= 200200
         mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_path);
-#else
-        mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict);
-#endif
-
     }
     catch (std::exception const& ex)
     {
@@ -823,38 +834,33 @@ void Map::EIO_Load(uv_work_t* req)
 
 void Map::EIO_AfterLoad(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
-    TryCatch try_catch;
-
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-    }
-
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->m) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
 
-Handle<Value> Map::loadSync(const Arguments& args)
+NAN_METHOD(Map::loadSync)
 {
-    HandleScope scope;
-    if (!args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a mapnik stylesheet")));
+    NanScope();
+    if (!args[0]->IsString()) {
+        NanThrowTypeError("first argument must be a path to a mapnik stylesheet");
+        NanReturnUndefined();
+    }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string stylesheet = TOSTR(args[0]);
     bool strict = false;
     std::string base_path;
@@ -862,66 +868,69 @@ Handle<Value> Map::loadSync(const Arguments& args)
     if (args.Length() > 2)
     {
 
-        return ThrowException(Exception::TypeError(
-                                  String::New("only accepts two arguments: a path to a mapnik stylesheet and an optional options object")));
+        NanThrowError("only accepts two arguments: a path to a mapnik stylesheet and an optional options object");
+        NanReturnUndefined();
     }
     else if (args.Length() == 2)
     {
         // ensure options object
         if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("options must be an object, eg {strict: true}")));
+        {
+            NanThrowTypeError("options must be an object, eg {strict: true}");
+            NanReturnUndefined();
+        }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[1].As<Object>();
 
-        Local<String> param = String::New("strict");
+        Local<String> param = NanNew("strict");
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
             if (!param_val->IsBoolean())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'strict' must be a Boolean")));
+            {
+                NanThrowTypeError("'strict' must be a Boolean");
+                NanReturnUndefined();
+            }
             strict = param_val->BooleanValue();
         }
 
-        param = String::New("base");
+        param = NanNew("base");
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
             if (!param_val->IsString())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'base' must be a string representing a filesystem path")));
+            {
+                NanThrowTypeError("'base' must be a string representing a filesystem path");
+                NanReturnUndefined();
+            }
             base_path = TOSTR(param_val);
         }
     }
 
     try
     {
-#if MAPNIK_VERSION >= 200200
         mapnik::load_map(*m->map_,stylesheet,strict,base_path);
-#else
-        mapnik::load_map(*m->map_,stylesheet,strict);
-#endif
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::fromStringSync(const Arguments& args)
+NAN_METHOD(Map::fromStringSync)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() < 1) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("Accepts 2 arguments: stylesheet string and an optional options")));
+        NanThrowError("Accepts 2 arguments: stylesheet string and an optional options");
+        NanReturnUndefined();
     }
 
-    if (!args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a mapnik stylesheet string")));
+    if (!args[0]->IsString()) {
+        NanThrowTypeError("first argument must be a mapnik stylesheet string");
+        NanReturnUndefined();
+    }
 
 
     // defaults
@@ -930,34 +939,37 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
 
     if (args.Length() >= 2) {
         // ensure options object
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("options must be an object, eg {strict: true, base: \".\"'}")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
+            NanReturnUndefined();
+        }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[1].As<Object>();
 
-        Local<String> param = String::New("strict");
+        Local<String> param = NanNew("strict");
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
-            if (!param_val->IsBoolean())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'strict' must be a Boolean")));
+            if (!param_val->IsBoolean()) {
+                NanThrowTypeError("'strict' must be a Boolean");
+                NanReturnUndefined();
+            }
             strict = param_val->BooleanValue();
         }
 
-        param = String::New("base");
+        param = NanNew("base");
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
-            if (!param_val->IsString())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'base' must be a string representing a filesystem path")));
+            if (!param_val->IsString()) {
+                NanThrowTypeError("'base' must be a string representing a filesystem path");
+                NanReturnUndefined();
+            }
             base_path = TOSTR(param_val);
         }
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
     std::string stylesheet = TOSTR(args[0]);
 
@@ -967,62 +979,74 @@ Handle<Value> Map::fromStringSync(const Arguments& args)
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::fromString(const Arguments& args)
+NAN_METHOD(Map::fromString)
 {
-    HandleScope scope;
+    NanScope();
 
     if (args.Length() < 2)
-        return ThrowException(Exception::Error(
-                                  String::New("please provide a stylesheet string, options, and callback")));
+    {
+        NanThrowError("please provide a stylesheet string, options, and callback");
+        NanReturnUndefined();
+    }
 
     // ensure stylesheet path is a string
     Local<Value> stylesheet = args[0];
     if (!stylesheet->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a mapnik stylesheet string")));
+    {
+        NanThrowTypeError("first argument must be a path to a mapnik stylesheet string");
+        NanReturnUndefined();
+    }
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
 
     // ensure options object
     if (!args[1]->IsObject())
-        return ThrowException(Exception::TypeError(
-                                  String::New("options must be an object, eg {strict: true, base: \".\"'}")));
+    {
+        NanThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
+        NanReturnUndefined();
+    }
 
     Local<Object> options = args[1]->ToObject();
 
     bool strict = false;
-    Local<String> param = String::New("strict");
+    Local<String> param = NanNew("strict");
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
         if (!param_val->IsBoolean())
-            return ThrowException(Exception::TypeError(
-                                      String::New("'strict' must be a Boolean")));
+        {
+            NanThrowTypeError("'strict' must be a Boolean");
+            NanReturnUndefined();
+        }
         strict = param_val->BooleanValue();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
-    param = String::New("base");
+    param = NanNew("base");
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
         if (!param_val->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("'base' must be a string representing a filesystem path")));
+        {
+            NanThrowTypeError("'base' must be a string representing a filesystem path");
+            NanReturnUndefined();
+        }
         closure->base_path = TOSTR(param_val);
     }
 
@@ -1030,10 +1054,10 @@ Handle<Value> Map::fromString(const Arguments& args)
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, (uv_after_work_cb)EIO_AfterFromString);
     m->Ref();
-    return Undefined();
+    NanReturnUndefined();
 }
 
 void Map::EIO_FromString(uv_work_t* req)
@@ -1053,73 +1077,71 @@ void Map::EIO_FromString(uv_work_t* req)
 
 void Map::EIO_AfterFromString(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     TryCatch try_catch;
 
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->m->handle_) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-    }
-
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->m) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
 
-Handle<Value> Map::save(const Arguments& args)
+NAN_METHOD(Map::save)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() != 1 || !args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to map.xml to save")));
+    {
+        NanThrowTypeError("first argument must be a path to map.xml to save");
+        NanReturnUndefined();
+    }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string filename = TOSTR(args[0]);
     bool explicit_defaults = false;
     mapnik::save_map(*m->map_,filename,explicit_defaults);
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::to_string(const Arguments& args)
+NAN_METHOD(Map::to_string)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
-    return scope.Close(String::New(map_string.c_str()));
+    NanReturnValue(NanNew(map_string.c_str()));
 }
 
-Handle<Value> Map::zoomAll(const Arguments& args)
+NAN_METHOD(Map::zoomAll)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     try
     {
         m->map_->zoom_all();
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Map::zoomToBox(const Arguments& args)
+NAN_METHOD(Map::zoomToBox)
 {
-    HandleScope scope;
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
     double minx;
     double miny;
@@ -1129,9 +1151,11 @@ Handle<Value> Map::zoomToBox(const Arguments& args)
     if (args.Length() == 1)
     {
         if (!args[0]->IsArray())
-            return ThrowException(Exception::Error(
-                                      String::New("Must provide an array of: [minx,miny,maxx,maxy]")));
-        Local<Array> a = Local<Array>::Cast(args[0]);
+        {
+            NanThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
+            NanReturnUndefined();
+        }
+        Local<Array> a = args[0].As<Array>();
         minx = a->Get(0)->NumberValue();
         miny = a->Get(1)->NumberValue();
         maxx = a->Get(2)->NumberValue();
@@ -1139,9 +1163,10 @@ Handle<Value> Map::zoomToBox(const Arguments& args)
 
     }
     else if (args.Length() != 4)
-        return ThrowException(Exception::Error(
-                                  String::New("Must provide 4 arguments: minx,miny,maxx,maxy")));
-    else {
+    {
+        NanThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
+        NanReturnUndefined();
+    } else {
         minx = args[0]->NumberValue();
         miny = args[1]->NumberValue();
         maxx = args[2]->NumberValue();
@@ -1149,7 +1174,7 @@ Handle<Value> Map::zoomToBox(const Arguments& args)
     }
     mapnik::box2d<double> box(minx,miny,maxx,maxy);
     m->map_->zoom_to_box(box);
-    return Undefined();
+    NanReturnUndefined();
 }
 
 struct image_baton_t {
@@ -1161,6 +1186,9 @@ struct image_baton_t {
     double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1170,6 +1198,9 @@ struct image_baton_t {
       scale_denominator(0.0),
       offset_x(0),
       offset_y(0),
+#if MAPNIK_VERSION >= 300000
+      variables(),
+#endif
       error(false),
       error_name() {}
 };
@@ -1211,6 +1242,9 @@ struct vector_tile_baton_t {
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1223,31 +1257,35 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
+#if MAPNIK_VERSION >= 300000
+        variables(),
+#endif
         error(false) {}
 };
 
-Handle<Value> Map::render(const Arguments& args)
+NAN_METHOD(Map::render)
 {
-    HandleScope scope;
+    NanScope();
 
     // ensure at least 2 args
     if (args.Length() < 2) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("requires at least two arguments, a renderable mapnik object, and a callback")));
+        NanThrowTypeError("requires at least two arguments, a renderable mapnik object, and a callback");
+        NanReturnUndefined();
     }
 
     // ensure renderable object
     if (!args[0]->IsObject()) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("requires a renderable mapnik object to be passed as first argument")));
+        NanThrowTypeError("requires a renderable mapnik object to be passed as first argument");
+        NanReturnUndefined();
     }
 
     // ensure function callback
-    if (!args[args.Length()-1]->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
     if (m->active() != 0) {
         std::ostringstream s;
@@ -1267,68 +1305,76 @@ Handle<Value> Map::render(const Arguments& args)
     unsigned offset_x = 0;
     unsigned offset_y = 0;
 
-    Local<Object> options = Object::New();
+    Local<Object> options = NanNew<Object>();
 
     if (args.Length() > 2) {
 
         // options object
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional second argument must be an options object")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("optional second argument must be an options object");
+            NanReturnUndefined();
+        }
 
         options = args[1]->ToObject();
 
-        if (options->Has(String::New("buffer_size"))) {
-            Local<Value> bind_opt = options->Get(String::New("buffer_size"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'buffer_size' must be a number")));
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
 
             buffer_size = bind_opt->IntegerValue();
         }
 
-        if (options->Has(String::New("scale"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale' must be a number")));
+        if (options->Has(NanNew("scale"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_factor = bind_opt->NumberValue();
         }
 
-        if (options->Has(String::New("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale_denominator' must be a number")));
+        if (options->Has(NanNew("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_denominator = bind_opt->NumberValue();
         }
 
-        if (options->Has(String::New("offset_x"))) {
-            Local<Value> bind_opt = options->Get(String::New("offset_x"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'offset_x' must be a number")));
+        if (options->Has(NanNew("offset_x"))) {
+            Local<Value> bind_opt = options->Get(NanNew("offset_x"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'offset_x' must be a number");
+                NanReturnUndefined();
+            }
 
             offset_x = bind_opt->IntegerValue();
         }
 
-        if (options->Has(String::New("offset_y"))) {
-            Local<Value> bind_opt = options->Get(String::New("offset_y"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'offset_y' must be a number")));
+        if (options->Has(NanNew("offset_y"))) {
+            Local<Value> bind_opt = options->Get(NanNew("offset_y"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'offset_y' must be a number");
+                NanReturnUndefined();
+            }
 
             offset_y = bind_opt->IntegerValue();
         }
     }
 
     Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined())
-        return ThrowException(Exception::TypeError(String::New("first argument is invalid, must be a renderable mapnik object, not null/undefined")));
+    if (obj->IsNull() || obj->IsUndefined()) {
+        NanThrowTypeError("first argument is invalid, must be a renderable mapnik object, not null/undefined");
+        NanReturnUndefined();
+    }
 
-    if (Image::constructor->HasInstance(obj)) {
+    if (NanNew(Image::constructor)->HasInstance(obj)) {
 
         image_baton_t *closure = new image_baton_t();
         closure->request.data = closure;
@@ -1341,27 +1387,28 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
-        closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+        NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
 
-    } else if (Grid::constructor->HasInstance(obj)) {
+    } else if (NanNew(Grid::constructor)->HasInstance(obj)) {
 
         Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
 
         std::size_t layer_idx = 0;
 
         // grid requires special options for now
-        if (!options->Has(String::New("layer"))) {
-            return ThrowException(Exception::TypeError(
-                                      String::New("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)")));
+        if (!options->Has(NanNew("layer"))) {
+            NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
+            NanReturnUndefined();
         } else {
 
             std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-            Local<Value> layer_id = options->Get(String::New("layer"));
-            if (! (layer_id->IsString() || layer_id->IsNumber()) )
-                return ThrowException(Exception::TypeError(
-                                          String::New("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)")));
+            Local<Value> layer_id = options->Get(NanNew("layer"));
+            if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+                NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
+                NanReturnUndefined();
+            }
 
             if (layer_id->IsString()) {
                 bool found = false;
@@ -1381,7 +1428,8 @@ Handle<Value> Map::render(const Arguments& args)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                    NanThrowTypeError(s.str().c_str());
+                    NanReturnUndefined();
                 }
             } else if (layer_id->IsNumber()) {
                 layer_idx = layer_id->IntegerValue();
@@ -1398,19 +1446,22 @@ Handle<Value> Map::render(const Arguments& args)
                     {
                         s << "no layers found in map";
                     }
-                    return ThrowException(Exception::TypeError(String::New(s.str().c_str())));
+                    NanThrowTypeError(s.str().c_str());
+                    NanReturnUndefined();
                 }
             } else {
-                return ThrowException(Exception::TypeError(String::New("layer id must be a string or index number")));
+                NanThrowTypeError("layer id must be a string or index number");
+                NanReturnUndefined();
             }
         }
 
-        if (options->Has(String::New("fields"))) {
+        if (options->Has(NanNew("fields"))) {
 
-            Local<Value> param_val = options->Get(String::New("fields"));
-            if (!param_val->IsArray())
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'fields' must be an array of strings")));
+            Local<Value> param_val = options->Get(NanNew("fields"));
+            if (!param_val->IsArray()) {
+                NanThrowTypeError("option 'fields' must be an array of strings");
+                NanReturnUndefined();
+            }
             Local<Array> a = Local<Array>::Cast(param_val);
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
@@ -1435,56 +1486,56 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
-        closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+        NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
-    } else if (VectorTile::constructor->HasInstance(obj)) {
+    } else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
 
         vector_tile_baton_t *closure = new vector_tile_baton_t();
         VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
 
-        if (options->Has(String::New("image_scaling"))) {
-            Local<Value> param_val = options->Get(String::New("image_scaling"));
+        if (options->Has(NanNew("image_scaling"))) {
+            Local<Value> param_val = options->Get(NanNew("image_scaling"));
             if (!param_val->IsString()) {
                 delete closure;
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'image_scaling' must be an unsigned integer")));
+                NanThrowTypeError("option 'image_scaling' must be an unsigned integer");
+                NanReturnUndefined();
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method) {
                 delete closure;
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')")));
+                NanThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                NanReturnUndefined();
             }
             closure->scaling_method = *method;
         }
 
-        if (options->Has(String::New("image_format"))) {
-            Local<Value> param_val = options->Get(String::New("image_format"));
+        if (options->Has(NanNew("image_format"))) {
+            Local<Value> param_val = options->Get(NanNew("image_format"));
             if (!param_val->IsString()) {
                 delete closure;
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'image_format' must be a string")));
+                NanThrowTypeError("option 'image_format' must be a string");
+                NanReturnUndefined();
             }
             closure->image_format = TOSTR(param_val);
         }
 
-        if (options->Has(String::New("tolerance"))) {
-            Local<Value> param_val = options->Get(String::New("tolerance"));
+        if (options->Has(NanNew("tolerance"))) {
+            Local<Value> param_val = options->Get(NanNew("tolerance"));
             if (!param_val->IsNumber()) {
                 delete closure;
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'tolerance' must be an unsigned integer")));
+                NanThrowTypeError("option 'tolerance' must be an unsigned integer");
+                NanReturnUndefined();
             }
             closure->tolerance = param_val->IntegerValue();
         }
 
-        if (options->Has(String::New("path_multiplier"))) {
-            Local<Value> param_val = options->Get(String::New("path_multiplier"));
+        if (options->Has(NanNew("path_multiplier"))) {
+            Local<Value> param_val = options->Get(NanNew("path_multiplier"));
             if (!param_val->IsNumber()) {
                 delete closure;
-                return ThrowException(Exception::TypeError(
-                                          String::New("option 'path_multiplier' must be an unsigned integer")));
+                NanThrowTypeError("option 'path_multiplier' must be an unsigned integer");
+                NanReturnUndefined();
             }
             closure->path_multiplier = param_val->NumberValue();
         }
@@ -1499,15 +1550,16 @@ Handle<Value> Map::render(const Arguments& args)
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
-        closure->cb = Persistent<Function>::New(Handle<Function>::Cast(args[args.Length()-1]));
+        NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
     } else {
-        return ThrowException(Exception::TypeError(String::New("renderable mapnik object expected")));
+        NanThrowTypeError("renderable mapnik object expected");
+        NanReturnUndefined();
     }
 
     m->acquire();
     m->Ref();
-    return Undefined();
+    NanReturnUndefined();
 }
 
 void Map::EIO_RenderVectorTile(uv_work_t* req)
@@ -1545,28 +1597,23 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
 
 void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
 
-    TryCatch try_catch;
+    closure->m->release();
 
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->d->handle_) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->d) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-    }
-
-    closure->m->release();
     closure->m->Unref();
     closure->d->_unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
@@ -1615,30 +1662,25 @@ void Map::EIO_RenderGrid(uv_work_t* req)
 
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
 
-    TryCatch try_catch;
+    closure->m->release();
 
     if (closure->error) {
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->g->handle_) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->g) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-    }
-
-    closure->m->release();
     closure->m->Unref();
     closure->g->_unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
@@ -1648,7 +1690,14 @@ void Map::EIO_RenderImage(uv_work_t* req)
 
     try
     {
-        mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,
+        mapnik::Map const& map = *closure->m->map_;
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(closure->buffer_size);
+        mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   closure->variables,
+#endif
                                                    *closure->im->get(),
                                                    closure->scale_factor,
                                                    closure->offset_x,
@@ -1664,28 +1713,23 @@ void Map::EIO_RenderImage(uv_work_t* req)
 
 void Map::EIO_AfterRenderImage(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
 
-    TryCatch try_catch;
+    closure->m->release();
 
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { Local<Value>::New(Null()), Local<Value>::New(closure->im->handle_) };
-        closure->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
 
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-    }
-
-    closure->m->release();
     closure->m->Unref();
     closure->im->_unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 }
 
@@ -1698,80 +1742,103 @@ typedef struct {
     double scale_factor;
     double scale_denominator;
     bool use_cairo;
+    int buffer_size; // TODO - no effect until mapnik::request is used
+#if MAPNIK_VERSION >= 300000
+    mapnik::attributes variables;
+#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
 } render_file_baton_t;
 
-Handle<Value> Map::renderFile(const Arguments& args)
+NAN_METHOD(Map::renderFile)
 {
-    HandleScope scope;
+    NanScope();
 
-    if (args.Length() < 1 || !args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a file to save")));
+    if (args.Length() < 1 || !args[0]->IsString()) {
+        NanThrowTypeError("first argument must be a path to a file to save");
+        NanReturnUndefined();
+    }
 
     // defaults
     std::string format = "png";
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
     palette_ptr palette;
+    int buffer_size = 0;
 
     Local<Value> callback = args[args.Length()-1];
 
-    if (!callback->IsFunction())
-        return ThrowException(Exception::TypeError(
-                                  String::New("last argument must be a callback function")));
+    if (!callback->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
 
     if (!args[1]->IsFunction() && args[1]->IsObject()) {
         Local<Object> options = args[1]->ToObject();
-        if (options->Has(String::New("format")))
+        if (options->Has(NanNew("format")))
         {
-            Local<Value> format_opt = options->Get(String::New("format"));
-            if (!format_opt->IsString())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'format' must be a String")));
+            Local<Value> format_opt = options->Get(NanNew("format"));
+            if (!format_opt->IsString()) {
+                NanThrowTypeError("'format' must be a String");
+                NanReturnUndefined();
+            }
 
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(String::New("palette")))
+        if (options->Has(NanNew("palette")))
         {
-            Local<Value> format_opt = options->Get(String::New("palette"));
-            if (!format_opt->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'palette' must be an object")));
+            Local<Value> format_opt = options->Get(NanNew("palette"));
+            if (!format_opt->IsObject()) {
+                NanThrowTypeError("'palette' must be an object");
+                NanReturnUndefined();
+            }
 
             Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
-        if (options->Has(String::New("scale"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale' must be a number")));
+        if (options->Has(NanNew("scale"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_factor = bind_opt->NumberValue();
         }
 
-        if (options->Has(String::New("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale_denominator' must be a number")));
+        if (options->Has(NanNew("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_denominator = bind_opt->NumberValue();
         }
 
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+
+            buffer_size = bind_opt->IntegerValue();
+        }
+
     } else if (!args[1]->IsFunction()) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("optional argument must be an object")));
+        NanThrowTypeError("optional argument must be an object");
+        NanReturnUndefined();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string output = TOSTR(args[0]);
 
     //maybe do this in the async part?
@@ -1780,8 +1847,8 @@ Handle<Value> Map::renderFile(const Arguments& args)
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << output << "\n";
-            return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
+            NanThrowError(s.str().c_str());
+            NanReturnUndefined();
         }
     }
 
@@ -1794,8 +1861,8 @@ Handle<Value> Map::renderFile(const Arguments& args)
         delete closure;
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
-        return ThrowException(Exception::Error(
-                                  String::New(s.str().c_str())));
+        NanThrowError(s.str().c_str());
+        NanReturnUndefined();
 #endif
     } else {
         closure->use_cairo = false;
@@ -1806,8 +1873,9 @@ Handle<Value> Map::renderFile(const Arguments& args)
     closure->m = m;
     closure->scale_factor = scale_factor;
     closure->scale_denominator = scale_denominator;
+    closure->buffer_size = buffer_size;
     closure->error = false;
-    closure->cb = Persistent<Function>::New(Handle<Function>::Cast(callback));
+    NanAssignPersistent(closure->cb, callback.As<Function>());
 
     closure->format = format;
     closure->palette = palette;
@@ -1816,7 +1884,7 @@ Handle<Value> Map::renderFile(const Arguments& args)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, (uv_after_work_cb)EIO_AfterRenderFile);
     m->Ref();
 
-    return Undefined();
+    NanReturnUndefined();
 
 }
 
@@ -1833,11 +1901,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
             // https://github.com/mapnik/mapnik/issues/1930
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
 #else
-#if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
-#else
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format);
-#endif
 #endif
 #else
 #endif
@@ -1845,7 +1909,16 @@ void Map::EIO_RenderFile(uv_work_t* req)
         else
         {
             mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*closure->m->map_,im,closure->scale_factor);
+            mapnik::Map const& map = *closure->m->map_;
+            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+            m_req.set_buffer_size(closure->buffer_size);
+            mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   closure->variables,
+#endif
+                                                   im,
+                                                   closure->scale_factor);
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
@@ -1864,121 +1937,147 @@ void Map::EIO_RenderFile(uv_work_t* req)
 
 void Map::EIO_AfterRenderFile(uv_work_t* req)
 {
-    HandleScope scope;
+    NanScope();
 
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
 
-    TryCatch try_catch;
+    closure->m->release();
 
     if (closure->error) {
-        Local<Value> argv[1] = { Exception::Error(String::New(closure->error_name.c_str())) };
-        closure->cb->Call(Context::GetCurrent()->Global(),1, argv);
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[1] = { Local<Value>::New(Null()) };
-        closure->cb->Call(Context::GetCurrent()->Global(),1, argv);
+        Local<Value> argv[1] = { NanNull() };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     }
 
-    if (try_catch.HasCaught()) {
-        node::FatalException(try_catch);
-    }
-
-    closure->m->release();
     closure->m->Unref();
-    closure->cb.Dispose();
+    NanDisposePersistent(closure->cb);
     delete closure;
 
 }
 
 // TODO - add support for grids
-Handle<Value> Map::renderSync(const Arguments& args)
+NAN_METHOD(Map::renderSync)
 {
-    HandleScope scope;
+    NanScope();
 
-    if (args.Length() < 1 || !args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("argument must be a format string")));
+    if (args.Length() < 1 || !args[0]->IsString()) {
+        NanThrowTypeError("argument must be a format string");
+        NanReturnUndefined();
+    }
 
     std::string format = TOSTR(args[0]);
     palette_ptr palette;
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
+    int buffer_size = 0;
 
     if (args.Length() >= 2){
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
+            NanReturnUndefined();
+        }
 
         Local<Object> options = args[1]->ToObject();
-        if (options->Has(String::New("format")))
+        if (options->Has(NanNew("format")))
         {
-            Local<Value> format_opt = options->Get(String::New("format"));
-            if (!format_opt->IsString())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'format' must be a String")));
+            Local<Value> format_opt = options->Get(NanNew("format"));
+            if (!format_opt->IsString()) {
+                NanThrowTypeError("'format' must be a String");
+                NanReturnUndefined();
+            }
 
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(String::New("palette")))
+        if (options->Has(NanNew("palette")))
         {
-            Local<Value> format_opt = options->Get(String::New("palette"));
-            if (!format_opt->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'palette' must be an object")));
+            Local<Value> format_opt = options->Get(NanNew("palette"));
+            if (!format_opt->IsObject()) {
+                NanThrowTypeError("'palette' must be an object");
+                NanReturnUndefined();
+            }
 
             Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
-        if (options->Has(String::New("scale"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale' must be a number")));
+        if (options->Has(NanNew("scale"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_factor = bind_opt->NumberValue();
         }
-        if (options->Has(String::New("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale_denominator' must be a number")));
+        if (options->Has(NanNew("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_denominator = bind_opt->NumberValue();
+        }
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+
+            buffer_size = bind_opt->IntegerValue();
         }
     }
 
     // options hash
     if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("optional second arg must be an options object")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("optional second arg must be an options object");
+            NanReturnUndefined();
+        }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[1].As<Object>();
 
-        if (options->Has(String::New("palette")))
+        if (options->Has(NanNew("palette")))
         {
-            Local<Value> bind_opt = options->Get(String::New("palette"));
-            if (!bind_opt->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("mapnik.Palette expected as second arg")));
+            Local<Value> bind_opt = options->Get(NanNew("palette"));
+            if (!bind_opt->IsObject()) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             Local<Object> obj = bind_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string s;
     try
     {
         mapnik::image_32 im(m->map_->width(),m->map_->height());
-        mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
+        mapnik::Map const& map = *m->map_;
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(buffer_size);
+        mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   mapnik::attributes(),
+#endif
+                                                   im,
+                                                   scale_factor);
         ren.apply(scale_denominator);
 
         if (palette.get())
@@ -1991,81 +2090,96 @@ Handle<Value> Map::renderSync(const Arguments& args)
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
-    #if NODE_VERSION_AT_LEAST(0, 11, 0)
-    return scope.Close(node::Buffer::New((char*)s.data(),s.size()));
-    #else
-    return scope.Close(node::Buffer::New((char*)s.data(),s.size())->handle_);
-    #endif
+    NanReturnValue(NanNewBufferHandle((char*)s.data(), s.size()));
 }
 
-Handle<Value> Map::renderFileSync(const Arguments& args)
+NAN_METHOD(Map::renderFileSync)
 {
-    HandleScope scope;
-    if (args.Length() < 1 || !args[0]->IsString())
-        return ThrowException(Exception::TypeError(
-                                  String::New("first argument must be a path to a file to save")));
+    NanScope();
+    if (args.Length() < 1 || !args[0]->IsString()) {
+        NanThrowTypeError("first argument must be a path to a file to save");
+        NanReturnUndefined();
+    }
 
-    if (args.Length() > 2)
-        return ThrowException(Exception::TypeError(
-                                  String::New("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}")));
+    if (args.Length() > 2) {
+        NanThrowError("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}");
+        NanReturnUndefined();
+    }
 
     // defaults
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
+    int buffer_size = 0;
     std::string format = "png";
     palette_ptr palette;
 
     if (args.Length() >= 2){
-        if (!args[1]->IsObject())
-            return ThrowException(Exception::TypeError(
-                                      String::New("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}")));
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
+            NanReturnUndefined();
+        }
 
-        Local<Object> options = args[1]->ToObject();
-        if (options->Has(String::New("format")))
+        Local<Object> options = args[1].As<Object>();
+        if (options->Has(NanNew("format")))
         {
-            Local<Value> format_opt = options->Get(String::New("format"));
-            if (!format_opt->IsString())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'format' must be a String")));
+            Local<Value> format_opt = options->Get(NanNew("format"));
+            if (!format_opt->IsString()) {
+                NanThrowTypeError("'format' must be a String");
+                NanReturnUndefined();
+            }
 
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(String::New("palette")))
+        if (options->Has(NanNew("palette")))
         {
-            Local<Value> format_opt = options->Get(String::New("palette"));
-            if (!format_opt->IsObject())
-                return ThrowException(Exception::TypeError(
-                                          String::New("'palette' must be an object")));
+            Local<Value> format_opt = options->Get(NanNew("palette"));
+            if (!format_opt->IsObject()) {
+                NanThrowTypeError("'palette' must be an object");
+                NanReturnUndefined();
+            }
 
             Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !Palette::constructor->HasInstance(obj))
-                return ThrowException(Exception::TypeError(String::New("mapnik.Palette expected as second arg")));
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
+                NanThrowTypeError("mapnik.Palette expected as second arg");
+                NanReturnUndefined();
+            }
 
             palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
-        if (options->Has(String::New("scale"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale' must be a number")));
+        if (options->Has(NanNew("scale"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_factor = bind_opt->NumberValue();
         }
-        if (options->Has(String::New("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(String::New("scale_denominator"));
-            if (!bind_opt->IsNumber())
-                return ThrowException(Exception::TypeError(
-                                          String::New("optional arg 'scale_denominator' must be a number")));
+        if (options->Has(NanNew("scale_denominator"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
+                NanReturnUndefined();
+            }
 
             scale_denominator = bind_opt->NumberValue();
         }
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+
+            buffer_size = bind_opt->IntegerValue();
+        }
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.This());
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     std::string output = TOSTR(args[0]);
 
     if (format.empty()) {
@@ -2073,8 +2187,8 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << output << "\n";
-            return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
+            NanThrowError(s.str().c_str());
+            NanReturnUndefined();
         }
     }
 
@@ -2087,23 +2201,29 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
 #if MAPNIK_VERSION > 200200
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
 #else
-#if MAPNIK_VERSION >= 200100
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
-#else
-            mapnik::save_to_cairo_file(*m->map_,output,format);
-#endif
 #endif
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
-            return ThrowException(Exception::Error(
-                                      String::New(s.str().c_str())));
+            NanThrowError(s.str().c_str());
+            NanReturnUndefined();
 #endif
         }
         else
         {
             mapnik::image_32 im(m->map_->width(),m->map_->height());
-            mapnik::agg_renderer<mapnik::image_32> ren(*m->map_,im,scale_factor);
+            mapnik::Map const& map = *m->map_;
+            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+            m_req.set_buffer_size(buffer_size);
+            mapnik::agg_renderer<mapnik::image_32> ren(map,
+                                                   m_req,
+#if MAPNIK_VERSION >= 300000
+                                                   mapnik::attributes(),
+#endif
+                                                   im,
+                                                   scale_factor);
+
             ren.apply(scale_denominator);
 
             if (palette.get())
@@ -2117,8 +2237,8 @@ Handle<Value> Map::renderFileSync(const Arguments& args)
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
-    return Undefined();
+    NanReturnUndefined();
 }

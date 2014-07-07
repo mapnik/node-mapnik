@@ -58,6 +58,7 @@
       'dependencies': [ 'action_before_build' ],
       'sources': [
           "src/node_mapnik.cpp",
+          "src/blend.cpp",
           "src/mapnik_map.cpp",
           "src/mapnik_color.cpp",
           "src/mapnik_geometry.cpp",
@@ -80,7 +81,8 @@
       'include_dirs': [
           './node_modules/mapnik-vector-tile/src/',
           '<(SHARED_INTERMEDIATE_DIR)/',
-          './src'
+          './src',
+          "<!(node -e \"require('nan')\")"
       ],
       'conditions': [
         ['OS=="win"', {
@@ -95,7 +97,7 @@
                 '<!@(mapnik-config --dep-libs)',
                 '<@(PROTOBUF_LIBRARY)'
             ],
-            'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804 ],
+            'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
               'VCCLCompilerTool': {
                 # uneeded now that they are in common.gypi VCCLCompilerTool

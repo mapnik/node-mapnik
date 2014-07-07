@@ -1,9 +1,6 @@
 #include "mapnik_layer.hpp"
 
-#include "node.h"                       // for NODE_SET_PROTOTYPE_METHOD
-#include "node_object_wrap.h"           // for ObjectWrap
 #include "utils.hpp"                    // for TOSTR, ATTR, etc
-#include "v8.h"                         // for String, Handle, Object, etc
 
 #include "mapnik_datasource.hpp"
 #include "mapnik_memory_datasource.hpp"
@@ -33,22 +30,23 @@ Persistent<FunctionTemplate> Layer::constructor;
 
 void Layer::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Layer::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Layer"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Layer::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Layer"));
 
     // methods
-    NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
 
     // properties
-    ATTR(constructor, "name", get_prop, set_prop);
-    ATTR(constructor, "srs", get_prop, set_prop);
-    ATTR(constructor, "styles", get_prop, set_prop);
-    ATTR(constructor, "datasource", get_prop, set_prop);
+    ATTR(lcons, "name", get_prop, set_prop);
+    ATTR(lcons, "srs", get_prop, set_prop);
+    ATTR(lcons, "styles", get_prop, set_prop);
+    ATTR(lcons, "datasource", get_prop, set_prop);
 
-    target->Set(String::NewSymbol("Layer"),constructor->GetFunction());
+    target->Set(NanNew("Layer"),lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Layer::Layer(std::string const& name):
@@ -66,101 +64,101 @@ Layer::Layer():
 
 Layer::~Layer() {}
 
-Handle<Value> Layer::New(const Arguments& args)
+NAN_METHOD(Layer::New)
 {
-    HandleScope scope;
+    NanScope();
 
-    if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    if (!args.IsConstructCall()) {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Layer* l =  static_cast<Layer*>(ptr);
         l->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
 
     if (args.Length() == 1)
     {
         if (!args[0]->IsString())
         {
-            return ThrowException(Exception::TypeError(
-                                      String::New("'name' must be a string")));
+            NanThrowTypeError("'name' must be a string");
+            NanReturnUndefined();
         }
         Layer* l = new Layer(TOSTR(args[0]));
         l->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     else if (args.Length() == 2)
     {
-        if (!args[0]->IsString() || !args[1]->IsString())
-            return ThrowException(Exception::TypeError(
-                                      String::New("'name' and 'srs' must be a strings")));
+        if (!args[0]->IsString() || !args[1]->IsString()) {
+            NanThrowTypeError("'name' and 'srs' must be a strings");
+            NanReturnUndefined();
+        }
         Layer* l = new Layer(TOSTR(args[0]),TOSTR(args[1]));
         l->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     else
     {
-        return ThrowException(Exception::TypeError(
-                                  String::New("please provide Layer name and optional srs")));
+        NanThrowTypeError("please provide Layer name and optional srs");
+        NanReturnUndefined();
     }
-    return args.This();
+    NanReturnValue(args.This());
 }
 
 Handle<Value> Layer::New(mapnik::layer const& lay_ref) {
-    HandleScope scope;
+    NanEscapableScope();
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
     l->layer_ = MAPNIK_MAKE_SHARED<mapnik::layer>(lay_ref);
-    Handle<Value> ext = External::New(l);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(l);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 }
 
-Handle<Value> Layer::get_prop(Local<String> property,
-                              const AccessorInfo& info)
+NAN_GETTER(Layer::get_prop)
 {
-    HandleScope scope;
-    Layer* l = node::ObjectWrap::Unwrap<Layer>(info.This());
+    NanScope();
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(args.Holder());
     std::string a = TOSTR(property);
     if (a == "name")
-        return scope.Close(String::New(l->layer_->name().c_str()));
+        NanReturnValue(NanNew(l->layer_->name().c_str()));
     else if (a == "srs")
-        return scope.Close(String::New(l->layer_->srs().c_str()));
+        NanReturnValue(NanNew(l->layer_->srs().c_str()));
     else if (a == "styles") {
         std::vector<std::string> const& style_names = l->layer_->styles();
-        Local<Array> s = Array::New(style_names.size());
+        Local<Array> s = NanNew<Array>(style_names.size());
         for (unsigned i = 0; i < style_names.size(); ++i)
         {
-            s->Set(i, String::New(style_names[i].c_str()) );
+            s->Set(i, NanNew(style_names[i].c_str()) );
         }
-        return scope.Close(s);
+        NanReturnValue(s);
     }
     else if (a == "datasource") {
         mapnik::datasource_ptr ds = l->layer_->datasource();
         if (ds)
         {
-            return scope.Close(Datasource::New(ds));
+            NanReturnValue(Datasource::New(ds));
         }
     }
-    return Undefined();
+    NanReturnUndefined();
 }
 
-void Layer::set_prop(Local<String> property,
-                     Local<Value> value,
-                     const AccessorInfo& info)
+NAN_SETTER(Layer::set_prop)
 {
-    HandleScope scope;
-    Layer* l = node::ObjectWrap::Unwrap<Layer>(info.This());
+    NanScope();
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(args.Holder());
     std::string a = TOSTR(property);
     if (a == "name")
     {
         if (!value->IsString()) {
-            ThrowException(Exception::Error(
-                               String::New("'name' must be a string")));
+            NanThrowTypeError("'name' must be a string");
+            return;
         } else {
             l->layer_->set_name(TOSTR(value));
         }
@@ -168,19 +166,19 @@ void Layer::set_prop(Local<String> property,
     else if (a == "srs")
     {
         if (!value->IsString()) {
-            ThrowException(Exception::Error(
-                               String::New("'srs' must be a string")));
+            NanThrowTypeError("'srs' must be a string");
+            return;
         } else {
             l->layer_->set_srs(TOSTR(value));
         }
     }
     else if (a == "styles")
     {
-        if (!value->IsArray())
-            ThrowException(Exception::Error(
-                               String::New("Must provide an array of style names")));
-        else {
-            Local<Array> arr = Local<Array>::Cast(value->ToObject());
+        if (!value->IsArray()) {
+            NanThrowTypeError("Must provide an array of style names");
+            return;
+        } else {
+            Local<Array> arr = value.As<Array>();
             // todo - how to check if cast worked?
             unsigned int i = 0;
             unsigned int a_length = arr->Length();
@@ -192,87 +190,89 @@ void Layer::set_prop(Local<String> property,
     }
     else if (a == "datasource")
     {
-        Local<Object> obj = value->ToObject();
+        Local<Object> obj = value.As<Object>();
         if (value->IsNull() || value->IsUndefined()) {
-            ThrowException(Exception::TypeError(String::New("mapnik.Datasource, or mapnik.MemoryDatasource instance expected")));
+            NanThrowTypeError("mapnik.Datasource, or mapnik.MemoryDatasource instance expected");
+            return;
         } else {
-            if (Datasource::constructor->HasInstance(obj)) {
+            if (NanNew(Datasource::constructor)->HasInstance(obj)) {
                 Datasource *d = node::ObjectWrap::Unwrap<Datasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
-            /*else if (JSDatasource::constructor->HasInstance(obj))
+            /*else if (NanNew(JSDatasource::constructor)->HasInstance(obj))
             {
                 JSDatasource *d = node::ObjectWrap::Unwrap<JSDatasource>(obj);
                 l->layer_->set_datasource(d->get());
             }*/
-            else if (MemoryDatasource::constructor->HasInstance(obj))
+            else if (NanNew(MemoryDatasource::constructor)->HasInstance(obj))
             {
                 MemoryDatasource *d = node::ObjectWrap::Unwrap<MemoryDatasource>(obj);
                 l->layer_->set_datasource(d->get());
             }
             else
             {
-                ThrowException(Exception::TypeError(String::New("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected")));
+                NanThrowTypeError("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected");
+                return;
             }
         }
     }
 }
 
-Handle<Value> Layer::describe(const Arguments& args)
+NAN_METHOD(Layer::describe)
 {
-    HandleScope scope;
+    NanScope();
 
-    Layer* l = node::ObjectWrap::Unwrap<Layer>(args.This());
+    Layer* l = node::ObjectWrap::Unwrap<Layer>(args.Holder());
 
-    Local<Object> description = Object::New();
+    Local<Object> description = NanNew<Object>();
     mapnik::layer const& layer = *l->layer_;
     if ( layer.name() != "" )
     {
-        description->Set(String::NewSymbol("name"), String::New(layer.name().c_str()));
+        description->Set(NanNew("name"), NanNew(layer.name().c_str()));
     }
 
     if ( layer.srs() != "" )
     {
-        description->Set(String::NewSymbol("srs"), String::New(layer.srs().c_str()));
+        description->Set(NanNew("srs"), NanNew(layer.srs().c_str()));
     }
 
     if ( !layer.active())
     {
-        description->Set(String::NewSymbol("status"), Boolean::New(layer.active()));
+        description->Set(NanNew("status"), NanNew<Boolean>(layer.active()));
     }
 
     if ( layer.clear_label_cache())
     {
-        description->Set(String::NewSymbol("clear_label_cache"), Boolean::New(layer.clear_label_cache()));
+        description->Set(NanNew("clear_label_cache"), NanNew<Boolean>(layer.clear_label_cache()));
     }
 
     if ( layer.min_zoom() > 0)
     {
-        description->Set(String::NewSymbol("minzoom"), Number::New(layer.min_zoom()));
+        description->Set(NanNew("minzoom"), NanNew<Number>(layer.min_zoom()));
     }
 
     if ( layer.max_zoom() != std::numeric_limits<double>::max() )
     {
-        description->Set(String::NewSymbol("maxzoom"), Number::New(layer.max_zoom()));
+        description->Set(NanNew("maxzoom"), NanNew<Number>(layer.max_zoom()));
     }
 
     if ( layer.queryable())
     {
-        description->Set(String::NewSymbol("queryable"), Boolean::New(layer.queryable()));
+        description->Set(NanNew("queryable"), NanNew<Boolean>(layer.queryable()));
     }
 
     std::vector<std::string> const& style_names = layer.styles();
-    Local<Array> s = Array::New(style_names.size());
+    Local<Array> s = NanNew<Array>(style_names.size());
     for (unsigned i = 0; i < style_names.size(); ++i)
     {
-        s->Set(i, String::New(style_names[i].c_str()) );
+        s->Set(i, NanNew(style_names[i].c_str()) );
     }
 
-    description->Set(String::NewSymbol("styles"), s );
+    description->Set(NanNew("styles"), s );
 
     mapnik::datasource_ptr datasource = layer.datasource();
-    Local<v8::Object> ds = Object::New();
-    description->Set(String::NewSymbol("datasource"), ds );
+    Local<v8::Object> ds = NanNew<Object>();
+    description->Set(NanNew("datasource"), ds );
     if ( datasource )
     {
         mapnik::parameters::const_iterator it = datasource->params().begin();
@@ -284,7 +284,7 @@ Handle<Value> Layer::describe(const Arguments& args)
         }
     }
 
-    return scope.Close(description);
+    NanReturnValue(description);
 }
 
 #if MAPNIK_VERSION <= 200000

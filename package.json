@@ -4,7 +4,7 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version"       : "1.4.6-query-v2",
+  "version"       : "1.4.11-query-v2",
   "main"          : "./lib/mapnik.js",
   "binary": {
       "module_name": "mapnik",
@@ -36,8 +36,9 @@
       }
   ],
   "dependencies"  : {
+      "nan": "~1.2.0",
       "mapnik-vector-tile": "~0.5.1",
-      "node-pre-gyp":"https://github.com/mapbox/node-pre-gyp/tarball/master"
+      "node-pre-gyp":"0.5.17"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",
@@ -48,15 +49,15 @@
        "mapnik-render.js"  : "./bin/mapnik-render.js"
   },
   "engines"       : {
-      "node": ">= 0.8.0 < 0.11.4"
+      "node": ">= 0.8.0 < 0.13"
   },
   "scripts"       : {
-      "test"    : "mocha -R spec --no-colors",
+      "test"    : "mocha -R spec",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
     "sphericalmercator": "~1.0.2",
-    "mocha": "~1.15.1",
+    "mocha": "1.x",
     "aws-sdk": "~2.0.0-rc.19"
   }
 }

@@ -68,10 +68,10 @@ function get_image_vtile() {
 
 function compare_to_image(actual,expected_file) {
     if (!existsSync(expected_file)) {
-        fs.writeFileSync(expected_file,actual);
+        console.log('generating expected image',expected_file)
+        actual.save(expected_file,"png32");
     }
-    var expected = fs.readFileSync(expected_file);
-    return actual.length == expected.length;
+    return actual.compare(new mapnik.Image.open(expected_file));
 }
 
 describe('mapnik.VectorTile.composite', function() {
@@ -135,9 +135,8 @@ describe('mapnik.VectorTile.composite', function() {
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),function(err,im) {
                 if (err) throw err;
-                var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/concat.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.equal(0,compare_to_image(im,expected_file));
                 done();
             })
         })
@@ -160,9 +159,8 @@ describe('mapnik.VectorTile.composite', function() {
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),function(err,im) {
                 if (err) throw err;
-                var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/image_concat.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.ok(compare_to_image(im,expected_file) < 525);
                 done();
             })
         })
@@ -192,9 +190,8 @@ describe('mapnik.VectorTile.composite', function() {
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
                 if (err) throw err;
-                var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.equal(0,compare_to_image(im,expected_file));
                 done();
             })
         })
@@ -213,9 +210,8 @@ describe('mapnik.VectorTile.composite', function() {
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
                 if (err) throw err;
-                var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1-empty.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.equal(0,compare_to_image(im,expected_file));
                 done();
             })
         })
@@ -235,9 +231,8 @@ describe('mapnik.VectorTile.composite', function() {
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
                 if (err) throw err;
-                var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/2-1-1-no-point.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.equal(0,compare_to_image(im,expected_file));
                 done();
             })
         })
@@ -267,9 +262,8 @@ describe('mapnik.VectorTile.composite', function() {
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
                 if (err) throw err;
-                var actual = im.encodeSync('png32');
                 var expected_file = data_base +'/expected/0-0-0-mosaic.png';
-                assert.ok(compare_to_image(actual,expected_file));
+                assert.equal(0,compare_to_image(im,expected_file));
                 done();
             })
         })

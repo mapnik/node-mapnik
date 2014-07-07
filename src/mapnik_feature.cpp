@@ -2,11 +2,6 @@
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
 
-// node
-#include <node.h>
-#include <node_buffer.h>
-#include <node_version.h>
-
 // mapnik
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
@@ -17,34 +12,33 @@
 #include <boost/scoped_ptr.hpp>
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
-#if MAPNIK_VERSION >= 200100
 #include <mapnik/json/geojson_generator.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 static mapnik::json::feature_generator generator;
-#endif
 
 Persistent<FunctionTemplate> Feature::constructor;
 
 void Feature::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(Feature::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("Feature"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Feature::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("Feature"));
 
-    NODE_SET_PROTOTYPE_METHOD(constructor, "id", id);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "extent", extent);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "attributes", attributes);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "addGeometry", addGeometry);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "addAttributes", addAttributes);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "numGeometries", numGeometries);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toString", toString);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toJSON", toJSON);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toWKB", toWKB);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "toWKT", toWKT);
-    target->Set(String::NewSymbol("Feature"),constructor->GetFunction());
+    NODE_SET_PROTOTYPE_METHOD(lcons, "id", id);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "attributes", attributes);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "addGeometry", addGeometry);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "addAttributes", addAttributes);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "numGeometries", numGeometries);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toWKB", toWKB);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toWKT", toWKT);
+    target->Set(NanNew("Feature"),lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 Feature::Feature(mapnik::feature_ptr f) :
@@ -54,89 +48,87 @@ Feature::Feature(mapnik::feature_ptr f) :
 Feature::Feature(int id) :
     ObjectWrap(),
     this_() {
-#if MAPNIK_VERSION >= 200100
     // TODO - accept/require context object to reused
     ctx_ = MAPNIK_MAKE_SHARED<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
-#else
-    this_ = mapnik::feature_factory::create(id);
-#endif
 }
 
 Feature::~Feature()
 {
 }
 
-Handle<Value> Feature::New(const Arguments& args)
+NAN_METHOD(Feature::New)
 {
-    HandleScope scope;
+    NanScope();
 
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
-        Local<External> ext = Local<External>::Cast(args[0]);
+        Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Feature* f =  static_cast<Feature*>(ptr);
         f->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
 
     // TODO - expose mapnik.Context
 
     if (args.Length() > 1 || args.Length() < 1 || !args[0]->IsNumber()) {
-        return ThrowException(Exception::TypeError(
-                                  String::New("requires one argument: an integer feature id")));
+        NanThrowTypeError("requires one argument: an integer feature id");
+        NanReturnUndefined();
     }
 
     Feature* f = new Feature(args[0]->IntegerValue());
     f->Wrap(args.This());
-    return args.This();
+    NanReturnValue(args.This());
 }
 
 Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
 {
-    HandleScope scope;
+    NanEscapableScope();
     Feature* f = new Feature(f_ptr);
-    Handle<Value> ext = External::New(f);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(f);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 }
 
-Handle<Value> Feature::id(const Arguments& args)
+NAN_METHOD(Feature::id)
 {
-    HandleScope scope;
+    NanScope();
 
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
-    return scope.Close(Number::New(fp->get()->id()));
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
+    NanReturnValue(NanNew<Number>(fp->get()->id()));
 }
 
-Handle<Value> Feature::extent(const Arguments& args)
+NAN_METHOD(Feature::extent)
 {
-    HandleScope scope;
+    NanScope();
 
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
 
-    Local<Array> a = Array::New(4);
+    Local<Array> a = NanNew<Array>(4);
     mapnik::box2d<double> const& e = fp->get()->envelope();
-    a->Set(0, Number::New(e.minx()));
-    a->Set(1, Number::New(e.miny()));
-    a->Set(2, Number::New(e.maxx()));
-    a->Set(3, Number::New(e.maxy()));
+    a->Set(0, NanNew<Number>(e.minx()));
+    a->Set(1, NanNew<Number>(e.miny()));
+    a->Set(2, NanNew<Number>(e.maxx()));
+    a->Set(3, NanNew<Number>(e.maxy()));
 
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-Handle<Value> Feature::attributes(const Arguments& args)
+NAN_METHOD(Feature::attributes)
 {
-    HandleScope scope;
+    NanScope();
 
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
 
-    Local<Object> feat = Object::New();
+    Local<Object> feat = NanNew<Object>();
 
-#if MAPNIK_VERSION >= 200100
     mapnik::feature_ptr feature = fp->get();
     mapnik::feature_impl::iterator itr = feature->begin();
     mapnik::feature_impl::iterator end = feature->end();
@@ -145,40 +137,31 @@ Handle<Value> Feature::attributes(const Arguments& args)
         node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
         boost::apply_visitor( serializer, MAPNIK_GET<1>(*itr).base() );
     }
-#else
-    std::map<std::string,mapnik::value> const& fprops = fp->get()->props();
-    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-    for (; it != end; ++it)
-    {
-        node_mapnik::params_to_object serializer( feat , it->first);
-        boost::apply_visitor( serializer, it->second.base() );
-    }
-#endif
-    return scope.Close(feat);
+    NanReturnValue(feat);
 }
 
-Handle<Value> Feature::numGeometries(const Arguments& args)
+NAN_METHOD(Feature::numGeometries)
 {
-    HandleScope scope;
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
-    return scope.Close(Integer::New(fp->get()->num_geometries()));
+    NanScope();
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
+    NanReturnValue(NanNew<Integer>(fp->get()->num_geometries()));
 }
 
 // TODO void?
-Handle<Value> Feature::addGeometry(const Arguments& args)
+NAN_METHOD(Feature::addGeometry)
 {
-    HandleScope scope;
+    NanScope();
 
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
 
     if (args.Length() >= 1 ) {
         Local<Value> value = args[0];
         if (value->IsNull() || value->IsUndefined()) {
-            return ThrowException(Exception::TypeError(String::New("mapnik.Geometry instance expected")));
+            NanThrowTypeError("mapnik.Geometry instance expected");
+            NanReturnUndefined();
         } else {
             Local<Object> obj = value->ToObject();
-            if (Geometry::constructor->HasInstance(obj)) {
+            if (NanNew(Geometry::constructor)->HasInstance(obj)) {
                 Geometry* g = node::ObjectWrap::Unwrap<Geometry>(obj);
 
                 try
@@ -187,28 +170,29 @@ Handle<Value> Feature::addGeometry(const Arguments& args)
                 }
                 catch (std::exception const& ex )
                 {
-                    return ThrowException(Exception::Error(
-                                              String::New(ex.what())));
+                    NanThrowError(ex.what());
+                    NanReturnUndefined();
                 }
             }
         }
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Feature::addAttributes(const Arguments& args)
+NAN_METHOD(Feature::addAttributes)
 {
-    HandleScope scope;
+    NanScope();
 
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
 
     if (args.Length() > 0 ) {
         Local<Value> val = args[0];
         if (val->IsNull() || val->IsUndefined()) {
-            return ThrowException(Exception::TypeError(String::New("object expected")));
+            NanThrowTypeError("object expected");
+            NanReturnUndefined();
         } else {
-            Local<Object> attr = val->ToObject();
+            Local<Object> attr = val.As<Object>();
             try
             {
                 Local<Array> names = attr->GetPropertyNames();
@@ -220,35 +204,18 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
                     Local<Value> value = attr->Get(name);
                     if (value->IsString()) {
                         mapnik::value_unicode_string ustr = tr->transcode(TOSTR(value));
-#if MAPNIK_VERSION >= 200100
                         fp->get()->put_new(TOSTR(name),ustr);
-#else
-                        boost::put(*fp->get(),TOSTR(name),ustr);
-#endif
                     } else if (value->IsNumber()) {
                         double num = value->NumberValue();
                         // todo - round
                         if (num == value->IntegerValue()) {
-#if MAPNIK_VERSION >= 200100
                             fp->get()->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
-#else
-                            boost::put(*fp->get(),TOSTR(name),static_cast<int>(value->IntegerValue()));
-#endif
-
                         } else {
                             double dub_val = value->NumberValue();
-#if MAPNIK_VERSION >= 200100
                             fp->get()->put_new(TOSTR(name),dub_val);
-#else
-                            boost::put(*fp->get(),TOSTR(name),dub_val);
-#endif
                         }
                     } else if (value->IsNull()) {
-#if MAPNIK_VERSION >= 200100
                         fp->get()->put_new(TOSTR(name),mapnik::value_null());
-#else
-                        boost::put(*fp->get(),TOSTR(name),mapnik::value_null());
-#endif
                     } else {
                         std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                     }
@@ -257,81 +224,56 @@ Handle<Value> Feature::addAttributes(const Arguments& args)
             }
             catch (std::exception const& ex )
             {
-                return ThrowException(Exception::Error(
-                                          String::New(ex.what())));
+                NanThrowError(ex.what());
+                NanReturnUndefined();
             }
         }
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> Feature::toString(const Arguments& args)
+NAN_METHOD(Feature::toString)
 {
-    HandleScope scope;
+    NanScope();
 
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
-    return scope.Close(String::New(fp->get()->to_string().c_str()));
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
+    NanReturnValue(NanNew(fp->get()->to_string().c_str()));
 }
 
-Handle<Value> Feature::toJSON(const Arguments& args)
+NAN_METHOD(Feature::toJSON)
 {
-    HandleScope scope;
+    NanScope();
 
     std::string json;
-#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
     // TODO - create once?
     if (!generator.generate(json,*(fp->get())))
     {
-        return ThrowException(Exception::Error(
-                                  String::New("Failed to generate GeoJSON")));
+        NanThrowError("Failed to generate GeoJSON");
+        NanReturnUndefined();
     }
-#else
-    return ThrowException(Exception::Error(
-                              String::New("GeoJSON output requires at least boost 1.47 and mapnik 2.1.x")));
-#endif
-
-    return scope.Close(String::New(json.c_str()));
+    NanReturnValue(NanNew(json.c_str()));
 }
 
-Handle<Value> Feature::toWKT(const Arguments& args)
+NAN_METHOD(Feature::toWKT)
 {
-    HandleScope scope;
-
+    NanScope();
     std::string wkt;
-#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
-
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
     if (!mapnik::util::to_wkt(wkt, fp->get()->paths()))
     {
-        return ThrowException(Exception::Error(
-                                String::New("Failed to generate WKT")));
+        NanThrowError("Failed to generate WKT");
+        NanReturnUndefined();
     }
-#else
-    return ThrowException(Exception::Error(
-                              String::New("WKT output requires at least boost 1.47 and mapnik 2.1.x")));
-#endif
-
-    return scope.Close(String::New(wkt.c_str()));
+    NanReturnValue(NanNew(wkt.c_str()));
 }
 
-Handle<Value> Feature::toWKB(const Arguments& args)
+NAN_METHOD(Feature::toWKB)
 {
-    HandleScope scope;
-
+    NanScope();
     std::string wkt;
-#if BOOST_VERSION >= 104700 && MAPNIK_VERSION >= 200100
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.This());
-
+    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(fp->get()->paths(), mapnik::util::wkbNDR);
-    #if NODE_VERSION_AT_LEAST(0, 11, 0)
-    return scope.Close(node::Buffer::New(wkb->buffer(), wkb->size()));
-    #else
-    return scope.Close(node::Buffer::New(wkb->buffer(), wkb->size())->handle_);
-    #endif
-#else
-    return ThrowException(Exception::Error(
-                              String::New("WKB output requires at least boost 1.47 and mapnik 2.1.x")));
-#endif
+    NanReturnValue(NanNewBufferHandle(wkb->buffer(), wkb->size()));
 }

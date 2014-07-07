@@ -1,8 +1,7 @@
 #ifndef __NODE_MAPNIK_PALETTE_H__
 #define __NODE_MAPNIK_PALETTE_H__
 
-#include <v8.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 // boost
 #include MAPNIK_SHARED_INCLUDE
@@ -19,10 +18,10 @@ public:
 
     explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
+    static NAN_METHOD(New);
 
-    static Handle<Value> ToString(const Arguments& args);
-    static Handle<Value> ToBuffer(const Arguments& args);
+    static NAN_METHOD(ToString);
+    static NAN_METHOD(ToBuffer);
 
     inline palette_ptr palette() { return palette_; }
 private:

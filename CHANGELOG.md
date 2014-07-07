@@ -1,5 +1,40 @@
 # Changelog
 
+## Future
+
+Notable changes in the Mapnik SDK include:
+ - Windows binaries now have WEBP support enabled
+
+## 1.4.11
+
+ - Fixed shasum error in npm package by republishing with node v0.10.x (rather than node v0.11.13).
+
+## 1.4.10
+
+ - Fixed version of bundled node-pre-gyp
+
+## 1.4.9
+
+ - New mapnik.blend function that implements the node-blend API (https://github.com/mapbox/node-blend#usage)
+ - Now supporting node v0.11.x via Nan@1.2.0
+ - Binaries updated to use Mapnik v2.3.x at 7c7da1a2f and mapnik-packaging@1bbd8d560e9
+
+Notable changes in the Mapnik SDK include:
+ - Now building GDAL master (2.x) at https://github.com/OSGeo/gdal/commit/1106e43682056645c8c5e0dbf6ebcb69f8bf23cc
+ - Mapnik image-filters now support correct alpha blending.
+ - Mapnik PNG miniz encoding fixed.
+ - Mapnik can now register fonts from directories containing non-ascii characters on windows.
+
+## 1.4.8
+
+ - Never happened (npm shasum for published package was busted)
+
+## 1.4.7
+ - Added `mapnik.Image.compare` function to compare the pixels of two images.
+ - Fixed build issue leading to broken `ogr.input` Mapnik plugin
+ - Auto-registers fonts found in paths via the `MAPNIK_FONT_PATH` environment
+   variable
+
 ## 1.4.6
  - vtile.parse no longer throws if `vtile` was previously composited but no new data resulted.
  - Fixed compile problem on some linux/bsd systems

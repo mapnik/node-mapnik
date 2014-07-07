@@ -1,4 +1,3 @@
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
@@ -22,20 +21,21 @@ Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
 void MemoryDatasource::Initialize(Handle<Object> target) {
 
-    HandleScope scope;
+    NanScope();
 
-    constructor = Persistent<FunctionTemplate>::New(FunctionTemplate::New(MemoryDatasource::New));
-    constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(String::NewSymbol("MemoryDatasource"));
+    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(MemoryDatasource::New);
+    lcons->InstanceTemplate()->SetInternalFieldCount(1);
+    lcons->SetClassName(NanNew("MemoryDatasource"));
 
     // methods
-    NODE_SET_PROTOTYPE_METHOD(constructor, "parameters", parameters);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "features", features);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "featureset", featureset);
-    NODE_SET_PROTOTYPE_METHOD(constructor, "add", add);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "parameters", parameters);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "features", features);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "add", add);
 
-    target->Set(String::NewSymbol("MemoryDatasource"),constructor->GetFunction());
+    target->Set(NanNew("MemoryDatasource"), lcons->GetFunction());
+    NanAssignPersistent(constructor, lcons);
 }
 
 MemoryDatasource::MemoryDatasource() :
@@ -48,12 +48,15 @@ MemoryDatasource::~MemoryDatasource()
 {
 }
 
-Handle<Value> MemoryDatasource::New(const Arguments& args)
+NAN_METHOD(MemoryDatasource::New)
 {
-    HandleScope scope;
+    NanScope();
 
     if (!args.IsConstructCall())
-        return ThrowException(String::New("Cannot call constructor as function, you need to use 'new' keyword"));
+    {
+        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        NanReturnUndefined();
+    }
 
     if (args[0]->IsExternal())
     {
@@ -62,18 +65,20 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
         void* ptr = ext->Value();
         MemoryDatasource* d =  static_cast<MemoryDatasource*>(ptr);
         d->Wrap(args.This());
-        return args.This();
+        NanReturnValue(args.This());
     }
     if (args.Length() != 1){
-        return ThrowException(Exception::TypeError(
-                                  String::New("accepts only one argument, an object of key:value datasource options")));
+        NanThrowTypeError("accepts only one argument, an object of key:value datasource options");
+        NanReturnUndefined();
     }
 
     if (!args[0]->IsObject())
-        return ThrowException(Exception::TypeError(
-                                  String::New("Must provide an object, eg {type: 'shape', file : 'world.shp'}")));
+    {
+        NanThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
+        NanReturnUndefined();
+    }
 
-    Local<Object> options = args[0]->ToObject();
+    Local<Object> options = args[0].As<Object>();
 
     mapnik::parameters params;
     Local<Array> names = options->GetPropertyNames();
@@ -85,28 +90,33 @@ Handle<Value> MemoryDatasource::New(const Arguments& args)
         params[TOSTR(name)] = TOSTR(value);
         i++;
     }
+    params["type"] = "memory";
 
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
+#if MAPNIK_VERSION >= 300000
+    d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+#else
     d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
-    return args.This();
+#endif
+    NanReturnValue(args.This());
 }
 
 Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
-    HandleScope scope;
+    NanEscapableScope();
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
-    Handle<Value> ext = External::New(d);
-    Handle<Object> obj = constructor->GetFunction()->NewInstance(1, &ext);
-    return scope.Close(obj);
+    Handle<Value> ext = NanNew<External>(d);
+    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+    return NanEscapeScope(obj);
 }
 
-Handle<Value> MemoryDatasource::parameters(const Arguments& args)
+NAN_METHOD(MemoryDatasource::parameters)
 {
-    HandleScope scope;
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
-    Local<Object> ds = Object::New();
+    NanScope();
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
+    Local<Object> ds = NanNew<Object>();
     if (d->datasource_) {
         mapnik::parameters::const_iterator it = d->datasource_->params().begin();
         mapnik::parameters::const_iterator end = d->datasource_->params().end();
@@ -116,31 +126,31 @@ Handle<Value> MemoryDatasource::parameters(const Arguments& args)
             boost::apply_visitor( serializer, it->second );
         }
     }
-    return scope.Close(ds);
+    NanReturnValue(ds);
 }
 
-Handle<Value> MemoryDatasource::describe(const Arguments& args)
+NAN_METHOD(MemoryDatasource::describe)
 {
-    HandleScope scope;
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
-    Local<Object> description = Object::New();
+    NanScope();
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
+    Local<Object> description = NanNew<Object>();
     if (d->datasource_) {
         try {
             node_mapnik::describe_datasource(description,d->datasource_);
         }
         catch (std::exception const& ex)
         {
-            return ThrowException(Exception::Error(
-                                      String::New(ex.what())));
+            NanThrowError(ex.what());
+            NanReturnUndefined();
         }
     }
-    return scope.Close(description);
+    NanReturnValue(description);
 }
 
-Handle<Value> MemoryDatasource::features(const Arguments& args)
+NAN_METHOD(MemoryDatasource::features)
 {
 
-    HandleScope scope;
+    NanScope();
 
     unsigned first = 0;
     unsigned last = 0;
@@ -148,16 +158,18 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
     if (args.Length() == 2)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
-            return ThrowException(Exception::Error(
-                                      String::New("Index of 'first' and 'last' feature must be an integer")));
+        {
+            NanThrowError("Index of 'first' and 'last' feature must be an integer");
+            NanReturnUndefined();
+        }
         first = args[0]->IntegerValue();
         last = args[1]->IntegerValue();
     }
 
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
 
     // TODO - we don't know features.length at this point
-    Local<Array> a = Array::New(0);
+    Local<Array> a = NanNew<Array>(0);
     if (d->datasource_)
     {
         try
@@ -166,20 +178,20 @@ Handle<Value> MemoryDatasource::features(const Arguments& args)
         }
         catch (std::exception const& ex)
         {
-            return ThrowException(Exception::Error(
-                                      String::New(ex.what())));
+            NanThrowError(ex.what());
+            NanReturnUndefined();
         }
     }
 
-    return scope.Close(a);
+    NanReturnValue(a);
 }
 
-Handle<Value> MemoryDatasource::featureset(const Arguments& args)
+NAN_METHOD(MemoryDatasource::featureset)
 {
 
-    HandleScope scope;
+    NanScope();
 
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
 
     try
     {
@@ -197,57 +209,55 @@ Handle<Value> MemoryDatasource::featureset(const Arguments& args)
             mapnik::featureset_ptr fs = d->datasource_->features(q);
             if (fs)
             {
-                return scope.Close(Featureset::New(fs));
+                NanReturnValue(Featureset::New(fs));
             }
         }
     }
     catch (std::exception const& ex)
     {
-        return ThrowException(Exception::Error(
-                                  String::New(ex.what())));
+        NanThrowError(ex.what());
+        NanReturnUndefined();
     }
 
-    return Undefined();
+    NanReturnUndefined();
 }
 
-Handle<Value> MemoryDatasource::add(const Arguments& args)
+NAN_METHOD(MemoryDatasource::add)
 {
 
-    HandleScope scope;
+    NanScope();
 
     if ((args.Length() != 1) || !args[0]->IsObject())
     {
-        return ThrowException(Exception::Error(
-                                  String::New("accepts one argument: an object including x and y (or wkt) and properties")));
+        NanThrowError("accepts one argument: an object including x and y (or wkt) and properties");
+        NanReturnUndefined();
     }
 
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.This());
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
 
-    Local<Object> obj = args[0]->ToObject();
+    Local<Object> obj = args[0].As<Object>();
 
-    if (obj->Has(String::New("wkt")) || (obj->Has(String::New("x")) && obj->Has(String::New("y"))))
+    if (obj->Has(NanNew("wkt")) || (obj->Has(NanNew("x")) && obj->Has(NanNew("y"))))
     {
-        if (obj->Has(String::New("wkt")))
-            return ThrowException(Exception::Error(
-                                      String::New("wkt not yet supported")));
+        if (obj->Has(NanNew("wkt")))
+        {
+            NanThrowError("wkt not yet supported");
+            NanReturnUndefined();
+        }
 
-        Local<Value> x = obj->Get(String::New("x"));
-        Local<Value> y = obj->Get(String::New("y"));
+        Local<Value> x = obj->Get(NanNew("x"));
+        Local<Value> y = obj->Get(NanNew("y"));
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
             mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
             pt->move_to(x->NumberValue(),y->NumberValue());
-#if MAPNIK_VERSION >= 200100
             mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
-#else
-            mapnik::feature_ptr feature(mapnik::feature_factory::create(d->feature_id_));
-#endif
             ++(d->feature_id_);
             feature->add_geometry(pt);
-            if (obj->Has(String::New("properties")))
+            if (obj->Has(NanNew("properties")))
             {
-                Local<Value> props = obj->Get(String::New("properties"));
+                Local<Value> props = obj->Get(NanNew("properties"));
                 if (props->IsObject())
                 {
                     Local<Object> p_obj = props->ToObject();
@@ -261,34 +271,18 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
                             mapnik::value_unicode_string ustr = d->tr_->transcode(TOSTR(value));
-#if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),ustr);
-#else
-                            boost::put(*feature,TOSTR(name),ustr);
-#endif
                         } else if (value->IsNumber()) {
                             double num = value->NumberValue();
                             // todo - round
                             if (num == value->IntegerValue()) {
-#if MAPNIK_VERSION >= 200100
                                 feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
-#else
-                                boost::put(*feature,TOSTR(name),static_cast<int>(value->IntegerValue()));
-#endif
                             } else {
                                 double dub_val = value->NumberValue();
-#if MAPNIK_VERSION >= 200100
                                 feature->put_new(TOSTR(name),dub_val);
-#else
-                                boost::put(*feature,TOSTR(name),dub_val);
-#endif
                             }
                         } else if (value->IsNull()) {
-#if MAPNIK_VERSION >= 200100
                             feature->put_new(TOSTR(name),mapnik::value_null());
-#else
-                            boost::put(*feature,TOSTR(name),mapnik::value_null());
-#endif
                         } else {
                             std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                         }
@@ -300,5 +294,5 @@ Handle<Value> MemoryDatasource::add(const Arguments& args)
             cache->push(feature);
         }
     }
-    return scope.Close(False());
+    NanReturnValue(NanFalse());
 }

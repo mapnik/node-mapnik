@@ -1,9 +1,6 @@
 #ifndef __NODE_MAPNIK_DS_EMITTER_H__
 #define __NODE_MAPNIK_DS_EMITTER_H__
 
-// v8
-#include <v8.h>
-
 #include "utils.hpp"
 
 // mapnik
@@ -21,25 +18,26 @@ namespace node_mapnik {
 
 static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
 {
+    NanScope();
     try
     {
         // type
         if (ds->type() == mapnik::datasource::Raster)
         {
-            description->Set(String::NewSymbol("type"), String::New("raster"));
+            description->Set(NanNew("type"), NanNew<String>("raster"));
         }
         else
         {
-            description->Set(String::NewSymbol("type"), String::New("vector"));
+            description->Set(NanNew("type"), NanNew<String>("vector"));
         }
 
         mapnik::layer_descriptor ld = ds->get_descriptor();
 
         // encoding
-        description->Set(String::NewSymbol("encoding"), String::New(ld.get_encoding().c_str()));
+        description->Set(NanNew("encoding"), NanNew<String>(ld.get_encoding().c_str()));
 
         // field names and types
-        Local<Object> fields = Object::New();
+        Local<Object> fields = NanNew<Object>();
         std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
         std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
         std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
@@ -55,15 +53,16 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             else if (field_type == mapnik::Geometry) type = "Geometry";
             else if (field_type == mapnik::Object) type = "Object";
             else type = "Unknown";
-            fields->Set(String::NewSymbol(itr->get_name().c_str()),String::New(type.c_str()));
+            fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
+            fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
             ++itr;
         }
-        description->Set(String::NewSymbol("fields"), fields);
+        description->Set(NanNew("fields"), fields);
 
-        Local<String> js_type = String::New("unknown");
+        Local<String> js_type = NanNew<String>("unknown");
         if (ds->type() == mapnik::datasource::Raster)
         {
-            js_type = String::New("raster");
+            js_type = NanNew<String>("raster");
         }
         else
         {
@@ -76,22 +75,22 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                 {
                 case mapnik::datasource::Point:
                 {
-                    js_type = String::New("point");
+                    js_type = NanNew<String>("point");
                     break;
                 }
                 case mapnik::datasource::LineString:
                 {
-                    js_type = String::New("linestring");
+                    js_type = NanNew<String>("linestring");
                     break;
                 }
                 case mapnik::datasource::Polygon:
                 {
-                    js_type = String::New("polygon");
+                    js_type = NanNew<String>("polygon");
                     break;
                 }
                 case mapnik::datasource::Collection:
                 {
-                    js_type = String::New("collection");
+                    js_type = NanNew<String>("collection");
                     break;
                 }
                 default:
@@ -102,24 +101,22 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             }
 #endif
         }
-        description->Set(String::NewSymbol("geometry_type"), js_type);
+        description->Set(NanNew("geometry_type"), js_type);
     }
     catch (std::exception const& ex)
     {
-        ThrowException(Exception::Error(
-                           String::New(ex.what())));
+        NanThrowError(ex.what());
     }
     catch (...)
     {
-        ThrowException(Exception::Error(
-                           String::New("unknown exception happened when calling describe_datasource, please file bug")));
+        NanThrowError("unknown exception happened when calling describe_datasource, please file bug");
     }
 }
 
 
 static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsigned first, unsigned last)
 {
-
+    NanScope();
     try
     {
         mapnik::query q(ds->envelope());
@@ -141,8 +138,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
             while ((fp = fs->next()))
             {
                 if ((idx >= first) && (idx <= last || last == 0)) {
-                    Local<Object> feat = Object::New();
-#if MAPNIK_VERSION >= 200100
+                    Local<Object> feat = NanNew<Object>();
                     mapnik::feature_impl::iterator f_itr = fp->begin();
                     mapnik::feature_impl::iterator f_end = fp->end();
                     for ( ;f_itr!=f_end; ++f_itr)
@@ -152,21 +148,8 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                         // not a mapnik::value_holder
                         boost::apply_visitor( serializer, MAPNIK_GET<1>(*f_itr).base() );
                     }
-#else
-                    std::map<std::string,mapnik::value> const& fprops = fp->props();
-                    std::map<std::string,mapnik::value>::const_iterator it = fprops.begin();
-                    std::map<std::string,mapnik::value>::const_iterator end = fprops.end();
-                    for (; it != end; ++it)
-                    {
-                        node_mapnik::params_to_object serializer( feat , it->first);
-                        // need to call base() since this is a mapnik::value
-                        // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, it->second.base() );
-                    }
-#endif
                     // add feature id
-                    feat->Set(String::NewSymbol("__id__"), Number::New(fp->id()));
-
+                    feat->Set(NanNew("__id__"), NanNew<Number>(fp->id()));
                     a->Set(idx, feat);
                 }
                 ++idx;
@@ -175,13 +158,11 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
     }
     catch (std::exception const& ex)
     {
-        ThrowException(Exception::Error(
-                           String::New(ex.what())));
+        NanThrowError(ex.what());
     }
     catch (...)
     {
-        ThrowException(Exception::Error(
-                           String::New("unknown exception happened when calling datasource_features, please file bug")));
+        NanThrowError("unknown exception happened when calling datasource_features, please file bug");
     }
 
 }

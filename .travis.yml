@@ -1,12 +1,17 @@
 language: cpp
 
+# http://docs.travis-ci.com/user/multi-os/
+os:
+  - linux
+  - osx
+
 compiler:
  - gcc
 
 env:
   matrix:
+   - NODE_NVM_VERSION="0.11"
    - NODE_NVM_VERSION="0.10"
-   #- NODE_NVM_VERSION="0.8"
   global:
    - secure: MhfGTuEEHzWVs/6W+ysVCSaKq0A/zXfYTi3b5emC2B0wnZOc6Gn8rEHpPga9mqzHO2uqmQe8vsWL/4/Za4E6GabgxBGE1DPa1sLxLXHhZ+Q1PCE2livk/nKFMNzKMn8XcBKAtjT945Pc9zG5OE5pfEuu/VwVrMwuba+lKgO9roc=
    - secure: NIfxD7XGE67Kjgupp1MVEPFVjAfqu+DxBGJ/27tDCqMUQWoCjjJeHo2AkPGGG+3HcUA6t9Ent4vN4hIfhrO9xZzsMyxbwuwf0TyWcrYR8igkFXjsPfkpyToVGWryXTRiTaK8vb+xRfaM+79beJPetMlMdPyPCWKHBkdCg5Pn3Wk=
@@ -37,10 +42,10 @@ install:
  - npm test
 
 before_script:
- - if [[ ${CXX} == "g++" ]] && test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
+ - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
 
 script:
- - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
+ - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
 after_script:
  - if [[ $PUBLISH_BINARY == false ]] && [[ "$platform" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
