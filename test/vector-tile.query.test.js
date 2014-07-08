@@ -190,6 +190,7 @@ describe('mapnik.VectorTile query', function() {
             assert.equal(manyResults[i][0].id(),1);
             assert.ok(manyResults[i][0].distance < 0.00000001);
             assert.equal(manyResults[i][0].layer, 'layer-name');
+            assert.deepEqual(manyResults[i][0].attributes(), { name: 'geojson data' });
         }
         done();
     });
