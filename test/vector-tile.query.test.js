@@ -182,13 +182,15 @@ describe('mapnik.VectorTile query', function() {
           ]
         };
         vtile2.addGeoJSON(JSON.stringify(geojson2),"layer-name");
-        var manyResults = vtile2.queryMany([[0,0]],{tolerance:1});
-        assert.equal(manyResults.length,1);
-        assert.equal(manyResults[0].length,1);
-        assert.equal(manyResults[0][0].id(),1);
-        assert.equal(manyResults[0][0].id(),1);
-        assert.ok(manyResults[0][0].distance < 0.00000001);
-        assert.equal(manyResults[0][0].layer, 'layer-name');
+        var manyResults = vtile2.queryMany([[0,0],[0,0]],{tolerance:1});
+        assert.equal(manyResults.length,2);
+        for (var i = 0; i < 2; i++) {
+            assert.equal(manyResults[i].length,1);
+            assert.equal(manyResults[i][0].id(),1);
+            assert.equal(manyResults[i][0].id(),1);
+            assert.ok(manyResults[i][0].distance < 0.00000001);
+            assert.equal(manyResults[i][0].layer, 'layer-name');
+        }
         done();
     });
 
