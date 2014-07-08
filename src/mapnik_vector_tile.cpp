@@ -924,9 +924,11 @@ NAN_METHOD(VectorTile::query)
 
 NAN_METHOD(VectorTile::queryMany)
 {
+    NanScope();
     if (args.Length() < 2 || !args[0]->IsArray())
     {
-        return ThrowException(Exception::Error(String::New("expects [lon,lat] args")));
+        NanThrowError("expects lon,lat args");
+        NanReturnUndefined();
     }
 
     double tolerance = 0.0; // meters
@@ -935,33 +937,36 @@ NAN_METHOD(VectorTile::queryMany)
 
     if (args.Length() > 1)
     {
-        Local<Object> options = Object::New();
+        Local<Object> options = NanNew<Object>();
         if (!args[1]->IsObject())
         {
-            return ThrowException(Exception::TypeError(String::New("optional second argument must be an options object")));
+            NanThrowTypeError("optional second argument must be an options object");
+            NanReturnUndefined();
         }
         options = args[1]->ToObject();
-        if (options->Has(String::NewSymbol("tolerance")))
+        if (options->Has(NanNew("tolerance")))
         {
-            Local<Value> tol = options->Get(String::New("tolerance"));
+            Local<Value> tol = options->Get(NanNew("tolerance"));
             if (!tol->IsNumber())
             {
-                return ThrowException(Exception::TypeError(String::New("tolerance value must be a number")));
+                NanThrowTypeError("tolerance value must be a number");
+                NanReturnUndefined();
             }
             tolerance = tol->NumberValue();
         }
-        if (options->Has(String::NewSymbol("layer")))
+        if (options->Has(NanNew("layer")))
         {
-            Local<Value> layer_id = options->Get(String::New("layer"));
+            Local<Value> layer_id = options->Get(NanNew("layer"));
             if (!layer_id->IsString())
             {
-                return ThrowException(Exception::TypeError(String::New("layer value must be a string")));
+                NanThrowTypeError("layer value must be a string");
+                NanReturnUndefined();
             }
             layer_name = TOSTR(layer_id);
         }
     }
 
-    Local<Array> largeArr = Array::New();
+    Local<Array> largeArr = NanNew<Array>();
     mapnik::projection wgs84("+init=epsg:4326");
     mapnik::projection merc("+init=epsg:3857");
     mapnik::proj_transform tr(wgs84,merc);
@@ -971,14 +976,16 @@ NAN_METHOD(VectorTile::queryMany)
     for (uint32_t p = 0; p < queryArray->Length(); p++)
     {
         Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
-        Local<Array> arr = Array::New();
+        Local<Array> arr = NanNew<Array>();
 
         if(!queryArray->Get(p)->IsArray()){
-            return ThrowException(Exception::TypeError(String::New("List of points must be an array")));
+            NanThrowError("List of points must be an array");
+            NanReturnUndefined();
         }
 
         if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
-            return ThrowException(Exception::TypeError(String::New("lng lat must be numbers")));
+            NanThrowError("lng lat must be numbers");
+            NanReturnUndefined();
         }
 
         double lon = placeInArray->Get(0)->NumberValue();
@@ -990,8 +997,8 @@ NAN_METHOD(VectorTile::queryMany)
             double z = 0;
             if (!tr.forward(x,y,z))
             {
-                return ThrowException(Exception::Error(
-                                          String::New("could not reproject lon/lat to mercator")));
+                NanThrowError("could not reproject lon/lat to mercator");
+                NanReturnUndefined();
             }
 
             mapnik::coord2d pt(x,y);
@@ -1094,8 +1101,8 @@ NAN_METHOD(VectorTile::queryMany)
                             {
                                 Handle<Value> feat = Feature::New(feature);
                                 Local<Object> feat_obj = feat->ToObject();
-                                feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
-                                feat_obj->Set(String::New("distance"),Number::New(distance));
+                                feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
+                                feat_obj->Set(NanNew("distance"),NanNew<Number>(distance));
                                 arr->Set(idx++,feat);
                             }
                         }
@@ -1105,12 +1112,12 @@ NAN_METHOD(VectorTile::queryMany)
         }
         catch (std::exception const& ex)
         {
-            return ThrowException(Exception::Error(
-                                      String::New(ex.what())));
+            NanThrowError(ex.what());
+            NanReturnUndefined();
         }
         largeArr->Set(p,arr);
     }
-    return scope.Close(largeArr);
+    NanReturnValue(largeArr);
 }
 
 NAN_METHOD(VectorTile::toJSON)
