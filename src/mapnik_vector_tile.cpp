@@ -979,7 +979,6 @@ NAN_METHOD(VectorTile::queryMany)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
 
-    unsigned idx = 0;
     int tile_layer_idx = -1;
     for (int j=0; j < tiledata.layers_size(); ++j)
     {
@@ -1023,36 +1022,37 @@ NAN_METHOD(VectorTile::queryMany)
 
     if (fs)
     {
-        for (uint32_t p = 0; p < queryArray->Length(); p++)
-        {
-            Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
-            Local<Array> arr = NanNew<Array>();
-
-            if(!queryArray->Get(p)->IsArray()){
-                NanThrowError("List of points must be an array");
-                NanReturnUndefined();
-            }
-
-            if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
-                NanThrowError("lng lat must be numbers");
-                NanReturnUndefined();
-            }
-
-            double lon = placeInArray->Get(0)->NumberValue();
-            double lat = placeInArray->Get(1)->NumberValue();
-            double x = lon;
-            double y = lat;
-            double z = 0;
-            if (!tr.forward(x,y,z))
+        try  {
+            mapnik::feature_ptr feature;
+            unsigned idx = 0;
+            while ((feature = fs->next()))
             {
-                NanThrowError("could not reproject lon/lat to mercator");
-                NanReturnUndefined();
-            }
-
-            try  {
-                mapnik::feature_ptr feature;
-                while ((feature = fs->next()))
+                for (uint32_t p = 0; p < queryArray->Length(); p++)
                 {
+                    Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
+                    Local<Array> arr = NanNew<Array>();
+
+                    if(!queryArray->Get(p)->IsArray()){
+                        NanThrowError("List of points must be an array");
+                        NanReturnUndefined();
+                    }
+
+                    if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
+                        NanThrowError("lng lat must be numbers");
+                        NanReturnUndefined();
+                    }
+
+                    double lon = placeInArray->Get(0)->NumberValue();
+                    double lat = placeInArray->Get(1)->NumberValue();
+                    double x = lon;
+                    double y = lat;
+                    double z = 0;
+                    if (!tr.forward(x,y,z))
+                    {
+                        NanThrowError("could not reproject lon/lat to mercator");
+                        NanReturnUndefined();
+                    }
+
                     double distance = -1;
                     BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                     {
@@ -1075,16 +1075,17 @@ NAN_METHOD(VectorTile::queryMany)
                         Local<Object> feat_obj = feat->ToObject();
                         feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
                         feat_obj->Set(String::New("distance"),Number::New(distance));
-                        arr->Set(idx++,feat);
+                        arr->Set(idx,feat);
                     }
+                    largeArr->Set(p,arr);
                 }
+                idx++;
             }
-            catch (std::exception const& ex)
-            {
-                NanThrowError(ex.what());
-                NanReturnUndefined();
-            }
-            largeArr->Set(p,arr);
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
         }
     }
     NanReturnValue(largeArr);
