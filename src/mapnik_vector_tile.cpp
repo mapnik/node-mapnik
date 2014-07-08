@@ -1007,6 +1007,8 @@ NAN_METHOD(VectorTile::queryMany)
         NanThrowError("could not reproject lon/lat to mercator");
         NanReturnUndefined();
     }
+    mapnik::box2d<double> bbox;
+    bbox.init(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::coord2d pt(x,y);
     mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
     MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
@@ -1017,7 +1019,7 @@ NAN_METHOD(VectorTile::queryMany)
                                     d->z_,
                                     d->width()
                                     );
-    mapnik::featureset_ptr fs = ds->features_at_point(pt,1000000);
+    mapnik::featureset_ptr fs = ds->features(mapnik::query(bbox));
 
     if (fs)
     {
