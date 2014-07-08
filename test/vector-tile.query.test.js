@@ -182,8 +182,8 @@ describe('mapnik.VectorTile query', function() {
           ]
         };
         vtile2.addGeoJSON(JSON.stringify(geojson2),"layer-name");
-        var manyResults = vtile2.queryMany([[0,0]],{tolerance:1});
-        assert.equal(manyResults.length,1);
+        var manyResults = vtile2.queryMany([[0,0],[0,0]],{layer:"layer-name"});
+        assert.equal(manyResults.length,2);
         assert.equal(manyResults[0].length,1);
         assert.equal(manyResults[0][0].id(),1);
         assert.equal(manyResults[0][0].id(),1);

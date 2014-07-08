@@ -966,6 +966,12 @@ NAN_METHOD(VectorTile::queryMany)
         }
     }
 
+    if (layer_name.empty())
+    {
+        NanThrowTypeError("options.layer is required");
+        NanReturnUndefined();
+    }
+
     Local<Array> largeArr = NanNew<Array>();
     mapnik::projection wgs84("+init=epsg:4326");
     mapnik::projection merc("+init=epsg:3857");
@@ -973,25 +979,65 @@ NAN_METHOD(VectorTile::queryMany)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
 
-    for (uint32_t p = 0; p < queryArray->Length(); p++)
+    unsigned idx = 0;
+    int tile_layer_idx = -1;
+    for (int j=0; j < tiledata.layers_size(); ++j)
     {
-        Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
-        Local<Array> arr = NanNew<Array>();
-
-        if(!queryArray->Get(p)->IsArray()){
-            NanThrowError("List of points must be an array");
-            NanReturnUndefined();
+        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+        if (layer_name == layer.name())
+        {
+            tile_layer_idx = j;
+            break;
         }
+    }
+    if (tile_layer_idx == -1)
+    {
+        NanThrowError("Could not find layer in vector tile");
+        NanReturnUndefined();
+    }
 
-        if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
-            NanThrowError("lng lat must be numbers");
-            NanReturnUndefined();
-        }
+    Local<Array> firstInArray = Local<Array>::Cast(queryArray->Get(0));
+    double lon = firstInArray->Get(0)->NumberValue();
+    double lat = firstInArray->Get(1)->NumberValue();
+    double x = lon;
+    double y = lat;
+    double z = 0;
+    if (!tr.forward(x,y,z))
+    {
+        NanThrowError("could not reproject lon/lat to mercator");
+        NanReturnUndefined();
+    }
+    mapnik::coord2d pt(x,y);
+    mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                mapnik::vector::tile_datasource>(
+                                    layer,
+                                    d->x_,
+                                    d->y_,
+                                    d->z_,
+                                    d->width()
+                                    );
+    mapnik::featureset_ptr fs = ds->features_at_point(pt,1000000);
 
-        double lon = placeInArray->Get(0)->NumberValue();
-        double lat = placeInArray->Get(1)->NumberValue();
+    if (fs)
+    {
+        for (uint32_t p = 0; p < queryArray->Length(); p++)
+        {
+            Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
+            Local<Array> arr = NanNew<Array>();
 
-        try  {
+            if(!queryArray->Get(p)->IsArray()){
+                NanThrowError("List of points must be an array");
+                NanReturnUndefined();
+            }
+
+            if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
+                NanThrowError("lng lat must be numbers");
+                NanReturnUndefined();
+            }
+
+            double lon = placeInArray->Get(0)->NumberValue();
+            double lat = placeInArray->Get(1)->NumberValue();
             double x = lon;
             double y = lat;
             double z = 0;
@@ -1001,121 +1047,43 @@ NAN_METHOD(VectorTile::queryMany)
                 NanReturnUndefined();
             }
 
-            mapnik::coord2d pt(x,y);
-            unsigned idx = 0;
-            if (!layer_name.empty())
-            {
-                    int tile_layer_idx = -1;
-                    for (int j=0; j < tiledata.layers_size(); ++j)
-                    {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
-                        if (layer_name == layer.name())
-                        {
-                            tile_layer_idx = j;
-                            break;
-                        }
-                    }
-                    if (tile_layer_idx > -1)
-                    {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                        MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                    mapnik::vector::tile_datasource>(
-                                                        layer,
-                                                        d->x_,
-                                                        d->y_,
-                                                        d->z_,
-                                                        d->width()
-                                                        );
-                        mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-
-                        if (fs)
-                        {
-                            mapnik::feature_ptr feature;
-                            while ((feature = fs->next()))
-                            {
-                                double distance = -1;
-                                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
-                                {
-                                    double d = path_to_point_distance(geom,x,y);
-                                    if (d >= 0)
-                                    {
-                                        if (distance >= 0)
-                                        {
-                                            if (d < distance) distance = d;
-                                        }
-                                        else
-                                        {
-                                            distance = d;
-                                        }
-                                    }
-                                }
-                                if (distance >= 0)
-                                {
-                                    Handle<Value> feat = Feature::New(feature);
-                                    Local<Object> feat_obj = feat->ToObject();
-                                    feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
-                                    feat_obj->Set(String::New("distance"),Number::New(distance));
-                                    arr->Set(idx++,feat);
-                                }
-                            }
-                        }
-                    }
-            }
-            else
-            {
-                for (int i=0; i < tiledata.layers_size(); ++i)
+            try  {
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
                 {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                mapnik::vector::tile_datasource>(
-                                                    layer,
-                                                    d->x_,
-                                                    d->y_,
-                                                    d->z_,
-                                                    d->width()
-                                                    );
-                    mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-
-                    if (fs)
+                    double distance = -1;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                     {
-                        mapnik::feature_ptr feature;
-                        while ((feature = fs->next()))
+                        double d = path_to_point_distance(geom,x,y);
+                        if (d >= 0)
                         {
-                            double distance = -1;
-                            BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
-                            {
-                                double d = path_to_point_distance(geom,x,y);
-                                if (d >= 0)
-                                {
-                                    if (distance >= 0)
-                                    {
-                                        if (d < distance) distance = d;
-                                    }
-                                    else
-                                    {
-                                        distance = d;
-                                    }
-                                }
-                            }
                             if (distance >= 0)
                             {
-                                Handle<Value> feat = Feature::New(feature);
-                                Local<Object> feat_obj = feat->ToObject();
-                                feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
-                                feat_obj->Set(NanNew("distance"),NanNew<Number>(distance));
-                                arr->Set(idx++,feat);
+                                if (d < distance) distance = d;
+                            }
+                            else
+                            {
+                                distance = d;
                             }
                         }
+                    }
+                    if (distance >= 0)
+                    {
+                        Handle<Value> feat = Feature::New(feature);
+                        Local<Object> feat_obj = feat->ToObject();
+                        feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
+                        feat_obj->Set(String::New("distance"),Number::New(distance));
+                        arr->Set(idx++,feat);
                     }
                 }
             }
+            catch (std::exception const& ex)
+            {
+                NanThrowError(ex.what());
+                NanReturnUndefined();
+            }
+            largeArr->Set(p,arr);
         }
-        catch (std::exception const& ex)
-        {
-            NanThrowError(ex.what());
-            NanReturnUndefined();
-        }
-        largeArr->Set(p,arr);
     }
     NanReturnValue(largeArr);
 }
