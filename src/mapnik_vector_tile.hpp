@@ -8,8 +8,15 @@
 #include <vector>
 #include <string>
 #include "mapnik3x_compatibility.hpp"
+#include <mapnik/feature.hpp>
 
 using namespace v8;
+
+struct query_result {
+    std::string layer;
+    double distance;
+    mapnik::feature_ptr feature;
+};
 
 class VectorTile: public node::ObjectWrap {
 public:
@@ -25,6 +32,9 @@ public:
     static NAN_METHOD(render);
     static NAN_METHOD(toJSON);
     static NAN_METHOD(query);
+    static void EIO_Query(uv_work_t* req);
+    static void EIO_AfterQuery(uv_work_t* req);
+    static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string layer_name);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(addGeoJSON);

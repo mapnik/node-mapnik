@@ -748,6 +748,19 @@ NAN_METHOD(VectorTile::painted)
     NanReturnValue(NanNew(d->painted()));
 }
 
+typedef struct {
+    uv_work_t request;
+    VectorTile* d;
+    double lon;
+    double lat;
+    double tolerance;
+    bool error;
+    std::vector<query_result> result;
+    std::string layer_name;
+    std::string error_name;
+    Persistent<Function> cb;
+} vector_tile_query_baton_t;
+
 NAN_METHOD(VectorTile::query)
 {
     NanScope();
@@ -791,85 +804,115 @@ NAN_METHOD(VectorTile::query)
 
     double lon = args[0]->NumberValue();
     double lat = args[1]->NumberValue();
-    Local<Array> arr = NanNew<Array>();
-    try  {
-        mapnik::projection wgs84("+init=epsg:4326");
-        mapnik::projection merc("+init=epsg:3857");
-        mapnik::proj_transform tr(wgs84,merc);
-        double x = lon;
-        double y = lat;
-        double z = 0;
-        if (!tr.forward(x,y,z))
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+
+    // If last argument is not a function go with sync call.
+    if (!args[args.Length()-1]->IsFunction()) {
+        try  {
+            std::vector<query_result> result = _query(d, lon, lat, tolerance, layer_name);
+            Local<Array> arr = NanNew<Array>();
+            for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
+                Handle<Value> feat = Feature::New(result[i].feature);
+                Local<Object> feat_obj = feat->ToObject();
+                feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
+                feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
+                arr->Set(i,feat);
+            }
+            NanReturnValue(arr);
+        }
+        catch (std::exception const& ex)
         {
-            NanThrowError("could not reproject lon/lat to mercator");
+            NanThrowError(ex.what());
             NanReturnUndefined();
         }
-        VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-        mapnik::vector::tile const& tiledata = d->get_tile();
-        mapnik::coord2d pt(x,y);
-        unsigned idx = 0;
-        if (!layer_name.empty())
-        {
-                int tile_layer_idx = -1;
-                for (int j=0; j < tiledata.layers_size(); ++j)
-                {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(j);
-                    if (layer_name == layer.name())
-                    {
-                        tile_layer_idx = j;
-                        break;
-                    }
-                }
-                if (tile_layer_idx > -1)
-                {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                mapnik::vector::tile_datasource>(
-                                                    layer,
-                                                    d->x_,
-                                                    d->y_,
-                                                    d->z_,
-                                                    d->width()
-                                                    );
-                    mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-                    if (fs)
-                    {
-                        mapnik::feature_ptr feature;
-                        while ((feature = fs->next()))
-                        {
-                            double distance = -1;
-                            BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
-                            {
-                                double d = path_to_point_distance(geom,x,y);
-                                if (d >= 0)
-                                {
-                                    if (distance >= 0)
-                                    {
-                                        if (d < distance) distance = d;
-                                    }
-                                    else
-                                    {
-                                        distance = d;
-                                    }
-                                }
-                            }
-                            if (distance >= 0)
-                            {
-                                Handle<Value> feat = Feature::New(feature);
-                                Local<Object> feat_obj = feat->ToObject();
-                                feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
-                                feat_obj->Set(NanNew("distance"),NanNew<Number>(distance));
-                                arr->Set(idx++,feat);
-                            }
-                        }
-                    }
-                }
+    } else {
+        Local<Value> callback = args[args.Length()-1];
+        vector_tile_query_baton_t *closure = new vector_tile_query_baton_t();
+        closure->request.data = closure;
+        closure->lon = lon;
+        closure->lat = lat;
+        closure->tolerance = tolerance;
+        closure->layer_name = layer_name;
+        closure->d = d;
+        closure->error = false;
+        NanAssignPersistent(closure->cb, callback.As<Function>());
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_Query, (uv_after_work_cb)EIO_AfterQuery);
+        d->Ref();
+        NanReturnUndefined();
+    }
+}
+
+void VectorTile::EIO_Query(uv_work_t* req)
+{
+    vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
+    try
+    {
+        closure->result = _query(closure->d, closure->lon, closure->lat, closure->tolerance, closure->layer_name);
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterQuery(uv_work_t* req)
+{
+    NanScope();
+    vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
+    if (closure->error) {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        std::vector<query_result> result = closure->result;
+        Local<Array> arr = NanNew<Array>();
+        for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
+            Handle<Value> feat = Feature::New(result[i].feature);
+            Local<Object> feat_obj = feat->ToObject();
+            feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
+            feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
+            arr->Set(i,feat);
         }
-        else
-        {
-            for (int i=0; i < tiledata.layers_size(); ++i)
+        Local<Value> argv[2] = { NanNull(), arr };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+
+    closure->d->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string layer_name) {
+    std::vector<query_result> arr;
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(wgs84,merc);
+    double x = lon;
+    double y = lat;
+    double z = 0;
+    if (!tr.forward(x,y,z))
+    {
+        throw std::runtime_error("could not reproject lon/lat to mercator");
+    }
+    mapnik::vector::tile const& tiledata = d->get_tile();
+    mapnik::coord2d pt(x,y);
+    if (!layer_name.empty())
+    {
+            int tile_layer_idx = -1;
+            for (int j=0; j < tiledata.layers_size(); ++j)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                if (layer_name == layer.name())
+                {
+                    tile_layer_idx = j;
+                    break;
+                }
+            }
+            if (tile_layer_idx > -1)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
                 MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                             mapnik::vector::tile_datasource>(
                                                 layer,
@@ -902,23 +945,64 @@ NAN_METHOD(VectorTile::query)
                         }
                         if (distance >= 0)
                         {
-                            Handle<Value> feat = Feature::New(feature);
-                            Local<Object> feat_obj = feat->ToObject();
-                            feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
-                            feat_obj->Set(NanNew("distance"),NanNew<Number>(distance));
-                            arr->Set(idx++,feat);
+                            query_result res;
+                            res.distance = distance;
+                            res.layer = layer.name();
+                            res.feature = feature;
+                            arr.push_back(res);
                         }
+                    }
+                }
+            }
+    }
+    else
+    {
+        for (int i=0; i < tiledata.layers_size(); ++i)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                        mapnik::vector::tile_datasource>(
+                                            layer,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+            if (fs)
+            {
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
+                {
+                    double distance = -1;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    {
+                        double d = path_to_point_distance(geom,x,y);
+                        if (d >= 0)
+                        {
+                            if (distance >= 0)
+                            {
+                                if (d < distance) distance = d;
+                            }
+                            else
+                            {
+                                distance = d;
+                            }
+                        }
+                    }
+                    if (distance >= 0)
+                    {
+                        query_result res;
+                        res.distance = distance;
+                        res.layer = layer.name();
+                        res.feature = feature;
+                        arr.push_back(res);
                     }
                 }
             }
         }
     }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-    NanReturnValue(arr);
+    return arr;
 }
 
 NAN_METHOD(VectorTile::toJSON)
