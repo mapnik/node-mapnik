@@ -159,7 +159,8 @@ describe('mapnik.VectorTile query', function() {
           ]
         };
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
-        vtile.query(0,0,{tolerance:1}, function(err, features) {
+        var remaining = 10;
+        for (var i = 0; i < 10; i++) vtile.query(0,0,{tolerance:1}, function(err, features) {
             assert.ifError(err);
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
@@ -188,7 +189,7 @@ describe('mapnik.VectorTile query', function() {
             assert.equal(features2[0].id(),1);
             assert.ok(features2[0].distance < 0.00000001);
             assert.equal(features2[0].layer,'layer-name');
-            done();
+            if (!--remaining) done();
         });
     });
 });
