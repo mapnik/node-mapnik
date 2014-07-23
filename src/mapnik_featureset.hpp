@@ -2,7 +2,7 @@
 #define __NODE_MAPNIK_FEATURESET_H__
 
 #include <nan.h>
-#include <mapnik/datasource_cache.hpp>
+#include <mapnik/datasource.hpp>
 #include "mapnik3x_compatibility.hpp"
 
 using namespace v8;

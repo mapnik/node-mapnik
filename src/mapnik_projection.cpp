@@ -1,6 +1,8 @@
 #include "mapnik_projection.hpp"
 #include "utils.hpp"
 
+#include <mapnik/box2d.hpp>
+
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
