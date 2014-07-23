@@ -927,13 +927,13 @@ NAN_METHOD(VectorTile::queryMany)
     NanScope();
     if (args.Length() < 2 || !args[0]->IsArray())
     {
-        NanThrowError("expects lon,lat args");
+        NanThrowError("expects lon,lat args + object with layer property referring to a layer name");
         NanReturnUndefined();
     }
 
     double tolerance = 0.0; // meters
     std::string layer_name("");
-    Local<Array> queryArray = Local<Array>::Cast(args[0]);
+    std::vector<std::string> fields;
 
     if (args.Length() > 1)
     {
@@ -964,6 +964,23 @@ NAN_METHOD(VectorTile::queryMany)
             }
             layer_name = TOSTR(layer_id);
         }
+        if (options->Has(NanNew("fields"))) {
+            Local<Value> param_val = options->Get(NanNew("fields"));
+            if (!param_val->IsArray()) {
+                NanThrowTypeError("option 'fields' must be an array of strings");
+                NanReturnUndefined();
+            }
+            Local<Array> a = Local<Array>::Cast(param_val);
+            unsigned int i = 0;
+            unsigned int num_fields = a->Length();
+            while (i < num_fields) {
+                Local<Value> name = a->Get(i);
+                if (name->IsString()){
+                    fields.push_back(TOSTR(name));
+                }
+                i++;
+            }
+        }
     }
 
     if (layer_name.empty())
@@ -972,10 +989,6 @@ NAN_METHOD(VectorTile::queryMany)
         NanReturnUndefined();
     }
 
-    Local<Array> largeArr = NanNew<Array>();
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
-    mapnik::proj_transform tr(wgs84,merc);
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     mapnik::vector::tile const& tiledata = d->get_tile();
 
@@ -995,20 +1008,43 @@ NAN_METHOD(VectorTile::queryMany)
         NanReturnUndefined();
     }
 
-    Local<Array> firstInArray = Local<Array>::Cast(queryArray->Get(0));
-    double lon = firstInArray->Get(0)->NumberValue();
-    double lat = firstInArray->Get(1)->NumberValue();
-    double x = lon;
-    double y = lat;
-    double z = 0;
-    if (!tr.forward(x,y,z))
-    {
-        NanThrowError("could not reproject lon/lat to mercator");
-        NanReturnUndefined();
-    }
+    Local<Array> queryArray = Local<Array>::Cast(args[0]);
+    Local<Array> resultsArray = NanNew<Array>();
     mapnik::box2d<double> bbox;
-    bbox.init(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::coord2d pt(x,y);
+    std::vector<mapnik::coord2d> points;
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(wgs84,merc);
+    for (uint32_t p = 0; p < queryArray->Length(); ++p)
+    {
+        Local<Value> item = queryArray->Get(p);
+        if (!item->IsArray())
+        {
+            NanThrowError("non-array item encountered");
+            NanReturnUndefined();
+        }
+        Local<Array> pair = Local<Array>::Cast(item);
+        Local<Value> lon = pair->Get(0);
+        Local<Value> lat = pair->Get(1);
+        if (!lon->IsNumber() || !lat->IsNumber())
+        {
+            NanThrowError("lng lat must be numbers");
+            NanReturnUndefined();
+        }
+        double x = lon->NumberValue();
+        double y = lat->NumberValue();
+        double z = 0;
+        if (!tr.forward(x,y,z))
+        {
+            NanThrowError("could not reproject lon/lat to mercator");
+            NanReturnUndefined();
+        }
+        mapnik::coord2d pt(x,y);
+        points.push_back(pt);
+        bbox.expand_to_include(pt);
+    }
+    bbox.pad(tolerance);
+
     mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
     MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                 mapnik::vector::tile_datasource>(
@@ -1018,49 +1054,37 @@ NAN_METHOD(VectorTile::queryMany)
                                     d->z_,
                                     d->width()
                                     );
-    mapnik::featureset_ptr fs = ds->features(mapnik::query(bbox));
+    mapnik::query q(bbox);
+    if (fields.empty())
+    {
+        // request all data attributes
+        for (int i = 0; i < layer.keys_size(); ++i)
+        {
+            q.add_property_name(layer.keys(i));
+        }
+    }
+    else
+    {
+        BOOST_FOREACH ( std::string const& name, fields )
+        {
+            q.add_property_name(name);
+        }
+    }
+    mapnik::featureset_ptr fs = ds->features(q);
 
     if (fs)
     {
-        try  {
-            for (uint32_t p = 0; p < queryArray->Length(); p++)
-            {
-                Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
-                Local<Array> arr = NanNew<Array>();
-                if(!queryArray->Get(p)->IsArray()){
-                    NanThrowError("List of points must be an array");
-                    NanReturnUndefined();
-                }
-                if(!placeInArray->Get(0)->IsNumber() || !placeInArray->Get(1)->IsNumber()){
-                    NanThrowError("lng lat must be numbers");
-                    NanReturnUndefined();
-                }
-                double lon = placeInArray->Get(0)->NumberValue();
-                double lat = placeInArray->Get(1)->NumberValue();
-                double x = lon;
-                double y = lat;
-                double z = 0;
-                if (!tr.forward(x,y,z))
-                {
-                    NanThrowError("could not reproject lon/lat to mercator");
-                    NanReturnUndefined();
-                }
-                largeArr->Set(p,arr);
-            }
-
+        try {
             mapnik::feature_ptr feature;
             unsigned idx = 0;
             while ((feature = fs->next()))
             {
-                for (uint32_t p = 0; p < queryArray->Length(); p++)
+                BOOST_FOREACH ( mapnik::coord2d const& pt, points )
                 {
-                    Local<Array> placeInArray = Local<Array>::Cast(queryArray->Get(p));
-                    double x = placeInArray->Get(0)->NumberValue();
-                    double y = placeInArray->Get(1)->NumberValue();
                     double distance = -1;
                     BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                     {
-                        double d = path_to_point_distance(geom,x,y);
+                        double d = path_to_point_distance(geom,pt.x,pt.y);
                         if (d >= 0)
                         {
                             if (distance >= 0)
@@ -1079,11 +1103,9 @@ NAN_METHOD(VectorTile::queryMany)
                         Local<Object> feat_obj = feat->ToObject();
                         feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
                         feat_obj->Set(String::New("distance"),Number::New(distance));
-                        Local<Array> arr = Local<Array>::Cast(largeArr->Get(p));
-                        arr->Set(idx,feat);
+                        resultsArray->Set(idx++,feat);
                     }
                 }
-                idx++;
             }
         }
         catch (std::exception const& ex)
@@ -1092,7 +1114,7 @@ NAN_METHOD(VectorTile::queryMany)
             NanReturnUndefined();
         }
     }
-    NanReturnValue(largeArr);
+    NanReturnValue(resultsArray);
 }
 
 NAN_METHOD(VectorTile::toJSON)
