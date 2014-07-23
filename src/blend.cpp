@@ -1,12 +1,22 @@
 #include <mapnik/image_data.hpp>
+#include <mapnik/version.hpp>
+
+#include "zlib.h"
+
+#if defined(HAVE_PNG)
 #include <mapnik/png_io.hpp>
+#endif
+
+#if defined(HAVE_JPEG)
 #define XMD_H
 #include <mapnik/jpeg_io.hpp>
 #undef XMD_H
-#include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200300
+#endif
+
+#if defined(HAVE_WEBP)
 #include <mapnik/webp_io.hpp>
 #endif
+
 #include "mapnik_palette.hpp"
 #include "reader.hpp"
 #include "blend.hpp"
@@ -236,23 +246,32 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
             if (baton->quality == 0) baton->quality = 80;
+#if defined(HAVE_JPEG)
             mapnik::save_as_jpeg(baton->stream, baton->quality, image);
+#else
+            baton->message = "Mapnik not built with jpeg support";
+#endif
         } else if (baton->format == BLEND_FORMAT_WEBP) {
             if (baton->quality == 0) baton->quality = 80;
+#if defined(HAVE_WEBP)
             WebPConfig config;
             // Default values set here will be lossless=0 and quality=75 (as least as of webp v0.3.1)
-            if (!WebPConfigInit(&config))
-            {
-                throw std::runtime_error("version mismatch");
+            if (!WebPConfigInit(&config)) {
+                baton->message = "WebPConfigInit failed: version mismatch";
+            } else {
+                // see for more details: https://github.com/mapnik/mapnik/wiki/Image-IO#webp-output-options
+                config.quality = baton->quality;
+                if (baton->compression > 0) {
+                    config.method = baton->compression;
+                }
+                mapnik::save_as_webp(baton->stream,image,config,alpha);
             }
-            // see for more details: https://github.com/mapnik/mapnik/wiki/Image-IO#webp-output-options
-            config.quality = baton->quality;
-            if (baton->compression > 0) {
-                config.method = baton->compression;
-            }
-            mapnik::save_as_webp(baton->stream,image,config,alpha);
+#else
+            baton->message = "Mapnik not built with webp support";
+#endif
         } else {
             // Save as PNG.
+#if defined(HAVE_PNG)
             mapnik::png_options opts;
             opts.compression = baton->compression;
             if (baton->encoder == BLEND_ENCODER_MINIZ) opts.use_miniz = true;
@@ -269,6 +288,9 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
             } else {
                 mapnik::save_as_png(baton->stream, image, opts);
             }
+#else
+            baton->message = "Mapnik not built with png support";
+#endif
         }
     } catch (const std::exception& ex) {
         baton->message = ex.what();

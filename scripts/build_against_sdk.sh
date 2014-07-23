@@ -11,29 +11,29 @@ function upgrade_gcc {
     echo "adding gcc-4.8 ppa"
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     echo "updating apt"
-    sudo apt-get update -qq -y
+    sudo apt-get update -y
     echo "installing C++11 compiler"
-    sudo apt-get install -qq -y gcc-4.8 g++-4.8
+    sudo apt-get install -y gcc-4.8 g++-4.8
 }
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
-    HASH="1048-g439fc9f-cpp11"
+    HASH="1353-g8301e28-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
-        CXX_NAME="gcc-4.8"
-        CC="gcc-4.8";
-        CXX="g++-4.8";
+        export CXX_NAME="gcc-4.8"
+        export CC="gcc-4.8";
+        export CXX="g++-4.8";
         upgrade_gcc
     else
-        CXX_NAME="clang-3.3"
+        export CXX_NAME="clang-3.3"
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="529-g7c7da1a-cpp03"
+    HASH="535-g5fe68f6-cpp03"
     if [[ $UNAME == 'Linux' ]]; then
         export CXX_NAME="gcc-4.6"
     else
-        CXX_NAME="clang-3.3"
+        export CXX_NAME="clang-3.3"
     fi
 fi
 

@@ -245,6 +245,7 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "exclusion", mapnik::exclusion)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "contrast", mapnik::contrast)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert", mapnik::invert)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert-rgb", mapnik::invert_rgb)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_merge", mapnik::grain_merge)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_extract", mapnik::grain_extract)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hue", mapnik::hue)
