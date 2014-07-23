@@ -1101,8 +1101,8 @@ NAN_METHOD(VectorTile::queryMany)
                     {
                         Handle<Value> feat = Feature::New(feature);
                         Local<Object> feat_obj = feat->ToObject();
-                        feat_obj->Set(String::New("layer"),String::New(layer.name().c_str()));
-                        feat_obj->Set(String::New("distance"),Number::New(distance));
+                        feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
+                        feat_obj->Set(NanNew("distance"),NanNew<Number>(distance));
                         resultsArray->Set(idx++,feat);
                     }
                 }
