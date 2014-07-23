@@ -12,10 +12,10 @@
 #include <boost/scoped_ptr.hpp>
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
-#include <mapnik/json/geojson_generator.hpp>
+#include <mapnik/json/feature_generator_grammar.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
-static mapnik::json::feature_generator generator;
+#include <boost/spirit/include/karma.hpp>
 
 Persistent<FunctionTemplate> Feature::constructor;
 
@@ -244,11 +244,12 @@ NAN_METHOD(Feature::toString)
 NAN_METHOD(Feature::toJSON)
 {
     NanScope();
-
-    std::string json;
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    // TODO - create once?
-    if (!generator.generate(json,*(fp->get())))
+    using sink_type = std::back_insert_iterator<std::string>;
+    static const mapnik::json::feature_generator_grammar<sink_type> grammar;
+    std::string json;
+    sink_type sink(json);
+    if (!boost::spirit::karma::generate(sink, grammar, *(fp->get())))
     {
         NanThrowError("Failed to generate GeoJSON");
         NanReturnUndefined();
