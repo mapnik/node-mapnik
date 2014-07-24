@@ -17,6 +17,12 @@
 #include <mapnik/util/geometry_to_wkb.hpp>
 #include <boost/spirit/include/karma.hpp>
 
+#if MAPNIK_VERSION >= 300000
+#include <mapnik/json/feature_generator_grammar_impl.hpp>
+#include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
+#include <mapnik/json/geometry_generator_grammar_impl.hpp>
+#endif
+
 Persistent<FunctionTemplate> Feature::constructor;
 
 void Feature::Initialize(Handle<Object> target) {
@@ -245,7 +251,7 @@ NAN_METHOD(Feature::toJSON)
 {
     NanScope();
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    using sink_type = std::back_insert_iterator<std::string>;
+    typedef std::back_insert_iterator<std::string> sink_type;
     static const mapnik::json::feature_generator_grammar<sink_type> grammar;
     std::string json;
     sink_type sink(json);
