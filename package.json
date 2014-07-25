@@ -52,7 +52,7 @@
       "node": ">= 0.8.0 < 0.13"
   },
   "scripts"       : {
-      "test"    : "mocha -R spec",
+      "test"    : "mocha -R spec --timeout 10000",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
