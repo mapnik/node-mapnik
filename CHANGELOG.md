@@ -2,19 +2,23 @@
 
 ## 1.4.12
 
+ - Fixed broken postgis.input plugin in binary package (#286)
  - Fixed mismatched new/delete in UTF8 grid encoding code (#278)
  - Updated to support latest Mapnik 3.x development version
  - Tweaked internal tracker of map concurrent usage to release before callback (should prevent spurious warnings like at mapbox/tilelive-mapnik#83)
  - Added missing `invert-rgb` compositing option
  - Fixed build against Mapnik with reduced image i/o support
+ - Binaries updated to use Mapnik v2.3.x at 861f2677e0 and mapnik-packaging@721613f9c6a0
 
 Notable changes in the Mapnik SDK include:
- - Windows binaries now have WEBP support enabled
- - Fixed alpha handling in all remaining image filters
+ - Faster font i/o
+ - Fixed `comp-op:color` compositing to preserve luma
+ - Upgraded postgres from 9.3.3 -> 9.3.4
+ - Upgraded harfbuzz from 0.9.29 -> 0.9.32
 
 ## 1.4.11
 
- - Fixed shasum error in npm package by republishing with node v0.10.x (rather than node v0.11.13).
+ - Never happened (npm shasum for published package was busted)
 
 ## 1.4.10
 
