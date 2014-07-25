@@ -1,9 +1,16 @@
 # Changelog
 
-## Future
+## 1.4.12
+
+ - Fixed mismatched new/delete in UTF8 grid encoding code (#278)
+ - Updated to support latest Mapnik 3.x development version
+ - Tweaked internal tracker of map concurrent usage to release before callback (should prevent spurious warnings like at mapbox/tilelive-mapnik#83)
+ - Added missing `invert-rgb` compositing option
+ - Fixed build against Mapnik with reduced image i/o support
 
 Notable changes in the Mapnik SDK include:
  - Windows binaries now have WEBP support enabled
+ - Fixed alpha handling in all remaining image filters
 
 ## 1.4.11
 
