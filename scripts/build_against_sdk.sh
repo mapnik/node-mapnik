@@ -20,16 +20,19 @@ if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
     HASH="1399-g468bd15-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
+        export STDLIB="libstdcpp"
         export CXX_NAME="gcc-4.8"
         export CC="gcc-4.8";
         export CXX="g++-4.8";
         upgrade_gcc
     else
+        export STDLIB="libcpp"
         export CXX_NAME="clang-3.3"
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
     HASH="539-gdc61b2a-cpp03"
+    export STDLIB="libstdcpp"
     if [[ $UNAME == 'Linux' ]]; then
         export CXX_NAME="gcc-4.6"
     else
@@ -43,7 +46,7 @@ if [[ $platform == 'darwin' ]]; then
 fi
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 COMPRESSION="tar.bz2"
-TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-libstdcpp-${CXX_NAME}"
+TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-${STDLIB}-${CXX_NAME}"
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
