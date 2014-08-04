@@ -3,7 +3,7 @@ var assert = require('assert');
 var path = require('path');
 
 describe('mapnik.VectorTile query', function() {
-   
+
     it('vtile.query should return distance attribute on feature representing shortest distance from point to line', function(done) {
         mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         var vtile = new mapnik.VectorTile(0,0,0);
