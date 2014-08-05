@@ -1117,7 +1117,7 @@ NAN_METHOD(VectorTile::queryMany)
                             hitsObject->Set(NanNew<Number>(pair.first), NanNew<Array>());
                         }
                         Local<Array> pArray =Local<Array>::Cast(hitsObject->Get(NanNew<Number>(pair.first)));
-                        pArray->Set(pArray->Length() + 1, hit_obj);
+                        pArray->Set(pArray->Length(), hit_obj);
                         resultsArray->Set(idx,feat);
                     }
                 }
