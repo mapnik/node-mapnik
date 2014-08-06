@@ -8,13 +8,16 @@
  - Tweaked internal tracker of map concurrent usage to release before callback (should prevent spurious warnings like at mapbox/tilelive-mapnik#83)
  - Added missing `invert-rgb` compositing option
  - Fixed build against Mapnik with reduced image i/o support
- - Binaries updated to use Mapnik v2.3.x at 861f2677e0 and mapnik-packaging@721613f9c6a0
+ - Binaries updated to use Mapnik v2.3.x at dd02192932 and mapnik-packaging@ddcfefa486
 
 Notable changes in the Mapnik SDK include:
  - Faster font i/o
  - Fixed `comp-op:color` compositing to preserve luma
  - Upgraded postgres from 9.3.3 -> 9.3.4
  - Upgraded harfbuzz from 0.9.29 -> 0.9.32
+ - Upgraded png from 1.6.10 -> 1.6.12
+ - Upgraded fontconfig from 2.11.0 -> 2.11.1
+ - Upgraded pixman from 0.32.4->0.32.6
 
 ## 1.4.11
 

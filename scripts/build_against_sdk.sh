@@ -5,7 +5,7 @@ set -u -e
 On linux depends on node and:
 
     sudo apt-get update
-    sudo apt-get install pkg-config build-essential
+    sudo apt-get install pkg-config build-essential zlib1g-dev
 
 '
 ARGS=""
