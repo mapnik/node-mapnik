@@ -1,11 +1,11 @@
 #http://www.gnu.org/prep/standards/html_node/Standard-Targets.html#Standard-Targets
 
-all: mapnik.node
+all: build
 
 ./node_modules:
 	npm install --build-from-source
 
-mapnik.node: ./node_modules
+build: ./node_modules
 	./node_modules/.bin/node-pre-gyp build --loglevel=silent
 
 debug:
@@ -16,10 +16,10 @@ verbose:
 
 clean:
 	@rm -rf ./build
-	rm -rf lib/binding
+	rm -rf lib/binding/
 	rm ./test/tmp/*
-	rm -rf ./node_modules
 	echo > ./test/tmp/placeholder.txt
+	rm -rf ./node_modules/
 
 grind:
 	valgrind --leak-check=full node node_modules/.bin/_mocha
@@ -38,15 +38,4 @@ endif
 
 check: test
 
-fix:
-	@fixjsstyle lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
-
-fixc:
-	@tools/fix_cpp_style.sh
-	@rm src/*.*~
-
-lint:
-	@./node_modules/.bin/jshint lib/*js bin/*js test/*js examples/*/*.js examples/*/*/*.js
-
-
-.PHONY: test lint fix
+.PHONY: test clean build
