@@ -54,7 +54,7 @@
   },
   "engineStrict": true,
   "scripts"       : {
-      "test"    : "mocha -R spec --timeout 10000",
+      "test"    : "mocha -R spec --timeout 50000",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {

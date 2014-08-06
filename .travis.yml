@@ -10,7 +10,7 @@ compiler:
 
 env:
   matrix:
-   - NODE_NVM_VERSION="0.11"
+   - NODE_NVM_VERSION="0.11" CXX11=false
    - NODE_NVM_VERSION="0.10" CXX11=false
    - NODE_NVM_VERSION="0.10" CXX11=true
   global:
