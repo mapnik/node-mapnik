@@ -1,11 +1,25 @@
 #!/bin/bash
-#set -u -e
+set -u -e
 
+: '
+On linux depends on node and:
+
+    sudo apt-get update
+    sudo apt-get install pkg-config build-essential
+
+'
+ARGS=""
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 mkdir -p $CURRENT_DIR/../sdk
-cd $CURRENT_DIR/../sdk
+cd $CURRENT_DIR/../
+export PATH=$(pwd)/node_modules/.bin:${PATH}
+cd sdk
 BUILD_DIR="$(pwd)"
 UNAME=$(uname -s);
+
+if [[ ${1:-false} != false ]]; then
+    ARGS=$1
+fi
 
 function upgrade_gcc {
     echo "adding gcc-4.8 ppa"
@@ -87,17 +101,19 @@ if [[ $UNAME == 'Linux' ]]; then
 fi
 
 cd ../
-rm -rf ./lib/binding/
-mkdir -p ./lib/binding/
-npm install --build-from-source $1
+npm install node-pre-gyp
+MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
+# note: dangerous!
+rm -rf ${MODULE_PATH}
+npm install --build-from-source ${ARGS}
 npm ls
 # copy lib
-cp $MAPNIK_SDK/lib/libmapnik.* lib/binding/
+cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}
 # copy plugins
-cp -r $MAPNIK_SDK/lib/mapnik lib/binding/
+cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}
 # copy share data
-mkdir -p lib/binding/share/
-cp -r $MAPNIK_SDK/share/mapnik lib/binding/share/
+mkdir -p ${MODULE_PATH}/share/
+cp -r ${MAPNIK_SDK}/share/mapnik ${MODULE_PATH}/share/
 # generate new settings
 echo "
 var path = require('path');
@@ -110,7 +126,7 @@ module.exports.env = {
     'GDAL_DATA': path.join(__dirname, 'share/mapnik/gdal'),
     'PROJ_LIB': path.join(__dirname, 'share/mapnik/proj')
 };
-" > lib/binding/mapnik_settings.js
+" > ${MODULE_PATH}/mapnik_settings.js
 
 # cleanup
 rm -rf $BUILD_DIR
