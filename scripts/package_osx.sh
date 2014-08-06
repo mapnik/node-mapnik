@@ -19,7 +19,10 @@ function doit () {
     source ./scripts/build_against_sdk.sh --target=$1
     npm test
     node ./node_modules/.bin/node-pre-gyp package testpackage
-    node ./node_modules/.bin/node-pre-gyp publish info
+    node ./node_modules/.bin/node-pre-gyp testpackage
+    npm ls
+    node ./node_modules/.bin/node-pre-gyp publish
+    node ./node_modules/.bin/node-pre-gyp info
     rm -rf {build,lib/binding}
     npm install --fallback-to-build=false
     npm test
