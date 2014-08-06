@@ -7,10 +7,11 @@
   "version"       : "1.4.11",
   "main"          : "./lib/mapnik.js",
   "binary": {
-      "module_name": "mapnik",
-      "module_path": "./lib/binding/",
-      "remote_path": "v{version}",
-      "host": "https://node-mapnik.s3-us-west-1.amazonaws.com"
+      "module_name" : "mapnik",
+      "module_path" : "./lib/binding/{node_abi}-{platform}-{arch}",
+      "host"        : "https://mapbox-node-binary.s3.amazonaws.com",
+      "remote_path" : "./{module_name}/v{version}/",
+      "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
   },
   "bugs"          : {
     "email" : "dane@dbsgeo.com",
@@ -38,7 +39,7 @@
   "dependencies"  : {
       "nan": "~1.2.0",
       "mapnik-vector-tile": "~0.5.1",
-      "node-pre-gyp":"0.5.17"
+      "node-pre-gyp": "0.5.22"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",

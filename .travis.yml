@@ -14,8 +14,8 @@ env:
    - NODE_NVM_VERSION="0.10" CXX11=false
    - NODE_NVM_VERSION="0.10" CXX11=true
   global:
-   - secure: MhfGTuEEHzWVs/6W+ysVCSaKq0A/zXfYTi3b5emC2B0wnZOc6Gn8rEHpPga9mqzHO2uqmQe8vsWL/4/Za4E6GabgxBGE1DPa1sLxLXHhZ+Q1PCE2livk/nKFMNzKMn8XcBKAtjT945Pc9zG5OE5pfEuu/VwVrMwuba+lKgO9roc=
-   - secure: NIfxD7XGE67Kjgupp1MVEPFVjAfqu+DxBGJ/27tDCqMUQWoCjjJeHo2AkPGGG+3HcUA6t9Ent4vN4hIfhrO9xZzsMyxbwuwf0TyWcrYR8igkFXjsPfkpyToVGWryXTRiTaK8vb+xRfaM+79beJPetMlMdPyPCWKHBkdCg5Pn3Wk=
+   - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
+   - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
 
 before_install:
  # check if tag exists and matches package.json

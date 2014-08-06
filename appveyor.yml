@@ -1,18 +1,18 @@
-version: 1.0.{build}
-
 clone_folder: c:\dev2\node-mapnik
 
 environment:
   node_pre_gyp_accessKeyId:
-    secure: 9JxHOXxgQ7UaXFCQh4ihEBDElQgE4l0XareRstBCpLk=
+    secure: 7DrSVc5eIGtmMcki5H+iRft+Tk3MJTwDBQEUuJHWaQ4=
   node_pre_gyp_secretAccessKey:
-    secure: s1us6xb8U2EqlaVYtoVMtulfgMdX4VVEKgTF+Eft104gWja1GG0Blf6cMJtG7Yu3
+    secure: 1amwJJw9fu0j6dXnc5KsAQbSYf7Cjw/dapT6OZWABa6nc52grkKeLQ+DGaOfQz8i
   matrix:
   - nodejs_version: 0.10
   - nodejs_version: 0.11
 
 platform:
   - x86
+
+shallow_clone: true
 
 matrix:
   allow_failures:
@@ -34,10 +34,6 @@ install:
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
   - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp publish
-
-artifacts:
-  - path: build\stage
-    name: BuildFiles
 
 build: off
 test: off
