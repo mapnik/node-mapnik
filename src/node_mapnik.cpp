@@ -251,8 +251,11 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hue", mapnik::hue)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "saturation", mapnik::saturation)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color", mapnik::_color)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "value", mapnik::_value)
-
+#if MAPNIK_VERSION >= 300000
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_dodge", mapnik::linear_dodge)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_burn", mapnik::linear_burn)
+        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "divide", mapnik::divide)
+#endif
         target->Set(NanNew("compositeOp"), composite_ops);
     }
 
