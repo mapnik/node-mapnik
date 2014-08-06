@@ -45,12 +45,13 @@
       "node-pre-gyp"
   ],
   "bin"           : {
-       "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
-       "mapnik-render.js"  : "./bin/mapnik-render.js"
+      "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
+      "mapnik-render.js"  : "./bin/mapnik-render.js"
   },
-  "engines"       : {
-      "node": ">= 0.8.0 < 0.13"
+  "engines": {
+      "node": ">= 0.8.0 < 0.11.0 || >= 0.11.13 < 0.13.0"
   },
+  "engineStrict": true,
   "scripts"       : {
       "test"    : "mocha -R spec --timeout 10000",
       "install": "node-pre-gyp install --fallback-to-build"
