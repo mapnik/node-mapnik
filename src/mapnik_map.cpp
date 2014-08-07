@@ -340,8 +340,6 @@ NAN_SETTER(Map::set_prop)
                     double dub_val = a_value->NumberValue();
                     params[TOSTR(name)] = dub_val;
                 }
-            } else {
-                std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
             }
             i++;
         }

@@ -55,7 +55,6 @@ NAN_METHOD(Color::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "external!\n";
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Color* c = static_cast<Color*>(ptr);

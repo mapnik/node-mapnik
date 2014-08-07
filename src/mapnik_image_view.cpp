@@ -64,7 +64,6 @@ NAN_METHOD(ImageView::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "image view external!\n";
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         ImageView* im =  static_cast<ImageView*>(ptr);

@@ -30,7 +30,6 @@ void Datasource::Initialize(Handle<Object> target) {
     // methods
     NODE_SET_PROTOTYPE_METHOD(lcons, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "features", features);
     NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
 

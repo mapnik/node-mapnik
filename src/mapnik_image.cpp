@@ -107,7 +107,6 @@ NAN_METHOD(Image::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "external!\n";
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Image* im =  static_cast<Image*>(ptr);

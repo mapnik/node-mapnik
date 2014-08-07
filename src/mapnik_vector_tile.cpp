@@ -1002,7 +1002,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     }
                     else
                     {
-                        std::clog << "could not project\n";
+                        throw std::runtime_error("could not project");
                     }
                 }
                 else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))

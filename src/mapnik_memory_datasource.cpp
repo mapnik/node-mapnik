@@ -60,7 +60,6 @@ NAN_METHOD(MemoryDatasource::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "external!\n";
         Local<External> ext = Local<External>::Cast(args[0]);
         void* ptr = ext->Value();
         MemoryDatasource* d =  static_cast<MemoryDatasource*>(ptr);
@@ -283,8 +282,6 @@ NAN_METHOD(MemoryDatasource::add)
                             }
                         } else if (value->IsNull()) {
                             feature->put_new(TOSTR(name),mapnik::value_null());
-                        } else {
-                            std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                         }
                         i++;
                     }

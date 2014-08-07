@@ -3,7 +3,6 @@
 
 #include <nan.h>
 #include "mapnik3x_compatibility.hpp"
-#include <iostream>
 #include <sstream>
 
 // cairo

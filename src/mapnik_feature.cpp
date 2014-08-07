@@ -222,8 +222,6 @@ NAN_METHOD(Feature::addAttributes)
                         }
                     } else if (value->IsNull()) {
                         fp->get()->put_new(TOSTR(name),mapnik::value_null());
-                    } else {
-                        std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                     }
                     i++;
                 }
