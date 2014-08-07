@@ -21,7 +21,6 @@ public:
 
     static NAN_METHOD(parameters);
     static NAN_METHOD(describe);
-    static NAN_METHOD(features);
     static NAN_METHOD(featureset);
     static NAN_METHOD(extent);
 

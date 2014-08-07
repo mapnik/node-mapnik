@@ -58,7 +58,6 @@ NAN_METHOD(Datasource::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "external!\n";
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Datasource* d =  static_cast<Datasource*>(ptr);
@@ -203,43 +202,6 @@ NAN_METHOD(Datasource::describe)
     }
 
     NanReturnValue(description);
-}
-
-NAN_METHOD(Datasource::features)
-{
-
-    std::clog << "Datasource.features() is deprecated and will be removed at node-mapnik 1.3.x (please use Datasource.featureset instead)\n";
-    NanScope();
-
-    unsigned first = 0;
-    unsigned last = 0;
-    // we are slicing
-    if (args.Length() == 2)
-    {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
-        {
-            NanThrowTypeError("Index of 'first' and 'last' feature must be an integer");
-            NanReturnUndefined();
-        }
-        first = args[0]->IntegerValue();
-        last = args[1]->IntegerValue();
-    }
-
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
-
-    // TODO - we don't know features.length at this point
-    Local<Array> a = NanNew<Array>(0);
-    try
-    {
-        node_mapnik::datasource_features(a,d->datasource_,first,last);
-    }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-
-    NanReturnValue(a);
 }
 
 NAN_METHOD(Datasource::featureset)
