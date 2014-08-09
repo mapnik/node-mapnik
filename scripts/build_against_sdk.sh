@@ -31,6 +31,8 @@ function upgrade_gcc {
 }
 
 COMPRESSION="tar.bz2"
+platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
+SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
@@ -60,11 +62,9 @@ else
     REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 fi
 
-platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
 fi
-SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
 export PKG_CONFIG_PATH=${MAPNIK_SDK}/lib/pkgconfig
