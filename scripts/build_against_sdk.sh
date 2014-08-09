@@ -30,12 +30,14 @@ function upgrade_gcc {
     sudo apt-get install -y gcc-4.8 g++-4.8
 }
 
+COMPRESSION="tar.bz2"
+
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
     HASH="1545-gb172129-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
         export STDLIB="libstdcpp"
-        export CXX_NAME="gcc-4.8"
+        export CXX_NAME="clang-4.2"
         export CC="gcc-4.8";
         export CXX="g++-4.8";
         upgrade_gcc
@@ -43,15 +45,19 @@ if [[ "${CXX11:-false}" != false ]]; then
         export STDLIB="libcpp"
         export CXX_NAME="clang-3.3"
     fi
+    TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-${STDLIB}-${CXX_NAME}-lto-trusty"
+    REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="546-gdd02192-cpp03"
+    HASH="548-gca2c0d0-cpp03"
     export STDLIB="libstdcpp"
     if [[ $UNAME == 'Linux' ]]; then
         export CXX_NAME="gcc-4.6"
     else
         export CXX_NAME="clang-3.3"
     fi
+    TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-${STDLIB}-${CXX_NAME}"
+    REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 fi
 
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
@@ -59,9 +65,6 @@ if [[ $platform == 'darwin' ]]; then
     platform="macosx"
 fi
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
-COMPRESSION="tar.bz2"
-TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-${STDLIB}-${CXX_NAME}"
-REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
 export PKG_CONFIG_PATH=${MAPNIK_SDK}/lib/pkgconfig
