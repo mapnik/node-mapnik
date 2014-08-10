@@ -36,12 +36,12 @@ SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
-    HASH="1576-g95430a3-cpp11"
+    HASH="1584-gb0392ff-cpp11"
     if [[ $UNAME == 'Linux' ]]; then
         export STDLIB="libstdcpp"
-        export CXX_NAME="clang-4.2"
-        export CC="gcc-4.8";
-        export CXX="g++-4.8";
+        export CXX_NAME="clang-3.3"
+        export CC="gcc-4.8"
+        export CXX="g++-4.8"
         upgrade_gcc
     else
         export STDLIB="libcpp"
@@ -54,7 +54,7 @@ else
     HASH="548-gca2c0d0-cpp03"
     export STDLIB="libstdcpp"
     if [[ $UNAME == 'Linux' ]]; then
-        export CXX_NAME="gcc-4.6"
+        export CXX_NAME="clang-3.3"
     else
         export CXX_NAME="clang-3.3"
     fi
