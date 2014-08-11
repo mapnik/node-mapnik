@@ -3,7 +3,6 @@
 
 
 // mapnik
-#include <mapnik/debug.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 
@@ -53,14 +52,12 @@ static inline NAN_METHOD(register_fonts)
 
                 bool recurse = recurse_opt->BooleanValue();
                 std::string path = TOSTR(args[0]);
-                MAPNIK_LOG_ERROR(node_mapnik_font) << path;
                 found = mapnik::freetype_engine::register_fonts(path,recurse);
             }
         }
         else
         {
             std::string path = TOSTR(args[0]);
-            MAPNIK_LOG_ERROR(node_mapnik_font) << path;
             found = mapnik::freetype_engine::register_fonts(path);
         }
 
