@@ -183,7 +183,7 @@ describe('mapnik.VectorTile query', function() {
         };
         vtile2.addGeoJSON(JSON.stringify(geojson2),"layer-name");
         var manyResults = vtile2.queryMany([[0,0],[0,0]],{tolerance:1,fields:['name'],layer:'layer-name'});
-        assert.equal(manyResults.features.length,3);
+        assert.equal(manyResults.features.length,2);
         assert.equal(manyResults.features[1].id(),1);
         assert.ok(manyResults.hits['0'][0].distance < 0.00000001);
         assert.equal(manyResults.features[1].layer, 'layer-name');
