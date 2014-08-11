@@ -1106,7 +1106,6 @@ NAN_METHOD(VectorTile::queryMany)
                     }
                     if (distance >= 0)
                     {
-                        idx++;
                         Handle<Value> feat = Feature::New(feature);
                         Local<Object> feat_obj = feat->ToObject();
                         feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
@@ -1119,6 +1118,7 @@ NAN_METHOD(VectorTile::queryMany)
                         Local<Array> pArray =Local<Array>::Cast(hitsObject->Get(NanNew<Number>(pair.first)));
                         pArray->Set(pArray->Length(), hit_obj);
                         resultsArray->Set(idx,feat);
+                        idx++;
                     }
                 }
             }
