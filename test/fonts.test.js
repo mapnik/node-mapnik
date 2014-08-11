@@ -11,6 +11,7 @@ function oc(a) {
 }
 
 before(function() {
+    this.timeout(6000);
     mapnik.register_system_fonts();
 });
 
