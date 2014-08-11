@@ -89,12 +89,15 @@ if [[ ! `which node` ]]; then
     exit 1
 fi
 
+export CXXFLAGS="-Wno-error=unused-command-line-argument-hard-error-in-future"
+
 if [[ $UNAME == 'Linux' ]]; then
-    export CXXFLAGS="-Wno-unused-local-typedefs"
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
     #sudo apt-get install chrpath -y
     #chrpath -r '$ORIGIN/' ${MAPNIK_SDK}/lib/libmapnik.so
     export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
+else
+    otool -L $MAPNIK_SDK/lib/libmapnik.dylib
 fi
 
 cd ../
