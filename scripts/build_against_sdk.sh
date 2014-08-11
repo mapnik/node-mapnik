@@ -89,7 +89,7 @@ if [[ ! `which node` ]]; then
     exit 1
 fi
 
-export CXXFLAGS="-Wno-error=unused-command-line-argument-hard-error-in-future"
+export ARCHFLAGS="-Wno-error=unused-command-line-argument-hard-error-in-future"
 
 if [[ $UNAME == 'Linux' ]]; then
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
