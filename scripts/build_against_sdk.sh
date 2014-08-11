@@ -28,7 +28,7 @@ function upgrade_gcc {
     sudo apt-get update -y -qq
     echo "installing C++11 compiler"
     sudo apt-get install -y gcc-4.8 g++-4.8
-    if [[ "${CXX#*'clang'}" != "$CXX" ]]; then
+    if [[ "${CXX#*'clang'}" == "$CXX" ]]; then
         export CC="gcc-4.8"
         export CXX="g++-4.8"
     fi
