@@ -8,6 +8,7 @@ var view;
 
 describe('mapnik.GridView ', function() {
     before(function(done) {
+        this.timeout(10000);
         grid = new mapnik.Grid(256, 256);
         view = grid.view(0, 0, 256, 256);
         done();

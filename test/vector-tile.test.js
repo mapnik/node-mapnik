@@ -23,6 +23,7 @@ describe('mapnik.VectorTile ', function() {
     var _data;
     var _length;
     before(function(done) {
+        this.timeout(10000);
         if (overwrite_expected_data) {
             var map = new mapnik.Map(256, 256);
             map.loadSync('./test/data/vector_tile/layers.xml');

@@ -77,6 +77,7 @@ function compare_to_image(actual,expected_file) {
 describe('mapnik.VectorTile.composite', function() {
     // generate test data
     before(function(done) {
+        this.timeout(10000);
         if (overwrite_expected_data) {
             var remaining = tiles.length;
             tiles.forEach(function(e){
