@@ -105,7 +105,8 @@ npm install node-pre-gyp
 MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 # note: dangerous!
 rm -rf ${MODULE_PATH}
-npm install --build-from-source ${ARGS}
+npm install --build-from-source ${ARGS} --verbose || true
+npm install --build-from-source ${ARGS} --clang=1
 npm ls
 # copy lib
 cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}
