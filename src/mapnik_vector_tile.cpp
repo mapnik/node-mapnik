@@ -1085,7 +1085,8 @@ NAN_METHOD(VectorTile::queryMany)
             unsigned idx = 0;
             while ((feature = fs->next()))
             {
-                for (const std::pair<uint32_t, mapnik::coord2d> & pair : points)
+                typedef std::pair<uint32_t, mapnik::coord2d> mapnikCoord;
+                BOOST_FOREACH (mapnikCoord const& pair, points)
                 {
                     mapnik::coord2d pt(pair.second);
                     double distance = -1;
