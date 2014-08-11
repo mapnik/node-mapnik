@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -u -e
 
 : '
@@ -6,8 +6,8 @@ On linux depends on node and:
 
     sudo apt-get update
     sudo apt-get install pkg-config build-essential zlib1g-dev
-
 '
+
 ARGS=""
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 mkdir -p $CURRENT_DIR/../sdk
@@ -25,11 +25,13 @@ function upgrade_gcc {
     echo "adding gcc-4.8 ppa"
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     echo "updating apt"
-    sudo apt-get update -y
+    sudo apt-get update -y -qq
     echo "installing C++11 compiler"
     sudo apt-get install -y gcc-4.8 g++-4.8
-    export CC="gcc-4.8"
-    export CXX="g++-4.8"
+    if [[ "${CXX#*'clang'}" != "$CXX" ]]; then
+        export CC="gcc-4.8"
+        export CXX="g++-4.8"
+    fi
 }
 
 CXX_NAME="clang"
