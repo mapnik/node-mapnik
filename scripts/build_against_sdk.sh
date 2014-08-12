@@ -42,7 +42,7 @@ STDLIB="libstdcpp"
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
-    HASH="1590-gc285cfa-cpp11"
+    HASH="1602-g01c6b42-cpp11"
     if [[ ${platform} == 'linux' ]]; then
         upgrade_gcc
     else
@@ -50,7 +50,7 @@ if [[ "${CXX11:-false}" != false ]]; then
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="548-gca2c0d0-cpp03"
+    HASH="554-g5a481fc-cpp03"
 fi
 
 if [[ $platform == 'darwin' ]]; then
