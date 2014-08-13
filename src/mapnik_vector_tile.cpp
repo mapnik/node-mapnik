@@ -1045,7 +1045,7 @@ NAN_METHOD(VectorTile::queryMany)
             NanReturnUndefined();
         }
         mapnik::coord2d pt(x,y);
-        points.push_back(std::make_pair<uint32_t,  mapnik::coord2d>(p,pt));
+        points.push_back(std::make_pair<int, mapnik::coord2d>(p,pt));
         bbox.expand_to_include(pt);
     }
 
