@@ -25,6 +25,7 @@ public:
     static NAN_METHOD(render);
     static NAN_METHOD(toJSON);
     static NAN_METHOD(query);
+    static NAN_METHOD(queryMany);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(addGeoJSON);

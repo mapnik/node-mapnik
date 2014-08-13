@@ -138,6 +138,102 @@ bool _hit_test(PathType & path, double x, double y, double tol, double & distanc
     return false;
 }
 
+template <typename PathType>
+double path_to_point_distance(PathType & path, double x, double y)
+{
+    double x0 = 0;
+    double y0 = 0;
+    double distance = -1;
+    path.rewind(0);
+    MAPNIK_GEOM_TYPE geom_type = static_cast<MAPNIK_GEOM_TYPE>(path.type());
+    switch(geom_type)
+    {
+    case MAPNIK_POINT:
+    {
+        unsigned command;
+        bool first = true;
+        while (mapnik::SEG_END != (command = path.vertex(&x0, &y0)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (first)
+            {
+                distance = mapnik::distance(x, y, x0, y0);
+                first = false;
+                continue;
+            }
+            double d = mapnik::distance(x, y, x0, y0);
+            if (d < distance) distance = d;
+        }
+        return distance;
+        break;
+    }
+    case MAPNIK_POLYGON:
+    {
+        double x1 = 0;
+        double y1 = 0;
+        bool inside = false;
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return distance;
+        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (command == mapnik::SEG_MOVETO)
+            {
+                x0 = x1;
+                y0 = y1;
+                continue;
+            }
+            if ((((y1 <= y) && (y < y0)) ||
+                 ((y0 <= y) && (y < y1))) &&
+                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
+            {
+                inside=!inside;
+            }
+            x0 = x1;
+            y0 = y1;
+        }
+        return inside ? 0 : -1;
+        break;
+    }
+    case MAPNIK_LINESTRING:
+    {
+        double x1 = 0;
+        double y1 = 0;
+        bool first = true;
+        unsigned command = path.vertex(&x0, &y0);
+        if (command == mapnik::SEG_END) return distance;
+        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        {
+            if (command == mapnik::SEG_CLOSE) continue;
+            if (command == mapnik::SEG_MOVETO)
+            {
+                x0 = x1;
+                y0 = y1;
+                continue;
+            }
+            if (first)
+            {
+                distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+                first = false;
+            }
+            else
+            {
+                double d = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+                if (d >= 0 && d < distance) distance = d;
+            }
+            x0 = x1;
+            y0 = y1;
+        }
+        return distance;
+        break;
+    }
+    default:
+        return distance;
+        break;
+    }
+    return distance;
+}
+
 Persistent<FunctionTemplate> VectorTile::constructor;
 
 void VectorTile::Initialize(Handle<Object> target) {
@@ -155,6 +251,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "addData", addData);
     NODE_SET_PROTOTYPE_METHOD(lcons, "composite", composite);
     NODE_SET_PROTOTYPE_METHOD(lcons, "query", query);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "queryMany", queryMany);
     NODE_SET_PROTOTYPE_METHOD(lcons, "names", names);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSON", toGeoJSON);
@@ -741,17 +838,23 @@ NAN_METHOD(VectorTile::query)
                         mapnik::feature_ptr feature;
                         while ((feature = fs->next()))
                         {
-                            bool hit = false;
-                            double distance = 0.0;
+                            double distance = -1;
                             BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                             {
-                               if (_hit_test(geom,x,y,tolerance,distance))
-                               {
-                                   hit = true;
-                                   break;
-                               }
+                                double d = path_to_point_distance(geom,x,y);
+                                if (d >= 0)
+                                {
+                                    if (distance >= 0)
+                                    {
+                                        if (d < distance) distance = d;
+                                    }
+                                    else
+                                    {
+                                        distance = d;
+                                    }
+                                }
                             }
-                            if (hit)
+                            if (distance >= 0)
                             {
                                 Handle<Value> feat = Feature::New(feature);
                                 Local<Object> feat_obj = feat->ToObject();
@@ -782,17 +885,23 @@ NAN_METHOD(VectorTile::query)
                     mapnik::feature_ptr feature;
                     while ((feature = fs->next()))
                     {
-                        bool hit = false;
-                        double distance = 0.0;
+                        double distance = -1;
                         BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                         {
-                           if (_hit_test(geom,x,y,tolerance,distance))
-                           {
-                               hit = true;
-                               break;
-                           }
+                            double d = path_to_point_distance(geom,x,y);
+                            if (d >= 0)
+                            {
+                                if (distance >= 0)
+                                {
+                                    if (d < distance) distance = d;
+                                }
+                                else
+                                {
+                                    distance = d;
+                                }
+                            }
                         }
-                        if (hit)
+                        if (distance >= 0)
                         {
                             Handle<Value> feat = Feature::New(feature);
                             Local<Object> feat_obj = feat->ToObject();
@@ -811,6 +920,217 @@ NAN_METHOD(VectorTile::query)
         NanReturnUndefined();
     }
     NanReturnValue(arr);
+}
+
+NAN_METHOD(VectorTile::queryMany)
+{
+
+    NanScope();
+    if (args.Length() < 2 || !args[0]->IsArray())
+    {
+        NanThrowError("expects lon,lat args + object with layer property referring to a layer name");
+        NanReturnUndefined();
+    }
+
+    double tolerance = 0.0; // meters
+    std::string layer_name("");
+    std::vector<std::string> fields;
+
+    if (args.Length() > 1)
+    {
+        Local<Object> options = NanNew<Object>();
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("optional second argument must be an options object");
+            NanReturnUndefined();
+        }
+        options = args[1]->ToObject();
+        if (options->Has(NanNew("tolerance")))
+        {
+            Local<Value> tol = options->Get(NanNew("tolerance"));
+            if (!tol->IsNumber())
+            {
+                NanThrowTypeError("tolerance value must be a number");
+                NanReturnUndefined();
+            }
+            tolerance = tol->NumberValue();
+        }
+        if (options->Has(NanNew("layer")))
+        {
+            Local<Value> layer_id = options->Get(NanNew("layer"));
+            if (!layer_id->IsString())
+            {
+                NanThrowTypeError("layer value must be a string");
+                NanReturnUndefined();
+            }
+            layer_name = TOSTR(layer_id);
+        }
+        if (options->Has(NanNew("fields"))) {
+            Local<Value> param_val = options->Get(NanNew("fields"));
+            if (!param_val->IsArray()) {
+                NanThrowTypeError("option 'fields' must be an array of strings");
+                NanReturnUndefined();
+            }
+            Local<Array> a = Local<Array>::Cast(param_val);
+            unsigned int i = 0;
+            unsigned int num_fields = a->Length();
+            while (i < num_fields) {
+                Local<Value> name = a->Get(i);
+                if (name->IsString()){
+                    fields.push_back(TOSTR(name));
+                }
+                i++;
+            }
+        }
+    }
+
+    if (layer_name.empty())
+    {
+        NanThrowTypeError("options.layer is required");
+        NanReturnUndefined();
+    }
+
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+
+    int tile_layer_idx = -1;
+    for (int j=0; j < tiledata.layers_size(); ++j)
+    {
+        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+        if (layer_name == layer.name())
+        {
+            tile_layer_idx = j;
+            break;
+        }
+    }
+    if (tile_layer_idx == -1)
+    {
+        NanThrowError("Could not find layer in vector tile");
+        NanReturnUndefined();
+    }
+
+    Local<Array> queryArray = Local<Array>::Cast(args[0]);
+    Local<Object> results = NanNew<Object>();
+    Local<Array> resultsArray = NanNew<Array>();
+    Local<Object> hitsObject = NanNew<Object>();
+    results->Set(NanNew("hits"), hitsObject);
+    results->Set(NanNew("features"), resultsArray);
+    mapnik::box2d<double> bbox;
+    std::vector<std::pair<uint32_t, mapnik::coord2d> > points;
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(wgs84,merc);
+    for (uint32_t p = 0; p < queryArray->Length(); ++p)
+    {
+        Local<Value> item = queryArray->Get(p);
+        if (!item->IsArray())
+        {
+            NanThrowError("non-array item encountered");
+            NanReturnUndefined();
+        }
+        Local<Array> pair = Local<Array>::Cast(item);
+        Local<Value> lon = pair->Get(0);
+        Local<Value> lat = pair->Get(1);
+        if (!lon->IsNumber() || !lat->IsNumber())
+        {
+            NanThrowError("lng lat must be numbers");
+            NanReturnUndefined();
+        }
+        double x = lon->NumberValue();
+        double y = lat->NumberValue();
+        double z = 0;
+        if (!tr.forward(x,y,z))
+        {
+            NanThrowError("could not reproject lon/lat to mercator");
+            NanReturnUndefined();
+        }
+        mapnik::coord2d pt(x,y);
+        points.push_back(std::make_pair<uint32_t,  mapnik::coord2d>(p,pt));
+        bbox.expand_to_include(pt);
+    }
+
+    bbox.pad(tolerance);
+
+    mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                mapnik::vector::tile_datasource>(
+                                    layer,
+                                    d->x_,
+                                    d->y_,
+                                    d->z_,
+                                    d->width()
+                                    );
+    mapnik::query q(bbox);
+    if (fields.empty())
+    {
+        // request all data attributes
+        for (int i = 0; i < layer.keys_size(); ++i)
+        {
+            q.add_property_name(layer.keys(i));
+        }
+    }
+    else
+    {
+        BOOST_FOREACH ( std::string const& name, fields )
+        {
+            q.add_property_name(name);
+        }
+    }
+    mapnik::featureset_ptr fs = ds->features(q);
+
+    if (fs)
+    {
+        try {
+            mapnik::feature_ptr feature;
+            unsigned idx = 0;
+            while ((feature = fs->next()))
+            {
+                typedef std::pair<uint32_t, mapnik::coord2d> mapnikCoord;
+                BOOST_FOREACH (mapnikCoord const& pair, points)
+                {
+                    mapnik::coord2d pt(pair.second);
+                    double distance = -1;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    {
+                        double d = path_to_point_distance(geom,pt.x,pt.y);
+                        if (d >= 0)
+                        {
+                            if (distance >= 0)
+                            {
+                                if (d < distance) distance = d;
+                            }
+                            else
+                            {
+                                distance = d;
+                            }
+                        }
+                    }
+                    if (distance >= 0)
+                    {
+                        Handle<Value> feat = Feature::New(feature);
+                        Local<Object> feat_obj = feat->ToObject();
+                        feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
+                        Local<Object> hit_obj = NanNew<Object>();
+                        hit_obj->Set(NanNew("distance"), NanNew<Number>(distance));
+                        hit_obj->Set(NanNew("feature_id"), NanNew<Number>(idx));
+                        if(!hitsObject->Has(pair.first)) {
+                            hitsObject->Set(NanNew<Number>(pair.first), NanNew<Array>());
+                        }
+                        Local<Array> pArray =Local<Array>::Cast(hitsObject->Get(NanNew<Number>(pair.first)));
+                        pArray->Set(pArray->Length(), hit_obj);
+                        resultsArray->Set(idx,feat);
+                        idx++;
+                    }
+                }
+            }
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
+    }
+    NanReturnValue(results);
 }
 
 NAN_METHOD(VectorTile::toJSON)
@@ -1002,7 +1322,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                     }
                     else
                     {
-                        throw std::runtime_error("could not project");
+                        std::clog << "could not project\n";
                     }
                 }
                 else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
@@ -1783,7 +2103,7 @@ NAN_METHOD(VectorTile::render)
             {
                 delete closure;
                 NanThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
-	        NanReturnUndefined();
+                NanReturnUndefined();
             }
         }
     }
