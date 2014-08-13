@@ -2,7 +2,7 @@ language: cpp
 
 # http://docs.travis-ci.com/user/multi-os/
 os:
-  - linux
+  # - linux
   - osx
 
 compiler:
@@ -10,8 +10,8 @@ compiler:
 
 env:
   matrix:
-   - NODE_NVM_VERSION="0.11" CXX11=false
-   - NODE_NVM_VERSION="0.10" CXX11=false
+   # - NODE_NVM_VERSION="0.11" CXX11=false
+   # - NODE_NVM_VERSION="0.10" CXX11=false
    - NODE_NVM_VERSION="0.10" CXX11=true
   global:
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
