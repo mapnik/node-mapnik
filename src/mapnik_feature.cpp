@@ -1,3 +1,8 @@
+
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
+
 #include "utils.hpp"
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
@@ -141,7 +146,7 @@ NAN_METHOD(Feature::attributes)
     for ( ;itr!=end; ++itr)
     {
         node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
-        boost::apply_visitor( serializer, MAPNIK_GET<1>(*itr).base() );
+        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr).base() );
     }
     NanReturnValue(feat);
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -u -e
 
 : '
@@ -6,8 +6,8 @@ On linux depends on node and:
 
     sudo apt-get update
     sudo apt-get install pkg-config build-essential zlib1g-dev
-
 '
+
 ARGS=""
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 mkdir -p $CURRENT_DIR/../sdk
@@ -25,42 +25,35 @@ function upgrade_gcc {
     echo "adding gcc-4.8 ppa"
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     echo "updating apt"
-    sudo apt-get update -y
+    sudo apt-get update -y -qq
     echo "installing C++11 compiler"
     sudo apt-get install -y gcc-4.8 g++-4.8
+    if [[ "${CXX#*'clang'}" == "$CXX" ]]; then
+        export CC="gcc-4.8"
+        export CXX="g++-4.8"
+    fi
 }
+
+COMPRESSION="tar.bz2"
+SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
+platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
-    HASH="1545-gb172129-cpp11"
-    if [[ $UNAME == 'Linux' ]]; then
-        export STDLIB="libstdcpp"
-        export CXX_NAME="gcc-4.8"
-        export CC="gcc-4.8";
-        export CXX="g++-4.8";
+    HASH="1662-gb415549"
+    if [[ ${platform} == 'linux' ]]; then
         upgrade_gcc
-    else
-        export STDLIB="libcpp"
-        export CXX_NAME="clang-3.3"
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="546-gdd02192-cpp03"
-    export STDLIB="libstdcpp"
-    if [[ $UNAME == 'Linux' ]]; then
-        export CXX_NAME="gcc-4.6"
-    else
-        export CXX_NAME="clang-3.3"
-    fi
+    HASH="577-ga616e9d"
 fi
 
-platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
 fi
-SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
-COMPRESSION="tar.bz2"
-TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-${STDLIB}-${CXX_NAME}"
+
+TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
@@ -93,11 +86,12 @@ if [[ ! `which node` ]]; then
 fi
 
 if [[ $UNAME == 'Linux' ]]; then
-    export CXXFLAGS="-Wno-unused-local-typedefs"
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
     #sudo apt-get install chrpath -y
     #chrpath -r '$ORIGIN/' ${MAPNIK_SDK}/lib/libmapnik.so
     export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
+else
+    otool -L $MAPNIK_SDK/lib/libmapnik.dylib
 fi
 
 cd ../
@@ -105,7 +99,7 @@ npm install node-pre-gyp
 MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 # note: dangerous!
 rm -rf ${MODULE_PATH}
-npm install --build-from-source ${ARGS}
+npm install --build-from-source ${ARGS} --clang=1
 npm ls
 # copy lib
 cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}

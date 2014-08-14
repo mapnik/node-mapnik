@@ -6,7 +6,7 @@ os:
   - osx
 
 compiler:
- - gcc
+ - clang
 
 env:
   matrix:
