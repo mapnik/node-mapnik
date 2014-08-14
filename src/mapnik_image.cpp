@@ -1,3 +1,7 @@
+
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/graphics.hpp>          // for image_32
@@ -1301,7 +1305,7 @@ void Image::EIO_Composite(uv_work_t* req)
             mapnik::filter::filter_visitor<mapnik::image_32> visitor(*closure->im2->this_);
             BOOST_FOREACH(mapnik::filter::filter_type const& filter_tag, closure->filters)
             {
-                boost::apply_visitor(visitor, filter_tag);
+                MAPNIK_APPLY_VISITOR(visitor, filter_tag);
             }
         }
         mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode, closure->opacity, closure->dx, closure->dy);

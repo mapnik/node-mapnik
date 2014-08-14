@@ -1,6 +1,9 @@
 #ifndef __NODE_MAPNIK_DS_EMITTER_H__
 #define __NODE_MAPNIK_DS_EMITTER_H__
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 #include "utils.hpp"
 
 // mapnik
@@ -146,7 +149,7 @@ static void datasource_features(Local<Array> a, mapnik::datasource_ptr ds, unsig
                         node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*f_itr));
                         // need to call base() since this is a mapnik::value
                         // not a mapnik::value_holder
-                        boost::apply_visitor( serializer, MAPNIK_GET<1>(*f_itr).base() );
+                        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*f_itr).base() );
                     }
                     // add feature id
                     feat->Set(NanNew("__id__"), NanNew<Number>(fp->id()));

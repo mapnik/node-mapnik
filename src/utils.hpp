@@ -1,6 +1,9 @@
 #ifndef __NODE_MAPNIK_UTILS_H__
 #define __NODE_MAPNIK_UTILS_H__
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 // nan
 #include <nan.h>
 
@@ -12,9 +15,6 @@
 #include <mapnik/value_types.hpp>
 #include <mapnik/value.hpp>
 #include <mapnik/version.hpp>
-
-// boost
-#include <boost/variant/static_visitor.hpp>
 
 #define TOSTR(obj) (*String::Utf8Value((obj)->ToString()))
 
@@ -52,7 +52,7 @@ namespace node_mapnik {
 #endif
 
 // adapted to work for both mapnik features and mapnik parameters
-struct params_to_object : public boost::static_visitor<>
+struct params_to_object : public MAPNIK_STATIC_VISITOR<>
 {
 public:
     params_to_object( Local<Object>& ds, std::string key):
@@ -97,7 +97,7 @@ private:
     std::string key_;
 };
 
-struct value_converter: public boost::static_visitor<Handle<Value> >
+struct value_converter: public MAPNIK_STATIC_VISITOR<Handle<Value> >
 {
     Handle<Value> operator () ( value_integer val ) const
     {

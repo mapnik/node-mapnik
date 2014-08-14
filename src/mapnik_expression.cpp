@@ -1,5 +1,8 @@
 #ifdef NODE_MAPNIK_EXPRESSION
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
@@ -122,8 +125,8 @@ NAN_METHOD(Expression::evaluate)
     Feature* f = node::ObjectWrap::Unwrap<Feature>(obj);
 
     Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
-    mapnik::value value_obj = boost::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
-    NanReturnValue(boost::apply_visitor(node_mapnik::value_converter(),value_obj.base()));
+    mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
+    NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj.base()));
 }
 
 #endif
