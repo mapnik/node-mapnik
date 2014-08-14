@@ -34,19 +34,15 @@ function upgrade_gcc {
     fi
 }
 
-CXX_NAME="clang"
 COMPRESSION="tar.bz2"
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
-STDLIB="libstdcpp"
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
     HASH="1602-g01c6b42-cpp11"
     if [[ ${platform} == 'linux' ]]; then
         upgrade_gcc
-    else
-        STDLIB="libcpp"
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
@@ -57,7 +53,7 @@ if [[ $platform == 'darwin' ]]; then
     platform="macosx"
 fi
 
-TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-${STDLIB}-${CXX_NAME}"
+TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
@@ -88,8 +84,6 @@ if [[ ! `which node` ]]; then
     echo 'node not installed'
     exit 1
 fi
-
-export ARCHFLAGS="-Wno-error=unused-command-line-argument-hard-error-in-future"
 
 if [[ $UNAME == 'Linux' ]]; then
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
