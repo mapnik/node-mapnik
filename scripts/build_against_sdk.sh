@@ -40,13 +40,13 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
-    HASH="1602-g01c6b42-cpp11"
+    HASH="1662-gb415549"
     if [[ ${platform} == 'linux' ]]; then
         upgrade_gcc
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="554-g5a481fc-cpp03"
+    HASH="577-ga616e9d"
 fi
 
 if [[ $platform == 'darwin' ]]; then
