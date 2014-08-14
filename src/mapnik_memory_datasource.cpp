@@ -34,7 +34,6 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
     // methods
     NODE_SET_PROTOTYPE_METHOD(lcons, "parameters", parameters);
     NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "features", features);
     NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(lcons, "add", add);
 
@@ -148,45 +147,6 @@ NAN_METHOD(MemoryDatasource::describe)
         }
     }
     NanReturnValue(description);
-}
-
-NAN_METHOD(MemoryDatasource::features)
-{
-
-    NanScope();
-
-    unsigned first = 0;
-    unsigned last = 0;
-    // we are slicing
-    if (args.Length() == 2)
-    {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
-        {
-            NanThrowError("Index of 'first' and 'last' feature must be an integer");
-            NanReturnUndefined();
-        }
-        first = args[0]->IntegerValue();
-        last = args[1]->IntegerValue();
-    }
-
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
-
-    // TODO - we don't know features.length at this point
-    Local<Array> a = NanNew<Array>(0);
-    if (d->datasource_)
-    {
-        try
-        {
-            node_mapnik::datasource_features(a,d->datasource_,first,last);
-        }
-        catch (std::exception const& ex)
-        {
-            NanThrowError(ex.what());
-            NanReturnUndefined();
-        }
-    }
-
-    NanReturnValue(a);
 }
 
 NAN_METHOD(MemoryDatasource::featureset)
