@@ -838,23 +838,17 @@ NAN_METHOD(VectorTile::query)
                         mapnik::feature_ptr feature;
                         while ((feature = fs->next()))
                         {
-                            double distance = -1;
+                            bool hit = false;
+                            double distance = 0.0;
                             BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                             {
-                                double d = path_to_point_distance(geom,x,y);
-                                if (d >= 0)
-                                {
-                                    if (distance >= 0)
-                                    {
-                                        if (d < distance) distance = d;
-                                    }
-                                    else
-                                    {
-                                        distance = d;
-                                    }
-                                }
+                               if (_hit_test(geom,x,y,tolerance,distance))
+                               {
+                                   hit = true;
+                                   break;
+                               }
                             }
-                            if (distance >= 0)
+                            if (hit)
                             {
                                 Handle<Value> feat = Feature::New(feature);
                                 Local<Object> feat_obj = feat->ToObject();
@@ -885,23 +879,17 @@ NAN_METHOD(VectorTile::query)
                     mapnik::feature_ptr feature;
                     while ((feature = fs->next()))
                     {
-                        double distance = -1;
+                        bool hit = false;
+                        double distance = 0.0;
                         BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                         {
-                            double d = path_to_point_distance(geom,x,y);
-                            if (d >= 0)
-                            {
-                                if (distance >= 0)
-                                {
-                                    if (d < distance) distance = d;
-                                }
-                                else
-                                {
-                                    distance = d;
-                                }
-                            }
+                           if (_hit_test(geom,x,y,tolerance,distance))
+                           {
+                               hit = true;
+                               break;
+                           }
                         }
-                        if (distance >= 0)
+                        if (hit)
                         {
                             Handle<Value> feat = Feature::New(feature);
                             Local<Object> feat_obj = feat->ToObject();
