@@ -3,21 +3,32 @@
 ## 1.4.12
 
  - Fixed broken postgis.input plugin in binary package (#286)
+ - New `mapnik.VectorTile.queryMany` method (@rsudekum)
  - Fixed mismatched new/delete in UTF8 grid encoding code (#278)
  - Updated to support latest Mapnik 3.x development version
  - Tweaked internal tracker of map concurrent usage to release before callback (should prevent spurious warnings like at mapbox/tilelive-mapnik#83)
  - Added missing `invert-rgb` compositing option
  - Fixed build against Mapnik with reduced image i/o support
- - Binaries updated to use Mapnik v2.3.x at dd02192932 and mapnik-packaging@ddcfefa486
+
+Notable changes in binaries:
+
+ - Now build with `-DSVG_RENDERER` enabled
+ - Now compiled and linked with `clang++-3.4` on linux instead of `g++`
+ - Now using a versioned binary module directory within `lib/binding/`.
+ - Binaries updated to use Mapnik v2.3.x at a616e9d and mapnik-packaging@a5dbe90c61
 
 Notable changes in the Mapnik SDK include:
  - Faster font i/o
+ - Fixed support for multi-face font collections (.ttc files)
  - Fixed `comp-op:color` compositing to preserve luma
+ - Made `png` format string mean full color png (again) rather than paletted png8
+ - OGR Plugin now accepts optional `extent` parameter (@kernelsanders)
+ - New, experimental `pgraster` plugin (@strk)
  - Upgraded postgres from 9.3.3 -> 9.3.4
  - Upgraded harfbuzz from 0.9.29 -> 0.9.32
  - Upgraded png from 1.6.10 -> 1.6.12
- - Upgraded fontconfig from 2.11.0 -> 2.11.1
  - Upgraded pixman from 0.32.4->0.32.6
+ - Removed dependence on fontconfig
 
 ## 1.4.11
 
