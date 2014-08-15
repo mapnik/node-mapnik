@@ -20,6 +20,7 @@
 
 
 #include <mapnik/map.hpp>
+#include <mapnik/debug.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/geom_util.hpp>
 #include <mapnik/version.hpp>
@@ -2239,7 +2240,8 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                                         closure->d->z_,
                                                         closure->d->width()
                                                         );
-                    ds->set_envelope(m_req.get_buffered_extent());
+                    // FIXME: only a valid optimization if the map srs == layer srs
+                    //ds->set_envelope(m_req.get_buffered_extent());
                     lyr_copy.set_datasource(ds);
                     std::set<std::string> names;
                     ren.apply_to_layer(lyr_copy,
@@ -2263,14 +2265,17 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 
     try {
         mapnik::Map const& map_in = *closure->m->get();
-        mapnik::vector::spherical_mercator merc(closure->d->width_);
+
+        bool wgs84 = true;
         double minx,miny,maxx,maxy;
+        mapnik::vector::spherical_mercator merc(closure->d->width_);
         if (closure->zxy_override) {
-            merc.xyz(closure->x,closure->y,closure->z,minx,miny,maxx,maxy);
+            merc.xyz(closure->x,closure->y,closure->z,minx,miny,maxx,maxy,wgs84);
         } else {
-            merc.xyz(closure->d->x_,closure->d->y_,closure->d->z_,minx,miny,maxx,maxy);
+            merc.xyz(closure->d->x_,closure->d->y_,closure->d->z_,minx,miny,maxx,maxy,wgs84);
         }
         mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
+        //MAPNIK_LOG_ERROR(rendertile) << map_extent;
         mapnik::request m_req(closure->width,closure->height,map_extent);
         m_req.set_buffer_size(closure->buffer_size);
         mapnik::projection map_proj(map_in.srs(),true);
