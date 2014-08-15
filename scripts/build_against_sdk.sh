@@ -95,10 +95,10 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
-    HASH="1667-g8cfb49d"
+    HASH="1671-g751e039"
 else
     # mapnik 2.3.x / c++11 not enabled
-    HASH="577-ga616e9d"
+    HASH="578-g422f3bd"
 fi
 
 if [[ ${platform} == 'linux' ]]; then
