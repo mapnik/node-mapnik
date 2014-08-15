@@ -6,7 +6,7 @@ environment:
   node_pre_gyp_secretAccessKey:
     secure: 8f5eTxMHpuVGHon2wbqrZuq3wzQfEuXMCcOyafBLza0T2VIOoBjbjDbgRbyRIzsT
   matrix:
-  - nodejs_version: 0.10
+#  - nodejs_version: 0.10
   - nodejs_version: 0.11
 
 platform:
@@ -22,12 +22,11 @@ install:
   - SET PATH=c:\python27;%PATH%
   - SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
   - SET PATH=%APPDATA%\npm;%PATH%
-  # upgrade node-gyp to ensure it knows about msvs 2013
-  - npm install node-gyp
-  # install node-pre-gyp so we can figure out versioned directory before starting
-  - npm install node-pre-gyp
   # add local node-pre-gyp dir to path
   - SET PATH=node_modules\.bin;%PATH%
+  # upgrade node-gyp to ensure it knows about msvs 2013
+  - npm install node-gyp node-pre-gyp
+  # install node-pre-gyp so we can figure out versioned directory before starting
   - scripts\build_against_sdk_00-START-HERE.bat
   - npm test || true
   - node-pre-gyp package
