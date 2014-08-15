@@ -23,7 +23,7 @@ SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
 
 SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
-node-pre-gyp reveal module_path > binding_path.txt
+call node-pre-gyp reveal module_path --silent > binding_path.txt
 SET /p N_MAPNIK_BINDING_DIR=<binding_path.txt
 del binding_path.txt
 SET N_MAPNIK_LIB_MAPNIK=%N_MAPNIK_BINDING_DIR%\mapnik
