@@ -38,8 +38,16 @@ describe('mapnik.Map', function() {
         assert.equal(map.width, 100);
         assert.equal(map.height, 100);
 
-        // TODO - need to expose aspect_fix_mode
-        //assert.equal(map.maximumExtent,undefined)
+        // Aspect fix mode
+        // https://github.com/mapnik/mapnik/wiki/Aspect-Fix-Mode
+        var world = [-180,-85,180,85];
+        map.extent = world;
+        // will have been made square
+        assert.deepEqual(map.extent,[-180,-180,180,180]);
+        // now try again after disabling the "fixing"
+        map.aspect_fix_mode = mapnik.Map.ASPECT_RESPECT;
+        map.extent = world;
+        assert.deepEqual(map.extent,world);
         //map.maximumExtent = map.extent;
         //assert.equal(map.maximumExtent,map.extent)
     });
