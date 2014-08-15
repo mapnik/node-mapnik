@@ -25,7 +25,10 @@ SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
 node-pre-gyp reveal module_path > binding_path.txt
 set /p N_MAPNIK_BINDING_DIR=<binding_path.txt
+echo %N_MAPNIK_BINDING_DIR%
 del binding_path.txt
+echo %N_MAPNIK_BINDING_DIR%
+SET N_MAPNIK_BINDING_DIR=%CD%\lib\binding\node-v11-win32-ia32
 SET N_MAPNIK_LIB_MAPNIK=%N_MAPNIK_BINDING_DIR%\mapnik
 SET N_MAPNIK_LIB_SHARE=%N_MAPNIK_BINDING_DIR%\share
 SET N_MAPNIK_STAGE_DIR=%CD%\build\stage
