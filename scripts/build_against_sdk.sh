@@ -21,6 +21,61 @@ if [[ ${1:-false} != false ]]; then
     ARGS=$1
 fi
 
+function upgrade_clang {
+    echo "adding clang + gcc-4.8 ppa"
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    CLANG_VERSION="3.4"
+    if [[ $(lsb_release --release) =~ "12.04" ]]; then
+        sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${CLANG_VERSION} main"
+    fi
+    wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
+    echo "updating apt"
+    sudo apt-get update -y -qq
+    echo "installing clang-${CLANG_VERSION}"
+    apt-cache policy clang-${CLANG_VERSION}
+    sudo apt-get install -y clang-${CLANG_VERSION}
+    echo "installing C++11 compiler"
+    if [[ $(lsb_release --release) =~ "12.04" ]]; then
+        echo 'upgrading libstdc++'
+        sudo apt-get install -y libstdc++6 libstdc++-4.8-dev
+    fi
+    if [[ ${LTO:-false} != false ]]; then
+        echo "upgrading binutils-gold"
+        sudo apt-get install -y -qq binutils-gold
+        if [[ ! -h "/usr/lib/LLVMgold.so" ]] && [[ ! -f "/usr/lib/LLVMgold.so" ]]; then
+            echo "symlinking /usr/lib/llvm-${CLANG_VERSION}/lib/LLVMgold.so"
+            sudo ln -s /usr/lib/llvm-${CLANG_VERSION}/lib/LLVMgold.so /usr/lib/LLVMgold.so
+        fi
+        if [[ ! -h "/usr/lib/libLTO.so" ]] && [[ ! -f "/usr/lib/libLTO.so" ]]; then
+            echo "symlinking /usr/lib/llvm-${CLANG_VERSION}/lib/libLTO.so"
+            sudo ln -s /usr/lib/llvm-${CLANG_VERSION}/lib/libLTO.so /usr/lib/libLTO.so
+        fi
+        # TODO - needed on trusty for pkg-config
+        # since 'binutils-gold' on trusty does not switch
+        # /usr/bin/ld to point to /usr/bin/ld.gold like it does
+        # in the precise package
+        #sudo rm /usr/bin/ld
+        #sudo ln -s /usr/bin/ld.gold /usr/bin/ld
+    fi
+    # for bjam since it can't find a custom named clang-3.4
+    if [[ ! -h "/usr/bin/clang" ]] && [[ ! -f "/usr/bin/clang" ]]; then
+        echo "symlinking /usr/bin/clang-${CLANG_VERSION}"
+        sudo ln -s /usr/bin/clang-${CLANG_VERSION} /usr/bin/clang
+    fi
+    if [[ ! -h "/usr/bin/clang++" ]] && [[ ! -f "/usr/bin/clang++" ]]; then
+        echo "symlinking /usr/bin/clang++-${CLANG_VERSION}"
+        sudo ln -s /usr/bin/clang++-${CLANG_VERSION} /usr/bin/clang++
+    fi
+    # prefer upgraded clang
+    if [[ -f "/usr/bin/clang++-${CLANG_VERSION}" ]]; then
+        export CC="/usr/bin/clang-${CLANG_VERSION}"
+        export CXX="/usr/bin/clang++-${CLANG_VERSION}"
+    else
+        export CC="/usr/bin/clang"
+        export CXX="/usr/bin/clang++"
+    fi
+}
+
 function upgrade_gcc {
     echo "adding gcc-4.8 ppa"
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -42,7 +97,7 @@ if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
     HASH="1667-g8cfb49d"
     if [[ ${platform} == 'linux' ]]; then
-        upgrade_gcc
+        upgrade_clang
     fi
 else
     # mapnik 2.3.x / c++11 not enabled
