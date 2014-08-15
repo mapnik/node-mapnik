@@ -96,12 +96,13 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 if [[ "${CXX11:-false}" != false ]]; then
     # mapnik 3.x / c++11 enabled
     HASH="1667-g8cfb49d"
-    if [[ ${platform} == 'linux' ]]; then
-        upgrade_clang
-    fi
 else
     # mapnik 2.3.x / c++11 not enabled
     HASH="577-ga616e9d"
+fi
+
+if [[ ${platform} == 'linux' ]]; then
+    upgrade_clang
 fi
 
 if [[ $platform == 'darwin' ]]; then
