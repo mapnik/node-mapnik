@@ -4,6 +4,15 @@
 
  - Added `mapnik.Map.aspect_fix_mode` (#177)
 
+Notable changes in binaries:
+
+ - Binaries updated to use Mapnik v2.3.x at d62365c and mapnik-packaging@f012b82e6a
+
+Notable changes in the Mapnik SDK include:
+ - OGR Plugin no longer throws if layer is empty
+ - Added new `aspect_fix_mode` called `RESPECT` that is a no-op
+ - Upgraded harfbuzz from 0.9.32 -> 0.9.35
+
 ## 1.4.12
 
  - Fixed broken `postgis.input` plugin in binary package (#286)
