@@ -93,6 +93,26 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(lcons, "maximumExtent", get_prop, set_prop);
     ATTR(lcons, "background", get_prop, set_prop);
     ATTR(lcons, "parameters", get_prop, set_prop);
+    ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
+
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_GROW_CANVAS",mapnik::Map::GROW_CANVAS)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_SHRINK_BBOX",mapnik::Map::SHRINK_BBOX)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_SHRINK_CANVAS",mapnik::Map::SHRINK_CANVAS)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_BBOX_WIDTH",mapnik::Map::ADJUST_BBOX_WIDTH)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_BBOX_HEIGHT",mapnik::Map::ADJUST_BBOX_HEIGHT)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_RESPECT",mapnik::Map::RESPECT)
 
     target->Set(NanNew("Map"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
@@ -264,6 +284,21 @@ NAN_SETTER(Map::set_prop)
                     m->map_->zoom_to_box(box);
                 else
                     m->map_->set_maximum_extent(box);
+            }
+        }
+    }
+    else if (a == "aspect_fix_mode")
+    {
+        if (!value->IsNumber()) {
+            NanThrowError("'aspect_fix_mode' must be a constant (number)");
+            return;
+        } else {
+            int val = value->IntegerValue();
+            if (val < mapnik::Map::aspect_fix_mode_MAX) {
+                m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
+            } else {
+                NanThrowError("'aspect_fix_mode' value is invalid");
+                return;
             }
         }
     }
