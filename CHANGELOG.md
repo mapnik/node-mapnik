@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.13
+
+ - Added `mapnik.Map.aspect_fix_mode` (#177)
+
 ## 1.4.12
 
  - Fixed broken `postgis.input` plugin in binary package (#286)

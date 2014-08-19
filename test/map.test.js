@@ -39,6 +39,7 @@ describe('mapnik.Map', function() {
         assert.equal(map.height, 100);
 
         // Aspect fix mode
+        assert.equal(map.aspect_fix_mode,mapnik.Map.ASPECT_GROW_BBOX);
         // https://github.com/mapnik/mapnik/wiki/Aspect-Fix-Mode
         var world = [-180,-85,180,85];
         map.extent = world;
@@ -46,6 +47,7 @@ describe('mapnik.Map', function() {
         assert.deepEqual(map.extent,[-180,-180,180,180]);
         // now try again after disabling the "fixing"
         map.aspect_fix_mode = mapnik.Map.ASPECT_RESPECT;
+        assert.equal(map.aspect_fix_mode,mapnik.Map.ASPECT_RESPECT);
         map.extent = world;
         assert.deepEqual(map.extent,world);
         //map.maximumExtent = map.extent;

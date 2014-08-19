@@ -230,6 +230,8 @@ NAN_GETTER(Map::get_prop)
         arr->Set(3, NanNew<Number>(e->maxy()));
         NanReturnValue(arr);
     }
+    else if(a == "aspect_fix_mode")
+        NanReturnValue(NanNew<Integer>(m->map_->get_aspect_fix_mode()));
     else if(a == "width")
         NanReturnValue(NanNew<Integer>(m->map_->width()));
     else if(a == "height")
