@@ -53,15 +53,10 @@ describe('mapnik.VectorTile queryMany', function() {
         };
         vtile2.addGeoJSON(JSON.stringify(geojson2),"layer-name");
         var manyResults = vtile2.queryMany([[0,0],[0,0]],{tolerance:1,fields:['name'],layer:'layer-name'});
-        assert.equal(manyResults.features.length,2);
-        assert.equal(manyResults.features[1].id(),1);
-        assert.ok(manyResults.hits['0'][0].distance < 0.00000001);
-        assert.equal(manyResults.features[1].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[1].attributes(), { name: 'geojson data' });
-        assert.equal(manyResults.features[1].id(),1);
-        assert.ok(manyResults.hits['1'][0].distance < 0.00000001);
-        assert.equal(manyResults.features[1].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[1].attributes(), { name: 'geojson data' });
+        assert.equal(manyResults['0'].length, 2);
+        assert.ok(manyResults['0'][0].distance < 0.00000001);
+        assert.equal(manyResults['0'][0].layer, 'layer-name');
+        assert.deepEqual(manyResults['0'][0].feature.attributes(), { name: 'geojson data' });
         done();
     });
 

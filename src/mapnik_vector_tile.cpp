@@ -997,12 +997,8 @@ NAN_METHOD(VectorTile::queryMany)
         NanReturnUndefined();
     }
 
-    Local<Array> queryArray = Local<Array>::Cast(args[0]);
     Local<Object> results = NanNew<Object>();
-    Local<Array> resultsArray = NanNew<Array>();
-    Local<Object> hitsObject = NanNew<Object>();
-    results->Set(NanNew("hits"), hitsObject);
-    results->Set(NanNew("features"), resultsArray);
+    Local<Array> queryArray = Local<Array>::Cast(args[0]);
     mapnik::box2d<double> bbox;
     std::vector<std::pair<uint32_t, mapnik::coord2d> > points;
     mapnik::projection wgs84("+init=epsg:4326");
@@ -1035,6 +1031,15 @@ NAN_METHOD(VectorTile::queryMany)
         mapnik::coord2d pt(x,y);
         points.push_back(std::make_pair(p,pt));
         bbox.expand_to_include(pt);
+
+        Local<Array> twoClosest = NanNew<Array>();
+        Local<Object> defaultObject1 = NanNew<Object>();
+        Local<Object> defaultObject2 = NanNew<Object>();
+        defaultObject1->Set(NanNew("distance"), NanNew<Number>(1000000000));
+        defaultObject2->Set(NanNew("distance"), NanNew<Number>(1000000000));
+        twoClosest->Set(0, defaultObject1);
+        twoClosest->Set(1, defaultObject2);
+        results->Set(p, twoClosest);
     }
 
     bbox.pad(tolerance);
@@ -1064,13 +1069,12 @@ NAN_METHOD(VectorTile::queryMany)
             q.add_property_name(name);
         }
     }
-    mapnik::featureset_ptr fs = ds->features(q);
 
+    mapnik::featureset_ptr fs = ds->features(q);
     if (fs)
     {
         try {
             mapnik::feature_ptr feature;
-            unsigned idx = 0;
             while ((feature = fs->next()))
             {
                 typedef std::pair<uint32_t, mapnik::coord2d> mapnikCoord;
@@ -1078,7 +1082,7 @@ NAN_METHOD(VectorTile::queryMany)
                 {
                     mapnik::coord2d pt(pair.second);
                     double distance = -1;
-                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    BOOST_FOREACH (mapnik::geometry_type const& geom, feature->paths())
                     {
                         double d = path_to_point_distance(geom,pt.x,pt.y);
                         if (d >= 0)
@@ -1095,19 +1099,28 @@ NAN_METHOD(VectorTile::queryMany)
                     }
                     if (distance >= 0)
                     {
-                        Handle<Value> feat = Feature::New(feature);
-                        Local<Object> feat_obj = feat->ToObject();
-                        feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
-                        Local<Object> hit_obj = NanNew<Object>();
-                        hit_obj->Set(NanNew("distance"), NanNew<Number>(distance));
-                        hit_obj->Set(NanNew("feature_id"), NanNew<Number>(idx));
-                        if(!hitsObject->Has(pair.first)) {
-                            hitsObject->Set(NanNew<Number>(pair.first), NanNew<Array>());
+                        Local<Array> twoClosest = Local<Array>::Cast(results->Get(pair.first));
+                        Local<Object> closest1 = twoClosest->Get(0)->ToObject();
+                        Local<Object> closest2 = twoClosest->Get(1)->ToObject();
+                        double distance1 = closest1->Get(NanNew("distance"))->NumberValue();
+                        double distance2 = closest2->Get(NanNew("distance"))->NumberValue();
+
+                        if(distance <= distance1) {
+                            twoClosest->Set(1, closest1);
+                            Local <Object> newValues = NanNew<Object>();
+                            newValues->Set(NanNew("distance"), NanNew<Number>(distance));
+                            Handle<Value> feat = Feature::New(feature);
+                            newValues->Set(NanNew("layer"),NanNew(layer.name().c_str()));
+                            newValues->Set(NanNew("feature"),feat->ToObject());
+                            twoClosest->Set(0, newValues);
+                        } else if (distance <= distance2) {
+                            Local <Object> newValues = NanNew<Object>();
+                            newValues->Set(NanNew("distance"), NanNew<Number>(distance));
+                            Handle<Value> feat = Feature::New(feature);
+                            newValues->Set(NanNew("layer"),NanNew(layer.name().c_str()));
+                            newValues->Set(NanNew("feature"),feat->ToObject());
+                            twoClosest->Set(1, newValues);
                         }
-                        Local<Array> pArray =Local<Array>::Cast(hitsObject->Get(NanNew<Number>(pair.first)));
-                        pArray->Set(pArray->Length(), hit_obj);
-                        resultsArray->Set(idx,feat);
-                        idx++;
                     }
                 }
             }
@@ -1118,6 +1131,7 @@ NAN_METHOD(VectorTile::queryMany)
             NanReturnUndefined();
         }
     }
+
     NanReturnValue(results);
 }
 
