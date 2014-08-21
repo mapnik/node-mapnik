@@ -1105,7 +1105,7 @@ NAN_METHOD(VectorTile::queryMany)
                         double distance1 = closest1->Get(NanNew("distance"))->NumberValue();
                         double distance2 = closest2->Get(NanNew("distance"))->NumberValue();
 
-                        if(distance < distance1) {
+                        if(distance <= distance1) {
                             twoClosest->Set(1, closest1);
                             Local <Object> newValues = NanNew<Object>();
                             newValues->Set(NanNew("distance"), NanNew<Number>(distance));
@@ -1113,7 +1113,7 @@ NAN_METHOD(VectorTile::queryMany)
                             newValues->Set(NanNew("layer"),NanNew(layer.name().c_str()));
                             newValues->Set(NanNew("feature"),feat->ToObject());
                             twoClosest->Set(0, newValues);
-                        } else if (distance < distance2) {
+                        } else if (distance <= distance2) {
                             Local <Object> newValues = NanNew<Object>();
                             newValues->Set(NanNew("distance"), NanNew<Number>(distance));
                             Handle<Value> feat = Feature::New(feature);
