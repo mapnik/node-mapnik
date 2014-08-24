@@ -1,5 +1,9 @@
 # Changelog
 
+## Future
+
+ - Avoid startup error if $HOME environment is not known
+
 ## 1.4.13
 
  - Added `mapnik.Map.aspect_fix_mode` (#177)
