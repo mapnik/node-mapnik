@@ -3,18 +3,7 @@
   'variables': {
       'std%':'ansi',
       'runtime_link%':'shared',
-      'NODEMAPNIK_DIR%':'.'
   },
-  'conditions': [
-      ['OS=="win"', {
-        'variables': {
-          'PROTOBUF_INCLUDES%':'C:/mapnik-v2.3.0/include/mapnik/protobuf',
-          'PROTOBUF_LIBS%':'C:/mapnik-v2.3.0/lib',
-          'PROTOBUF_LIBRARY%':'libprotobuf-lite.lib',
-          'NODEMAPNIK_DIR%':'C:/dev2/node-mapnik'
-        }
-      }]
-  ],
   'targets': [
     {
       'target_name': 'action_before_build',
@@ -24,16 +13,16 @@
           {
             'action_name': 'generate_protoc_files',
             'inputs': [
-              '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto'
+              './node_modules/mapnik-vector-tile/proto/'
             ],
             'outputs': [
               '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc',
               '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h'
             ],
             'action': [ 'protoc',
-                        '-I<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/',
+                        '-I<(RULE_INPUT_PATH)',
                         '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
-                        '<(NODEMAPNIK_DIR)/node_modules/mapnik-vector-tile/proto/vector_tile.proto']
+                        '<(RULE_INPUT_PATH)/vector_tile.proto']
           },
           {
             'action_name': 'generate_setting',
@@ -88,14 +77,13 @@
         ['OS=="win"', {
             'include_dirs':[
                 '<!@(mapnik-config --includes)',
-                '<!@(mapnik-config --dep-includes)',
-                '<@(PROTOBUF_INCLUDES)'
+                '<!@(mapnik-config --dep-includes)'
               ],
             'defines': ['NOMINMAX','<!@(mapnik-config --defines)'],
             'libraries': [
                 '<!@(mapnik-config --libs)',
                 '<!@(mapnik-config --dep-libs)',
-                '<@(PROTOBUF_LIBRARY)'
+                'libprotobuf-lite.lib'
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
@@ -113,8 +101,7 @@
                     '/FORCE:MULTIPLE'
                 ],
                 'AdditionalLibraryDirectories': [
-                    '<!@(mapnik-config --ldflags)',
-                    '<@(PROTOBUF_LIBS)'
+                    '<!@(mapnik-config --ldflags)'
                 ],
               },
             }
