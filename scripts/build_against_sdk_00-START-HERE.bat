@@ -14,14 +14,14 @@ SET MAPNIK_DIR=C:\mapnik-v%MAPNIK_VERSION%
 SET BASE_DIR=C:\dev2
 SET PATH=C:\Program Files\7-Zip;%PATH%
 SET PATH=c:\Python27;%PATH%
-SET PATH=%MAPNIK_DIR%\lib;%PATH%
+SET PATH=%MAPNIK_DIR%\libs;%PATH%
 SET PATH=%MAPNIK_DIR%\bin;%PATH%
 ::add bundled node-pre-gyp to path
 SET PATH=node_modules\.bin;%PATH%
 SET PATH=%BASE_DIR%;%PATH%
 SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
 
-SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
+SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\libs
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
 call node-pre-gyp reveal module_path --silent > binding_path.txt
 SET /p N_MAPNIK_BINDING_DIR=<binding_path.txt
