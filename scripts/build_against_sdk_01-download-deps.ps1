@@ -5,6 +5,7 @@ Try{
     Write-Output "$msg_prefix MAPNIK_VERSION: $env:MAPNIK_VERSION"
     $mapnik_remote='https://mapnik.s3.amazonaws.com/dist/dev/mapnik-sdk.7z'
     $mapnik_local="$env:DL_DIR\mapnik-sdk$env:MAPNIK_VERSION.7z"
+    $mapnik_unpacked="$env:MAPNIK_DIR"
 
     ###CREATE DOWNLOAD DIR
     if(!(Test-Path -Path $env:DL_DIR )){
@@ -25,7 +26,7 @@ Try{
 	##7z does not have a silent mode -> pipe to FIND to reduce ouput
 	##| FIND /V "ing  "
 	Write-Output "$msg_prefix extracting mapnik sdk: C:\"
-	invoke-expression "7z -y x $mapnik_local -oC:\ | FIND /V `"ing  `""
+	invoke-expression "7z -y x $mapnik_local -o$mapnik_unpacked | FIND /V `"ing  `""
 }
 Catch {
 	Write-Output "`n`n$msg_prefix`n!!!!EXCEPTION!!!`n$msg_prefix`n`n"
