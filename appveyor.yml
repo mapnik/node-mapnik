@@ -28,7 +28,7 @@ install:
   # install node-pre-gyp so we can figure out versioned directory before starting
   - npm install node-gyp node-pre-gyp
   - scripts\build_against_sdk_00-START-HERE.bat
-  - npm test || true
+  - npm test
   - node-pre-gyp package
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
