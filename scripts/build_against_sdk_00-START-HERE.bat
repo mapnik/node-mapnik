@@ -9,8 +9,8 @@
 :: ============ ENV VARS
 ::Supported mapnik versions: 2.2.0, 2.3.0
 SET MAPNIK_VERSION=2.3.0
-SET MAPNIK_DIR=C:\mapnik-v%MAPNIK_VERSION%
-
+SET MAPNIK_DIR=%CD%\mapnik-sdk
+set PATH=%MAPNIK_DIR%\bin;%PATH%
 SET PATH=C:\Program Files\7-Zip;%PATH%
 SET PATH=c:\Python27;%PATH%
 SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\libs
@@ -36,6 +36,7 @@ IF ERRORLEVEL 1 GOTO ERROR
 
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
+::call node-pre-gyp build --msvs_version=2013
 call npm install --build-from-source --msvs_version=2013
 IF ERRORLEVEL 1 GOTO ERROR
 
