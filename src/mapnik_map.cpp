@@ -111,8 +111,10 @@ void Map::Initialize(Handle<Object> target) {
                                 "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
+#if MAPNIK_VERSION >= 200300
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_RESPECT",mapnik::Map::RESPECT)
+#endif
 
     target->Set(NanNew("Map"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
