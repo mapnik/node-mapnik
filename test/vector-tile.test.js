@@ -411,8 +411,9 @@ describe('mapnik.VectorTile ', function() {
                 if (!existsSync(expected_svg)) {
                     fs.writeFileSync(expected_svg,surface.getData());
                 }
-                fs.writeFileSync(actual_svg,surface.getData());
-                assert.ok(Math.abs(fs.readFileSync(actual_svg).length - fs.readFileSync(expected_svg).length) < 10);
+                fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
+                var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length)
+				assert.ok(diff < 10);
                 var surface2 = new mapnik.CairoSurface('svg',vtile.width(),vtile.height());
                 vtile.render(map, surface2, {renderer:'svg'}, function(err,surface2) {
                     if (err) throw err;
@@ -422,10 +423,9 @@ describe('mapnik.VectorTile ', function() {
                         fs.writeFileSync(expected_svg2,surface2.getData());
                     }
                     fs.writeFileSync(actual_svg2,surface2.getData());
-                    assert.ok(Math.abs(fs.readFileSync(actual_svg2).length - fs.readFileSync(expected_svg2).length) < 10);
+                    assert.ok(Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length) < 10);
                     done();
                 });
-
             });
         });
     });
