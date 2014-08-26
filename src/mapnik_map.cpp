@@ -60,6 +60,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromString", fromString);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "clone", clone);
     NODE_SET_PROTOTYPE_METHOD(lcons, "save", save);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toXML", to_string);
@@ -128,6 +129,11 @@ Map::Map(int width, int height, std::string const& srs) :
     map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
     in_use_(0) {}
 
+Map::Map() :
+    ObjectWrap(),
+    map_(),
+    in_use_(0) {}
+
 Map::~Map() { }
 
 void Map::acquire() {
@@ -155,8 +161,11 @@ NAN_METHOD(Map::New)
     // accept a reference or v8:External?
     if (args[0]->IsExternal())
     {
-        NanThrowError("No support yet for passing v8:External wrapper around C++ void*");
-        NanReturnUndefined();
+        Local<External> ext = args[0].As<External>();
+        void* ptr = ext->Value();
+        Map* m =  static_cast<Map*>(ptr);
+        m->Wrap(args.This());
+        NanReturnValue(args.This());
     }
 
     if (args.Length() == 2)
@@ -1135,6 +1144,15 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     delete closure;
 }
 
+NAN_METHOD(Map::clone)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m2 = new Map();
+    m2->map_ = MAPNIK_MAKE_SHARED<mapnik::Map>(*m->map_);
+    Handle<Value> ext = NanNew<External>(m2);
+    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+}
 
 NAN_METHOD(Map::save)
 {

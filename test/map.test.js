@@ -66,6 +66,11 @@ describe('mapnik.Map', function() {
         // Test loading a sample world map
         map.loadSync('./test/stylesheet.xml');
 
+        var cloned = map.clone();
+        assert.equal(map.toXML(),cloned.toXML());
+        cloned.srs = 'foo';
+        assert.notEqual(map.toXML(),cloned.toXML());
+
         var layers = map.layers();
         assert.equal(layers.length, 1);
         assert.equal(layers[0].name, 'world');
