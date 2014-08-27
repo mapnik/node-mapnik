@@ -2,10 +2,10 @@
 
 ## Future
 
- - Added `mapnik.Map.clone` method to create a shallow copy of a map object (datasources are still shared)
  - Avoid startup error if $HOME environment is not known
  - Fixed all tests on windows
  - Experimental: `mapnik.VectorTile` now accepts `variables` object in render options.
+ - Experimental: Added `mapnik.Map.clone` method to create a shallow copy of a map object (datasources are still shared)
 
 Notable changes in binaries:
 
