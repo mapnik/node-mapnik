@@ -45,11 +45,13 @@ describe('mapnik.Map', function() {
         map.extent = world;
         // will have been made square
         assert.deepEqual(map.extent,[-180,-180,180,180]);
-        // now try again after disabling the "fixing"
-        map.aspect_fix_mode = mapnik.Map.ASPECT_RESPECT;
-        assert.equal(map.aspect_fix_mode,mapnik.Map.ASPECT_RESPECT);
-        map.extent = world;
-        assert.deepEqual(map.extent,world);
+        if (mapnik.versions.mapnik_number >= 200300) {
+            // now try again after disabling the "fixing"
+            map.aspect_fix_mode = mapnik.Map.ASPECT_RESPECT;
+            assert.equal(map.aspect_fix_mode,mapnik.Map.ASPECT_RESPECT);
+            map.extent = world;
+            assert.deepEqual(map.extent,world);
+        }
         //map.maximumExtent = map.extent;
         //assert.equal(map.maximumExtent,map.extent)
     });
