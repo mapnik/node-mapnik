@@ -413,19 +413,23 @@ describe('mapnik.VectorTile ', function() {
                 }
                 fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
                 var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length)
-				assert.ok(diff < 10);
-                var surface2 = new mapnik.CairoSurface('svg',vtile.width(),vtile.height());
-                vtile.render(map, surface2, {renderer:'svg'}, function(err,surface2) {
-                    if (err) throw err;
-                    var actual_svg2 = './test/data/vector_tile/tile0.actual-svg.svg';
-                    var expected_svg2 = './test/data/vector_tile/tile0.expected-svg.svg';
-                    if (!existsSync(expected_svg2)) {
-                        fs.writeFileSync(expected_svg2,surface2.getData());
-                    }
-                    fs.writeFileSync(actual_svg2,surface2.getData());
-                    assert.ok(Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length) < 10);
+                assert.ok(diff < 10);
+                if (mapnik.versions.mapnik_number >= 200300) {
+                    var surface2 = new mapnik.CairoSurface('svg',vtile.width(),vtile.height());
+                    vtile.render(map, surface2, {renderer:'svg'}, function(err,surface2) {
+                        if (err) throw err;
+                        var actual_svg2 = './test/data/vector_tile/tile0.actual-svg.svg';
+                        var expected_svg2 = './test/data/vector_tile/tile0.expected-svg.svg';
+                        if (!existsSync(expected_svg2)) {
+                            fs.writeFileSync(expected_svg2,surface2.getData());
+                        }
+                        fs.writeFileSync(actual_svg2,surface2.getData());
+                        assert.ok(Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length) < 10);
+                        done();
+                    });
+                } else {
                     done();
-                });
+                }
             });
         });
     });
