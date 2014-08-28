@@ -28,8 +28,6 @@ public:
     // Are these the only methods available in logger?
     static NAN_GETTER(get_severity);
     static NAN_SETTER(set_severity);
-    
-    //I'm guessin severity levels will be NODE_MAPNIK_DEFINE_CONSTANTS within the cpp file
 
     // Default Constructor
     Logger();
@@ -37,7 +35,7 @@ public:
     inline logger_ptr get() { return this_; }
 
 private:
-    // Deconstructor?
+    // Deconstructor
     ~Logger();
     logger_ptr this_;
 };
