@@ -352,7 +352,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var expected = './test/data/vector_tile/tile3.expected.png';
             var actual = './test/data/vector_tile/tile3.actual.png';
-            if (!existsSync(expected)) {
+            if (!existsSync(expected) || process.env.UPDATE) {
                 image.save(expected, 'png32');
             }
             image.save(actual, 'png32');
@@ -398,7 +398,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile0.actual.png';
             var expected = './test/data/vector_tile/tile0.expected.png';
-            if (!existsSync(expected)) {
+            if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
@@ -408,7 +408,7 @@ describe('mapnik.VectorTile ', function() {
                 if (err) throw err;
                 var actual_svg = './test/data/vector_tile/tile0.actual-cairo.svg';
                 var expected_svg = './test/data/vector_tile/tile0.expected-cairo.svg';
-                if (!existsSync(expected_svg)) {
+                if (!existsSync(expected_svg) || process.env.UPDATE) {
                     fs.writeFileSync(expected_svg,surface.getData());
                 }
                 fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
@@ -420,7 +420,7 @@ describe('mapnik.VectorTile ', function() {
                         if (err) throw err;
                         var actual_svg2 = './test/data/vector_tile/tile0.actual-svg.svg';
                         var expected_svg2 = './test/data/vector_tile/tile0.expected-svg.svg';
-                        if (!existsSync(expected_svg2)) {
+                        if (!existsSync(expected_svg2) || process.env.UPDATE) {
                             fs.writeFileSync(expected_svg2,surface2.getData());
                         }
                         fs.writeFileSync(actual_svg2,surface2.getData());
@@ -448,7 +448,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile0-b.actual.png';
             var expected = './test/data/vector_tile/tile0-b.expected.png';
-            if (!existsSync(expected)) {
+            if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
@@ -471,7 +471,7 @@ describe('mapnik.VectorTile ', function() {
             var utf = vtile_image.encodeSync('utf');
             var expected_file = './test/data/vector_tile/tile0.expected.grid.json';
             var actual_file = './test/data/vector_tile/tile0.actual.grid.json';
-            if (!existsSync(expected_file)) {
+            if (!existsSync(expected_file) || process.env.UPDATE) {
                 fs.writeFileSync(expected_file,JSON.stringify(utf,null,1));
             }
             fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
@@ -573,7 +573,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile0-c.actual.png';
             var expected = './test/data/vector_tile/tile0-c.expected.png';
-            if (!existsSync(expected)) {
+            if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
             // TODO - visual difference in master vs 2.3.x due to https://github.com/mapnik/mapnik/commit/ecc5acbdb953e172fcc652b55ed19b8b581e2146
@@ -598,7 +598,7 @@ describe('mapnik.VectorTile ', function() {
                 if (err) throw err;
                 var actual = './test/data/vector_tile/tile-raster.actual.jpg';
                 var expected = './test/data/vector_tile/tile-raster.expected.jpg';
-                if (!existsSync(expected)) {
+                if (!existsSync(expected) || process.env.UPDATE) {
                     vtile_image.save(expected, 'jpeg80');
                 }
 				//vtile_image.save(actual, 'jpeg80');
@@ -630,7 +630,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             var actual = './test/data/vector_tile/tile-raster2.actual.png';
             var expected = './test/data/vector_tile/tile-raster2.expected.png';
-            if (!existsSync(expected)) {
+            if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
 		    //vtile_image.save(actual, 'png32');
