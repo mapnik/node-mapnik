@@ -402,7 +402,46 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(expected, 'png32');
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            // render with cairo
+            done();
+        });
+    });
+
+    it('should read back the vector tile and render a native svg with it', function(done) {
+        if (mapnik.supports.svg) {
+            var vtile = new mapnik.VectorTile(0, 0, 0);
+            vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
+            vtile.parse();
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/stylesheet.xml');
+            map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+            var surface2 = new mapnik.CairoSurface('svg',vtile.width(),vtile.height());
+            vtile.render(map, surface2, {renderer:'svg'}, function(err,surface2) {
+                if (err) throw err;
+                var actual_svg2 = './test/data/vector_tile/tile0.actual-svg.svg';
+                var expected_svg2 = './test/data/vector_tile/tile0.expected-svg.svg';
+                if (!existsSync(expected_svg2) || process.env.UPDATE) {
+                    fs.writeFileSync(expected_svg2,surface2.getData());
+                }
+                fs.writeFileSync(actual_svg2,surface2.getData());
+                var diff = Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length)
+                assert.ok(diff < 10,"svg diff "+diff+" not less that 10");
+                done();
+            });
+        } else {
+            done();
+        }
+    });
+
+    it('should read back the vector tile and render a cairo svg with it', function(done) {
+        if (mapnik.supports.cairo) {
+            var vtile = new mapnik.VectorTile(0, 0, 0);
+            vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
+            vtile.parse();
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/stylesheet.xml');
+            map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+            assert.equal(vtile.isSolid(), false);
             var surface = new mapnik.CairoSurface('svg',vtile.width(),vtile.height());
             vtile.render(map, surface, {renderer:'cairo'}, function(err,surface) {
                 if (err) throw err;
@@ -413,25 +452,12 @@ describe('mapnik.VectorTile ', function() {
                 }
                 fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
                 var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length)
-                assert.ok(diff < 10);
-                if (mapnik.versions.mapnik_number >= 200300) {
-                    var surface2 = new mapnik.CairoSurface('svg',vtile.width(),vtile.height());
-                    vtile.render(map, surface2, {renderer:'svg'}, function(err,surface2) {
-                        if (err) throw err;
-                        var actual_svg2 = './test/data/vector_tile/tile0.actual-svg.svg';
-                        var expected_svg2 = './test/data/vector_tile/tile0.expected-svg.svg';
-                        if (!existsSync(expected_svg2) || process.env.UPDATE) {
-                            fs.writeFileSync(expected_svg2,surface2.getData());
-                        }
-                        fs.writeFileSync(actual_svg2,surface2.getData());
-                        assert.ok(Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length) < 10);
-                        done();
-                    });
-                } else {
-                    done();
-                }
-            });
-        });
+                assert.ok(diff < 10,"svg diff "+diff+" not less that 10");
+                done();
+            });            
+        } else {
+            done();
+        }
     });
 
     it('should read back the vector tile and render an image with it using negative buffer', function(done) {
