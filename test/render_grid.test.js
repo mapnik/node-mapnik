@@ -12,6 +12,10 @@ var reference__id__3 = './test/support/grid__id__3.json';
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
+function _c(grid1,grid2) {
+    return grid2.replace(/\r/g, '') == grid2.replace(/\r/g, '');
+}
+
 describe('mapnik grid rendering ', function() {
 
     it('should match expected output (sync rendering)', function(done) {
@@ -32,9 +36,9 @@ describe('mapnik grid rendering ', function() {
                 fs.writeFileSync(reference,JSON.stringify(grid_utf,null,1))                
             } else {
                 var expected = fs.readFileSync(reference,'utf8');
-                var equal =JSON.stringify(grid_utf,null,1) == expected;
+                var equal = _c(JSON.stringify(grid_utf,null,1),expected);
                 assert.ok(equal);
-                equal = JSON.stringify(gv_utf,null,1) == expected;
+                equal = _c(JSON.stringify(gv_utf,null,1),expected);
                 assert.ok(equal);
             }
             // pull a subsetted view (greenland basically)
@@ -46,7 +50,7 @@ describe('mapnik grid rendering ', function() {
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1))
             } else {
-                var equal = JSON.stringify(gv_utf2,null,1) == expected_view;
+                var equal = _c(JSON.stringify(gv_utf2,null,1),expected_view);
                 assert.ok(equal);
             }
             done();
@@ -66,7 +70,7 @@ describe('mapnik grid rendering ', function() {
             map.render(grid, options, function(err, grid) {
                 if (err) throw err;
                 grid.encode('utf', {resolution: 4}, function(err,utf) {
-                    var equal = JSON.stringify(utf,null,1) == fs.readFileSync(reference,'utf8');
+                    var equal = _c(JSON.stringify(utf,null,1),fs.readFileSync(reference,'utf8'));
                     assert.ok(equal);
                     done();
                 });
@@ -88,7 +92,7 @@ describe('mapnik grid rendering ', function() {
                 assert.ok(!err);
                 var gv = grid.view(0, 0, 256, 256);
                 gv.encode('utf', {resolution: 4}, function(err,gv_utf1) {
-                    var equal = JSON.stringify(gv_utf1,null,1) == fs.readFileSync(reference,'utf8');
+                    var equal = _c(JSON.stringify(gv_utf1,null,1),fs.readFileSync(reference,'utf8'));
                     assert.ok(equal);
                     done();
                 });
@@ -116,7 +120,7 @@ describe('mapnik grid rendering ', function() {
                     if (process.env.UPDATE) {
                         fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1))                
                     } else {
-                        var equal = JSON.stringify(gv_utf2,null,1) == fs.readFileSync(reference_view,'utf8');
+                        var equal = _c(JSON.stringify(gv_utf2,null,1),fs.readFileSync(reference_view,'utf8'));
                         assert.ok(equal);
                     }
                     done();
@@ -139,7 +143,7 @@ describe('mapnik grid rendering ', function() {
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference__id__,JSON.stringify(grid_utf,null,1))                
             } else {
-                var equal =JSON.stringify(grid_utf,null,1) == fs.readFileSync(reference__id__,'utf8');
+                var equal = _c(JSON.stringify(grid_utf,null,1),fs.readFileSync(reference__id__,'utf8'));
                 assert.ok(equal);
             }
             done();
@@ -160,7 +164,7 @@ describe('mapnik grid rendering ', function() {
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference__id__2,JSON.stringify(grid_utf,null,1))                
             } else {
-                var equal = JSON.stringify(grid_utf,null,1) == fs.readFileSync(reference__id__2,'utf8');
+                var equal = _c(JSON.stringify(grid_utf,null,1),fs.readFileSync(reference__id__2,'utf8'));
                 assert.ok(equal);
             }
             done();
@@ -181,7 +185,7 @@ describe('mapnik grid rendering ', function() {
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference__id__3,JSON.stringify(grid_utf,null,1))                
             } else {
-                var equal = JSON.stringify(grid_utf,null,1) == fs.readFileSync(reference__id__3,'utf8');
+                var equal = _c(JSON.stringify(grid_utf,null,1),fs.readFileSync(reference__id__3,'utf8'));
                 assert.ok(equal);
             }
             done();
