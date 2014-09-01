@@ -3,7 +3,7 @@
 
     <Style name="style">
         <Rule>
-            <PolygonSymbolizer fill="white"/>
+            <PolygonSymbolizer fill="white" clip="false"/>
         </Rule>
     </Style>
 

@@ -452,7 +452,7 @@ describe('mapnik.VectorTile ', function() {
                 }
                 fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
                 var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length)
-                assert.ok(diff < 10,"svg diff "+diff+" not less that 10");
+                assert.ok(diff < 20,"svg diff "+diff+" not less that 20");
                 done();
             });            
         } else {
