@@ -1,5 +1,5 @@
 #!/bin/bash
-set -u -e
+set -e
 
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
@@ -28,8 +28,8 @@ function doit () {
     npm test
 }
 
-doit 0.8.26
-doit 0.10.29
+#doit 0.8.26
+doit 0.10.31
 doit 0.11.13
 
 # to avoid then publishing with node v0.11.x
