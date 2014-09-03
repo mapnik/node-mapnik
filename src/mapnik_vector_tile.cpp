@@ -618,7 +618,7 @@ NAN_METHOD(VectorTile::composite)
                                                             vt->z_,
                                                             vt->width()
                                                             );
-                        ds->set_envelope(m_req.get_buffered_extent());
+                        //ds->set_envelope(m_req.get_buffered_extent());
                         lyr.set_datasource(ds);
                         map.MAPNIK_ADD_LAYER(lyr);
                     }
@@ -655,7 +655,7 @@ NAN_METHOD(VectorTile::composite)
                                                                     vt->z_,
                                                                     vt->width()
                                                                     );
-                                ds->set_envelope(m_req.get_buffered_extent());
+                                //ds->set_envelope(m_req.get_buffered_extent());
                                 lyr.set_datasource(ds);
                                 map.MAPNIK_ADD_LAYER(lyr);
                             }
@@ -2333,7 +2333,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                                         closure->d->z_,
                                                         closure->d->width()
                                                         );
-                    ds->set_envelope(m_req.get_buffered_extent());
+                    //ds->set_envelope(m_req.get_buffered_extent());
                     lyr_copy.set_datasource(ds);
                     std::set<std::string> names;
                     ren.apply_to_layer(lyr_copy,
@@ -2433,7 +2433,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                         closure->d->z_,
                                                         closure->d->width_
                                                         );
-                    ds->set_envelope(m_req.get_buffered_extent());
+                    //ds->set_envelope(m_req.get_buffered_extent());
                     lyr_copy.set_datasource(ds);
                     ren.apply_to_layer(lyr_copy,
                                        ren,
