@@ -1,7 +1,8 @@
 # Changelog
 
-## Future
+## 1.4.14
 
+ - IMPORTANT: changes to shield placement (see Mapnik SDK notes below)
  - Added `mapnik.VectorTile.empty()` to check if a vector tile has any features (reports true if tile contains layers without features)
  - Avoid startup error if $HOME environment is not known
  - Fixed all tests on windows
@@ -10,7 +11,15 @@
 
 Notable changes in binaries:
 
+ - Binaries updated to use Mapnik v2.3.x at 5ae55a07e and mapnik-packaging@b923eda6a
  - Enabled `-DSVG_RENDERER`, libtiff, and webp support for windows binaries
+
+Notable changes in the Mapnik SDK include:
+ - Fixed support for unicode paths names to XML files on Windows
+ - Fixed `avoid-edges:true` support for shields (fixing frequently clipped shields) (https://github.com/mapnik/mapnik/issues/983)
+ - Fixed shield bbox calculation when when `scale_factor` > 1 is used (also a cause of clipped shields) (https://github.com/mapnik/mapnik/issues/2381)
+ - Upgraded boost from 1.55 -> 1.56
+ - Upgraded sqlite from 3.8.5->3.8.6
 
 ## 1.4.13
 
