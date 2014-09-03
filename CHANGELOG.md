@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.15
+
+ - Upgraded to mapnik-vector-tile@0.5.5 for faster raster rendering
+
 ## 1.4.14
 
  - IMPORTANT: changes to shield placement (see Mapnik SDK notes below)
