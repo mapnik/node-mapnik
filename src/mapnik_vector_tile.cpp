@@ -267,6 +267,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "empty", empty);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
     target->Set(NanNew("VectorTile"),lcons->GetFunction());
@@ -726,6 +727,60 @@ NAN_METHOD(VectorTile::names)
         NanReturnValue(arr);
     }
     NanReturnUndefined();
+}
+
+bool VectorTile::lazy_empty()
+{
+    std::size_t bytes = buffer_.size();
+    if (bytes > 0)
+    {
+        pbf::message item(buffer_.data(),bytes);
+        while (item.next()) {
+            if (item.tag == 3) {
+                uint64_t len = item.varint();
+                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+                while (layermsg.next()) {
+                    if (layermsg.tag == 2) {
+                        // we hit a feature, assume we've got data
+                        return false;
+                    } else {
+                        layermsg.skip();
+                    }
+                }
+                item.skipBytes(len);
+            } else {
+                item.skip();
+            }
+        }
+    }
+    return true;
+}
+
+
+NAN_METHOD(VectorTile::empty)
+{
+    NanScope();
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    int raw_size = d->buffer_.size();
+    if (raw_size > 0 && d->byte_size_ <= raw_size)
+    {
+        NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+    } else {
+        mapnik::vector::tile const& tiledata = d->get_tile();
+        if (tiledata.layers_size() == 0) {
+            NanReturnValue(NanNew<Boolean>(true));
+        } else {
+            for (int i=0; i < tiledata.layers_size(); ++i)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                if (layer.features_size()) {
+                    NanReturnValue(NanNew<Boolean>(false));
+                    break;
+                }
+            }
+        }
+    }
+    NanReturnValue(NanNew<Boolean>(true));
 }
 
 NAN_METHOD(VectorTile::width)

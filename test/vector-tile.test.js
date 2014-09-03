@@ -107,6 +107,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.painted(), false);
         assert.equal(vtile.getData().toString(),"");
         assert.equal(vtile.isSolid(), "");
+        assert.equal(vtile.empty(), true);
         vtile.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, true);
@@ -130,9 +131,12 @@ describe('mapnik.VectorTile ', function() {
         // a larger polygon fully outside the rendered/clipping extent
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
+        // empty is valid to use before parse() (and after)
+        assert.equal(vtile.empty(), false);
         vtile.parse();
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), "world");
+        assert.equal(vtile.empty(), false);
         vtile.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, true);
@@ -143,6 +147,7 @@ describe('mapnik.VectorTile ', function() {
 
     it('should error out if we pass invalid data to setData/addData', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.setData('foo'); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData('foo',function(){}); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData(new Buffer('foo'));vtile.parse(); });
@@ -159,11 +164,17 @@ describe('mapnik.VectorTile ', function() {
 
     it('should be able to setData/parse (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data, function(err) {
             if (err) throw err;
+            // names and empty are valid before parse()
+            assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
             vtile.parse(function(err) {
                 if (err) throw err;
+                assert.deepEqual(vtile.names(), ["world"]);
+                assert.equal(vtile.empty(), false);
                 assert.equal(vtile.painted(), true);
                 assert.equal(vtile.isSolid(), "world");
                 vtile.isSolid(function(err, solid, key) {
@@ -182,8 +193,10 @@ describe('mapnik.VectorTile ', function() {
         vtile.setData(data, function(err) {
             if (err) throw err;
             assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
             vtile.parse()
             assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
             done();
         });
     });
@@ -274,7 +287,11 @@ describe('mapnik.VectorTile ', function() {
     it('should be able to clear data (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
+        assert.equal(vtile.empty(), false);
+        assert.deepEqual(vtile.names(), ["world"]);
         vtile.parse();
+        assert.equal(vtile.empty(), false);
+        assert.deepEqual(vtile.names(), ["world"]);
         assert.equal(vtile.getData().length,_length);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), "world");
@@ -282,6 +299,8 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(feature_count, 1);
         vtile.clear(function(err) {
             if (err) throw err;
+            assert.equal(vtile.empty(), true);
+            assert.deepEqual(vtile.names(), []);
             assert.equal(vtile.getData().length,0);
             assert.deepEqual(vtile.toJSON(), {});
             assert.equal(vtile.painted(), false);
@@ -294,7 +313,11 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         vtile.addData(new Buffer(_data,"hex"));
+        assert.equal(vtile.empty(), false);
+        assert.deepEqual(vtile.names(), ["world","world"]);
         vtile.parse();
+        assert.equal(vtile.empty(), false);
+        assert.deepEqual(vtile.names(), ["world","world"]);
         assert.equal(vtile.getData().length,_length*2);
         assert.equal(vtile.painted(), true);
         assert.deepEqual(vtile.names(), ["world","world"]);
@@ -303,6 +326,8 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(feature_count, 1);
         vtile.clear(function(err) {
             if (err) throw err;
+            assert.equal(vtile.empty(), true);
+            assert.deepEqual(vtile.names(), []);
             assert.equal(vtile.getData().length,0);
             assert.deepEqual(vtile.toJSON(), {});
             assert.equal(vtile.painted(), false);
@@ -325,6 +350,7 @@ describe('mapnik.VectorTile ', function() {
             var raw_data = fs.readFileSync("./test/data/vector_tile/tile2.vector.pbf");
             vtile2.setData(raw_data);
             vtile2.parse();
+            assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
             assert.equal(vtile.isSolid(), "world-world2");
             assert.equal(vtile.getData().toString("hex"),raw_data.toString("hex"));
@@ -345,6 +371,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.getData().length,544);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), false);
+        assert.equal(vtile.empty(), false);
         var map = new mapnik.Map(vtile.width(),vtile.height());
         map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -574,6 +601,7 @@ describe('mapnik.VectorTile ', function() {
           ]
         };
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        assert.equal(vtile.empty(), false);
         // console.log(JSON.stringify(vtile.toGeoJSON(0),null,1));
         // at z0 we need a large tolerance because of loss of precision in point coords
         // because the points have been rounded to -121.9921875,47.98992166741417
@@ -619,6 +647,10 @@ describe('mapnik.VectorTile ', function() {
             // now this vtile contains a 256/256 image
             // now render out with fancy styling
             var map2 = new mapnik.Map(256, 256);
+            // TODO - minor bug, needs https://github.com/mapbox/mapnik-vector-tile/commit/f7b62c28a26d08e63d5665e8019ec4443f8701a1
+            //assert.equal(vtile.painted(), true);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.isSolid(), false);
             map2.loadSync('./test/data/vector_tile/raster_style.xml');
             vtile.render(map2, new mapnik.Image(256, 256), {z:2,x:0,y:0,buffer_size:256}, function(err, vtile_image) {
                 if (err) throw err;
@@ -645,6 +677,9 @@ describe('mapnik.VectorTile ', function() {
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         // push image into a named vtile layer
         vtile.addImage(image_buffer,'raster');
+        assert.equal(vtile.painted(), true);
+        assert.equal(vtile.empty(), false);
+        assert.equal(vtile.isSolid(), false);
         assert.deepEqual(vtile.names(),['raster']);
         var json_obj = vtile.toJSON();
         assert.equal(json_obj[0].name,'raster');
@@ -675,6 +710,9 @@ describe('mapnik.VectorTile ', function() {
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         // push image into a named vtile layer
         vtile.addImage(image_buffer,'raster');
+        assert.equal(vtile.painted(), true);
+        assert.equal(vtile.empty(), false);
+        assert.equal(vtile.isSolid(), false);
         assert.deepEqual(vtile.names(),['raster']);
         var json_obj = vtile.toJSON();
         assert.equal(json_obj[0].name,'raster');

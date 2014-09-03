@@ -2,6 +2,7 @@
 
 ## Future
 
+ - Added `mapnik.VectorTile.empty()` to check if a vector tile has any features (reports true if tile contains layers without features)
  - Avoid startup error if $HOME environment is not known
  - Fixed all tests on windows
  - Experimental: `mapnik.VectorTile` now accepts `variables` object in render options.

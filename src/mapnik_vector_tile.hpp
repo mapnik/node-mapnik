@@ -56,6 +56,7 @@ public:
     static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
+    static NAN_METHOD(empty);
     static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
@@ -74,6 +75,7 @@ public:
         return tiledata_;
     }
     std::vector<std::string> lazy_names();
+    bool lazy_empty();
     void parse_proto();
     mapnik::vector::tile const& get_tile() {
         return tiledata_;
