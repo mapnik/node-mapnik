@@ -180,3 +180,4 @@ module.exports.env = {
 
 # cleanup
 rm -rf $BUILD_DIR
+set +u +e
