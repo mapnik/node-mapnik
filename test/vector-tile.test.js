@@ -705,16 +705,15 @@ describe('mapnik.VectorTile ', function() {
                 if (!existsSync(expected) || process.env.UPDATE) {
                     vtile_image.save(expected, 'jpeg80');
                 }
-                //vtile_image.save(actual, 'jpeg80');
-                // TODO - JPEG colors differ slightly on windows
-                // version difference perhaps?
+                var diff = vtile_image.compare(new mapnik.Image.open(expected));
+                if (diff > 0) {
+                    vtile_image.save(actual, 'jpeg80');
+                }
                 if (process.platform === 'win32') {
-                    assert.ok(vtile_image.compare(new mapnik.Image.open(expected)) < 1909);
+                    // TODO - JPEG colors differ slightly on windows
+                    // version difference perhaps?
+                    assert.ok(diff < 3000,"jpeg raster diff "+diff+" not less that 3000");
                 } else {
-                    var diff = vtile_image.compare(new mapnik.Image.open(expected));
-                    if (diff > 0) {
-                        vtile_image.save(actual, 'jpeg80');
-                    }
                     assert.equal(0,diff);
                 }
                 done();
