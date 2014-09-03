@@ -363,6 +363,52 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    // next three testcases cover isSolid edge conditions and can be
+    // removed if isSolid is deprecated
+    it('should detect as non-solid a tile with intersecting rectangle', function(done) {
+        // but whose verticies are all outside the extent
+        var vt = new mapnik.VectorTile(13,1337,2825);
+        vt.setData(fs.readFileSync('./test/data/vector_tile/13.1337.2825.vector.pbf'));
+        assert.equal(vt.empty(),false);
+        vt.parse();
+        vt.isSolid(function(err, solid, key) {
+            if (err) throw err;
+            assert.equal(solid, false);
+            assert.equal(key, "");
+            done();
+        });
+    });
+
+    it('should detect as non-solid a tile with intersecting rectangle 2', function(done) {
+        // but whose verticies are all outside the extent
+        var vt = new mapnik.VectorTile(12,771,1608);
+        vt.setData(fs.readFileSync('./test/data/vector_tile/12.771.1608.vector.pbf'));
+        assert.equal(vt.empty(),false);
+        vt.parse();
+        vt.isSolid(function(err, solid, key) {
+            if (err) throw err;
+            assert.equal(solid, false);
+            assert.equal(key, "");
+            done();
+        });
+    });
+
+    it('should detect as solid a tile with rectangle that is solid within tile extent', function(done) {
+        // however in this case if we respected the buffer there would
+        // be gaps in upper left and lower left corners
+        // TODO: support buffer in is_solid check?
+        var vt = new mapnik.VectorTile(10,196,370);
+        vt.setData(fs.readFileSync('./test/data/vector_tile/10.196.370.vector.pbf'));
+        assert.equal(vt.empty(),false);
+        vt.parse();
+        vt.isSolid(function(err, solid, key) {
+            if (err) throw err;
+            assert.equal(solid, true);
+            assert.equal(key, "nps_land_clip_pg-nps_park_polys");
+            done();
+        });
+    });
+
     it('should render expected results', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
