@@ -8,6 +8,7 @@
 #include "mapnik_geometry.hpp"
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/value_types.hpp>
@@ -146,7 +147,11 @@ NAN_METHOD(Feature::attributes)
     for ( ;itr!=end; ++itr)
     {
         node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
+#if MAPNIK_VERSION >= 300000
+        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr) );
+#else
         MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr).base() );
+#endif
     }
     NanReturnValue(feat);
 }

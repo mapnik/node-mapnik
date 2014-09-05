@@ -17,6 +17,7 @@
 #include "vector_tile.pb.h"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
+#include "object_to_container.hpp"
 
 
 #include <mapnik/map.hpp>
@@ -1965,32 +1966,6 @@ NAN_METHOD(VectorTile::getData)
     }
     NanReturnUndefined();
 }
-
-#if MAPNIK_VERSION >= 300000
-void object_to_container(mapnik::attributes & cont, Local<Object> const& vars)
-{
-    Local<Array> names = vars->GetPropertyNames();
-    std::size_t a_length = names->Length();
-    mapnik::transcoder tr("utf8");
-    cont.reserve(a_length);
-    for(std::size_t i=0; i < a_length; ++i) {
-        Local<Value> name = names->Get(i)->ToString();
-        Local<Value> value = vars->Get(name);
-        if (value->IsBoolean()) {
-            cont[TOSTR(name)] = value->ToBoolean()->Value();
-        } else if (value->IsString()) {
-            cont[TOSTR(name)] = tr.transcode(TOSTR(value));
-        } else if (value->IsNumber()) {
-            mapnik::value_double num = value->NumberValue();
-            if (num == value->IntegerValue()) {
-                cont[TOSTR(name)] = static_cast<node_mapnik::value_integer>(value->IntegerValue());
-            } else {
-                cont[TOSTR(name)] = num;
-            }
-        }
-    }
-}
-#endif
 
 struct vector_tile_render_baton_t {
     uv_work_t request;
