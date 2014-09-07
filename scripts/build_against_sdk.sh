@@ -93,7 +93,7 @@ COMPRESSION="tar.bz2"
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 # mapnik 3.x / c++11 enabled
-HASH="1860-g035a947"
+HASH="1872-g4379553"
 
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
