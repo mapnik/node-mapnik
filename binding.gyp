@@ -1,9 +1,5 @@
 {
   'includes': [ 'common.gypi' ],
-  'variables': {
-    'std%':'ansi',
-    'runtime_link%':'shared',
-  },
   'targets': [
     {
       'target_name': 'action_before_build',
@@ -88,14 +84,6 @@
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
-              'VCCLCompilerTool': {
-                # uneeded now that they are in common.gypi VCCLCompilerTool
-                #'AdditionalOptions': [
-                #  '/GR',
-                #  '/MD',
-                #  '/EHsc'
-                #]
-              },
               'VCLinkerTool': {
                 'AdditionalOptions': [
                     # https://github.com/mapnik/node-mapnik/issues/74
@@ -119,15 +107,6 @@
               '<!@(pkg-config protobuf --libs-only-L)',
               '-lprotobuf-lite'
             ],
-            'conditions': [
-              ['runtime_link == "static"',
-                {
-                  'libraries': [
-                    '<!@(mapnik-config --dep-libs)'
-                  ]
-                }
-              ]
-            ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
                 '<!@(mapnik-config --cflags)',
@@ -141,18 +120,6 @@
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
             }
           },
-        ],
-        ['std == "c++11"',
-          {
-            'cflags_cc' : [
-              '-std=c++11',
-            ],
-            'xcode_settings': {
-              'OTHER_CPLUSPLUSFLAGS':['-std=c++11','-stdlib=libc++'],
-              'OTHER_LDFLAGS':['-stdlib=libc++'],
-              'CLANG_CXX_LANGUAGE_STANDARD':'c++11'
-            }
-          }
         ]
       ]
     },
