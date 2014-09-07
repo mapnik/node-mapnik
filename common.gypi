@@ -1,18 +1,17 @@
 {
-  'variables': {
-    "prefers_libcpp":"<!(python -c \"import os;import platform;u=platform.uname();print((u[0] == 'Darwin' and int(u[2][0:2]) >= 13) and '-stdlib=libstdc++' not in os.environ.get('CXXFLAGS','') and '-mmacosx-version-min' not in os.environ.get('CXXFLAGS',''))\")"
-  },
   'target_defaults': {
     'default_configuration': 'Release',
-    'conditions': [
-      [ '"<(prefers_libcpp)"=="True"',
-        {
-          'xcode_settings': {
-            'MACOSX_DEPLOYMENT_TARGET':'10.9'
-          }
-        }
-      ]
+    'msbuild_toolset':'v140',
+    'msvs_disabled_warnings': [ 4068,4244,4005,4506,4345,4804,4805,4661 ],
+    'cflags_cc' : [
+      '-std=c++11',
     ],
+    'xcode_settings': {
+      'MACOSX_DEPLOYMENT_TARGET':'10.9',
+      "CLANG_CXX_LIBRARY": "libc++",
+      "CLANG_CXX_LANGUAGE_STANDARD":"c++11",
+      "GCC_VERSION": "com.apple.compilers.llvm.clang.1_0",
+    },
     'configurations': {
       'Debug': {
         'defines!': [
