@@ -93,17 +93,19 @@ COMPRESSION="tar.bz2"
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 # mapnik 3.x / c++11 enabled
-HASH="1872-g4379553"
-
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
+    HASH="1872-g4379553"
+    TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
 fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
+    HASH="1884-g479b9e1"
+    TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-lto"
 fi
 
-TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
+
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
