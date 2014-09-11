@@ -1,3 +1,7 @@
+
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 #include "mapnik_map.hpp"
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
@@ -56,6 +60,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromString", fromString);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "clone", clone);
     NODE_SET_PROTOTYPE_METHOD(lcons, "save", save);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toXML", to_string);
@@ -89,6 +94,28 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(lcons, "maximumExtent", get_prop, set_prop);
     ATTR(lcons, "background", get_prop, set_prop);
     ATTR(lcons, "parameters", get_prop, set_prop);
+    ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
+
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_GROW_CANVAS",mapnik::Map::GROW_CANVAS)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_SHRINK_BBOX",mapnik::Map::SHRINK_BBOX)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_SHRINK_CANVAS",mapnik::Map::SHRINK_CANVAS)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_BBOX_WIDTH",mapnik::Map::ADJUST_BBOX_WIDTH)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_BBOX_HEIGHT",mapnik::Map::ADJUST_BBOX_HEIGHT)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
+#if MAPNIK_VERSION >= 200300
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "ASPECT_RESPECT",mapnik::Map::RESPECT)
+#endif
 
     target->Set(NanNew("Map"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
@@ -102,6 +129,11 @@ Map::Map(int width, int height) :
 Map::Map(int width, int height, std::string const& srs) :
     ObjectWrap(),
     map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
+    in_use_(0) {}
+
+Map::Map() :
+    ObjectWrap(),
+    map_(),
     in_use_(0) {}
 
 Map::~Map() { }
@@ -131,8 +163,11 @@ NAN_METHOD(Map::New)
     // accept a reference or v8:External?
     if (args[0]->IsExternal())
     {
-        NanThrowError("No support yet for passing v8:External wrapper around C++ void*");
-        NanReturnUndefined();
+        Local<External> ext = args[0].As<External>();
+        void* ptr = ext->Value();
+        Map* m =  static_cast<Map*>(ptr);
+        m->Wrap(args.This());
+        NanReturnValue(args.This());
     }
 
     if (args.Length() == 2)
@@ -206,6 +241,8 @@ NAN_GETTER(Map::get_prop)
         arr->Set(3, NanNew<Number>(e->maxy()));
         NanReturnValue(arr);
     }
+    else if(a == "aspect_fix_mode")
+        NanReturnValue(NanNew<Integer>(m->map_->get_aspect_fix_mode()));
     else if(a == "width")
         NanReturnValue(NanNew<Integer>(m->map_->width()));
     else if(a == "height")
@@ -229,7 +266,7 @@ NAN_GETTER(Map::get_prop)
         for (; it != end; ++it)
         {
             node_mapnik::params_to_object serializer( ds , it->first);
-            boost::apply_visitor( serializer, it->second );
+            MAPNIK_APPLY_VISITOR( serializer, it->second );
         }
         NanReturnValue(ds);
     }
@@ -260,6 +297,21 @@ NAN_SETTER(Map::set_prop)
                     m->map_->zoom_to_box(box);
                 else
                     m->map_->set_maximum_extent(box);
+            }
+        }
+    }
+    else if (a == "aspect_fix_mode")
+    {
+        if (!value->IsNumber()) {
+            NanThrowError("'aspect_fix_mode' must be a constant (number)");
+            return;
+        } else {
+            int val = value->IntegerValue();
+            if (val < mapnik::Map::aspect_fix_mode_MAX) {
+                m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
+            } else {
+                NanThrowError("'aspect_fix_mode' value is invalid");
+                return;
             }
         }
     }
@@ -340,8 +392,6 @@ NAN_SETTER(Map::set_prop)
                     double dub_val = a_value->NumberValue();
                     params[TOSTR(name)] = dub_val;
                 }
-            } else {
-                std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
             }
             i++;
         }
@@ -1096,6 +1146,15 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     delete closure;
 }
 
+NAN_METHOD(Map::clone)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m2 = new Map();
+    m2->map_ = MAPNIK_MAKE_SHARED<mapnik::Map>(*m->map_);
+    Handle<Value> ext = NanNew<External>(m2);
+    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+}
 
 NAN_METHOD(Map::save)
 {

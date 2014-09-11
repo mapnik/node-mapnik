@@ -3,8 +3,7 @@
 
     <Style name="style">
         <Rule>
-            <PolygonSymbolizer fill="white" />
-            <LineSymbolizer stroke="grey" stroke-width=".2" />
+            <PolygonSymbolizer fill="white" clip="false"/>
         </Rule>
     </Style>
 

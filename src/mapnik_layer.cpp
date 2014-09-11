@@ -1,3 +1,6 @@
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 #include "mapnik_layer.hpp"
 
 #include "utils.hpp"                    // for TOSTR, ATTR, etc
@@ -280,7 +283,7 @@ NAN_METHOD(Layer::describe)
         for (; it != end; ++it)
         {
             node_mapnik::params_to_object serializer( ds , it->first);
-            boost::apply_visitor( serializer, it->second );
+            MAPNIK_APPLY_VISITOR( serializer, it->second );
         }
     }
 

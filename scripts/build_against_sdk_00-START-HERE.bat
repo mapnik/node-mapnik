@@ -9,34 +9,34 @@
 :: ============ ENV VARS
 ::Supported mapnik versions: 2.2.0, 2.3.0
 SET MAPNIK_VERSION=2.3.0
-SET MAPNIK_DIR=C:\mapnik-v%MAPNIK_VERSION%
-
-SET BASE_DIR=C:\dev2
+SET MAPNIK_DIR=%CD%\mapnik-sdk
+set PATH=%MAPNIK_DIR%\bin;%PATH%
 SET PATH=C:\Program Files\7-Zip;%PATH%
 SET PATH=c:\Python27;%PATH%
-SET PATH=%MAPNIK_DIR%\lib;%PATH%
+SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\libs
+SET PATH=%MAPNIK_LIB_DIR%;%PATH%
 SET PATH=%MAPNIK_DIR%\bin;%PATH%
 ::add bundled node-pre-gyp to path
 SET PATH=node_modules\.bin;%PATH%
-SET PATH=%BASE_DIR%;%PATH%
+SET DL_DIR=%CD%
 SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
 
-SET MAPNIK_LIB_DIR=%MAPNIK_DIR%\lib
 SET MAPNIK_PLUGIN_DIR=%MAPNIK_LIB_DIR%\mapnik\input
-SET N_MAPNIK_BINDING_DIR=%CD%\lib\binding
+call node-pre-gyp reveal module_path --silent > binding_path.txt
+SET /p N_MAPNIK_BINDING_DIR=<binding_path.txt
+del binding_path.txt
 SET N_MAPNIK_LIB_MAPNIK=%N_MAPNIK_BINDING_DIR%\mapnik
 SET N_MAPNIK_LIB_SHARE=%N_MAPNIK_BINDING_DIR%\share
 SET N_MAPNIK_STAGE_DIR=%CD%\build\stage
-SET PYTHONPATH=%MAPNIK_DIR%\python\2.7\site-packages;
 SET PROJ_LIB=%MAPNIK_DIR%\share\proj
 SET GDAL_DATA=%MAPNIK_DIR%\share\gdal
-SET DL_DIR=%BASE_DIR%\dl
 
 powershell scripts\build_against_sdk_01-download-deps.ps1
 IF ERRORLEVEL 1 GOTO ERROR
 
 call node -e "console.log('node version: ' + process.version + ', architecture: ' + process.arch);"
 IF ERRORLEVEL 1 GOTO ERROR
+::call node-pre-gyp build --msvs_version=2013
 call npm install --build-from-source --msvs_version=2013
 IF ERRORLEVEL 1 GOTO ERROR
 

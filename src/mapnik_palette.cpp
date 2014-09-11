@@ -4,7 +4,6 @@
 
 // stl
 #include <vector>
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 

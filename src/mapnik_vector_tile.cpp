@@ -17,6 +17,7 @@
 #include "vector_tile.pb.h"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
+#include "object_to_container.hpp"
 
 
 #include <mapnik/map.hpp>
@@ -267,6 +268,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "empty", empty);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
     target->Set(NanNew("VectorTile"),lcons->GetFunction());
@@ -726,6 +728,60 @@ NAN_METHOD(VectorTile::names)
         NanReturnValue(arr);
     }
     NanReturnUndefined();
+}
+
+bool VectorTile::lazy_empty()
+{
+    std::size_t bytes = buffer_.size();
+    if (bytes > 0)
+    {
+        pbf::message item(buffer_.data(),bytes);
+        while (item.next()) {
+            if (item.tag == 3) {
+                uint64_t len = item.varint();
+                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+                while (layermsg.next()) {
+                    if (layermsg.tag == 2) {
+                        // we hit a feature, assume we've got data
+                        return false;
+                    } else {
+                        layermsg.skip();
+                    }
+                }
+                item.skipBytes(len);
+            } else {
+                item.skip();
+            }
+        }
+    }
+    return true;
+}
+
+
+NAN_METHOD(VectorTile::empty)
+{
+    NanScope();
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    int raw_size = d->buffer_.size();
+    if (raw_size > 0 && d->byte_size_ <= raw_size)
+    {
+        NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+    } else {
+        mapnik::vector::tile const& tiledata = d->get_tile();
+        if (tiledata.layers_size() == 0) {
+            NanReturnValue(NanNew<Boolean>(true));
+        } else {
+            for (int i=0; i < tiledata.layers_size(); ++i)
+            {
+                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                if (layer.features_size()) {
+                    NanReturnValue(NanNew<Boolean>(false));
+                    break;
+                }
+            }
+        }
+    }
+    NanReturnValue(NanNew<Boolean>(true));
 }
 
 NAN_METHOD(VectorTile::width)
@@ -1199,6 +1255,217 @@ NAN_METHOD(VectorTile::queryMany)
         }
     }
     NanReturnValue(resultsArray);
+}
+
+NAN_METHOD(VectorTile::queryMany)
+{
+
+    NanScope();
+    if (args.Length() < 2 || !args[0]->IsArray())
+    {
+        NanThrowError("expects lon,lat args + object with layer property referring to a layer name");
+        NanReturnUndefined();
+    }
+
+    double tolerance = 0.0; // meters
+    std::string layer_name("");
+    std::vector<std::string> fields;
+
+    if (args.Length() > 1)
+    {
+        Local<Object> options = NanNew<Object>();
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("optional second argument must be an options object");
+            NanReturnUndefined();
+        }
+        options = args[1]->ToObject();
+        if (options->Has(NanNew("tolerance")))
+        {
+            Local<Value> tol = options->Get(NanNew("tolerance"));
+            if (!tol->IsNumber())
+            {
+                NanThrowTypeError("tolerance value must be a number");
+                NanReturnUndefined();
+            }
+            tolerance = tol->NumberValue();
+        }
+        if (options->Has(NanNew("layer")))
+        {
+            Local<Value> layer_id = options->Get(NanNew("layer"));
+            if (!layer_id->IsString())
+            {
+                NanThrowTypeError("layer value must be a string");
+                NanReturnUndefined();
+            }
+            layer_name = TOSTR(layer_id);
+        }
+        if (options->Has(NanNew("fields"))) {
+            Local<Value> param_val = options->Get(NanNew("fields"));
+            if (!param_val->IsArray()) {
+                NanThrowTypeError("option 'fields' must be an array of strings");
+                NanReturnUndefined();
+            }
+            Local<Array> a = Local<Array>::Cast(param_val);
+            unsigned int i = 0;
+            unsigned int num_fields = a->Length();
+            while (i < num_fields) {
+                Local<Value> name = a->Get(i);
+                if (name->IsString()){
+                    fields.push_back(TOSTR(name));
+                }
+                i++;
+            }
+        }
+    }
+
+    if (layer_name.empty())
+    {
+        NanThrowTypeError("options.layer is required");
+        NanReturnUndefined();
+    }
+
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
+    mapnik::vector::tile const& tiledata = d->get_tile();
+
+    int tile_layer_idx = -1;
+    for (int j=0; j < tiledata.layers_size(); ++j)
+    {
+        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+        if (layer_name == layer.name())
+        {
+            tile_layer_idx = j;
+            break;
+        }
+    }
+    if (tile_layer_idx == -1)
+    {
+        NanThrowError("Could not find layer in vector tile");
+        NanReturnUndefined();
+    }
+
+    Local<Array> queryArray = Local<Array>::Cast(args[0]);
+    Local<Object> results = NanNew<Object>();
+    Local<Array> resultsArray = NanNew<Array>();
+    Local<Object> hitsObject = NanNew<Object>();
+    results->Set(NanNew("hits"), hitsObject);
+    results->Set(NanNew("features"), resultsArray);
+    mapnik::box2d<double> bbox;
+    std::vector<std::pair<uint32_t, mapnik::coord2d> > points;
+    mapnik::projection wgs84("+init=epsg:4326");
+    mapnik::projection merc("+init=epsg:3857");
+    mapnik::proj_transform tr(wgs84,merc);
+    for (uint32_t p = 0; p < queryArray->Length(); ++p)
+    {
+        Local<Value> item = queryArray->Get(p);
+        if (!item->IsArray())
+        {
+            NanThrowError("non-array item encountered");
+            NanReturnUndefined();
+        }
+        Local<Array> pair = Local<Array>::Cast(item);
+        Local<Value> lon = pair->Get(0);
+        Local<Value> lat = pair->Get(1);
+        if (!lon->IsNumber() || !lat->IsNumber())
+        {
+            NanThrowError("lng lat must be numbers");
+            NanReturnUndefined();
+        }
+        double x = lon->NumberValue();
+        double y = lat->NumberValue();
+        double z = 0;
+        if (!tr.forward(x,y,z))
+        {
+            NanThrowError("could not reproject lon/lat to mercator");
+            NanReturnUndefined();
+        }
+        mapnik::coord2d pt(x,y);
+        points.push_back(std::make_pair(p,pt));
+        bbox.expand_to_include(pt);
+    }
+
+    bbox.pad(tolerance);
+
+    mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                mapnik::vector::tile_datasource>(
+                                    layer,
+                                    d->x_,
+                                    d->y_,
+                                    d->z_,
+                                    d->width()
+                                    );
+    mapnik::query q(bbox);
+    if (fields.empty())
+    {
+        // request all data attributes
+        for (int i = 0; i < layer.keys_size(); ++i)
+        {
+            q.add_property_name(layer.keys(i));
+        }
+    }
+    else
+    {
+        BOOST_FOREACH ( std::string const& name, fields )
+        {
+            q.add_property_name(name);
+        }
+    }
+    mapnik::featureset_ptr fs = ds->features(q);
+
+    if (fs)
+    {
+        try {
+            mapnik::feature_ptr feature;
+            unsigned idx = 0;
+            while ((feature = fs->next()))
+            {
+                typedef std::pair<uint32_t, mapnik::coord2d> mapnikCoord;
+                BOOST_FOREACH (mapnikCoord const& pair, points)
+                {
+                    mapnik::coord2d pt(pair.second);
+                    double distance = -1;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    {
+                        double d = path_to_point_distance(geom,pt.x,pt.y);
+                        if (d >= 0)
+                        {
+                            if (distance >= 0)
+                            {
+                                if (d < distance) distance = d;
+                            }
+                            else
+                            {
+                                distance = d;
+                            }
+                        }
+                    }
+                    if (distance >= 0)
+                    {
+                        Handle<Value> feat = Feature::New(feature);
+                        Local<Object> feat_obj = feat->ToObject();
+                        feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
+                        Local<Object> hit_obj = NanNew<Object>();
+                        hit_obj->Set(NanNew("distance"), NanNew<Number>(distance));
+                        hit_obj->Set(NanNew("feature_id"), NanNew<Number>(idx));
+                        if(!hitsObject->Has(pair.first)) {
+                            hitsObject->Set(NanNew<Number>(pair.first), NanNew<Array>());
+                        }
+                        Local<Array> pArray =Local<Array>::Cast(hitsObject->Get(NanNew<Number>(pair.first)));
+                        pArray->Set(pArray->Length(), hit_obj);
+                        resultsArray->Set(idx,feat);
+                        idx++;
+                    }
+                }
+            }
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
+    }
+    NanReturnValue(results);
 }
 
 NAN_METHOD(VectorTile::toJSON)
@@ -2131,6 +2398,19 @@ NAN_METHOD(VectorTile::render)
             }
             closure->scale_denominator = bind_opt->NumberValue();
         }
+#if MAPNIK_VERSION >= 300000
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+#endif
     }
 
     closure->layer_idx = 0;
@@ -2171,7 +2451,7 @@ NAN_METHOD(VectorTile::render)
             {
                 delete closure;
                 NanThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
-	        NanReturnUndefined();
+                NanReturnUndefined();
             }
         }
     }

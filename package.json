@@ -4,13 +4,14 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version"       : "1.4.11-vt-query-async",
+  "version"       : "1.4.16-vt-query-async",
   "main"          : "./lib/mapnik.js",
   "binary": {
-      "module_name": "mapnik",
-      "module_path": "./lib/binding/",
-      "remote_path": "v{version}",
-      "host": "https://node-mapnik.s3-us-west-1.amazonaws.com"
+      "module_name" : "mapnik",
+      "module_path" : "./lib/binding/{node_abi}-{platform}-{arch}",
+      "host"        : "https://mapbox-node-binary.s3.amazonaws.com",
+      "remote_path" : "./{module_name}/v{version}/",
+      "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
   },
   "bugs"          : {
     "email" : "dane@dbsgeo.com",
@@ -37,27 +38,28 @@
   ],
   "dependencies"  : {
       "nan": "~1.2.0",
-      "mapnik-vector-tile": "~0.5.1",
-      "node-pre-gyp":"0.5.17"
+      "mapnik-vector-tile": "0.5.6",
+      "node-pre-gyp": "0.5.25"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",
       "node-pre-gyp"
   ],
   "bin"           : {
-       "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
-       "mapnik-render.js"  : "./bin/mapnik-render.js"
+      "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
+      "mapnik-render.js"  : "./bin/mapnik-render.js"
   },
-  "engines"       : {
-      "node": ">= 0.8.0 < 0.13"
+  "engines": {
+      "node": ">= 0.8.0 < 0.11.0 || >= 0.11.13 < 0.13.0"
   },
+  "engineStrict": true,
   "scripts"       : {
-      "test"    : "mocha -R spec",
+      "test"    : "mocha -R spec --timeout 50000",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
     "sphericalmercator": "~1.0.2",
     "mocha": "1.x",
-    "aws-sdk": "~2.0.0-rc.19"
+    "aws-sdk": "2.0.12"
   }
 }

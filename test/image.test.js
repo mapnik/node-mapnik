@@ -289,25 +289,27 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('should be able to open and save webp', function(done) {
-        var im = new mapnik.Image(10,10);
-        im.background = new mapnik.Color('green');
-        var filename = './test/data/images/10x10.webp';
-        // sync open
-        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
-        // sync fromBytes
-        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("webp"))));
-        // async open
-        mapnik.Image.open(filename,function(err,im2) {
-            if (err) throw err;
-            assert.equal(0,im.compare(im2));
-            // async fromBytes
-            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+    if (mapnik.versions.mapnik_number >= 200300) {
+        it('should be able to open and save webp', function(done) {
+            var im = new mapnik.Image(10,10);
+            im.background = new mapnik.Color('green');
+            var filename = './test/data/images/10x10.webp';
+            // sync open
+            assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+            // sync fromBytes
+            assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("webp"))));
+            // async open
+            mapnik.Image.open(filename,function(err,im2) {
                 if (err) throw err;
-                assert.equal(0,im.compare(im3));
-                done();
+                assert.equal(0,im.compare(im2));
+                // async fromBytes
+                mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+                    if (err) throw err;
+                    assert.equal(0,im.compare(im3));
+                    done();
+                });
             });
         });
-    });
+    }
 
 });

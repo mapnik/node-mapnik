@@ -1,13 +1,75 @@
 # Changelog
 
-## Future
+## 1.4.15
+
+ - Upgraded to mapnik-vector-tile@0.5.5 for faster raster rendering
+
+## 1.4.14
+
+ - IMPORTANT: changes to shield placement (see Mapnik SDK notes below)
+ - Added `mapnik.VectorTile.empty()` to check if a vector tile has any features (reports true if tile contains layers without features)
+ - Avoid startup error if $HOME environment is not known
+ - Fixed all tests on windows
+ - Experimental: `mapnik.VectorTile` now accepts `variables` object in render options.
+ - Experimental: Added `mapnik.Map.clone` method to create a shallow copy of a map object (datasources are still shared)
+
+Notable changes in binaries:
+
+ - Binaries updated to use Mapnik v2.3.x at 5ae55a07e and mapnik-packaging@b923eda6a
+ - Enabled `-DSVG_RENDERER`, libtiff, and webp support for windows binaries
 
 Notable changes in the Mapnik SDK include:
- - Windows binaries now have WEBP support enabled
+ - Fixed support for unicode paths names to XML files on Windows
+ - Fixed `avoid-edges:true` support for shields (fixing frequently clipped shields) (https://github.com/mapnik/mapnik/issues/983)
+ - Fixed shield bbox calculation when when `scale_factor` > 1 is used (also a cause of clipped shields) (https://github.com/mapnik/mapnik/issues/2381)
+ - Upgraded boost from 1.55 -> 1.56
+ - Upgraded sqlite from 3.8.5->3.8.6
+
+## 1.4.13
+
+ - Added `mapnik.Map.aspect_fix_mode` (#177)
+
+Notable changes in binaries:
+
+ - Binaries updated to use Mapnik v2.3.x at d62365c and mapnik-packaging@f012b82e6a
+
+Notable changes in the Mapnik SDK include:
+ - OGR Plugin no longer throws if layer is empty
+ - Added new `aspect_fix_mode` called `RESPECT` that is a no-op
+ - Upgraded harfbuzz from 0.9.32 -> 0.9.35
+
+## 1.4.12
+
+ - Fixed broken `postgis.input` plugin in binary package (#286)
+ - New `mapnik.VectorTile.queryMany` method (@rsudekum)
+ - Fixed mismatched new/delete in UTF8 grid encoding code (#278)
+ - Updated to compile against latest Mapnik 3.x development version
+ - Tweaked internal tracker of map concurrent usage to release before callback (should prevent spurious warnings like at mapbox/tilelive-mapnik#83)
+ - Added missing `invert-rgb` compositing option (@mojodna)
+
+Notable changes in binaries:
+
+ - Now built with `-DSVG_RENDERER` enabled
+ - Now compiled and linked with `clang++-3.4` on linux instead of `g++`
+ - Now using a versioned binary module directory within `lib/binding/`.
+ - Binaries updated to use Mapnik v2.3.x at a616e9d and mapnik-packaging@a5dbe90c61
+
+Notable changes in the Mapnik SDK include:
+ - Faster font i/o
+ - Fixed support for multi-face font collections (.ttc files)
+ - Fixed `comp-op:color` compositing to preserve luma (@mojodna)
+ - Made `png` format string mean full color png (again) rather than paletted png8
+ - OGR Plugin now accepts optional `extent` parameter (@kernelsanders)
+ - New, experimental `pgraster` plugin (@strk)
+ - Upgraded postgres from 9.3.3 -> 9.3.4
+ - Upgraded harfbuzz from 0.9.29 -> 0.9.32
+ - Upgraded png from 1.6.10 -> 1.6.12
+ - Upgraded pixman from 0.32.4->0.32.6
+ - Removed dependence on fontconfig
 
 ## 1.4.11
 
- - Fixed shasum error in npm package by republishing with node v0.10.x (rather than node v0.11.13).
+ - Never happened (npm shasum for published package was busted)
 
 ## 1.4.10
 

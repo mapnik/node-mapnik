@@ -66,7 +66,6 @@ NAN_METHOD(Grid::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "external!\n";
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Grid* g =  static_cast<Grid*>(ptr);

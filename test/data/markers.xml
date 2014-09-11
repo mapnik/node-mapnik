@@ -3,14 +3,14 @@
 
     <Style name="style">
         <Rule>
-            <PolygonSymbolizer fill="white" />
-            <LineSymbolizer stroke="grey" stroke-width=".2" />
+            <PolygonSymbolizer fill="white" clip="true"/>
+            <LineSymbolizer stroke="grey" stroke-width=".2" clip="true"/>
         </Rule>
     </Style>
 
     <Style name="label">
         <Rule>
-            <MarkersSymbolizer width=".2" multi-policy="whole"/>
+            <MarkersSymbolizer width=".2" multi-policy="whole" clip="true"/>
         </Rule>
     </Style>
 

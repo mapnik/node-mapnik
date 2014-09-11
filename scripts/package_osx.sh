@@ -1,5 +1,5 @@
 #!/bin/bash
-set -u -e
+set -e
 
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 cd $CURRENT_DIR/../
@@ -19,14 +19,17 @@ function doit () {
     source ./scripts/build_against_sdk.sh --target=$1
     npm test
     node ./node_modules/.bin/node-pre-gyp package testpackage
-    node ./node_modules/.bin/node-pre-gyp publish info
+    node ./node_modules/.bin/node-pre-gyp testpackage
+    npm ls
+    node ./node_modules/.bin/node-pre-gyp publish
+    node ./node_modules/.bin/node-pre-gyp info
     rm -rf {build,lib/binding}
     npm install --fallback-to-build=false
     npm test
 }
 
-doit 0.8.26
-doit 0.10.29
+#doit 0.8.26
+doit 0.10.31
 doit 0.11.13
 
 # to avoid then publishing with node v0.11.x

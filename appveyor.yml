@@ -1,12 +1,10 @@
-version: 1.0.{build}
-
 clone_folder: c:\dev2\node-mapnik
 
 environment:
   node_pre_gyp_accessKeyId:
-    secure: 9JxHOXxgQ7UaXFCQh4ihEBDElQgE4l0XareRstBCpLk=
+    secure: T1Pel/pv9SVfiVvZW8TLZnvZX6M4HQTiR7LUZnF1tuY=
   node_pre_gyp_secretAccessKey:
-    secure: s1us6xb8U2EqlaVYtoVMtulfgMdX4VVEKgTF+Eft104gWja1GG0Blf6cMJtG7Yu3
+    secure: 8f5eTxMHpuVGHon2wbqrZuq3wzQfEuXMCcOyafBLza0T2VIOoBjbjDbgRbyRIzsT
   matrix:
   - nodejs_version: 0.10
   - nodejs_version: 0.11
@@ -14,30 +12,27 @@ environment:
 platform:
   - x86
 
-matrix:
-  allow_failures:
-    - platform: x86
-      nodejs_version: 0.10
-    - platform: x86
-      nodejs_version: 0.11
+shallow_clone: true
 
 install:
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:Platform
   - node -e "console.log('node version ' + process.version + ' architecture ' + process.arch);"
   - node --version
   - npm --version
+  - SET PATH=c:\python27;%PATH%
+  - SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
+  - SET PATH=%APPDATA%\npm;%PATH%
+  # add local node-pre-gyp dir to path
+  - SET PATH=node_modules\.bin;%PATH%
   # upgrade node-gyp to ensure it knows about msvs 2013
-  - npm install node-gyp
+  # install node-pre-gyp so we can figure out versioned directory before starting
+  - npm install node-gyp node-pre-gyp
   - scripts\build_against_sdk_00-START-HERE.bat
-  - npm test
+  - npm test || true
   - node-pre-gyp package
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
   - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp publish
-
-artifacts:
-  - path: build\stage
-    name: BuildFiles
 
 build: off
 test: off

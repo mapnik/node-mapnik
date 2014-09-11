@@ -29,6 +29,7 @@ public:
     static NAN_METHOD(fromString);
     static void EIO_FromString(uv_work_t* req);
     static void EIO_AfterFromString(uv_work_t* req);
+    static NAN_METHOD(clone);
 
     // async rendering
     static NAN_METHOD(render);
@@ -71,6 +72,7 @@ public:
 
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
+    Map();
 
     void acquire();
     void release();

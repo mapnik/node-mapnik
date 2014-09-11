@@ -2,6 +2,7 @@
 
 Try{
     $file="$env:N_MAPNIK_BINDING_DIR\mapnik_settings.js"
+    Write-Output "writing settings to --> $file"
 "var path = require('path');
 module.exports.paths = {
     'fonts': path.join(__dirname, 'mapnik/fonts'),

@@ -38,8 +38,20 @@ describe('mapnik.Map', function() {
         assert.equal(map.width, 100);
         assert.equal(map.height, 100);
 
-        // TODO - need to expose aspect_fix_mode
-        //assert.equal(map.maximumExtent,undefined)
+        // Aspect fix mode
+        assert.equal(map.aspect_fix_mode,mapnik.Map.ASPECT_GROW_BBOX);
+        // https://github.com/mapnik/mapnik/wiki/Aspect-Fix-Mode
+        var world = [-180,-85,180,85];
+        map.extent = world;
+        // will have been made square
+        assert.deepEqual(map.extent,[-180,-180,180,180]);
+        if (mapnik.versions.mapnik_number >= 200300) {
+            // now try again after disabling the "fixing"
+            map.aspect_fix_mode = mapnik.Map.ASPECT_RESPECT;
+            assert.equal(map.aspect_fix_mode,mapnik.Map.ASPECT_RESPECT);
+            map.extent = world;
+            assert.deepEqual(map.extent,world);
+        }
         //map.maximumExtent = map.extent;
         //assert.equal(map.maximumExtent,map.extent)
     });
@@ -55,6 +67,11 @@ describe('mapnik.Map', function() {
 
         // Test loading a sample world map
         map.loadSync('./test/stylesheet.xml');
+
+        var cloned = map.clone();
+        assert.equal(map.toXML(),cloned.toXML());
+        cloned.srs = 'foo';
+        assert.notEqual(map.toXML(),cloned.toXML());
 
         var layers = map.layers();
         assert.equal(layers.length, 1);

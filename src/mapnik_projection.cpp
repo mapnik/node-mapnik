@@ -2,6 +2,7 @@
 #include "utils.hpp"
 
 #include <mapnik/box2d.hpp>
+#include <sstream>
 
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE

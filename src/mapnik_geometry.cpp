@@ -47,7 +47,6 @@ NAN_METHOD(Geometry::New)
 
     if (args[0]->IsExternal())
     {
-        //std::clog << "external!\n";
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         Geometry* g =  static_cast<Geometry*>(ptr);

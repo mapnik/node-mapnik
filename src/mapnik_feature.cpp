@@ -1,8 +1,14 @@
+
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
+
 #include "utils.hpp"
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/value_types.hpp>
@@ -12,10 +18,16 @@
 #include <boost/scoped_ptr.hpp>
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
-#include <mapnik/json/geojson_generator.hpp>
+#include <mapnik/json/feature_generator_grammar.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
-static mapnik::json::feature_generator generator;
+#include <boost/spirit/include/karma.hpp>
+
+#if MAPNIK_VERSION >= 300000
+#include <mapnik/json/feature_generator_grammar_impl.hpp>
+#include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
+#include <mapnik/json/geometry_generator_grammar_impl.hpp>
+#endif
 
 Persistent<FunctionTemplate> Feature::constructor;
 
@@ -135,7 +147,11 @@ NAN_METHOD(Feature::attributes)
     for ( ;itr!=end; ++itr)
     {
         node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
-        boost::apply_visitor( serializer, MAPNIK_GET<1>(*itr).base() );
+#if MAPNIK_VERSION >= 300000
+        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr) );
+#else
+        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr).base() );
+#endif
     }
     NanReturnValue(feat);
 }
@@ -216,8 +232,6 @@ NAN_METHOD(Feature::addAttributes)
                         }
                     } else if (value->IsNull()) {
                         fp->get()->put_new(TOSTR(name),mapnik::value_null());
-                    } else {
-                        std::clog << "unhandled type for property: " << TOSTR(name) << "\n";
                     }
                     i++;
                 }
@@ -244,11 +258,12 @@ NAN_METHOD(Feature::toString)
 NAN_METHOD(Feature::toJSON)
 {
     NanScope();
-
-    std::string json;
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    // TODO - create once?
-    if (!generator.generate(json,*(fp->get())))
+    typedef std::back_insert_iterator<std::string> sink_type;
+    static const mapnik::json::feature_generator_grammar<sink_type> grammar;
+    std::string json;
+    sink_type sink(json);
+    if (!boost::spirit::karma::generate(sink, grammar, *(fp->get())))
     {
         NanThrowError("Failed to generate GeoJSON");
         NanReturnUndefined();
