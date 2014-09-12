@@ -867,14 +867,7 @@ NAN_METHOD(VectorTile::query)
     if (!args[args.Length()-1]->IsFunction()) {
         try  {
             std::vector<query_result> result = _query(d, lon, lat, tolerance, layer_name);
-            Local<Array> arr = NanNew<Array>();
-            for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
-                Handle<Value> feat = Feature::New(result[i].feature);
-                Local<Object> feat_obj = feat->ToObject();
-                feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
-                feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
-                arr->Set(i,feat);
-            }
+            Local<Array> arr = _queryResultToV8(result);
             NanReturnValue(arr);
         }
         catch (std::exception const& ex)
@@ -924,14 +917,7 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     else
     {
         std::vector<query_result> result = closure->result;
-        Local<Array> arr = NanNew<Array>();
-        for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
-            Handle<Value> feat = Feature::New(result[i].feature);
-            Local<Object> feat_obj = feat->ToObject();
-            feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
-            feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
-            arr->Set(i,feat);
-        }
+        Local<Array> arr = _queryResultToV8(result);
         Local<Value> argv[2] = { NanNull(), arr };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
@@ -1058,6 +1044,19 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 }
             }
         }
+    }
+    return arr;
+}
+
+Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> result)
+{
+    Local<Array> arr = NanNew<Array>();
+    for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
+        Handle<Value> feat = Feature::New(result[i].feature);
+        Local<Object> feat_obj = feat->ToObject();
+        feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
+        feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
+        arr->Set(i,feat);
     }
     return arr;
 }

@@ -35,6 +35,7 @@ public:
     static void EIO_Query(uv_work_t* req);
     static void EIO_AfterQuery(uv_work_t* req);
     static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string layer_name);
+    static Local<Array> _queryResultToV8(std::vector<query_result> result);
     static NAN_METHOD(queryMany);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
