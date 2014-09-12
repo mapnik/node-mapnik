@@ -12,10 +12,25 @@
 
 using namespace v8;
 
+struct query_lonlat {
+    double lon;
+    double lat;
+};
+
 struct query_result {
     std::string layer;
     double distance;
     mapnik::feature_ptr feature;
+};
+
+struct query_hit {
+    double distance;
+    unsigned feature_id;
+};
+
+struct queryMany_result {
+    std::map<unsigned,query_result> features;
+    std::map<unsigned,std::vector<query_hit> > hits;
 };
 
 class VectorTile: public node::ObjectWrap {
@@ -37,6 +52,8 @@ public:
     static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string layer_name);
     static Local<Array> _queryResultToV8(std::vector<query_result> result);
     static NAN_METHOD(queryMany);
+    static queryMany_result _queryMany(VectorTile* d, std::vector<query_lonlat> query, double tolerance, std::string layer_name, std::vector<std::string> fields);
+    static Local<Object> _queryManyResultToV8(queryMany_result result);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(addGeoJSON);
