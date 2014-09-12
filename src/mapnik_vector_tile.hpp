@@ -54,6 +54,8 @@ public:
     static NAN_METHOD(queryMany);
     static queryMany_result _queryMany(VectorTile* d, std::vector<query_lonlat> query, double tolerance, std::string layer_name, std::vector<std::string> fields);
     static Local<Object> _queryManyResultToV8(queryMany_result result);
+    static void EIO_QueryMany(uv_work_t* req);
+    static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(addGeoJSON);

@@ -1065,10 +1065,10 @@ typedef struct {
     uv_work_t request;
     VectorTile* d;
     std::vector<query_lonlat> query;
-    std::string layer_name;
     double tolerance;
+    std::string layer_name;
     std::vector<std::string> fields;
-    std::vector<query_result> result;
+    queryMany_result result;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1169,9 +1169,34 @@ NAN_METHOD(VectorTile::queryMany)
     }
 
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
-    queryMany_result result = _queryMany(d, query, tolerance, layer_name, fields);
-    Local<Object> result_obj = _queryManyResultToV8(result);
-    NanReturnValue(result_obj);
+
+    // If last argument is not a function go with sync call.
+    if (!args[args.Length()-1]->IsFunction()) {
+        try  {
+            queryMany_result result = _queryMany(d, query, tolerance, layer_name, fields);
+            Local<Object> result_obj = _queryManyResultToV8(result);
+            NanReturnValue(result_obj);
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
+    } else {
+        Local<Value> callback = args[args.Length()-1];
+        vector_tile_queryMany_baton_t *closure = new vector_tile_queryMany_baton_t();
+        closure->d = d;
+        closure->query = query;
+        closure->tolerance = tolerance;
+        closure->layer_name = layer_name;
+        closure->fields = fields;
+        closure->error = false;
+        closure->request.data = closure;
+        NanAssignPersistent(closure->cb, callback.As<Function>());
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMany, (uv_after_work_cb)EIO_AfterQueryMany);
+        d->Ref();
+        NanReturnUndefined();
+    }
 }
 
 queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> query, double tolerance, std::string layer_name, std::vector<std::string> fields) {
@@ -1359,6 +1384,41 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
     }
 
     return results;
+}
+
+void VectorTile::EIO_QueryMany(uv_work_t* req)
+{
+    vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
+    try
+    {
+        closure->result = _queryMany(closure->d, closure->query, closure->tolerance, closure->layer_name, closure->fields);
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
+{
+    NanScope();
+    vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
+    if (closure->error) {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        queryMany_result result = closure->result;
+        Local<Object> obj = _queryManyResultToV8(result);
+        Local<Value> argv[2] = { NanNull(), obj };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+
+    closure->d->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
 }
 
 NAN_METHOD(VectorTile::toJSON)
