@@ -49,14 +49,14 @@ describe('mapnik.VectorTile queryMany', function() {
         assert.equal(manyResults.hits[0].length, 2);
         assert.equal(Math.round(manyResults.hits[0][0].distance), 0);
         assert.equal(manyResults.hits[0][0].feature_id, 0);
-        assert.equal(manyResults.hits[0][1].feature_id, 3);
+        assert.equal(manyResults.hits[0][1].feature_id, 1);
         assert.equal(manyResults.features[manyResults.hits[0][0].feature_id].attributes().name, 'A');
         assert.equal(manyResults.features[manyResults.hits[0][1].feature_id].attributes().name, 'B');
 
         assert.equal(manyResults.hits[1].length, 2);
         assert.equal(Math.round(manyResults.hits[1][0].distance), 0);
-        assert.equal(manyResults.hits[1][0].feature_id, 1);
-        assert.equal(manyResults.hits[1][1].feature_id, 4);
+        assert.equal(manyResults.hits[1][0].feature_id, 0);
+        assert.equal(manyResults.hits[1][1].feature_id, 1);
         assert.equal(manyResults.features[manyResults.hits[1][0].feature_id].attributes().name, 'A');
         assert.equal(manyResults.features[manyResults.hits[1][1].feature_id].attributes().name, 'B');
 
@@ -67,31 +67,15 @@ describe('mapnik.VectorTile queryMany', function() {
         assert.equal(manyResults.features[manyResults.hits[2][1].feature_id].attributes().name, 'B');
 
 
-        assert.equal(manyResults.features.length,6);
+        assert.equal(manyResults.features.length,2);
 
         assert.equal(manyResults.features[0].id(),1);
         assert.equal(manyResults.features[0].layer, 'layer-name');
         assert.deepEqual(manyResults.features[0].attributes(), { name: 'A' });
 
-        assert.equal(manyResults.features[1].id(),1);
+        assert.equal(manyResults.features[1].id(),2);
         assert.equal(manyResults.features[1].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[1].attributes(), { name: 'A' });
-
-        assert.equal(manyResults.features[2].id(),1);
-        assert.equal(manyResults.features[2].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[2].attributes(), { name: 'A' });
-
-        assert.equal(manyResults.features[3].id(),2);
-        assert.equal(manyResults.features[3].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[3].attributes(), { name: 'B' });
-
-        assert.equal(manyResults.features[4].id(),2);
-        assert.equal(manyResults.features[4].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[4].attributes(), { name: 'B' });
-
-        assert.equal(manyResults.features[5].id(),2);
-        assert.equal(manyResults.features[5].layer, 'layer-name');
-        assert.deepEqual(manyResults.features[5].attributes(), { name: 'B' });
+        assert.deepEqual(manyResults.features[1].attributes(), { name: 'B' });
 
         done();
     });

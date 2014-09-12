@@ -1254,13 +1254,11 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     if (fs)
     {
         try {
-            // typedef std::pair<uint32_t, mapnik::coord2d> mapnikCoord;
-            for (std::vector<unsigned>::size_type p = 0; p != points.size(); p++) {
-                mapnik::feature_ptr feature;
-                std::vector<query_hit> pointHits;
-                unsigned idx = 0;
-                while ((feature = fs->next()))
-                {
+            mapnik::feature_ptr feature;
+            unsigned idx = 0;
+            while ((feature = fs->next()))
+            {
+                for (std::vector<unsigned>::size_type p = 0; p != points.size(); p++) {
                     mapnik::coord2d pt(points[p]);
                     double distance = -1;
                     BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
@@ -1289,9 +1287,18 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         hit.distance = distance;
                         hit.feature_id = idx;
 
-                        pointHits.push_back(hit);
                         features.insert(std::pair<unsigned,query_result>(idx, res));
-                        idx++;
+
+                        std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
+                        hits_it = hits.find(p);
+                        if (hits_it == hits.end()) {
+                            std::vector<query_hit> pointHits;
+                            pointHits.push_back(hit);
+                            hits.insert(std::pair<unsigned,std::vector<query_hit> >(p, pointHits));
+                        } else {
+                            hits_it->second.push_back(hit);
+                        }
+
                         /*
                         Handle<Value> feat = Feature::New(feature);
                         Local<Object> feat_obj = feat->ToObject();
@@ -1307,7 +1314,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         */
                     }
                 }
-                hits.insert(std::pair<unsigned,std::vector<query_hit> >(p, pointHits));
+                idx++;
             }
         }
         catch (std::exception const& ex)
