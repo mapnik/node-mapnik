@@ -93,10 +93,10 @@ describe('mapnik.VectorTile queryMany', function() {
         assert.equal(manyResults.features[manyResults.hits[1][1].feature_id].attributes().name, 'B');
 
         assert.equal(manyResults.hits[2].length, 2);
-        assert.equal(Math.round(manyResults.hits[2][0].distance), 6595805);
-        assert.equal(Math.round(manyResults.hits[2][1].distance), 514);
-        assert.equal(manyResults.features[manyResults.hits[2][0].feature_id].attributes().name, 'A');
-        assert.equal(manyResults.features[manyResults.hits[2][1].feature_id].attributes().name, 'B');
+        assert.equal(Math.round(manyResults.hits[2][0].distance), 514);
+        assert.equal(Math.round(manyResults.hits[2][1].distance), 6595805);
+        assert.equal(manyResults.features[manyResults.hits[2][0].feature_id].attributes().name, 'B');
+        assert.equal(manyResults.features[manyResults.hits[2][1].feature_id].attributes().name, 'A');
 
 
         assert.equal(manyResults.features.length,2);

@@ -1348,10 +1348,20 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
         }
     }
 
+    // Sort each group of hits by distance.
+    typedef std::map<unsigned,std::vector<query_hit> >::iterator hits_it_type;
+    for (hits_it_type it = hits.begin(); it != hits.end(); it++) {
+        std::sort(it->second.begin(), it->second.end(), _queryManySort);
+    }
+
     queryMany_result result;
     result.hits = hits;
     result.features = features;
     return result;
+}
+
+bool VectorTile::_queryManySort(query_hit a, query_hit b) {
+    return a.distance < b.distance;
 }
 
 Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
