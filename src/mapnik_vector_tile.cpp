@@ -1219,16 +1219,6 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     std::map<unsigned,query_result> features;
     std::map<unsigned,std::vector<query_hit> > hits;
 
-    /*
-    // O_______O
-    Local<Array> queryArray = Local<Array>::Cast(args[0]);
-    Local<Object> results = NanNew<Object>();
-    Local<Array> resultsArray = NanNew<Array>();
-    Local<Object> hitsObject = NanNew<Object>();
-    results->Set(NanNew("hits"), hitsObject);
-    results->Set(NanNew("features"), resultsArray);
-    */
-
     // Reproject query => mercator points
     mapnik::box2d<double> bbox;
     std::vector<mapnik::coord2d> points;
@@ -1323,20 +1313,6 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         } else {
                             hits_it->second.push_back(hit);
                         }
-
-                        /*
-                        Handle<Value> feat = Feature::New(feature);
-                        Local<Object> feat_obj = feat->ToObject();
-                        feat_obj->Set(NanNew("layer"),NanNew(layer.name().c_str()));
-                        Local<Object> hit_obj = NanNew<Object>();
-                        hit_obj->Set(NanNew("distance"), NanNew<Number>(distance));
-                        hit_obj->Set(NanNew("feature_id"), NanNew<Number>(idx));
-                        if(!hitsObject->Has(pair.first)) {
-                            hitsObject->Set(NanNew<Number>(pair.first), NanNew<Array>());
-                        }
-                        Local<Array> pArray =Local<Array>::Cast(hitsObject->Get(NanNew<Number>(pair.first)));
-                        pArray->Set(pArray->Length(), hit_obj);
-                        */
                     }
                 }
                 idx++;
@@ -1348,10 +1324,20 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
         }
     }
 
+    // Sort each group of hits by distance.
+    typedef std::map<unsigned,std::vector<query_hit> >::iterator hits_it_type;
+    for (hits_it_type it = hits.begin(); it != hits.end(); it++) {
+        std::sort(it->second.begin(), it->second.end(), _queryManySort);
+    }
+
     queryMany_result result;
     result.hits = hits;
     result.features = features;
     return result;
+}
+
+bool VectorTile::_queryManySort(query_hit a, query_hit b) {
+    return a.distance < b.distance;
 }
 
 Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
