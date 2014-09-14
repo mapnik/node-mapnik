@@ -851,7 +851,7 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     delete closure;
 }
 
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string layer_name) {
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) {
     std::vector<query_result> arr;
     mapnik::projection wgs84("+init=epsg:4326");
     mapnik::projection merc("+init=epsg:3857");
@@ -973,11 +973,11 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     return arr;
 }
 
-bool VectorTile::_querySort(query_result a, query_result b) {
+bool VectorTile::_querySort(query_result const& a, query_result const& b) {
     return a.distance < b.distance;
 }
 
-Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> result)
+Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
     Local<Array> arr = NanNew<Array>();
     for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
@@ -1128,7 +1128,7 @@ NAN_METHOD(VectorTile::queryMany)
     }
 }
 
-queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> query, double tolerance, std::string layer_name, std::vector<std::string> fields) {
+queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
     mapnik::vector::tile const& tiledata = d->get_tile();
     int tile_layer_idx = -1;
     for (int j=0; j < tiledata.layers_size(); ++j)
@@ -1265,11 +1265,11 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     return result;
 }
 
-bool VectorTile::_queryManySort(query_hit a, query_hit b) {
+bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
     return a.distance < b.distance;
 }
 
-Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
+Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     Local<Object> results = NanNew<Object>();
     Local<Array> features = NanNew<Array>();
     Local<Object> hits = NanNew<Object>();
@@ -1277,7 +1277,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
     results->Set(NanNew("features"), features);
 
     // result.features => features
-    typedef std::map<unsigned,query_result>::iterator features_it_type;
+    typedef std::map<unsigned,query_result>::const_iterator features_it_type;
     for (features_it_type it = result.features.begin(); it != result.features.end(); it++) {
         Handle<Value> feat = Feature::New(it->second.feature);
         Local<Object> feat_obj = feat->ToObject();
@@ -1286,7 +1286,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
     }
 
     // result.hits => hits
-    typedef std::map<unsigned,std::vector<query_hit> >::iterator results_it_type;
+    typedef std::map<unsigned,std::vector<query_hit> >::const_iterator results_it_type;
     for (results_it_type it = result.hits.begin(); it != result.hits.end(); it++) {
         Local<Array> point_hits = NanNew<Array>();
         for (std::vector<int>::size_type i = 0; i != it->second.size(); i++) {
