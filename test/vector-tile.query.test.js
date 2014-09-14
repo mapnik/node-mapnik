@@ -100,6 +100,55 @@ describe('mapnik.VectorTile query', function() {
         done();
     });
 
+    it('vtile.query should return feature with shortest distance first', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [0,0]
+              },
+              "properties": {
+                "name": "A"
+              }
+            },
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [5,5]
+              },
+              "properties": {
+                "name": "B"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        check(vtile);
+
+        // Confirm feature order has no affect on result.
+        geojson.features.reverse();
+        vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        check(vtile);
+
+        function check(vtile) {
+            var features = vtile.query(1,1,{tolerance:1e6});
+            assert.deepEqual(features.map(function(f) { return f.attributes().name }), ['A', 'B']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000)*1000 }), [157000,631000]);
+
+            features = vtile.query(4,4,{tolerance:1e6});
+            assert.deepEqual(features.map(function(f) { return f.attributes().name }), ['B', 'A']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000)*1000 }), [159000,630000]);
+        }
+
+        done();
+    });
 
     it('vtile.query should return distance attribute on feature representing shortest distance from point to multipoint', function(done) {
         mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));

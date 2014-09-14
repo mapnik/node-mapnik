@@ -64,82 +64,6 @@
 #include <mapnik/save_map.hpp>
 
 template <typename PathType>
-bool _hit_test(PathType & path, double x, double y, double tol, double & distance)
-{
-    double x0 = 0;
-    double y0 = 0;
-    path.rewind(0);
-    MAPNIK_GEOM_TYPE geom_type = static_cast<MAPNIK_GEOM_TYPE>(path.type());
-    switch(geom_type)
-    {
-    case MAPNIK_POINT:
-    {
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return false;
-        distance = mapnik::distance(x, y, x0, y0);
-        return distance <= tol;
-        break;
-    }
-    case MAPNIK_POLYGON:
-    {
-        double x1 = 0;
-        double y1 = 0;
-        bool inside = false;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return false;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
-        {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
-            {
-                x0 = x1;
-                y0 = y1;
-                continue;
-            }
-            if ((((y1 <= y) && (y < y0)) ||
-                 ((y0 <= y) && (y < y1))) &&
-                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
-            {
-                inside=!inside;
-            }
-            x0 = x1;
-            y0 = y1;
-        }
-        return inside;
-        break;
-    }
-    case MAPNIK_LINESTRING:
-    {
-        double x1 = 0;
-        double y1 = 0;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return false;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
-        {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
-            {
-                x0 = x1;
-                y0 = y1;
-                continue;
-            }
-            distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-            if (distance < tol)
-                return true;
-            x0 = x1;
-            y0 = y1;
-        }
-        return false;
-        break;
-    }
-    default:
-        return false;
-        break;
-    }
-    return false;
-}
-
-template <typename PathType>
 double path_to_point_distance(PathType & path, double x, double y)
 {
     double x0 = 0;
@@ -927,7 +851,7 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     delete closure;
 }
 
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string layer_name) {
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) {
     std::vector<query_result> arr;
     mapnik::projection wgs84("+init=epsg:4326");
     mapnik::projection merc("+init=epsg:3857");
@@ -1045,10 +969,15 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
             }
         }
     }
+    std::sort(arr.begin(), arr.end(), _querySort);
     return arr;
 }
 
-Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> result)
+bool VectorTile::_querySort(query_result const& a, query_result const& b) {
+    return a.distance < b.distance;
+}
+
+Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
     Local<Array> arr = NanNew<Array>();
     for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
@@ -1199,7 +1128,7 @@ NAN_METHOD(VectorTile::queryMany)
     }
 }
 
-queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> query, double tolerance, std::string layer_name, std::vector<std::string> fields) {
+queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
     mapnik::vector::tile const& tiledata = d->get_tile();
     int tile_layer_idx = -1;
     for (int j=0; j < tiledata.layers_size(); ++j)
@@ -1336,11 +1265,11 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     return result;
 }
 
-bool VectorTile::_queryManySort(query_hit a, query_hit b) {
+bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
     return a.distance < b.distance;
 }
 
-Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
+Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     Local<Object> results = NanNew<Object>();
     Local<Array> features = NanNew<Array>();
     Local<Object> hits = NanNew<Object>();
@@ -1348,7 +1277,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
     results->Set(NanNew("features"), features);
 
     // result.features => features
-    typedef std::map<unsigned,query_result>::iterator features_it_type;
+    typedef std::map<unsigned,query_result>::const_iterator features_it_type;
     for (features_it_type it = result.features.begin(); it != result.features.end(); it++) {
         Handle<Value> feat = Feature::New(it->second.feature);
         Local<Object> feat_obj = feat->ToObject();
@@ -1357,7 +1286,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result result) {
     }
 
     // result.hits => hits
-    typedef std::map<unsigned,std::vector<query_hit> >::iterator results_it_type;
+    typedef std::map<unsigned,std::vector<query_hit> >::const_iterator results_it_type;
     for (results_it_type it = result.hits.begin(); it != result.hits.end(); it++) {
         Local<Array> point_hits = NanNew<Array>();
         for (std::vector<int>::size_type i = 0; i != it->second.size(); i++) {
