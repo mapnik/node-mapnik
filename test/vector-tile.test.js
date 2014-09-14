@@ -28,7 +28,7 @@ describe('mapnik.VectorTile ', function() {
             map.loadSync('./test/data/vector_tile/layers.xml');
             var vtile = new mapnik.VectorTile(9,112,195);
             _vtile = vtile;
-            map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
+                map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
             map.render(vtile,{},function(err,vtile) {
                 if (err) throw err;
                 fs.writeFileSync('./test/data/vector_tile/tile1.vector.pbf',vtile.getData());
@@ -578,85 +578,6 @@ describe('mapnik.VectorTile ', function() {
             assert.deepEqual(utf,expected)
             done();
         });
-    });
-
-    it('should be able to query polygon features from vector tile', function(done) {
-        var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
-        var vtile = new mapnik.VectorTile(5,28,12);
-        vtile.setData(data);
-        vtile.parse();
-        var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0});
-        assert.equal(features.length,1);
-        assert.equal(JSON.parse(features[0].toJSON()).properties.NAME,'Japan');
-        assert.equal(features[0].id(),89);
-        assert.equal(features[0].distance,0);
-        assert.equal(features[0].layer,'world');
-        // tolerance only applies to points and lines currently in mapnik::hit_test
-        var features = vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000});
-        assert.equal(features.length,0);
-        // restrict to single layer
-        // first query one that does not exist
-        var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0,layer:'doesnotexist'});
-        assert.equal(features.length,0);
-        // query one that does exist
-        var features = vtile.query(139.6142578125,37.17782559332976,{tolerance:0,layer:vtile.names()[0]});
-        assert.equal(features.length,1);
-        assert.equal(features[0].id(),89);
-        assert.equal(features[0].distance,0);
-        assert.equal(features[0].layer,'world');
-        // ensure querying clipped polygons works
-        var pbf = require('fs').readFileSync('./test/data/vector_tile/6.20.34.pbf');
-        var vt = new mapnik.VectorTile(6, 20, 34);
-        vt.setData(pbf,function(err) {
-            if (err) throw err;
-            vt.parse();
-            var json = vt.toJSON();
-            assert.equal(2, json[0].features.length);
-            assert.equal('Brazil', json[0].features[0].properties.name);
-            assert.equal('Bolivia', json[0].features[1].properties.name);
-            var features = vt.query(-64.27521952641217,-16.28853953000943,{tolerance:10})
-            assert.equal(1, features.length);
-            assert.equal(features[0].distance,0);
-            assert.equal(features[0].layer,'data');
-            var feat_json = JSON.parse(features[0].toJSON());
-            assert.equal('Bolivia',feat_json.properties.name);
-            assert.equal(86,feat_json.id);
-            done();
-        });
-    });
-
-    it('should be able to query point features from vector tile', function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
-        var vtile = new mapnik.VectorTile(0,0,0);
-        var geojson = {
-          "type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "geometry": {
-                "type": "Point",
-                "coordinates": [
-                  -122,
-                  48
-                ]
-              },
-              "properties": {
-                "name": "geojson data"
-              }
-            }
-          ]
-        };
-        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
-        assert.equal(vtile.empty(), false);
-        // console.log(JSON.stringify(vtile.toGeoJSON(0),null,1));
-        // at z0 we need a large tolerance because of loss of precision in point coords
-        // because the points have been rounded to -121.9921875,47.98992166741417
-        var features = vtile.query(-122,48,{tolerance:10000});
-        assert.equal(features.length,1);
-        assert.equal(features[0].id(),1);
-        assert.ok(Math.abs(features[0].distance - 1888.66) < 1);
-        assert.equal(features[0].layer,'layer-name');
-        done();
     });
 
     it('should read back the vector tile and render an image with markers', function(done) {
