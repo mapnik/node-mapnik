@@ -1202,6 +1202,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             unsigned idx = 0;
             while ((feature = fs->next()))
             {
+                unsigned has_hit = 0;
                 for (std::vector<unsigned>::size_type p = 0; p != points.size(); p++) {
                     mapnik::coord2d pt(points[p]);
                     double distance = -1;
@@ -1222,6 +1223,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                     }
                     if (distance >= 0)
                     {
+                        has_hit = 1;
                         query_result res;
                         res.feature = feature;
                         res.distance = 0;
@@ -1244,7 +1246,9 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         }
                     }
                 }
-                idx++;
+                if (has_hit > 0) {
+                    idx++;
+                }
             }
         }
         catch (std::exception const& ex)
@@ -1272,7 +1276,7 @@ bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
 Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     Local<Object> results = NanNew<Object>();
     Local<Array> features = NanNew<Array>();
-    Local<Object> hits = NanNew<Object>();
+    Local<Array> hits = NanNew<Array>();
     results->Set(NanNew("hits"), hits);
     results->Set(NanNew("features"), features);
 
