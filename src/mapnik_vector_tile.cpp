@@ -1276,7 +1276,7 @@ bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
 Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     Local<Object> results = NanNew<Object>();
     Local<Array> features = NanNew<Array>();
-    Local<Object> hits = NanNew<Object>();
+    Local<Array> hits = NanNew<Array>();
     results->Set(NanNew("hits"), hits);
     results->Set(NanNew("features"), features);
 

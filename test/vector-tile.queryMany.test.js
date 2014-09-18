@@ -94,7 +94,8 @@ describe('mapnik.VectorTile queryMany', function() {
     });
 
     function check(manyResults) {
-        assert.equal(Object.keys(manyResults.hits).length, 3);
+        assert.equal(Array.isArray(manyResults.hits), true);
+        assert.equal(manyResults.hits.length, 3);
 
         assert.equal(manyResults.hits[0].length, 2);
         assert.equal(Math.round(manyResults.hits[0][0].distance), 0);
@@ -116,7 +117,7 @@ describe('mapnik.VectorTile queryMany', function() {
         assert.equal(manyResults.features[manyResults.hits[2][0].feature_id].attributes().name, 'B');
         assert.equal(manyResults.features[manyResults.hits[2][1].feature_id].attributes().name, 'A');
 
-
+        assert.equal(Array.isArray(manyResults.features), true);
         assert.equal(manyResults.features.length,2);
 
         assert.equal(manyResults.features[0].id(),1);
