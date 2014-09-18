@@ -22,6 +22,24 @@ describe('mapnik.VectorTile queryMany', function() {
             "name": "A"
           }
         },
+        // This is an invalid polygon and results in a distance of -1
+        // from path_to_point_distance().
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+                [-20.2,-20.2],
+                [-20.1,-20.1],
+                [-20.3,-20.3],
+                [-20.4,-20.4],
+                [-20.2,-20.2]
+            ]]
+          },
+          "properties": {
+            "name": "C"
+          }
+        },
         {
           "type": "Feature",
           "geometry": {
@@ -105,7 +123,7 @@ describe('mapnik.VectorTile queryMany', function() {
         assert.equal(manyResults.features[0].layer, 'layer-name');
         assert.deepEqual(manyResults.features[0].attributes(), { name: 'A' });
 
-        assert.equal(manyResults.features[1].id(),2);
+        assert.equal(manyResults.features[1].id(),3);
         assert.equal(manyResults.features[1].layer, 'layer-name');
         assert.deepEqual(manyResults.features[1].attributes(), { name: 'B' });
     }
