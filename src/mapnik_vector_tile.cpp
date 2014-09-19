@@ -1233,14 +1233,14 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         hit.distance = distance;
                         hit.feature_id = idx;
 
-                        features.insert(std::pair<unsigned,query_result>(idx, res));
+                        features.insert(std::make_pair(idx, res));
 
                         std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
                         hits_it = hits.find(p);
                         if (hits_it == hits.end()) {
                             std::vector<query_hit> pointHits;
                             pointHits.push_back(hit);
-                            hits.insert(std::pair<unsigned,std::vector<query_hit> >(p, pointHits));
+                            hits.insert(std::make_pair(p, pointHits));
                         } else {
                             hits_it->second.push_back(hit);
                         }
