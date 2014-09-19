@@ -853,8 +853,8 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
 
 std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) {
     std::vector<query_result> arr;
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
     double x = lon;
     double y = lat;
@@ -867,60 +867,60 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
-            int tile_layer_idx = -1;
-            for (int j=0; j < tiledata.layers_size(); ++j)
+        int tile_layer_idx = -1;
+        for (int j=0; j < tiledata.layers_size(); ++j)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+            if (layer_name == layer.name())
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(j);
-                if (layer_name == layer.name())
-                {
-                    tile_layer_idx = j;
-                    break;
-                }
+                tile_layer_idx = j;
+                break;
             }
-            if (tile_layer_idx > -1)
+        }
+        if (tile_layer_idx > -1)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                        mapnik::vector::tile_datasource>(
+                                            layer,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+            if (fs)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                            mapnik::vector::tile_datasource>(
-                                                layer,
-                                                d->x_,
-                                                d->y_,
-                                                d->z_,
-                                                d->width()
-                                                );
-                mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-                if (fs)
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
                 {
-                    mapnik::feature_ptr feature;
-                    while ((feature = fs->next()))
+                    double distance = -1;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                     {
-                        double distance = -1;
-                        BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                        double d = path_to_point_distance(geom,x,y);
+                        if (d >= 0)
                         {
-                            double d = path_to_point_distance(geom,x,y);
-                            if (d >= 0)
+                            if (distance >= 0)
                             {
-                                if (distance >= 0)
-                                {
-                                    if (d < distance) distance = d;
-                                }
-                                else
-                                {
-                                    distance = d;
-                                }
+                                if (d < distance) distance = d;
+                            }
+                            else
+                            {
+                                distance = d;
                             }
                         }
-                        if (distance >= 0)
-                        {
-                            query_result res;
-                            res.distance = distance;
-                            res.layer = layer.name();
-                            res.feature = feature;
-                            arr.push_back(res);
-                        }
+                    }
+                    if (distance >= 0)
+                    {
+                        query_result res;
+                        res.distance = distance;
+                        res.layer = layer.name();
+                        res.feature = feature;
+                        arr.push_back(res);
                     }
                 }
             }
+        }
     }
     else
     {
@@ -980,7 +980,7 @@ bool VectorTile::_querySort(query_result const& a, query_result const& b) {
 Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
     Local<Array> arr = NanNew<Array>();
-    for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
+    for (std::size_t i = 0; i < result.size(); ++i) {
         Handle<Value> feat = Feature::New(result[i].feature);
         Local<Object> feat_obj = feat->ToObject();
         feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
@@ -1020,6 +1020,7 @@ NAN_METHOD(VectorTile::queryMany)
 
     // Convert v8 queryArray to a std vector
     Local<Array> queryArray = Local<Array>::Cast(args[0]);
+    query.reserve(queryArray->Length());
     for (uint32_t p = 0; p < queryArray->Length(); ++p)
     {
         Local<Value> item = queryArray->Get(p);
@@ -1081,12 +1082,13 @@ NAN_METHOD(VectorTile::queryMany)
             Local<Array> a = Local<Array>::Cast(param_val);
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
+            fields.reserve(num_fields);
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
                     fields.push_back(TOSTR(name));
                 }
-                i++;
+                ++i;
             }
         }
     }
@@ -1150,11 +1152,12 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
 
     // Reproject query => mercator points
     mapnik::box2d<double> bbox;
-    std::vector<mapnik::coord2d> points;
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
-    for (std::vector<int>::size_type p = 0; p != query.size(); p++) {
+    std::vector<mapnik::coord2d> points;
+    points.reserve(query.size());
+    for (std::size_t p = 0; p < query.size(); ++p) {
         double x = query[p].lon;
         double y = query[p].lat;
         double z = 0;
@@ -1197,63 +1200,58 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
 
     if (fs)
     {
-        try {
-            mapnik::feature_ptr feature;
-            unsigned idx = 0;
-            while ((feature = fs->next()))
-            {
-                unsigned has_hit = 0;
-                for (std::vector<unsigned>::size_type p = 0; p != points.size(); p++) {
-                    mapnik::coord2d pt(points[p]);
-                    double distance = -1;
-                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+        mapnik::feature_ptr feature;
+        unsigned idx = 0;
+        while ((feature = fs->next()))
+        {
+            unsigned has_hit = 0;
+            for (std::size_t p = 0; p < points.size(); ++p) {
+                mapnik::coord2d const& pt = points[p];
+                double distance = -1;
+                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                {
+                    double d = path_to_point_distance(geom,pt.x,pt.y);
+                    if (d >= 0)
                     {
-                        double d = path_to_point_distance(geom,pt.x,pt.y);
-                        if (d >= 0)
+                        if (distance >= 0)
                         {
-                            if (distance >= 0)
-                            {
-                                if (d < distance) distance = d;
-                            }
-                            else
-                            {
-                                distance = d;
-                            }
+                            if (d < distance) distance = d;
                         }
-                    }
-                    if (distance >= 0)
-                    {
-                        has_hit = 1;
-                        query_result res;
-                        res.feature = feature;
-                        res.distance = 0;
-                        res.layer = layer.name();
-
-                        query_hit hit;
-                        hit.distance = distance;
-                        hit.feature_id = idx;
-
-                        features.insert(std::pair<unsigned,query_result>(idx, res));
-
-                        std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
-                        hits_it = hits.find(p);
-                        if (hits_it == hits.end()) {
-                            std::vector<query_hit> pointHits;
-                            pointHits.push_back(hit);
-                            hits.insert(std::pair<unsigned,std::vector<query_hit> >(p, pointHits));
-                        } else {
-                            hits_it->second.push_back(hit);
+                        else
+                        {
+                            distance = d;
                         }
                     }
                 }
-                if (has_hit > 0) {
-                    idx++;
+                if (distance >= 0)
+                {
+                    has_hit = 1;
+                    query_result res;
+                    res.feature = feature;
+                    res.distance = 0;
+                    res.layer = layer.name();
+
+                    query_hit hit;
+                    hit.distance = distance;
+                    hit.feature_id = idx;
+
+                    features.insert(std::make_pair(idx, res));
+
+                    std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
+                    hits_it = hits.find(p);
+                    if (hits_it == hits.end()) {
+                        std::vector<query_hit> pointHits;
+                        pointHits.reserve(1);
+                        pointHits.push_back(hit);
+                        hits.insert(std::make_pair(p, pointHits));
+                    } else {
+                        hits_it->second.push_back(hit);
+                    }
                 }
             }
-        }
-        catch (std::exception const& ex)
-        {
-            throw std::runtime_error(ex.what());
+            if (has_hit > 0) {
+                idx++;
+            }
         }
     }
 
@@ -1293,7 +1291,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     typedef std::map<unsigned,std::vector<query_hit> >::const_iterator results_it_type;
     for (results_it_type it = result.hits.begin(); it != result.hits.end(); it++) {
         Local<Array> point_hits = NanNew<Array>();
-        for (std::vector<int>::size_type i = 0; i != it->second.size(); i++) {
+        for (std::size_t i = 0; i < it->second.size(); ++i) {
             Local<Object> hit_obj = NanNew<Object>();
             hit_obj->Set(NanNew("distance"), NanNew<Number>(it->second[i].distance));
             hit_obj->Set(NanNew("feature_id"), NanNew<Number>(it->second[i].feature_id));
@@ -1437,8 +1435,8 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                              unsigned width,
                              unsigned idx0)
 {
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(merc,wgs84);
     double zc = 0;
     double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
@@ -2418,7 +2416,7 @@ NAN_METHOD(VectorTile::render)
                 if (name->IsString()){
                     g->get()->add_property_name(TOSTR(name));
                 }
-                i++;
+                ++i;
             }
         }
         closure->layer_idx = layer_idx;
