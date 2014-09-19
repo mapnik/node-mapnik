@@ -1206,7 +1206,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
         {
             unsigned has_hit = 0;
             for (std::size_t p = 0; p < points.size(); ++p) {
-                mapnik::coord2d pt(points[p]);
+                mapnik::coord2d const& pt = points[p];
                 double distance = -1;
                 BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                 {
