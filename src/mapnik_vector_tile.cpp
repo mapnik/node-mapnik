@@ -867,60 +867,60 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
-            int tile_layer_idx = -1;
-            for (int j=0; j < tiledata.layers_size(); ++j)
+        int tile_layer_idx = -1;
+        for (int j=0; j < tiledata.layers_size(); ++j)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+            if (layer_name == layer.name())
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(j);
-                if (layer_name == layer.name())
-                {
-                    tile_layer_idx = j;
-                    break;
-                }
+                tile_layer_idx = j;
+                break;
             }
-            if (tile_layer_idx > -1)
+        }
+        if (tile_layer_idx > -1)
+        {
+            mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                        mapnik::vector::tile_datasource>(
+                                            layer,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+            if (fs)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                            mapnik::vector::tile_datasource>(
-                                                layer,
-                                                d->x_,
-                                                d->y_,
-                                                d->z_,
-                                                d->width()
-                                                );
-                mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-                if (fs)
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
                 {
-                    mapnik::feature_ptr feature;
-                    while ((feature = fs->next()))
+                    double distance = -1;
+                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
                     {
-                        double distance = -1;
-                        BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                        double d = path_to_point_distance(geom,x,y);
+                        if (d >= 0)
                         {
-                            double d = path_to_point_distance(geom,x,y);
-                            if (d >= 0)
+                            if (distance >= 0)
                             {
-                                if (distance >= 0)
-                                {
-                                    if (d < distance) distance = d;
-                                }
-                                else
-                                {
-                                    distance = d;
-                                }
+                                if (d < distance) distance = d;
+                            }
+                            else
+                            {
+                                distance = d;
                             }
                         }
-                        if (distance >= 0)
-                        {
-                            query_result res;
-                            res.distance = distance;
-                            res.layer = layer.name();
-                            res.feature = feature;
-                            arr.push_back(res);
-                        }
+                    }
+                    if (distance >= 0)
+                    {
+                        query_result res;
+                        res.distance = distance;
+                        res.layer = layer.name();
+                        res.feature = feature;
+                        arr.push_back(res);
                     }
                 }
             }
+        }
     }
     else
     {
