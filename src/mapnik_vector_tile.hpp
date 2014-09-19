@@ -8,8 +8,30 @@
 #include <vector>
 #include <string>
 #include "mapnik3x_compatibility.hpp"
+#include <mapnik/feature.hpp>
 
 using namespace v8;
+
+struct query_lonlat {
+    double lon;
+    double lat;
+};
+
+struct query_result {
+    std::string layer;
+    double distance;
+    mapnik::feature_ptr feature;
+};
+
+struct query_hit {
+    double distance;
+    unsigned feature_id;
+};
+
+struct queryMany_result {
+    std::map<unsigned,query_result> features;
+    std::map<unsigned,std::vector<query_hit> > hits;
+};
 
 class VectorTile: public node::ObjectWrap {
 public:
@@ -25,7 +47,17 @@ public:
     static NAN_METHOD(render);
     static NAN_METHOD(toJSON);
     static NAN_METHOD(query);
+    static void EIO_Query(uv_work_t* req);
+    static void EIO_AfterQuery(uv_work_t* req);
+    static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name);
+    static bool _querySort(query_result const& a, query_result const& b);
+    static Local<Array> _queryResultToV8(std::vector<query_result> const& result);
     static NAN_METHOD(queryMany);
+    static queryMany_result _queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
+    static bool _queryManySort(query_hit const& a, query_hit const& b);
+    static Local<Object> _queryManyResultToV8(queryMany_result const& result);
+    static void EIO_QueryMany(uv_work_t* req);
+    static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(addGeoJSON);
