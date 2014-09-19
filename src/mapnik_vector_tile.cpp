@@ -853,8 +853,8 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
 
 std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) {
     std::vector<query_result> arr;
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
     double x = lon;
     double y = lat;
@@ -1151,8 +1151,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     // Reproject query => mercator points
     mapnik::box2d<double> bbox;
     std::vector<mapnik::coord2d> points;
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
     for (std::vector<int>::size_type p = 0; p != query.size(); p++) {
         double x = query[p].lon;
@@ -1437,8 +1437,8 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                              unsigned width,
                              unsigned idx0)
 {
-    mapnik::projection wgs84("+init=epsg:4326");
-    mapnik::projection merc("+init=epsg:3857");
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(merc,wgs84);
     double zc = 0;
     double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
