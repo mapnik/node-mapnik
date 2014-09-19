@@ -980,7 +980,7 @@ bool VectorTile::_querySort(query_result const& a, query_result const& b) {
 Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
     Local<Array> arr = NanNew<Array>();
-    for (std::vector<int>::size_type i = 0; i != result.size(); i++) {
+    for (std::size_t i = 0; i < result.size(); ++i) {
         Handle<Value> feat = Feature::New(result[i].feature);
         Local<Object> feat_obj = feat->ToObject();
         feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
@@ -1086,7 +1086,7 @@ NAN_METHOD(VectorTile::queryMany)
                 if (name->IsString()){
                     fields.push_back(TOSTR(name));
                 }
-                i++;
+                ++i;
             }
         }
     }
@@ -1293,7 +1293,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     typedef std::map<unsigned,std::vector<query_hit> >::const_iterator results_it_type;
     for (results_it_type it = result.hits.begin(); it != result.hits.end(); it++) {
         Local<Array> point_hits = NanNew<Array>();
-        for (std::vector<int>::size_type i = 0; i != it->second.size(); i++) {
+        for (std::size_t i = 0; i < it->second.size(); ++i) {
             Local<Object> hit_obj = NanNew<Object>();
             hit_obj->Set(NanNew("distance"), NanNew<Number>(it->second[i].distance));
             hit_obj->Set(NanNew("feature_id"), NanNew<Number>(it->second[i].feature_id));
@@ -2418,7 +2418,7 @@ NAN_METHOD(VectorTile::render)
                 if (name->IsString()){
                     g->get()->add_property_name(TOSTR(name));
                 }
-                i++;
+                ++i;
             }
         }
         closure->layer_idx = layer_idx;
