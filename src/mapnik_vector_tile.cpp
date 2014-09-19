@@ -1020,6 +1020,7 @@ NAN_METHOD(VectorTile::queryMany)
 
     // Convert v8 queryArray to a std vector
     Local<Array> queryArray = Local<Array>::Cast(args[0]);
+    query.reserve(queryArray->Length());
     for (uint32_t p = 0; p < queryArray->Length(); ++p)
     {
         Local<Value> item = queryArray->Get(p);
@@ -1081,6 +1082,7 @@ NAN_METHOD(VectorTile::queryMany)
             Local<Array> a = Local<Array>::Cast(param_val);
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
+            fields.reserve(num_fields);
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
@@ -1150,10 +1152,11 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
 
     // Reproject query => mercator points
     mapnik::box2d<double> bbox;
-    std::vector<mapnik::coord2d> points;
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
+    std::vector<mapnik::coord2d> points;
+    points.reserve(query.size());
     for (std::size_t p = 0; p < query.size(); ++p) {
         double x = query[p].lon;
         double y = query[p].lat;
@@ -1239,6 +1242,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         hits_it = hits.find(p);
                         if (hits_it == hits.end()) {
                             std::vector<query_hit> pointHits;
+                            pointHits.reserve(1);
                             pointHits.push_back(hit);
                             hits.insert(std::make_pair(p, pointHits));
                         } else {
