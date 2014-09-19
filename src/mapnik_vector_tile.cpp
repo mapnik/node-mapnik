@@ -1154,7 +1154,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
-    for (std::vector<int>::size_type p = 0; p != query.size(); p++) {
+    for (std::size_t p = 0; p < query.size(); ++p) {
         double x = query[p].lon;
         double y = query[p].lat;
         double z = 0;
@@ -1203,7 +1203,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             while ((feature = fs->next()))
             {
                 unsigned has_hit = 0;
-                for (std::vector<unsigned>::size_type p = 0; p != points.size(); p++) {
+                for (std::size_t p = 0; p < points.size(); ++p) {
                     mapnik::coord2d pt(points[p]);
                     double distance = -1;
                     BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
