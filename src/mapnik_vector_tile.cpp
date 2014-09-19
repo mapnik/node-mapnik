@@ -1200,64 +1200,58 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
 
     if (fs)
     {
-        try {
-            mapnik::feature_ptr feature;
-            unsigned idx = 0;
-            while ((feature = fs->next()))
-            {
-                unsigned has_hit = 0;
-                for (std::size_t p = 0; p < points.size(); ++p) {
-                    mapnik::coord2d pt(points[p]);
-                    double distance = -1;
-                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+        mapnik::feature_ptr feature;
+        unsigned idx = 0;
+        while ((feature = fs->next()))
+        {
+            unsigned has_hit = 0;
+            for (std::size_t p = 0; p < points.size(); ++p) {
+                mapnik::coord2d pt(points[p]);
+                double distance = -1;
+                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                {
+                    double d = path_to_point_distance(geom,pt.x,pt.y);
+                    if (d >= 0)
                     {
-                        double d = path_to_point_distance(geom,pt.x,pt.y);
-                        if (d >= 0)
+                        if (distance >= 0)
                         {
-                            if (distance >= 0)
-                            {
-                                if (d < distance) distance = d;
-                            }
-                            else
-                            {
-                                distance = d;
-                            }
+                            if (d < distance) distance = d;
                         }
-                    }
-                    if (distance >= 0)
-                    {
-                        has_hit = 1;
-                        query_result res;
-                        res.feature = feature;
-                        res.distance = 0;
-                        res.layer = layer.name();
-
-                        query_hit hit;
-                        hit.distance = distance;
-                        hit.feature_id = idx;
-
-                        features.insert(std::make_pair(idx, res));
-
-                        std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
-                        hits_it = hits.find(p);
-                        if (hits_it == hits.end()) {
-                            std::vector<query_hit> pointHits;
-                            pointHits.reserve(1);
-                            pointHits.push_back(hit);
-                            hits.insert(std::make_pair(p, pointHits));
-                        } else {
-                            hits_it->second.push_back(hit);
+                        else
+                        {
+                            distance = d;
                         }
                     }
                 }
-                if (has_hit > 0) {
-                    idx++;
+                if (distance >= 0)
+                {
+                    has_hit = 1;
+                    query_result res;
+                    res.feature = feature;
+                    res.distance = 0;
+                    res.layer = layer.name();
+
+                    query_hit hit;
+                    hit.distance = distance;
+                    hit.feature_id = idx;
+
+                    features.insert(std::make_pair(idx, res));
+
+                    std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
+                    hits_it = hits.find(p);
+                    if (hits_it == hits.end()) {
+                        std::vector<query_hit> pointHits;
+                        pointHits.reserve(1);
+                        pointHits.push_back(hit);
+                        hits.insert(std::make_pair(p, pointHits));
+                    } else {
+                        hits_it->second.push_back(hit);
+                    }
                 }
             }
-        }
-        catch (std::exception const& ex)
-        {
-            throw std::runtime_error(ex.what());
+            if (has_hit > 0) {
+                idx++;
+            }
         }
     }
 
