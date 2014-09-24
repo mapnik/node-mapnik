@@ -92,14 +92,8 @@ function upgrade_gcc {
 COMPRESSION="tar.bz2"
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
-
-if [[ "${CXX11:-false}" != false ]]; then
-    # mapnik 3.x / c++11 enabled
-    HASH="1702-g65bd9e6"
-else
-    # mapnik 2.3.x / c++11 not enabled
-    HASH="605-g648dea6"
-fi
+# mapnik 2.3.x / c++11 not enabled
+HASH="610-ge2ea6e4"
 
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
