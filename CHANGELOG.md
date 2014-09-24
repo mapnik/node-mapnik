@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.16
+
+ - Based on new 1.x series branch that targets Mapnik 2.3.x (master now targets Mapnik 3.x).
+
+Notable changes in binaries:
+
+ - Built with -flto on OS X (link time optimization) and target >= OS X 10.9
+ - Binaries updated to use Mapnik v2.3.x at e2ea6e4 and mapnik-packaging@b923eda6a
+
+Notable changes in the Mapnik SDK include:
+
+ - Fixed faint lines when warping rasters (https://github.com/mapnik/mapnik/issues/1913)
+ - Fixed `painted` attribute for all renderers (https://github.com/mapnik/mapnik/pull/2418)
+
 ## 1.4.15
 
  - Upgraded to mapnik-vector-tile@0.5.5 for faster raster rendering
