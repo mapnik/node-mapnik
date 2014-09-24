@@ -39,7 +39,7 @@
   "dependencies"  : {
       "nan": "~1.2.0",
       "mapnik-vector-tile": "0.5.6",
-      "node-pre-gyp": "0.5.25"
+      "node-pre-gyp": "0.5.27"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",
