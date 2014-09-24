@@ -6,7 +6,6 @@
 
 Notable changes in binaries:
 
- - Built with -flto on OS X (link time optimization) and target >= OS X 10.9
  - Binaries updated to use Mapnik v2.3.x at e2ea6e4 and mapnik-packaging@b923eda6a
 
 Notable changes in the Mapnik SDK include:
