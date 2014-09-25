@@ -250,7 +250,7 @@ describe('mapnik.Image ', function() {
     it('should be able to open and save jpeg', function(done) {
         var im = new mapnik.Image(10,10);
         im.background = new mapnik.Color('green');
-        var filename = './test/data/images/10x10.png';
+        var filename = './test/data/images/10x10.jpeg';
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
         // sync fromBytes
