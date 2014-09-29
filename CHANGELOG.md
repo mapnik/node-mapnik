@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.17
+
+ - Use ~ in node-pre-gyp semver for more flexible dep management.
+
 ## 1.4.16
 
  - Based on new 1.x series branch that targets Mapnik 2.3.x (master now targets Mapnik 3.x).
