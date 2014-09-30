@@ -44,7 +44,7 @@ MemoryDatasource::MemoryDatasource() :
     ObjectWrap(),
     datasource_(),
     feature_id_(1),
-    tr_(new mapnik::transcoder("utf8")) {}
+    tr_("utf8") {}
 
 MemoryDatasource::~MemoryDatasource()
 {
@@ -232,7 +232,7 @@ NAN_METHOD(MemoryDatasource::add)
                         // if name in q.property_names() ?
                         Local<Value> value = p_obj->Get(name);
                         if (value->IsString()) {
-                            mapnik::value_unicode_string ustr = d->tr_->transcode(TOSTR(value));
+                            mapnik::value_unicode_string ustr = d->tr_.transcode(TOSTR(value));
                             feature->put_new(TOSTR(name),ustr);
                         } else if (value->IsNumber()) {
                             double num = value->NumberValue();

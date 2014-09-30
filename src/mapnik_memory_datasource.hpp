@@ -3,7 +3,6 @@
 
 #include <nan.h>
 #include <mapnik/datasource.hpp>
-#include <boost/scoped_ptr.hpp>
 
 using namespace v8;
 
@@ -28,7 +27,7 @@ private:
     ~MemoryDatasource();
     mapnik::datasource_ptr datasource_;
     unsigned int feature_id_;
-    boost::scoped_ptr<mapnik::transcoder> tr_;
+    mapnik::transcoder tr_;
 };
 
 #endif

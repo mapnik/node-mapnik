@@ -15,7 +15,6 @@
 
 // boost
 #include <boost/version.hpp>
-#include <boost/scoped_ptr.hpp>
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
 #include <mapnik/json/feature_generator_grammar.hpp>
@@ -214,12 +213,12 @@ NAN_METHOD(Feature::addAttributes)
                 Local<Array> names = attr->GetPropertyNames();
                 unsigned int i = 0;
                 unsigned int a_length = names->Length();
-                boost::scoped_ptr<mapnik::transcoder> tr(new mapnik::transcoder("utf8"));
+                mapnik::transcoder tr("utf8");
                 while (i < a_length) {
                     Local<Value> name = names->Get(i)->ToString();
                     Local<Value> value = attr->Get(name);
                     if (value->IsString()) {
-                        mapnik::value_unicode_string ustr = tr->transcode(TOSTR(value));
+                        mapnik::value_unicode_string ustr = tr.transcode(TOSTR(value));
                         fp->get()->put_new(TOSTR(name),ustr);
                     } else if (value->IsNumber()) {
                         double num = value->NumberValue();
