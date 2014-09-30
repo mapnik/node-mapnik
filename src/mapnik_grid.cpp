@@ -8,9 +8,8 @@
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
 
-// boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
-#include <boost/cstdint.hpp>           // for uint16_t
+
 // std
 #include <exception>
 
