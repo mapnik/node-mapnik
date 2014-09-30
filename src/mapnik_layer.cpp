@@ -11,22 +11,11 @@
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <limits>
-
-#if MAPNIK_VERSION <= 200000
-#define active isActive
-#define min_zoom getMinZoom
-#define max_zoom getMaxZoom
-#define queryable isQueryable
-#define active isActive
-#define visible isVisible
-#endif
-
 
 Persistent<FunctionTemplate> Layer::constructor;
 
@@ -288,12 +277,3 @@ NAN_METHOD(Layer::describe)
 
     NanReturnValue(description);
 }
-
-#if MAPNIK_VERSION <= 200000
-#undef active
-#undef min_zoom
-#undef max_zoom
-#undef queryable
-#undef active
-#undef visible
-#endif

@@ -40,9 +40,7 @@ public:
 private:
     ~Feature();
     mapnik::feature_ptr this_;
-#if MAPNIK_VERSION >= 200100
     mapnik::context_ptr ctx_;
-#endif
 };
 
 #endif

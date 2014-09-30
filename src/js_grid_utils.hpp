@@ -7,7 +7,6 @@
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>           // for feature_impl, etc
 #include <mapnik/grid/grid.hpp>         // for grid
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 #include "utils.hpp"
 
@@ -64,7 +63,7 @@ static void grid2utf(T const& grid_type,
                     if (feature_id == mapnik::grid::base_mask)
                     {
                         keys[""] = codepoint;
-                        key_order.push_back("");
+                        key_order.emplace_back("");
                     }
                     else
                     {
@@ -81,11 +80,7 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
-#if MAPNIK_VERSION >= 300000
         lines.push_back(std::move(line));
-#else
-        lines.push_back(line);
-#endif
     }
 }
 
@@ -131,11 +126,7 @@ static void write_features(T const& grid_type,
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
                 feat->Set(NanNew(attr.c_str()),
                     MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),
-#if MAPNIK_VERSION >= 300000
                     attr_val));
-#else
-                    attr_val.base()));
-#endif
             }
         }
 

@@ -19,9 +19,7 @@
 #include "mapnik_grid.hpp"
 #include "mapnik_cairo_surface.hpp"
 #include "mapnik_grid_view.hpp"
-#ifdef NODE_MAPNIK_EXPRESSION
 #include "mapnik_expression.hpp"
-#endif
 #include "utils.hpp"
 #include "blend.hpp"
 
@@ -69,14 +67,9 @@ static std::string format_version(int version)
 static NAN_METHOD(clearCache)
 {
     NanScope();
-#if MAPNIK_VERSION >= 200300
-    #if defined(SHAPE_MEMORY_MAPPED_FILE)
-        mapnik::marker_cache::instance().clear();
-        mapnik::mapped_memory_cache::instance().clear();
-    #endif
-#else
-        mapnik::marker_cache::instance().clear();
-        mapnik::mapped_memory_cache::instance().clear();
+#if defined(SHAPE_MEMORY_MAPPED_FILE)
+    mapnik::marker_cache::instance().clear();
+    mapnik::mapped_memory_cache::instance().clear();
 #endif
     NanReturnUndefined();
 }
@@ -128,9 +121,7 @@ extern "C" {
         // Not production safe, so disabling indefinitely
         //JSDatasource::Initialize(target);
         MemoryDatasource::Initialize(target);
-        #ifdef NODE_MAPNIK_EXPRESSION
         Expression::Initialize(target);
-        #endif
         CairoSurface::Initialize(target);
 
         // versions of deps
@@ -147,14 +138,10 @@ extern "C" {
         target->Set(NanNew("versions"), versions);
 
         Local<Object> supports = NanNew<Object>();
-#if MAPNIK_VERSION >= 200300
-        #ifdef GRID_RENDERER
+#ifdef GRID_RENDERER
         supports->Set(NanNew("grid"), NanTrue());
-        #else
-        supports->Set(NanNew("grid"), NanFalse());
-        #endif
 #else
-        supports->Set(NanNew("grid"), NanTrue());
+        supports->Set(NanNew("grid"), NanFalse());
 #endif
 
 #ifdef SVG_RENDERER
@@ -251,11 +238,9 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hue", mapnik::hue)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "saturation", mapnik::saturation)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color", mapnik::_color)
-#if MAPNIK_VERSION >= 300000
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_dodge", mapnik::linear_dodge)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_burn", mapnik::linear_burn)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "divide", mapnik::divide)
-#endif
         target->Set(NanNew("compositeOp"), composite_ops);
     }
 

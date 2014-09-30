@@ -30,7 +30,6 @@
 #include <mapnik/map.hpp>               // for Map, etc
 #include <mapnik/params.hpp>            // for parameters
 #include <mapnik/save_map.hpp>          // for save_map, etc
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/request.hpp>
 
@@ -111,11 +110,8 @@ void Map::Initialize(Handle<Object> target) {
                                 "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
-#if MAPNIK_VERSION >= 200300
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_RESPECT",mapnik::Map::RESPECT)
-#endif
-
     target->Set(NanNew("Map"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -1244,9 +1240,7 @@ struct image_baton_t {
     double scale_denominator;
     unsigned offset_x;
     unsigned offset_y;
-#if MAPNIK_VERSION >= 300000
     mapnik::attributes variables;
-#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1256,9 +1250,7 @@ struct image_baton_t {
       scale_denominator(0.0),
       offset_x(0),
       offset_y(0),
-#if MAPNIK_VERSION >= 300000
       variables(),
-#endif
       error(false),
       error_name() {}
 };
@@ -1300,9 +1292,7 @@ struct vector_tile_baton_t {
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
-#if MAPNIK_VERSION >= 300000
     mapnik::attributes variables;
-#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1315,9 +1305,7 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
-#if MAPNIK_VERSION >= 300000
         variables(),
-#endif
         error(false) {}
 };
 
@@ -1753,9 +1741,7 @@ void Map::EIO_RenderImage(uv_work_t* req)
         m_req.set_buffer_size(closure->buffer_size);
         mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    closure->variables,
-#endif
                                                    *closure->im->get(),
                                                    closure->scale_factor,
                                                    closure->offset_x,
@@ -1801,9 +1787,7 @@ typedef struct {
     double scale_denominator;
     bool use_cairo;
     int buffer_size; // TODO - no effect until mapnik::request is used
-#if MAPNIK_VERSION >= 300000
     mapnik::attributes variables;
-#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1955,12 +1939,8 @@ void Map::EIO_RenderFile(uv_work_t* req)
         if(closure->use_cairo)
         {
 #if defined(HAVE_CAIRO)
-#if MAPNIK_VERSION > 200200
             // https://github.com/mapnik/mapnik/issues/1930
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
-#else
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
-#endif
 #else
 #endif
         }
@@ -1972,9 +1952,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
             m_req.set_buffer_size(closure->buffer_size);
             mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    closure->variables,
-#endif
                                                    im,
                                                    closure->scale_factor);
             ren.apply(closure->scale_denominator);
@@ -2131,9 +2109,7 @@ NAN_METHOD(Map::renderSync)
         m_req.set_buffer_size(buffer_size);
         mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    mapnik::attributes(),
-#endif
                                                    im,
                                                    scale_factor);
         ren.apply(scale_denominator);
@@ -2256,11 +2232,7 @@ NAN_METHOD(Map::renderFileSync)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
-#if MAPNIK_VERSION > 200200
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
-#else
-            mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
-#endif
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
@@ -2276,9 +2248,7 @@ NAN_METHOD(Map::renderFileSync)
             m_req.set_buffer_size(buffer_size);
             mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    mapnik::attributes(),
-#endif
                                                    im,
                                                    scale_factor);
 

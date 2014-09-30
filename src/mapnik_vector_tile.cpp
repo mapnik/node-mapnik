@@ -31,11 +31,7 @@
 #include <mapnik/scale_denominator.hpp>
 
 #ifdef HAVE_CAIRO
-#if MAPNIK_VERSION >= 300000
 #include <mapnik/cairo/cairo_renderer.hpp>
-#else
-#include <mapnik/cairo_renderer.hpp>
-#endif
 #include <cairo.h>
 #ifdef CAIRO_HAS_SVG_SURFACE
 #include <cairo-svg.h>
@@ -285,7 +281,7 @@ std::vector<std::string> VectorTile::lazy_names()
                 pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
                 while (layermsg.next()) {
                     if (layermsg.tag == 1) {
-                        names.push_back(layermsg.string());
+                        names.emplace_back(layermsg.string());
                     } else {
                         layermsg.skip();
                     }
@@ -911,7 +907,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                         res.distance = distance;
                         res.layer = layer.name();
                         res.feature = feature;
-                        arr.push_back(res);
+                        arr.push_back(std::move(res));
                     }
                 }
             }
@@ -958,7 +954,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                         res.distance = distance;
                         res.layer = layer.name();
                         res.feature = feature;
-                        arr.push_back(res);
+                        arr.push_back(std::move(res));
                     }
                 }
             }
@@ -1035,7 +1031,7 @@ NAN_METHOD(VectorTile::queryMany)
         query_lonlat lonlat;
         lonlat.lon = lon->NumberValue();
         lonlat.lat = lat->NumberValue();
-        query.push_back(lonlat);
+        query.push_back(std::move(lonlat));
     }
 
     // Convert v8 options object to std params
@@ -1081,7 +1077,7 @@ NAN_METHOD(VectorTile::queryMany)
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
-                    fields.push_back(TOSTR(name));
+                    fields.emplace_back(TOSTR(name));
                 }
                 ++i;
             }
@@ -1161,8 +1157,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             throw std::runtime_error("could not reproject lon/lat to mercator");
         }
         mapnik::coord2d pt(x,y);
-        points.push_back(pt);
         bbox.expand_to_include(pt);
+        points.emplace_back(std::move(pt));
     }
     bbox.pad(tolerance);
 
@@ -1237,10 +1233,10 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                     if (hits_it == hits.end()) {
                         std::vector<query_hit> pointHits;
                         pointHits.reserve(1);
-                        pointHits.push_back(hit);
+                        pointHits.push_back(std::move(hit));
                         hits.insert(std::make_pair(p, pointHits));
                     } else {
-                        hits_it->second.push_back(hit);
+                        hits_it->second.push_back(std::move(hit));
                     }
                 }
             }
@@ -2141,9 +2137,7 @@ struct vector_tile_render_baton_t {
     int buffer_size;
     double scale_factor;
     double scale_denominator;
-#if MAPNIK_VERSION >= 300000
     mapnik::attributes variables;
-#endif
     std::string error_name;
     Persistent<Function> cb;
     std::string result;
@@ -2166,9 +2160,7 @@ struct vector_tile_render_baton_t {
         buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
-#if MAPNIK_VERSION >= 300000
         variables(),
-#endif
         use_cairo(true) {}
 };
 
@@ -2263,7 +2255,6 @@ NAN_METHOD(VectorTile::render)
             }
             closure->scale_denominator = bind_opt->NumberValue();
         }
-#if MAPNIK_VERSION >= 300000
         if (options->Has(NanNew("variables")))
         {
             Local<Value> bind_opt = options->Get(NanNew("variables"));
@@ -2275,7 +2266,6 @@ NAN_METHOD(VectorTile::render)
             }
             object_to_container(closure->variables,bind_opt->ToObject());
         }
-#endif
     }
 
     closure->layer_idx = 0;
@@ -2512,9 +2502,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         {
             mapnik::grid_renderer<mapnik::grid> ren(map_in,
                                                     m_req,
-#if MAPNIK_VERSION >= 300000
                                                     closure->variables,
-#endif
                                                     *closure->g->get(),
                                                     closure->scale_factor);
             ren.start_map_processing(map_in);
@@ -2595,9 +2583,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                     ),mapnik::cairo_surface_closer());
                 mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
                 mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,
-#if MAPNIK_VERSION >= 300000
                                                                 closure->variables,
-#endif
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
@@ -2609,22 +2595,15 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             }
             else
             {
-#if MAPNIK_VERSION >= 200300
-  #if defined(SVG_RENDERER)
+#if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
                 std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
                 svg_ren ren(map_in, m_req,
-#if MAPNIK_VERSION >= 300000
                             closure->variables,
-#endif
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
                 process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
                 ren.end_map_processing(map_in);
-  #else
-                closure->error = true;
-                closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
-  #endif
 #else
                 closure->error = true;
                 closure->error_name = "no support for rendering svg with native svg backend (-DSVG_RENDERER)";
@@ -2635,9 +2614,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         else
         {
             mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,
-#if MAPNIK_VERSION >= 300000
                                                     closure->variables,
-#endif
                                                     *closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);
             process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
@@ -2696,10 +2673,8 @@ NAN_METHOD(VectorTile::clearSync)
 Local<Value> VectorTile::_clearSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
-#if MAPNIK_VERSION >= 200200
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     d->clear();
-#endif
     return NanEscapeScope(NanUndefined());
 }
 
@@ -2738,7 +2713,6 @@ NAN_METHOD(VectorTile::clear)
 
 void VectorTile::EIO_Clear(uv_work_t* req)
 {
-#if MAPNIK_VERSION >= 200200
     clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
     try
     {
@@ -2749,7 +2723,6 @@ void VectorTile::EIO_Clear(uv_work_t* req)
         closure->error = true;
         closure->error_name = ex.what();
     }
-#endif
 }
 
 void VectorTile::EIO_AfterClear(uv_work_t* req)

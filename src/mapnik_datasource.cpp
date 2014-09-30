@@ -14,7 +14,6 @@
 #include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
 #include <mapnik/params.hpp>            // for parameters
 #include <mapnik/query.hpp>             // for query
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 // stl
 #include <exception>
@@ -107,11 +106,7 @@ NAN_METHOD(Datasource::New)
     mapnik::datasource_ptr ds;
     try
     {
-#if MAPNIK_VERSION >= 200200
         ds = mapnik::datasource_cache::instance().create(params);
-#else
-        ds = mapnik::datasource_cache::instance()->create(params);
-#endif
     }
     catch (std::exception const& ex)
     {

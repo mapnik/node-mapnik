@@ -19,11 +19,9 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
-#if MAPNIK_VERSION >= 300000
 #include <mapnik/json/feature_generator_grammar_impl.hpp>
 #include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
 #include <mapnik/json/geometry_generator_grammar_impl.hpp>
-#endif
 
 Persistent<FunctionTemplate> Feature::constructor;
 
@@ -143,11 +141,7 @@ NAN_METHOD(Feature::attributes)
     for ( ;itr!=end; ++itr)
     {
         node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
-#if MAPNIK_VERSION >= 300000
         MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr) );
-#else
-        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr).base() );
-#endif
     }
     NanReturnValue(feat);
 }

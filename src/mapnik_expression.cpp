@@ -1,5 +1,3 @@
-#ifdef NODE_MAPNIK_EXPRESSION
-
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_VARIANT_INCLUDE
 
@@ -11,6 +9,7 @@
 
 // mapnik
 #include <mapnik/version.hpp>
+#include <mapnik/attribute.hpp>
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
 
@@ -127,7 +126,6 @@ NAN_METHOD(Expression::evaluate)
     Feature* f = node::ObjectWrap::Unwrap<Feature>(obj);
 
     Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
-#if MAPNIK_VERSION >= 300000
     Local<Object> options = NanNew<Object>();
     mapnik::attributes vars;
     if (args.Length() > 1)
@@ -152,10 +150,4 @@ NAN_METHOD(Expression::evaluate)
     }
     mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
     NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj));
-#else
-    mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
-    NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj.base()));
-#endif
 }
-
-#endif

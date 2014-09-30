@@ -45,11 +45,7 @@ using namespace v8;
 
 namespace node_mapnik {
 
-#if MAPNIK_VERSION >= 200200
-	typedef mapnik::value_integer value_integer;
-#else
-	typedef int value_integer;
-#endif
+typedef mapnik::value_integer value_integer;
 
 // adapted to work for both mapnik features and mapnik parameters
 struct params_to_object : public MAPNIK_STATIC_VISITOR<>

@@ -1,8 +1,6 @@
 // mapnik
 #include <mapnik/grid/grid.hpp>         // for hit_grid<>::lookup_type, etc
 #include <mapnik/grid/grid_view.hpp>    // for grid_view, hit_grid_view, etc
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
-
 
 #include "mapnik_grid_view.hpp"
 #include "mapnik_grid.hpp"

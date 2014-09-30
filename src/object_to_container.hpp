@@ -2,8 +2,9 @@
 #define __NODE_MAPNIK_OBJECT_TO_CONTAINER__
 
 #include <mapnik/version.hpp>
-
-#if MAPNIK_VERSION >= 300000
+#include <mapnik/attribute.hpp>
+#include <mapnik/unicode.hpp>
+#include <mapnik/value_types.hpp>
 
 static inline void object_to_container(mapnik::attributes & cont, Local<Object> const& vars)
 {
@@ -29,6 +30,4 @@ static inline void object_to_container(mapnik::attributes & cont, Local<Object> 
     }
 }
 
-#endif
-
-#endif
+#endif // __NODE_MAPNIK_OBJECT_TO_CONTAINER__
