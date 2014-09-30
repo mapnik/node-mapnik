@@ -1,6 +1,5 @@
 
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"

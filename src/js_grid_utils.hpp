@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_GRID_UTILS_H__
 
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 // mapnik
 #include <mapnik/version.hpp>

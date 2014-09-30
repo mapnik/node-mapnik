@@ -2,6 +2,8 @@
 #include "utils.hpp"
 
 #include <mapnik/box2d.hpp>
+#include <mapnik/proj_transform.hpp>
+#include <mapnik/projection.hpp>
 #include <sstream>
 
 // boost

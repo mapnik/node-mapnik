@@ -1,9 +1,6 @@
 #include "utils.hpp"
 #include "mapnik_geometry.hpp"
 
-// mapnik
-#include <mapnik/wkt/wkt_factory.hpp>
-
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
 

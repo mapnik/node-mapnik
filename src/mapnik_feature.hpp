@@ -7,7 +7,6 @@
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
-#include <mapnik/datasource.hpp> // feature_ptr and featureset_ptr
 
 // boost
 #include MAPNIK_SHARED_INCLUDE

@@ -3,14 +3,12 @@
 
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 
 // stl
 #include <vector>
 
 #include "utils.hpp"
-#include "mapnik3x_compatibility.hpp"
 
 using namespace v8;
 

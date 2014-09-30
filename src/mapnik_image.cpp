@@ -1,6 +1,5 @@
 
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 // mapnik
 #include <mapnik/color.hpp>             // for color
@@ -8,7 +7,7 @@
 #include <mapnik/image_data.hpp>        // for image_data_32
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
+
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
 #include <mapnik/image_filter.hpp> // filter_visitor

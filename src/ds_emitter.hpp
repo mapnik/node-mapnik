@@ -1,18 +1,13 @@
 #ifndef __NODE_MAPNIK_DS_EMITTER_H__
 #define __NODE_MAPNIK_DS_EMITTER_H__
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
-#include "utils.hpp"
+// nan
+#include <nan.h>
 
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor, etc
 #include <mapnik/datasource.hpp>        // for datasource, etc
-#include <mapnik/feature.hpp>           // for feature_impl::iterator, etc
 #include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
-#include <mapnik/query.hpp>             // for query
-#include <mapnik/value.hpp>             // for value_base, value
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 using namespace v8;

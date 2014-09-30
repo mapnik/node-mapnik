@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_CAIRO_H__
 
 #include <nan.h>
-#include "mapnik3x_compatibility.hpp"
 #include <sstream>
 
 // cairo

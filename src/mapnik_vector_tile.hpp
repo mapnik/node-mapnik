@@ -3,11 +3,8 @@
 
 #include <nan.h>
 #include "vector_tile.pb.h"
-#include <stdexcept>
-#include <google/protobuf/io/coded_stream.h>
 #include <vector>
 #include <string>
-#include "mapnik3x_compatibility.hpp"
 #include <mapnik/feature.hpp>
 
 using namespace v8;

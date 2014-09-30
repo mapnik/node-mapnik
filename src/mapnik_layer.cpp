@@ -1,5 +1,4 @@
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 #include "mapnik_layer.hpp"
 

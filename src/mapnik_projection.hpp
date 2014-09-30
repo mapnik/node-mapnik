@@ -7,8 +7,8 @@
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_SHARED_INCLUDE
 
-#include <mapnik/proj_transform.hpp>
-#include <mapnik/projection.hpp>
+namespace mapnik { class proj_transform; }
+namespace mapnik { class projection; }
 
 using namespace v8;
 

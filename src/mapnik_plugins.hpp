@@ -8,13 +8,11 @@
 
 // stl
 #include <vector>
-#include "mapnik3x_compatibility.hpp"
 #include "utils.hpp"
 
 using namespace v8;
 
 namespace node_mapnik {
-
 
 static inline NAN_METHOD(available_input_plugins)
 {

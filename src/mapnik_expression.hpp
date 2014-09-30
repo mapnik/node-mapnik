@@ -5,7 +5,6 @@
 #include "mapnik3x_compatibility.hpp"
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/expression.hpp>
 
 // boost

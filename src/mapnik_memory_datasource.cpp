@@ -1,6 +1,5 @@
 
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -10,7 +9,7 @@
 #include <mapnik/value_types.hpp>
 
 #include "mapnik_memory_datasource.hpp"
-#include "mapnik_datasource.hpp"
+//#include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
 #include "ds_emitter.hpp"

@@ -1,6 +1,6 @@
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
+//#include "mapnik3x_compatibility.hpp"
+//#include MAPNIK_VARIANT_INCLUDE
 
 #include "mapnik_map.hpp"
 #include "utils.hpp"
@@ -18,8 +18,8 @@
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/box2d.hpp>             // for box2d
 #include <mapnik/color.hpp>             // for color
-#include <mapnik/datasource.hpp>        // for featureset_ptr
-#include <mapnik/feature_type_style.hpp>  // for rules, feature_type_style
+#include <mapnik/attribute.hpp>        // for attributes
+#include <mapnik/featureset.hpp>        // for featureset_ptr
 #include <mapnik/graphics.hpp>          // for image_32
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
@@ -29,10 +29,10 @@
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
 #include <mapnik/params.hpp>            // for parameters
-#include <mapnik/rule.hpp>              // for rule, rule::symbolizers, etc
 #include <mapnik/save_map.hpp>          // for save_map, etc
 #include <mapnik/version.hpp>           // for MAPNIK_VERSION
-#include <mapnik/scale_denominator.hpp>
+#include <mapnik/image_scaling.hpp>
+#include <mapnik/request.hpp>
 
 // stl
 #include <exception>                    // for exception

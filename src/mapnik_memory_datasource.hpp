@@ -2,11 +2,12 @@
 #define __NODE_MAPNIK_MEMORY_DATASOURCE_H__
 
 #include <nan.h>
-#include "mapnik3x_compatibility.hpp"
+#include <mapnik/datasource.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <mapnik/memory_datasource.hpp>
 
 using namespace v8;
+
+namespace mapnik { class transcoder; }
 
 class MemoryDatasource: public node::ObjectWrap {
 public:

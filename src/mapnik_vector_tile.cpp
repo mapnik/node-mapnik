@@ -8,17 +8,12 @@
 #include <mapnik/svg/output/svg_renderer.hpp>
 #endif
 
-#include "mapnik_datasource.hpp"
-
 #include "mapnik_vector_tile.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
-#include "vector_tile_processor.hpp"
-#include "vector_tile_backend_pbf.hpp"
 #include "object_to_container.hpp"
-
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -28,7 +23,7 @@
 #include <mapnik/graphics.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/projection.hpp>
-#include <mapnik/datasource.hpp>
+#include <mapnik/featureset.hpp>
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
@@ -61,7 +56,8 @@
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
-#include <mapnik/save_map.hpp>
+
+#include <google/protobuf/io/coded_stream.h>
 
 template <typename PathType>
 double path_to_point_distance(PathType & path, double x, double y)
