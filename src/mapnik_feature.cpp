@@ -14,13 +14,13 @@
 #include <mapnik/value_types.hpp>
 
 // boost
-#include <boost/version.hpp>
+#include <boost/spirit/include/karma.hpp>
+
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
 #include <mapnik/json/feature_generator_grammar.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
-#include <boost/spirit/include/karma.hpp>
 
 #if MAPNIK_VERSION >= 300000
 #include <mapnik/json/feature_generator_grammar_impl.hpp>

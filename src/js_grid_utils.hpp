@@ -15,22 +15,14 @@
 #include <cmath> // ceil
 #include <stdint.h>  // for uint16_t
 
-#if MAPNIK_VERSION >= 300000
 #include <memory>
-#else
-#include <boost/shared_array.hpp>
-#endif
 
 using namespace v8;
 using namespace node;
 
 namespace node_mapnik {
 
-#if MAPNIK_VERSION >= 300000
 typedef std::unique_ptr<uint16_t[]> grid_line_type;
-#else
-typedef boost::shared_array<uint16_t> grid_line_type;
-#endif
 
 template <typename T>
 static void grid2utf(T const& grid_type,
