@@ -22,7 +22,6 @@
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
 #include <boost/optional/optional.hpp>
-#include <boost/foreach.hpp>
 
 // std
 #include <exception>
@@ -1302,7 +1301,7 @@ void Image::EIO_Composite(uv_work_t* req)
         if (closure->filters.size() > 0)
         {
             mapnik::filter::filter_visitor<mapnik::image_32> visitor(*closure->im2->this_);
-            BOOST_FOREACH(mapnik::filter::filter_type const& filter_tag, closure->filters)
+            for (mapnik::filter::filter_type const& filter_tag : closure->filters)
             {
                 MAPNIK_APPLY_VISITOR(visitor, filter_tag);
             }

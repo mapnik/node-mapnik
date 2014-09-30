@@ -11,9 +11,6 @@
 
 #include "utils.hpp"
 
-// boost
-#include <boost/foreach.hpp>
-
 // stl
 #include <cmath> // ceil
 #include <stdint.h>  // for uint16_t
@@ -114,7 +111,7 @@ static void write_features(T const& grid_type,
     }
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type::const_iterator feat_end = g_features.end();
-    BOOST_FOREACH ( std::string const& key_item, key_order )
+    for (std::string const& key_item : key_order)
     {
         if (key_item.empty())
         {
@@ -130,7 +127,7 @@ static void write_features(T const& grid_type,
         bool found = false;
         Local<Object> feat = NanNew<Object>();
         mapnik::feature_ptr feature = feat_itr->second;
-        BOOST_FOREACH ( std::string const& attr, attributes )
+        for (std::string const& attr : attributes)
         {
             if (attr == "__id__")
             {

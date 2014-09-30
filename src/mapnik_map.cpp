@@ -42,7 +42,6 @@
 #include <sstream>                      // for basic_ostringstream, etc
 
 // boost
-#include <boost/foreach.hpp>            // for auto_any_base, etc
 #include <boost/optional/optional.hpp>  // for optional
 #include "mapnik3x_compatibility.hpp"
 
@@ -490,7 +489,7 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                 bool found = false;
                 unsigned int idx(0);
                 std::string layer_name = TOSTR(layer_id);
-                BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+                for (mapnik::layer const& lyr : layers)
                 {
                     if (lyr.name() == layer_name)
                     {
@@ -598,7 +597,7 @@ void Map::EIO_QueryMap(uv_work_t* req)
         {
             // query all layers
             unsigned idx = 0;
-            BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+            for (mapnik::layer const& lyr : layers)
             {
                 mapnik::featureset_ptr fs;
                 if (closure->geo_coords)
@@ -731,7 +730,7 @@ NAN_METHOD(Map::get_layer)
         bool found = false;
         unsigned int idx(0);
         std::string layer_name = TOSTR(layer);
-        BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+        for ( mapnik::layer const& lyr : layers)
         {
             if (lyr.name() == layer_name)
             {
@@ -1473,7 +1472,7 @@ NAN_METHOD(Map::render)
                 bool found = false;
                 unsigned int idx(0);
                 std::string const & layer_name = TOSTR(layer_id);
-                BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+                for (mapnik::layer const& lyr : layers)
                 {
                     if (lyr.name() == layer_name)
                     {

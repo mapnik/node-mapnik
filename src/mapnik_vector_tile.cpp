@@ -43,7 +43,6 @@
 #endif
 
 #include MAPNIK_MAKE_SHARED_INCLUDE
-#include <boost/foreach.hpp>
 
 #include <set>                          // for set, etc
 #include <sstream>                      // for operator<<, basic_ostream, etc
@@ -632,7 +631,7 @@ NAN_METHOD(VectorTile::names)
         std::vector<std::string> names = d->lazy_names();
         Local<Array> arr = NanNew<Array>(names.size());
         unsigned idx = 0;
-        BOOST_FOREACH ( std::string const& name, names )
+        for (std::string const& name : names)
         {
             arr->Set(idx++,NanNew(name.c_str()));
         }
@@ -891,7 +890,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     double distance = -1;
-                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    for (mapnik::geometry_type const& geom : feature->paths())
                     {
                         double d = path_to_point_distance(geom,x,y);
                         if (d >= 0)
@@ -938,7 +937,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     double distance = -1;
-                    BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                    for (mapnik::geometry_type const& geom : feature->paths())
                     {
                         double d = path_to_point_distance(geom,x,y);
                         if (d >= 0)
@@ -1187,7 +1186,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     }
     else
     {
-        BOOST_FOREACH ( std::string const& name, fields )
+        for ( std::string const& name : fields)
         {
             q.add_property_name(name);
         }
@@ -1204,7 +1203,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             for (std::size_t p = 0; p < points.size(); ++p) {
                 mapnik::coord2d const& pt = points[p];
                 double distance = -1;
-                BOOST_FOREACH ( mapnik::geometry_type const& geom, feature->paths() )
+                for (mapnik::geometry_type const& geom : feature->paths())
                 {
                     double d = path_to_point_distance(geom,pt.x,pt.y);
                     if (d >= 0)
@@ -2352,7 +2351,7 @@ NAN_METHOD(VectorTile::render)
                 bool found = false;
                 unsigned int idx(0);
                 std::string layer_name = TOSTR(layer_id);
-                BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+                for (mapnik::layer const& lyr : layers)
                 {
                     if (lyr.name() == layer_name)
                     {
