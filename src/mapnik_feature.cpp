@@ -13,9 +13,6 @@
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/value_types.hpp>
 
-// boost
-#include <boost/spirit/include/karma.hpp>
-
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
 #include <mapnik/json/feature_generator_grammar.hpp>
