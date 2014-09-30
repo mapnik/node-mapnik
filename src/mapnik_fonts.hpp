@@ -30,8 +30,6 @@ static inline NAN_METHOD(register_fonts)
 
         bool found = false;
 
-        std::vector<std::string> const names_before = mapnik::freetype_engine::face_names();
-
         // option hash
         if (args.Length() == 2){
             if (!args[1]->IsObject())
@@ -60,10 +58,6 @@ static inline NAN_METHOD(register_fonts)
             std::string path = TOSTR(args[0]);
             found = mapnik::freetype_engine::register_fonts(path);
         }
-
-        std::vector<std::string> const& names_after = mapnik::freetype_engine::face_names();
-        if (names_after.size() == names_before.size())
-            found = false;
 
         NanReturnValue(NanNew(found));
     }
