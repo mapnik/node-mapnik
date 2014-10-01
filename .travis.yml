@@ -10,8 +10,8 @@ compiler:
 
 env:
   matrix:
-   - NODE_NVM_VERSION="0.11" CXX11=false
-   - NODE_NVM_VERSION="0.10" CXX11=false
+   - NODE_NVM_VERSION="0.11.13"
+   - NODE_NVM_VERSION="0.10"
   global:
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
@@ -45,14 +45,7 @@ before_script:
  - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then echo yes;PUBLISH_BINARY=true; fi;
 
 script:
- - if [[ ${PUBLISH_BINARY} == true ]] && [[ ${CXX11} == false ]]; then node-pre-gyp unpublish && node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
+ - if [[ ${PUBLISH_BINARY} == true ]]; then node-pre-gyp unpublish && node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
 
-after_script:
- - if [[ ${PUBLISH_BINARY} == false ]] && [[ "${platform}" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
-
-notifications:
-  irc:
-    channels:
-      - "irc.freenode.org#mapnik"
-    use_notice: true
-
+#after_script:
+# - if [[ ${PUBLISH_BINARY} == false ]] && [[ "${platform}" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
