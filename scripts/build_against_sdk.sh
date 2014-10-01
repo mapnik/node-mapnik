@@ -95,7 +95,7 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
-    HASH="1872-g4379553"
+    HASH="2046-g7c5cdc8"
     TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
 fi
 
