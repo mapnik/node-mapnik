@@ -95,13 +95,13 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
-    HASH="2085-ga77bc9d"
+    HASH="2091-g68fba05"
     TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
 fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
-    HASH="2085-ga77bc9d"
+    HASH="2091-g68fba05"
     TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}-lto"
 fi
 
