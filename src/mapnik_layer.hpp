@@ -3,11 +3,10 @@
 
 #include <nan.h>
 #include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
+
 // stl
 #include <string>
-
-// boost
-#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 

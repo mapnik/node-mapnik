@@ -2,6 +2,7 @@
 #define __NODE_MAPNIK_CAIRO_H__
 
 #include <nan.h>
+#include <string>
 #include <sstream>
 
 // cairo

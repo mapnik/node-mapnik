@@ -2,10 +2,12 @@
 #define __NODE_MAPNIK_MAP_H__
 
 #include <nan.h>
+
 #include "mapnik3x_compatibility.hpp"
-// boost
 #include MAPNIK_SHARED_INCLUDE
 
+// stl
+#include <string>
 
 using namespace v8;
 

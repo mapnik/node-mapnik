@@ -3,9 +3,11 @@
 
 #include <nan.h>
 
-// boost
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_SHARED_INCLUDE
+
+// stl
+#include <string>
 
 namespace mapnik { class proj_transform; }
 namespace mapnik { class projection; }

@@ -8,6 +8,7 @@
 
 // stl
 #include <vector>
+#include <string>
 #include "utils.hpp"
 
 using namespace v8;
