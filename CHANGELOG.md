@@ -1,6 +1,6 @@
 # Changelog
 
-## Future: 3.0.0
+## 3.0.0
 
  - New 3.x series targeting Mapnik 3.x / C++11
  - Binaries for OS X require >= 10.9
