@@ -7,7 +7,7 @@ environment:
     secure: 8f5eTxMHpuVGHon2wbqrZuq3wzQfEuXMCcOyafBLza0T2VIOoBjbjDbgRbyRIzsT
   matrix:
   - nodejs_version: 0.10
-  - nodejs_version: 0.11
+  - nodejs_version: 0.11.13
 
 platform:
   - x86
@@ -16,7 +16,8 @@ platform:
 shallow_clone: true
 
 install:
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:Platform
+  # http://help.appveyor.com/discussions/problems/618-nodejs-10030-doesnt-work-on-appveyor-cant-find-npm#comment_34002825
+  - ps: Install-Product node $env:nodejs_version $env:Platform
   - node -e "console.log('node version ' + process.version + ' architecture ' + process.arch);"
   - node --version
   - npm --version
@@ -29,6 +30,9 @@ install:
   # install node-pre-gyp so we can figure out versioned directory before starting
   #- npm install node-gyp node-pre-gyp
   #- scripts\build_against_sdk_00-START-HERE.bat
+  # install 2014 c++ runtime
+  - ps: Start-FileDownload "https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_%platform%.exe"
+  - .\vcredist_%platform%.exe /q /norestart
   - npm install
   - npm test || true
   #- node-pre-gyp package
