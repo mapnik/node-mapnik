@@ -3,13 +3,19 @@
 ## Future: 3.0.0
 
  - New 3.x series targeting Mapnik 3.x
+ - First release providing binaries for Windows x64
 
 Notable changes in binaries:
 
  - Built with `-std=c++11` and `-fvisibility=hidden` on OS X and Linux
  - Built with `-flto` on OS X (link time optimization) and target >= OS X 10.9
  - Built with Vistual Studio 2014 CTP 3 on Windows (runtimes can be installed from https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_x64.exe and https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_x86.exe)
- - Binaries updated to use Mapnik v3.x at _____ and mapnik-packaging@______
+ - Binaries updated to use Mapnik v3.x (master branch) at f81fc53cbc and mapnik-packaging@6b7345248e
+
+Notable changes in the Mapnik SDK include:
+ - GDAL updated to 3fdc6e72b6e5cba
+ - Libtiff updated to 14bca0edd83
+ - Upgraded libpng from 1.6.12 -> 1.6.13
 
 ## 1.4.15
 
