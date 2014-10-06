@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1
+
+ - Binaries updated to use Mapnik v3.x (master branch) at 5a1126b
+
 ## 3.0.0
 
  - New 3.x series targeting Mapnik 3.x / C++11
