@@ -20,7 +20,7 @@ function xmlWithFont(font) {
 
 describe('font scope', function() {
     var a = 'DejaVu Serif Condensed Bold Italic';
-    var b = 'DejaVu Sans Mono Bold Oblique';
+    var b = 'DejaVu Serif Condensed Bold';
     it('fonts are not globally registered', function(done) {
         assert.equal(mapnik.fonts().indexOf(a), -1);
         assert.equal(mapnik.fonts().indexOf(b), -1);
