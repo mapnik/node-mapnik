@@ -19,40 +19,49 @@ function xmlWithFont(font) {
 }
 
 describe('font scope', function() {
-    it('map a has mono oblique', function(done) {
+    var a = 'DejaVu Serif Condensed Bold Italic';
+    var b = 'DejaVu Sans Mono Bold Oblique';
+    it('fonts are not globally registered', function(done) {
+        assert.equal(mapnik.fonts().indexOf(a), -1);
+        assert.equal(mapnik.fonts().indexOf(b), -1);
+        done();
+    });
+    it('map a has ' + a, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.doesNotThrow(function() {
-            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Oblique'), {
+            map.fromStringSync(xmlWithFont(a), {
                 strict:true,
                 base:path.resolve(path.join(__dirname,'data','map-a'))
             });
         });
+        assert.equal(mapnik.fonts().indexOf(a), -1);
         done();
     });
-    it('map b has mono oblique bold', function(done) {
+    it('map b has ' + b, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.doesNotThrow(function() {
-            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Bold Oblique'), {
+            map.fromStringSync(xmlWithFont(b), {
                 strict:true,
                 base:path.resolve(path.join(__dirname,'data','map-b'))
             });
         });
+        assert.equal(mapnik.fonts().indexOf(b), -1);
         done();
     });
-    it('map a should not have mono oblique bold', function(done) {
+    it('map a should not have ' + b, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.throws(function() {
-            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Bold Oblique'), {
+            map.fromStringSync(xmlWithFont(b), {
                 strict:true,
                 base:path.resolve(path.join(__dirname,'data','map-a'))
             });
         });
         done();
     });
-    it('map b should not have mono oblique', function(done) {
+    it('map b should not have ' + a, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.throws(function() {
-            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Oblique'), {
+            map.fromStringSync(xmlWithFont(a), {
                 strict:true,
                 base:path.resolve(path.join(__dirname,'data','map-b'))
             });
