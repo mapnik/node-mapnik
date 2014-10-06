@@ -18,10 +18,9 @@ env:
 
 
 before_install:
+ - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
  # upgrade libstdc++ to support C++11
- - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
- - sudo apt-get update -q
- - sudo apt-get install -y libstdc++6
+ - if [[ ${platform} == 'linux' ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;sudo apt-get update -y;sudo apt-get install -y libstdc++6; fi;
  # check if tag exists and matches package.json
  - scripts/validate_tag.sh
  - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
@@ -36,7 +35,6 @@ before_install:
  - nvm use $NODE_NVM_VERSION
  - node --version
  - npm --version
- - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
  - PUBLISH_BINARY=false
 
 install:
