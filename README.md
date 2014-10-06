@@ -69,6 +69,21 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 ## Depends
 
 * Node v0.10.x or v0.11.x
+* C++11 compatible C++ runtime library
+
+
+## Troubleshooting
+
+If you hit an error like:
+
+    Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.18' not found
+
+This means your Linux distributions libstdc++ library is too old (for example you are running Ubuntu Precise rather than Trusty). To work around this upgrade libstdc++:
+
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    sudo apt-get update -q
+    sudo apt-get install -y libstdc++6
+
 
 ## Installing
 
