@@ -1,5 +1,6 @@
 var mapnik = require('../');
 var assert = require('assert');
+var path = require('path');
 var fs = require('fs');
 
 function oc(a) {
@@ -10,11 +11,61 @@ function oc(a) {
     return o;
 }
 
-before(function() {
-    mapnik.register_system_fonts();
+function xmlWithFont(font) {
+    return '\
+    <Map font-directory="./"><Style name="text"><Rule>\
+        <TextSymbolizer size="12" face-name="'+font+'"><![CDATA[[name]]]></TextSymbolizer>\
+    </Rule></Style></Map>';
+}
+
+describe('font scope', function() {
+    it('map a has mono oblique', function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.doesNotThrow(function() {
+            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Oblique'), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-a'))
+            });
+        });
+        done();
+    });
+    it('map b has mono oblique bold', function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.doesNotThrow(function() {
+            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Bold Oblique'), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-b'))
+            });
+        });
+        done();
+    });
+    it('map a should not have mono oblique bold', function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.throws(function() {
+            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Bold Oblique'), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-a'))
+            });
+        });
+        done();
+    });
+    it('map b should not have mono oblique', function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.throws(function() {
+            map.fromStringSync(xmlWithFont('DejaVu Sans Mono Oblique'), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-b'))
+            });
+        });
+        done();
+    });
 });
 
 describe('mapnik fonts ', function() {
+
+    before(function() {
+        mapnik.register_system_fonts();
+    });
 
     it('should find new fonts when registering all system fonts', function() {
         // will return true if new fonts are found
@@ -36,3 +87,4 @@ describe('mapnik fonts ', function() {
         }
     });
 });
+
