@@ -47,9 +47,6 @@
           'DEAD_CODE_STRIPPING': 'YES',
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES'
         },
-        'ldflags': [
-          '-Wl,-s'
-        ],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'ExceptionHandling': 1, # /EHsc
