@@ -45,7 +45,8 @@ NAN_METHOD(Palette::New) {
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
     if (args.Length() >= 1) {
         if (args[0]->IsString()) {
-            palette = std::string(*NanAsciiString(args[0]));
+            NanAsciiString nan_string(args[0]);
+            palette = std::string(*nan_string,nan_string.Size());
         }
         else if (node::Buffer::HasInstance(args[0])) {
             Local<Object> obj = args[0].As<Object>();
