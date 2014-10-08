@@ -39,7 +39,7 @@ before_install:
 
 install:
  - if test "${COMMIT_MESSAGE#*'[test binary]'}" != "$COMMIT_MESSAGE"; then npm install --fallback-to-build=false; else ./scripts/build_against_sdk.sh && rm -rf sdk; fi;
- - `which node` ./node_modules/.bin/_mocha --check-leaks --no-exit --no-timeouts --throw-deprecation
+ - $(which node) ./node_modules/.bin/_mocha --check-leaks --no-exit --no-timeouts --throw-deprecation
  #- node-pre-gyp package testpackage
  #- `which node` ./node_modules/.bin/_mocha --check-leaks --no-exit --no-timeouts --throw-deprecation
 
