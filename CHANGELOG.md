@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.2
+
+ - Upgraded Nan to v1.3.0
+ - Binaries updated to use Mapnik v3.x (master branch) at 7bc956e and mapnik-packaging@9c7c9de
+
 ## 3.0.1
 
  - Binaries updated to use Mapnik v3.x (master branch) at 5a1126b
