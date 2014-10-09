@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.3
+
+ - Fixed incorrect bundled deps
+
 ## 3.0.2
 
  - Upgraded Nan to v1.3.0
