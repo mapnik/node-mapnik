@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.4
+
+ - Binaries updated to use Mapnik v3.x (master branch) at 6b1c4d00e5 and mapnik-packaging@f9ec0f8d95
+
 ## 3.0.3
 
  - Fixed incorrect bundled deps
