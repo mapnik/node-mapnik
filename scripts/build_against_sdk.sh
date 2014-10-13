@@ -111,10 +111,11 @@ export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
 export PKG_CONFIG_PATH=${MAPNIK_SDK}/lib/pkgconfig
 
-echo "looking for ~/projects/mapnik-packaging/osx/out/dist/${TARBALL_NAME}.${COMPRESSION}"
-if [ -f "$HOME/projects/mapnik-packaging/osx/out/dist/${TARBALL_NAME}.${COMPRESSION}" ]; then
+LOCAL_PACKAGE="$HOME/projects/mapnik-package-lto/osx/out/dist"
+echo "looking for ${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}"
+if [ -f "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" ]; then
     echo "copying over ${TARBALL_NAME}.${COMPRESSION}"
-    cp "$HOME/projects/mapnik-packaging/osx/out/dist/${TARBALL_NAME}.${COMPRESSION}" .
+    cp "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" .
 else
     if [ ! -f "${TARBALL_NAME}.${COMPRESSION}" ]; then
         echo "downloading ${REMOTE_URI}"
@@ -153,6 +154,9 @@ MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 rm -rf ${MODULE_PATH}
 npm install --build-from-source ${ARGS} --clang=1
 npm ls
+# copy shapeindex and nik2img
+cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}
+cp ${MAPNIK_SDK}/bin/nik2img ${MODULE_PATH}
 # copy lib
 cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}
 # copy plugins
