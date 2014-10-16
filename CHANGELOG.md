@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.5
+
+ - Binaries updated to use Mapnik v3.x (master branch) at b90763469a and mapnik-packaging@f9e1c81b39
+ - shapeindex and nik2img are now bundled
+
 ## 3.0.4
 
  - Binaries updated to use Mapnik v3.x (master branch) at 6b1c4d00e5 and mapnik-packaging@f9ec0f8d95
