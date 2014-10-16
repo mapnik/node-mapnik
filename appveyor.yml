@@ -23,6 +23,8 @@ install:
   - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
   - SET /p MODULE=<module.txt
   - del module.txt
+  # put 64 bit python on PATH / http://www.appveyor.com/docs/installed-software
+  - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - python -c "import platform;print(platform.architecture())"
   - python -c "import ctypes,os;print('%MODULE%');print os.path.exists('%MODULE%');ctypes.CDLL('%MODULE%')" || true
   - npm test || true
