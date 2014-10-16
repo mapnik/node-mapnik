@@ -20,6 +20,10 @@ install:
   - ps: Start-FileDownload "https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_$env:Platform.exe"
   - .\vcredist_%platform%.exe /q /norestart
   - npm install
+  - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
+  - SET /p MODULE=<module.txt
+  - del module.txt
+  - python -c "import ctypes;ctypes.CDLL('%MODULE%')"
   - npm test || true
 
 build: off
