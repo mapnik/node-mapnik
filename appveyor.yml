@@ -23,7 +23,8 @@ install:
   - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
   - SET /p MODULE=<module.txt
   - del module.txt
-  - python -c "import ctypes;ctypes.CDLL('%MODULE%')"
+  - python -c "import platform;print(platform.architecture())"
+  - python -c "import ctypes,os;print('%MODULE%');print os.path.exists('%MODULE%');ctypes.CDLL('%MODULE%')" || true
   - npm test || true
 
 build: off
