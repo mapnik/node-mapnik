@@ -98,23 +98,19 @@
           {
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
-              '<!@(mapnik-config --cflags)',
-              '<!@(pkg-config protobuf --cflags)'
+              '<!@(mapnik-config --cflags)'
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
-              '<!@(mapnik-config --ldflags)',
-              '<!@(pkg-config protobuf --libs-only-L)',
+              '<!@(mapnik-config --ldflags)'
               '-lprotobuf-lite'
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                '<!@(mapnik-config --cflags)',
-                '<!@(pkg-config protobuf --cflags)'
+                '<!@(mapnik-config --cflags)'
               ],
               'OTHER_CFLAGS':[
-                '<!@(mapnik-config --cflags)',
-                '<!@(pkg-config protobuf --cflags)'
+                '<!@(mapnik-config --cflags)'
               ],
               'GCC_ENABLE_CPP_RTTI': 'YES',
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
