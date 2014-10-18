@@ -100,13 +100,13 @@ public:
         painted(false);
         byte_size_ = 0;
     }
-    mapnik::vector::tile & get_tile_nonconst() {
+    vector_tile::Tile & get_tile_nonconst() {
         return tiledata_;
     }
     std::vector<std::string> lazy_names();
     bool lazy_empty();
     void parse_proto();
-    mapnik::vector::tile const& get_tile() {
+    vector_tile::Tile const& get_tile() {
         return tiledata_;
     }
     void cache_bytesize() {
@@ -133,7 +133,7 @@ public:
     parsing_status status_;
 private:
     ~VectorTile();
-    mapnik::vector::tile tiledata_;
+    vector_tile::Tile tiledata_;
     unsigned width_;
     unsigned height_;
     bool painted_;
