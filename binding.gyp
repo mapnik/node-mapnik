@@ -102,7 +102,7 @@
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
-              '<!@(mapnik-config --ldflags)'
+              '<!@(mapnik-config --ldflags)',
               '-lprotobuf-lite'
             ],
             'xcode_settings': {
