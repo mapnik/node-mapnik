@@ -151,7 +151,7 @@ NAN_METHOD(Geometry::toJSON)
     {
         if (!args[0]->IsObject()) {
             NanThrowTypeError("optional first arg must be an options object");
-            return NanEscapeScope(NanUndefined());
+            NanReturnUndefined();
         }
         Local<Object> options = args[0]->ToObject();
         if (options->Has(NanNew("transform")))
@@ -159,13 +159,13 @@ NAN_METHOD(Geometry::toJSON)
             Local<Value> bound_opt = options->Get(NanNew("transform"));
             if (!bound_opt->IsObject()) {
                 NanThrowTypeError("'transform' must be an object");
-                return NanEscapeScope(NanUndefined());
+                NanReturnUndefined();
             }
 
             Local<Object> obj = bound_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !NanNew(ProjTransform::constructor)->HasInstance(obj)) {
                 NanThrowTypeError("mapnik.ProjTransform expected as first arg");
-                return NanEscapeScope(NanUndefined());
+                NanReturnUndefined();
             }
             closure->tr = node::ObjectWrap::Unwrap<ProjTransform>(obj);
             closure->tr->_ref();
