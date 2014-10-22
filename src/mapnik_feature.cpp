@@ -116,7 +116,7 @@ NAN_METHOD(Feature::fromJSON)
     }
     Feature* feat = new Feature(f);
     Handle<Value> ext = NanNew<External>(feat);
-    return NanEscapeScope(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
 Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
