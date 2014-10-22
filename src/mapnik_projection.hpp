@@ -52,6 +52,11 @@ public:
     ProjTransform(mapnik::projection const& src,
                   mapnik::projection const& dest);
 
+    inline proj_tr_ptr get() { return this_; }
+
+    void _ref() { Ref(); }
+    void _unref() { Unref(); }
+
 private:
     ~ProjTransform();
     proj_tr_ptr this_;

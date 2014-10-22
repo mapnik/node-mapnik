@@ -83,6 +83,39 @@ describe('mapnik.Feature ', function() {
         }
     });
 
+    it('should be able to create feature from geojson and turn back into geojson', function (done) {
+        var expected = {
+            type: "Feature",
+            properties: {},
+            geometry: {
+                type: 'Polygon',
+                coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(expected));
+        var feature = JSON.parse(f.toJSON());
+        assert.equal(expected.type, feature.type);
+        assert.deepEqual(expected.properties, feature.properties);
+        assert.equal(expected.geometry.type, feature.geometry.type);
+        if (mapnik.versions.mapnik_number >= 200300) {
+            assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+        }
+        var geom = f.geometry();
+        assert.deepEqual(geom.extent(),[ 1, 1, 2, 2 ]);
+        var expected_geom = JSON.stringify(expected.geometry);
+        assert.equal(expected_geom,geom.toJSON());
+        var source_proj = new mapnik.Projection('+init=epsg:4326');
+        var dest_proj = new mapnik.Projection('+init=epsg:3857');
+        var trans = new mapnik.ProjTransform(source_proj,dest_proj);
+        var transformed = geom.toJSON({transform:trans});
+        assert.notEqual(expected_geom,transformed);
+        // async toJSON
+        geom.toJSON({transform:trans},function(err,json) {
+            assert.equal(transformed,json);
+            done();
+        });
+    });
+
     it('should output WKT', function () {
         var feature = {
                 type: "Feature",
