@@ -21,7 +21,6 @@ void Geometry::Initialize(Handle<Object> target) {
     lcons->SetClassName(NanNew("Geometry"));
 
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "type", type);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
