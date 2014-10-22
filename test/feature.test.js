@@ -110,9 +110,12 @@ describe('mapnik.Feature ', function() {
         var transformed = geom.toJSON({transform:trans});
         assert.notEqual(expected_geom,transformed);
         // async toJSON
-        geom.toJSON({transform:trans},function(err,json) {
-            assert.equal(transformed,json);
-            done();
+        geom.toJSON(function(err,json) {
+            assert.equal(expected_geom,json);
+            geom.toJSON({transform:trans},function(err,json2) {
+                assert.equal(transformed,json2);
+                done();
+            });
         });
     });
 
