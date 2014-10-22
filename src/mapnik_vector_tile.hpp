@@ -1,8 +1,12 @@
 #ifndef __NODE_MAPNIK_VECTOR_TILE_H__
 #define __NODE_MAPNIK_VECTOR_TILE_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
 #include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 #include <vector>
 #include <string>
 #include <mapnik/feature.hpp>
