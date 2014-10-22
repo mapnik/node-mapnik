@@ -1,7 +1,11 @@
 #ifndef __NODE_MAPNIK_MEMORY_DATASOURCE_H__
 #define __NODE_MAPNIK_MEMORY_DATASOURCE_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
+
 #include <mapnik/datasource.hpp>
 
 using namespace v8;

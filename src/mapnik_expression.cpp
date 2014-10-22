@@ -65,9 +65,8 @@ NAN_METHOD(Expression::New)
     mapnik::expression_ptr e_ptr;
     try
     {
-        if (args.Length() == 1 && args[0]->IsString()){
-            e_ptr = mapnik::parse_expression(TOSTR(args[0]),"utf8");
-
+        if (args.Length() == 1 && args[0]->IsString()) {
+            e_ptr = mapnik::parse_expression(TOSTR(args[0]));
         } else {
             NanThrowTypeError("invalid arguments: accepts a single argument of string type");
             NanReturnUndefined();

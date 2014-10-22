@@ -1,7 +1,10 @@
 #ifndef __NODE_MAPNIK_GEOMETRY_H__
 #define __NODE_MAPNIK_GEOMETRY_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
 
 // mapnik
 #include <mapnik/geometry.hpp>

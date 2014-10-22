@@ -1,9 +1,10 @@
 #ifndef NODE_MAPNIK_BLEND_HPP
 #define NODE_MAPNIK_BLEND_HPP
 
-#include <v8.h>
-#include <node.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
 
 // stl
 #include <sstream>
