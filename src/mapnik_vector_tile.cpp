@@ -2429,8 +2429,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             std::vector<mapnik::layer> const& layers,
                                             double scale_denom,
                                             vector_tile::Tile const& tiledata,
-                                            vector_tile_render_baton_t *closure,
-                                            mapnik::box2d<double> const& map_extent)
+                                            vector_tile_render_baton_t *closure)
 {
     // loop over layers in map and match by name
     // with layers in the vector tile
@@ -2586,7 +2585,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                                 closure->variables,
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -2602,7 +2601,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                             closure->variables,
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -2617,7 +2616,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                     closure->variables,
                                                     *closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);
-            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
             ren.end_map_processing(map_in);
         }
     }
