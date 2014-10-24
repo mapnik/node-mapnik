@@ -29,6 +29,10 @@
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
+#include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/feature_kv_iterator.hpp>
+#include "proj_transform_adapter.hpp"
+#include <mapnik/json/geometry_generator_grammar_impl.hpp>
 
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
@@ -1419,169 +1423,79 @@ NAN_METHOD(VectorTile::toJSON)
 }
 
 static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
-                             Local<Array> f_arr,
+                             std::string & result,
                              unsigned x,
                              unsigned y,
                              unsigned z,
-                             unsigned width,
-                             unsigned idx0)
+                             unsigned width)
 {
+    mapnik::vector_tile_impl::tile_datasource ds(layer,
+                                                 x,
+                                                 y,
+                                                 z,
+                                                 width,
+                                                 true);
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform tr(merc,wgs84);
-    double zc = 0;
-    double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
-    double tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
-    double tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
-    for (int j=0; j < layer.features_size(); ++j)
+    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::query q(ds.envelope());
+    mapnik::layer_descriptor ld = ds.get_descriptor();
+    for (auto const& item : ld.get_descriptors())
     {
-        double scale_ = (static_cast<double>(layer.extent()) / width) * static_cast<double>(width)/resolution;
-        Local<Object> feature_obj = NanNew<Object>();
-        feature_obj->Set(NanNew("type"),NanNew("Feature"));
-        Local<Object> geometry = NanNew<Object>();
-        vector_tile::Tile_Feature const& f = layer.features(j);
-        unsigned int g_type = f.type();
-        Local<String> js_type = NanNew("Unknown");
-        switch (g_type)
+        q.add_property_name(item.get_name());
+    }
+    mapnik::featureset_ptr fs = ds.features(q);
+    using sink_type = std::back_insert_iterator<std::string>;
+    static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
+    if (fs)
+    {
+        mapnik::feature_ptr feature;
+        bool first = true;
+        while ((feature = fs->next()))
         {
-        case MAPNIK_POINT:
-        {
-            js_type = NanNew("Point");
-            break;
-        }
-        case MAPNIK_LINESTRING:
-        {
-            js_type = NanNew("LineString");
-            break;
-        }
-        case MAPNIK_POLYGON:
-        {
-            js_type = NanNew("Polygon");
-            break;
-        }
-        default:
-        {
-            break;
-        }
-        }
-        geometry->Set(NanNew("type"), js_type);
-        Local<Array> g_arr = NanNew<Array>();
-        if (g_type == MAPNIK_POLYGON)
-        {
-            Local<Array> enclosing_array = NanNew<Array>(1);
-            enclosing_array->Set(0,g_arr);
-            geometry->Set(NanNew("coordinates"),enclosing_array);
-        }
-        else
-        {
-            geometry->Set(NanNew("coordinates"),g_arr);
-        }
-        int cmd = -1;
-        const int cmd_bits = 3;
-        unsigned length = 0;
-        double x1 = tile_x_;
-        double y1 = tile_y_;
-        unsigned idx = 0;
-        for (int k = 0; k < f.geometry_size();)
-        {
-            if (!length) {
-                unsigned cmd_length = f.geometry(k++);
-                cmd = cmd_length & ((1 << cmd_bits) - 1);
-                length = cmd_length >> cmd_bits;
-            }
-            if (length > 0) {
-                length--;
-                if (cmd == mapnik::SEG_MOVETO || cmd == mapnik::SEG_LINETO)
-                {
-                    int32_t dx = f.geometry(k++);
-                    int32_t dy = f.geometry(k++);
-                    dx = ((dx >> 1) ^ (-(dx & 1)));
-                    dy = ((dy >> 1) ^ (-(dy & 1)));
-                    x1 += (static_cast<double>(dx) / scale_);
-                    y1 -= (static_cast<double>(dy) / scale_);
-                    double x2 = x1;
-                    double y2 = y1;
-                    if (tr.forward(x2,y2,zc))
-                    {
-                        if (g_type == MAPNIK_POINT)
-                        {
-                            g_arr->Set(0,NanNew<Number>(x2));
-                            g_arr->Set(1,NanNew<Number>(y2));
-                        }
-                        else
-                        {
-                            Local<Array> v_arr = NanNew<Array>(2);
-                            v_arr->Set(0,NanNew<Number>(x2));
-                            v_arr->Set(1,NanNew<Number>(y2));
-                            g_arr->Set(idx++,v_arr);
-                        }
-                    }
-                    else
-                    {
-                        std::clog << "could not project\n";
-                    }
-                }
-                else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
-                {
-                    if (g_arr->Length() > 0) g_arr->Set(idx++,Local<Array>::Cast(g_arr->Get(0)));
-                }
-                else
-                {
-                    std::stringstream msg;
-                    msg << "Unknown command type (layer_to_geojson): "
-                        << cmd;
-                    throw std::runtime_error(msg.str());
-                }
-            }
-        }
-        feature_obj->Set(NanNew("geometry"),geometry);
-        Local<Object> att_obj = NanNew<Object>();
-        for (int m = 0; m < f.tags_size(); m += 2)
-        {
-            std::size_t key_name = f.tags(m);
-            std::size_t key_value = f.tags(m + 1);
-
-            if (key_name < static_cast<std::size_t>(layer.keys_size())
-                && key_value < static_cast<std::size_t>(layer.values_size()))
+            if (first) first = false;
+            else result += ",";
+            result += "{\"type\":\"Feature\",\"properties\":{";
+            bool first_prop = true;
+            for (auto const& attr : *feature)
             {
-                std::string const& name = layer.keys(key_name);
-                vector_tile::Tile_Value const& value = layer.values(key_value);
-                if (value.has_string_value())
+                if (first_prop) first_prop = false;
+                else result += ",";
+                auto const& val = std::get<1>(attr);
+                if (val.is<mapnik::value_unicode_string>())
                 {
-                    att_obj->Set(NanNew(name.c_str()), NanNew(value.string_value().c_str()));
-                }
-                else if (value.has_int_value())
-                {
-                    att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.int_value()));
-                }
-                else if (value.has_double_value())
-                {
-                    att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.double_value()));
-                }
-                else if (value.has_float_value())
-                {
-                    att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.float_value()));
-                }
-                else if (value.has_bool_value())
-                {
-                    att_obj->Set(NanNew(name.c_str()), NanNew<Boolean>(value.bool_value()));
-                }
-                else if (value.has_sint_value())
-                {
-                    att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.sint_value()));
-                }
-                else if (value.has_uint_value())
-                {
-                    att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.uint_value()));
+                    result += "\"" + std::get<0>(attr) + "\":\"" + val.to_string() + "\"";
                 }
                 else
                 {
-                    att_obj->Set(NanNew(name.c_str()), NanUndefined());
+                    result += "\"" + std::get<0>(attr) + "\":" + val.to_string();
                 }
             }
+            result += "},\"geometry\":";
+            if (feature->paths().empty())
+            {
+                result += "null";
+            }
+            else
+            {
+                std::string geometry;
+                sink_type sink(geometry);
+                node_mapnik::proj_transform_container projected_paths;
+                for (auto & geom : feature->paths())
+                {
+                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
+                }
+                if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
+                {
+                    std::clog << "Failed to generate GeoJSON";
+                }
+                else
+                {
+                    result += geometry;
+                }
+            }
+            result += "}";
         }
-        feature_obj->Set(NanNew("properties"),att_obj);
-        f_arr->Set(j+idx0,feature_obj);
     }
 }
 
@@ -1604,6 +1518,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
     int layer_idx = -1;
     bool all_array = false;
     bool all_flattened = false;
+    std::string result;
 
     if (layer_id->IsString()) {
         std::string layer_name = TOSTR(layer_id);
@@ -1674,46 +1589,38 @@ NAN_METHOD(VectorTile::toGeoJSON)
         NanThrowTypeError("layer id must be a string or index number");
         NanReturnUndefined();
     }
-
     try
     {
         if (all_array)
         {
-            Local<Array> layer_arr = NanNew<Array>(layer_num);
             for (unsigned i=0;i<layer_num;++i)
             {
-                Local<Object> layer_obj = NanNew<Object>();
-                layer_obj->Set(NanNew("type"), NanNew("FeatureCollection"));
-                Local<Array> f_arr = NanNew<Array>();
-                layer_obj->Set(NanNew("features"), f_arr);
                 vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
-                layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
-                layer_arr->Set(i,layer_obj);
+                result += "{\"type\":\"FeatureCollection\",";
+                result += "\"name\":\"" + layer.name() + "\",\"features\":[";
+                layer_to_geojson(layer,result,d->x_,d->y_,d->z_,d->width_);
+                result += "]}";
             }
-            NanReturnValue(layer_arr);
         }
         else
         {
-            Local<Object> layer_obj = NanNew<Object>();
-            layer_obj->Set(NanNew("type"), NanNew("FeatureCollection"));
-            Local<Array> f_arr = NanNew<Array>();
-            layer_obj->Set(NanNew("features"), f_arr);
             if (all_flattened)
             {
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
                 for (unsigned i=0;i<layer_num;++i)
                 {
                     vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                    layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,f_arr->Length());
+                    layer_to_geojson(layer,result,d->x_,d->y_,d->z_,d->width_);
                 }
-                NanReturnValue(layer_obj);
+                result += "]}";
             }
             else
             {
                 vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-                layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
-                layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
-                NanReturnValue(layer_obj);
+                result += "{\"type\":\"FeatureCollection\",";
+                result += "\"name\":\"" + layer.name() + "\",\"features\":[";
+                layer_to_geojson(layer,result,d->x_,d->y_,d->z_,d->width_);
+                result += "]}";
             }
         }
     }
@@ -1722,6 +1629,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
         NanThrowError(ex.what());
         NanReturnUndefined();
     }
+    NanReturnValue(NanNew(result));
 }
 
 NAN_METHOD(VectorTile::parseSync)

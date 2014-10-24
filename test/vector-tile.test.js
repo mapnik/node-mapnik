@@ -78,13 +78,13 @@ describe('mapnik.VectorTile ', function() {
         };
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
         assert.equal(vtile.getData().length,58);
-        var out = vtile.toGeoJSON(0);
+        var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
-        assert.equal(out.features[0].properties.name,'geojson data');
         var coords = out.features[0].geometry.coordinates
         assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
         assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+        assert.equal(out.features[0].properties.name,'geojson data');
         done();
     });
 
@@ -219,10 +219,28 @@ describe('mapnik.VectorTile ', function() {
         var expected_geojson = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-101.25,39.36827914916011],[-101.25,38.82272471585834],[-100.54704666137694,38.82272471585834],[-100.54704666137694,39.36827914916011],[-101.25,39.36827914916011]]]},"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]};
         var expected_copy = JSON.parse(JSON.stringify(expected_geojson));
         expected_geojson.name = "world";
-        deepEqualTrunc(vtile.toGeoJSON(0),expected_geojson)
-        deepEqualTrunc(vtile.toGeoJSON(0),vtile.toGeoJSON('world'))
-        deepEqualTrunc(vtile.toGeoJSON('__all__'),expected_copy)
-        deepEqualTrunc(vtile.toGeoJSON('__array__'),[expected_geojson])
+        var actual = JSON.parse(vtile.toGeoJSON(0));
+        assert.equal(actual.type,expected_geojson.type);
+        assert.equal(actual.name,expected_geojson.name);
+        assert.equal(actual.features.length,expected_geojson.features.length);
+        assert.equal(actual.features[0].properties.length,expected_geojson.features[0].properties.length);
+        assert.equal(actual.features[0].properties.NAME,expected_geojson.features[0].properties.NAME);
+        deepEqualTrunc(actual.features[0].geometry,expected_geojson.features[0].geometry);
+        deepEqualTrunc(JSON.parse(vtile.toGeoJSON(0)),JSON.parse(vtile.toGeoJSON('world')));
+        actual = JSON.parse(vtile.toGeoJSON('__all__'));
+        assert.equal(actual.type,expected_copy.type);
+        assert.equal(actual.name,expected_copy.name);
+        assert.equal(actual.features.length,expected_copy.features.length);
+        assert.equal(actual.features[0].properties.length,expected_copy.features[0].properties.length);
+        assert.equal(actual.features[0].properties.NAME,expected_copy.features[0].properties.NAME);
+        deepEqualTrunc(actual.features[0].geometry,expected_copy.features[0].geometry);
+        actual = JSON.parse(vtile.toGeoJSON('__array__'));
+        assert.equal(actual.type,expected_geojson.type);
+        assert.equal(actual.name,expected_geojson.name);
+        assert.equal(actual.features.length,expected_geojson.features.length);
+        assert.equal(actual.features[0].properties.length,expected_geojson.features[0].properties.length);
+        assert.equal(actual.features[0].properties.NAME,expected_geojson.features[0].properties.NAME);
+        deepEqualTrunc(actual.features[0].geometry,expected_geojson.features[0].geometry);
         done();
     });
 
