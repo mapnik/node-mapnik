@@ -175,6 +175,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "names", names);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSON", toGeoJSON);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSONSync", toGeoJSONSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addGeoJSON", addGeoJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addImage", addImage);
 #ifdef PROTOBUF_FULL
@@ -1499,28 +1500,22 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
     }
 }
 
-NAN_METHOD(VectorTile::toGeoJSON)
+NAN_METHOD(VectorTile::toGeoJSONSync)
 {
     NanScope();
-    if (args.Length() < 1) {
-        NanThrowError("first argument must be either a layer name (string) or layer index (integer)");
-        NanReturnUndefined();
-    }
-    Local<Value> layer_id = args[0];
-    if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
-        NanThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
-        NanReturnUndefined();
-    }
+    NanReturnValue(_toGeoJSONSync(args));
+}
 
-    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    vector_tile::Tile const& tiledata = d->get_tile();
-    std::size_t layer_num = tiledata.layers_size();
-    int layer_idx = -1;
-    bool all_array = false;
-    bool all_flattened = false;
-    std::string result;
-
-    if (layer_id->IsString()) {
+void handle_to_geojson_args(Local<Value> const& layer_id,
+                            vector_tile::Tile const& tiledata,
+                            bool & all_array,
+                            bool & all_flattened,
+                            std::string & error_msg,
+                            int & layer_idx)
+{
+    unsigned layer_num = tiledata.layers_size();
+    if (layer_id->IsString())
+    {
         std::string layer_name = TOSTR(layer_id);
         if (layer_name == "__array__")
         {
@@ -1549,8 +1544,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
             {
                 std::ostringstream s;
                 s << "Layer name '" << layer_name << "' not found";
-                NanThrowTypeError(s.str().c_str());
-                NanReturnUndefined();
+                error_msg = s.str();
             }
         }
     }
@@ -1569,8 +1563,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
             {
                 s << "no layers found in map";
             }
-            NanThrowTypeError(s.str().c_str());
-            NanReturnUndefined();
+            error_msg = s.str();
         } else if (layer_idx >= static_cast<int>(layer_num)) {
             std::ostringstream s;
             s << "Zero-based layer index '" << layer_idx << "' not valid, ";
@@ -1582,55 +1575,190 @@ NAN_METHOD(VectorTile::toGeoJSON)
             {
                 s << "no layers found in map";
             }
-            NanThrowTypeError(s.str().c_str());
-            NanReturnUndefined();
+            error_msg = s.str();
         }
     } else {
-        NanThrowTypeError("layer id must be a string or index number");
-        NanReturnUndefined();
+        error_msg = "layer id must be a string or index number";
     }
-    try
+}
+
+void write_geojson_to_string(std::string & result,
+                             bool all_array,
+                             bool all_flattened,
+                             int layer_idx,
+                             VectorTile * v)
+{
+    vector_tile::Tile const& tiledata = v->get_tile();
+    if (all_array)
     {
-        if (all_array)
+        unsigned layer_num = tiledata.layers_size();
+        result += "[";
+        bool first = true;
+        for (unsigned i=0;i<layer_num;++i)
         {
+            vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+            if (first) first = false;
+            else result += ",";
+            result += "{\"type\":\"FeatureCollection\",";
+            result += "\"name\":\"" + layer.name() + "\",\"features\":[";
+            layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
+            result += "]}";
+        }
+        result += "]";
+    }
+    else
+    {
+        if (all_flattened)
+        {
+            result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            unsigned layer_num = tiledata.layers_size();
             for (unsigned i=0;i<layer_num;++i)
             {
                 vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                result += "{\"type\":\"FeatureCollection\",";
-                result += "\"name\":\"" + layer.name() + "\",\"features\":[";
-                layer_to_geojson(layer,result,d->x_,d->y_,d->z_,d->width_);
-                result += "]}";
+                layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
             }
+            result += "]}";
         }
         else
         {
-            if (all_flattened)
-            {
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                for (unsigned i=0;i<layer_num;++i)
-                {
-                    vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                    layer_to_geojson(layer,result,d->x_,d->y_,d->z_,d->width_);
-                }
-                result += "]}";
-            }
-            else
-            {
-                vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-                result += "{\"type\":\"FeatureCollection\",";
-                result += "\"name\":\"" + layer.name() + "\",\"features\":[";
-                layer_to_geojson(layer,result,d->x_,d->y_,d->z_,d->width_);
-                result += "]}";
-            }
+            vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
+            result += "{\"type\":\"FeatureCollection\",";
+            result += "\"name\":\"" + layer.name() + "\",\"features\":[";
+            layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
+            result += "]}";
         }
+    }
+}
+
+Local<Value> VectorTile::_toGeoJSONSync(_NAN_METHOD_ARGS) {
+    NanEscapableScope();
+    if (args.Length() < 1) {
+        NanThrowError("first argument must be either a layer name (string) or layer index (integer)");
+        return NanEscapeScope(NanUndefined());
+    }
+    Local<Value> layer_id = args[0];
+    if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+        NanThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    VectorTile* v = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    vector_tile::Tile const& tiledata = v->get_tile();
+    int layer_idx = -1;
+    bool all_array = false;
+    bool all_flattened = false;
+    std::string error_msg;
+    std::string result;
+    try
+    {
+        handle_to_geojson_args(layer_id,
+                               tiledata,
+                               all_array,
+                               all_flattened,
+                               error_msg,
+                               layer_idx);
+        if (!error_msg.empty())
+        {
+            NanThrowTypeError(error_msg.c_str());
+            return NanEscapeScope(NanUndefined());
+        }
+        write_geojson_to_string(result,all_array,all_flattened,layer_idx,v);
     }
     catch (std::exception const& ex)
     {
         NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
+    return NanEscapeScope(NanNew(result));
+}
+
+struct to_geojson_baton {
+    uv_work_t request;
+    VectorTile* v;
+    bool error;
+    std::string result;
+    int layer_idx;
+    bool all_array;
+    bool all_flattened;
+    Persistent<Function> cb;
+};
+
+NAN_METHOD(VectorTile::toGeoJSON)
+{
+    NanScope();
+    if ((args.Length() < 1) || !args[args.Length()-1]->IsFunction()) {
+        NanReturnValue(_toGeoJSONSync(args));
+    }
+    to_geojson_baton *closure = new to_geojson_baton();
+    closure->request.data = closure;
+    closure->v = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    closure->error = false;
+    closure->layer_idx = -1;
+    closure->all_array = false;
+    closure->all_flattened = false;
+
+    std::string error_msg;
+    vector_tile::Tile const& tiledata = closure->v->get_tile();
+
+    Local<Value> layer_id = args[0];
+    if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+        delete closure;
+        NanThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
         NanReturnUndefined();
     }
-    NanReturnValue(NanNew(result));
+
+    handle_to_geojson_args(layer_id,
+                           tiledata,
+                           closure->all_array,
+                           closure->all_flattened,
+                           error_msg,
+                           closure->layer_idx);
+    if (!error_msg.empty())
+    {
+        delete closure;
+        NanThrowTypeError(error_msg.c_str());
+        NanReturnUndefined();
+    }
+    Local<Value> callback = args[args.Length()-1];
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, to_geojson, (uv_after_work_cb)after_to_geojson);
+    closure->v->Ref();
+    NanReturnUndefined();
 }
+
+void VectorTile::to_geojson(uv_work_t* req)
+{
+    to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
+    try
+    {
+        write_geojson_to_string(closure->result,closure->all_array,closure->all_flattened,closure->layer_idx,closure->v);
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->result = ex.what();
+    }
+}
+
+void VectorTile::after_to_geojson(uv_work_t* req)
+{
+    NanScope();
+    to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { NanError(closure->result.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { NanNull(), NanNew(closure->result) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    closure->v->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
 
 NAN_METHOD(VectorTile::parseSync)
 {

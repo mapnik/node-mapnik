@@ -85,7 +85,17 @@ describe('mapnik.VectorTile ', function() {
         assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
         assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
         assert.equal(out.features[0].properties.name,'geojson data');
-        done();
+        assert.equal(vtile.toGeoJSON(0),vtile.toGeoJSONSync(0));
+        vtile.toGeoJSON(0,function(err,json_string) {
+            var out2 = JSON.parse(json_string);
+            assert.equal(out2.type,'FeatureCollection');
+            assert.equal(out2.features.length,1);
+            var coords = out2.features[0].geometry.coordinates
+            assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
+            assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+            assert.equal(out2.features[0].properties.name,'geojson data');
+            done();
+        })
     });
 
     it('should throw with invalid usage', function() {
@@ -234,7 +244,9 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(actual.features[0].properties.length,expected_copy.features[0].properties.length);
         assert.equal(actual.features[0].properties.NAME,expected_copy.features[0].properties.NAME);
         deepEqualTrunc(actual.features[0].geometry,expected_copy.features[0].geometry);
-        actual = JSON.parse(vtile.toGeoJSON('__array__'));
+        var json_array = JSON.parse(vtile.toGeoJSON('__array__'));
+        assert.equal(json_array.length,1);
+        actual = json_array[0];
         assert.equal(actual.type,expected_geojson.type);
         assert.equal(actual.name,expected_geojson.name);
         assert.equal(actual.features.length,expected_geojson.features.length);

@@ -60,7 +60,11 @@ public:
     static void EIO_QueryMany(uv_work_t* req);
     static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
+    static Local<Value> _toGeoJSONSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(toGeoJSON);
+    static NAN_METHOD(toGeoJSONSync);
+    static void to_geojson(uv_work_t* req);
+    static void after_to_geojson(uv_work_t* req);
     static NAN_METHOD(addGeoJSON);
     static NAN_METHOD(addImage);
 #ifdef PROTOBUF_FULL
