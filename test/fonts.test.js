@@ -1,5 +1,6 @@
 var mapnik = require('../');
 var assert = require('assert');
+var path = require('path');
 var fs = require('fs');
 
 function oc(a) {
@@ -10,11 +11,70 @@ function oc(a) {
     return o;
 }
 
-before(function() {
-    mapnik.register_system_fonts();
+function xmlWithFont(font) {
+    return '\
+    <Map font-directory="./"><Style name="text"><Rule>\
+        <TextSymbolizer size="12" face-name="'+font+'"><![CDATA[[name]]]></TextSymbolizer>\
+    </Rule></Style></Map>';
+}
+
+describe('font scope', function() {
+    var a = 'DejaVu Serif Condensed Bold Italic';
+    var b = 'DejaVu Serif Condensed Bold';
+    it('fonts are not globally registered', function(done) {
+        assert.equal(mapnik.fonts().indexOf(a), -1);
+        assert.equal(mapnik.fonts().indexOf(b), -1);
+        done();
+    });
+    it('map a has ' + a, function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.doesNotThrow(function() {
+            map.fromStringSync(xmlWithFont(a), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-a'))
+            });
+        });
+        assert.equal(mapnik.fonts().indexOf(a), -1);
+        done();
+    });
+    it('map b has ' + b, function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.doesNotThrow(function() {
+            map.fromStringSync(xmlWithFont(b), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-b'))
+            });
+        });
+        assert.equal(mapnik.fonts().indexOf(b), -1);
+        done();
+    });
+    it('map a should not have ' + b, function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.throws(function() {
+            map.fromStringSync(xmlWithFont(b), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-a'))
+            });
+        });
+        done();
+    });
+    it('map b should not have ' + a, function(done) {
+        var map = new mapnik.Map(4, 4);
+        assert.throws(function() {
+            map.fromStringSync(xmlWithFont(a), {
+                strict:true,
+                base:path.resolve(path.join(__dirname,'data','map-b'))
+            });
+        });
+        done();
+    });
 });
 
 describe('mapnik fonts ', function() {
+
+    before(function() {
+        mapnik.register_system_fonts();
+    });
 
     it('should find new fonts when registering all system fonts', function() {
         // will return true if new fonts are found
@@ -36,3 +96,4 @@ describe('mapnik fonts ', function() {
         }
     });
 });
+
