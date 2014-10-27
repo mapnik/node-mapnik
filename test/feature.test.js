@@ -70,11 +70,10 @@ describe('mapnik.Feature ', function() {
                     type: 'Polygon',
                     coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
                 }
-            },
-
-            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"}),
-            f = ds.featureset().next(),
-            feature = JSON.parse(f.toJSON());
+            };
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"});
+        var f = ds.featureset().next();
+        var feature = JSON.parse(f.toJSON());
 
         assert.equal(expected.type, feature.type);
         assert.deepEqual(expected.properties, feature.properties);
@@ -82,6 +81,42 @@ describe('mapnik.Feature ', function() {
         if (mapnik.versions.mapnik_number >= 200300) {
             assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
         }
+    });
+
+    it('should be able to create feature from geojson and turn back into geojson', function (done) {
+        var expected = {
+            type: "Feature",
+            properties: {},
+            geometry: {
+                type: 'Polygon',
+                coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(expected));
+        var feature = JSON.parse(f.toJSON());
+        assert.equal(expected.type, feature.type);
+        assert.deepEqual(expected.properties, feature.properties);
+        assert.equal(expected.geometry.type, feature.geometry.type);
+        if (mapnik.versions.mapnik_number >= 200300) {
+            assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+        }
+        var geom = f.geometry();
+        assert.deepEqual(geom.extent(),[ 1, 1, 2, 2 ]);
+        var expected_geom = JSON.stringify(expected.geometry);
+        assert.equal(expected_geom,geom.toJSON());
+        var source_proj = new mapnik.Projection('+init=epsg:4326');
+        var dest_proj = new mapnik.Projection('+init=epsg:3857');
+        var trans = new mapnik.ProjTransform(source_proj,dest_proj);
+        var transformed = geom.toJSON({transform:trans});
+        assert.notEqual(expected_geom,transformed);
+        // async toJSON
+        geom.toJSON(function(err,json) {
+            assert.equal(expected_geom,json);
+            geom.toJSON({transform:trans},function(err,json2) {
+                assert.equal(transformed,json2);
+                done();
+            });
+        });
     });
 
     it('should output WKT', function () {
@@ -92,12 +127,11 @@ describe('mapnik.Feature ', function() {
                     type: 'Polygon',
                     coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
                 }
-            },
-            expected = 'Polygon((1 1,1 2,2 2,2 1,1 1))',
-            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"}),
-            f = ds.featureset().next(),
-            wkt = f.toWKT();
-
+            };
+        var expected = 'Polygon((1 1,1 2,2 2,2 1,1 1))';
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"});
+        var f = ds.featureset().next();
+        var wkt = f.toWKT();
         assert.equal(expected, wkt);
     });
 
@@ -109,12 +143,11 @@ describe('mapnik.Feature ', function() {
                     type: 'Polygon',
                     coordinates: [[[1,1],[1,2],[2,2],[2,1],[1,1]]]
                 }
-            },
-            expected = new Buffer('01030000000100000005000000000000000000f03f000000000000f03f000000000000f03f0000000000000040000000000000004000000000000000400000000000000040000000000000f03f000000000000f03f000000000000f03f', 'hex'),
-            ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"}),
-            f = ds.featureset().next(),
-            wkb = f.toWKB();
-
+            };
+        var expected = new Buffer('01030000000100000005000000000000000000f03f000000000000f03f000000000000f03f0000000000000040000000000000004000000000000000400000000000000040000000000000f03f000000000000f03f000000000000f03f', 'hex');
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"});
+        var f = ds.featureset().next();
+        var wkb = f.toWKB();
         assert.deepEqual(expected, wkb);
     });
 });

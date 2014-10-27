@@ -3,6 +3,7 @@ var assert = require('assert');
 var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
 
 describe('mapnik.Map', function() {
     it('should throw with invalid usage', function() {
@@ -87,6 +88,27 @@ describe('mapnik.Map', function() {
         map.clear();
         var layers2 = map.layers();
         assert.equal(layers2.length, 0);
+    });
+
+    it('cloned map should be safely independent of other maps', function() {
+        var map2;
+
+        function localized() {
+            var map = new mapnik.Map(600, 400);
+            map.loadSync('./test/data/roads.xml');
+            map2 = map.clone();
+            map.clear();
+            var layers2 = map.layers();
+            assert.equal(layers2.length, 0);
+            delete map;
+        }
+        localized();
+        var layers2 = map2.layers();
+        map2.toXML();
+        map2.toXML();
+        map2.toXML();
+        map2.toXML();
+        assert.equal(layers2.length, 1);
     });
 
     it('should allow access to layers', function() {

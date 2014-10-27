@@ -2,7 +2,10 @@
 #define __NODE_MAPNIK_DS_EMITTER_H__
 
 // nan
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
 
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor, etc

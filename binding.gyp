@@ -98,27 +98,23 @@
           {
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
-              '<!@(mapnik-config --cflags)',
-              '<!@(pkg-config protobuf --cflags)'
+              '<!@(mapnik-config --cflags)'
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
               '<!@(mapnik-config --ldflags)',
-              '<!@(pkg-config protobuf --libs-only-L)',
               '-lprotobuf-lite'
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                '<!@(mapnik-config --cflags)',
-                '<!@(pkg-config protobuf --cflags)'
+                '<!@(mapnik-config --cflags)'
               ],
               'OTHER_CFLAGS':[
-                '<!@(mapnik-config --cflags)',
-                '<!@(pkg-config protobuf --cflags)'
+                '<!@(mapnik-config --cflags)'
               ],
               'GCC_ENABLE_CPP_RTTI': 'YES',
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-              'MACOSX_DEPLOYMENT_TARGET':'10.9',
+              'MACOSX_DEPLOYMENT_TARGET':'10.8',
               'CLANG_CXX_LIBRARY': 'libc++',
               'CLANG_CXX_LANGUAGE_STANDARD':'c++11',
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'

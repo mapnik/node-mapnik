@@ -1,34 +1,32 @@
 #ifndef __NODE_MAPNIK_GEOMETRY_H__
 #define __NODE_MAPNIK_GEOMETRY_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
 
 // mapnik
-#include <mapnik/geometry.hpp>
-#include "mapnik3x_compatibility.hpp"
-
-// boost
-#include MAPNIK_SHARED_INCLUDE
+#include <mapnik/feature.hpp>
 
 using namespace v8;
-
-typedef MAPNIK_SHARED_PTR<mapnik::geometry_type> geometry_ptr;
 
 class Geometry: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static NAN_METHOD(fromWKT);
+    static Handle<Value> New(mapnik::feature_ptr f);
     static NAN_METHOD(extent);
-    static NAN_METHOD(type);
-
-    Geometry();
-    inline geometry_ptr get() { return this_; }
-
+    static Local<Value> _toJSONSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(toJSON);
+    static NAN_METHOD(toJSONSync);
+    static void to_json(uv_work_t* req);
+    static void after_to_json(uv_work_t* req);
+    Geometry(mapnik::feature_ptr f);
 private:
     ~Geometry();
-    geometry_ptr this_;
+    mapnik::feature_ptr feat_;
 };
 
 #endif

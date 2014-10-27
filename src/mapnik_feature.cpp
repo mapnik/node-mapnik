@@ -11,6 +11,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/json/feature_parser.hpp>
 #include <mapnik/value_types.hpp>
 
 #include MAPNIK_MAKE_SHARED_INCLUDE
@@ -19,6 +20,9 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
+// TODO - use mapnik wkt/json libs instead
+#include <mapnik/json/geometry_grammar_impl.hpp>
+#include <mapnik/json/feature_grammar_impl.hpp>
 #include <mapnik/json/feature_generator_grammar_impl.hpp>
 #include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
 #include <mapnik/json/geometry_generator_grammar_impl.hpp>
@@ -36,13 +40,16 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "id", id);
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(lcons, "attributes", attributes);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "addGeometry", addGeometry);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "addAttributes", addAttributes);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "numGeometries", numGeometries);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "geometry", geometry);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toWKB", toWKB);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toWKT", toWKT);
+
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromJSON",
+                    Feature::fromJSON);
+
     target->Set(NanNew("Feature"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -94,6 +101,24 @@ NAN_METHOD(Feature::New)
     NanReturnValue(args.This());
 }
 
+NAN_METHOD(Feature::fromJSON)
+{
+    NanScope();
+    if (args.Length() < 1 || !args[0]->IsString()) {
+        NanThrowTypeError("requires one argument: a string representing a GeoJSON feature");
+        NanReturnUndefined();
+    }
+    std::string json = TOSTR(args[0]);
+    mapnik::feature_ptr f(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
+    if (!mapnik::json::from_geojson(json,*f))
+    {
+        throw std::runtime_error("Failed to parse geojson feature");
+    }
+    Feature* feat = new Feature(f);
+    Handle<Value> ext = NanNew<External>(feat);
+    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+}
+
 Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
 {
     NanEscapableScope();
@@ -106,7 +131,6 @@ Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
 NAN_METHOD(Feature::id)
 {
     NanScope();
-
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
     NanReturnValue(NanNew<Number>(fp->get()->id()));
 }
@@ -146,95 +170,11 @@ NAN_METHOD(Feature::attributes)
     NanReturnValue(feat);
 }
 
-NAN_METHOD(Feature::numGeometries)
+NAN_METHOD(Feature::geometry)
 {
     NanScope();
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    NanReturnValue(NanNew<Integer>(fp->get()->num_geometries()));
-}
-
-// TODO void?
-NAN_METHOD(Feature::addGeometry)
-{
-    NanScope();
-
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-
-    if (args.Length() >= 1 ) {
-        Local<Value> value = args[0];
-        if (value->IsNull() || value->IsUndefined()) {
-            NanThrowTypeError("mapnik.Geometry instance expected");
-            NanReturnUndefined();
-        } else {
-            Local<Object> obj = value->ToObject();
-            if (NanNew(Geometry::constructor)->HasInstance(obj)) {
-                Geometry* g = node::ObjectWrap::Unwrap<Geometry>(obj);
-
-                try
-                {
-                    fp->get()->add_geometry(g->get().get());
-                }
-                catch (std::exception const& ex )
-                {
-                    NanThrowError(ex.what());
-                    NanReturnUndefined();
-                }
-            }
-        }
-    }
-
-    NanReturnUndefined();
-}
-
-NAN_METHOD(Feature::addAttributes)
-{
-    NanScope();
-
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-
-    if (args.Length() > 0 ) {
-        Local<Value> val = args[0];
-        if (val->IsNull() || val->IsUndefined()) {
-            NanThrowTypeError("object expected");
-            NanReturnUndefined();
-        } else {
-            Local<Object> attr = val.As<Object>();
-            try
-            {
-                Local<Array> names = attr->GetPropertyNames();
-                unsigned int i = 0;
-                unsigned int a_length = names->Length();
-                mapnik::transcoder tr("utf8");
-                while (i < a_length) {
-                    Local<Value> name = names->Get(i)->ToString();
-                    Local<Value> value = attr->Get(name);
-                    if (value->IsString()) {
-                        mapnik::value_unicode_string ustr = tr.transcode(TOSTR(value));
-                        fp->get()->put_new(TOSTR(name),ustr);
-                    } else if (value->IsNumber()) {
-                        double num = value->NumberValue();
-                        // todo - round
-                        if (num == value->IntegerValue()) {
-                            fp->get()->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
-                        } else {
-                            double dub_val = value->NumberValue();
-                            fp->get()->put_new(TOSTR(name),dub_val);
-                        }
-                    } else if (value->IsNull()) {
-                        fp->get()->put_new(TOSTR(name),mapnik::value_null());
-                    }
-                    i++;
-                }
-            }
-            catch (std::exception const& ex )
-            {
-                NanThrowError(ex.what());
-                NanReturnUndefined();
-            }
-        }
-    }
-
-    NanReturnUndefined();
+    NanReturnValue(Geometry::New(fp->get()));
 }
 
 NAN_METHOD(Feature::toString)

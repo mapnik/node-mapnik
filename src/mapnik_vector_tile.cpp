@@ -482,7 +482,7 @@ NAN_METHOD(VectorTile::composite)
             else if (vt->byte_size_ > 0)
             {
                 std::string new_message;
-                mapnik::vector::tile const& tiledata = vt->get_tile();
+                vector_tile::Tile const& tiledata = vt->get_tile();
                 if (!tiledata.SerializeToString(&new_message))
                 {
                     NanThrowTypeError("could not serialize new data for vt");
@@ -498,14 +498,14 @@ NAN_METHOD(VectorTile::composite)
         else
         {
             // set up to render to new vtile
-            typedef mapnik::vector::backend_pbf backend_type;
-            typedef mapnik::vector::processor<backend_type> renderer_type;
-            mapnik::vector::tile new_tiledata;
+            typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+            typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+            vector_tile::Tile new_tiledata;
             backend_type backend(new_tiledata,
                                     path_multiplier);
 
             // get mercator extent of target tile
-            mapnik::vector::spherical_mercator merc(target_vt->width());
+            mapnik::vector_tile_impl::spherical_mercator merc(target_vt->width());
             double minx,miny,maxx,maxy;
             merc.xyz(target_vt->x_,target_vt->y_,target_vt->z_,minx,miny,maxx,maxy);
             mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
@@ -518,16 +518,16 @@ NAN_METHOD(VectorTile::composite)
             // ensure data is in tile object
             if (vt->status_ == LAZY_DONE) // tile is already parsed, we're good
             {
-                mapnik::vector::tile const& tiledata = vt->get_tile();
+                vector_tile::Tile const& tiledata = vt->get_tile();
                 unsigned num_layers = tiledata.layers_size();
                 if (num_layers > 0)
                 {
                     for (int i=0; i < tiledata.layers_size(); ++i)
                     {
-                        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                         mapnik::layer lyr(layer.name(),merc_srs);
-                        MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                        mapnik::vector::tile_datasource>(
+                        MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                        mapnik::vector_tile_impl::tile_datasource>(
                                                             layer,
                                                             vt->x_,
                                                             vt->y_,
@@ -553,7 +553,7 @@ NAN_METHOD(VectorTile::composite)
                 std::size_t bytes = vt->buffer_.size();
                 if (bytes > 1) // throw instead?
                 {
-                    mapnik::vector::tile tiledata;
+                    vector_tile::Tile tiledata;
                     if (tiledata.ParseFromArray(vt->buffer_.data(), bytes))
                     {
                         unsigned num_layers = tiledata.layers_size();
@@ -561,10 +561,10 @@ NAN_METHOD(VectorTile::composite)
                         {
                             for (int i=0; i < tiledata.layers_size(); ++i)
                             {
-                                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                                 mapnik::layer lyr(layer.name(),merc_srs);
-                                MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                                mapnik::vector::tile_datasource>(
+                                MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                                mapnik::vector_tile_impl::tile_datasource>(
                                                                     layer,
                                                                     vt->x_,
                                                                     vt->y_,
@@ -612,7 +612,7 @@ NAN_METHOD(VectorTile::toString)
 {
     NanScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    mapnik::vector::tile const& tiledata = d->get_tile();
+    vector_tile::Tile const& tiledata = d->get_tile();
     NanReturnValue(NanNew(tiledata.DebugString().c_str()));
 }
 #endif
@@ -633,11 +633,11 @@ NAN_METHOD(VectorTile::names)
         }
         NanReturnValue(arr);
     } else {
-        mapnik::vector::tile const& tiledata = d->get_tile();
+        vector_tile::Tile const& tiledata = d->get_tile();
         Local<Array> arr = NanNew<Array>(tiledata.layers_size());
         for (int i=0; i < tiledata.layers_size(); ++i)
         {
-            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+            vector_tile::Tile_Layer const& layer = tiledata.layers(i);
             arr->Set(i, NanNew(layer.name().c_str()));
         }
         NanReturnValue(arr);
@@ -682,13 +682,13 @@ NAN_METHOD(VectorTile::empty)
     {
         NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
     } else {
-        mapnik::vector::tile const& tiledata = d->get_tile();
+        vector_tile::Tile const& tiledata = d->get_tile();
         if (tiledata.layers_size() == 0) {
             NanReturnValue(NanNew<Boolean>(true));
         } else {
             for (int i=0; i < tiledata.layers_size(); ++i)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                 if (layer.features_size()) {
                     NanReturnValue(NanNew<Boolean>(false));
                     break;
@@ -854,25 +854,25 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     {
         throw std::runtime_error("could not reproject lon/lat to mercator");
     }
-    mapnik::vector::tile const& tiledata = d->get_tile();
+    vector_tile::Tile const& tiledata = d->get_tile();
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
-        int tile_layer_idx = -1;
+        int layer_idx = -1;
         for (int j=0; j < tiledata.layers_size(); ++j)
         {
-            mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+            vector_tile::Tile_Layer const& layer = tiledata.layers(j);
             if (layer_name == layer.name())
             {
-                tile_layer_idx = j;
+                layer_idx = j;
                 break;
             }
         }
-        if (tile_layer_idx > -1)
+        if (layer_idx > -1)
         {
-            mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                        mapnik::vector::tile_datasource>(
+            vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
+            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                        mapnik::vector_tile_impl::tile_datasource>(
                                             layer,
                                             d->x_,
                                             d->y_,
@@ -917,9 +917,9 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     {
         for (int i=0; i < tiledata.layers_size(); ++i)
         {
-            mapnik::vector::tile_layer const& layer = tiledata.layers(i);
-            MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                        mapnik::vector::tile_datasource>(
+            vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                        mapnik::vector_tile_impl::tile_datasource>(
                                             layer,
                                             d->x_,
                                             d->y_,
@@ -1122,18 +1122,18 @@ NAN_METHOD(VectorTile::queryMany)
 }
 
 queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
-    mapnik::vector::tile const& tiledata = d->get_tile();
-    int tile_layer_idx = -1;
+    vector_tile::Tile const& tiledata = d->get_tile();
+    int layer_idx = -1;
     for (int j=0; j < tiledata.layers_size(); ++j)
     {
-        mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+        vector_tile::Tile_Layer const& layer = tiledata.layers(j);
         if (layer_name == layer.name())
         {
-            tile_layer_idx = j;
+            layer_idx = j;
             break;
         }
     }
-    if (tile_layer_idx == -1)
+    if (layer_idx == -1)
     {
         throw std::runtime_error("Could not find layer in vector tile");
     }
@@ -1162,9 +1162,9 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     }
     bbox.pad(tolerance);
 
-    mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
-    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                mapnik::vector::tile_datasource>(
+    vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
+    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                mapnik::vector_tile_impl::tile_datasource>(
                                     layer,
                                     d->x_,
                                     d->y_,
@@ -1333,11 +1333,11 @@ NAN_METHOD(VectorTile::toJSON)
 {
     NanScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    mapnik::vector::tile const& tiledata = d->get_tile();
+    vector_tile::Tile const& tiledata = d->get_tile();
     Local<Array> arr = NanNew<Array>(tiledata.layers_size());
     for (int i=0; i < tiledata.layers_size(); ++i)
     {
-        mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
         Local<Object> layer_obj = NanNew<Object>();
         layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
         layer_obj->Set(NanNew("extent"), NanNew<Integer>(layer.extent()));
@@ -1347,7 +1347,7 @@ NAN_METHOD(VectorTile::toJSON)
         for (int j=0; j < layer.features_size(); ++j)
         {
             Local<Object> feature_obj = NanNew<Object>();
-            mapnik::vector::tile_feature const& f = layer.features(j);
+            vector_tile::Tile_Feature const& f = layer.features(j);
             if (f.has_id())
             {
                 feature_obj->Set(NanNew("id"),NanNew<Number>(f.id()));
@@ -1373,7 +1373,7 @@ NAN_METHOD(VectorTile::toJSON)
                     && key_value < static_cast<std::size_t>(layer.values_size()))
                 {
                     std::string const& name = layer.keys(key_name);
-                    mapnik::vector::tile_value const& value = layer.values(key_value);
+                    vector_tile::Tile_Value const& value = layer.values(key_value);
                     if (value.has_string_value())
                     {
                         att_obj->Set(NanNew(name.c_str()), NanNew(value.string_value().c_str()));
@@ -1418,7 +1418,7 @@ NAN_METHOD(VectorTile::toJSON)
     NanReturnValue(arr);
 }
 
-static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
+static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
                              Local<Array> f_arr,
                              unsigned x,
                              unsigned y,
@@ -1439,7 +1439,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
         Local<Object> feature_obj = NanNew<Object>();
         feature_obj->Set(NanNew("type"),NanNew("Feature"));
         Local<Object> geometry = NanNew<Object>();
-        mapnik::vector::tile_feature const& f = layer.features(j);
+        vector_tile::Tile_Feature const& f = layer.features(j);
         unsigned int g_type = f.type();
         Local<String> js_type = NanNew("Unknown");
         switch (g_type)
@@ -1545,7 +1545,7 @@ static void layer_to_geojson(mapnik::vector::tile_layer const& layer,
                 && key_value < static_cast<std::size_t>(layer.values_size()))
             {
                 std::string const& name = layer.keys(key_name);
-                mapnik::vector::tile_value const& value = layer.values(key_value);
+                vector_tile::Tile_Value const& value = layer.values(key_value);
                 if (value.has_string_value())
                 {
                     att_obj->Set(NanNew(name.c_str()), NanNew(value.string_value().c_str()));
@@ -1599,7 +1599,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
     }
 
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    mapnik::vector::tile const& tiledata = d->get_tile();
+    vector_tile::Tile const& tiledata = d->get_tile();
     std::size_t layer_num = tiledata.layers_size();
     int layer_idx = -1;
     bool all_array = false;
@@ -1621,7 +1621,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
             unsigned int idx(0);
             for (unsigned i=0; i < layer_num; ++i)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                 if (layer.name() == layer_name)
                 {
                     found = true;
@@ -1686,7 +1686,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
                 layer_obj->Set(NanNew("type"), NanNew("FeatureCollection"));
                 Local<Array> f_arr = NanNew<Array>();
                 layer_obj->Set(NanNew("features"), f_arr);
-                mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                 layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
                 layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
                 layer_arr->Set(i,layer_obj);
@@ -1703,14 +1703,14 @@ NAN_METHOD(VectorTile::toGeoJSON)
             {
                 for (unsigned i=0;i<layer_num;++i)
                 {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(i);
+                    vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                     layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,f_arr->Length());
                 }
                 NanReturnValue(layer_obj);
             }
             else
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(layer_idx);
+                vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
                 layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
                 layer_to_geojson(layer,f_arr,d->x_,d->y_,d->z_,d->width_,0);
                 NanReturnValue(layer_obj);
@@ -1861,11 +1861,11 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
     try
     {
-        typedef mapnik::vector::backend_pbf backend_type;
-        typedef mapnik::vector::processor<backend_type> renderer_type;
+        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
         backend_type backend(d->get_tile_nonconst(),path_multiplier);
         mapnik::Map map(d->width_,d->height_,"+init=epsg:3857");
-        mapnik::vector::spherical_mercator merc(d->width_);
+        mapnik::vector_tile_impl::spherical_mercator merc(d->width_);
         double minx,miny,maxx,maxy;
         merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
         map.zoom_to_box(mapnik::box2d<double>(minx,miny,maxx,maxy));
@@ -1923,14 +1923,14 @@ NAN_METHOD(VectorTile::addImage)
         NanReturnUndefined();
     }
     // how to ensure buffer width/height?
-    mapnik::vector::tile & tiledata = d->get_tile_nonconst();
-    mapnik::vector::tile_layer * new_layer = tiledata.add_layers();
+    vector_tile::Tile & tiledata = d->get_tile_nonconst();
+    vector_tile::Tile_Layer * new_layer = tiledata.add_layers();
     new_layer->set_name(layer_name);
     new_layer->set_version(1);
     new_layer->set_extent(256 * 16);
     // no need
     // current_feature_->set_id(feature.id());
-    mapnik::vector::tile_feature * new_feature = new_layer->add_features();
+    vector_tile::Tile_Feature * new_feature = new_layer->add_features();
     new_feature->set_raster(std::string(node::Buffer::Data(obj),buffer_size));
     // report that we have data
     d->painted(true);
@@ -2099,7 +2099,7 @@ NAN_METHOD(VectorTile::getData)
                 // after each modification of tiledata otherwise the
                 // SerializeWithCachedSizesToArray will throw:
                 // Error: CHECK failed: !coded_out.HadError()
-                mapnik::vector::tile const& tiledata = d->get_tile();
+                vector_tile::Tile const& tiledata = d->get_tile();
                 Local<Object> retbuf = NanNewBufferHandle(d->byte_size_);
                 // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
                 // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
@@ -2428,9 +2428,8 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             mapnik::projection const& map_proj,
                                             std::vector<mapnik::layer> const& layers,
                                             double scale_denom,
-                                            mapnik::vector::tile const& tiledata,
-                                            vector_tile_render_baton_t *closure,
-                                            mapnik::box2d<double> const& map_extent)
+                                            vector_tile::Tile const& tiledata,
+                                            vector_tile_render_baton_t *closure)
 {
     // loop over layers in map and match by name
     // with layers in the vector tile
@@ -2442,12 +2441,12 @@ template <typename Renderer> void process_layers(Renderer & ren,
         {
             for (int j=0; j < tiledata.layers_size(); ++j)
             {
-                mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                vector_tile::Tile_Layer const& layer = tiledata.layers(j);
                 if (lyr.name() == layer.name())
                 {
                     mapnik::layer lyr_copy(lyr);
-                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                    mapnik::vector::tile_datasource>(
+                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                    mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,
                                                         closure->d->y_,
@@ -2478,7 +2477,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 
     try {
         mapnik::Map const& map_in = *closure->m->get();
-        mapnik::vector::spherical_mercator merc(closure->d->width_);
+        mapnik::vector_tile_impl::spherical_mercator merc(closure->d->width_);
         double minx,miny,maxx,maxy;
         if (closure->zxy_override) {
             merc.xyz(closure->x,closure->y,closure->z,minx,miny,maxx,maxy);
@@ -2496,7 +2495,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
-        mapnik::vector::tile const& tiledata = closure->d->get_tile();
+        vector_tile::Tile const& tiledata = closure->d->get_tile();
         // render grid for layer
         if (closure->g)
         {
@@ -2510,19 +2509,19 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             mapnik::layer const& lyr = layers[closure->layer_idx];
             if (lyr.visible(scale_denom))
             {
-                int tile_layer_idx = -1;
+                int layer_idx = -1;
                 for (int j=0; j < tiledata.layers_size(); ++j)
                 {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(j);
+                    vector_tile::Tile_Layer const& layer = tiledata.layers(j);
                     if (lyr.name() == layer.name())
                     {
-                        tile_layer_idx = j;
+                        layer_idx = j;
                         break;
                     }
                 }
-                if (tile_layer_idx > -1)
+                if (layer_idx > -1)
                 {
-                    mapnik::vector::tile_layer const& layer = tiledata.layers(tile_layer_idx);
+                    vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
                     if (layer.features_size() <= 0)
                     {
                         return;
@@ -2544,8 +2543,8 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     }
 
                     mapnik::layer lyr_copy(lyr);
-                    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                    mapnik::vector::tile_datasource>(
+                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                                    mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,
                                                         closure->d->y_,
@@ -2586,7 +2585,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                                 closure->variables,
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -2602,7 +2601,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                             closure->variables,
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -2617,7 +2616,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                     closure->variables,
                                                     *closure->im->get(),closure->scale_factor);
             ren.start_map_processing(map_in);
-            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure,map_extent);
+            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
             ren.end_map_processing(map_in);
         }
     }
@@ -2757,7 +2756,7 @@ Local<Value> VectorTile::_isSolidSync(_NAN_METHOD_ARGS)
     try
     {
         std::string key;
-        bool is_solid = mapnik::vector::is_solid_extent(d->get_tile(), key);
+        bool is_solid = mapnik::vector_tile_impl::is_solid_extent(d->get_tile(), key);
         if (is_solid)
         {
             return NanEscapeScope(NanNew(key.c_str()));
@@ -2815,7 +2814,7 @@ void VectorTile::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
     try {
-        closure->result = mapnik::vector::is_solid_extent(closure->d->get_tile(),closure->key);
+        closure->result = mapnik::vector_tile_impl::is_solid_extent(closure->d->get_tile(),closure->key);
     }
     catch (std::exception const& ex)
     {

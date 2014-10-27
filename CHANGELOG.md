@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.0.5
+
+ - Binaries updated to use Mapnik v3.x (master branch) at b90763469a and mapnik-packaging@f9e1c81b39
+ - shapeindex and nik2img are now bundled
+
+## 3.0.4
+
+ - Binaries updated to use Mapnik v3.x (master branch) at 6b1c4d00e5 and mapnik-packaging@f9ec0f8d95
+
+## 3.0.3
+
+ - Fixed incorrect bundled deps
+
+## 3.0.2
+
+ - Upgraded Nan to v1.3.0
+ - Binaries updated to use Mapnik v3.x (master branch) at 7bc956e and mapnik-packaging@9c7c9de
+
+## 3.0.1
+
+ - Binaries updated to use Mapnik v3.x (master branch) at 5a1126b
+
 ## 3.0.0
 
  - New 3.x series targeting Mapnik 3.x / C++11

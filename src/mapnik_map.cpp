@@ -13,6 +13,7 @@
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "mapnik_vector_tile.hpp"
+#include "object_to_container.hpp"
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
@@ -1238,9 +1239,9 @@ struct image_baton_t {
     int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     unsigned offset_x;
     unsigned offset_y;
-    mapnik::attributes variables;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1248,9 +1249,9 @@ struct image_baton_t {
       buffer_size(0),
       scale_factor(1.0),
       scale_denominator(0.0),
+      variables(),
       offset_x(0),
       offset_y(0),
-      variables(),
       error(false),
       error_name() {}
 };
@@ -1263,6 +1264,7 @@ struct grid_baton_t {
     int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
@@ -1273,6 +1275,7 @@ struct grid_baton_t {
       buffer_size(0),
       scale_factor(1.0),
       scale_denominator(0.0),
+      variables(),
       offset_x(0),
       offset_y(0),
       error(false),
@@ -1288,11 +1291,11 @@ struct vector_tile_baton_t {
     int buffer_size;
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     unsigned offset_x;
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
-    mapnik::attributes variables;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1301,11 +1304,11 @@ struct vector_tile_baton_t {
         path_multiplier(16),
         scale_factor(1.0),
         scale_denominator(0.0),
+        variables(),
         offset_x(0),
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
-        variables(),
         error(false) {}
 };
 
@@ -1433,6 +1436,19 @@ NAN_METHOD(Map::render)
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
+
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+
         NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
 
@@ -1521,6 +1537,19 @@ NAN_METHOD(Map::render)
         }
 
         grid_baton_t *closure = new grid_baton_t();
+
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+
         closure->request.data = closure;
         closure->m = m;
         closure->g = g;
@@ -1586,6 +1615,18 @@ NAN_METHOD(Map::render)
             closure->path_multiplier = param_val->NumberValue();
         }
 
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+
         closure->request.data = closure;
         closure->m = m;
         closure->d = vector_tile_obj;
@@ -1613,8 +1654,8 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     try
     {
-        typedef mapnik::vector::backend_pbf backend_type;
-        typedef mapnik::vector::processor<backend_type> renderer_type;
+        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
         backend_type backend(closure->d->get_tile_nonconst(),
                              closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
@@ -1785,9 +1826,9 @@ typedef struct {
     palette_ptr palette;
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     bool use_cairo;
     int buffer_size; // TODO - no effect until mapnik::request is used
-    mapnik::attributes variables;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1816,8 +1857,10 @@ NAN_METHOD(Map::renderFile)
         NanReturnUndefined();
     }
 
+    Local<Object> options = NanNew<Object>();
+
     if (!args[1]->IsFunction() && args[1]->IsObject()) {
-        Local<Object> options = args[1]->ToObject();
+        options = args[1]->ToObject();
         if (options->Has(NanNew("format")))
         {
             Local<Value> format_opt = options->Get(NanNew("format"));
@@ -1895,6 +1938,18 @@ NAN_METHOD(Map::renderFile)
     }
 
     render_file_baton_t *closure = new render_file_baton_t();
+
+    if (options->Has(NanNew("variables")))
+    {
+        Local<Value> bind_opt = options->Get(NanNew("variables"));
+        if (!bind_opt->IsObject())
+        {
+            delete closure;
+            NanThrowTypeError("optional arg 'variables' must be an object");
+            NanReturnUndefined();
+        }
+        object_to_container(closure->variables,bind_opt->ToObject());
+    }
 
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
 #if defined(HAVE_CAIRO)
