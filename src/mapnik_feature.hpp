@@ -28,10 +28,7 @@ public:
     static NAN_METHOD(extent);
     static NAN_METHOD(attributes);
     static NAN_METHOD(geometry);
-    static NAN_METHOD(toString);
     static NAN_METHOD(toJSON);
-    static NAN_METHOD(toWKB);
-    static NAN_METHOD(toWKT);
 
     // todo
     // how to allow altering of attributes

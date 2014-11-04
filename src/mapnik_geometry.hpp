@@ -18,6 +18,8 @@ public:
     static NAN_METHOD(New);
     static Handle<Value> New(mapnik::feature_ptr f);
     static NAN_METHOD(extent);
+    static NAN_METHOD(toWKB);
+    static NAN_METHOD(toWKT);
     static Local<Value> _toJSONSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(toJSON);
     static NAN_METHOD(toJSONSync);

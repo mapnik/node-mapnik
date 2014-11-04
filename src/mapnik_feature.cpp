@@ -17,14 +17,11 @@
 #include MAPNIK_MAKE_SHARED_INCLUDE
 
 #include <mapnik/json/feature_generator_grammar.hpp>
-#include <mapnik/util/geometry_to_wkt.hpp>
-#include <mapnik/util/geometry_to_wkb.hpp>
 
 // TODO - use mapnik wkt/json libs instead
 #include <mapnik/json/geometry_grammar_impl.hpp>
 #include <mapnik/json/feature_grammar_impl.hpp>
 #include <mapnik/json/feature_generator_grammar_impl.hpp>
-#include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
 #include <mapnik/json/geometry_generator_grammar_impl.hpp>
 
 Persistent<FunctionTemplate> Feature::constructor;
@@ -41,10 +38,7 @@ void Feature::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
     NODE_SET_PROTOTYPE_METHOD(lcons, "attributes", attributes);
     NODE_SET_PROTOTYPE_METHOD(lcons, "geometry", geometry);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toWKB", toWKB);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toWKT", toWKT);
 
     NODE_SET_METHOD(lcons->GetFunction(),
                     "fromJSON",
@@ -177,14 +171,6 @@ NAN_METHOD(Feature::geometry)
     NanReturnValue(Geometry::New(fp->get()));
 }
 
-NAN_METHOD(Feature::toString)
-{
-    NanScope();
-
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    NanReturnValue(NanNew(fp->get()->to_string().c_str()));
-}
-
 NAN_METHOD(Feature::toJSON)
 {
     NanScope();
@@ -201,24 +187,3 @@ NAN_METHOD(Feature::toJSON)
     NanReturnValue(NanNew(json.c_str()));
 }
 
-NAN_METHOD(Feature::toWKT)
-{
-    NanScope();
-    std::string wkt;
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    if (!mapnik::util::to_wkt(wkt, fp->get()->paths()))
-    {
-        NanThrowError("Failed to generate WKT");
-        NanReturnUndefined();
-    }
-    NanReturnValue(NanNew(wkt.c_str()));
-}
-
-NAN_METHOD(Feature::toWKB)
-{
-    NanScope();
-    std::string wkt;
-    Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(fp->get()->paths(), mapnik::util::wkbNDR);
-    NanReturnValue(NanNewBufferHandle(wkb->buffer(), wkb->size()));
-}

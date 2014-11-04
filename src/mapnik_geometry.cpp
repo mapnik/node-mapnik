@@ -6,6 +6,9 @@
 
 #include "proj_transform_adapter.hpp"
 #include <mapnik/json/geometry_generator_grammar_impl.hpp>
+#include <mapnik/util/geometry_to_wkt.hpp>
+#include <mapnik/util/geometry_to_wkb.hpp>
+#include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
 
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
@@ -21,6 +24,8 @@ void Geometry::Initialize(Handle<Object> target) {
     lcons->SetClassName(NanNew("Geometry"));
 
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toWKB", toWKB);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "toWKT", toWKT);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
@@ -249,4 +254,26 @@ NAN_METHOD(Geometry::extent)
     a->Set(2, NanNew<Number>(e.maxx()));
     a->Set(3, NanNew<Number>(e.maxy()));
     NanReturnValue(a);
+}
+
+NAN_METHOD(Geometry::toWKT)
+{
+    NanScope();
+    std::string wkt;
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
+    if (!mapnik::util::to_wkt(wkt, g->feat_->paths()))
+    {
+        NanThrowError("Failed to generate WKT");
+        NanReturnUndefined();
+    }
+    NanReturnValue(NanNew(wkt.c_str()));
+}
+
+NAN_METHOD(Geometry::toWKB)
+{
+    NanScope();
+    std::string wkt;
+    Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
+    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->paths(), mapnik::util::wkbNDR);
+    NanReturnValue(NanNewBufferHandle(wkb->buffer(), wkb->size()));
 }

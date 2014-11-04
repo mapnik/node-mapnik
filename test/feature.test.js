@@ -131,8 +131,8 @@ describe('mapnik.Feature ', function() {
         var expected = 'Polygon((1 1,1 2,2 2,2 1,1 1))';
         var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"});
         var f = ds.featureset().next();
-        var wkt = f.toWKT();
-        assert.equal(expected, wkt);
+        assert.equal(expected, f.geometry().toWKT());
+        assert.equal(expected, f.toWKT());
     });
 
     it('should output WKB', function () {
@@ -147,7 +147,7 @@ describe('mapnik.Feature ', function() {
         var expected = new Buffer('01030000000100000005000000000000000000f03f000000000000f03f000000000000f03f0000000000000040000000000000004000000000000000400000000000000040000000000000f03f000000000000f03f000000000000f03f', 'hex');
         var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(feature.geometry) + "'"});
         var f = ds.featureset().next();
-        var wkb = f.toWKB();
-        assert.deepEqual(expected, wkb);
+        assert.deepEqual(expected, f.geometry().toWKB());
+        assert.deepEqual(expected, f.toWKB());
     });
 });
