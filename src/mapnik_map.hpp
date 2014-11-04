@@ -25,6 +25,11 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
+    static NAN_METHOD(fonts);
+    static NAN_METHOD(fontFiles);
+    static NAN_METHOD(fontDirectory);
+    static NAN_METHOD(loadFonts);
+    static NAN_METHOD(memoryFonts);
     static NAN_METHOD(loadSync);
     static NAN_METHOD(load);
     static void EIO_Load(uv_work_t* req);

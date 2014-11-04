@@ -55,6 +55,11 @@ void Map::Initialize(Handle<Object> target) {
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(NanNew("Map"));
 
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fonts", fonts);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fontFiles", fontFiles);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fontDirectory", fontDirectory);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "loadFonts", loadFonts);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "memoryFonts", memoryFonts);
     NODE_SET_PROTOTYPE_METHOD(lcons, "load", load);
     NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
@@ -393,6 +398,67 @@ NAN_SETTER(Map::set_prop)
         }
         m->map_->set_extra_parameters(params);
     }
+}
+
+NAN_METHOD(Map::loadFonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Local<Array> a = NanNew<Array>();
+    NanReturnValue(NanNew<Boolean>(m->map_->load_fonts()));
+}
+
+NAN_METHOD(Map::memoryFonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    auto const& font_cache = m->map_->get_font_memory_cache();
+    Local<Array> a = NanNew<Array>(font_cache.size());
+    unsigned i = 0;
+    for (auto const& kv : font_cache)
+    {
+        a->Set(i++, NanNew(kv.first.c_str()));
+    }
+    NanReturnValue(a);
+}
+
+NAN_METHOD(Map::fonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    auto const& mapping = m->map_->get_font_file_mapping();
+    Local<Array> a = NanNew<Array>(mapping.size());
+    unsigned i = 0;
+    for (auto const& kv : mapping)
+    {
+        a->Set(i++, NanNew(kv.first.c_str()));
+    }
+    NanReturnValue(a);
+}
+
+NAN_METHOD(Map::fontFiles)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    auto const& mapping = m->map_->get_font_file_mapping();
+    Local<Object> obj = NanNew<Object>();
+    for (auto const& kv : mapping)
+    {
+        obj->Set(NanNew(kv.first.c_str()), NanNew(kv.second.second.c_str()));
+    }
+    NanReturnValue(obj);
+}
+
+NAN_METHOD(Map::fontDirectory)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    boost::optional<std::string> const& fdir = m->map_->font_directory();
+    if (fdir)
+    {
+        NanReturnValue(NanNew(fdir->c_str()));
+    }
+    NanReturnUndefined();
 }
 
 NAN_METHOD(Map::scale)
