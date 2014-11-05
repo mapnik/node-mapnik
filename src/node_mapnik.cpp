@@ -98,6 +98,7 @@ extern "C" {
         NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
         NODE_SET_METHOD(target, "fonts", node_mapnik::available_font_faces);
         NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
+        NODE_SET_METHOD(target, "memoryFonts", node_mapnik::memory_fonts);
         NODE_SET_METHOD(target, "clearCache", clearCache);
         NODE_SET_METHOD(target, "gc", gc);
         NODE_SET_METHOD(target, "shutdown",shutdown);

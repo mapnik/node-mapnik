@@ -42,6 +42,8 @@ describe('font scope', function() {
         assert.equal(map.memoryFonts()[0],font_path);
         // loading a second time should not do anything (fonts are already cached)
         assert.deepEqual(map.loadFonts(),false);
+        // global cache should be empty
+        assert.equal(mapnik.memoryFonts().length,0);
         done();
     });
     it('map b has ' + b, function(done) {
