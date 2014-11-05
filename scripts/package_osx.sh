@@ -29,8 +29,8 @@ function doit () {
 }
 
 #doit 0.8.26
-doit 0.10.31
-doit 0.11.13
+doit 0.10.33
+doit 0.11.14
 
 # to avoid then publishing with node v0.11.x
 # https://github.com/npm/npm/issues/5515#issuecomment-46688278
