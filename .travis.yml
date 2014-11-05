@@ -3,7 +3,8 @@ language: cpp
 # http://docs.travis-ci.com/user/multi-os/
 os:
   - linux
-  - osx
+ # busted until 10.10 lands: http://blog.travis-ci.com/2014-11-03-xcode-61-beta/
+ # - osx
 
 compiler:
  - clang
