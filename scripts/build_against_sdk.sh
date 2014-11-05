@@ -113,7 +113,6 @@ fi
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
-export PKG_CONFIG_PATH=${MAPNIK_SDK}/lib/pkgconfig
 
 LOCAL_PACKAGE="$HOME/projects/mapnik-package-lto/osx/out/dist"
 echo "looking for ${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}"
@@ -130,11 +129,6 @@ fi
 if [ ! -d ${TARBALL_NAME} ]; then
     echo "unpacking ${TARBALL_NAME}"
     tar xf ${TARBALL_NAME}.${COMPRESSION}
-fi
-
-if [[ ! `which pkg-config` ]]; then
-    echo 'pkg-config not installed'
-    exit 1
 fi
 
 if [[ ! `which node` ]]; then
