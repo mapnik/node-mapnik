@@ -8,7 +8,7 @@ environment:
   - nodejs_version: "0.11.13"
 
 platform:
-  - x86
+  #- x86
   - x64
 
 shallow_clone: true
