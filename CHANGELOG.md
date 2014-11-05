@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.1.0
+
+ - Upgraded Nan to v1.4.0
+ - Binaries updated to use Mapnik v3.x (master branch) at bff4465 and mapnik-packaging@fdc5b659d4
+
+Notable changes in binaries:
+
+ - Restored support for OS X 10.8
+
+Notable changes in the Mapnik SDK include:
+ - GDAL updated to 0334c2bed93f2
+ - ICU 53.1 -> 54.1
+ - xml2 2.9.1 -> 2.9.1
+ - webp 0.4.0 -> 0.4.2
+ - libpng 1.6.13 -> 1.6.14
+ - sqlite 3.8.6 -> 3.8.7.1
+ - boost 1.56 -> 1.57
+ - protobuf 2.5.0 -> 2.6.1
+
+
 ## 3.0.5
 
  - Binaries updated to use Mapnik v3.x (master branch) at b90763469a and mapnik-packaging@f9e1c81b39
