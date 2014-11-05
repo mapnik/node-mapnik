@@ -46,7 +46,7 @@ NAN_METHOD(Palette::New) {
     if (args.Length() >= 1) {
         if (args[0]->IsString()) {
             NanAsciiString nan_string(args[0]);
-            palette = std::string(*nan_string,nan_string.Size());
+            palette = std::string(*nan_string,nan_string.length());
         }
         else if (node::Buffer::HasInstance(args[0])) {
             Local<Object> obj = args[0].As<Object>();
