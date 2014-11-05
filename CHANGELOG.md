@@ -2,7 +2,7 @@
 
 ## 3.1.0
 
- - Added `Map.loadFonts`, `Map.()`, `Map.()`, `Map.()`, `Map.()`, `Map.()`
+ - Added `Map.loadFonts`, `Map.fonts()`, `Map.fontFiles()`, `Map.fontDirectory()`, and `Map.memoryFonts()`
  - Added `Feature.fromJSON` and `Feature.geometry`
  - Added `Geometry.toJSON`
  - Removed: `Feature.numGeometries`, `Feature.addAttributes`, and `Feature.addGeometry`
