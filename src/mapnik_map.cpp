@@ -404,7 +404,6 @@ NAN_METHOD(Map::loadFonts)
 {
     NanScope();
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    Local<Array> a = NanNew<Array>();
     NanReturnValue(NanNew<Boolean>(m->map_->load_fonts()));
 }
 
