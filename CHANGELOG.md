@@ -2,7 +2,15 @@
 
 ## 3.1.0
 
+ - Added `Map.loadFonts`, `Map.()`, `Map.()`, `Map.()`, `Map.()`, `Map.()`
+ - Added `Feature.fromJSON` and `Feature.geometry`
+ - Added `Geometry.toJSON`
+ - Removed: `Feature.numGeometries`, `Feature.addAttributes`, and `Feature.addGeometry`
+ - BREAKING: `VectorTile.toGeoJSON` now returns a string
+ - `VectorTile.toGeoJSON` now supports multigeometries and is async if callback is passed
+ - Dropped build dependency on pkg-config (protobuf headers and libs are assumed to be installed at paths reported by mapnik-config)
  - Upgraded Nan to v1.4.0
+ - Upgraded to mapnik-vector-tile@v0.6.1
  - Binaries updated to use Mapnik v3.x (master branch) at bff4465 and mapnik-packaging@fdc5b659d4
 
 Notable changes in binaries:
