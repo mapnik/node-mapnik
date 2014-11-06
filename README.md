@@ -104,8 +104,8 @@ Binaries started being provided at node-mapnik >= 1.4.2 for OSX and Linux and at
 
 NOTE: Windows binaries for the 3.x series require the Visual C++ Redistributable Packages for Visual Studio 2014:
 
-  - https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_x64.exe
-  - https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_x86.exe
+  - https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_x64.exe
+  - https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_x86.exe
 
 And the 1.x series require the Visual C++ Redistributable Packages for Visual Studio 2013:
 
