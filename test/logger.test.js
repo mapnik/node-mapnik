@@ -9,7 +9,7 @@ describe('logger', function() {
         done();
     });
     it('set_severity should set mapnik.logger', function(done) {
-	    mapnik.Logger.setSeverity(mapnik.Logger.NONE);
+        mapnik.Logger.setSeverity(mapnik.Logger.NONE);
         assert.equal(mapnik.Logger.getSeverity(), mapnik.Logger.NONE);
         done();
     });
