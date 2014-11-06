@@ -14,17 +14,11 @@ platform:
 shallow_clone: true
 
 install:
-  # http://help.appveyor.com/discussions/problems/618-nodejs-10030-doesnt-work-on-appveyor-cant-find-npm#comment_34002825
-  #- ps: Install-Product node $env:nodejs_version $env:Platform
-  # install 2014 c++ runtime
-  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_$env:Platform.exe"
-  #- ps: Start-FileDownload "https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_$env:Platform.exe"
-  - .\vcredist_%platform%.exe /q /norestart
-  - node -e "console.log(process.argv)"
-  - node -v
-  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:node_version/$env:Platform/node.exe"
-  - set PATH=%CD%;%PATH
+  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
   - git clone --depth=1 https://github.com/npm/npm.git
+  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_$env:Platform.exe"
+  - .\vcredist_%platform%.exe /q /norestart
+  - set PATH=%CD%;%PATH%
   - .\node .\npm\bin\npm-cli.js -v
   - .\node .\npm\bin\npm-cli.js install node-pre-gyp
   - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
