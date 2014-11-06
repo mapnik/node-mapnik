@@ -4,18 +4,12 @@
 #include <nan.h>
 #include "mapnik3x_compatibility.hpp"
 
-// boost
-#include MAPNIK_SHARED_INCLUDE
-
-using namespace v8;
-
-//Not sure if I need to create a namespace for mapnik::logger
+//Forward declaration of mapnik logger
 namespace mapnik { class logger; }
-typedef MAPNIK_SHARED_PTR<mapnik::logger> logger_ptr;
 
 class Logger: public node::ObjectWrap {
 public:
-    // Not sure what the Persistent object is.
+    // V8 way of...
     static Persistent<FunctionTemplate> constructor;
 
     // Initialize function is needed for all addons
@@ -26,18 +20,16 @@ public:
 
     // Get and set functions
     // Are these the only methods available in logger?
-    static NAN_GETTER(get_severity);
-    static NAN_SETTER(set_severity);
+    static NAN_METHOD(get_severity);
+    static NAN_METHOD(set_severity);
+    static NAN_METHOD(evoke_error);
 
     // Default Constructor
     Logger();
-    // Returns current Logger instance
-    inline logger_ptr get() { return this_; }
 
 private:
     // Deconstructor
     ~Logger();
-    logger_ptr this_;
 };
 
 #endif

@@ -11,6 +11,7 @@ function xmlWithFont(font) {
 }
 
 describe('font scope', function() {
+    this.timeout(3000);
     var a = 'DejaVu Serif Condensed Bold Italic';
     var b = 'DejaVu Serif Condensed Bold';
     it('fonts are not globally registered', function(done) {

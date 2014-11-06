@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "mapnik_logger.hpp"
+#include <mapnik/debug.hpp>
 
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
@@ -16,14 +17,14 @@ void Logger::Initialize(Handle<Object> target) {
 
     // Static methods
     // Points to function reference of static obejct?
-	NODE_SET_METHOD(lcons->GetFunction(), "get_severity", Logger::get_serverity);
-    NODE_SET_METHOD(lcons->GetFunction(), "set_severity", Logger::set_serverity);
+	NODE_SET_METHOD(lcons->GetFunction(), "getSeverity", Logger::get_severity);
+    NODE_SET_METHOD(lcons->GetFunction(), "setSeverity", Logger::set_severity);
 
     // Constants
-    NODE_MAPNIK_DEFINE_CONSTANTS(Icons->GetFunction(),"None",MAPNIK_LOG_NONE);
-    NODE_MAPNIK_DEFINE_CONSTANTS(Icons->GetFunction(),"Error",MAPNIK_LOG_ERROR);
-    NODE_MAPNIK_DEFINE_CONSTANTS(Icons->GetFunction(),"Debug",MAPNIK_LOG_DEBUG);
-    NODE_MAPNIK_DEFINE_CONSTANTS(Icons->GetFunction(),"Warn",MAPNIK_LOG_WARN);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"NONE",mapnik::logger::severity_type::none);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"ERROR",mapnik::logger::severity_type::error);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"DEBUG",mapnik::logger::severity_type::debug);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"WARN",mapnik::logger::severity_type::warn);
 
     // What about booleans like:
     // ENABLE_STATS
@@ -44,14 +45,21 @@ NAN_METHOD(Logger::New){
     NanReturnUndefined();
 }
 
-NAN_GETTER(Logger::get_serverity){
+NAN_METHOD(Logger::get_severity){
 	NanScope();
-	
-	//NanReturnValue(severity);
+	int severity = mapnik::logger::instance().get_severity();
+	NanReturnValue(NanNew(severity));
 }
 
-NAN_SETTER(Logger::set_serverity){
+NAN_METHOD(Logger::set_severity){
 	NanScope();
 
-	//NanReturnUndefined();
+    if (args.Length() < 1 || !args[0]->IsNumber()) {
+        NanThrowTypeError("requires a severity level parameter");
+        NanReturnUndefined();
+    }
+
+    int severity = args[0]->IntegerValue();
+    mapnik::logger::instance().set_severity(static_cast<mapnik::logger::severity_type>(severity));
+	NanReturnUndefined();
 }
