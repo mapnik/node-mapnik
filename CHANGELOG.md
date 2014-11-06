@@ -1,7 +1,8 @@
 # Changelog
 
 ## 3.1.0
-
+ 
+ - Added [`mapnik.Logger`](https://github.com/mapnik/node-mapnik/blob/master/docs/Logger.md)
  - Added `Map.loadFonts`, `Map.fonts()`, `Map.fontFiles()`, `Map.fontDirectory()`, and `Map.memoryFonts()`
  - Added `Feature.fromJSON` and `Feature.geometry`
  - Added `Geometry.toJSON`
@@ -12,6 +13,7 @@
  - Upgraded Nan to v1.4.0
  - Upgraded to mapnik-vector-tile@v0.6.1
  - Binaries updated to use Mapnik v3.x (master branch) at bff4465 and mapnik-packaging@fdc5b659d4
+
 
 Notable changes in binaries:
 
