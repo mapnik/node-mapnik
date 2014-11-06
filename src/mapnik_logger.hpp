@@ -15,7 +15,7 @@ public:
     // Initialize function is needed for all addons
     static void Initialize(Handle<Object> target);
 
-    // Nan_Method when new Logger object is instantiated?
+    // Nan_Method when new Logger object is instantiated
     static NAN_METHOD(New);
 
     // Get and set functions
