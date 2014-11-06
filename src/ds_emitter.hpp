@@ -1,19 +1,16 @@
 #ifndef __NODE_MAPNIK_DS_EMITTER_H__
 #define __NODE_MAPNIK_DS_EMITTER_H__
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
-#include "utils.hpp"
+// nan
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include <nan.h>
+#pragma GCC diagnostic pop
 
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor, etc
 #include <mapnik/datasource.hpp>        // for datasource, etc
-#include <mapnik/feature.hpp>           // for feature_impl::iterator, etc
 #include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
-#include <mapnik/query.hpp>             // for query
-#include <mapnik/value.hpp>             // for value_base, value
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 using namespace v8;
 
@@ -69,7 +66,6 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         }
         else
         {
-#if MAPNIK_VERSION >= 200100
             boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
             if (geom_type)
             {
@@ -102,7 +98,6 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                 }
                 }
             }
-#endif
         }
         description->Set(NanNew("geometry_type"), js_type);
     }

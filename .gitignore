@@ -10,3 +10,4 @@ test/tmp
 test/data/vector_tile/*actual*
 sdk
 foo
+iwyu.sh

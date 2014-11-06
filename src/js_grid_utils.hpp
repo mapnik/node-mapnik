@@ -2,38 +2,26 @@
 #define __NODE_MAPNIK_GRID_UTILS_H__
 
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>           // for feature_impl, etc
 #include <mapnik/grid/grid.hpp>         // for grid
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
 
 #include "utils.hpp"
-
-// boost
-#include <boost/foreach.hpp>
 
 // stl
 #include <cmath> // ceil
 #include <stdint.h>  // for uint16_t
 
-#if MAPNIK_VERSION >= 300000
 #include <memory>
-#else
-#include <boost/shared_array.hpp>
-#endif
 
 using namespace v8;
 using namespace node;
 
 namespace node_mapnik {
 
-#if MAPNIK_VERSION >= 300000
 typedef std::unique_ptr<uint16_t[]> grid_line_type;
-#else
-typedef boost::shared_array<uint16_t> grid_line_type;
-#endif
 
 template <typename T>
 static void grid2utf(T const& grid_type,
@@ -75,7 +63,7 @@ static void grid2utf(T const& grid_type,
                     if (feature_id == mapnik::grid::base_mask)
                     {
                         keys[""] = codepoint;
-                        key_order.push_back("");
+                        key_order.emplace_back("");
                     }
                     else
                     {
@@ -92,11 +80,7 @@ static void grid2utf(T const& grid_type,
             }
             // else, shouldn't get here...
         }
-#if MAPNIK_VERSION >= 300000
         lines.push_back(std::move(line));
-#else
-        lines.push_back(line);
-#endif
     }
 }
 
@@ -114,7 +98,7 @@ static void write_features(T const& grid_type,
     }
     std::set<std::string> const& attributes = grid_type.property_names();
     typename T::feature_type::const_iterator feat_end = g_features.end();
-    BOOST_FOREACH ( std::string const& key_item, key_order )
+    for (std::string const& key_item : key_order)
     {
         if (key_item.empty())
         {
@@ -130,7 +114,7 @@ static void write_features(T const& grid_type,
         bool found = false;
         Local<Object> feat = NanNew<Object>();
         mapnik::feature_ptr feature = feat_itr->second;
-        BOOST_FOREACH ( std::string const& attr, attributes )
+        for (std::string const& attr : attributes)
         {
             if (attr == "__id__")
             {
@@ -142,7 +126,7 @@ static void write_features(T const& grid_type,
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
                 feat->Set(NanNew(attr.c_str()),
                     MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),
-                    attr_val.base()));
+                    attr_val));
             }
         }
 

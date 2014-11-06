@@ -4,7 +4,7 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
-  "version"       : "1.4.13",
+  "version"       : "3.1.0",
   "main"          : "./lib/mapnik.js",
   "binary": {
       "module_name" : "mapnik",
@@ -37,9 +37,9 @@
       }
   ],
   "dependencies"  : {
-      "nan": "~1.2.0",
-      "mapnik-vector-tile": "~0.5.2",
-      "node-pre-gyp": "0.5.23"
+      "nan": "~1.4.0",
+      "mapnik-vector-tile": "~0.6.1",
+      "node-pre-gyp": "~0.5.31"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",
@@ -54,6 +54,7 @@
   },
   "engineStrict": true,
   "scripts"       : {
+      "prepublish" : "npm ls",
       "test"    : "mocha -R spec --timeout 50000",
       "install": "node-pre-gyp install --fallback-to-build"
   },

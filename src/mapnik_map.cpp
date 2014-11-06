@@ -1,6 +1,6 @@
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
+//#include "mapnik3x_compatibility.hpp"
+//#include MAPNIK_VARIANT_INCLUDE
 
 #include "mapnik_map.hpp"
 #include "utils.hpp"
@@ -13,13 +13,14 @@
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "mapnik_vector_tile.hpp"
+#include "object_to_container.hpp"
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/box2d.hpp>             // for box2d
 #include <mapnik/color.hpp>             // for color
-#include <mapnik/datasource.hpp>        // for featureset_ptr
-#include <mapnik/feature_type_style.hpp>  // for rules, feature_type_style
+#include <mapnik/attribute.hpp>        // for attributes
+#include <mapnik/featureset.hpp>        // for featureset_ptr
 #include <mapnik/graphics.hpp>          // for image_32
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
@@ -29,10 +30,9 @@
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
 #include <mapnik/params.hpp>            // for parameters
-#include <mapnik/rule.hpp>              // for rule, rule::symbolizers, etc
 #include <mapnik/save_map.hpp>          // for save_map, etc
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
-#include <mapnik/scale_denominator.hpp>
+#include <mapnik/image_scaling.hpp>
+#include <mapnik/request.hpp>
 
 // stl
 #include <exception>                    // for exception
@@ -42,7 +42,6 @@
 #include <sstream>                      // for basic_ostringstream, etc
 
 // boost
-#include <boost/foreach.hpp>            // for auto_any_base, etc
 #include <boost/optional/optional.hpp>  // for optional
 #include "mapnik3x_compatibility.hpp"
 
@@ -56,6 +55,11 @@ void Map::Initialize(Handle<Object> target) {
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(NanNew("Map"));
 
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fonts", fonts);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fontFiles", fontFiles);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fontDirectory", fontDirectory);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "loadFonts", loadFonts);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "memoryFonts", memoryFonts);
     NODE_SET_PROTOTYPE_METHOD(lcons, "load", load);
     NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
@@ -112,11 +116,8 @@ void Map::Initialize(Handle<Object> target) {
                                 "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
-#if MAPNIK_VERSION >= 200300
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_RESPECT",mapnik::Map::RESPECT)
-#endif
-
     target->Set(NanNew("Map"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -399,6 +400,66 @@ NAN_SETTER(Map::set_prop)
     }
 }
 
+NAN_METHOD(Map::loadFonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    NanReturnValue(NanNew<Boolean>(m->map_->load_fonts()));
+}
+
+NAN_METHOD(Map::memoryFonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    auto const& font_cache = m->map_->get_font_memory_cache();
+    Local<Array> a = NanNew<Array>(font_cache.size());
+    unsigned i = 0;
+    for (auto const& kv : font_cache)
+    {
+        a->Set(i++, NanNew(kv.first.c_str()));
+    }
+    NanReturnValue(a);
+}
+
+NAN_METHOD(Map::fonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    auto const& mapping = m->map_->get_font_file_mapping();
+    Local<Array> a = NanNew<Array>(mapping.size());
+    unsigned i = 0;
+    for (auto const& kv : mapping)
+    {
+        a->Set(i++, NanNew(kv.first.c_str()));
+    }
+    NanReturnValue(a);
+}
+
+NAN_METHOD(Map::fontFiles)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    auto const& mapping = m->map_->get_font_file_mapping();
+    Local<Object> obj = NanNew<Object>();
+    for (auto const& kv : mapping)
+    {
+        obj->Set(NanNew(kv.first.c_str()), NanNew(kv.second.second.c_str()));
+    }
+    NanReturnValue(obj);
+}
+
+NAN_METHOD(Map::fontDirectory)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    boost::optional<std::string> const& fdir = m->map_->font_directory();
+    if (fdir)
+    {
+        NanReturnValue(NanNew(fdir->c_str()));
+    }
+    NanReturnUndefined();
+}
+
 NAN_METHOD(Map::scale)
 {
     NanScope();
@@ -490,7 +551,7 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                 bool found = false;
                 unsigned int idx(0);
                 std::string layer_name = TOSTR(layer_id);
-                BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+                for (mapnik::layer const& lyr : layers)
                 {
                     if (lyr.name() == layer_name)
                     {
@@ -598,7 +659,7 @@ void Map::EIO_QueryMap(uv_work_t* req)
         {
             // query all layers
             unsigned idx = 0;
-            BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+            for (mapnik::layer const& lyr : layers)
             {
                 mapnik::featureset_ptr fs;
                 if (closure->geo_coords)
@@ -731,7 +792,7 @@ NAN_METHOD(Map::get_layer)
         bool found = false;
         unsigned int idx(0);
         std::string layer_name = TOSTR(layer);
-        BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+        for ( mapnik::layer const& lyr : layers)
         {
             if (lyr.name() == layer_name)
             {
@@ -1243,11 +1304,9 @@ struct image_baton_t {
     int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     unsigned offset_x;
     unsigned offset_y;
-#if MAPNIK_VERSION >= 300000
-    mapnik::attributes variables;
-#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1255,11 +1314,9 @@ struct image_baton_t {
       buffer_size(0),
       scale_factor(1.0),
       scale_denominator(0.0),
+      variables(),
       offset_x(0),
       offset_y(0),
-#if MAPNIK_VERSION >= 300000
-      variables(),
-#endif
       error(false),
       error_name() {}
 };
@@ -1272,6 +1329,7 @@ struct grid_baton_t {
     int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     unsigned offset_x;
     unsigned offset_y;
     bool error;
@@ -1282,6 +1340,7 @@ struct grid_baton_t {
       buffer_size(0),
       scale_factor(1.0),
       scale_denominator(0.0),
+      variables(),
       offset_x(0),
       offset_y(0),
       error(false),
@@ -1297,13 +1356,11 @@ struct vector_tile_baton_t {
     int buffer_size;
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     unsigned offset_x;
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
-#if MAPNIK_VERSION >= 300000
-    mapnik::attributes variables;
-#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1312,13 +1369,11 @@ struct vector_tile_baton_t {
         path_multiplier(16),
         scale_factor(1.0),
         scale_denominator(0.0),
+        variables(),
         offset_x(0),
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
-#if MAPNIK_VERSION >= 300000
-        variables(),
-#endif
         error(false) {}
 };
 
@@ -1446,6 +1501,19 @@ NAN_METHOD(Map::render)
         closure->offset_x = offset_x;
         closure->offset_y = offset_y;
         closure->error = false;
+
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+
         NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
 
@@ -1473,7 +1541,7 @@ NAN_METHOD(Map::render)
                 bool found = false;
                 unsigned int idx(0);
                 std::string const & layer_name = TOSTR(layer_id);
-                BOOST_FOREACH ( mapnik::layer const& lyr, layers )
+                for (mapnik::layer const& lyr : layers)
                 {
                     if (lyr.name() == layer_name)
                     {
@@ -1534,6 +1602,19 @@ NAN_METHOD(Map::render)
         }
 
         grid_baton_t *closure = new grid_baton_t();
+
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+
         closure->request.data = closure;
         closure->m = m;
         closure->g = g;
@@ -1599,6 +1680,18 @@ NAN_METHOD(Map::render)
             closure->path_multiplier = param_val->NumberValue();
         }
 
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                delete closure;
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(closure->variables,bind_opt->ToObject());
+        }
+
         closure->request.data = closure;
         closure->m = m;
         closure->d = vector_tile_obj;
@@ -1626,8 +1719,8 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     try
     {
-        typedef mapnik::vector::backend_pbf backend_type;
-        typedef mapnik::vector::processor<backend_type> renderer_type;
+        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
         backend_type backend(closure->d->get_tile_nonconst(),
                              closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
@@ -1754,9 +1847,7 @@ void Map::EIO_RenderImage(uv_work_t* req)
         m_req.set_buffer_size(closure->buffer_size);
         mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    closure->variables,
-#endif
                                                    *closure->im->get(),
                                                    closure->scale_factor,
                                                    closure->offset_x,
@@ -1800,11 +1891,9 @@ typedef struct {
     palette_ptr palette;
     double scale_factor;
     double scale_denominator;
+    mapnik::attributes variables;
     bool use_cairo;
     int buffer_size; // TODO - no effect until mapnik::request is used
-#if MAPNIK_VERSION >= 300000
-    mapnik::attributes variables;
-#endif
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1833,8 +1922,10 @@ NAN_METHOD(Map::renderFile)
         NanReturnUndefined();
     }
 
+    Local<Object> options = NanNew<Object>();
+
     if (!args[1]->IsFunction() && args[1]->IsObject()) {
-        Local<Object> options = args[1]->ToObject();
+        options = args[1]->ToObject();
         if (options->Has(NanNew("format")))
         {
             Local<Value> format_opt = options->Get(NanNew("format"));
@@ -1913,6 +2004,18 @@ NAN_METHOD(Map::renderFile)
 
     render_file_baton_t *closure = new render_file_baton_t();
 
+    if (options->Has(NanNew("variables")))
+    {
+        Local<Value> bind_opt = options->Get(NanNew("variables"));
+        if (!bind_opt->IsObject())
+        {
+            delete closure;
+            NanThrowTypeError("optional arg 'variables' must be an object");
+            NanReturnUndefined();
+        }
+        object_to_container(closure->variables,bind_opt->ToObject());
+    }
+
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
 #if defined(HAVE_CAIRO)
         closure->use_cairo = true;
@@ -1956,12 +2059,8 @@ void Map::EIO_RenderFile(uv_work_t* req)
         if(closure->use_cairo)
         {
 #if defined(HAVE_CAIRO)
-#if MAPNIK_VERSION > 200200
             // https://github.com/mapnik/mapnik/issues/1930
             mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
-#else
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor);
-#endif
 #else
 #endif
         }
@@ -1973,9 +2072,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
             m_req.set_buffer_size(closure->buffer_size);
             mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    closure->variables,
-#endif
                                                    im,
                                                    closure->scale_factor);
             ren.apply(closure->scale_denominator);
@@ -2132,9 +2229,7 @@ NAN_METHOD(Map::renderSync)
         m_req.set_buffer_size(buffer_size);
         mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    mapnik::attributes(),
-#endif
                                                    im,
                                                    scale_factor);
         ren.apply(scale_denominator);
@@ -2257,11 +2352,7 @@ NAN_METHOD(Map::renderFileSync)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
-#if MAPNIK_VERSION > 200200
             mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
-#else
-            mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor);
-#endif
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
@@ -2277,9 +2368,7 @@ NAN_METHOD(Map::renderFileSync)
             m_req.set_buffer_size(buffer_size);
             mapnik::agg_renderer<mapnik::image_32> ren(map,
                                                    m_req,
-#if MAPNIK_VERSION >= 300000
                                                    mapnik::attributes(),
-#endif
                                                    im,
                                                    scale_factor);
 

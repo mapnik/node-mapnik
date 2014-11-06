@@ -22,23 +22,42 @@ if [[ ${1:-false} != false ]]; then
 fi
 
 function upgrade_clang {
-    echo "adding clang + gcc-4.8 ppa"
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    CLANG_VERSION="3.4"
-    if [[ $(lsb_release --release) =~ "12.04" ]]; then
-        sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${CLANG_VERSION} main"
+    CLANG_VERSION="3.5"
+    if [[ $(lsb_release --id) =~ "Ubuntu" ]]; then
+        echo "adding clang + gcc-4.8 ppa"
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        if [[ $(lsb_release --release) =~ "12.04" ]]; then
+           sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${CLANG_VERSION} main"
+        fi
+        if [[ $(lsb_release --release) =~ "14.04" ]]; then
+           sudo add-apt-repository "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-${CLANG_VERSION} main"
+        fi
+        echo "updating apt"
+        sudo apt-get update -y
+        echo 'upgrading libstdc++'
+        sudo apt-get install -y libstdc++6 libstdc++-4.8-dev
+    fi
+    if [[ $(lsb_release --id) =~ "Debian" ]]; then
+        if [[ $(lsb_release --codename) =~ "wheezy" ]]; then
+           sudo apt-get install -y python-software-properties
+           sudo add-apt-repository "deb http://llvm.org/apt/wheezy/ llvm-toolchain-wheezy-${CLANG_VERSION} main"
+        fi
+        if [[ $(lsb_release --codename) =~ "jessie" ]]; then
+           sudo apt-get install -y software-properties-common
+           sudo add-apt-repository "deb http://llvm.org/apt/unstable/ llvm-toolchain-${CLANG_VERSION} main"
+        fi
+        echo "updating apt"
+        sudo apt-get update -y
+        echo 'upgrading libstdc++'
+        sudo apt-get install -y libstdc++6 libstdc++-4.9-dev
     fi
     wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
     echo "updating apt"
-    sudo apt-get update -y -qq
+    sudo apt-get update -y
     echo "installing clang-${CLANG_VERSION}"
     apt-cache policy clang-${CLANG_VERSION}
     sudo apt-get install -y clang-${CLANG_VERSION}
     echo "installing C++11 compiler"
-    if [[ $(lsb_release --release) =~ "12.04" ]]; then
-        echo 'upgrading libstdc++'
-        sudo apt-get install -y libstdc++6 libstdc++-4.8-dev
-    fi
     if [[ ${LTO:-false} != false ]]; then
         echo "upgrading binutils-gold"
         sudo apt-get install -y -qq binutils-gold
@@ -76,49 +95,30 @@ function upgrade_clang {
     fi
 }
 
-function upgrade_gcc {
-    echo "adding gcc-4.8 ppa"
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    echo "updating apt"
-    sudo apt-get update -y -qq
-    echo "installing C++11 compiler"
-    sudo apt-get install -y gcc-4.8 g++-4.8
-    if [[ "${CXX#*'clang'}" == "$CXX" ]]; then
-        export CC="gcc-4.8"
-        export CXX="g++-4.8"
-    fi
-}
-
 COMPRESSION="tar.bz2"
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
-
-if [[ "${CXX11:-false}" != false ]]; then
-    # mapnik 3.x / c++11 enabled
-    HASH="1702-g65bd9e6"
-else
-    # mapnik 2.3.x / c++11 not enabled
-    HASH="584-g14b6ba9"
-fi
-
+# mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-32-ga65987a"
 fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-34-g5cd2cd6-lto"
 fi
 
-TARBALL_NAME="mapnik-${platform}-sdk-v2.2.0-${HASH}"
+
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
-export PKG_CONFIG_PATH=${MAPNIK_SDK}/lib/pkgconfig
 
-echo "looking for ~/projects/mapnik-packaging/osx/out/dist/${TARBALL_NAME}.${COMPRESSION}"
-if [ -f "$HOME/projects/mapnik-packaging/osx/out/dist/${TARBALL_NAME}.${COMPRESSION}" ]; then
+LOCAL_PACKAGE="$HOME/projects/mapnik-package-lto/osx/out/dist"
+echo "looking for ${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}"
+if [ -f "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" ]; then
     echo "copying over ${TARBALL_NAME}.${COMPRESSION}"
-    cp "$HOME/projects/mapnik-packaging/osx/out/dist/${TARBALL_NAME}.${COMPRESSION}" .
+    cp "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" .
 else
     if [ ! -f "${TARBALL_NAME}.${COMPRESSION}" ]; then
         echo "downloading ${REMOTE_URI}"
@@ -129,11 +129,6 @@ fi
 if [ ! -d ${TARBALL_NAME} ]; then
     echo "unpacking ${TARBALL_NAME}"
     tar xf ${TARBALL_NAME}.${COMPRESSION}
-fi
-
-if [[ ! `which pkg-config` ]]; then
-    echo 'pkg-config not installed'
-    exit 1
 fi
 
 if [[ ! `which node` ]]; then
@@ -157,6 +152,9 @@ MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 rm -rf ${MODULE_PATH}
 npm install --build-from-source ${ARGS} --clang=1
 npm ls
+# copy shapeindex and nik2img
+cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}
+cp ${MAPNIK_SDK}/bin/nik2img ${MODULE_PATH}
 # copy lib
 cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}
 # copy plugins
@@ -180,3 +178,4 @@ module.exports.env = {
 
 # cleanup
 rm -rf $BUILD_DIR
+set +u +e

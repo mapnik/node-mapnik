@@ -242,7 +242,6 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
 }
 
 static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, bool alpha) {
-#if MAPNIK_VERSION >= 200300
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
             if (baton->quality == 0) baton->quality = 80;
@@ -266,9 +265,6 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
                 }
                 mapnik::save_as_webp(baton->stream,image,config,alpha);
             }
-#else
-            baton->message = "Mapnik not built with webp support";
-#endif
         } else {
             // Save as PNG.
 #if defined(HAVE_PNG)
@@ -371,11 +367,7 @@ void Work_Blend(uv_work_t* req) {
         // Convenience aliases.
         image->width = layer->width;
         image->height = layer->height;
-#if MAPNIK_VERSION >= 300000
         image->reader = std::move(layer);
-#else
-        image->reader = layer;
-#endif
         size++;
 
     }
@@ -411,10 +403,8 @@ void Work_Blend(uv_work_t* req) {
         }
     }
 
-#if MAPNIK_VERSION >= 200300
     mapnik::image_data_32 image(baton->width, baton->height, (unsigned int*)target);
     Blend_Encode(image, baton, alpha);
-#endif
     free(target);
     target = NULL;
 }

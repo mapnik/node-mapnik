@@ -4,8 +4,10 @@
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_VARIANT_INCLUDE
 
-// nan
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
 
 // stl
 #include <string>
@@ -45,11 +47,7 @@ using namespace v8;
 
 namespace node_mapnik {
 
-#if MAPNIK_VERSION >= 200200
-	typedef mapnik::value_integer value_integer;
-#else
-	typedef int value_integer;
-#endif
+typedef mapnik::value_integer value_integer;
 
 // adapted to work for both mapnik features and mapnik parameters
 struct params_to_object : public MAPNIK_STATIC_VISITOR<>
@@ -87,7 +85,7 @@ public:
         ds_->Set(NanNew(key_.c_str()), NanNew<String>(buffer.c_str()) );
     }
 
-    void operator () ( mapnik::value_null const& val )
+    void operator () ( mapnik::value_null const& )
     {
         ds_->Set(NanNew(key_.c_str()), NanNull() );
     }
@@ -126,7 +124,7 @@ struct value_converter: public MAPNIK_STATIC_VISITOR<Handle<Value> >
         return NanNew<String>(buffer.c_str());
     }
 
-    Handle<Value> operator () ( mapnik::value_null const& val ) const
+    Handle<Value> operator () ( mapnik::value_null const& ) const
     {
         return NanUndefined();
     }

@@ -1,6 +1,5 @@
 #include "mapnik_featureset.hpp"
 #include "mapnik_feature.hpp"
-#include "utils.hpp"
 
 Persistent<FunctionTemplate> Featureset::constructor;
 

@@ -1,8 +1,12 @@
 #ifndef __NODE_MAPNIK_FEATURESET_H__
 #define __NODE_MAPNIK_FEATURESET_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
-#include <mapnik/datasource.hpp>
+#pragma GCC diagnostic pop
+
+#include <mapnik/featureset.hpp>
 #include "mapnik3x_compatibility.hpp"
 
 using namespace v8;

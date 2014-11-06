@@ -1,7 +1,82 @@
 # Changelog
 
-## Future
+## 3.1.0
 
+ - Added `Map.loadFonts`, `Map.fonts()`, `Map.fontFiles()`, `Map.fontDirectory()`, and `Map.memoryFonts()`
+ - Added `Feature.fromJSON` and `Feature.geometry`
+ - Added `Geometry.toJSON`
+ - Removed: `Feature.numGeometries`, `Feature.addAttributes`, and `Feature.addGeometry`
+ - BREAKING: `VectorTile.toGeoJSON` now returns a string
+ - `VectorTile.toGeoJSON` now supports multigeometries and is async if callback is passed
+ - Dropped build dependency on pkg-config (protobuf headers and libs are assumed to be installed at paths reported by mapnik-config)
+ - Upgraded Nan to v1.4.0
+ - Upgraded to mapnik-vector-tile@v0.6.1
+ - Binaries updated to use Mapnik v3.x (master branch) at bff4465 and mapnik-packaging@fdc5b659d4
+
+Notable changes in binaries:
+
+ - Restored support for OS X 10.8
+
+Notable changes in the Mapnik SDK include:
+ - GDAL updated to 0334c2bed93f2
+ - ICU 53.1 -> 54.1
+ - xml2 2.9.1 -> 2.9.1
+ - webp 0.4.0 -> 0.4.2
+ - libpng 1.6.13 -> 1.6.14
+ - sqlite 3.8.6 -> 3.8.7.1
+ - boost 1.56 -> 1.57
+ - protobuf 2.5.0 -> 2.6.1
+
+
+## 3.0.5
+
+ - Binaries updated to use Mapnik v3.x (master branch) at b90763469a and mapnik-packaging@f9e1c81b39
+ - shapeindex and nik2img are now bundled
+
+## 3.0.4
+
+ - Binaries updated to use Mapnik v3.x (master branch) at 6b1c4d00e5 and mapnik-packaging@f9ec0f8d95
+
+## 3.0.3
+
+ - Fixed incorrect bundled deps
+
+## 3.0.2
+
+ - Upgraded Nan to v1.3.0
+ - Binaries updated to use Mapnik v3.x (master branch) at 7bc956e and mapnik-packaging@9c7c9de
+
+## 3.0.1
+
+ - Binaries updated to use Mapnik v3.x (master branch) at 5a1126b
+
+## 3.0.0
+
+ - New 3.x series targeting Mapnik 3.x / C++11
+ - Binaries for OS X require >= 10.9
+ - Binaries for Linux require >= Ubuntu 14.04
+ - First release providing binaries for Windows x64
+
+Notable changes in binaries:
+
+ - Built with `-std=c++11` and `-fvisibility=hidden` on OS X and Linux
+ - Built with `-flto` on OS X (link time optimization) and target >= OS X 10.9
+ - Built with Visual Studio 2014 CTP 3 on Windows (runtimes can be installed from https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_x64.exe and https://mapnik.s3.amazonaws.com/dist/dev/VS-2014-runtime/vcredist_x86.exe)
+ - Binaries updated to use Mapnik v3.x (master branch) at f81fc53cbc and mapnik-packaging@6b7345248e
+
+Notable changes in the Mapnik SDK include:
+ - GDAL updated to 3fdc6e72b6e5cba
+ - Libtiff updated to 14bca0edd83
+ - Upgraded libpng from 1.6.12 -> 1.6.13
+
+## 1.4.15
+
+ - Upgraded to mapnik-vector-tile@0.5.5 for faster raster rendering
+
+## 1.4.14
+
+ - IMPORTANT: changes to shield placement (see Mapnik SDK notes below)
+ - Added `mapnik.VectorTile.empty()` to check if a vector tile has any features (reports true if tile contains layers without features)
  - Avoid startup error if $HOME environment is not known
  - Fixed all tests on windows
  - Experimental: `mapnik.VectorTile` now accepts `variables` object in render options.
@@ -9,7 +84,15 @@
 
 Notable changes in binaries:
 
+ - Binaries updated to use Mapnik v2.3.x at 5ae55a07e and mapnik-packaging@b923eda6a
  - Enabled `-DSVG_RENDERER`, libtiff, and webp support for windows binaries
+
+Notable changes in the Mapnik SDK include:
+ - Fixed support for unicode paths names to XML files on Windows
+ - Fixed `avoid-edges:true` support for shields (fixing frequently clipped shields) (https://github.com/mapnik/mapnik/issues/983)
+ - Fixed shield bbox calculation when when `scale_factor` > 1 is used (also a cause of clipped shields) (https://github.com/mapnik/mapnik/issues/2381)
+ - Upgraded boost from 1.55 -> 1.56
+ - Upgraded sqlite from 3.8.5->3.8.6
 
 ## 1.4.13
 

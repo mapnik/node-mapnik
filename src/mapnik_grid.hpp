@@ -1,7 +1,11 @@
 #ifndef __NODE_MAPNIK_GRID_H__
 #define __NODE_MAPNIK_GRID_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
+
 #include <mapnik/grid/grid.hpp>
 #include "mapnik3x_compatibility.hpp"
 

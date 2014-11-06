@@ -1,12 +1,16 @@
 #ifndef __NODE_MAPNIK_MEMORY_DATASOURCE_H__
 #define __NODE_MAPNIK_MEMORY_DATASOURCE_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
-#include "mapnik3x_compatibility.hpp"
-#include <boost/scoped_ptr.hpp>
-#include <mapnik/memory_datasource.hpp>
+#pragma GCC diagnostic pop
+
+#include <mapnik/datasource.hpp>
 
 using namespace v8;
+
+namespace mapnik { class transcoder; }
 
 class MemoryDatasource: public node::ObjectWrap {
 public:
@@ -27,7 +31,7 @@ private:
     ~MemoryDatasource();
     mapnik::datasource_ptr datasource_;
     unsigned int feature_id_;
-    boost::scoped_ptr<mapnik::transcoder> tr_;
+    mapnik::transcoder tr_;
 };
 
 #endif

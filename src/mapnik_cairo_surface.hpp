@@ -1,8 +1,12 @@
 #ifndef __NODE_MAPNIK_CAIRO_H__
 #define __NODE_MAPNIK_CAIRO_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
-#include "mapnik3x_compatibility.hpp"
+#pragma GCC diagnostic pop
+
+#include <string>
 #include <sstream>
 
 // cairo

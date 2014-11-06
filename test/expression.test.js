@@ -1,9 +1,6 @@
 var mapnik = require('../');
 var assert = require('assert');
 
-// enable with CXXFLAGS=-DNODE_MAPNIK_EXPRESSION
-if (mapnik.Expression) {
-
 describe('mapnik.Expression', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword
@@ -28,11 +25,9 @@ describe('mapnik.Expression', function() {
 
     it('should support evaluation to js types', function() {
         var expr = new mapnik.Expression("[attr]='value'");
-        var feature = new mapnik.Feature(0);
-        feature.addAttributes({'attr': 'value'});
+        var feature = new mapnik.Feature.fromJSON('{"type":"Feature","properties":{"attr":"value"},"geometry":null}');
         assert.equal(expr.evaluate(feature), true);
         assert.equal(expr.evaluate(feature).toString(), 'true');
     });
 });
 
-}

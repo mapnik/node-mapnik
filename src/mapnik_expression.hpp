@@ -1,11 +1,14 @@
 #ifndef __NODE_MAPNIK_EXPRESSION_H__
 #define __NODE_MAPNIK_EXPRESSION_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
+
 #include "mapnik3x_compatibility.hpp"
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/expression.hpp>
 
 // boost

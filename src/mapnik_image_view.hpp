@@ -1,13 +1,18 @@
 #ifndef __NODE_MAPNIK_IMAGE_VIEW_H__
 #define __NODE_MAPNIK_IMAGE_VIEW_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
-#include <mapnik/image_view.hpp>
+#pragma GCC diagnostic pop
+
 #include <mapnik/image_data.hpp>        // for image_data_32
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_SHARED_INCLUDE
 
 class Image;
+namespace mapnik { template <typename T> class image_view; }
+
 using namespace v8;
 
 typedef MAPNIK_SHARED_PTR<mapnik::image_view<mapnik::image_data_32> > image_view_ptr;

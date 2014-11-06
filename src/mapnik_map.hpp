@@ -1,11 +1,16 @@
 #ifndef __NODE_MAPNIK_MAP_H__
 #define __NODE_MAPNIK_MAP_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
+
 #include "mapnik3x_compatibility.hpp"
-// boost
 #include MAPNIK_SHARED_INCLUDE
 
+// stl
+#include <string>
 
 using namespace v8;
 
@@ -20,6 +25,11 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
+    static NAN_METHOD(fonts);
+    static NAN_METHOD(fontFiles);
+    static NAN_METHOD(fontDirectory);
+    static NAN_METHOD(loadFonts);
+    static NAN_METHOD(memoryFonts);
     static NAN_METHOD(loadSync);
     static NAN_METHOD(load);
     static void EIO_Load(uv_work_t* req);

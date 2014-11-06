@@ -1,14 +1,19 @@
 #ifndef __NODE_MAPNIK_PROJECTION_H__
 #define __NODE_MAPNIK_PROJECTION_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
 
-// boost
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_SHARED_INCLUDE
 
-#include <mapnik/proj_transform.hpp>
-#include <mapnik/projection.hpp>
+// stl
+#include <string>
+
+namespace mapnik { class proj_transform; }
+namespace mapnik { class projection; }
 
 using namespace v8;
 
@@ -46,6 +51,11 @@ public:
 
     ProjTransform(mapnik::projection const& src,
                   mapnik::projection const& dest);
+
+    inline proj_tr_ptr get() { return this_; }
+
+    void _ref() { Ref(); }
+    void _unref() { Unref(); }
 
 private:
     ~ProjTransform();

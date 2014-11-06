@@ -58,10 +58,10 @@ describe('mapnik.Image ', function() {
         assert.equal(v.width(), 256);
         assert.equal(v.height(), 256);
         assert.equal(im.encodeSync().length, v.encodeSync().length);
+        var tmp_filename = './test/tmp/image'+Math.random()+'.png';
+        im.save(tmp_filename);
 
-        im.save('./test/tmp/image.png');
-
-        var im2 = new mapnik.Image.open('./test/tmp/image.png');
+        var im2 = new mapnik.Image.open(tmp_filename);
         assert.ok(im2 instanceof mapnik.Image);
 
         assert.equal(im2.width(), 256);
@@ -73,31 +73,31 @@ describe('mapnik.Image ', function() {
     it('should be able to open via byte stream', function(done) {
         var im = new mapnik.Image(256, 256);
         // png
-        var filename = './test/tmp/image2.png'
-        im.save(filename);
-        var buffer = fs.readFileSync(filename);
+        var tmp_filename1 = './test/tmp/image2'+Math.random()+'.png';
+        im.save(tmp_filename1);
+        var buffer = fs.readFileSync(tmp_filename1);
         var im2 = new mapnik.Image.fromBytesSync(buffer);
         assert.ok(im2 instanceof mapnik.Image);
         assert.equal(im2.width(), 256);
         assert.equal(im2.height(), 256);
-        assert.equal(im.encodeSync().length, im2.encodeSync().length);
+        assert.equal(im.encodeSync("png32").length, im2.encodeSync("png32").length);
         // jpeg
-        var filename2 = './test/tmp/image2.jpeg'
-        im.save(filename2);
-        var buffer = fs.readFileSync(filename);
+        var tmp_filename2 = './test/tmp/image2'+Math.random()+'.jpeg';
+        im.save(tmp_filename2);
+        var buffer = fs.readFileSync(tmp_filename2);
         var im3 = new mapnik.Image.fromBytesSync(buffer);
         assert.ok(im3 instanceof mapnik.Image);
         assert.equal(im3.width(), 256);
         assert.equal(im3.height(), 256);
-        assert.equal(im.encodeSync().length, im3.encodeSync().length);
+        assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
         done();
     });
 
     it('should be initialized properly via async constructors', function(done) {
         var im = new mapnik.Image(256, 256);
-        im.save('./test/tmp/image3.png');
-
-        mapnik.Image.open('./test/tmp/image3.png',function(err,im2) {
+        var tmp_filename = './test/tmp/image3'+Math.random()+'.png';
+        im.save(tmp_filename);
+        mapnik.Image.open(tmp_filename,function(err,im2) {
             if (err) throw err;
             assert.ok(im2 instanceof mapnik.Image);
             assert.equal(im2.width(), 256);
@@ -108,7 +108,7 @@ describe('mapnik.Image ', function() {
                 assert.ok(im3 instanceof mapnik.Image);
                 assert.equal(im3.width(), 256);
                 assert.equal(im3.height(), 256);
-                assert.equal(im.encodeSync().length, im3.encodeSync().length);
+                assert.equal(im.encodeSync("png32").length, im3.encodeSync("png32").length);
                 done();
             });
         });
@@ -250,7 +250,7 @@ describe('mapnik.Image ', function() {
     it('should be able to open and save jpeg', function(done) {
         var im = new mapnik.Image(10,10);
         im.background = new mapnik.Color('green');
-        var filename = './test/data/images/10x10.png';
+        var filename = './test/data/images/10x10.jpeg';
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
         // sync fromBytes
@@ -260,7 +260,7 @@ describe('mapnik.Image ', function() {
             if (err) throw err;
             assert.equal(0,im.compare(im2));
             // async fromBytes
-            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+            mapnik.Image.fromBytes(im.encodeSync("jpeg"),function(err,im3) {
                 if (err) throw err;
                 assert.equal(0,im.compare(im3));
                 done();
@@ -281,7 +281,7 @@ describe('mapnik.Image ', function() {
             if (err) throw err;
             assert.equal(0,im.compare(im2));
             // async fromBytes
-            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+            mapnik.Image.fromBytes(im.encodeSync("tiff"),function(err,im3) {
                 if (err) throw err;
                 assert.equal(0,im.compare(im3));
                 done();
@@ -289,25 +289,27 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('should be able to open and save webp', function(done) {
-        var im = new mapnik.Image(10,10);
-        im.background = new mapnik.Color('green');
-        var filename = './test/data/images/10x10.webp';
-        // sync open
-        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
-        // sync fromBytes
-        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("webp"))));
-        // async open
-        mapnik.Image.open(filename,function(err,im2) {
-            if (err) throw err;
-            assert.equal(0,im.compare(im2));
-            // async fromBytes
-            mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
+    if (mapnik.versions.mapnik_number >= 200300) {
+        it('should be able to open and save webp', function(done) {
+            var im = new mapnik.Image(10,10);
+            im.background = new mapnik.Color('green');
+            var filename = './test/data/images/10x10.webp';
+            // sync open
+            assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+            // sync fromBytes
+            assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("webp"))));
+            // async open
+            mapnik.Image.open(filename,function(err,im2) {
                 if (err) throw err;
-                assert.equal(0,im.compare(im3));
-                done();
+                assert.equal(0,im.compare(im2));
+                // async fromBytes
+                mapnik.Image.fromBytes(im.encodeSync("webp"),function(err,im3) {
+                    if (err) throw err;
+                    assert.equal(0,im.compare(im3));
+                    done();
+                });
             });
         });
-    });
+    }
 
 });

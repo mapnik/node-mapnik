@@ -1,15 +1,38 @@
 #ifndef __NODE_MAPNIK_VECTOR_TILE_H__
 #define __NODE_MAPNIK_VECTOR_TILE_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
 #include "vector_tile.pb.h"
-#include <stdexcept>
-#include <google/protobuf/io/coded_stream.h>
+#pragma GCC diagnostic pop
+
 #include <vector>
 #include <string>
-#include "mapnik3x_compatibility.hpp"
+#include <mapnik/feature.hpp>
 
 using namespace v8;
+
+struct query_lonlat {
+    double lon;
+    double lat;
+};
+
+struct query_result {
+    std::string layer;
+    double distance;
+    mapnik::feature_ptr feature;
+};
+
+struct query_hit {
+    double distance;
+    unsigned feature_id;
+};
+
+struct queryMany_result {
+    std::map<unsigned,query_result> features;
+    std::map<unsigned,std::vector<query_hit> > hits;
+};
 
 class VectorTile: public node::ObjectWrap {
 public:
@@ -25,9 +48,23 @@ public:
     static NAN_METHOD(render);
     static NAN_METHOD(toJSON);
     static NAN_METHOD(query);
+    static void EIO_Query(uv_work_t* req);
+    static void EIO_AfterQuery(uv_work_t* req);
+    static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name);
+    static bool _querySort(query_result const& a, query_result const& b);
+    static Local<Array> _queryResultToV8(std::vector<query_result> const& result);
     static NAN_METHOD(queryMany);
+    static queryMany_result _queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
+    static bool _queryManySort(query_hit const& a, query_hit const& b);
+    static Local<Object> _queryManyResultToV8(queryMany_result const& result);
+    static void EIO_QueryMany(uv_work_t* req);
+    static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
+    static Local<Value> _toGeoJSONSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(toGeoJSON);
+    static NAN_METHOD(toGeoJSONSync);
+    static void to_geojson(uv_work_t* req);
+    static void after_to_geojson(uv_work_t* req);
     static NAN_METHOD(addGeoJSON);
     static NAN_METHOD(addImage);
 #ifdef PROTOBUF_FULL
@@ -56,6 +93,7 @@ public:
     static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
+    static NAN_METHOD(empty);
     static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
@@ -70,12 +108,13 @@ public:
         painted(false);
         byte_size_ = 0;
     }
-    mapnik::vector::tile & get_tile_nonconst() {
+    vector_tile::Tile & get_tile_nonconst() {
         return tiledata_;
     }
     std::vector<std::string> lazy_names();
+    bool lazy_empty();
     void parse_proto();
-    mapnik::vector::tile const& get_tile() {
+    vector_tile::Tile const& get_tile() {
         return tiledata_;
     }
     void cache_bytesize() {
@@ -102,7 +141,7 @@ public:
     parsing_status status_;
 private:
     ~VectorTile();
-    mapnik::vector::tile tiledata_;
+    vector_tile::Tile tiledata_;
     unsigned width_;
     unsigned height_;
     bool painted_;

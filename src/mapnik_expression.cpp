@@ -1,5 +1,3 @@
-#ifdef NODE_MAPNIK_EXPRESSION
-
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_VARIANT_INCLUDE
 
@@ -7,8 +5,11 @@
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
 #include "utils.hpp"
+#include "object_to_container.hpp"
 
 // mapnik
+#include <mapnik/version.hpp>
+#include <mapnik/attribute.hpp>
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
 
@@ -26,7 +27,7 @@ void Expression::Initialize(Handle<Object> target) {
 
     Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Expression::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lconst->SetClassName(NanNew("Expression"));
+    lcons->SetClassName(NanNew("Expression"));
 
     NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
     NODE_SET_PROTOTYPE_METHOD(lcons, "evaluate", evaluate);
@@ -64,9 +65,8 @@ NAN_METHOD(Expression::New)
     mapnik::expression_ptr e_ptr;
     try
     {
-        if (args.Length() == 1 && args[0]->IsString()){
-            e_ptr = mapnik::parse_expression(TOSTR(args[0]),"utf8");
-
+        if (args.Length() == 1 && args[0]->IsString()) {
+            e_ptr = mapnik::parse_expression(TOSTR(args[0]));
         } else {
             NanThrowTypeError("invalid arguments: accepts a single argument of string type");
             NanReturnUndefined();
@@ -125,8 +125,28 @@ NAN_METHOD(Expression::evaluate)
     Feature* f = node::ObjectWrap::Unwrap<Feature>(obj);
 
     Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
-    mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value>(*(f->get())),*(e->get()));
-    NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj.base()));
-}
+    Local<Object> options = NanNew<Object>();
+    mapnik::attributes vars;
+    if (args.Length() > 1)
+    {
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("optional second argument must be an options object");
+            NanReturnUndefined();
+        }
+        options = args[2]->ToObject();
 
-#endif
+        if (options->Has(NanNew("variables")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            if (!bind_opt->IsObject())
+            {
+                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanReturnUndefined();
+            }
+            object_to_container(vars,bind_opt->ToObject());
+        }
+    }
+    mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
+    NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj));
+}

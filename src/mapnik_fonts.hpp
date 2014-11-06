@@ -3,14 +3,12 @@
 
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 
 // stl
 #include <vector>
 
 #include "utils.hpp"
-#include "mapnik3x_compatibility.hpp"
 
 using namespace v8;
 
@@ -29,8 +27,6 @@ static inline NAN_METHOD(register_fonts)
         }
 
         bool found = false;
-
-        std::vector<std::string> const names_before = mapnik::freetype_engine::face_names();
 
         // option hash
         if (args.Length() == 2){
@@ -61,10 +57,6 @@ static inline NAN_METHOD(register_fonts)
             found = mapnik::freetype_engine::register_fonts(path);
         }
 
-        std::vector<std::string> const& names_after = mapnik::freetype_engine::face_names();
-        if (names_after.size() == names_before.size())
-            found = false;
-
         NanReturnValue(NanNew(found));
     }
     catch (std::exception const& ex)
@@ -86,15 +78,27 @@ static inline NAN_METHOD(available_font_faces)
     NanReturnValue(a);
 }
 
+static inline NAN_METHOD(memory_fonts)
+{
+    NanScope();
+    auto const& font_cache = mapnik::freetype_engine::get_cache();
+    Local<Array> a = NanNew<Array>(font_cache.size());
+    unsigned i = 0;
+    for (auto const& kv : font_cache)
+    {
+        a->Set(i++, NanNew(kv.first.c_str()));
+    }
+    NanReturnValue(a);
+}
+
 static inline NAN_METHOD(available_font_files)
 {
     NanScope();
     std::map<std::string,std::pair<int,std::string> > const& mapping = mapnik::freetype_engine::get_mapping();
     Local<Object> obj = NanNew<Object>();
-    std::map<std::string,std::pair<int,std::string> >::const_iterator itr;
-    for (itr = mapping.begin();itr!=mapping.end();++itr)
+    for (auto const& kv : mapping)
     {
-        obj->Set(NanNew(itr->first.c_str()), NanNew(itr->second.second.c_str()));
+        obj->Set(NanNew(kv.first.c_str()), NanNew(kv.second.second.c_str()));
     }
     NanReturnValue(obj);
 }

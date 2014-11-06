@@ -1,6 +1,5 @@
 
 #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
 
 // mapnik
 #include <mapnik/color.hpp>             // for color
@@ -8,7 +7,7 @@
 #include <mapnik/image_data.hpp>        // for image_data_32
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-#include <mapnik/version.hpp>           // for MAPNIK_VERSION
+
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
 #include <mapnik/image_filter.hpp> // filter_visitor
@@ -23,7 +22,6 @@
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
 #include <boost/optional/optional.hpp>
-#include <boost/foreach.hpp>
 
 // std
 #include <exception>
@@ -1303,7 +1301,7 @@ void Image::EIO_Composite(uv_work_t* req)
         if (closure->filters.size() > 0)
         {
             mapnik::filter::filter_visitor<mapnik::image_32> visitor(*closure->im2->this_);
-            BOOST_FOREACH(mapnik::filter::filter_type const& filter_tag, closure->filters)
+            for (mapnik::filter::filter_type const& filter_tag : closure->filters)
             {
                 MAPNIK_APPLY_VISITOR(visitor, filter_tag);
             }

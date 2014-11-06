@@ -16,3 +16,5 @@ vcbuild.bat
 package/src/mapnik_.cpp
 package/src/mapnik_.hpp
 *tgz
+foo
+iwyu.sh

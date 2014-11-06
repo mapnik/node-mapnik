@@ -1,13 +1,16 @@
 #ifndef __NODE_MAPNIK_LAYER_H__
 #define __NODE_MAPNIK_LAYER_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
+#pragma GCC diagnostic pop
+
 #include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
+
 // stl
 #include <string>
-
-// boost
-#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 
