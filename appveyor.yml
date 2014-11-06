@@ -20,9 +20,13 @@ install:
   - .\vcredist_%platform%.exe /q /norestart
   - set PATH=%CD%;%PATH%
   - .\node .\npm\bin\npm-cli.js -v
+  - set NPM_CACHE=%CD%\npm-cache
+  # npm cache needs to be created beforehand otherwise you'll hit
+  # the error 'uid must be an unsigned int'
+  - mkdir %NPM_CACHE%
+  - .\node .\npm\bin\npm-cli.js set cache %NPM_CACHE%
   - .\node .\npm\bin\npm-cli.js get cache
-  - .\node .\npm\bin\npm-cli.js set cache %CD%\npm-cache
-  - .\node .\npm\bin\npm-cli.js install node-pre-gyp --no-bin-links --verbose --unsafe-perm
+  - .\node .\npm\bin\npm-cli.js install node-pre-gyp
   - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
   - SET /p MODULE=<module.txt
   - del module.txt
