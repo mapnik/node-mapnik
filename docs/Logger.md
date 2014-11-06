@@ -7,11 +7,11 @@
 #### Methods
 
 - `getSeverity()` : Returns integer which represents severity level
+- `setSeverity(severity)` : Accepts level of severity as a mapnik constant
 ```
 var logging = getSeverity();
 ```
 
-- `setSeverity(severity)` : Accepts level of severity as a mapnik constant
 ```
 mapnik.Logger.setSeverity(mapnik.Logger.NONE);
 ```
