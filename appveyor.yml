@@ -20,7 +20,7 @@ install:
   - .\vcredist_%platform%.exe /q /norestart
   - set PATH=%CD%;%PATH%
   - .\node .\npm\bin\npm-cli.js -v
-  - .\node .\npm\bin\npm-cli.js install node-pre-gyp
+  - .\node .\npm\bin\npm-cli.js install node-pre-gyp --no-bin-links --verbose --unsafe-perm
   - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
   - SET /p MODULE=<module.txt
   - del module.txt
@@ -28,7 +28,7 @@ install:
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - python -c "import platform;print(platform.architecture())"
   - python -c "import ctypes,os;print('%MODULE%');print os.path.exists('%MODULE%');ctypes.CDLL('%MODULE%')" || true
-  - .\node .\npm\bin\npm-cli.js install
+  - .\node .\npm\bin\npm-cli.js install  --no-bin-links --verbose --unsafe-perm
   - .\node .\npm\bin\npm-cli.js test || true
 
 build: off
