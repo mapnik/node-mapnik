@@ -10,6 +10,15 @@ function xmlWithFont(font) {
     </Rule></Style></Map>';
 }
 
+describe('map local fonts ', function() {
+    it('fonts can be registered locally using font-directory in XML', function(done) {
+        var map = new mapnik.Map(4, 4);
+        map.fromStringSync('<Map font-directory="./" />',{strict:true,base:path.resolve(path.join(__dirname,'data','map-a'))});
+        assert.equal(map.fonts().indexOf('DejaVu Serif Condensed Bold Italic'),0);
+        done();
+    });
+})
+
 describe('font scope', function() {
     this.timeout(3000);
     var a = 'DejaVu Serif Condensed Bold Italic';
