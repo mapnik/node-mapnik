@@ -42,6 +42,7 @@
       'target_name': '<(module_name)',
       'dependencies': [ 'action_before_build' ],
       'sources': [
+        "src/json_proj_transform_grammar.cpp",
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
         "src/blend.cpp",
@@ -81,7 +82,7 @@
             'libraries': [
               '<!@(mapnik-config --libs)',
               '<!@(mapnik-config --dep-libs)',
-              'libprotobuf-lite.lib'
+              'libprotobuf-lite.lib',
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
@@ -103,8 +104,10 @@
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
+              '-lmapnik-wkt',
+              '-lmapnik-json',
               '<!@(mapnik-config --ldflags)',
-              '-lprotobuf-lite'
+              '-lprotobuf-lite',
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[

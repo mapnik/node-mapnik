@@ -18,12 +18,6 @@
 
 #include <mapnik/json/feature_generator_grammar.hpp>
 
-// TODO - use mapnik wkt/json libs instead
-#include <mapnik/json/geometry_grammar_impl.hpp>
-#include <mapnik/json/feature_grammar_impl.hpp>
-#include <mapnik/json/feature_generator_grammar_impl.hpp>
-#include <mapnik/json/geometry_generator_grammar_impl.hpp>
-
 Persistent<FunctionTemplate> Feature::constructor;
 
 void Feature::Initialize(Handle<Object> target) {

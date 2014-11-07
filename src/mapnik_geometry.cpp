@@ -3,12 +3,9 @@
 #include "mapnik_projection.hpp"
 
 #include <mapnik/util/geometry_to_geojson.hpp>
-
 #include "proj_transform_adapter.hpp"
-#include <mapnik/json/geometry_generator_grammar_impl.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
-#include <mapnik/wkt/wkt_generator_grammar_impl.hpp>
 
 // boost
 #include MAPNIK_MAKE_SHARED_INCLUDE
