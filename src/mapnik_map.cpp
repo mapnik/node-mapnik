@@ -60,6 +60,7 @@ void Map::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "fontDirectory", fontDirectory);
     NODE_SET_PROTOTYPE_METHOD(lcons, "loadFonts", loadFonts);
     NODE_SET_PROTOTYPE_METHOD(lcons, "memoryFonts", memoryFonts);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "registerFonts", registerFonts);
     NODE_SET_PROTOTYPE_METHOD(lcons, "load", load);
     NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
@@ -419,6 +420,49 @@ NAN_METHOD(Map::memoryFonts)
         a->Set(i++, NanNew(kv.first.c_str()));
     }
     NanReturnValue(a);
+}
+
+NAN_METHOD(Map::registerFonts)
+{
+    NanScope();
+    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    try
+    {
+        if (args.Length() == 0 || !args[0]->IsString())
+        {
+            NanThrowTypeError("first argument must be a path to a directory of fonts");
+            NanReturnUndefined();
+        }
+
+        bool recurse = false;
+
+        if (args.Length() >= 2)
+        {
+            if (!args[1]->IsObject())
+            {
+                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
+                NanReturnUndefined();
+            }
+            Local<Object> options = args[1].As<Object>();
+            if (options->Has(NanNew("recurse")))
+            {
+                Local<Value> recurse_opt = options->Get(NanNew("recurse"));
+                if (!recurse_opt->IsBoolean())
+                {
+                    NanThrowTypeError("'recurse' must be a Boolean");
+                    NanReturnUndefined();
+                }
+                recurse = recurse_opt->BooleanValue();
+            }
+        }
+        std::string path = TOSTR(args[0]);
+        NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        NanReturnUndefined();
+    }
 }
 
 NAN_METHOD(Map::fonts)

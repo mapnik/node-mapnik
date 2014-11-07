@@ -29,6 +29,7 @@ public:
     static NAN_METHOD(fontFiles);
     static NAN_METHOD(fontDirectory);
     static NAN_METHOD(loadFonts);
+    static NAN_METHOD(registerFonts);
     static NAN_METHOD(memoryFonts);
     static NAN_METHOD(loadSync);
     static NAN_METHOD(load);

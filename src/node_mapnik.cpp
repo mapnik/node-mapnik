@@ -93,10 +93,14 @@ extern "C" {
         NODE_SET_METHOD(target, "blend",node_mapnik::Blend);
         NODE_SET_METHOD(target, "rgb2hsl2", rgb2hsl2);
         NODE_SET_METHOD(target, "hsl2rgb2", hsl2rgb2);
+        // back compat
+        NODE_SET_METHOD(target, "registerFonts", node_mapnik::register_fonts);
+        NODE_SET_METHOD(target, "registerDatasource", node_mapnik::register_datasource);
+        NODE_SET_METHOD(target, "registerDatasources", node_mapnik::register_datasources);
+        NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
         NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
         NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
         NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
-        NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
         NODE_SET_METHOD(target, "fonts", node_mapnik::available_font_faces);
         NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
         NODE_SET_METHOD(target, "memoryFonts", node_mapnik::memory_fonts);
