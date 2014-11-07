@@ -29,10 +29,11 @@ static inline NAN_METHOD(register_fonts)
         bool found = false;
 
         // option hash
-        if (args.Length() == 2){
+        if (args.Length() >= 2)
+        {
             if (!args[1]->IsObject())
             {
-                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse:Boolean }");
+                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
                 NanReturnUndefined();
             }
 
