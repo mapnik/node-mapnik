@@ -142,6 +142,8 @@ if [[ $UNAME == 'Linux' ]]; then
     #chrpath -r '$ORIGIN/' ${MAPNIK_SDK}/lib/libmapnik.so
     export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
 else
+    # until 10.10 lands: http://blog.travis-ci.com/2014-11-03-xcode-61-beta/
+    python -c "data=open('${MAPNIK_SDK}/bin/mapnik-config','r').read();open('${MAPNIK_SDK}/bin/mapnik-config','w').write(data.replace('10.10','10.9'))"
     otool -L $MAPNIK_SDK/lib/libmapnik.dylib
 fi
 
