@@ -11,7 +11,7 @@ compiler:
 matrix:
   exclude:
      - os: osx
-     - compiler: gcc
+       compiler: gcc
 
 env:
   matrix:
