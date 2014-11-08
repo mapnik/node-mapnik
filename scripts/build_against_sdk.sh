@@ -101,12 +101,12 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
     upgrade_clang
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-32-ga65987a"
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-43-g3cbde2d"
 fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-34-g5cd2cd6-lto"
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-43-g3cbde2d-lto"
 fi
 
 
