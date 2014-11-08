@@ -116,6 +116,9 @@
               'OTHER_CFLAGS':[
                 '<!@(mapnik-config --cflags)'
               ],
+              'OTHER_LDFLAGS':[
+                '-Wl,-bind_at_load'
+              ],
               'GCC_ENABLE_CPP_RTTI': 'YES',
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
               'MACOSX_DEPLOYMENT_TARGET':'10.8',
