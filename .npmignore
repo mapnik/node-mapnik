@@ -13,6 +13,7 @@ scripts
 examples
 tools
 vcbuild.bat
+sdk
 package/src/mapnik_.cpp
 package/src/mapnik_.hpp
 *tgz
