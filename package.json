@@ -3,7 +3,7 @@
   "description"   : "Tile rendering library for node",
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
-  "author"        : "Dane Springmeyer <dane@dbsgeo.com> (mapnik.org)",
+  "author"        : "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
   "version"       : "3.1.0",
   "main"          : "./lib/mapnik.js",
   "binary": {
@@ -39,7 +39,7 @@
   "dependencies"  : {
       "nan": "~1.4.0",
       "mapnik-vector-tile": "~0.6.1",
-      "node-pre-gyp": "~0.5.31"
+      "node-pre-gyp": "~0.6.1"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",
