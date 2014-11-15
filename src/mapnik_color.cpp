@@ -27,9 +27,32 @@ void Color::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
 
     // properties
+    /**
+     * Red component (0-255)
+     * @attribute r
+     * @type {Integer}
+     */
     ATTR(lcons, "r", get_prop, set_prop);
+
+    /**
+     * Green component (0-255)
+     * @attribute g
+     * @type {Integer}
+     */
     ATTR(lcons, "g", get_prop, set_prop);
+
+    /**
+     * Blue component (0-255)
+     * @attribute b
+     * @type {Integer}
+     */
     ATTR(lcons, "b", get_prop, set_prop);
+
+    /**
+     * Alpha component (0-255)
+     * @attribute a
+     * @type {Integer}
+     */
     ATTR(lcons, "a", get_prop, set_prop);
 
     target->Set(NanNew("Color"), lcons->GetFunction());
@@ -44,6 +67,24 @@ Color::~Color()
 {
 }
 
+/**
+ * Color Representation
+ *
+ * @example
+ * ```
+ * color = new mapnik.Color(0, 255, 0);
+ * color = new mapnik.Color(0, 255, 0, 255);
+ * color = new mapnik.Color('green');
+ * color = new mapnik.Color('rgba(0,255,0,255)');
+ * ```
+ *
+ * @constructor
+ * @class mapnik.Color
+ * @param {Integer} r Red component (0-255)
+ * @param {Integer} g Green component (0-255)
+ * @param {Integer} b Blue component (0-255)
+ * @param {Integer} [a=255] Alpha component (0-255)
+ */
 NAN_METHOD(Color::New)
 {
     NanScope();
@@ -160,6 +201,12 @@ NAN_SETTER(Color::set_prop)
     }
 }
 
+/**
+ * Returns the color in a rgba format.
+ *
+ * @method toString
+ * @return {String} Color in the form: `"rgba(RR,GG,BB,AA)"`
+ */
 NAN_METHOD(Color::toString)
 {
     NanScope();
@@ -169,6 +216,12 @@ NAN_METHOD(Color::toString)
 }
 
 
+/**
+ * Returns the color in a hexadecimal format.
+ *
+ * @method hex
+ * @return {String} Color in the form: `"#RRGGBB[AA]"`
+ */
 NAN_METHOD(Color::hex)
 {
     NanScope();

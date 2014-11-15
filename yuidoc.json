@@ -1,0 +1,13 @@
+{
+	"name": "node-mapnik",
+	"description": "Node.js bindings for Mapnik",
+	"version": "3.1.1",
+	"url": "https://github.com/mapbox/node-mapnik",
+	"logo": null,
+	"options": {
+		"paths": ["./lib","./src"],
+		"outdir": "./yuidocs",
+		"themedir": "node_modules/yuidoc-lucid-theme",
+		"helpers": ["node_modules/yuidoc-lucid-theme/helpers/helpers.js"]
+	}
+}

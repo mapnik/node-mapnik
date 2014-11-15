@@ -11,3 +11,4 @@ test/data/vector_tile/*actual*
 sdk
 foo
 iwyu.sh
+yuidocs
