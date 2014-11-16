@@ -7,58 +7,31 @@ environment:
   - nodejs_version: 0.10.33
     platform: x86
     msvs_toolset: 14
+    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
   - nodejs_version: 0.10.33
     platform: x64
     msvs_toolset: 14
+    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
   - nodejs_version: 0.11.14
     platform: x86
     msvs_toolset: 14
-    TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
   - nodejs_version: 0.11.14
     platform: x64
     msvs_toolset: 14
-    TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
 
 os: Visual Studio 2014 CTP4
 
 shallow_clone: true
 
 install:
-  # add local node to path (since we install it for msvs_toolset == 14)
-  - SET PATH=%CD%;%PATH%;
-  # add local node-pre-gyp dir to path
-  - SET PATH=node_modules\.bin;%PATH%
-  # use 64 bit python if platform is 64 bit
-  - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
-  # install node version per visual studio toolset
-  - powershell Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
-  - powershell Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
-  - node -v
-  - node -e "console.log(process.argv,process.execPath)"
-  # upgrade node-gyp to support --msvs_version=2013
-  - npm install node-gyp
-  # clear out node-gyp header cache
-  - rd /s /q %USERPROFILE%\.node-gyp
-  - SET PATH=C:\Program Files (x86)\MSBuild\%msvs_toolset%.0\bin;%PATH%
-  - SET PATH=C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\bin;%PATH%
-  - if %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
-  - if %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64_x86
-  - set PATH=%CD%;%PATH%
-  - .\node .\npm\bin\npm-cli.js -v
-  - set NPM_CACHE=%CD%\npm-cache
-  # npm cache needs to be created beforehand otherwise you'll hit
-  # the error 'uid must be an unsigned int'
-  - mkdir %NPM_CACHE%
-  - .\node .\npm\bin\npm-cli.js set cache %NPM_CACHE%
-  - .\node .\npm\bin\npm-cli.js get cache
-  - .\node .\npm\bin\npm-cli.js install node-pre-gyp
-  - node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
-  - SET /p MODULE=<module.txt
-  - del module.txt
-  - python -c "import platform;print(platform.architecture())"
-  - python -c "import ctypes,os;print('%MODULE%');print os.path.exists('%MODULE%');ctypes.CDLL('%MODULE%')" || true
-  - .\node .\npm\bin\npm-cli.js install  --no-bin-links --verbose --unsafe-perm
-  - .\node .\npm\bin\npm-cli.js test || true
+  - SET PATH=C:\Program Files\7-Zip;%PATH%
+  - SET PATH=c:\Python27;%PATH%
+  - ps: Write-Output "fetching mapnik sdk"
+  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z -FileName mapnik-sdk.7z
+  - ps: Write-Output "extracting mapnik sdk"
+  - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
 
 build: off
 test: off
