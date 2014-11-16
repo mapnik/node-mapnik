@@ -33,13 +33,13 @@ install:
   # use 64 bit python if platform is 64 bit
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - SET PATH=C:\Program Files\7-Zip;%PATH%
-  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z"
-  - ps: Start-FileDownload "https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:platform-v3.0.0-rc1-57-g2577a6c.7z" -FileName 'mapnik-sdk.7z'
-  - ps: Write-Output "extracting mapnik sdk"
+  - powershell Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z"
+  - powershell Start-FileDownload "https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:platform-v3.0.0-rc1-57-g2577a6c.7z" -FileName 'mapnik-sdk.7z'
+  - powershell Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
   # install node version per visual studio toolset
-  - ps: Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
-  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
+  - powershell Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
+  - powershell Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
   # add local node to path (since we install it for msvs_toolset == 14)
   - SET PATH=%CD%;%PATH%;
   # add local node-pre-gyp dir to path
