@@ -26,29 +26,38 @@ os: Visual Studio 2014 CTP4
 shallow_clone: true
 
 install:
+  # call VS Command Prompt AFTER DOWNLOADS (require lowercase platform)
+  # VS command prompt will override %PLATFORM% to upper case!!!
+  # %PLATFORM% will go from x64 to X64
   - SET PATH=C:\Program Files (x86)\MSBuild\%msvs_toolset%.0\bin;%PATH%
   - SET PATH=C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\bin;%PATH%
   # use 64 bit python if platform is 64 bit
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - SET PATH=C:\Program Files\7-Zip;%PATH%
+  - SET ARCHPATH=
+  - if %platform% == x64 (SET ARCHPATH=x64/)
   - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z"
   - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z -FileName mapnik-sdk.7z
-  - powershell Write-Output "extracting mapnik sdk"
+  - ps: Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
   # install node version per visual studio toolset
-  - powershell Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
-  - ps: Start-FileDownload https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe
+  - ps: Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/${env:ARCHPATH}node.exe"
+  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/${env:ARCHPATH}node.exe"
   # add local node to path (since we install it for msvs_toolset == 14)
   - SET PATH=%CD%;%PATH%;
+  - SET PATH=node_modules\.bin;%PATH%
   # call VS Command Prompt AFTER DOWNLOADS, will override %PLATFORM% to upper case!!!
   - if %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
   - if %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64_x86
    # add local node-pre-gyp dir to path
-  - SET PATH=node_modules\.bin;%PATH%
   - node -v
   - node -e "console.log(process.argv,process.execPath)"
   - scripts\before-build.bat
   - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
+  # TODO copy libs
+  - npm test
+  - node-pre-gyp package %BUILD_ARGS%
+  - ps: if($env:APPVEYOR_REPO_COMMIT_MESSAGE.ToLower().Contains('[publish binary]')) { node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS% }
 build: off
 test: off
 deploy: off
