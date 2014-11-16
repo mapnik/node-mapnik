@@ -4,18 +4,18 @@ environment:
   node_pre_gyp_secretAccessKey:
     secure: 8f5eTxMHpuVGHon2wbqrZuq3wzQfEuXMCcOyafBLza0T2VIOoBjbjDbgRbyRIzsT
   matrix:
-  - nodejs_version: 0.10.33
-    platform: x86
-    msvs_toolset: 14
-    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-  - nodejs_version: 0.10.33
-    platform: x64
-    msvs_toolset: 14
-    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-  - nodejs_version: 0.11.14
-    platform: x86
-    msvs_toolset: 14
-    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+#  - nodejs_version: 0.10.33
+#    platform: x86
+#    msvs_toolset: 14
+#    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+#  - nodejs_version: 0.10.33
+#    platform: x64
+#    msvs_toolset: 14
+#    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+#  - nodejs_version: 0.11.14
+#    platform: x86
+#    msvs_toolset: 14
+#    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
   - nodejs_version: 0.11.14
     platform: x64
     msvs_toolset: 14
@@ -26,13 +26,28 @@ os: Visual Studio 2014 CTP4
 shallow_clone: true
 
 install:
+  - SET PATH=C:\Program Files (x86)\MSBuild\%msvs_toolset%.0\bin;%PATH%
+  - SET PATH=C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\bin;%PATH%
+  - if %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
+  - if %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64_x86
+  # use 64 bit python if platform is 64 bit
+  - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - SET PATH=C:\Program Files\7-Zip;%PATH%
-  - SET PATH=c:\Python27;%PATH%
-  - ps: Write-Output "fetching mapnik sdk"
+  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z -FileName"
   - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z -FileName mapnik-sdk.7z
   - ps: Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
-
+  # install node version per visual studio toolset
+  - ps: Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
+  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/$env:Platform/node.exe"
+  # add local node to path (since we install it for msvs_toolset == 14)
+  - SET PATH=%CD%;%PATH%;
+  # add local node-pre-gyp dir to path
+  - SET PATH=node_modules\.bin;%PATH%
+  - node -v
+  - node -e "console.log(process.argv,process.execPath)"
+  - scripts\before-build.bat
+  - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
 build: off
 test: off
 deploy: off
