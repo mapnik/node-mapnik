@@ -6,7 +6,7 @@ var existsSync = require('fs').existsSync || require('path').existsSync;
 
 describe('reading GeoTIFF in threads', function() {
     // puts unnatural, odd, and intentionally racey load on opening geotiff
-    it('should be able to open geotiff various ways without crashing', function(done) {
+    it.skip('should be able to open geotiff various ways without crashing', function(done) {
         mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
