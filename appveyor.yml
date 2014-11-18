@@ -59,6 +59,8 @@ install:
   - CALL scripts\before-build.bat
   - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
   - ps: scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
+  - ps: scripts\show_module_runtime.ps1 %CD%
+  - ps: scripts\build_against_sdk_03-write-mapnik.settings.ps1
   - npm test
   - node-pre-gyp package %BUILD_ARGS%
   - ps: if($env:APPVEYOR_REPO_COMMIT_MESSAGE.ToLower().Contains('[publish binary]')) { node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS% }
