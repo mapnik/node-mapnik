@@ -58,8 +58,11 @@ install:
   - SET MAPNIK_SDK=%CD%\mapnik-sdk
   - CALL scripts\before-build.bat
   - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
+  - call node_modules\.bin\node-pre-gyp reveal module_path --silent > binding_path.txt
+  - SET /p NODEMAPNIK_BINDING_DIR=<binding_path.txt
+  - del binding_path.txt
   - ps: scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
-  - ps: scripts\show_module_runtime.ps1 %CD%
+  - powershell scripts\show_module_runtime.ps1 %CD%
   - ps: scripts\build_against_sdk_03-write-mapnik.settings.ps1
   - npm test
   - node-pre-gyp package %BUILD_ARGS%
