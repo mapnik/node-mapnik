@@ -26,12 +26,7 @@ os: Visual Studio 2014 CTP4
 shallow_clone: true
 
 install:
-  # find and remove default node.exe to avoid conflicts
-  # node: we will still rely on default installed npm (should work)
-  - node -e "console.log(process.execPath)" > node_path.txt
-  - SET /p NODE_EXE_PATH=<node_path.txt
-  - del node_path.txt
-  - del /q /s "%NODE_EXE_PATH%"
+  - scripts\remove_node.bat
   # add local node to path (since we install it below)
   - SET PATH=%CD%;%PATH%;
   # call VS Command Prompt AFTER DOWNLOADS (require lowercase platform)
