@@ -4,10 +4,10 @@ environment:
   node_pre_gyp_secretAccessKey:
     secure: 8f5eTxMHpuVGHon2wbqrZuq3wzQfEuXMCcOyafBLza0T2VIOoBjbjDbgRbyRIzsT
   matrix:
-  - nodejs_version: 0.11.14
-    platform: x86
-    msvs_toolset: 14
-    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+#  - nodejs_version: 0.11.14
+#    platform: x86
+#    msvs_toolset: 14
+#    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
   - nodejs_version: 0.11.14
     platform: x64
     msvs_toolset: 14
@@ -26,6 +26,14 @@ os: Visual Studio 2014 CTP4
 shallow_clone: true
 
 install:
+  # find and remove default node.exe to avoid conflicts
+  # node: we will still rely on default installed npm (should work)
+  - node -e "console.log(process.execPath)" > node_path.txt
+  - SET /p NODE_EXE_PATH=<node_path.txt
+  - del node_path.txt
+  - del /q /s "%NODE_EXE_PATH%"
+  # add local node to path (since we install it below)
+  - SET PATH=%CD%;%PATH%;
   # call VS Command Prompt AFTER DOWNLOADS (require lowercase platform)
   # VS command prompt will override %PLATFORM% to upper case!!!
   # %PLATFORM% will go from x64 to X64
@@ -43,21 +51,21 @@ install:
   # install node version per visual studio toolset
   - ps: Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/${env:ARCHPATH}node.exe"
   - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/${env:ARCHPATH}node.exe"
-  # add local node to path (since we install it for msvs_toolset == 14)
-  - SET PATH=%CD%;%PATH%;
+  # clear out node-gyp header cache
+  - if "%msvs_toolset%" == "14" rd /s /q %USERPROFILE%\.node-gyp
+  # add local node-pre-gyp dir to path
   - SET PATH=node_modules\.bin;%PATH%
   # call VS Command Prompt AFTER DOWNLOADS, will override %PLATFORM% to upper case!!!
   - if %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
   - if %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64_x86
-   # add local node-pre-gyp dir to path
   - node -v
-  - node -e "console.log(process.argv,process.execPath)"
-  - scripts\before-build.bat
+  - node -e "console.log(process.arch,process.execPath)"
   - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
   # TODO copy libs
   - npm test
   - node-pre-gyp package %BUILD_ARGS%
   - ps: if($env:APPVEYOR_REPO_COMMIT_MESSAGE.ToLower().Contains('[publish binary]')) { node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS% }
+
 build: off
 test: off
 deploy: off
