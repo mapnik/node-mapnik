@@ -60,6 +60,11 @@ install:
   - if %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64_x86
   - node -v
   - node -e "console.log(process.arch,process.execPath)"
+  - SET MAPNIK_SDK=%CD%\mapnik-sdk
+  - SET PATH=%MAPNIK_SDK%\bin;%MAPNIK_SDK%\libs;%PATH%
+  - SET PROJ_LIB=%MAPNIK_SDK%\share\proj
+  - SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
+  - SET ICU_DATA=%MAPNIK_SDK%\share\icu
   - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
   # TODO copy libs
   - npm test
