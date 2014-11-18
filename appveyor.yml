@@ -21,7 +21,7 @@ environment:
 #    msvs_toolset: 14
 #    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
 
-os: Visual Studio 2014 CTP4
+os: Visual Studio 2015 Preview
 
 shallow_clone: true
 
