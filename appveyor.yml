@@ -56,12 +56,9 @@ install:
   - node -v
   - node -e "console.log(process.arch,process.execPath)"
   - SET MAPNIK_SDK=%CD%\mapnik-sdk
-  - SET PATH=%MAPNIK_SDK%\bin;%MAPNIK_SDK%\libs;%PATH%
-  - SET PROJ_LIB=%MAPNIK_SDK%\share\proj
-  - SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
-  - SET ICU_DATA=%MAPNIK_SDK%\share\icu
+  - CALL scripts\before-build.bat
   - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
-  # TODO copy libs
+  - ps: scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
   - npm test
   - node-pre-gyp package %BUILD_ARGS%
   - ps: if($env:APPVEYOR_REPO_COMMIT_MESSAGE.ToLower().Contains('[publish binary]')) { node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS% }
