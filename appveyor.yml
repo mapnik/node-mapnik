@@ -66,7 +66,8 @@ install:
   - ps: scripts\build_against_sdk_03-write-mapnik.settings.ps1
   - npm test
   - node-pre-gyp package %BUILD_ARGS%
-  - ps: if($env:APPVEYOR_REPO_COMMIT_MESSAGE.ToLower().Contains('[publish binary]')) { node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS% }
+  - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
+  - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS%
 
 build: off
 test: off
