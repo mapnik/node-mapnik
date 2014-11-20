@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.2
+
+ - Now providing 32 bit windows binaries in addition to 64 bit
+
 ## 3.1.1
 
  - Added `Map.registerFonts()`
