@@ -374,7 +374,7 @@ void Work_Blend(uv_work_t* req) {
 
     // Now blend images.
     int pixels = baton->width * baton->height;
-    if (pixels <= 0) {
+    if (pixels <= 0 || pixels > 0x1000000) {
         std::ostringstream msg;
         msg << "Image dimensions " << baton->width << "x" << baton->height << " are invalid";
         baton->message = msg.str();
@@ -388,7 +388,7 @@ void Work_Blend(uv_work_t* req) {
 
     for (auto image_ptr : baton->images)
     {
-        if (image_ptr->reader.get())
+        if (image_ptr && image_ptr->reader.get())
         {
             Blend_Composite(target.getData(), baton, &*image_ptr);
         }
