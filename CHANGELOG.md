@@ -32,7 +32,7 @@ Notable changes in binaries:
 Notable changes in the Mapnik SDK include:
  - GDAL updated to 0334c2bed93f2
  - ICU 53.1 -> 54.1
- - xml2 2.9.1 -> 2.9.1
+ - xml2 2.9.1 -> 2.9.2
  - webp 0.4.0 -> 0.4.2
  - libpng 1.6.13 -> 1.6.14
  - sqlite 3.8.6 -> 3.8.7.1
