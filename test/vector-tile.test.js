@@ -98,6 +98,82 @@ describe('mapnik.VectorTile ', function() {
         })
     });
 
+    it.only('should be able to create a vector tile from multiple geojson files', function(done) {
+        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        var geojson2 = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data2"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson2),"layer-name2");
+        assert.equal(vtile.getData().length,118);
+        // test flattened to single geojson
+        var json_out = vtile.toGeoJSONSync('__all__');
+        var out = JSON.parse(json_out);
+        assert.equal(out.type,'FeatureCollection');
+        assert.equal(out.features.length,2);
+        var coords = out.features[0].geometry.coordinates
+        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
+        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+        var coords2 = out.features[1].geometry.coordinates
+        assert.ok(Math.abs(coords[0] - geojson2.features[0].geometry.coordinates[0]) < .3)
+        assert.ok(Math.abs(coords[1] - geojson2.features[0].geometry.coordinates[1]) < .3)
+        assert.equal(out.features[0].properties.name,'geojson data');
+        assert.equal(out.features[1].properties.name,'geojson data2');
+        // not passing callback trigger sync method
+        assert.equal(vtile.toGeoJSON('__all__'),json_out);
+        // test array containing each geojson
+        var json_array = vtile.toGeoJSONSync('__array__');
+        var out2 = JSON.parse(json_array);
+        assert.equal(out2.length,2);
+        var coords2 = out2[0].features[0].geometry.coordinates
+        assert.ok(Math.abs(coords2[0] - geojson.features[0].geometry.coordinates[0]) < .3)
+        assert.ok(Math.abs(coords2[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+        // not passing callback trigger sync method
+        assert.equal(vtile.toGeoJSON('__array__'),json_array);
+        // ensure async method has same result
+        vtile.toGeoJSON('__all__',function(err,json_string) {
+            assert.deepEqual(json_string,json_out);
+            vtile.toGeoJSON('__array__',function(err,json_string) {
+                assert.deepEqual(json_string,json_array);
+                done();
+            });
+        })
+    });
+
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.VectorTile(); });

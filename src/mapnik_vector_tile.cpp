@@ -1615,9 +1615,12 @@ void write_geojson_to_string(std::string & result,
         if (all_flattened)
         {
             result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            bool first = true;
             unsigned layer_num = tiledata.layers_size();
             for (unsigned i=0;i<layer_num;++i)
             {
+                if (first) first = false;
+                else result += ",";
                 vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                 layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
             }
