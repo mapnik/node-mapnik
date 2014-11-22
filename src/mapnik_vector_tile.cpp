@@ -1467,6 +1467,10 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 {
                     result += "\"" + std::get<0>(attr) + "\":\"" + val.to_string() + "\"";
                 }
+                else if (val.is<mapnik::value_null>())
+                {
+                    result += "\"" + std::get<0>(attr) + "\":null";
+                }
                 else
                 {
                     result += "\"" + std::get<0>(attr) + "\":" + val.to_string();
