@@ -1,8 +1,5 @@
 language: cpp
 
-# opt-in to xcode6: http://blog.travis-ci.com/2014-11-03-xcode-61-beta/
-osx_image: xcode61
-
 os:
   - linux
   - osx
