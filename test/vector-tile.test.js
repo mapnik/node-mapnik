@@ -98,7 +98,7 @@ describe('mapnik.VectorTile ', function() {
         })
     });
 
-    it.only('should be able to create a vector tile from multiple geojson files', function(done) {
+    it('should be able to create a vector tile from multiple geojson files', function(done) {
         mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
