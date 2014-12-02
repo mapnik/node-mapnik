@@ -2,7 +2,10 @@
 
 all: build
 
-./node_modules:
+./node_modules/node-pre-gyp:
+	npm install node-pre-gyp
+
+./node_modules: ./node_modules/node-pre-gyp
 	npm install --build-from-source
 
 build: ./node_modules
