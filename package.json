@@ -38,7 +38,7 @@
   ],
   "dependencies"  : {
       "nan": "~1.4.0",
-      "mapnik-vector-tile": "https://github.com/mapbox/mapbox-vector-tile/tarball/image_data_any",
+      "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/image_data_any",
       "node-pre-gyp": "~0.6.1"
   },
   "bundledDependencies": [
