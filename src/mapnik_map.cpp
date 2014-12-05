@@ -24,7 +24,7 @@
 #include <mapnik/graphics.hpp>          // for image_32
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
-#include <mapnik/image_data.hpp>        // for image_data_32
+#include <mapnik/image_data.hpp>        // for image_data_rgba8
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
@@ -2122,9 +2122,9 @@ void Map::EIO_RenderFile(uv_work_t* req)
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output,*closure->palette);
+                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),closure->output,*closure->palette);
             } else {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output);
+                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),closure->output);
             }
         }
     }
@@ -2420,10 +2420,10 @@ NAN_METHOD(Map::renderFileSync)
 
             if (palette.get())
             {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
+                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),output,*palette);
             }
             else {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),output);
             }
         }
     }

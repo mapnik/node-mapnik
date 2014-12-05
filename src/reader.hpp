@@ -41,7 +41,7 @@ public:
         try {
             if (reader_.get())
             {
-                mapnik::image_data_32 im(reader_->width(),reader_->height(),surface);
+                mapnik::image_data_rgba8 im(reader_->width(),reader_->height(),surface);
                 reader_->read(0,0,im);
                 return true;
             } else {

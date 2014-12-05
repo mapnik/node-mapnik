@@ -241,7 +241,7 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
     }
 }
 
-static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, bool alpha) {
+static void Blend_Encode(mapnik::image_data_rgba8 const& image, BlendBaton* baton, bool alpha) {
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
             if (baton->quality == 0) baton->quality = 80;
@@ -403,7 +403,7 @@ void Work_Blend(uv_work_t* req) {
         }
     }
 
-    mapnik::image_data_32 image(baton->width, baton->height, (unsigned int*)target);
+    mapnik::image_data_rgba8 image(baton->width, baton->height, (unsigned int*)target);
     Blend_Encode(image, baton, alpha);
     free(target);
     target = NULL;
