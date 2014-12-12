@@ -6,16 +6,17 @@ all: build
 	npm install node-pre-gyp
 
 ./node_modules: ./node_modules/node-pre-gyp
-	npm install --build-from-source --clang=1
+	npm install `node -e "console.log(Object.keys(require('./package.json').dependencies).join(' '))"` \
+	`node -e "console.log(Object.keys(require('./package.json').devDependencies).join(' '))"` --clang=1
 
 build: ./node_modules
 	./node_modules/.bin/node-pre-gyp build --loglevel=silent --clang=1
 
-debug:
-	./node_modules/.bin/node-pre-gyp rebuild --debug --clang=1
+debug: ./node_modules
+	./node_modules/.bin/node-pre-gyp build --debug --clang=1
 
-verbose:
-	./node_modules/.bin/node-pre-gyp rebuild --loglevel=verbose --clang=1
+verbose: ./node_modules
+	./node_modules/.bin/node-pre-gyp build --loglevel=verbose --clang=1
 
 clean:
 	@rm -rf ./build
