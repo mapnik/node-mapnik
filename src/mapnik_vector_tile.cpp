@@ -373,11 +373,11 @@ NAN_METHOD(VectorTile::composite)
     // unclear yet to what extent these need to be user
     // driven, but we expose here to avoid hardcoding
     unsigned path_multiplier = 16;
-    int buffer_size = 256;
+    int buffer_size = 1;
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    unsigned tolerance = 1;
+    unsigned tolerance = 8;
     double scale_denominator = 0.0;
     // not options yet, likely should never be....
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
@@ -462,6 +462,8 @@ NAN_METHOD(VectorTile::composite)
     }
 
     VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    vector_tile::Tile new_tiledata;
+    vector_tile::Tile new_tiledata2;
     for (unsigned i=0;i < num_tiles;++i) {
         Local<Value> val = vtiles->Get(i);
         if (!val->IsObject()) {
@@ -502,12 +504,11 @@ NAN_METHOD(VectorTile::composite)
         }
         else
         {
+            new_tiledata.Clear();
             // set up to render to new vtile
             typedef mapnik::vector_tile_impl::backend_pbf backend_type;
             typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-            vector_tile::Tile new_tiledata;
-            backend_type backend(new_tiledata,
-                                    path_multiplier);
+            backend_type backend(new_tiledata, path_multiplier);
 
             // get mercator extent of target tile
             mapnik::vector_tile_impl::spherical_mercator merc(target_vt->width());
@@ -558,15 +559,14 @@ NAN_METHOD(VectorTile::composite)
                 std::size_t bytes = vt->buffer_.size();
                 if (bytes > 1) // throw instead?
                 {
-                    vector_tile::Tile tiledata;
-                    if (tiledata.ParseFromArray(vt->buffer_.data(), bytes))
+                    if (new_tiledata2.ParseFromArray(vt->buffer_.data(), bytes))
                     {
-                        unsigned num_layers = tiledata.layers_size();
+                        unsigned num_layers = new_tiledata2.layers_size();
                         if (num_layers > 0)
                         {
-                            for (int i=0; i < tiledata.layers_size(); ++i)
+                            for (int i=0; i < new_tiledata2.layers_size(); ++i)
                             {
-                                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+                                vector_tile::Tile_Layer const& layer = new_tiledata2.layers(i);
                                 mapnik::layer lyr(layer.name(),merc_srs);
                                 MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                                                 mapnik::vector_tile_impl::tile_datasource>(
