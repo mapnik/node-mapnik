@@ -171,7 +171,7 @@ describe('mapnik.VectorTile.composite', function() {
         var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])]
         // raw length of input buffers
         var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
-        vtile.composite(vtiles);
+        vtile.composite(vtiles,{buffer_size:1});
         var new_length = vtile.getData().length;
         // re-rendered data should be different length
         assert.notEqual(new_length,original_length);
