@@ -2041,11 +2041,10 @@ Local<Value> VectorTile::_setDataSync(_NAN_METHOD_ARGS)
 typedef struct {
     uv_work_t request;
     VectorTile* d;
-    char *data;
-    size_t dataLength;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
+    Persistent<Object> buffer;
 } vector_tile_setdata_baton_t;
 
 NAN_METHOD(VectorTile::setData)
@@ -2078,10 +2077,9 @@ NAN_METHOD(VectorTile::setData)
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
     closure->d = d;
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
+    NanAssignPersistent(closure->buffer, obj.As<Object>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
     d->Ref();
     NanReturnUndefined();
@@ -2093,7 +2091,7 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 
     try
     {
-        closure->d->buffer_ = std::string(closure->data,closure->dataLength);
+        closure->d->buffer_ = std::string(node::Buffer::Data(closure->buffer),node::Buffer::Length(closure->buffer));
         closure->d->status_ = VectorTile::LAZY_SET;
     }
     catch (std::exception const& ex)
@@ -2121,6 +2119,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 
     closure->d->Unref();
     NanDisposePersistent(closure->cb);
+    NanDisposePersistent(closure->buffer);
     delete closure;
 }
 

@@ -669,10 +669,9 @@ Local<Value> Image::_openSync(_NAN_METHOD_ARGS)
 typedef struct {
     uv_work_t request;
     image_ptr im;
-    const char *data;
-    size_t dataLength;
     bool error;
     std::string error_name;
+    Persistent<Object> buffer;
     Persistent<Function> cb;
 } image_mem_ptr_baton_t;
 
@@ -856,10 +855,9 @@ NAN_METHOD(Image::fromBytes)
 
     image_mem_ptr_baton_t *closure = new image_mem_ptr_baton_t();
     closure->request.data = closure;
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
+    NanAssignPersistent(closure->buffer, obj.As<Object>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterFromBytes);
     NanReturnUndefined();
 }
@@ -870,7 +868,8 @@ void Image::EIO_FromBytes(uv_work_t* req)
 
     try
     {
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(closure->buffer),
+                                                                                  node::Buffer::Length(closure->buffer)));
         if (reader.get())
         {
             closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
@@ -907,6 +906,7 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     NanDisposePersistent(closure->cb);
+    NanDisposePersistent(closure->buffer);
     delete closure;
 }
 
