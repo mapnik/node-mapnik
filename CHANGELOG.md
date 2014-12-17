@@ -2,6 +2,8 @@
 
 ## 3.1.3
 
+ - Now vt.composite `buffer-size` defaults to `1` instead of `256` and `tolerance` defaults to `8` instead of `1`.
+
 Notable changes in the Mapnik SDK include:
 
  - New and experimental `dot` symbolizer.
