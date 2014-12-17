@@ -374,26 +374,39 @@ void Work_Blend(uv_work_t* req) {
 
     // Now blend images.
     int pixels = baton->width * baton->height;
-    if (pixels <= 0 || pixels > 0x1000000) {
+    if (pixels <= 0) {
         std::ostringstream msg;
         msg << "Image dimensions " << baton->width << "x" << baton->height << " are invalid";
         baton->message = msg.str();
         return;
     }
 
-    mapnik::image_data_32 target(baton->width, baton->height);
+    unsigned int *target = (unsigned int *)malloc(sizeof(unsigned int) * pixels);
+    if (!target) {
+        baton->message = "Memory allocation failed";
+        return;
+    }
+
     // When we don't actually have transparent pixels, we don't need to set
     // the matte.
-    if (alpha) target.set(baton->matte);
-
-    for (auto image_ptr : baton->images)
-    {
-        if (image_ptr && image_ptr->reader.get())
-        {
-            Blend_Composite(target.getData(), baton, &*image_ptr);
+    if (alpha) {
+        // We can't use memset here because it converts the color to a 1-byte value.
+        for (int i = 0; i < pixels; i++) {
+            target[i] = baton->matte;
         }
     }
-    Blend_Encode(target, baton, alpha);
+
+    for (Images::iterator it = baton->images.begin(); it != baton->images.end(); it++) {
+        BImage *image = &**it;
+        if (image->reader.get()) {
+            Blend_Composite(target, baton, image);
+        }
+    }
+
+    mapnik::image_data_32 image(baton->width, baton->height, (unsigned int*)target);
+    Blend_Encode(image, baton, alpha);
+    free(target);
+    target = NULL;
 }
 
 void Work_AfterBlend(uv_work_t* req) {
