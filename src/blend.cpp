@@ -244,15 +244,15 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
 static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, bool alpha) {
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
-            if (baton->quality == 0) baton->quality = 80;
 #if defined(HAVE_JPEG)
+            if (baton->quality == 0) baton->quality = 80;
             mapnik::save_as_jpeg(baton->stream, baton->quality, image);
 #else
             baton->message = "Mapnik not built with jpeg support";
 #endif
         } else if (baton->format == BLEND_FORMAT_WEBP) {
-            if (baton->quality == 0) baton->quality = 80;
 #if defined(HAVE_WEBP)
+            if (baton->quality == 0) baton->quality = 80;
             WebPConfig config;
             // Default values set here will be lossless=0 and quality=75 (as least as of webp v0.3.1)
             if (!WebPConfigInit(&config)) {
@@ -265,6 +265,9 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
                 }
                 mapnik::save_as_webp(baton->stream,image,config,alpha);
             }
+#else
+            baton->message = "Mapnik not built with webp support";
+#endif
         } else {
             // Save as PNG.
 #if defined(HAVE_PNG)
@@ -291,9 +294,6 @@ static void Blend_Encode(mapnik::image_data_32 const& image, BlendBaton* baton, 
     } catch (const std::exception& ex) {
         baton->message = ex.what();
     }
-#else
-        baton->message = "Encoding impossible >= Mapnik 2.3.x required";
-#endif
 }
 
 void Work_Blend(uv_work_t* req) {
