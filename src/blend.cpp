@@ -637,8 +637,8 @@ NAN_METHOD(Blend) {
             NanReturnUndefined();
         }
 
-        image->data = node::Buffer::Data(image->buffer);
-        image->dataLength = node::Buffer::Length(image->buffer);
+        image->data = node::Buffer::Data(buffer);
+        image->dataLength = node::Buffer::Length(buffer);
         baton->images.push_back(image);
     }
 
