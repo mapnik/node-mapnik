@@ -15,12 +15,11 @@
 #include "tint.hpp"
 
 #include "mapnik3x_compatibility.hpp"
-// boost
 #include MAPNIK_SHARED_INCLUDE
 
 namespace node_mapnik {
 
-struct BImage {
+struct BImage : mapnik::noncopyable {
     BImage() :
         data(NULL),
         dataLength(0),
@@ -30,12 +29,12 @@ struct BImage {
         height(0),
         tint() {}
     v8::Persistent<v8::Object> buffer;
-    unsigned char *data;
+    const char * data;
     size_t dataLength;
     int x, y;
     int width, height;
     Tinter tint;
-    MAPNIK_UNIQUE_PTR<ImageReader> reader;
+    MAPNIK_SHARED_PTR<ImageReader> reader;
 };
 
 typedef MAPNIK_SHARED_PTR<BImage> ImagePtr;
