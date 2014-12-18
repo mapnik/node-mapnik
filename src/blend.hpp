@@ -11,16 +11,14 @@
 #include <string>
 #include <vector>
 #include "mapnik_palette.hpp"
-#include "reader.hpp"
 #include "tint.hpp"
 
 #include "mapnik3x_compatibility.hpp"
-// boost
 #include MAPNIK_SHARED_INCLUDE
 
 namespace node_mapnik {
 
-struct BImage {
+struct BImage : mapnik::noncopyable {
     BImage() :
         data(NULL),
         dataLength(0),
@@ -28,14 +26,16 @@ struct BImage {
         y(0),
         width(0),
         height(0),
-        tint() {}
+        tint(),
+        im_ptr(nullptr) {}
     v8::Persistent<v8::Object> buffer;
-    unsigned char *data;
+    const char * data;
     size_t dataLength;
-    int x, y;
+    int x;
+    int y;
     int width, height;
     Tinter tint;
-    MAPNIK_UNIQUE_PTR<ImageReader> reader;
+    MAPNIK_UNIQUE_PTR<mapnik::image_data_rgba8> im_ptr;
 };
 
 typedef MAPNIK_SHARED_PTR<BImage> ImagePtr;

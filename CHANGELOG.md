@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.1.3
+
+ - Now vt.composite `buffer-size` defaults to `1` instead of `256` and `tolerance` defaults to `8` instead of `1`.
+
+Notable changes in the Mapnik SDK include:
+
+ - New and experimental `dot` symbolizer.
+ - GeoJSON/TopoJSON plugin now returns correct ids even if rendered twice.
+ - `font-feature-settings` is now respected per text item.
+ - image_data internals were refactored.
+ - Ignore overviews with 0 scale in pgraster (@rafatower)
+ - Fixed support for handling all SQLite columns (@StevenLooman)
+
 ## 3.1.2
 
  - Now providing 32 bit windows binaries in addition to 64 bit

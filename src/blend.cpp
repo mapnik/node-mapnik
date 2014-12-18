@@ -1,5 +1,6 @@
 #include <mapnik/image_data.hpp>
 #include <mapnik/version.hpp>
+#include <mapnik/image_reader.hpp>
 
 #include "zlib.h"
 
@@ -18,7 +19,6 @@
 #endif
 
 #include "mapnik_palette.hpp"
-#include "reader.hpp"
 #include "blend.hpp"
 #include "tint.hpp"
 
@@ -142,7 +142,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
     }
 }
 
-static inline void Blend_CompositePixel(unsigned int& target, unsigned int& source) {
+static inline void Blend_CompositePixel(unsigned int& target, unsigned int const& source) {
     if (source <= 0x00FFFFFF) {
         // Top pixel is fully transparent.
         // <do nothing>
@@ -193,7 +193,7 @@ static inline void TintPixel(unsigned & r,
 
 
 static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *image) {
-    unsigned int *source = image->reader->surface;
+    const unsigned int *source = image->im_ptr->getData();
 
     int sourceX = std::max(0, -image->x);
     int sourceY = std::max(0, -image->y);
@@ -210,7 +210,7 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
     if (tinting || set_alpha) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                unsigned int& source_pixel = source[sourcePos + x];
+                unsigned int const& source_pixel = source[sourcePos + x];
                 unsigned a = (source_pixel >> 24) & 0xff;
                 if (set_alpha) {
                     double a2 = image->tint.a0 + (a/255.0 * (image->tint.a1 - image->tint.a0));
@@ -224,8 +224,8 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
                 if (a > 1 && tinting) {
                     TintPixel(r,g,b,image->tint);
                 }
-                source_pixel = (a << 24) | (b << 16) | (g << 8) | (r);
-                Blend_CompositePixel(target[targetPos + x], source_pixel);
+                unsigned int new_pixel = (a << 24) | (b << 16) | (g << 8) | (r);
+                Blend_CompositePixel(target[targetPos + x], new_pixel);
             }
             sourcePos += image->width;
             targetPos += baton->width;
@@ -244,15 +244,15 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
 static void Blend_Encode(mapnik::image_data_rgba8 const& image, BlendBaton* baton, bool alpha) {
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
-            if (baton->quality == 0) baton->quality = 80;
 #if defined(HAVE_JPEG)
+            if (baton->quality == 0) baton->quality = 80;
             mapnik::save_as_jpeg(baton->stream, baton->quality, image);
 #else
             baton->message = "Mapnik not built with jpeg support";
 #endif
         } else if (baton->format == BLEND_FORMAT_WEBP) {
-            if (baton->quality == 0) baton->quality = 80;
 #if defined(HAVE_WEBP)
+            if (baton->quality == 0) baton->quality = 80;
             WebPConfig config;
             // Default values set here will be lossless=0 and quality=75 (as least as of webp v0.3.1)
             if (!WebPConfigInit(&config)) {
@@ -265,6 +265,9 @@ static void Blend_Encode(mapnik::image_data_rgba8 const& image, BlendBaton* bato
                 }
                 mapnik::save_as_webp(baton->stream,image,config,alpha);
             }
+#else
+            baton->message = "Mapnik not built with webp support";
+#endif
         } else {
             // Save as PNG.
 #if defined(HAVE_PNG)
@@ -291,9 +294,6 @@ static void Blend_Encode(mapnik::image_data_rgba8 const& image, BlendBaton* bato
     } catch (const std::exception& ex) {
         baton->message = ex.what();
     }
-#else
-        baton->message = "Encoding impossible >= Mapnik 2.3.x required";
-#endif
 }
 
 void Work_Blend(uv_work_t* req) {
@@ -312,16 +312,29 @@ void Work_Blend(uv_work_t* req) {
         if (!alpha) break;
 
         BImage *image = &**rit;
-        MAPNIK_UNIQUE_PTR<ImageReader> layer(new ImageReader(image->data, image->dataLength));
-
-        // Error out on invalid images.
-        if (layer.get() == NULL || layer->width == 0 || layer->height == 0) {
-            baton->message = layer->message;
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> image_reader;
+        try {
+            image_reader = MAPNIK_UNIQUE_PTR<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
+        } catch (std::exception const& ex) {
+            baton->message = ex.what();
             return;
         }
 
-        int visibleWidth = (int)layer->width + image->x;
-        int visibleHeight = (int)layer->height + image->y;
+        if (!image_reader || !image_reader.get()) {
+            baton->message = "Unknown image format";
+            return;
+        }
+
+        unsigned layer_width = image_reader->width();
+        unsigned layer_height = image_reader->height();
+        // Error out on invalid images.
+        if (layer_width == 0 || layer_height == 0) {
+            baton->message = "zero width/height image encountered";
+            return;
+        }
+
+        int visibleWidth = (int)layer_width + image->x;
+        int visibleHeight = (int)layer_height + image->y;
 
         // The first image that is in the viewport sets the width/height, if not user supplied.
         if (baton->width <= 0) baton->width = std::max(0, visibleWidth);
@@ -333,41 +346,38 @@ void Work_Blend(uv_work_t* req) {
             continue;
         }
 
+        bool layer_has_alpha = image_reader->has_alpha();
+
         // Short-circuit when we're not reencoding.
-        if (size == 0 && !layer->alpha && !baton->reencode &&
+        if (size == 0 && !layer_has_alpha && !baton->reencode &&
             image->x == 0 && image->y == 0 &&
-            (int)layer->width == baton->width && (int)layer->height == baton->height)
+            (int)layer_width == baton->width && (int)layer_height == baton->height)
         {
             baton->stream.write((char *)image->data, image->dataLength);
             return;
         }
 
-        if (!layer->decode()) {
-            // Decoding failed.
-            baton->message = layer->message;
+        // allocate image for decoded pixels
+        MAPNIK_UNIQUE_PTR<mapnik::image_data_rgba8> im_ptr(new mapnik::image_data_rgba8(layer_width,layer_height));
+        // actually decode pixels now
+        try {
+            image_reader->read(0,0,*im_ptr);
+        } catch (std::exception const&) {
+            baton->message = "Could not decode image";
             return;
-        }
-        else if (layer->warnings.size()) {
-            std::vector<std::string>::iterator pos = layer->warnings.begin();
-            std::vector<std::string>::iterator end = layer->warnings.end();
-            for (; pos != end; pos++) {
-                std::ostringstream msg;
-                msg << "Layer " << index << ": " << *pos;
-                baton->warnings.push_back(msg.str());
-            }
         }
 
         bool coversWidth = image->x <= 0 && visibleWidth >= baton->width;
         bool coversHeight = image->y <= 0 && visibleHeight >= baton->height;
-        if (!layer->alpha && coversWidth && coversHeight && image->tint.is_alpha_identity()) {
+        if (!layer_has_alpha && coversWidth && coversHeight && image->tint.is_alpha_identity()) {
             // Skip decoding more layers.
             alpha = false;
         }
 
         // Convenience aliases.
-        image->width = layer->width;
-        image->height = layer->height;
-        image->reader = std::move(layer);
+        image->width = layer_width;
+        image->height = layer_height;
+        image->im_ptr = std::move(im_ptr);
         size++;
 
     }
@@ -381,32 +391,18 @@ void Work_Blend(uv_work_t* req) {
         return;
     }
 
-    unsigned int *target = (unsigned int *)malloc(sizeof(unsigned int) * pixels);
-    if (!target) {
-        baton->message = "Memory allocation failed";
-        return;
-    }
+    mapnik::image_data_rgba8 target(baton->width, baton->height);
+    // When we don't actually have transparent pixels, we don't need to set the matte.
+    if (alpha) target.set(baton->matte);
 
-    // When we don't actually have transparent pixels, we don't need to set
-    // the matte.
-    if (alpha) {
-        // We can't use memset here because it converts the color to a 1-byte value.
-        for (int i = 0; i < pixels; i++) {
-            target[i] = baton->matte;
+    for (auto image_ptr : baton->images)
+    {
+        if (image_ptr && image_ptr->im_ptr.get())
+        {
+            Blend_Composite(target.getData(), baton, &*image_ptr);
         }
     }
-
-    for (Images::iterator it = baton->images.begin(); it != baton->images.end(); it++) {
-        BImage *image = &**it;
-        if (image->reader.get()) {
-            Blend_Composite(target, baton, image);
-        }
-    }
-
-    mapnik::image_data_rgba8 image(baton->width, baton->height, (unsigned int*)target);
-    Blend_Encode(image, baton, alpha);
-    free(target);
-    target = NULL;
+    Blend_Encode(target, baton, alpha);
 }
 
 void Work_AfterBlend(uv_work_t* req) {
@@ -563,13 +559,13 @@ NAN_METHOD(Blend) {
         }
     }
 
-    Local<Array> images = Local<Array>::Cast(args[0]);
-    uint32_t length = images->Length();
+    Local<Array> js_images = Local<Array>::Cast(args[0]);
+    uint32_t length = js_images->Length();
     if (length < 1 && !baton->reencode) {
         NanThrowTypeError("First argument must contain at least one Buffer.");
         NanReturnUndefined();
     } else if (length == 1 && !baton->reencode) {
-        Local<Value> buffer = images->Get(0);
+        Local<Value> buffer = js_images->Get(0);
         if (Buffer::HasInstance(buffer)) {
             // Directly pass through buffer if it's the only one.
             Local<Value> argv[] = {
@@ -607,7 +603,7 @@ NAN_METHOD(Blend) {
 
     for (uint32_t i = 0; i < length; i++) {
         ImagePtr image = MAPNIK_MAKE_SHARED<BImage>();
-        Local<Value> buffer = images->Get(i);
+        Local<Value> buffer = js_images->Get(i);
         if (Buffer::HasInstance(buffer)) {
             NanAssignPersistent(image->buffer,buffer.As<Object>());
         } else if (buffer->IsObject()) {
@@ -641,8 +637,8 @@ NAN_METHOD(Blend) {
             NanReturnUndefined();
         }
 
-        image->data = (unsigned char*)node::Buffer::Data(NanNew(image->buffer));
-        image->dataLength = node::Buffer::Length(NanNew(image->buffer));
+        image->data = node::Buffer::Data(buffer);
+        image->dataLength = node::Buffer::Length(buffer);
         baton->images.push_back(image);
     }
 

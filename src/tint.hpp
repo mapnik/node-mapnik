@@ -68,7 +68,7 @@ struct Tinter {
       a1(1),
       debug(false) { }
 
-    bool is_identity() {
+    bool is_identity() const {
         return (h0 == 0 &&
                 h1 == 1 &&
                 s0 == 0 &&
@@ -77,7 +77,7 @@ struct Tinter {
                 l1 == 1);
     }
 
-    bool is_alpha_identity() {
+    bool is_alpha_identity() const {
         return (a0 == 0 &&
                 a1 == 1);
     }
