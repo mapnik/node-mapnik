@@ -1,5 +1,6 @@
 #include <mapnik/image_data.hpp>
 #include <mapnik/version.hpp>
+#include <mapnik/image_reader.hpp>
 
 #include "zlib.h"
 
@@ -18,7 +19,6 @@
 #endif
 
 #include "mapnik_palette.hpp"
-#include "reader.hpp"
 #include "blend.hpp"
 #include "tint.hpp"
 
@@ -193,7 +193,7 @@ static inline void TintPixel(unsigned & r,
 
 
 static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *image) {
-    const unsigned int *source = image->reader->getData();
+    const unsigned int *source = image->im_ptr->getData();
 
     int sourceX = std::max(0, -image->x);
     int sourceY = std::max(0, -image->y);
@@ -312,13 +312,24 @@ void Work_Blend(uv_work_t* req) {
         if (!alpha) break;
 
         BImage *image = &**rit;
-        MAPNIK_UNIQUE_PTR<ImageReader> layer(new ImageReader(image->data, image->dataLength));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> image_reader;
+        try {
+            image_reader = MAPNIK_UNIQUE_PTR<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
+        } catch (std::exception const& ex) {
+            baton->message = ex.what();
+            return;
+        }
 
-        unsigned layer_width = layer->width();
-        unsigned layer_height = layer->height();
+        if (!image_reader || !image_reader.get()) {
+            baton->message = "Unknown image format";
+            return;
+        }
+
+        unsigned layer_width = image_reader->width();
+        unsigned layer_height = image_reader->height();
         // Error out on invalid images.
-        if (layer.get() == NULL || layer_width == 0 || layer_height == 0) {
-            baton->message = layer->message();
+        if (layer_width == 0 || layer_height == 0) {
+            baton->message = "zero width/height image encountered";
             return;
         }
 
@@ -335,7 +346,7 @@ void Work_Blend(uv_work_t* req) {
             continue;
         }
 
-        bool layer_has_alpha = layer->has_alpha();
+        bool layer_has_alpha = image_reader->has_alpha();
 
         // Short-circuit when we're not reencoding.
         if (size == 0 && !layer_has_alpha && !baton->reencode &&
@@ -346,19 +357,14 @@ void Work_Blend(uv_work_t* req) {
             return;
         }
 
-        if (!layer->decode()) {
-            // Decoding failed.
-            baton->message = layer->message();
+        // allocate image for decoded pixels
+        MAPNIK_UNIQUE_PTR<mapnik::image_data_32> im_ptr(new mapnik::image_data_32(layer_width,layer_height));
+        // actually decode pixels now
+        try {
+            image_reader->read(0,0,*im_ptr);
+        } catch (std::exception const&) {
+            baton->message = "Could not decode image";
             return;
-        }
-        else if (layer->warnings.size()) {
-            std::vector<std::string>::iterator pos = layer->warnings.begin();
-            std::vector<std::string>::iterator end = layer->warnings.end();
-            for (; pos != end; pos++) {
-                std::ostringstream msg;
-                msg << "Layer " << index << ": " << *pos;
-                baton->warnings.push_back(msg.str());
-            }
         }
 
         bool coversWidth = image->x <= 0 && visibleWidth >= baton->width;
@@ -371,7 +377,7 @@ void Work_Blend(uv_work_t* req) {
         // Convenience aliases.
         image->width = layer_width;
         image->height = layer_height;
-        image->reader = std::move(layer);
+        image->im_ptr = std::move(im_ptr);
         size++;
 
     }
@@ -391,7 +397,7 @@ void Work_Blend(uv_work_t* req) {
 
     for (auto image_ptr : baton->images)
     {
-        if (image_ptr && image_ptr->reader.get())
+        if (image_ptr && image_ptr->im_ptr.get())
         {
             Blend_Composite(target.getData(), baton, &*image_ptr);
         }
