@@ -8,11 +8,14 @@ var images = [
 ];
 
 describe('mapnik.blend', function() {
-    it('should blend images', function() {
+    it('blended', function(done) {
         var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
-        mapnik.blend(images, {}, function(err, result, warnings) {
+        mapnik.blend(images, {format:"png"}, function(err, result, warnings) {
             if (err) throw err;
-            assert.equal(0,expected.compare(new mapnik.Image.fromBytesSync(result)));
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
         });
     });
 
