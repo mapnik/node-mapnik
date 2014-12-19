@@ -4,7 +4,7 @@
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/graphics.hpp>          // for image_32
-#include <mapnik/image_data.hpp>        // for image_data_32
+#include <mapnik/image_data.hpp>        // for image_data_rgba8
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
 
@@ -202,7 +202,7 @@ NAN_METHOD(Image::getPixel)
         NanReturnUndefined();
     }
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    mapnik::image_data_32 const& data = im->this_->data();
+    mapnik::image_data_rgba8 const& data = im->this_->data();
     if (x >= 0 && x < static_cast<int>(data.width())
         && y >= 0 && y < static_cast<int>(data.height()))
     {
@@ -232,7 +232,7 @@ NAN_METHOD(Image::setPixel)
     int x = args[0]->IntegerValue();
     int y = args[1]->IntegerValue();
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    mapnik::image_data_32 & data = im->this_->data();
+    mapnik::image_data_rgba8 & data = im->this_->data();
     if (x < static_cast<int>(data.width()) && y < static_cast<int>(data.height()))
     {
         data(x,y) = color->get()->rgba();
@@ -296,8 +296,8 @@ NAN_METHOD(Image::compare)
             NanThrowTypeError("image dimensions do not match");
             NanReturnUndefined();
     }
-    mapnik::image_data_32 const& data = im->this_->data();
-    mapnik::image_data_32 const& data2 = im2->this_->data();
+    mapnik::image_data_rgba8 const& data = im->this_->data();
+    mapnik::image_data_rgba8 const& data2 = im2->this_->data();
     for (unsigned int y = 0; y < data.height(); ++y)
     {
         const unsigned int* row_from = data.getRow(y);
@@ -433,7 +433,7 @@ NAN_METHOD(Image::setGrayScaleToAlpha)
 
         Color * color = node::ObjectWrap::Unwrap<Color>(obj);
 
-        mapnik::image_data_32 & data = im->this_->data();
+        mapnik::image_data_rgba8 & data = im->this_->data();
         for (unsigned int y = 0; y < data.height(); ++y)
         {
             unsigned int* row_from = data.getRow(y);
@@ -1146,7 +1146,7 @@ NAN_METHOD(Image::save)
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     try
     {
-        mapnik::save_to_file<mapnik::image_data_32>(im->get()->data(),filename, format);
+        mapnik::save_to_file<mapnik::image_data_rgba8>(im->get()->data(),filename, format);
     }
     catch (std::exception const& ex)
     {

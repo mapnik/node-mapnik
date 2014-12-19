@@ -35,7 +35,7 @@ struct BImage : mapnik::noncopyable {
     int y;
     int width, height;
     Tinter tint;
-    MAPNIK_UNIQUE_PTR<mapnik::image_data_32> im_ptr;
+    MAPNIK_UNIQUE_PTR<mapnik::image_data_rgba8> im_ptr;
 };
 
 typedef MAPNIK_SHARED_PTR<BImage> ImagePtr;
