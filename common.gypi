@@ -33,6 +33,7 @@
             "AdditionalOptions": [
               "/MP", # compile across multiple CPUs
               "/bigobj", #compiling: x86 fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj
+              "/Od", #Turns off all optimizations in the program and speeds compilation, http://msdn.microsoft.com/en-us/library/aafb762y.aspx
             ],
           }
         }
@@ -59,6 +60,7 @@
             "AdditionalOptions": [
               "/MP", # compile across multiple CPUs
               "/bigobj", #compiling: x86 fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj
+              "/Od", #Turns off all optimizations in the program and speeds compilation, http://msdn.microsoft.com/en-us/library/aafb762y.aspx
             ],
           }
         }
