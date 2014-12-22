@@ -170,7 +170,7 @@ NAN_METHOD(Feature::toJSON)
     NanScope();
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
     typedef std::back_insert_iterator<std::string> sink_type;
-    static const mapnik::json::feature_generator_grammar<sink_type> grammar;
+    static const mapnik::json::feature_generator_grammar<sink_type,mapnik::feature_impl> grammar;
     std::string json;
     sink_type sink(json);
     if (!boost::spirit::karma::generate(sink, grammar, *(fp->get())))
