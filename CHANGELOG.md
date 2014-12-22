@@ -3,6 +3,8 @@
 ## 3.1.3
 
  - Now vt.composite `buffer-size` defaults to `1` instead of `256` and `tolerance` defaults to `8` instead of `1`.
+ - Improvements to internals of mapnik.blend
+ - Fixed rare error when reading image data with the async `mapnik.Image.fromBytes`
 
 Notable changes in the Mapnik SDK include:
 
@@ -12,6 +14,12 @@ Notable changes in the Mapnik SDK include:
  - image_data internals were refactored.
  - Ignore overviews with 0 scale in pgraster (@rafatower)
  - Fixed support for handling all SQLite columns (@StevenLooman)
+ - Upgrade libpng 1.6.14->1.6.15
+ - Upgrade freetype 2.5.3->2.5.4
+ - Upgrade sqlite 3080701->3080704
+ - Upgrade postgres 9.3.4->9.4.0
+ - Upgrade openssl 1.0.1i->1.0.1j
+ - Upgrade harfbuzz 0.9.35->0.9.37/7d5e7613ced3dd39d05df83ca7e8952cbecd68f6
 
 ## 3.1.2
 
