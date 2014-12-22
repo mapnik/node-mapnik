@@ -5,6 +5,7 @@
  - Now vt.composite `buffer-size` defaults to `1` instead of `256` and `tolerance` defaults to `8` instead of `1`.
  - Improvements to internals of mapnik.blend
  - Fixed rare error when reading image data with the async `mapnik.Image.fromBytes`
+ - Binaries updated to use Mapnik v3.x (master branch) at 1faaf595 and mapnik-packaging@5a436d45e3513
 
 Notable changes in the Mapnik SDK include:
 
