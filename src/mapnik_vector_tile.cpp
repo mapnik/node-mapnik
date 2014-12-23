@@ -33,7 +33,7 @@
 #include <mapnik/feature_kv_iterator.hpp>
 #include "proj_transform_adapter.hpp"
 #include <mapnik/json/geometry_generator_grammar.hpp>
-
+#include <mapnik/json/properties_generator_grammar.hpp>
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
 #include <cairo.h>
@@ -1447,6 +1447,7 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
     }
     mapnik::featureset_ptr fs = ds.features(q);
     using sink_type = std::back_insert_iterator<std::string>;
+    static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
     static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
     if (fs)
     {
@@ -1456,27 +1457,19 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
         {
             if (first) first = false;
             else result += ",";
-            result += "{\"type\":\"Feature\",\"properties\":{";
-            bool first_prop = true;
-            for (auto const& attr : *feature)
+            result += "{\"type\":\"Feature\",\"properties\":";
+            std::string properties;
+            sink_type sink(properties);
+            if (boost::spirit::karma::generate(sink, prop_grammar, *feature))
             {
-                if (first_prop) first_prop = false;
-                else result += ",";
-                auto const& val = std::get<1>(attr);
-                if (val.is<mapnik::value_unicode_string>())
-                {
-                    result += "\"" + std::get<0>(attr) + "\":\"" + val.to_string() + "\"";
-                }
-                else if (val.is<mapnik::value_null>())
-                {
-                    result += "\"" + std::get<0>(attr) + "\":null";
-                }
-                else
-                {
-                    result += "\"" + std::get<0>(attr) + "\":" + val.to_string();
-                }
+                result += properties;
             }
-            result += "},\"geometry\":";
+            else
+            {
+                std::clog << "Failed to generate GeoJSON properties";
+            }
+
+            result += ",\"geometry\":";
             if (feature->paths().empty())
             {
                 result += "null";
@@ -1490,13 +1483,13 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 {
                     projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
                 }
-                if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
+                if (boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
                 {
-                    std::clog << "Failed to generate GeoJSON";
+                    result += geometry;
                 }
                 else
                 {
-                    result += geometry;
+                    std::clog << "Failed to generate GeoJSON geometry";
                 }
             }
             result += "}";
