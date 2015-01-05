@@ -1,7 +1,7 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
-var fs = require('fs');
-var path = require('path');
 
 describe('mapnik.ImageView ', function() {
     it('should throw with invalid usage', function() {
@@ -51,7 +51,7 @@ describe('mapnik.ImageView ', function() {
     it('isSolid async works if true and white', function(done) {
         var im = new mapnik.Image(256, 256);
         var color = new mapnik.Color('white');
-        im.background = color
+        im.background = color;
         var view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
         view.isSolid(function(err,solid,pixel) {
@@ -82,13 +82,12 @@ describe('mapnik.ImageView ', function() {
         it('should support webp encoding', function(done) {
             var im = new mapnik.Image(256,256);
             im.background = new mapnik.Color('green');
-            var filename = '/tmp/mapnik-view.webp';
-            im.encode('webp',function(err,buf1) {
+            im.encode('webp',function(err,buf1) { // jshint ignore:line
                 if (err) throw err;
                 var v = im.view(0,0,256,256);
-                v.encode('webp', function(err,buf2) {
+                v.encode('webp', function(err,buf2) { // jshint ignore:line
                     if (err) throw err;
-                    // distabled because this is not stable across mapnik versions or webp versions
+                    // disabled because this is not stable across mapnik versions or webp versions
                     //assert.equal(buf1.length,buf2.length);
                     done();
                 });

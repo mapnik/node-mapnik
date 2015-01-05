@@ -1,3 +1,5 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
@@ -177,10 +179,10 @@ describe('mapnik.VectorTile query point', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[1,2]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['A','B']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[2000,196000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[1,2]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['A','B']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[2000,196000]);
         }
     });
     it('query point + tolerance (B,A)', function(done) {
@@ -192,10 +194,10 @@ describe('mapnik.VectorTile query point', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[2,1]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['B','A']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[6000,203000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[2,1]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['B','A']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[6000,203000]);
         }
     });
 });
@@ -293,10 +295,10 @@ describe('mapnik.VectorTile query line', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[1,2]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['A','B']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[0,6593000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[1,2]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['A','B']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[0,6593000]);
         }
     });
     it('query line + tolerance (B,A)', function(done) {
@@ -308,10 +310,10 @@ describe('mapnik.VectorTile query line', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[2,1]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['B','A']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[1000,3396000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[2,1]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['B','A']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[1000,3396000]);
         }
     });
 });

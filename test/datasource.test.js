@@ -1,6 +1,7 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
-var fs = require('fs');
 var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
@@ -36,7 +37,7 @@ describe('mapnik.Datasource', function() {
         var features = [];
         var featureset = ds.featureset();
         var feature;
-        while (feature = featureset.next()) {
+        while ((feature = featureset.next())) {
             features.push(feature);
         }
 

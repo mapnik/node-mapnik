@@ -1,3 +1,5 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
@@ -33,7 +35,7 @@ describe('mapnik grid rendering ', function() {
             var gv = grid.view(0, 0, 256, 256);
             var gv_utf = gv.encodeSync('utf', {resolution: 4});
             if (process.env.UPDATE) {
-                fs.writeFileSync(reference,JSON.stringify(grid_utf,null,1))                
+                fs.writeFileSync(reference,JSON.stringify(grid_utf,null,1));
             } else {
                 var expected = fs.readFileSync(reference,'utf8');
                 var equal = _c(JSON.stringify(grid_utf,null,1),expected);
@@ -48,10 +50,9 @@ describe('mapnik grid rendering ', function() {
             var gv_utf2 = gv2.encodeSync('utf', {resolution: 4});
             var expected_view = fs.readFileSync(reference_view,'utf8');
             if (process.env.UPDATE) {
-                fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1))
+                fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1));
             } else {
-                var equal = _c(JSON.stringify(gv_utf2,null,1),expected_view);
-                assert.ok(equal);
+                assert.ok(_c(JSON.stringify(gv_utf2,null,1),expected_view));
             }
             done();
         });
@@ -118,7 +119,7 @@ describe('mapnik grid rendering ', function() {
                 assert.equal(gv2.height(), 64);
                 gv2.encode('utf', {resolution: 4}, function(err,gv_utf2) {
                     if (process.env.UPDATE) {
-                        fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1))                
+                        fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1));
                     } else {
                         var equal = _c(JSON.stringify(gv_utf2,null,1),fs.readFileSync(reference_view,'utf8'));
                         assert.ok(equal);
@@ -141,7 +142,7 @@ describe('mapnik grid rendering ', function() {
             if (err) throw err;
             var grid_utf = grid.encodeSync('utf', {resolution: 4});
             if (process.env.UPDATE) {
-                fs.writeFileSync(reference__id__,JSON.stringify(grid_utf,null,1))                
+                fs.writeFileSync(reference__id__,JSON.stringify(grid_utf,null,1));
             } else {
                 var equal = _c(JSON.stringify(grid_utf,null,1),fs.readFileSync(reference__id__,'utf8'));
                 assert.ok(equal);
@@ -162,7 +163,7 @@ describe('mapnik grid rendering ', function() {
             if (err) throw err;
             var grid_utf = grid.encodeSync('utf', {resolution: 4});
             if (process.env.UPDATE) {
-                fs.writeFileSync(reference__id__2,JSON.stringify(grid_utf,null,1))                
+                fs.writeFileSync(reference__id__2,JSON.stringify(grid_utf,null,1));
             } else {
                 var equal = _c(JSON.stringify(grid_utf,null,1),fs.readFileSync(reference__id__2,'utf8'));
                 assert.ok(equal);
@@ -183,7 +184,7 @@ describe('mapnik grid rendering ', function() {
             if (err) throw err;
             var grid_utf = grid.encodeSync('utf', {resolution: 4});
             if (process.env.UPDATE) {
-                fs.writeFileSync(reference__id__3,JSON.stringify(grid_utf,null,1))                
+                fs.writeFileSync(reference__id__3,JSON.stringify(grid_utf,null,1));
             } else {
                 var equal = _c(JSON.stringify(grid_utf,null,1),fs.readFileSync(reference__id__3,'utf8'));
                 assert.ok(equal);

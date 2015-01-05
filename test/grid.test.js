@@ -1,7 +1,7 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
-var fs = require('fs');
-var path = require('path');
 
 describe('mapnik.Grid ', function() {
     it('should throw with invalid usage', function() {
@@ -51,7 +51,7 @@ describe('mapnik.Grid ', function() {
         m.add_layer(l);
         m.background = new mapnik.Color('green');
         m.render(grid_blank, {layer: 0},function(err,grid_blank2) {
-            assert.equal(grid_blank.painted(), false);
+            assert.equal(grid_blank2.painted(), false);
             // TODO - expose grid background
             //assert.ok(grid_blank2.background);
             done();

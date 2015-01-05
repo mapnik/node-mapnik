@@ -1,7 +1,7 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
-var fs = require('fs');
-var path = require('path');
 
 describe('mapnik.CairoSurface ', function() {
     it('should throw with invalid usage', function() {

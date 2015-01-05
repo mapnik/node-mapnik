@@ -1,7 +1,7 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
-var path = require('path');
-var fs = require('fs');
 
 describe('logger', function() {
     it('get_severity should return default', function(done) {

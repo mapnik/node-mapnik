@@ -1,3 +1,5 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
@@ -8,7 +10,7 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.in
 describe('mapnik.Map', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword
-        assert.throws(function() { Map('foo'); });
+        assert.throws(function() { Map('foo'); });  // jshint ignore:line
 
         // invalid args
         assert.throws(function() { new mapnik.Map(); });
@@ -100,7 +102,7 @@ describe('mapnik.Map', function() {
             map.clear();
             var layers2 = map.layers();
             assert.equal(layers2.length, 0);
-            delete map;
+            map.clear();
         }
         localized();
         var layers2 = map2.layers();

@@ -1,8 +1,8 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var assert = require('assert');
-var fs = require('fs');
-var path = require('path');
 
 function cleanXml(xml) {
     return xml.replace('\n','').split(' ').join('');
@@ -24,7 +24,7 @@ describe('mapnik.Parameters ', function() {
         var expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"/>\n');
         assert.equal(actual, expected);
         map.parameters = {'a': 'b'};
-        actual = cleanXml(map.toXML())
+        actual = cleanXml(map.toXML());
         if (mapnik.versions.mapnik_number >= 300000) {
             expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">\n    <Parameters>\n        <Parameter name="a">b</Parameter>\n    </Parameters>\n</Map>\n');
         } else {

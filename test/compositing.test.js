@@ -1,3 +1,5 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var exists = require('fs').existsSync || require('path').existsSync;
@@ -21,7 +23,7 @@ describe('mapnik.compositeOp', function() {
                     done();
                 });
             });
-        })(name);
+        })(name); // jshint ignore:line
     }
 });
 
@@ -47,6 +49,6 @@ describe('mapnik.compositeOp async multiply', function() {
                     });
                 });
             });
-        })(name);
+        })(name); // jshint ignore:line
     }
 });

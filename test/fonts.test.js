@@ -1,13 +1,14 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
-var fs = require('fs');
 
 function xmlWithFont(font) {
-    return '\
-    <Map font-directory="./"><Style name="text"><Rule>\
-        <TextSymbolizer size="12" face-name="'+font+'"><![CDATA[[name]]]></TextSymbolizer>\
-    </Rule></Style></Map>';
+    var val = '<Map font-directory="./"><Style name="text"><Rule>';
+    val += '<TextSymbolizer size="12" face-name="' + font + '"><![CDATA[[name]]]></TextSymbolizer>';
+    val += '</Rule></Style></Map>';
+    return val;
 }
 
 describe('map local fonts ', function() {
@@ -23,7 +24,7 @@ describe('map local fonts ', function() {
         assert.equal(map.fonts().indexOf('DejaVu Serif Condensed Bold Italic'),0);
         done();
     });
-})
+});
 
 describe('font scope', function() {
     var a = 'DejaVu Serif Condensed Bold Italic';

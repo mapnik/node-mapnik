@@ -1,3 +1,5 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var exists = require('fs').existsSync || require('path').existsSync;
@@ -24,6 +26,7 @@ describe('mapnik async rendering', function() {
             var im = new mapnik.Image(map.width, map.height);
             map.render(im, function(err, im) {
                 im.encode('png', function(err,buffer) {
+                    assert.ok(buffer);
                     var string = im.toString();
                     assert.ok(string);
                     done();

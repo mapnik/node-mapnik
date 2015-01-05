@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
@@ -38,7 +40,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
             if (err) {
                 if (Array.isArray(err)) {
                     err.forEach(function(e) {
-                        carto.writeError(e, options);
+                        carto.writeError(e, {});
                     });
                 }
                 process.exit(1);

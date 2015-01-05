@@ -1,12 +1,14 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
 var existsSync = require('fs').existsSync || require('path').existsSync;
 
-var map_pre = '\n<Map>\n  <Layer name="test">\n    <Datasource>'
-var map_param = '\n      <Parameter name="{{{key}}}">{{{value}}}</Parameter>'
-var map_post = '\n    </Datasource>\n  </Layer>\n</Map>'
+var map_pre = '\n<Map>\n  <Layer name="test">\n    <Datasource>';
+var map_param = '\n      <Parameter name="{{{key}}}">{{{value}}}</Parameter>';
+var map_post = '\n    </Datasource>\n  </Layer>\n</Map>';
 
 mapnik.register_default_input_plugins();
 
@@ -73,9 +75,9 @@ describe('Handling unicode paths, filenames, and data', function(){
         map_string += map_param.replace('{{{key}}}','file').replace('{{{value}}}',filepath);
         map_string += map_post;
         var map = new mapnik.Map(256,256);
-        map.fromStringSync(map_string,{base:path.dirname(__dirname)})
-        fs.writeFileSync('./test/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
-        map.loadSync('./test/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
+        map.fromStringSync(map_string,{base:path.dirname(__dirname)});
+        fs.writeFileSync('./test/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8');
+        map.loadSync('./test/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)});
         assert.ok(true);
         done();
     });
@@ -92,9 +94,9 @@ describe('Handling unicode paths, filenames, and data', function(){
         map_string += map_param.replace('{{{key}}}','file').replace('{{{value}}}',filepath);
         map_string += map_post;
         var map = new mapnik.Map(256,256);
-        map.fromStringSync(map_string,{base:path.dirname(__dirname)})
-        fs.writeFileSync('./test/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8')
-        map.loadSync('./test/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)})
+        map.fromStringSync(map_string,{base:path.dirname(__dirname)});
+        fs.writeFileSync('./test/tmp/mapnik-tmp-map-load.xml',map_string,'utf-8');
+        map.loadSync('./test/tmp/mapnik-tmp-map-load.xml',{base:path.dirname(__dirname)});
         assert.ok(true);
         done();
     });
@@ -111,11 +113,11 @@ describe('Handling unicode paths, filenames, and data', function(){
         map_string += map_param.replace('{{{key}}}','file').replace('{{{value}}}',filepath);
         map_string += map_post;
         var map = new mapnik.Map(256,256);
-        map.fromStringSync(map_string,{base:path.dirname(__dirname)})
+        map.fromStringSync(map_string,{base:path.dirname(__dirname)});
         var xml_path = './test/tmp/mapnik-tmp-map-load'+'区县级行政区划' +'.xml';
-		fs.writeFileSync(xml_path,map_string,'utf-8')
+		fs.writeFileSync(xml_path,map_string,'utf-8');
 		assert.ok(existsSync(xml_path));
-        map.loadSync(xml_path,{base:path.dirname(__dirname)})
+        map.loadSync(xml_path,{base:path.dirname(__dirname)});
         assert.ok(true);
         done();
     });

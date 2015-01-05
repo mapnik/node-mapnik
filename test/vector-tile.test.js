@@ -1,14 +1,16 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
-var mercator = new(require('sphericalmercator'));
+var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 
 var trunc_6 = function(key, val) {
     return val.toFixed ? Number(val.toFixed(6)) : val;
-}
+};
 
 function deepEqualTrunc(json1,json2) {
     return assert.deepEqual(JSON.stringify(json1,trunc_6),JSON.stringify(json2,trunc_6));
@@ -81,21 +83,21 @@ describe('mapnik.VectorTile ', function() {
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
-        var coords = out.features[0].geometry.coordinates
-        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
-        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+        var coords = out.features[0].geometry.coordinates;
+        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
+        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
         assert.equal(out.features[0].properties.name,'geojson data');
         assert.equal(vtile.toGeoJSON(0),vtile.toGeoJSONSync(0));
         vtile.toGeoJSON(0,function(err,json_string) {
             var out2 = JSON.parse(json_string);
             assert.equal(out2.type,'FeatureCollection');
             assert.equal(out2.features.length,1);
-            var coords = out2.features[0].geometry.coordinates
-            assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
-            assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+            var coords = out2.features[0].geometry.coordinates;
+            assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
+            assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
             assert.equal(out2.features[0].properties.name,'geojson data');
             done();
-        })
+        });
     });
 
     it('should be able to create a vector tile from multiple geojson files', function(done) {
@@ -145,12 +147,12 @@ describe('mapnik.VectorTile ', function() {
         var out = JSON.parse(json_out);
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,2);
-        var coords = out.features[0].geometry.coordinates
-        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < .3)
-        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < .3)
-        var coords2 = out.features[1].geometry.coordinates
-        assert.ok(Math.abs(coords[0] - geojson2.features[0].geometry.coordinates[0]) < .3)
-        assert.ok(Math.abs(coords[1] - geojson2.features[0].geometry.coordinates[1]) < .3)
+        var coords = out.features[0].geometry.coordinates;
+        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
+        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
+        var coords2 = out.features[1].geometry.coordinates;
+        assert.ok(Math.abs(coords2[0] - geojson2.features[0].geometry.coordinates[0]) < 0.3);
+        assert.ok(Math.abs(coords2[1] - geojson2.features[0].geometry.coordinates[1]) < 0.3);
         assert.equal(out.features[0].properties.name,'geojson data');
         assert.equal(out.features[1].properties.name,'geojson data2');
         // not passing callback trigger sync method
@@ -159,9 +161,9 @@ describe('mapnik.VectorTile ', function() {
         var json_array = vtile.toGeoJSONSync('__array__');
         var out2 = JSON.parse(json_array);
         assert.equal(out2.length,2);
-        var coords2 = out2[0].features[0].geometry.coordinates
-        assert.ok(Math.abs(coords2[0] - geojson.features[0].geometry.coordinates[0]) < .3)
-        assert.ok(Math.abs(coords2[1] - geojson.features[0].geometry.coordinates[1]) < .3)
+        var coords3 = out2[0].features[0].geometry.coordinates;
+        assert.ok(Math.abs(coords3[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
+        assert.ok(Math.abs(coords3[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
         // not passing callback trigger sync method
         assert.equal(vtile.toGeoJSON('__array__'),json_array);
         // ensure async method has same result
@@ -171,7 +173,7 @@ describe('mapnik.VectorTile ', function() {
                 assert.deepEqual(json_string,json_array);
                 done();
             });
-        })
+        });
     });
 
     it('should throw with invalid usage', function() {
@@ -239,13 +241,13 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData(new Buffer('foo'));vtile.parse(); });
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
         assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
-        vtile.setData(new Buffer('foo'),function(err,success) {
+        vtile.setData(new Buffer('foo'),function(err) {
             if (err) throw err;
             vtile.parse(function(err) {
                 assert.ok(err);
                 done();
             });
-        })
+        });
     });
 
     it('should be able to setData/parse (async)', function(done) {
@@ -280,7 +282,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.deepEqual(vtile.names(), ["world"]);
             assert.equal(vtile.empty(), false);
-            vtile.parse()
+            vtile.parse();
             assert.deepEqual(vtile.names(), ["world"]);
             assert.equal(vtile.empty(), false);
             done();
@@ -292,9 +294,9 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         vtile.parse();
-        assert.deepEqual(vtile.names(),['world'])
+        assert.deepEqual(vtile.names(),['world']);
         var expected = [{"name":"world","extent":4096,"version":2,"features":[{"id":207,"type":3,"geometry":[9,0,0,26,0,8190,8190,0,0,8189,15],"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]}];
-        assert.deepEqual(vtile.toJSON(),expected)
+        assert.deepEqual(vtile.toJSON(),expected);
         done();
     });
 
@@ -339,9 +341,9 @@ describe('mapnik.VectorTile ', function() {
         var vtile2 = new mapnik.VectorTile(9,112,195);
         vtile2.setData(vtile.getData());
         vtile2.parse();
-        assert.deepEqual(vtile.names(),vtile2.names())
-        assert.deepEqual(vtile.toJSON(),vtile2.toJSON())
-        assert.deepEqual(vtile2.toJSON(),_vtile.toJSON())
+        assert.deepEqual(vtile.names(),vtile2.names());
+        assert.deepEqual(vtile.toJSON(),vtile2.toJSON());
+        assert.deepEqual(vtile2.toJSON(),_vtile.toJSON());
         done();
     });
 
@@ -540,7 +542,7 @@ describe('mapnik.VectorTile ', function() {
             if (mapnik.versions.mapnik_number >= 300000) {
                 assert.ok(Math.abs(e.length - a.length) < 100);
             } else {
-                assert.equal(e.length,a.length)
+                assert.equal(e.length,a.length);
             }
             done();
         });
@@ -575,7 +577,7 @@ describe('mapnik.VectorTile ', function() {
 
         vtile.render(map, new mapnik.Image(256, 256), function(err, vtile_image) {
             if (err) throw err;
-            var actual = './test/data/vector_tile/tile0.actual.png';
+            //var actual = './test/data/vector_tile/tile0.actual.png';
             var expected = './test/data/vector_tile/tile0.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
@@ -602,7 +604,7 @@ describe('mapnik.VectorTile ', function() {
                     fs.writeFileSync(expected_svg2,surface2.getData());
                 }
                 fs.writeFileSync(actual_svg2,surface2.getData());
-                var diff = Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length)
+                var diff = Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length);
                 assert.ok(diff < 10,"svg diff "+diff+" not less that 10");
                 done();
             });
@@ -630,7 +632,7 @@ describe('mapnik.VectorTile ', function() {
                     fs.writeFileSync(expected_svg,surface.getData());
                 }
                 fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
-                var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length)
+                var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length);
                 assert.ok(diff < 20,"svg diff "+diff+" not less that 20");
                 done();
             });            
@@ -651,7 +653,7 @@ describe('mapnik.VectorTile ', function() {
 
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:-64}, function(err, vtile_image) {
             if (err) throw err;
-            var actual = './test/data/vector_tile/tile0-b.actual.png';
+            //var actual = './test/data/vector_tile/tile0-b.actual.png';
             var expected = './test/data/vector_tile/tile0-b.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
@@ -681,7 +683,7 @@ describe('mapnik.VectorTile ', function() {
             }
             fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
             var expected = JSON.parse(fs.readFileSync(expected_file));
-            assert.deepEqual(utf,expected)
+            assert.deepEqual(utf,expected);
             done();
         });
     });
@@ -698,7 +700,7 @@ describe('mapnik.VectorTile ', function() {
 
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:-64}, function(err, vtile_image) {
             if (err) throw err;
-            var actual = './test/data/vector_tile/tile0-c.actual.png';
+            //var actual = './test/data/vector_tile/tile0-c.actual.png';
             var expected = './test/data/vector_tile/tile0-c.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
@@ -765,7 +767,7 @@ describe('mapnik.VectorTile ', function() {
         map.loadSync('./test/data/vector_tile/raster_style.xml');
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
             if (err) throw err;
-            var actual = './test/data/vector_tile/tile-raster2.actual.png';
+            //var actual = './test/data/vector_tile/tile-raster2.actual.png';
             var expected = './test/data/vector_tile/tile-raster2.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');

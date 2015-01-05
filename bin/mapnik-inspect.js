@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 var exists = require('fs').existsSync || require('path').existsSync;
 var fs = require('fs');
 
@@ -30,7 +32,7 @@ var meta = function(ds) {
     console.log('extent: ' + ds.extent().toString());
     console.log('First feature --> ');
     console.log(ds.features().slice(0, 1));
-}
+};
 
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});

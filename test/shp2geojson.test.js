@@ -1,3 +1,5 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
@@ -9,12 +11,12 @@ describe('Convert to GeoJSON', function() {
     it('should convert shapefile', function(done) {
         if (process.versions.node.split('.')[1] !== '6') {
             var ds = new mapnik.Datasource({type:'shape',file:'test/data/world_merc.shp'});
-            var featureset = ds.featureset()
+            var featureset = ds.featureset();
             var geojson = {
               "type": "FeatureCollection",
               "features": [
               ]
-            }
+            };
             var feat = featureset.next();
             while (feat) {
                 geojson.features.push(JSON.parse(feat.toJSON()));
@@ -26,7 +28,7 @@ describe('Convert to GeoJSON', function() {
             // https://github.com/mapnik/mapnik/commit/ecc5acbdb953e172fcc652b55ed19b8b581e2146
             fs.writeFileSync(actual,JSON.stringify(geojson,null,2));
             if (process.platform != "win32" && mapnik.versions.mapnik_number >= 200300) {
-                assert.ok(Math.abs(fs.readFileSync(actual).length-fs.readFileSync(expected).length) < 3000)
+                assert.ok(Math.abs(fs.readFileSync(actual).length-fs.readFileSync(expected).length) < 3000);
             }
         }
         done();

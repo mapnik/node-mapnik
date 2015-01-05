@@ -1,12 +1,13 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
-var path = require('path');
 
 describe('mapnik.Image ', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword
-        assert.throws(function() { mapnik.Image(1, 1); });
+        assert.throws(function() { mapnik.Image(1, 1); }); // jshint ignore:line
 
         // invalid args
         assert.throws(function() { new mapnik.Image(); });
@@ -33,7 +34,7 @@ describe('mapnik.Image ', function() {
     it('should throw with invalid binary read from buffer', function() {
         assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(0)); });
         assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
-        var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + Array(48).join('\0'), 'binary');
+        var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
         assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
         buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
         assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
@@ -44,7 +45,7 @@ describe('mapnik.Image ', function() {
         im.encode('foo',function(err) {
             assert.ok(err);
             done();
-        })
+        });
     });
 
     it('should be initialized properly', function() {
@@ -84,8 +85,8 @@ describe('mapnik.Image ', function() {
         // jpeg
         var tmp_filename2 = './test/tmp/image2'+Math.random()+'.jpeg';
         im.save(tmp_filename2);
-        var buffer = fs.readFileSync(tmp_filename2);
-        var im3 = new mapnik.Image.fromBytesSync(buffer);
+        var buffer2 = fs.readFileSync(tmp_filename2);
+        var im3 = new mapnik.Image.fromBytesSync(buffer2);
         assert.ok(im3 instanceof mapnik.Image);
         assert.equal(im3.width(), 256);
         assert.equal(im3.height(), 256);
@@ -218,7 +219,7 @@ describe('mapnik.Image ', function() {
 
     it('should support comparing images', function() {
         // if width/height don't match should throw
-        assert.throws(function() { new mapnik.Image(256, 256).compare(new mapnik.Image(256, 255)) });
+        assert.throws(function() { new mapnik.Image(256, 256).compare(new mapnik.Image(256, 255)); });
         var one = new mapnik.Image(256, 256);
         // two blank images should exactly match
         assert.equal(one.compare(new mapnik.Image(256, 256)),0);
