@@ -1423,7 +1423,7 @@ NAN_METHOD(VectorTile::toJSON)
     NanReturnValue(arr);
 }
 
-static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
+static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                              std::string & result,
                              unsigned x,
                              unsigned y,
@@ -1446,30 +1446,28 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
         q.add_property_name(item.get_name());
     }
     mapnik::featureset_ptr fs = ds.features(q);
-    using sink_type = std::back_insert_iterator<std::string>;
-    static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
-    static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
-    if (fs)
+    if (!fs)
     {
+        return false;
+    }
+    else
+    {
+        using sink_type = std::back_insert_iterator<std::string>;
+        static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
+        static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
         mapnik::feature_ptr feature;
         bool first = true;
         while ((feature = fs->next()))
         {
-            if (first) first = false;
-            else result += ",";
-            result += "{\"type\":\"Feature\",\"properties\":";
-            std::string properties;
-            sink_type sink(properties);
-            if (boost::spirit::karma::generate(sink, prop_grammar, *feature))
+            if (first)
             {
-                result += properties;
+                first = false;
             }
             else
             {
-                std::clog << "Failed to generate GeoJSON properties";
+                result += "\n,";
             }
-
-            result += ",\"geometry\":";
+            result += "{\"type\":\"Feature\",\"geometry\":";
             if (feature->paths().empty())
             {
                 result += "null";
@@ -1489,11 +1487,23 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 }
                 else
                 {
-                    std::clog << "Failed to generate GeoJSON geometry";
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
                 }
+            }
+            result += ",\"properties\":";
+            std::string properties;
+            sink_type sink(properties);
+            if (boost::spirit::karma::generate(sink, prop_grammar, *feature))
+            {
+                result += properties;
+            }
+            else
+            {
+                throw std::runtime_error("Failed to generate GeoJSON properties");
             }
             result += "}";
         }
+        return !first;
     }
 }
 
@@ -1580,13 +1590,13 @@ void handle_to_geojson_args(Local<Value> const& layer_id,
 }
 
 void write_geojson_to_string(std::string & result,
-                             bool all_array,
-                             bool all_flattened,
+                             bool array,
+                             bool all,
                              int layer_idx,
                              VectorTile * v)
 {
     vector_tile::Tile const& tiledata = v->get_tile();
-    if (all_array)
+    if (array)
     {
         unsigned layer_num = tiledata.layers_size();
         result += "[";
@@ -1598,24 +1608,34 @@ void write_geojson_to_string(std::string & result,
             else result += ",";
             result += "{\"type\":\"FeatureCollection\",";
             result += "\"name\":\"" + layer.name() + "\",\"features\":[";
-            layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
+            std::string features;
+            bool hit = layer_to_geojson(layer,features,v->x_,v->y_,v->z_,v->width());
+            if (hit)
+            {
+                result += features;
+            }
             result += "]}";
         }
         result += "]";
     }
     else
     {
-        if (all_flattened)
+        if (all)
         {
             result += "{\"type\":\"FeatureCollection\",\"features\":[";
             bool first = true;
             unsigned layer_num = tiledata.layers_size();
             for (unsigned i=0;i<layer_num;++i)
             {
-                if (first) first = false;
-                else result += ",";
                 vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
+                std::string features;
+                bool hit = layer_to_geojson(layer,features,v->x_,v->y_,v->z_,v->width());
+                if (hit)
+                {
+                    if (first) first = false;
+                    else result += ",";
+                    result += features;
+                }
             }
             result += "]}";
         }
