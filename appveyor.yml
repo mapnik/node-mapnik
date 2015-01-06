@@ -21,7 +21,7 @@ environment:
     msvs_toolset: 14
     BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
 
-os: Visual Studio 2015 Preview
+os: Visual Studio 2014 CTP4
 
 shallow_clone: true
 
@@ -39,8 +39,8 @@ install:
   - SET PATH=C:\Program Files\7-Zip;%PATH%
   - SET ARCHPATH=
   - if %platform% == x64 (SET ARCHPATH=x64/)
-  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-230-g008168f.7z"
-  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-230-g008168f.7z -FileName mapnik-sdk.7z
+  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-242-g2a33ead.7z"
+  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-242-g2a33ead.7z -FileName mapnik-sdk.7z
   - ps: Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
   # install node version per visual studio toolset
