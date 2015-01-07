@@ -45,17 +45,15 @@ before_install:
  - REPUBLISH_BINARY=false
 
 install:
- - if test "${COMMIT_MESSAGE#*'[test binary]'}" != "$COMMIT_MESSAGE"; then npm install --fallback-to-build=false; else ./scripts/build_against_sdk.sh && rm -rf sdk; fi;
+ - if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]]; then npm install --fallback-to-build=false; else ./scripts/build_against_sdk.sh && rm -rf sdk; fi;
  - if [[ ${platform} == 'linux' ]]; then $(which node) ./node_modules/.bin/_mocha --check-leaks --no-exit --no-timeouts --throw-deprecation || dmesg -x; else npm test; fi
 
 before_script:
- - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
- - if test "${COMMIT_MESSAGE#*'[republish binary]'}" != "$COMMIT_MESSAGE"; then REPUBLISH_BINARY=true; fi;
+ - if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]] && [[ ${CXX} =~ "clang" ]]; then PUBLISH_BINARY=true; fi;
+ - if [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]] && [[ ${CXX} =~ "clang" ]]; then REPUBLISH_BINARY=true; fi;
 
 script:
  - node-pre-gyp package testpackage
- - if [[ ${PUBLISH_BINARY} == true ]]; then node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
- - if [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp unpublish && node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
-
-#after_script:
-# - if [[ ${PUBLISH_BINARY} == false ]] && [[ "${platform}" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
+ - if [[ ${PUBLISH_BINARY} == true ]]; then node-pre-gyp publish; fi;
+ - if [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp unpublish && node-pre-gyp publish; fi;
+ - if [[ ${PUBLISH_BINARY} == true ]] || [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
