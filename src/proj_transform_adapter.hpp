@@ -10,7 +10,7 @@
 namespace mapnik {
 
 template <typename Geometry>
-struct proj_transform_adapter : noncopyable
+struct proj_transform_adapter
 {
     using size_type = std::size_t;
     using value_type = typename Geometry::value_type;

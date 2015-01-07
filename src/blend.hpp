@@ -18,7 +18,7 @@
 
 namespace node_mapnik {
 
-struct BImage : mapnik::noncopyable {
+struct BImage {
     BImage() :
         data(NULL),
         dataLength(0),
