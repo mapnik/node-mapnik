@@ -2129,9 +2129,9 @@ void Map::EIO_RenderFile(uv_work_t* req)
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
-                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),closure->output,*closure->palette);
+                mapnik::save_to_file(im.data(),closure->output,*closure->palette);
             } else {
-                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),closure->output);
+                mapnik::save_to_file(im.data(),closure->output);
             }
         }
     }
@@ -2287,10 +2287,10 @@ NAN_METHOD(Map::renderSync)
 
         if (palette.get())
         {
-            s = save_to_string(im, format, *palette);
+            s = save_to_string(im.data(), format, *palette);
         }
         else {
-            s = save_to_string(im, format);
+            s = save_to_string(im.data(), format);
         }
     }
     catch (std::exception const& ex)
@@ -2427,10 +2427,10 @@ NAN_METHOD(Map::renderFileSync)
 
             if (palette.get())
             {
-                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),output,*palette);
+                mapnik::save_to_file(im.data(),output,*palette);
             }
             else {
-                mapnik::save_to_file<mapnik::image_data_rgba8>(im.data(),output);
+                mapnik::save_to_file(im.data(),output);
             }
         }
     }

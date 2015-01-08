@@ -960,10 +960,10 @@ NAN_METHOD(Image::encodeSync)
         std::string s;
         if (palette.get())
         {
-            s = save_to_string(*(im->this_), format, *palette);
+            s = save_to_string(im->this_->data(), format, *palette);
         }
         else {
-            s = save_to_string(*(im->this_), format);
+            s = save_to_string(im->this_->data(), format);
         }
 
         NanReturnValue(NanNewBufferHandle((char*)s.data(), s.size()));
@@ -1058,11 +1058,11 @@ void Image::EIO_Encode(uv_work_t* req)
     try {
         if (closure->palette.get())
         {
-            closure->result = save_to_string(*(closure->im->this_), closure->format, *closure->palette);
+            closure->result = save_to_string(closure->im->this_->data(), closure->format, *closure->palette);
         }
         else
         {
-            closure->result = save_to_string(*(closure->im->this_), closure->format);
+            closure->result = save_to_string(closure->im->this_->data(), closure->format);
         }
     }
     catch (std::exception const& ex)
@@ -1146,7 +1146,7 @@ NAN_METHOD(Image::save)
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     try
     {
-        mapnik::save_to_file<mapnik::image_data_rgba8>(im->get()->data(),filename, format);
+        mapnik::save_to_file(im->get()->data(),filename, format);
     }
     catch (std::exception const& ex)
     {

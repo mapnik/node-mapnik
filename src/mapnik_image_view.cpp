@@ -492,7 +492,7 @@ NAN_METHOD(ImageView::save)
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
     try
     {
-        save_to_file(*im->get(),filename);
+        save_to_file(im->get()->data(),filename);
     }
     catch (std::exception const& ex)
     {
