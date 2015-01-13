@@ -1,6 +1,7 @@
 #include "mapnik3x_compatibility.hpp"
 
 // node-mapnik
+#include "mapnik_request.hpp"
 #include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
@@ -109,6 +110,7 @@ extern "C" {
         NODE_SET_METHOD(target, "shutdown",shutdown);
 
         // Classes
+        Request::Initialize(target);
         VectorTile::Initialize(target);
         Map::Initialize(target);
         Color::Initialize(target);
