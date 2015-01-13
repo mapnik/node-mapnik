@@ -3,6 +3,7 @@
 "use strict";
 
 var exists = require('fs').existsSync || require('path').existsSync;
+
 var fs = require('fs');
 
 var usage = 'usage:';
@@ -23,6 +24,7 @@ if (!exists(obj)) {
 }
 
 var mapnik = require('mapnik');
+mapnik.register_default_input_plugins();
 
 console.log(obj);
 
@@ -30,8 +32,6 @@ var meta = function(ds) {
     console.log('Description -->');
     console.log(ds.describe());
     console.log('extent: ' + ds.extent().toString());
-    console.log('First feature --> ');
-    console.log(ds.features().slice(0, 1));
 };
 
 if (/.shp$/.test(obj)) {
