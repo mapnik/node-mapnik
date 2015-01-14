@@ -71,6 +71,7 @@
         './src',
         "<!(node -e \"require('nan')\")"
       ],
+      'defines': ['MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"'],
       'conditions': [
         ['OS=="win"',
           {

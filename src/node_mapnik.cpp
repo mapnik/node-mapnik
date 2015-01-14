@@ -139,6 +139,7 @@ extern "C" {
         versions->Set(NanNew("boost_number"), NanNew(BOOST_VERSION));
         versions->Set(NanNew("mapnik"), NanNew(format_version(MAPNIK_VERSION).c_str()));
         versions->Set(NanNew("mapnik_number"), NanNew(MAPNIK_VERSION));
+        versions->Set(NanNew("mapnik_git_describe"), NanNew(MAPNIK_GIT_REVISION));
 #if defined(HAVE_CAIRO)
         versions->Set(NanNew("cairo"), NanNew(CAIRO_VERSION_STRING));
 #endif
