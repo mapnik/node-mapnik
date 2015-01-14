@@ -37,7 +37,7 @@ void Color::Initialize(Handle<Object> target) {
 }
 
 Color::Color() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {}
 
 Color::~Color()

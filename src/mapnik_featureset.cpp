@@ -18,7 +18,7 @@ void Featureset::Initialize(Handle<Object> target) {
 }
 
 Featureset::Featureset() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {}
 
 Featureset::~Featureset()

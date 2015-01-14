@@ -40,7 +40,7 @@ void Datasource::Initialize(Handle<Object> target) {
 }
 
 Datasource::Datasource() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     datasource_() {}
 
 Datasource::~Datasource()

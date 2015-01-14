@@ -513,7 +513,7 @@ NAN_METHOD(Blend) {
 
         Local<Value> palette_val = options->Get(NanNew("palette"));
         if (!palette_val.IsEmpty() && palette_val->IsObject()) {
-            baton->palette = ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
+            baton->palette = node::ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
         }
 
         Local<Value> mode_val = options->Get(NanNew("mode"));

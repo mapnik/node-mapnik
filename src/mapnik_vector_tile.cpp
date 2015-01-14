@@ -196,7 +196,7 @@ void VectorTile::Initialize(Handle<Object> target) {
 }
 
 VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     z_(z),
     x_(x),
     y_(y),
@@ -1871,7 +1871,7 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
 NAN_METHOD(VectorTile::addGeoJSON)
 {
     NanScope();
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     if (args.Length() < 1 || !args[0]->IsString()) {
         NanThrowError("first argument must be a GeoJSON string");
         NanReturnUndefined();
@@ -1957,7 +1957,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 NAN_METHOD(VectorTile::addImage)
 {
     NanScope();
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     if (args.Length() < 1 || !args[0]->IsObject()) {
         NanThrowError("first argument must be a Buffer representing encoded image data");
         NanReturnUndefined();

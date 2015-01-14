@@ -36,7 +36,7 @@ void Geometry::Initialize(Handle<Object> target) {
 }
 
 Geometry::Geometry(mapnik::feature_ptr f) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     feat_(f) {}
 
 Geometry::~Geometry()

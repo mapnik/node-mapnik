@@ -41,7 +41,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
 }
 
 MemoryDatasource::MemoryDatasource() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     datasource_(),
     feature_id_(1),
     tr_("utf8") {}

@@ -27,7 +27,7 @@ void Projection::Initialize(Handle<Object> target) {
 }
 
 Projection::Projection(std::string const& name) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     projection_(MAPNIK_MAKE_SHARED<mapnik::projection>(name)) {}
 
 Projection::~Projection()
@@ -200,7 +200,7 @@ void ProjTransform::Initialize(Handle<Object> target) {
 
 ProjTransform::ProjTransform(mapnik::projection const& src,
                              mapnik::projection const& dest) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(MAPNIK_MAKE_SHARED<mapnik::proj_transform>(src,dest)) {}
 
 ProjTransform::~ProjTransform()

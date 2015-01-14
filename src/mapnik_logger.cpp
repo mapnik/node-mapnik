@@ -4,7 +4,7 @@
 
 Persistent<FunctionTemplate> Logger::constructor;
 
-// Sets up everything for the Logger object when the addon is initiatlized
+// Sets up everything for the Logger object when the addon is initialized
 void Logger::Initialize(Handle<Object> target) {
     NanScope();
 
@@ -13,7 +13,6 @@ void Logger::Initialize(Handle<Object> target) {
     lcons->SetClassName(NanNew("Logger"));
 
     // Static methods
-    // Points to function reference of static obejct?
     NODE_SET_METHOD(lcons->GetFunction(), "getSeverity", Logger::get_severity);
     NODE_SET_METHOD(lcons->GetFunction(), "setSeverity", Logger::set_severity);
 

@@ -43,11 +43,11 @@ void Feature::Initialize(Handle<Object> target) {
 }
 
 Feature::Feature(mapnik::feature_ptr f) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(f) {}
 
 Feature::Feature(int id) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {
     // TODO - accept/require context object to reused
     ctx_ = MAPNIK_MAKE_SHARED<mapnik::context_type>();

@@ -42,7 +42,7 @@ void ImageView::Initialize(Handle<Object> target) {
 
 
 ImageView::ImageView(Image * JSImage) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(),
     JSImage_(JSImage) {
         JSImage_->_ref();

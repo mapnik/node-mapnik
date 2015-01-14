@@ -41,15 +41,15 @@ void Layer::Initialize(Handle<Object> target) {
 }
 
 Layer::Layer(std::string const& name):
-    ObjectWrap(),
+    node::ObjectWrap(),
     layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name)) {}
 
 Layer::Layer(std::string const& name, std::string const& srs):
-    ObjectWrap(),
+    node::ObjectWrap(),
     layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name,srs)) {}
 
 Layer::Layer():
-    ObjectWrap(),
+    node::ObjectWrap(),
     layer_() {}
 
 

@@ -18,7 +18,7 @@ void CairoSurface::Initialize(Handle<Object> target) {
 }
 
 CairoSurface::CairoSurface(std::string const& format, unsigned int width, unsigned int height) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     ss_(),
     width_(width),
     height_(height),

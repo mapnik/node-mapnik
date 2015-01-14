@@ -24,10 +24,9 @@ public:
     static NAN_METHOD(set_severity);
     static NAN_METHOD(evoke_error);
 
+private:
     // Default Constructor
     Logger();
-
-private:
     // Deconstructor
     ~Logger();
 };

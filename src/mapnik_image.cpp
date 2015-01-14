@@ -78,7 +78,7 @@ void Image::Initialize(Handle<Object> target) {
 }
 
 Image::Image(unsigned int width, unsigned int height) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(MAPNIK_MAKE_SHARED<mapnik::image_32>(width,height)),
     estimated_size_(width * height * 4)
 {
@@ -86,7 +86,7 @@ Image::Image(unsigned int width, unsigned int height) :
 }
 
 Image::Image(image_ptr _this) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(_this),
     estimated_size_(this_->width() * this_->height() * 4)
 {

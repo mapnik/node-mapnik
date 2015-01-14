@@ -36,7 +36,7 @@ void GridView::Initialize(Handle<Object> target) {
 
 
 GridView::GridView(Grid * JSGrid) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(),
     JSGrid_(JSGrid) {
         JSGrid_->_ref();

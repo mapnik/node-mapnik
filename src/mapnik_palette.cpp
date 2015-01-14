@@ -27,7 +27,7 @@ void Palette::Initialize(Handle<Object> target) {
 }
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     palette_(MAPNIK_MAKE_SHARED<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {

@@ -1,4 +1,4 @@
-#include "mapnik3x_compatibility.hpp"
+ #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_VARIANT_INCLUDE
 
 #include "utils.hpp"
@@ -37,7 +37,7 @@ void Expression::Initialize(Handle<Object> target) {
 }
 
 Expression::Expression() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {}
 
 Expression::~Expression()

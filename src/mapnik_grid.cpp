@@ -43,7 +43,7 @@ void Grid::Initialize(Handle<Object> target) {
 }
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(MAPNIK_MAKE_SHARED<mapnik::grid>(width,height,key,resolution)),
     estimated_size_(width * height) {
     NanAdjustExternalMemory(estimated_size_);

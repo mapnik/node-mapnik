@@ -124,17 +124,17 @@ void Map::Initialize(Handle<Object> target) {
 }
 
 Map::Map(int width, int height) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height)),
     in_use_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
     in_use_(0) {}
 
 Map::Map() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     map_(),
     in_use_(0) {}
 
