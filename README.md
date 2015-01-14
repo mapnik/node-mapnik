@@ -107,6 +107,8 @@ NOTE: Windows binaries for the 3.x series require the Visual C++ Redistributable
   - https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_x64.exe
   - https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_x86.exe
 
+See https://github.com/mapnik/node-mapnik/wiki/WindowsBinaries for more details.
+
 And the 1.x series require the Visual C++ Redistributable Packages for Visual Studio 2013:
 
  - http://www.microsoft.com/en-us/download/details.aspx?id=40784
