@@ -45,6 +45,7 @@ before_install:
  - REPUBLISH_BINARY=false
 
 install:
+ - if [[ "${CXX}" =~ "g++" ]]; then export JOBS=2; fi;
  - if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]]; then npm install --fallback-to-build=false; else ./scripts/build_against_sdk.sh && rm -rf sdk; fi;
  - if [[ ${platform} == 'linux' ]]; then $(which node) ./node_modules/.bin/_mocha --check-leaks --no-exit --no-timeouts --throw-deprecation || dmesg -x; else npm test; fi
 
