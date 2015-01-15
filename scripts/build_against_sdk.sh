@@ -60,8 +60,6 @@ function upgrade_compiler {
         sudo apt-get install -y clang-${CLANG_VERSION}
     else
         sudo apt-get install -y gcc-4.8 g++-4.8
-        export CC="gcc-4.8"
-        export CXX="g++-4.8"
     fi
     echo "installing C++11 compiler"
     if [[ ${LTO:-false} != false ]]; then
@@ -100,6 +98,9 @@ function upgrade_compiler {
             export CC="/usr/bin/clang"
             export CXX="/usr/bin/clang++"
         fi
+    else
+        export CC="gcc-4.8"
+        export CXX="g++-4.8"
     fi
 }
 
