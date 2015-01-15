@@ -21,7 +21,7 @@ if [[ ${1:-false} != false ]]; then
     ARGS=$1
 fi
 
-function upgrade_clang {
+function upgrade_compiler {
     CLANG_VERSION="3.5"
     if [[ $(lsb_release --id) =~ "Ubuntu" ]]; then
         echo "adding clang + gcc-4.8 ppa"
@@ -54,9 +54,15 @@ function upgrade_clang {
     wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
     echo "updating apt"
     sudo apt-get update -y
-    echo "installing clang-${CLANG_VERSION}"
-    apt-cache policy clang-${CLANG_VERSION}
-    sudo apt-get install -y clang-${CLANG_VERSION}
+    if [[ "$CXX" != "g++" ]]; then
+        echo "installing clang-${CLANG_VERSION}"
+        apt-cache policy clang-${CLANG_VERSION}
+        sudo apt-get install -y clang-${CLANG_VERSION}
+    else
+        sudo apt-get install -y gcc-4.8 g++-4.8
+        export CC="gcc-4.8"
+        export CXX="g++-4.8"
+    fi
     echo "installing C++11 compiler"
     if [[ ${LTO:-false} != false ]]; then
         echo "upgrading binutils-gold"
@@ -76,22 +82,24 @@ function upgrade_clang {
         #sudo rm /usr/bin/ld
         #sudo ln -s /usr/bin/ld.gold /usr/bin/ld
     fi
-    # for bjam since it can't find a custom named clang-3.4
-    if [[ ! -h "/usr/bin/clang" ]] && [[ ! -f "/usr/bin/clang" ]]; then
-        echo "symlinking /usr/bin/clang-${CLANG_VERSION}"
-        sudo ln -s /usr/bin/clang-${CLANG_VERSION} /usr/bin/clang
-    fi
-    if [[ ! -h "/usr/bin/clang++" ]] && [[ ! -f "/usr/bin/clang++" ]]; then
-        echo "symlinking /usr/bin/clang++-${CLANG_VERSION}"
-        sudo ln -s /usr/bin/clang++-${CLANG_VERSION} /usr/bin/clang++
-    fi
-    # prefer upgraded clang
-    if [[ -f "/usr/bin/clang++-${CLANG_VERSION}" ]]; then
-        export CC="/usr/bin/clang-${CLANG_VERSION}"
-        export CXX="/usr/bin/clang++-${CLANG_VERSION}"
-    else
-        export CC="/usr/bin/clang"
-        export CXX="/usr/bin/clang++"
+    if [[ "$CXX" != "g++" ]]; then
+        # for bjam since it can't find a custom named clang-3.4
+        if [[ ! -h "/usr/bin/clang" ]] && [[ ! -f "/usr/bin/clang" ]]; then
+            echo "symlinking /usr/bin/clang-${CLANG_VERSION}"
+            sudo ln -s /usr/bin/clang-${CLANG_VERSION} /usr/bin/clang
+        fi
+        if [[ ! -h "/usr/bin/clang++" ]] && [[ ! -f "/usr/bin/clang++" ]]; then
+            echo "symlinking /usr/bin/clang++-${CLANG_VERSION}"
+            sudo ln -s /usr/bin/clang++-${CLANG_VERSION} /usr/bin/clang++
+        fi
+        # prefer upgraded clang
+        if [[ -f "/usr/bin/clang++-${CLANG_VERSION}" ]]; then
+            export CC="/usr/bin/clang-${CLANG_VERSION}"
+            export CXX="/usr/bin/clang++-${CLANG_VERSION}"
+        else
+            export CC="/usr/bin/clang"
+            export CXX="/usr/bin/clang++"
+        fi
     fi
 }
 
@@ -100,7 +108,7 @@ SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
-    upgrade_clang
+    upgrade_compiler
     TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-276-g8063fa0"
 fi
 
