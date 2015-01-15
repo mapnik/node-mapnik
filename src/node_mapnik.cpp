@@ -44,20 +44,6 @@ namespace node_mapnik {
 using namespace node;
 using namespace v8;
 
-/**
- * Optional notification that the embedder is idle.
- * V8 uses the notification to reduce memory footprint.
- * This call can be used repeatedly if the embedder remains idle.
- * Returns true if the embedder should stop calling IdleNotification
- * until real work has been done.  This indicates that V8 has done
- * as much cleanup as it will be able to do.
- */
-static NAN_METHOD(gc)
-{
-    NanScope();
-    NanReturnValue(NanNew(V8::IdleNotification()));
-}
-
 static std::string format_version(int version)
 {
     std::ostringstream s;
@@ -105,7 +91,6 @@ extern "C" {
         NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
         NODE_SET_METHOD(target, "memoryFonts", node_mapnik::memory_fonts);
         NODE_SET_METHOD(target, "clearCache", clearCache);
-        NODE_SET_METHOD(target, "gc", gc);
         NODE_SET_METHOD(target, "shutdown",shutdown);
 
         // Classes

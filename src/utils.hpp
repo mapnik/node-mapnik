@@ -32,15 +32,11 @@
 
 #define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
     (target)->Set(NanNew(name),                                         \
-                  NanNew<Integer>(constant),                            \
-                  static_cast<v8::PropertyAttribute>(                   \
-                      v8::ReadOnly|v8::DontDelete));
+                  NanNew<Integer>(constant));                            \
 
 #define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)      \
     (target)->Set(NanNew(name),                                         \
-                  NanNew<Number>(constant),                             \
-                  static_cast<v8::PropertyAttribute>(                   \
-                      v8::ReadOnly|v8::DontDelete));
+                  NanNew<Number>(constant));                            \
 
 
 using namespace v8;

@@ -65,14 +65,12 @@ NAN_METHOD(Datasource::New)
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("raster"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("raster"));
         }
         else
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("vector"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("vector"));
         }
         d->Wrap(args.This());
         NanReturnValue(args.This());
@@ -119,14 +117,12 @@ NAN_METHOD(Datasource::New)
         if (ds->type() == mapnik::datasource::Raster)
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("raster"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("raster"));
         }
         else
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("vector"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("vector"));
         }
         Datasource* d = new Datasource();
         d->Wrap(args.This());
