@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.1.4
+
+ - Fixed bugs in `VectorTile.toGeoJSON` to ensure properly formatted JSON output.
+ - Cleanup of Javascript code and tests using JSLint.
+ - Added preliminary support for building against Nan v1.5.0 and IO.js v1.0.1 (but still using Nan v1.4.1 for the time being)
+ - Added `mapnik.versions.mapnik_git_describe` to get access to the git details of the Mapnik version node-mapnik was built against.
+ - Fixed `mapnik-inspect.js` script.
+ - Binaries updated to use Mapnik v3.x (master branch) at 8063fa0 and mapnik-packaging@0cc6382
+
+Notable changes in the Mapnik SDK include:
+ - Changes: https://github.com/mapnik/mapnik/compare/1faaf595...8063fa0
+ - Fixed marker properties to not override svg `fill:none` or `stroke:none`, which avoids unintended colorization of svg symbols
+ - Added support for `text-transform:reverse`
+ - Fixed utf8 output in json properties grammar
+ - Upgraded to latest [Mapbox Variant](https://github.com/mapbox/variant)
+
 ## 3.1.3
 
  - Now vt.composite `buffer-size` defaults to `1` instead of `256` and `tolerance` defaults to `8` instead of `1`.
