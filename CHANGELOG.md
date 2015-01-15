@@ -15,6 +15,10 @@ Notable changes in the Mapnik SDK include:
  - Added support for `text-transform:reverse`
  - Fixed utf8 output in json properties grammar
  - Upgraded to latest [Mapbox Variant](https://github.com/mapbox/variant)
+ - Upgrade freetype 2.5.4 -> 2.5.5
+ - Upgrade libpng 1.6.15 -> 1.6.16
+ - Upgrade cairo 1.12.16 -> 1.12.18
+ - Still pinned to harfbuzz 7d5e7613ced3dd39d05df83c
 
 ## 3.1.3
 
