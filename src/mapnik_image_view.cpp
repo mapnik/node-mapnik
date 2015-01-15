@@ -76,7 +76,7 @@ NAN_METHOD(ImageView::New)
     NanReturnUndefined();
 }
 
-Handle<Value> ImageView::New(Image * JSImage ,
+Handle<Value> ImageView::NewInstance(Image * JSImage ,
                              unsigned x,
                              unsigned y,
                              unsigned w,
@@ -253,7 +253,7 @@ NAN_METHOD(ImageView::getPixel)
         unsigned g = (pixel >> 8) & 0xff;
         unsigned b = (pixel >> 16) & 0xff;
         unsigned a = (pixel >> 24) & 0xff;
-        NanReturnValue(Color::New(mapnik::color(r,g,b,a)));
+        NanReturnValue(Color::NewInstance(mapnik::color(r,g,b,a)));
     }
     NanReturnUndefined();
 }

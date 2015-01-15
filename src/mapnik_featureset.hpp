@@ -18,7 +18,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(mapnik::featureset_ptr fs_ptr);
+    static Handle<Value> NewInstance(mapnik::featureset_ptr fs_ptr);
     static NAN_METHOD(next);
 
     Featureset();

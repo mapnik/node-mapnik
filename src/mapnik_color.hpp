@@ -21,7 +21,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(mapnik::color const& color);
+    static Handle<Value> NewInstance(mapnik::color const& color);
     static NAN_METHOD(toString);
     static NAN_METHOD(hex);
 

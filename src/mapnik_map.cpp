@@ -256,7 +256,7 @@ NAN_GETTER(Map::get_prop)
     else if (a == "background") {
         boost::optional<mapnik::color> c = m->map_->background();
         if (c)
-            NanReturnValue(Color::New(*c));
+            NanReturnValue(Color::NewInstance(*c));
         else
             NanReturnUndefined();
     }
@@ -752,7 +752,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
             {
                 Local<Object> obj = NanNew<Object>();
                 obj->Set(NanNew("layer"), NanNew(it->first.c_str()));
-                obj->Set(NanNew("featureset"), Featureset::New(it->second));
+                obj->Set(NanNew("featureset"), Featureset::NewInstance(it->second));
                 a->Set(idx, obj);
                 ++idx;
             }
@@ -780,7 +780,7 @@ NAN_METHOD(Map::layers)
     Local<Array> a = NanNew<Array>(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
     {
-        a->Set(i, Layer::New(layers[i]));
+        a->Set(i, Layer::NewInstance(layers[i]));
     }
     NanReturnValue(a);
 }
@@ -823,7 +823,7 @@ NAN_METHOD(Map::get_layer)
 
         if (index < layers.size())
         {
-            NanReturnValue(Layer::New(layers[index]));
+            NanReturnValue(Layer::NewInstance(layers[index]));
         }
         else
         {
@@ -841,7 +841,7 @@ NAN_METHOD(Map::get_layer)
             if (lyr.name() == layer_name)
             {
                 found = true;
-                NanReturnValue(Layer::New(layers[idx]));
+                NanReturnValue(Layer::NewInstance(layers[idx]));
             }
             ++idx;
         }

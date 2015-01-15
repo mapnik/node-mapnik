@@ -67,13 +67,13 @@ NAN_METHOD(Featureset::next)
         }
 
         if (fp) {
-            NanReturnValue(Feature::New(fp));
+            NanReturnValue(Feature::NewInstance(fp));
         }
     }
     NanReturnUndefined();
 }
 
-Handle<Value> Featureset::New(mapnik::featureset_ptr fs_ptr)
+Handle<Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
 {
     NanEscapableScope();
     Featureset* fs = new Featureset();

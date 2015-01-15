@@ -22,7 +22,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(mapnik::feature_ptr f_ptr);
+    static Handle<Value> NewInstance(mapnik::feature_ptr f_ptr);
     static NAN_METHOD(fromJSON);
     static NAN_METHOD(id);
     static NAN_METHOD(extent);

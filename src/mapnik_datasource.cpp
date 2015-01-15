@@ -136,7 +136,7 @@ NAN_METHOD(Datasource::New)
     NanReturnUndefined();
 }
 
-Handle<Value> Datasource::New(mapnik::datasource_ptr ds_ptr) {
+Handle<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     NanEscapableScope();
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
@@ -232,7 +232,7 @@ NAN_METHOD(Datasource::featureset)
 
     if (fs)
     {
-        NanReturnValue(Featureset::New(fs));
+        NanReturnValue(Featureset::NewInstance(fs));
     }
 
     NanReturnUndefined();

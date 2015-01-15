@@ -297,7 +297,7 @@ NAN_METHOD(Grid::view)
     unsigned h = args[3]->IntegerValue();
 
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-    NanReturnValue(GridView::New(g,x,y,w,h));
+    NanReturnValue(GridView::NewInstance(g,x,y,w,h));
 }
 
 NAN_METHOD(Grid::encodeSync) // format, resolution
@@ -388,7 +388,7 @@ NAN_METHOD(Grid::encodeSync) // format, resolution
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, NanNew(line.get(),array_size));
+            grid_array->Set(j, NanNew<String>(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);
@@ -549,7 +549,7 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, NanNew(line.get(),array_size));
+            grid_array->Set(j, NanNew<String>(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);

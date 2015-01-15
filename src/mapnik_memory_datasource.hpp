@@ -17,7 +17,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(mapnik::datasource_ptr ds_ptr);
+    static Handle<Value> NewInstance(mapnik::datasource_ptr ds_ptr);
     static NAN_METHOD(parameters);
     static NAN_METHOD(describe);
     static NAN_METHOD(features);

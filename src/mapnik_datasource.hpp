@@ -21,7 +21,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(datasource_ptr ds_ptr);
+    static Handle<Value> NewInstance(datasource_ptr ds_ptr);
 
     static NAN_METHOD(parameters);
     static NAN_METHOD(describe);

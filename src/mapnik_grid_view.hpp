@@ -20,7 +20,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(Grid * JSGrid,
+    static Handle<Value> NewInstance(Grid * JSGrid,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);

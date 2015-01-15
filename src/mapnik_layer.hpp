@@ -23,7 +23,7 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
-    static Handle<Value> New(mapnik::layer const& lay_ref);
+    static Handle<Value> NewInstance(mapnik::layer const& lay_ref);
     static NAN_METHOD(describe);
 
     static NAN_GETTER(get_prop);

@@ -118,7 +118,7 @@ static void write_features(T const& grid_type,
         {
             if (attr == "__id__")
             {
-                feat->Set(NanNew(attr.c_str()), NanNew<Integer>(feature->id()));
+                feat->Set(NanNew(attr.c_str()), NanNew<Number>(feature->id()));
             }
             else if (feature->has_key(attr))
             {

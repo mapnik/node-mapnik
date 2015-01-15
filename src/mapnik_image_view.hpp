@@ -22,7 +22,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(Image * JSImage,
+    static Handle<Value> NewInstance(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);

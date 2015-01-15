@@ -113,7 +113,7 @@ NAN_METHOD(Color::New)
     NanReturnUndefined();
 }
 
-Handle<Value> Color::New(mapnik::color const& color) {
+Handle<Value> Color::NewInstance(mapnik::color const& color) {
     NanEscapableScope();
     Color* c = new Color();
     c->this_ = MAPNIK_MAKE_SHARED<mapnik::color>(color);

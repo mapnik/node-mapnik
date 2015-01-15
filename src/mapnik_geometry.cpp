@@ -62,7 +62,7 @@ NAN_METHOD(Geometry::New)
     NanReturnValue(args.This());
 }
 
-Handle<Value> Geometry::New(mapnik::feature_ptr f) {
+Handle<Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     NanEscapableScope();
     Geometry* g = new Geometry(f);
     Handle<Value> ext = NanNew<External>(g);

@@ -107,7 +107,7 @@ NAN_METHOD(Feature::fromJSON)
     NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
-Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
+Handle<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
 {
     NanEscapableScope();
     Feature* f = new Feature(f_ptr);
@@ -162,7 +162,7 @@ NAN_METHOD(Feature::geometry)
 {
     NanScope();
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    NanReturnValue(Geometry::New(fp->get()));
+    NanReturnValue(Geometry::NewInstance(fp->get()));
 }
 
 NAN_METHOD(Feature::toJSON)

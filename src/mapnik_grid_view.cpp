@@ -71,7 +71,7 @@ NAN_METHOD(GridView::New)
     NanReturnUndefined();
 }
 
-Handle<Value> GridView::New(Grid * JSGrid,
+Handle<Value> GridView::NewInstance(Grid * JSGrid,
                             unsigned x,
                             unsigned y,
                             unsigned w,
@@ -346,7 +346,7 @@ NAN_METHOD(GridView::encodeSync)
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, NanNew(line.get(),array_size));
+            grid_array->Set(j, NanNew<String>(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);
@@ -509,7 +509,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, NanNew(line.get(),array_size));
+            grid_array->Set(j, NanNew<String>(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);

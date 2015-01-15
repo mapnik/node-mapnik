@@ -100,7 +100,7 @@ NAN_METHOD(MemoryDatasource::New)
     NanReturnValue(args.This());
 }
 
-Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
+Handle<Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     NanEscapableScope();
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
@@ -167,7 +167,7 @@ NAN_METHOD(MemoryDatasource::featureset)
             mapnik::featureset_ptr fs = d->datasource_->features(q);
             if (fs)
             {
-                NanReturnValue(Featureset::New(fs));
+                NanReturnValue(Featureset::NewInstance(fs));
             }
         }
     }

@@ -102,7 +102,7 @@ NAN_METHOD(Layer::New)
     NanReturnValue(args.This());
 }
 
-Handle<Value> Layer::New(mapnik::layer const& lay_ref) {
+Handle<Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     NanEscapableScope();
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
@@ -134,7 +134,7 @@ NAN_GETTER(Layer::get_prop)
         mapnik::datasource_ptr ds = l->layer_->datasource();
         if (ds)
         {
-            NanReturnValue(Datasource::New(ds));
+            NanReturnValue(Datasource::NewInstance(ds));
         }
     }
     NanReturnUndefined();

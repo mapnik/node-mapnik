@@ -151,7 +151,7 @@ NAN_GETTER(Image::get_prop)
     if (a == "background") {
         boost::optional<mapnik::color> c = im->get()->get_background();
         if (c) {
-            NanReturnValue(Color::New(*c));
+            NanReturnValue(Color::NewInstance(*c));
         } else {
             NanReturnUndefined();
         }
@@ -211,7 +211,7 @@ NAN_METHOD(Image::getPixel)
         unsigned g = (pixel >> 8) & 0xff;
         unsigned b = (pixel >> 16) & 0xff;
         unsigned a = (pixel >> 24) & 0xff;
-        NanReturnValue(Color::New(mapnik::color(r,g,b,a)));
+        NanReturnValue(Color::NewInstance(mapnik::color(r,g,b,a)));
     }
     NanReturnUndefined();
 }
@@ -1109,7 +1109,7 @@ NAN_METHOD(Image::view)
     unsigned h = args[3]->IntegerValue();
 
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    NanReturnValue(ImageView::New(im,x,y,w,h));
+    NanReturnValue(ImageView::NewInstance(im,x,y,w,h));
 }
 
 NAN_METHOD(Image::save)
