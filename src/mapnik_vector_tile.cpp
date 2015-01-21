@@ -2153,6 +2153,12 @@ NAN_METHOD(VectorTile::getData)
         // shortcut: return raw data and avoid trip through proto object
         std::size_t raw_size = d->buffer_.size();
         if (raw_size > 0 && (d->byte_size_ < 0 || static_cast<std::size_t>(d->byte_size_) <= raw_size)) {
+            if (raw_size >= node::Buffer::kMaxLength) {
+                std::ostringstream s;
+                s << "Data is too large to convert to a node::Buffer ";
+                s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
+                throw std::runtime_error(s.str());
+            }
             NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         } else {
             if (d->byte_size_ <= 0) {
@@ -2162,15 +2168,20 @@ NAN_METHOD(VectorTile::getData)
                 // after each modification of tiledata otherwise the
                 // SerializeWithCachedSizesToArray will throw:
                 // Error: CHECK failed: !coded_out.HadError()
-                vector_tile::Tile const& tiledata = d->get_tile();
+                if (static_cast<std::size_t>(d->byte_size_) >= node::Buffer::kMaxLength) {
+                    std::ostringstream s;
+                    s << "Data is too large to convert to a node::Buffer ";
+                    s << "(" << d->byte_size_ << " cached bytes >= node::Buffer::kMaxLength)";
+                    throw std::runtime_error(s.str());
+                }
                 Local<Object> retbuf = NanNewBufferHandle(d->byte_size_);
                 // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
                 // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
                 google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
+                vector_tile::Tile const& tiledata = d->get_tile();
                 google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
                 if (end - start != d->byte_size_) {
-                    NanThrowError("serialization failed, possible race condition");
-                    NanReturnUndefined();
+                    throw std::runtime_error("serialization failed, possible race condition");
                 }
                 NanReturnValue(retbuf);
             }

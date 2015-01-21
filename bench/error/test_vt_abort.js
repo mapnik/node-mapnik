@@ -25,6 +25,10 @@ try {
     FATAL ERROR: v8::Object::SetIndexedPropertiesToExternalArrayData() length exceeds max acceptable value
     Abort trap: 6
 
+    Also on linux the error may be:
+
+    node: ../src/node_buffer.cc:181: v8::Local<v8::Object> node::Buffer::New(node::Environment*, const char*, size_t): Assertion `length <= kMaxLength' failed.
+
     more details https://github.com/mapnik/node-mapnik/issues/370
 
     */
