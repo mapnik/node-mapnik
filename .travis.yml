@@ -58,3 +58,4 @@ script:
  - if [[ ${PUBLISH_BINARY} == true ]]; then node-pre-gyp publish; fi;
  - if [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp unpublish && node-pre-gyp publish; fi;
  - if [[ ${PUBLISH_BINARY} == true ]] || [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
+ - node bench/error/test_vt_abort.js
