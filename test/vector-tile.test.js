@@ -30,7 +30,7 @@ describe('mapnik.VectorTile ', function() {
             map.loadSync('./test/data/vector_tile/layers.xml');
             var vtile = new mapnik.VectorTile(9,112,195);
             _vtile = vtile;
-                map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
+            map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
             map.render(vtile,{},function(err,vtile) {
                 if (err) throw err;
                 fs.writeFileSync('./test/data/vector_tile/tile1.vector.pbf',vtile.getData());
