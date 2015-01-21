@@ -18,12 +18,14 @@ try {
 
     /*
 
-    Goal here is to protect against the below abort and instead have node-mapnik throw
+    Goal here is to protect against the below abort and instead have node-mapnik throw.
 
-    https://github.com/mapnik/node-mapnik/issues/370
+    Note: this abort appeared when https://github.com/mapnik/node-mapnik/issues/371 was fixed.
 
     FATAL ERROR: v8::Object::SetIndexedPropertiesToExternalArrayData() length exceeds max acceptable value
     Abort trap: 6
+
+    more details https://github.com/mapnik/node-mapnik/issues/370
 
     */
 

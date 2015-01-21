@@ -2151,9 +2151,8 @@ NAN_METHOD(VectorTile::getData)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     try {
         // shortcut: return raw data and avoid trip through proto object
-        // TODO  - safe for null string?
-        int raw_size = static_cast<int>(d->buffer_.size());
-        if (raw_size > 0 && d->byte_size_ <= raw_size) {
+        std::size_t raw_size = d->buffer_.size();
+        if (raw_size > 0 && (d->byte_size_ < 0 || static_cast<std::size_t>(d->byte_size_) <= raw_size)) {
             NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         } else {
             if (d->byte_size_ <= 0) {
