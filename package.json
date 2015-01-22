@@ -55,7 +55,7 @@
   "engineStrict": true,
   "scripts"       : {
       "prepublish" : "npm ls",
-      "test"    : "jshint */*.js && mocha -R spec --timeout 50000",
+      "test"    : "mocha -R spec --timeout 50000",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
