@@ -61,7 +61,11 @@
               "/MP", # compile across multiple CPUs
               "/bigobj", #compiling: x86 fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj
             ],
-          }
+          },
+          'VCLinkerTool': {
+            'ProgramDatabaseFile': '$(OutDir)$(TargetName)$(TargetExt).pdb', #avoid naming conflict with pdb for mapnik.lib and mapnik.dll
+          }          
+
         }
       }
     }
