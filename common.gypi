@@ -53,7 +53,7 @@
         },
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'DebugInformationFormat': '1', # 0:off, 1:/Z7(embedded), 2:not avail, 3:/Zi(pdb-file), 4:/ZI(edit and continue)
+            'DebugInformationFormat': '3', # 0:off, 1:/Z7(embedded), 2:not avail, 3:/Zi(pdb-file), 4:/ZI(edit and continue)
             'ExceptionHandling': 1, # /EHsc
             'RuntimeTypeInfo': 'true', # /GR
             'RuntimeLibrary': '2', # /MD
