@@ -20,7 +20,7 @@
 #include <mapnik/geom_util.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/request.hpp>
-#include <mapnik/graphics.hpp>
+#include <mapnik/image_any.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/featureset.hpp>
@@ -2545,6 +2545,49 @@ template <typename Renderer> void process_layers(Renderer & ren,
         }
     }
 }
+struct agg_renderer_visitor
+{
+    agg_renderer_visitor(mapnik::Map const& m, 
+                         mapnik::request const& req, 
+                         vector_tile_render_baton_t * closure,
+                         mapnik::projection & map_proj,
+                         std::vector<mapnik::layer> const& layers,
+                         vector_tile::Tile const& tiledata,
+                         double scale_denominator)
+        : m_(m),
+          req_(req),
+          closure_(closure),
+          map_proj_(map_proj),
+          layers_(layers),
+          tiledata_(tiledata),
+          scale_denominator_(scale_denominator) {}
+
+    void operator() (mapnik::image_rgba8 & pixmap)
+    {
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_,req_,
+                                                closure_->variables,
+                                                pixmap,closure_->scale_factor);
+        ren.start_map_processing(m_);
+        process_layers(ren,req_,map_proj_,layers_,scale_denominator_,tiledata_,closure_);
+        ren.end_map_processing(m_);
+    }
+    
+    template <typename T>
+    void operator() (T &)
+    {
+        throw std::runtime_error("This image type is not currently supported for rendering.");
+    }
+
+  private:
+    mapnik::Map const& m_;
+    mapnik::request const& req_;
+    vector_tile_render_baton_t * closure_;
+    mapnik::projection & map_proj_;
+    std::vector<mapnik::layer> const& layers_;
+    vector_tile::Tile const& tiledata_;
+    double scale_denominator_;
+};
+
 void VectorTile::EIO_RenderTile(uv_work_t* req)
 {
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
@@ -2686,12 +2729,14 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         // render all layers with agg
         else
         {
-            mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,
-                                                    closure->variables,
-                                                    *closure->im->get(),closure->scale_factor);
-            ren.start_map_processing(map_in);
-            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
-            ren.end_map_processing(map_in);
+            agg_renderer_visitor visit(map_in, 
+                                       m_req, 
+                                       closure,
+                                       map_proj,
+                                       layers,
+                                       tiledata,
+                                       scale_denom);
+            mapnik::util::apply_visitor(visit, *closure->im->get());
         }
     }
     catch (std::exception const& ex)

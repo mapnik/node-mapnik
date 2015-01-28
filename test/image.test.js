@@ -119,13 +119,11 @@ describe('mapnik.Image ', function() {
     it('should not be painted after rendering', function(done) {
         var im_blank = new mapnik.Image(4, 4);
         assert.equal(im_blank.painted(), false);
-        assert.equal(im_blank.background, undefined);
 
         var m = new mapnik.Map(4, 4);
 
         m.render(im_blank, {},function(err,im_blank) {
             assert.equal(im_blank.painted(), false);
-            assert.equal(im_blank.background, undefined);
             done();
         });
     });
@@ -133,14 +131,13 @@ describe('mapnik.Image ', function() {
     it('should have background set after rendering', function(done) {
         var im_blank2 = new mapnik.Image(4, 4);
         assert.equal(im_blank2.painted(), false);
-        assert.equal(im_blank2.background, undefined);
 
         var m2 = new mapnik.Map(4, 4);
 
         m2.background = new mapnik.Color('green');
         m2.render(im_blank2, {},function(err,im_blank2) {
             assert.equal(im_blank2.painted(), false);
-            assert.ok(im_blank2.background);
+            assert.equal(im_blank2.getPixel(0,0).g, 128);
             done();
         });
     });
@@ -149,7 +146,6 @@ describe('mapnik.Image ', function() {
 
         var im_blank3 = new mapnik.Image(4, 4);
         assert.equal(im_blank3.painted(), false);
-        assert.equal(im_blank3.background, undefined);
 
         var m3 = new mapnik.Map(4, 4);
         var s = '<Map>';
@@ -174,14 +170,13 @@ describe('mapnik.Image ', function() {
         m3.zoomAll();
         m3.render(im_blank3, {},function(err,im_blank3) {
             assert.equal(im_blank3.painted(), true);
-            assert.equal(im_blank3.background, undefined);
             done();
         });
     });
 
     it('should support setting the alpha channel based on the amount of gray', function() {
         var gray = new mapnik.Image(256, 256);
-        gray.background = new mapnik.Color('white');
+        gray.background(new mapnik.Color('white'));
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
         assert.equal(gray_view.isSolidSync(), true);
@@ -191,7 +186,7 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel.b, 255);
         assert.equal(pixel.a, 255);
 
-        gray.background = new mapnik.Color('black');
+        gray.background(new mapnik.Color('black'));
         gray.setGrayScaleToAlpha();
         var pixel2 = gray.getPixel(0, 0);
         assert.equal(pixel2.r, 255);
@@ -227,12 +222,12 @@ describe('mapnik.Image ', function() {
         one.setPixel(0,0,new mapnik.Color('white'));
         assert.equal(one.compare(new mapnik.Image(256, 256)),1);
         // here we set all pixels to be different
-        one.background = new mapnik.Color('white');
+        one.background(new mapnik.Color('white'));
         assert.equal(one.compare(new mapnik.Image(256, 256)),one.width()*one.height());
         // now lets test comparing just rgb and not alpha
         var two = new mapnik.Image(256, 256);
         // white image but fully alpha
-        two.background = new mapnik.Color('rgba(255,255,255,0)');
+        two.background(new mapnik.Color('rgba(255,255,255,0)'));
         // if we consider alpha all pixels should be different
         assert.equal(one.compare(two),one.width()*one.height());
         // but ignoring alpha all pixels should pass as the same
@@ -250,7 +245,7 @@ describe('mapnik.Image ', function() {
 
     it('should be able to open and save jpeg', function(done) {
         var im = new mapnik.Image(10,10);
-        im.background = new mapnik.Color('green');
+        im.background(new mapnik.Color('green'));
         var filename = './test/data/images/10x10.jpeg';
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
@@ -271,7 +266,7 @@ describe('mapnik.Image ', function() {
 
     it('should be able to open and save tiff', function(done) {
         var im = new mapnik.Image(10,10);
-        im.background = new mapnik.Color('green');
+        im.background(new mapnik.Color('green'));
         var filename = './test/data/images/10x10.tiff';
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
@@ -293,7 +288,7 @@ describe('mapnik.Image ', function() {
     if (mapnik.versions.mapnik_number >= 200300) {
         it('should be able to open and save webp', function(done) {
             var im = new mapnik.Image(10,10);
-            im.background = new mapnik.Color('green');
+            im.background(new mapnik.Color('green'));
             var filename = './test/data/images/10x10.webp';
             // sync open
             assert.equal(0,im.compare(new mapnik.Image.open(filename)));

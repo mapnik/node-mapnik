@@ -27,6 +27,8 @@ public:
 
     static NAN_GETTER(get_prop);
     static NAN_SETTER(set_prop);
+    static NAN_GETTER(get_premultiplied);
+    static NAN_SETTER(set_premultiplied);
     Color();
     inline color_ptr get() { return this_; }
 

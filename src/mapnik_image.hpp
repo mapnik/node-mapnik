@@ -11,9 +11,12 @@
 
 using namespace v8;
 
-namespace mapnik { class image_32; }
+namespace mapnik { 
+    struct image_any; 
+    enum image_dtype : std::uint8_t;
+}
 
-typedef MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr;
+typedef MAPNIK_SHARED_PTR<mapnik::image_any> image_ptr;
 
 class Image: public node::ObjectWrap {
 public:
@@ -45,6 +48,11 @@ public:
     static NAN_METHOD(save);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
+    static Local<Value> _backgroundSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(backgroundSync);
+    static NAN_METHOD(background);
+    static void EIO_Background(uv_work_t* req);
+    static void EIO_AfterBackground(uv_work_t* req);
     static Local<Value> _premultiplySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(premultiplySync);
     static NAN_METHOD(premultiply);
@@ -62,20 +70,24 @@ public:
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
     static NAN_METHOD(compare);
+    static NAN_METHOD(isSolid);
+    static void EIO_IsSolid(uv_work_t* req);
+    static void EIO_AfterIsSolid(uv_work_t* req);
+    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(isSolidSync);
 
-    static NAN_GETTER(get_prop);
-    static NAN_SETTER(set_prop);
+    //static NAN_GETTER(get_prop);
+    //static NAN_SETTER(set_prop);
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
-    Image(unsigned int width, unsigned int height);
+    Image(unsigned int width, unsigned int height, mapnik::image_dtype type, bool initialized, bool premultiplied, bool painted);
     Image(image_ptr this_);
     inline image_ptr get() { return this_; }
 
 private:
     ~Image();
     image_ptr this_;
-    int estimated_size_;
 };
 
 #endif

@@ -1,4 +1,4 @@
-#include <mapnik/image_data.hpp>
+#include <mapnik/image.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/image_reader.hpp>
 
@@ -241,7 +241,7 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
     }
 }
 
-static void Blend_Encode(mapnik::image_data_rgba8 const& image, BlendBaton* baton, bool alpha) {
+static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bool alpha) {
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
 #if defined(HAVE_JPEG)
@@ -358,7 +358,7 @@ void Work_Blend(uv_work_t* req) {
         }
 
         // allocate image for decoded pixels
-        MAPNIK_UNIQUE_PTR<mapnik::image_data_rgba8> im_ptr(new mapnik::image_data_rgba8(layer_width,layer_height));
+        MAPNIK_UNIQUE_PTR<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
         // actually decode pixels now
         try {
             image_reader->read(0,0,*im_ptr);
@@ -391,7 +391,7 @@ void Work_Blend(uv_work_t* req) {
         return;
     }
 
-    mapnik::image_data_rgba8 target(baton->width, baton->height);
+    mapnik::image_rgba8 target(baton->width, baton->height);
     // When we don't actually have transparent pixels, we don't need to set the matte.
     if (alpha) target.set(baton->matte);
 
