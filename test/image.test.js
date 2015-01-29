@@ -176,7 +176,7 @@ describe('mapnik.Image ', function() {
 
     it('should support setting the alpha channel based on the amount of gray', function() {
         var gray = new mapnik.Image(256, 256);
-        gray.background(new mapnik.Color('white'));
+        gray.fill(new mapnik.Color('white'));
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
         assert.equal(gray_view.isSolidSync(), true);
@@ -186,7 +186,7 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel.b, 255);
         assert.equal(pixel.a, 255);
 
-        gray.background(new mapnik.Color('black'));
+        gray.fill(new mapnik.Color('black'));
         gray.setGrayScaleToAlpha();
         var pixel2 = gray.getPixel(0, 0);
         assert.equal(pixel2.r, 255);
@@ -212,6 +212,31 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel.a, 255);
     });
 
+    it('should support have set_pixel protecting overflow and underflows', function() {
+        var imx = new mapnik.Image(4, 4, mapnik.imageType.gray16);
+        imx.setPixel(0,0,12);
+        imx.setPixel(0,1,-1);
+        imx.setPixel(1,0,99999);
+        imx.setPixel(1,1,256);
+        assert.equal(imx.getPixel(0,0), 12);
+        assert.equal(imx.getPixel(0,1), 0);
+        assert.equal(imx.getPixel(1,0), 255);
+        assert.equal(imx.getPixel(1,1), 255);
+    });
+
+    it('should support casting from gray16 to gray8', function() {
+        var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
+        im.setPixel(0,0,12);
+        im.setPixel(0,1,-1);
+        im.setPixel(1,0,99999);
+        im.setPixel(1,1,256);
+        var im2= im.castSync(mapnik.imageType.gray8);
+        assert.equal(im2.getPixel(0,0), 12);
+        assert.equal(im2.getPixel(0,1), 0);
+        assert.equal(im2.getPixel(1,0), 255);
+        assert.equal(im2.getPixel(1,1), 255);
+    });
+
     it('should support comparing images', function() {
         // if width/height don't match should throw
         assert.throws(function() { new mapnik.Image(256, 256).compare(new mapnik.Image(256, 255)); });
@@ -222,12 +247,12 @@ describe('mapnik.Image ', function() {
         one.setPixel(0,0,new mapnik.Color('white'));
         assert.equal(one.compare(new mapnik.Image(256, 256)),1);
         // here we set all pixels to be different
-        one.background(new mapnik.Color('white'));
+        one.fill(new mapnik.Color('white'));
         assert.equal(one.compare(new mapnik.Image(256, 256)),one.width()*one.height());
         // now lets test comparing just rgb and not alpha
         var two = new mapnik.Image(256, 256);
         // white image but fully alpha
-        two.background(new mapnik.Color('rgba(255,255,255,0)'));
+        two.fill(new mapnik.Color('rgba(255,255,255,0)'));
         // if we consider alpha all pixels should be different
         assert.equal(one.compare(two),one.width()*one.height());
         // but ignoring alpha all pixels should pass as the same
@@ -245,7 +270,7 @@ describe('mapnik.Image ', function() {
 
     it('should be able to open and save jpeg', function(done) {
         var im = new mapnik.Image(10,10);
-        im.background(new mapnik.Color('green'));
+        im.fill(new mapnik.Color('green'));
         var filename = './test/data/images/10x10.jpeg';
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
@@ -266,7 +291,7 @@ describe('mapnik.Image ', function() {
 
     it('should be able to open and save tiff', function(done) {
         var im = new mapnik.Image(10,10);
-        im.background(new mapnik.Color('green'));
+        im.fill(new mapnik.Color('green'));
         var filename = './test/data/images/10x10.tiff';
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
@@ -288,7 +313,7 @@ describe('mapnik.Image ', function() {
     if (mapnik.versions.mapnik_number >= 200300) {
         it('should be able to open and save webp', function(done) {
             var im = new mapnik.Image(10,10);
-            im.background(new mapnik.Color('green'));
+            im.fill(new mapnik.Color('green'));
             var filename = './test/data/images/10x10.webp';
             // sync open
             assert.equal(0,im.compare(new mapnik.Image.open(filename)));

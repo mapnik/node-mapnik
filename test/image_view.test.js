@@ -26,7 +26,7 @@ describe('mapnik.ImageView ', function() {
         assert.equal(pixel.a, 0);
 
         im = new mapnik.Image(256, 256);
-        im.background(new mapnik.Color(2, 2, 2, 2));
+        im.fill(new mapnik.Color(2, 2, 2, 2));
         view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
         pixel = view.getPixel(0, 0);
@@ -54,7 +54,7 @@ describe('mapnik.ImageView ', function() {
     it('isSolid async works if true and white', function(done) {
         var im = new mapnik.Image(256, 256);
         var color = new mapnik.Color('white');
-        im.background(color);
+        im.fill(color);
         var view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
         view.isSolid(function(err,solid,pixel) {
@@ -81,7 +81,7 @@ describe('mapnik.ImageView ', function() {
     if (mapnik.supports.webp) {
         it('should support webp encoding', function(done) {
             var im = new mapnik.Image(256,256);
-            im.background(new mapnik.Color('green'));
+            im.fill(new mapnik.Color('green'));
             im.encode('webp',function(err,buf1) { // jshint ignore:line
                 if (err) throw err;
                 var v = im.view(0,0,256,256);

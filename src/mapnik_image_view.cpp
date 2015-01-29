@@ -150,21 +150,21 @@ struct visitor_get_pixel_view
     Local<Value> operator() (T const&)
     {
         NanEscapableScope();
-        std::uint32_t val = mapnik::get_pixel<mapnik::image_view_any, uint32_t>(im_, x_, y_);
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(im_, x_, y_);
         return NanEscapeScope(NanNew<Uint32>(val));
     }
 
     Local<Value> operator() (mapnik::image_view_gray32f const&)
     {
         NanEscapableScope();
-        double val = mapnik::get_pixel<mapnik::image_view_any, double>(im_, x_, y_);
+        double val = mapnik::get_pixel<double>(im_, x_, y_);
         return NanEscapeScope(NanNew<Number>(val));
     }
 
     Local<Value> operator() (mapnik::image_view_rgba8 const&)
     {
         NanEscapableScope();
-        mapnik::color val = mapnik::get_pixel<mapnik::image_view_any, mapnik::color>(im_, x_, y_);
+        mapnik::color val = mapnik::get_pixel<mapnik::color>(im_, x_, y_);
         return NanEscapeScope(Color::NewInstance(val));
     }
 

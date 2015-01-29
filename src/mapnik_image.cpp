@@ -7,6 +7,7 @@
 #include <mapnik/image_any.hpp>             // for image_any
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image_cast.hpp>
 
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
@@ -50,8 +51,8 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
     NODE_SET_PROTOTYPE_METHOD(lcons, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(lcons, "composite", composite);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "backgroundSync", backgroundSync);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "background", background);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fillSync", fillSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fill", fill);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplySync", premultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiply", premultiply);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiplySync", demultiplySync);
@@ -61,6 +62,8 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "compare", compare);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "cast", cast);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "castSync", castSync);
 
     // This *must* go after the ATTR setting
     NODE_SET_METHOD(lcons->GetFunction(),
@@ -215,21 +218,22 @@ struct visitor_get_pixel
     Local<Value> operator() (T const&)
     {
         NanEscapableScope();
-        std::uint32_t val = mapnik::get_pixel<mapnik::image_any, std::uint32_t>(im_, x_, y_);
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(im_, x_, y_);
+        std::cout << "val out " << val << std::endl;
         return NanEscapeScope(NanNew<Uint32>(val));
     }
 
     Local<Value> operator() (mapnik::image_gray32f const&)
     {
         NanEscapableScope();
-        double val = mapnik::get_pixel<mapnik::image_any, double>(im_, x_, y_);
+        double val = mapnik::get_pixel<double>(im_, x_, y_);
         return NanEscapeScope(NanNew<Number>(val));
     }
 
     Local<Value> operator() (mapnik::image_rgba8 const&)
     {
         NanEscapableScope();
-        mapnik::color val = mapnik::get_pixel<mapnik::image_any, mapnik::color>(im_, x_, y_);
+        mapnik::color val = mapnik::get_pixel<mapnik::color>(im_, x_, y_);
         return NanEscapeScope(Color::NewInstance(val));
     }
 
@@ -285,34 +289,34 @@ NAN_METHOD(Image::setPixel)
         NanThrowTypeError("invalid pixel requested");
         NanReturnUndefined();
     }
-    Local<Object> obj = args[2]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined())
+    if (args[2]->IsUint32())
     {
-        NanThrowTypeError("A numeric or color value is expected as third arg");
+        std::uint32_t val = args[2]->Uint32Value();
+        mapnik::set_pixel<std::uint32_t>(*im->this_,x,y,val);
     }
-    else if (obj->IsUint32())
+    else if (args[2]->IsInt32())
     {
-        std::uint32_t val = obj->Uint32Value();
-        mapnik::set_pixel(*im->this_,x,y,val);
+        std::int32_t val = args[2]->Int32Value();
+        std::cout << val << std::endl;
+        mapnik::set_pixel<std::int32_t>(*im->this_,x,y,val);
     }
-    else if (obj->IsInt32())
+    else if (args[2]->IsNumber())
     {
-        std::int32_t val = obj->Int32Value();
-        mapnik::set_pixel(*im->this_,x,y,val);
-    }
-    else if (obj->IsNumber())
-    {
-        double val = obj->NumberValue();
-        mapnik::set_pixel(*im->this_,x,y,val);
-    }
-    else if (NanNew(Color::constructor)->HasInstance(obj)) 
-    {
-        Color * color = node::ObjectWrap::Unwrap<Color>(obj);
-        mapnik::set_pixel(*im->this_,x,y,*(color->get()));
+        double val = args[2]->NumberValue();
+        mapnik::set_pixel<double>(*im->this_,x,y,val);
     }
     else 
     {
-        NanThrowTypeError("A numeric or color value is expected as third arg");
+        Local<Object> obj = args[2]->ToObject();
+        if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) 
+        {
+            NanThrowTypeError("A numeric or color value is expected as third arg");
+        }
+        else 
+        {
+            Color * color = node::ObjectWrap::Unwrap<Color>(obj);
+            mapnik::set_pixel(*im->this_,x,y,*(color->get()));
+        }
     }
     NanReturnUndefined();
 }
@@ -374,13 +378,13 @@ NAN_METHOD(Image::compare)
     NanReturnValue(NanNew<Integer>(difference));
 }
 
-NAN_METHOD(Image::backgroundSync)
+NAN_METHOD(Image::fillSync)
 {
     NanScope();
-    NanReturnValue(_backgroundSync(args));
+    NanReturnValue(_fillSync(args));
 }
 
-Local<Value> Image::_backgroundSync(_NAN_METHOD_ARGS) {
+Local<Value> Image::_fillSync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
     if (args.Length() < 1 ) {
         NanThrowTypeError("expects one argument: color");
@@ -405,13 +409,13 @@ typedef struct {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
-} background_image_baton_t;
+} fill_image_baton_t;
 
-NAN_METHOD(Image::background)
+NAN_METHOD(Image::fill)
 {
     NanScope();
     if (args.Length() <= 1) {
-        NanReturnValue(_backgroundSync(args));
+        NanReturnValue(_fillSync(args));
     }
     
     Local<Object> obj = args[0]->ToObject();
@@ -428,20 +432,20 @@ NAN_METHOD(Image::background)
 
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     Color * c = node::ObjectWrap::Unwrap<Color>(obj);
-    background_image_baton_t *closure = new background_image_baton_t();
+    fill_image_baton_t *closure = new fill_image_baton_t();
     closure->request.data = closure;
     closure->c = *(c->get());
     closure->im = im;
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Background, (uv_after_work_cb)EIO_AfterBackground);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Fill, (uv_after_work_cb)EIO_AfterFill);
     im->Ref();
     NanReturnUndefined();
 }
 
-void Image::EIO_Background(uv_work_t* req)
+void Image::EIO_Fill(uv_work_t* req)
 {
-    background_image_baton_t *closure = static_cast<background_image_baton_t *>(req->data);
+    fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
     try
     {
         mapnik::fill(*closure->im->this_,closure->c);
@@ -453,10 +457,10 @@ void Image::EIO_Background(uv_work_t* req)
     }
 }
 
-void Image::EIO_AfterBackground(uv_work_t* req)
+void Image::EIO_AfterFill(uv_work_t* req)
 {
     NanScope();
-    background_image_baton_t *closure = static_cast<background_image_baton_t *>(req->data);
+    fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
     TryCatch try_catch;
     if (closure->error)
     {
@@ -805,6 +809,203 @@ Local<Value> Image::_isSolidSync(_NAN_METHOD_ARGS)
     NanEscapableScope();
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     return NanEscapeScope(NanNew<Boolean>(mapnik::is_solid(*(im->this_))));
+}
+
+typedef struct {
+    uv_work_t request;
+    Image* im1;
+    std::shared_ptr<mapnik::image_any> im2;
+    mapnik::image_dtype type;  
+    double offset;
+    double scaling;
+    Persistent<Function> cb;
+    bool error;
+    std::string error_name;
+} cast_image_baton_t;
+
+NAN_METHOD(Image::cast)
+{
+    NanScope();
+
+    if (args.Length() == 0) {
+        NanThrowTypeError("cast expects the arguments of (Image, [offset, [scaling]], callback)");
+        NanReturnUndefined();
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanReturnValue(_castSync(args));
+    }
+    
+    double offset = 0.0;
+    double scaling = 1.0;
+    mapnik::image_dtype type = mapnik::image_dtype_gray8;
+    Image* im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    
+    if (args.Length() >= 2)
+    {
+        if (args[0]->IsNumber())
+        {
+            type = static_cast<mapnik::image_dtype>(args[0]->IntegerValue());
+        }
+        else
+        {
+            NanThrowTypeError("Image 'type' must be a valid image type");
+            NanReturnUndefined();
+        }
+    }
+    if (args.Length() >= 3)
+    {
+        if (args[1]->IsNumber())
+        {
+            offset = args[1]->NumberValue();
+        }
+        else
+        {
+            NanThrowTypeError("offset (a number) expected as second arg");
+            NanReturnUndefined();
+        }
+    }
+    if (args.Length() >= 4)
+    {
+        if (args[2]->IsNumber())
+        {
+            offset = args[2]->NumberValue();
+        }
+        else
+        {
+            NanThrowTypeError("scaling (a number) expected as third arg");
+            NanReturnUndefined();
+        }
+    }
+
+    cast_image_baton_t *closure = new cast_image_baton_t();
+    closure->request.data = closure;
+    closure->im1 = im1;
+    closure->offset = offset;
+    closure->scaling = scaling;
+    closure->type = type;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Cast, (uv_after_work_cb)EIO_AfterCast);
+    im1->Ref();
+    NanReturnUndefined();
+}
+
+void Image::EIO_Cast(uv_work_t* req)
+{
+    cast_image_baton_t *closure = static_cast<cast_image_baton_t *>(req->data);
+    try
+    {
+        closure->im2 = std::make_shared<mapnik::image_any>(
+                               std::move(mapnik::image_cast(*(closure->im1->this_), 
+                                                            closure->type, 
+                                                            closure->offset, 
+                                                            closure->scaling)
+                               ));
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterCast(uv_work_t* req)
+{
+    NanScope();
+    cast_image_baton_t *closure = static_cast<cast_image_baton_t *>(req->data);
+    if (closure->error || !closure->im1)
+    {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im2);
+        Handle<Value> ext = NanNew<External>(im);
+        Local<Object> image_obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(ObjectWrap::Unwrap<Image>(image_obj)) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    closure->im1->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+
+NAN_METHOD(Image::castSync)
+{
+    NanScope();
+    NanReturnValue(_castSync(args));
+}
+
+Local<Value> Image::_castSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+    if (args.Length() == 0) {
+        NanThrowTypeError("cast expects the arguments of (Image, [offset, [scaling]], callback)");
+        return NanEscapeScope(NanUndefined());
+    }
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    double offset = 0.0;
+    double scaling = 1.0;
+    mapnik::image_dtype type = mapnik::image_dtype_gray8;
+    
+    if (args.Length() >= 1)
+    {
+        if (args[0]->IsNumber())
+        {
+            type = static_cast<mapnik::image_dtype>(args[0]->IntegerValue());
+        }
+        else
+        {
+            NanThrowTypeError("Image 'type' must be a valid image type");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    if (args.Length() >= 2)
+    {
+        if (args[1]->IsNumber())
+        {
+            offset = args[1]->NumberValue();
+        }
+        else
+        {
+            NanThrowTypeError("offset (a number) expected as second arg");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    if (args.Length() >= 3)
+    {
+        if (args[2]->IsNumber())
+        {
+            offset = args[2]->NumberValue();
+        }
+        else
+        {
+            NanThrowTypeError("scaling (a number) expected as third arg");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    try
+    {
+        MAPNIK_SHARED_PTR<mapnik::image_any> image_ptr = MAPNIK_MAKE_SHARED<mapnik::image_any>(
+                                               std::move(mapnik::image_cast(*(im->this_), 
+                                                                            type, 
+                                                                            offset, 
+                                                                            scaling)
+                                               ));
+        Image* im = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(im);
+        Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+        return NanEscapeScope(obj);
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
 }
 
 NAN_METHOD(Image::painted)

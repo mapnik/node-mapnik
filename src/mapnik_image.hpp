@@ -48,11 +48,11 @@ public:
     static NAN_METHOD(save);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
-    static Local<Value> _backgroundSync(_NAN_METHOD_ARGS);
-    static NAN_METHOD(backgroundSync);
-    static NAN_METHOD(background);
-    static void EIO_Background(uv_work_t* req);
-    static void EIO_AfterBackground(uv_work_t* req);
+    static Local<Value> _fillSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(fillSync);
+    static NAN_METHOD(fill);
+    static void EIO_Fill(uv_work_t* req);
+    static void EIO_AfterFill(uv_work_t* req);
     static Local<Value> _premultiplySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(premultiplySync);
     static NAN_METHOD(premultiply);
@@ -75,6 +75,11 @@ public:
     static void EIO_AfterIsSolid(uv_work_t* req);
     static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(isSolidSync);
+    static NAN_METHOD(cast);
+    static void EIO_Cast(uv_work_t* req);
+    static void EIO_AfterCast(uv_work_t* req);
+    static Local<Value> _castSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(castSync);
 
     //static NAN_GETTER(get_prop);
     //static NAN_SETTER(set_prop);
