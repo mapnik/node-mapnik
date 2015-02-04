@@ -11,7 +11,8 @@ vtile.addData(fs.readFileSync(path.join(__dirname,'../boundary.pbf')));
 // NOTE: we do not call vtile.parse below since that would trigger a different memory
 // error (see test_vt_abort2.js)
 for (var i=0;i< 25;++i) {
-    vtile.composite([vtile])
+    vtile.composite([vtile]);
+    gc();
 }
 
 try {
