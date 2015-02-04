@@ -8,7 +8,7 @@ vtile.addData(fs.readFileSync(path.join(__dirname,'../boundary.pbf')));
 
 var error;
 
-for (var i=0;i< 100;++i) {
+for (var i=0;i< 20;++i) {
     vtile.composite([vtile])
     // call parse to trigger a "too large" warning inside `google::protobuf::io::CodedInputStream::PrintTotalBytesLimitError`
     try {
