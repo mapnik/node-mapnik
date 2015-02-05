@@ -143,33 +143,87 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
 
 struct visitor_get_pixel_view
 {
-    visitor_get_pixel_view(mapnik::image_view_any const& im, int x, int y)
-        : im_(im), x_(x), y_(y) {}
+    visitor_get_pixel_view(int x, int y)
+        : x_(x), y_(y) {}
 
-    template <typename T>
-    Local<Value> operator() (T const&)
+    Local<Value> operator() (mapnik::image_view_gray8 const& data)
     {
         NanEscapableScope();
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(im_, x_, y_);
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
         return NanEscapeScope(NanNew<Uint32>(val));
     }
 
-    Local<Value> operator() (mapnik::image_view_gray32f const&)
+    Local<Value> operator() (mapnik::image_view_gray8s const& data)
     {
         NanEscapableScope();
-        double val = mapnik::get_pixel<double>(im_, x_, y_);
+        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Int32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray16 const& data)
+    {
+        NanEscapableScope();
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Uint32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray16s const& data)
+    {
+        NanEscapableScope();
+        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Int32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray32 const& data)
+    {
+        NanEscapableScope();
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Uint32>(val));
+    }
+    
+    Local<Value> operator() (mapnik::image_view_gray32s const& data)
+    {
+        NanEscapableScope();
+        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Int32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray32f const& data)
+    {
+        NanEscapableScope();
+        double val = mapnik::get_pixel<double>(data, x_, y_);
         return NanEscapeScope(NanNew<Number>(val));
     }
 
-    Local<Value> operator() (mapnik::image_view_rgba8 const&)
+    Local<Value> operator() (mapnik::image_view_gray64 const& data)
     {
         NanEscapableScope();
-        mapnik::color val = mapnik::get_pixel<mapnik::color>(im_, x_, y_);
+        std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray64s const& data)
+    {
+        NanEscapableScope();
+        std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray64f const& data)
+    {
+        NanEscapableScope();
+        double val = mapnik::get_pixel<double>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_rgba8 const& data)
+    {
+        NanEscapableScope();
+        mapnik::color val = mapnik::get_pixel<mapnik::color>(data, x_, y_);
         return NanEscapeScope(Color::NewInstance(val));
     }
 
   private:
-    mapnik::image_view_any const& im_;
     int x_;
     int y_;
         
@@ -189,7 +243,7 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
         {
             Local<Value> argv[3] = { NanNull(),
                                      NanNew(closure->result),
-                                     mapnik::util::apply_visitor(visitor_get_pixel_view(*(closure->im->this_),0,0),*(closure->im->this_)),
+                                     mapnik::util::apply_visitor(visitor_get_pixel_view(0,0),*(closure->im->this_)),
             };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 3, argv);
         }
@@ -246,7 +300,7 @@ NAN_METHOD(ImageView::getPixel)
     if (x >= 0 && x < static_cast<int>(im->this_->width())
         && y >=0 && y < static_cast<int>(im->this_->height()))
     {
-        visitor_get_pixel_view visitor(*im->this_, x, y);
+        visitor_get_pixel_view visitor(x, y);
         NanReturnValue(mapnik::util::apply_visitor(visitor, *im->this_));
     }
     NanReturnUndefined();

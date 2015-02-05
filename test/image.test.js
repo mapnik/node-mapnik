@@ -220,8 +220,8 @@ describe('mapnik.Image ', function() {
         imx.setPixel(1,1,256);
         assert.equal(imx.getPixel(0,0), 12);
         assert.equal(imx.getPixel(0,1), 0);
-        assert.equal(imx.getPixel(1,0), 255);
-        assert.equal(imx.getPixel(1,1), 255);
+        assert.equal(imx.getPixel(1,0), 65535);
+        assert.equal(imx.getPixel(1,1), 256);
     });
 
     it('should support casting from gray16 to gray8', function() {
@@ -253,6 +253,10 @@ describe('mapnik.Image ', function() {
         var two = new mapnik.Image(256, 256);
         // white image but fully alpha
         two.fill(new mapnik.Color('rgba(255,255,255,0)'));
+        assert.equal(two.getPixel(0,0).r, 255);
+        assert.equal(two.getPixel(0,0).g, 255);
+        assert.equal(two.getPixel(0,0).b, 255);
+        assert.equal(two.getPixel(0,0).a, 0);
         // if we consider alpha all pixels should be different
         assert.equal(one.compare(two),one.width()*one.height());
         // but ignoring alpha all pixels should pass as the same
