@@ -90,10 +90,6 @@
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
               'VCLinkerTool': {
-                'AdditionalOptions': [
-                    # https://github.com/mapnik/node-mapnik/issues/74
-                  '/FORCE:MULTIPLE'
-                ],
                 'AdditionalLibraryDirectories': [
                   '<!@(mapnik-config --ldflags)'
                 ],
