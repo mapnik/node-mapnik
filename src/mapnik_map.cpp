@@ -1408,6 +1408,7 @@ struct vector_tile_baton_t {
     bool error;
     std::string error_name;
     Persistent<Function> cb;
+    std::vector<std::string> fields_to_exclude;
     vector_tile_baton_t() :
         tolerance(1),
         path_multiplier(16),
@@ -1418,7 +1419,8 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
-        error(false) {}
+        error(false),
+        fields_to_exclude() {}
 };
 
 NAN_METHOD(Map::render)
@@ -1737,6 +1739,25 @@ NAN_METHOD(Map::render)
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
 
+            if (options->Has(NanNew("fields_to_exclude"))) {
+
+                Local<Value> param_val = options->Get(NanNew("fields_to_exclude"));
+                if (!param_val->IsArray()) {
+                    NanThrowTypeError("option 'fields_to_exclude' must be an array of strings");
+                    NanReturnUndefined();
+                }
+                Local<Array> a = Local<Array>::Cast(param_val);
+                unsigned int i = 0;
+                unsigned int num_fields = a->Length();
+                while (i < num_fields) {
+                    Local<Value> name = a->Get(i);
+                    if (name->IsString()){
+                        closure->fields_to_exclude.push_back(TOSTR(name));
+                    }
+                    i++;
+                }
+            }
+
             closure->request.data = closure;
             closure->m = m;
             closure->d = vector_tile_obj;
@@ -1785,7 +1806,8 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->offset_y,
                           closure->tolerance,
                           closure->image_format,
-                          closure->scaling_method);
+                          closure->scaling_method,
+                          closure->fields_to_exclude);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
         closure->d->cache_bytesize();
