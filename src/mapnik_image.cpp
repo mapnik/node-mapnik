@@ -57,6 +57,8 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "compare", compare);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
 
     ATTR(lcons, "background", get_prop, set_prop);
 
@@ -141,6 +143,132 @@ NAN_METHOD(Image::New)
         NanReturnUndefined();
     }
     NanReturnUndefined();
+}
+
+typedef struct {
+    uv_work_t request;
+    Image* im;
+    Persistent<Function> cb;
+    bool error;
+    std::string error_name;
+    bool result;
+    mapnik::image_data_rgba8::pixel_type pixel;
+} is_solid_image_baton_t;
+
+NAN_METHOD(Image::isSolid)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+
+    if (args.Length() == 0) {
+        NanReturnValue(_isSolidSync(args));
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
+
+    is_solid_image_baton_t *closure = new is_solid_image_baton_t();
+    closure->request.data = closure;
+    closure->im = im;
+    closure->result = true;
+    closure->pixel = 0;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
+    im->Ref();
+    NanReturnUndefined();
+}
+
+void Image::EIO_IsSolid(uv_work_t* req)
+{
+    is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
+    image_ptr im = closure->im->get();
+    if (im->width() > 0 && im->height() > 0)
+    {
+        typedef mapnik::image_data_rgba8::pixel_type pixel_type;
+        pixel_type const first_pixel = im->data().getRow(0)[0];
+        closure->pixel = first_pixel;
+        for (unsigned y = 0; y < im->height(); ++y)
+        {
+            pixel_type const * row = im->data().getRow(y);
+            for (unsigned x = 0; x < im->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    closure->result = false;
+                    return;
+                }
+            }
+        }
+    }
+    else
+    {
+        closure->error = true;
+        closure->error_name = "image does not have valid dimensions";
+    }
+}
+
+void Image::EIO_AfterIsSolid(uv_work_t* req)
+{
+    NanScope();
+    is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
+    if (closure->error) {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        if (closure->result)
+        {
+            Local<Value> argv[3] = { NanNull(),
+                                     NanNew(closure->result),
+                                     NanNew<Number>(closure->pixel),
+            };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 3, argv);
+        }
+        else
+        {
+            Local<Value> argv[2] = { NanNull(), NanNew(closure->result) };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        }
+    }
+    closure->im->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+
+NAN_METHOD(Image::isSolidSync)
+{
+    NanScope();
+    NanReturnValue(_isSolidSync(args));
+}
+
+Local<Value> Image::_isSolidSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+    Image* im_obj = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    image_ptr im = im_obj->get();
+    if (im->width() > 0 && im->height() > 0)
+    {
+        mapnik::image_data_rgba8::pixel_type const* first_row = im->data().getRow(0);
+        mapnik::image_data_rgba8::pixel_type const first_pixel = first_row[0];
+        for (unsigned y = 0; y < im->height(); ++y)
+        {
+            mapnik::image_data_rgba8::pixel_type const * row = im->data().getRow(y);
+            for (unsigned x = 0; x < im->width(); ++x)
+            {
+                if (first_pixel != row[x])
+                {
+                    return NanEscapeScope(NanFalse());
+                }
+            }
+        }
+    }
+    return NanEscapeScope(NanTrue());
 }
 
 NAN_GETTER(Image::get_prop)

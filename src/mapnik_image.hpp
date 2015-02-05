@@ -62,6 +62,11 @@ public:
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
     static NAN_METHOD(compare);
+    static NAN_METHOD(isSolid);
+    static void EIO_IsSolid(uv_work_t* req);
+    static void EIO_AfterIsSolid(uv_work_t* req);
+    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(isSolidSync);
 
     static NAN_GETTER(get_prop);
     static NAN_SETTER(set_prop);
