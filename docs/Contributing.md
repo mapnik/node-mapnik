@@ -1,11 +1,6 @@
 # Contributing
 
-General guidelines to contributing to node-mapnik
-
-- Pull requests for anything non-trivial
-
-- 
-
+General guidelines for contributing to node-mapnik
 
 ## Releasing
 
@@ -13,9 +8,9 @@ To release a new node-mapnik version:
 
 ### Create a branch and publish binaries
 
-1) Create a branch for your work
+**1)** Create a branch for your work
 
-2) Updating the Mapnik SDK used for binaries
+**2)** Updating the Mapnik SDK used for binaries
 
 If your node-mapnik release requires a new Mapnik version, then a new Mapnik SDK would need to be published first.
 
@@ -36,11 +31,11 @@ To get a new Mapnik SDK published for Windows:
 
 Then, back at node-mapnik, take the new SDK version and edit [this lines](https://github.com/mapnik/node-mapnik/blob/fee02eb4c76d171cbaacd6b7b54afb48460868bc/appveyor.yml#L42) with the new value. Test that a build works before pushing to appveyor branch.
 
-3) Make sure all tests are passing on travis and appveyor for your branch. Check the links at https://github.com/mapnik/node-mapnik/blob/master/README.md#node-mapnik.
+**3)** Make sure all tests are passing on travis and appveyor for your branch. Check the links at https://github.com/mapnik/node-mapnik/blob/master/README.md#node-mapnik.
 
-4) Within your branch edit the `version` value in `package.json` to something unique that will not clash with existing released versions. For example if the current release (check this via https://github.com/mapnik/node-mapnik/releases) is `3.1.4` then you could rename your `version` to `3.1.5-alpha` or `3.1.5-branchname`.
+**4)** Within your branch edit the `version` value in `package.json` to something unique that will not clash with existing released versions. For example if the current release (check this via https://github.com/mapnik/node-mapnik/releases) is `3.1.4` then you could rename your `version` to `3.1.5-alpha` or `3.1.5-branchname`.
 
-5) Commit the new version and publish binaries
+**5)** Commit the new version and publish binaries
 
 Do this like:
 
@@ -56,7 +51,7 @@ git commit --allow-empty -m "[publish binary]"
 
 Note: it is not possible to overwrite previously published binaries. So don't run `"[publish binary]"` unless you really mean it!
 
-6) Test your binaries
+**6)** Test your binaries
 
 Lots of ways to do this of course. Just updating a single dependency of node-mapnik is a good place to start: https://www.npmjs.com/browse/depended/mapnik
 
@@ -68,7 +63,7 @@ Head over to https://github.com/mapbox/mapnik-swoop and create a branch that poi
 
 Ensure that all tests are passing. Only ignore failing tests for dependencies if you can confirm with the downstream maintainers of the modules that those tests are okay to fail and unrelated to your node-mapnik changes. You can check [recent builds](https://travis-ci.org/mapbox/mapnik-swoop/builds) to see if all builds were green and passing before your change. If they were red and failing before then try to resolve those issues before testing your new node-mapnik version.
 
-7) Official release
+**7)** Official release
 
 An official release requires:
 
