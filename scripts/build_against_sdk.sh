@@ -163,9 +163,8 @@ MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 rm -rf ${MODULE_PATH}
 npm install --build-from-source ${ARGS} --clang=1
 npm ls
-# copy shapeindex and nik2img
+# copy shapeindex
 cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}
-cp ${MAPNIK_SDK}/bin/nik2img ${MODULE_PATH}
 # copy lib
 cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}
 # copy plugins

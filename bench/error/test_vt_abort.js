@@ -10,8 +10,9 @@ vtile.addData(fs.readFileSync(path.join(__dirname,'../boundary.pbf')));
 // but please do not do this in real code.
 // NOTE: we do not call vtile.parse below since that would trigger a different memory
 // error (see test_vt_abort2.js)
-for (var i=0;i< 100;++i) {
-    vtile.composite([vtile])
+for (var i=0;i< 25;++i) {
+    vtile.composite([vtile]);
+    gc();
 }
 
 try {
@@ -34,7 +35,7 @@ try {
     */
 
     var buf_len = vtile.getData().length;
-    console.log("getData did not thrown and returned buffer length of " + buf_len);
+    console.log("getData did not throw and instead returned buffer length of " + buf_len);
 } catch (err) {
     assert.ok(err.message.indexOf('Data is too large') > -1);
     console.log('Test success!');
