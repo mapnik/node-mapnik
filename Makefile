@@ -24,9 +24,16 @@ clean:
 	rm ./test/tmp/*
 	echo > ./test/tmp/placeholder.txt
 	rm -rf ./node_modules/
+	rm -f ./*tgz
 
 grind:
 	valgrind --leak-check=full node node_modules/.bin/_mocha
+
+testpack:
+	rm -f ./*tgz
+	npm pack
+	tar -ztvf *tgz
+	rm -f ./*tgz
 
 rebuild:
 	@make clean
