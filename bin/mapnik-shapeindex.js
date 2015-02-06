@@ -1,18 +1,8 @@
 #!/usr/bin/env node
 
-var binary = require('node-pre-gyp'),
-    path = require('path'),
-    bindingPath = binary.find(path.resolve(__dirname, '..', 'package.json')),
-    shapeindex = path.join(path.dirname(bindingPath), 'shapeindex'),
-    spawn = require('child_process').spawn,
+var mapnik = require('..');
 
-    proc = spawn(shapeindex, process.argv.slice(2))
-      .on('error', function(err) {
-        console.error(err);
-      })
-      .on('exit', function(code) {
-        process.exit(code);
-      });
-
-proc.stdout.pipe(process.stdout);
-proc.stderr.pipe(process.stderr);
+mapnik.shapeindex(process.argv.slice(2), process.stdout, process.stderr, function(err, code) {
+    if (err) console.error(err);
+    if (code > -1) process.exit(code);
+});
