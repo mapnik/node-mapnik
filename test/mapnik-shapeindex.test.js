@@ -18,7 +18,7 @@ var tmpshx = path.join(tmpdir, 'world_merc.shx');
 var tmpprj = path.join(tmpdir, 'world_merc.prj');
 var tmpdbf = path.join(tmpdir, 'world_merc.dbf');
 
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
 function copy(done) {
     fs.mkdir(tmpdir, function() {
@@ -36,22 +36,21 @@ describe('bin/mapnik-shapefile.js', function() {
     before(copy);
 
     it('should create a spatial index', function(done) {
-        var cmd = [process.execPath, shapeindex, '--shape_files', tmpshp];
-        exec(cmd.join(' '), function(err, stdout, stderr) {
-            assert.ifError(err, 'no error');
-            console.log(stdout);
-            console.log(stderr);
+        var args = [shapeindex, '--shape_files', tmpshp];
+        spawn(process.execPath, args)
+            .on('error', function(err) { assert.ifError(err, 'no error'); })
+            .on('close', function(code) {
+                assert.equal(code, 0, 'exit 0');
 
-            fs.readdir(tmpdir, function(err, files) {
+                fs.readdir(tmpdir, function(err, files) {
 
-                files = files.filter(function(filename) {
-                    console.log(filename);
-                    return filename === 'world_merc.index';
+                    files = files.filter(function(filename) {
+                        return filename === 'world_merc.index';
+                    });
+
+                    assert.equal(files.length, 1, 'made spatial index');
+                    done();
                 });
-
-                assert.equal(files.length, 1, 'made spatial index');
-                done();
             });
-        });
     });
 });
