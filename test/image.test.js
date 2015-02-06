@@ -319,7 +319,10 @@ describe('mapnik.Image ', function() {
         assert.equal(im.isSolidSync(), true);
         im.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel, 0);
+            assert.equal(pixel.r, 0);
+            assert.equal(pixel.g, 0);
+            assert.equal(pixel.b, 0);
+            assert.equal(pixel.a, 0);
             done();
         });
     });
@@ -327,17 +330,14 @@ describe('mapnik.Image ', function() {
     it('isSolid async works if true and white', function(done) {
         var im = new mapnik.Image(256, 256);
         var color = new mapnik.Color('white');
-        im.background = color;
+        im.fill(color);
         assert.equal(im.isSolidSync(), true);
         im.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel, 4294967295);
-            // NOTE: shifts are 32 bit signed ints in js, so creating the unsigned
-            // rgba for white is not possible using normal bit ops
-            // var rgba = (color.a << 24) | (color.b << 16) | (color.g << 8) | (color.r);
-            // how about this? (from tilelive source)
-            var rgba = color.a*(1<<24) + ((color.b<<16) | (color.g<<8) | color.r);
-            assert.equal(pixel, rgba);
+            assert.equal(pixel.r, color.r);
+            assert.equal(pixel.g, color.g);
+            assert.equal(pixel.b, color.b);
+            assert.equal(pixel.a, color.a);
             done();
         });
     });
