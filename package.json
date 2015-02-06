@@ -56,7 +56,7 @@
   "engineStrict": true,
   "scripts"       : {
       "prepublish" : "npm ls",
-      "test"    : "mocha -R spec --timeout 50000",
+      "test"    : "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {
