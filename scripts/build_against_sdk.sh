@@ -115,7 +115,7 @@ fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-524-g8063fa0-lto"
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-524-g04d51d3-lto"
 fi
 
 
