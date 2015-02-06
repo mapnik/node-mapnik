@@ -16,6 +16,30 @@ using namespace v8;
 
 namespace node_mapnik {
 
+struct extra_param_visitor
+{
+    Local<Value> operator() (mapnik::value_null const&)
+    {
+        return NanNull();
+    }
+
+    Local<Value> operator() (mapnik::value_integer const& val)
+    {
+        return NanNew<Integer>(val);
+    }
+    
+    Local<Value> operator() (mapnik::value_double const& val)
+    {
+        return NanNew<Number>(val);
+    }
+
+    Local<Value> operator() (std::string const& val)
+    {
+        return NanNew<String>(val);
+    }
+
+};
+
 static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
 {
     NanScope();
@@ -100,6 +124,10 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
             }
         }
         description->Set(NanNew("geometry_type"), js_type);
+        for (auto const& param : ld.get_extra_parameters()) 
+        {
+            description->Set(NanNew(param.first), mapnik::util::apply_visitor(extra_param_visitor(), param.second));
+        }
     }
     catch (std::exception const& ex)
     {
