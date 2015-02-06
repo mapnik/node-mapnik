@@ -81,8 +81,6 @@ public:
     static Local<Value> _castSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(castSync);
 
-    //static NAN_GETTER(get_prop);
-    //static NAN_SETTER(set_prop);
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
