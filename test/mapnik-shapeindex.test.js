@@ -5,6 +5,7 @@ var path = require('path');
 var fs = require('fs');
 var os = require('os');
 var crypto = require('crypto');
+var shapeindex = path.resolve(__dirname, '..', 'bin', 'mapnik-shapeindex.js');
 
 var shp = path.join(__dirname, 'data', 'world_merc.shp');
 var shx = path.join(__dirname, 'data', 'world_merc.shx');
@@ -17,7 +18,7 @@ var tmpshx = path.join(tmpdir, 'world_merc.shx');
 var tmpprj = path.join(tmpdir, 'world_merc.prj');
 var tmpdbf = path.join(tmpdir, 'world_merc.dbf');
 
-var mapnik = require('..');
+var exec = require('child_process').exec;
 
 function copy(done) {
     fs.mkdir(tmpdir, function() {
@@ -35,9 +36,11 @@ describe('bin/mapnik-shapefile.js', function() {
     before(copy);
 
     it('should create a spatial index', function(done) {
-        mapnik.shapeindex(['--shape_files', tmpshp], process.stdout, process.stderr, function(err, code) {
+        var cmd = [process.execPath, shapeindex, '--shape_files', tmpshp];
+        exec(cmd.join(' '), function(err, stdout, stderr) {
             assert.ifError(err, 'no error');
-            assert.equal(code, 0, 'exit 0');
+            console.log(stdout);
+            console.log(stderr);
 
             fs.readdir(tmpdir, function(err, files) {
 
