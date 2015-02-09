@@ -7,7 +7,7 @@
 #include <mapnik/image_any.hpp>             // for image_any
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-#include <mapnik/image_cast.hpp>
+#include <mapnik/image_copy.hpp>
 
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
@@ -62,8 +62,8 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "compare", compare);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "cast", cast);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "castSync", castSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "copy", copy);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "copySync", copySync);
 
     // This *must* go after the ATTR setting
     NODE_SET_METHOD(lcons->GetFunction(),
@@ -873,20 +873,20 @@ typedef struct {
     Persistent<Function> cb;
     bool error;
     std::string error_name;
-} cast_image_baton_t;
+} copy_image_baton_t;
 
-NAN_METHOD(Image::cast)
+NAN_METHOD(Image::copy)
 {
     NanScope();
 
     if (args.Length() == 0) {
-        NanThrowTypeError("cast expects the arguments of (Image, [offset, [scaling]], callback)");
+        NanThrowTypeError("copy expects the arguments of (ImageType, [offset, [scaling]], callback)");
         NanReturnUndefined();
     }
     // ensure callback is a function
     Local<Value> callback = args[args.Length() - 1];
     if (!args[args.Length()-1]->IsFunction()) {
-        NanReturnValue(_castSync(args));
+        NanReturnValue(_copySync(args));
     }
     
     double offset = 0.0;
@@ -931,7 +931,7 @@ NAN_METHOD(Image::cast)
         }
     }
 
-    cast_image_baton_t *closure = new cast_image_baton_t();
+    copy_image_baton_t *closure = new copy_image_baton_t();
     closure->request.data = closure;
     closure->im1 = im1;
     closure->offset = offset;
@@ -939,18 +939,18 @@ NAN_METHOD(Image::cast)
     closure->type = type;
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Cast, (uv_after_work_cb)EIO_AfterCast);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Copy, (uv_after_work_cb)EIO_AfterCopy);
     im1->Ref();
     NanReturnUndefined();
 }
 
-void Image::EIO_Cast(uv_work_t* req)
+void Image::EIO_Copy(uv_work_t* req)
 {
-    cast_image_baton_t *closure = static_cast<cast_image_baton_t *>(req->data);
+    copy_image_baton_t *closure = static_cast<copy_image_baton_t *>(req->data);
     try
     {
         closure->im2 = std::make_shared<mapnik::image_any>(
-                               std::move(mapnik::image_cast(*(closure->im1->this_), 
+                               std::move(mapnik::image_copy(*(closure->im1->this_), 
                                                             closure->type, 
                                                             closure->offset, 
                                                             closure->scaling)
@@ -963,10 +963,10 @@ void Image::EIO_Cast(uv_work_t* req)
     }
 }
 
-void Image::EIO_AfterCast(uv_work_t* req)
+void Image::EIO_AfterCopy(uv_work_t* req)
 {
     NanScope();
-    cast_image_baton_t *closure = static_cast<cast_image_baton_t *>(req->data);
+    copy_image_baton_t *closure = static_cast<copy_image_baton_t *>(req->data);
     if (closure->error || !closure->im1)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
@@ -986,17 +986,17 @@ void Image::EIO_AfterCast(uv_work_t* req)
 }
 
 
-NAN_METHOD(Image::castSync)
+NAN_METHOD(Image::copySync)
 {
     NanScope();
-    NanReturnValue(_castSync(args));
+    NanReturnValue(_copySync(args));
 }
 
-Local<Value> Image::_castSync(_NAN_METHOD_ARGS)
+Local<Value> Image::_copySync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
     if (args.Length() == 0) {
-        NanThrowTypeError("cast expects the arguments of (Image, [offset, [scaling]], callback)");
+        NanThrowTypeError("copy expects the arguments of (ImageType, [offset, [scaling]], callback)");
         return NanEscapeScope(NanUndefined());
     }
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
@@ -1043,7 +1043,7 @@ Local<Value> Image::_castSync(_NAN_METHOD_ARGS)
     try
     {
         MAPNIK_SHARED_PTR<mapnik::image_any> image_ptr = MAPNIK_MAKE_SHARED<mapnik::image_any>(
-                                               std::move(mapnik::image_cast(*(im->this_), 
+                                               std::move(mapnik::image_copy(*(im->this_), 
                                                                             type, 
                                                                             offset, 
                                                                             scaling)

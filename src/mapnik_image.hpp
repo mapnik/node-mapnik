@@ -75,11 +75,11 @@ public:
     static void EIO_AfterIsSolid(uv_work_t* req);
     static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(isSolidSync);
-    static NAN_METHOD(cast);
-    static void EIO_Cast(uv_work_t* req);
-    static void EIO_AfterCast(uv_work_t* req);
-    static Local<Value> _castSync(_NAN_METHOD_ARGS);
-    static NAN_METHOD(castSync);
+    static NAN_METHOD(copy);
+    static void EIO_Copy(uv_work_t* req);
+    static void EIO_AfterCopy(uv_work_t* req);
+    static Local<Value> _copySync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(copySync);
 
     void _ref() { Ref(); }
     void _unref() { Unref(); }
