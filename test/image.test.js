@@ -224,13 +224,13 @@ describe('mapnik.Image ', function() {
         assert.equal(imx.getPixel(1,1), 256);
     });
 
-    it('should support casting from gray16 to gray8', function() {
+    it('should support copying from gray16 to gray8', function() {
         var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
         im.setPixel(0,0,12);
         im.setPixel(0,1,-1);
         im.setPixel(1,0,99999);
         im.setPixel(1,1,256);
-        var im2= im.castSync(mapnik.imageType.gray8);
+        var im2= im.copySync(mapnik.imageType.gray8);
         assert.equal(im2.getPixel(0,0), 12);
         assert.equal(im2.getPixel(0,1), 0);
         assert.equal(im2.getPixel(1,0), 255);
