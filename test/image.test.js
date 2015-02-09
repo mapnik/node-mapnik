@@ -235,6 +235,13 @@ describe('mapnik.Image ', function() {
         assert.equal(im2.getPixel(0,1), 0);
         assert.equal(im2.getPixel(1,0), 255);
         assert.equal(im2.getPixel(1,1), 255);
+        im.copy(mapnik.imageType.gray8, function(err, im2) {
+            if (err) throw err;
+            assert.equal(im2.getPixel(0,0), 12);
+            assert.equal(im2.getPixel(0,1), 0);
+            assert.equal(im2.getPixel(1,0), 255);
+            assert.equal(im2.getPixel(1,1), 255);
+        });
     });
 
     it('should support comparing images', function() {
