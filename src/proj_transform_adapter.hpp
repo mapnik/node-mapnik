@@ -68,7 +68,7 @@ private:
 }
 
 namespace node_mapnik {
-    using proj_transform_path_type = mapnik::proj_transform_adapter<mapnik::geometry_type>;
+    using proj_transform_path_type = mapnik::proj_transform_adapter<mapnik::vertex_adapter>;
     using proj_transform_container = boost::ptr_vector<proj_transform_path_type>;
 }
 
