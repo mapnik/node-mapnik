@@ -898,7 +898,8 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     double distance = -1;
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
-                        double d = path_to_point_distance(geom,x,y);
+                        mapnik::vertex_adapter va(geom);
+                        double d = path_to_point_distance(va,x,y);
                         if (d >= 0)
                         {
                             if (distance >= 0)
@@ -945,7 +946,8 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     double distance = -1;
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
-                        double d = path_to_point_distance(geom,x,y);
+                        mapnik::vertex_adapter va(geom);
+                        double d = path_to_point_distance(va,x,y);
                         if (d >= 0)
                         {
                             if (distance >= 0)
@@ -1211,7 +1213,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                 double distance = -1;
                 for (mapnik::geometry_type const& geom : feature->paths())
                 {
-                    double d = path_to_point_distance(geom,pt.x,pt.y);
+                    mapnik::vertex_adapter va(geom);
+                    double d = path_to_point_distance(va,pt.x,pt.y);
                     if (d >= 0)
                     {
                         if (distance >= 0)
