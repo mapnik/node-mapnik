@@ -1485,9 +1485,10 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 std::string geometry;
                 sink_type sink(geometry);
                 node_mapnik::proj_transform_container projected_paths;
-                for (auto & geom : feature->paths())
+                for (auto const& geom : feature->paths())
                 {
-                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
+                    mapnik::vertex_adapter va(geom);
+                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(va,prj_trans));
                 }
                 if (boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
                 {
