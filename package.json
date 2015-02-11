@@ -38,7 +38,7 @@
   ],
   "dependencies"  : {
       "nan": "~1.4.0",
-      "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/vertex_adapter",
+      "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/master",
       "node-pre-gyp": "~0.6.1"
   },
   "bundledDependencies": [
