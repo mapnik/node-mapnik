@@ -6,12 +6,15 @@
  - Now handling C++ exceptions in vt.composite to prevent possible abort (although none could be replicated)
  - Removed nik2img from binary packages (not useful since it duplicates ./bin/mapnik-render.js)
  - Added stress test benchmarks that live in ./bench folder of git repo
- - Fixed hextree encoder (will produce non-visible image differences)
- - Fixed bugs in GeoJSON parser
- - GroupSymbolizer now supports MarkersSymbolizer and not PointSymbolizer
  - Added `isSolid` method to `Image` object
  - When making vector tiles that are larger then 64 MB changed node so that it would no longer through an abort but rather an exception
  - Added extra meta data for some datasource associated with the use of the `describe` method on datasources 
+
+Notable changes in the Mapnik SDK include:
+ - Changes: https://github.com/mapnik/mapnik/compare/8063fa0...30c6cf636c
+ - Fixed hextree encoder (will produce non-visible image differences)
+ - Fixed bugs in GeoJSON parser
+ - GroupSymbolizer now supports MarkersSymbolizer and not PointSymbolizer
 
 ## 3.1.4
 
