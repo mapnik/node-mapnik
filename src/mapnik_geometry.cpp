@@ -111,9 +111,10 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
             ProjTransform* tr = node::ObjectWrap::Unwrap<ProjTransform>(obj);
             mapnik::proj_transform const& prj_trans = *tr->get();
             node_mapnik::proj_transform_container projected_paths;
-            for (auto & geom : g->feat_->paths())
+            for (auto const& geom : g->feat_->paths())
             {
-                projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
+                mapnik::vertex_adapter va(geom);
+                projected_paths.push_back(new node_mapnik::proj_transform_path_type(va,prj_trans));
             }
             using sink_type = std::back_insert_iterator<std::string>;
             static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
@@ -189,9 +190,10 @@ void Geometry::to_json(uv_work_t* req)
         {
             mapnik::proj_transform const& prj_trans = *closure->tr->get();
             node_mapnik::proj_transform_container projected_paths;
-            for (auto & geom : closure->g->feat_->paths())
+            for (auto const& geom : closure->g->feat_->paths())
             {
-                projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
+                mapnik::vertex_adapter va(geom);
+                projected_paths.push_back(new node_mapnik::proj_transform_path_type(va,prj_trans));
             }
             using sink_type = std::back_insert_iterator<std::string>;
             static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;

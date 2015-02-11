@@ -465,8 +465,8 @@ NAN_METHOD(VectorTile::composite)
         VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
         vector_tile::Tile new_tiledata;
         vector_tile::Tile new_tiledata2;
-        for (unsigned i=0;i < num_tiles;++i) {
-            Local<Value> val = vtiles->Get(i);
+        for (unsigned j=0;j < num_tiles;++j) {
+            Local<Value> val = vtiles->Get(j);
             if (!val->IsObject()) {
                 NanThrowTypeError("must provide an array of VectorTile objects");
                 NanReturnUndefined();
@@ -898,16 +898,17 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     double distance = -1;
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
-                        double d = path_to_point_distance(geom,x,y);
-                        if (d >= 0)
+                        mapnik::vertex_adapter va(geom);
+                        double dist = path_to_point_distance(va,x,y);
+                        if (dist >= 0)
                         {
                             if (distance >= 0)
                             {
-                                if (d < distance) distance = d;
+                                if (dist < distance) distance = dist;
                             }
                             else
                             {
-                                distance = d;
+                                distance = dist;
                             }
                         }
                     }
@@ -945,16 +946,17 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     double distance = -1;
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
-                        double d = path_to_point_distance(geom,x,y);
-                        if (d >= 0)
+                        mapnik::vertex_adapter va(geom);
+                        double dist = path_to_point_distance(va,x,y);
+                        if (dist >= 0)
                         {
                             if (distance >= 0)
                             {
-                                if (d < distance) distance = d;
+                                if (dist < distance) distance = dist;
                             }
                             else
                             {
-                                distance = d;
+                                distance = dist;
                             }
                         }
                     }
@@ -1211,7 +1213,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                 double distance = -1;
                 for (mapnik::geometry_type const& geom : feature->paths())
                 {
-                    double d = path_to_point_distance(geom,pt.x,pt.y);
+                    mapnik::vertex_adapter va(geom);
+                    double d = path_to_point_distance(va,pt.x,pt.y);
                     if (d >= 0)
                     {
                         if (distance >= 0)
@@ -1482,9 +1485,10 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 std::string geometry;
                 sink_type sink(geometry);
                 node_mapnik::proj_transform_container projected_paths;
-                for (auto & geom : feature->paths())
+                for (auto const& geom : feature->paths())
                 {
-                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
+                    mapnik::vertex_adapter va(geom);
+                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(va,prj_trans));
                 }
                 if (boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
                 {
