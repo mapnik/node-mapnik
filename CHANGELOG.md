@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.1.5
+
+ - Security Fix: now throwing error instead of abort when vtile.getData() is called which needs to produce a node::Buffer larger than node::Buffer::kMaxLength (bed994a). However this condition did not previously happen due to integer overflow which is now also fixed (#371)
+ - Now handling C++ exceptions in vt.composite to prevent possible abort (although none could be replicated)
+ - Removed nik2img from binary packages (not useful since it duplicates ./bin/mapnik-render.js)
+ - Added stress test benchmarks that live in ./bench folder of git repo
+ - Fixed hextree encoder (will produce non-visible image differences)
+ - Fixed bugs in GeoJSON parser
+ - GroupSymbolizer now supports MarkersSymbolizer and not PointSymbolizer
+ - Added `isSolid` method to `Image` object
+ - When making vector tiles that are larger then 64 MB changed node so that it would no longer through an abort but rather an exception
+ - Added extra meta data for some datasource associated with the use of the `describe` method on datasources 
+
 ## 3.1.4
 
  - Fixed bugs in `VectorTile.toGeoJSON` to ensure properly formatted JSON output.
