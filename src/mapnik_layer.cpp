@@ -1,5 +1,3 @@
-#include "mapnik3x_compatibility.hpp"
-
 #include "mapnik_layer.hpp"
 
 #include "utils.hpp"                    // for TOSTR, ATTR, etc
@@ -11,8 +9,6 @@
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
-
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <limits>
@@ -42,11 +38,11 @@ void Layer::Initialize(Handle<Object> target) {
 
 Layer::Layer(std::string const& name):
     node::ObjectWrap(),
-    layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name)) {}
+    layer_(std::make_shared<mapnik::layer>(name)) {}
 
 Layer::Layer(std::string const& name, std::string const& srs):
     node::ObjectWrap(),
-    layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name,srs)) {}
+    layer_(std::make_shared<mapnik::layer>(name,srs)) {}
 
 Layer::Layer():
     node::ObjectWrap(),
@@ -106,7 +102,7 @@ Handle<Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     NanEscapableScope();
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
-    l->layer_ = MAPNIK_MAKE_SHARED<mapnik::layer>(lay_ref);
+    l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
     Handle<Value> ext = NanNew<External>(l);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);
@@ -271,7 +267,7 @@ NAN_METHOD(Layer::describe)
         for (; it != end; ++it)
         {
             node_mapnik::params_to_object serializer( ds , it->first);
-            MAPNIK_APPLY_VISITOR( serializer, it->second );
+            mapnik::util::apply_visitor( serializer, it->second );
         }
     }
 

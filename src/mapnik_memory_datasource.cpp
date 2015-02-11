@@ -1,6 +1,4 @@
 
-#include "mapnik3x_compatibility.hpp"
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
@@ -9,16 +7,12 @@
 #include <mapnik/value_types.hpp>
 
 #include "mapnik_memory_datasource.hpp"
-//#include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
 #include "ds_emitter.hpp"
 
 // stl
 #include <exception>
-
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -96,7 +90,7 @@ NAN_METHOD(MemoryDatasource::New)
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
-    d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+    d->datasource_ = std::make_shared<mapnik::memory_datasource>(params);
     NanReturnValue(args.This());
 }
 
@@ -120,7 +114,7 @@ NAN_METHOD(MemoryDatasource::parameters)
         for (; it != end; ++it)
         {
             node_mapnik::params_to_object serializer( ds , it->first);
-            MAPNIK_APPLY_VISITOR( serializer, it->second );
+            mapnik::util::apply_visitor( serializer, it->second );
         }
     }
     NanReturnValue(ds);
@@ -207,9 +201,9 @@ NAN_METHOD(MemoryDatasource::add)
         Local<Value> y = obj->Get(NanNew("y"));
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
-            mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
+            mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::geometry_type::types::Point);
             pt->move_to(x->NumberValue(),y->NumberValue());
-            mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
+            mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
             feature->add_geometry(pt);

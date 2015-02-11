@@ -42,8 +42,6 @@
 #endif // CAIRO_HAS_SVG_SURFACE
 #endif
 
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 #include <set>                          // for set, etc
 #include <sstream>                      // for operator<<, basic_ostream, etc
 #include <string>                       // for string, char_traits, etc
@@ -65,10 +63,10 @@ double path_to_point_distance(PathType & path, double x, double y)
     double y0 = 0;
     double distance = -1;
     path.rewind(0);
-    MAPNIK_GEOM_TYPE geom_type = static_cast<MAPNIK_GEOM_TYPE>(path.type());
+    mapnik::geometry_type::types geom_type = static_cast<mapnik::geometry_type::types>(path.type());
     switch(geom_type)
     {
-    case MAPNIK_POINT:
+    case mapnik::geometry_type::types::Point:
     {
         unsigned command;
         bool first = true;
@@ -87,7 +85,7 @@ double path_to_point_distance(PathType & path, double x, double y)
         return distance;
         break;
     }
-    case MAPNIK_POLYGON:
+    case mapnik::geometry_type::types::Polygon:
     {
         double x1 = 0;
         double y1 = 0;
@@ -115,7 +113,7 @@ double path_to_point_distance(PathType & path, double x, double y)
         return inside ? 0 : -1;
         break;
     }
-    case MAPNIK_LINESTRING:
+    case mapnik::geometry_type::types::LineString:
     {
         double x1 = 0;
         double y1 = 0;
@@ -533,7 +531,7 @@ NAN_METHOD(VectorTile::composite)
                         {
                             vector_tile::Tile_Layer const& layer = tiledata.layers(i);
                             mapnik::layer lyr(layer.name(),merc_srs);
-                            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                             mapnik::vector_tile_impl::tile_datasource>(
                                                                 layer,
                                                                 vt->x_,
@@ -543,7 +541,7 @@ NAN_METHOD(VectorTile::composite)
                                                                 );
                             ds->set_envelope(m_req.get_buffered_extent());
                             lyr.set_datasource(ds);
-                            map.MAPNIK_ADD_LAYER(lyr);
+                            map.add_layer(lyr);
                         }
                         renderer_type ren(backend,
                                           map,
@@ -569,7 +567,7 @@ NAN_METHOD(VectorTile::composite)
                                 {
                                     vector_tile::Tile_Layer const& layer = new_tiledata2.layers(i);
                                     mapnik::layer lyr(layer.name(),merc_srs);
-                                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                                         layer,
                                                                         vt->x_,
@@ -579,7 +577,7 @@ NAN_METHOD(VectorTile::composite)
                                                                         );
                                     ds->set_envelope(m_req.get_buffered_extent());
                                     lyr.set_datasource(ds);
-                                    map.MAPNIK_ADD_LAYER(lyr);
+                                    map.add_layer(lyr);
                                 }
                                 renderer_type ren(backend,
                                                   map,
@@ -881,7 +879,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         if (layer_idx > -1)
         {
             vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
                                             layer,
                                             d->x_,
@@ -929,7 +927,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         for (int i=0; i < tiledata.layers_size(); ++i)
         {
             vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
                                             layer,
                                             d->x_,
@@ -1175,7 +1173,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     bbox.pad(tolerance);
 
     vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                 mapnik::vector_tile_impl::tile_datasource>(
                                     layer,
                                     d->x_,
@@ -1943,7 +1941,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         p["layer_by_index"]="0";
         mapnik::layer lyr(geojson_name,"+init=epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
-        map.MAPNIK_ADD_LAYER(lyr);
+        map.add_layer(lyr);
         renderer_type ren(backend,
                           map,
                           m_req,
@@ -2523,7 +2521,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                 if (lyr.name() == layer.name())
                 {
                     mapnik::layer lyr_copy(lyr);
-                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,
@@ -2621,7 +2619,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     }
 
                     mapnik::layer lyr_copy(lyr);
-                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,

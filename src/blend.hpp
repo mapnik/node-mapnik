@@ -10,11 +10,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "mapnik_palette.hpp"
 #include "tint.hpp"
-
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
 
 namespace node_mapnik {
 
@@ -35,10 +33,10 @@ struct BImage {
     int y;
     int width, height;
     Tinter tint;
-    MAPNIK_UNIQUE_PTR<mapnik::image_data_rgba8> im_ptr;
+    std::unique_ptr<mapnik::image_data_rgba8> im_ptr;
 };
 
-typedef MAPNIK_SHARED_PTR<BImage> ImagePtr;
+typedef std::shared_ptr<BImage> ImagePtr;
 typedef std::vector<ImagePtr> Images;
 
 enum BlendFormat {

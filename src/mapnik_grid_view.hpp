@@ -7,13 +7,12 @@
 #pragma GCC diagnostic pop
 
 #include <mapnik/grid/grid_view.hpp>
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 class Grid;
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::grid_view> grid_view_ptr;
+typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
 class GridView: public node::ObjectWrap {
 public:

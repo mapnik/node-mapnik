@@ -6,9 +6,6 @@
 #include <mapnik/projection.hpp>
 #include <sstream>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Projection::constructor;
 
 void Projection::Initialize(Handle<Object> target) {
@@ -28,7 +25,7 @@ void Projection::Initialize(Handle<Object> target) {
 
 Projection::Projection(std::string const& name) :
     node::ObjectWrap(),
-    projection_(MAPNIK_MAKE_SHARED<mapnik::projection>(name)) {}
+    projection_(std::make_shared<mapnik::projection>(name)) {}
 
 Projection::~Projection()
 {
@@ -201,7 +198,7 @@ void ProjTransform::Initialize(Handle<Object> target) {
 ProjTransform::ProjTransform(mapnik::projection const& src,
                              mapnik::projection const& dest) :
     node::ObjectWrap(),
-    this_(MAPNIK_MAKE_SHARED<mapnik::proj_transform>(src,dest)) {}
+    this_(std::make_shared<mapnik::proj_transform>(src,dest)) {}
 
 ProjTransform::~ProjTransform()
 {

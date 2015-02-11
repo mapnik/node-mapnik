@@ -7,9 +7,6 @@
 #include <iomanip>
 #include <sstream>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Palette::constructor;
 
 void Palette::Initialize(Handle<Object> target) {
@@ -28,7 +25,7 @@ void Palette::Initialize(Handle<Object> target) {
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
     node::ObjectWrap(),
-    palette_(MAPNIK_MAKE_SHARED<mapnik::rgba_palette>(palette, type)) {}
+    palette_(std::make_shared<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }

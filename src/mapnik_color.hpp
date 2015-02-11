@@ -6,15 +6,12 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-
-// boost
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 using namespace v8;
 
 namespace mapnik { class color; }
-typedef MAPNIK_SHARED_PTR<mapnik::color> color_ptr;
+typedef std::shared_ptr<mapnik::color> color_ptr;
 
 class Color: public node::ObjectWrap {
 public:
