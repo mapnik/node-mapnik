@@ -465,8 +465,8 @@ NAN_METHOD(VectorTile::composite)
         VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
         vector_tile::Tile new_tiledata;
         vector_tile::Tile new_tiledata2;
-        for (unsigned i=0;i < num_tiles;++i) {
-            Local<Value> val = vtiles->Get(i);
+        for (unsigned j=0;j < num_tiles;++j) {
+            Local<Value> val = vtiles->Get(j);
             if (!val->IsObject()) {
                 NanThrowTypeError("must provide an array of VectorTile objects");
                 NanReturnUndefined();
@@ -899,16 +899,16 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
                         mapnik::vertex_adapter va(geom);
-                        double d = path_to_point_distance(va,x,y);
-                        if (d >= 0)
+                        double dist = path_to_point_distance(va,x,y);
+                        if (dist >= 0)
                         {
                             if (distance >= 0)
                             {
-                                if (d < distance) distance = d;
+                                if (dist < distance) distance = dist;
                             }
                             else
                             {
-                                distance = d;
+                                distance = dist;
                             }
                         }
                     }
@@ -947,16 +947,16 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
                         mapnik::vertex_adapter va(geom);
-                        double d = path_to_point_distance(va,x,y);
-                        if (d >= 0)
+                        double dist = path_to_point_distance(va,x,y);
+                        if (dist >= 0)
                         {
                             if (distance >= 0)
                             {
-                                if (d < distance) distance = d;
+                                if (dist < distance) distance = dist;
                             }
                             else
                             {
-                                distance = d;
+                                distance = dist;
                             }
                         }
                     }
