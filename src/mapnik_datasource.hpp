@@ -6,15 +6,13 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 using namespace v8;
 
 namespace mapnik { class datasource; }
 
-typedef MAPNIK_SHARED_PTR<mapnik::datasource> datasource_ptr;
+typedef std::shared_ptr<mapnik::datasource> datasource_ptr;
 
 class Datasource: public node::ObjectWrap {
 public:

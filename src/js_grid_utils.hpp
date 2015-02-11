@@ -1,8 +1,6 @@
 #ifndef __NODE_MAPNIK_GRID_UTILS_H__
 #define __NODE_MAPNIK_GRID_UTILS_H__
 
-#include "mapnik3x_compatibility.hpp"
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>           // for feature_impl, etc
@@ -125,7 +123,7 @@ static void write_features(T const& grid_type,
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
                 feat->Set(NanNew(attr.c_str()),
-                    MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),
+                    mapnik::util::apply_visitor(node_mapnik::value_converter(),
                     attr_val));
             }
         }

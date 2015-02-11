@@ -6,16 +6,14 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
-
 // stl
 #include <string>
+#include <memory>
 
 using namespace v8;
 
 namespace mapnik { class layer; }
-typedef MAPNIK_SHARED_PTR<mapnik::layer> layer_ptr;
+typedef std::shared_ptr<mapnik::layer> layer_ptr;
 
 class Layer: public node::ObjectWrap {
 public:

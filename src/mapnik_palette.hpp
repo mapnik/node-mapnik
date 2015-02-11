@@ -6,15 +6,12 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-// boost
-#include MAPNIK_SHARED_INCLUDE
-
 #include <mapnik/palette.hpp>
+#include <memory>
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::rgba_palette> palette_ptr;
+typedef std::shared_ptr<mapnik::rgba_palette> palette_ptr;
 
 class Palette: public node::ObjectWrap {
 public:

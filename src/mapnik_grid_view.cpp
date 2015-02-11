@@ -7,8 +7,6 @@
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
 
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 // std
 #include <exception>
 
@@ -80,7 +78,7 @@ Handle<Value> GridView::NewInstance(Grid * JSGrid,
 {
     NanEscapableScope();
     GridView* gv = new GridView(JSGrid);
-    gv->this_ = MAPNIK_MAKE_SHARED<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
+    gv->this_ = std::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
     Handle<Value> ext = NanNew<External>(gv);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);

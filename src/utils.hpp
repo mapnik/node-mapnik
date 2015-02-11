@@ -1,9 +1,6 @@
 #ifndef __NODE_MAPNIK_UTILS_H__
 #define __NODE_MAPNIK_UTILS_H__
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
@@ -11,6 +8,7 @@
 
 // stl
 #include <string>
+#include <memory>
 
 // core types
 #include <mapnik/unicode.hpp>
@@ -46,7 +44,7 @@ namespace node_mapnik {
 typedef mapnik::value_integer value_integer;
 
 // adapted to work for both mapnik features and mapnik parameters
-struct params_to_object : public MAPNIK_STATIC_VISITOR<>
+struct params_to_object : public mapnik::util::static_visitor<>
 {
 public:
     params_to_object( Local<Object>& ds, std::string key):
@@ -91,7 +89,7 @@ private:
     std::string key_;
 };
 
-struct value_converter: public MAPNIK_STATIC_VISITOR<Handle<Value> >
+struct value_converter: public mapnik::util::static_visitor<Handle<Value> >
 {
     Handle<Value> operator () ( value_integer val ) const
     {

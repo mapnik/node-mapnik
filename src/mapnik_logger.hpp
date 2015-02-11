@@ -2,7 +2,6 @@
 #define __NODE_MAPNIK_LOGGER_H__
 
 #include <nan.h>
-#include "mapnik3x_compatibility.hpp"
 
 //Forward declaration of mapnik logger
 namespace mapnik { class logger; }

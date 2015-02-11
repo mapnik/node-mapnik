@@ -6,14 +6,11 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
+#include <memory>
 
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
-
-// boost
-#include MAPNIK_SHARED_INCLUDE
 
 using namespace v8;
 

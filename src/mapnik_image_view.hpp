@@ -7,15 +7,14 @@
 #pragma GCC diagnostic pop
 
 #include <mapnik/image_data.hpp>        // for image_data_rgba8
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 class Image;
 namespace mapnik { template <typename T> class image_view; }
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::image_view<mapnik::image_data_rgba8> > image_view_ptr;
+typedef std::shared_ptr<mapnik::image_view<mapnik::image_data_rgba8> > image_view_ptr;
 
 class ImageView: public node::ObjectWrap {
 public:

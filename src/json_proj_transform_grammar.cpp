@@ -9,7 +9,7 @@ template <>
 struct get_first<node_mapnik::proj_transform_path_type>
 {
     using geometry_type = node_mapnik::proj_transform_path_type;
-    using result_type = typename geometry_type::value_type;
+    using result_type = geometry_type::value_type;
     result_type operator() (geometry_type const& geom) const
     {
         result_type coord;

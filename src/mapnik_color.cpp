@@ -8,11 +8,7 @@
 // stl
 #include <exception>                    // for exception
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Color::constructor;
-
 
 void Color::Initialize(Handle<Object> target) {
 
@@ -68,14 +64,14 @@ NAN_METHOD(Color::New)
 
         if (args.Length() == 1 && args[0]->IsString()){
 
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(TOSTR(args[0]));
+            c_p = std::make_shared<mapnik::color>(TOSTR(args[0]));
 
         } else if (args.Length() == 3) {
 
             int r = args[0]->IntegerValue();
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b);
+            c_p = std::make_shared<mapnik::color>(r,g,b);
 
         } else if (args.Length() == 4) {
 
@@ -83,7 +79,7 @@ NAN_METHOD(Color::New)
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
             int a = args[3]->IntegerValue();
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,a);
+            c_p = std::make_shared<mapnik::color>(r,g,b,a);
         } else {
             NanThrowTypeError("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values");
             NanReturnUndefined();
@@ -116,7 +112,7 @@ NAN_METHOD(Color::New)
 Handle<Value> Color::NewInstance(mapnik::color const& color) {
     NanEscapableScope();
     Color* c = new Color();
-    c->this_ = MAPNIK_MAKE_SHARED<mapnik::color>(color);
+    c->this_ = std::make_shared<mapnik::color>(color);
     Handle<Value> ext = NanNew<External>(c);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);

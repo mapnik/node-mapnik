@@ -1,6 +1,4 @@
 
-#include "mapnik3x_compatibility.hpp"
-
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/graphics.hpp>          // for image_32
@@ -20,7 +18,6 @@
 #include "utils.hpp"
 
 // boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
 #include <boost/optional/optional.hpp>
 
 // std
@@ -81,7 +78,7 @@ void Image::Initialize(Handle<Object> target) {
 
 Image::Image(unsigned int width, unsigned int height) :
     node::ObjectWrap(),
-    this_(MAPNIK_MAKE_SHARED<mapnik::image_32>(width,height)),
+    this_(std::make_shared<mapnik::image_32>(width,height)),
     estimated_size_(width * height * 4)
 {
     NanAdjustExternalMemory(estimated_size_);
@@ -771,10 +768,10 @@ Local<Value> Image::_openSync(_NAN_METHOD_ARGS)
         boost::optional<std::string> type = mapnik::type_from_filename(filename);
         if (type)
         {
-            MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
             if (reader.get())
             {
-                MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+                std::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
                 reader->read(0,0,image_ptr->data());
                 Image* im = new Image(image_ptr);
                 Handle<Value> ext = NanNew<External>(im);
@@ -862,10 +859,10 @@ void Image::EIO_Open(uv_work_t* req)
         }
         else
         {
-            MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->filename,*type));
+            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->filename,*type));
             if (reader.get())
             {
-                closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
+                closure->im = std::make_shared<mapnik::image_32>(reader->width(),reader->height());
                 reader->read(0,0,closure->im->data());
             }
             else
@@ -930,10 +927,10 @@ Local<Value> Image::_fromBytesSync(_NAN_METHOD_ARGS)
 
     try
     {
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
+        std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
         if (reader.get())
         {
-            MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
+            std::shared_ptr<mapnik::image_32> image_ptr(new mapnik::image_32(reader->width(),reader->height()));
             reader->read(0,0,image_ptr->data());
             Image* im = new Image(image_ptr);
             Handle<Value> ext = NanNew<External>(im);
@@ -1000,10 +997,10 @@ void Image::EIO_FromBytes(uv_work_t* req)
 
     try
     {
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
+        std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
         if (reader.get())
         {
-            closure->im = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
+            closure->im = std::make_shared<mapnik::image_32>(reader->width(),reader->height());
             reader->read(0,0,closure->im->data());
         }
         else
@@ -1434,7 +1431,7 @@ void Image::EIO_Composite(uv_work_t* req)
             mapnik::filter::filter_visitor<mapnik::image_32> visitor(*closure->im2->this_);
             for (mapnik::filter::filter_type const& filter_tag : closure->filters)
             {
-                MAPNIK_APPLY_VISITOR(visitor, filter_tag);
+                mapnik::util::apply_visitor(visitor, filter_tag);
             }
         }
         mapnik::composite(closure->im1->this_->data(),closure->im2->this_->data(), closure->mode, closure->opacity, closure->dx, closure->dy);

@@ -7,9 +7,6 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Geometry::constructor;
 
 void Geometry::Initialize(Handle<Object> target) {
@@ -26,11 +23,11 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Point",MAPNIK_POINT)
+                                "Point",mapnik::geometry_type::types::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "LineString",MAPNIK_LINESTRING)
+                                "LineString",mapnik::geometry_type::types::LineString)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Polygon",MAPNIK_POLYGON)
+                                "Polygon",mapnik::geometry_type::types::Polygon)
     target->Set(NanNew("Geometry"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }

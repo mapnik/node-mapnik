@@ -1,7 +1,3 @@
-
-//#include "mapnik3x_compatibility.hpp"
-//#include MAPNIK_VARIANT_INCLUDE
-
 #include "mapnik_map.hpp"
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
@@ -43,7 +39,6 @@
 
 // boost
 #include <boost/optional/optional.hpp>  // for optional
-#include "mapnik3x_compatibility.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
@@ -125,12 +120,12 @@ void Map::Initialize(Handle<Object> target) {
 
 Map::Map(int width, int height) :
     node::ObjectWrap(),
-    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height)),
+    map_(std::make_shared<mapnik::Map>(width,height)),
     in_use_(0) {}
 
 Map::Map(int width, int height, std::string const& srs) :
     node::ObjectWrap(),
-    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
+    map_(std::make_shared<mapnik::Map>(width,height,srs)),
     in_use_(0) {}
 
 Map::Map() :
@@ -268,7 +263,7 @@ NAN_GETTER(Map::get_prop)
         for (; it != end; ++it)
         {
             node_mapnik::params_to_object serializer( ds , it->first);
-            MAPNIK_APPLY_VISITOR( serializer, it->second );
+            mapnik::util::apply_visitor( serializer, it->second );
         }
         NanReturnValue(ds);
     }
@@ -800,7 +795,7 @@ NAN_METHOD(Map::add_layer) {
     }
     Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    m->map_->MAPNIK_ADD_LAYER(*l->get());
+    m->map_->add_layer(*l->get());
     NanReturnUndefined();
 }
 
@@ -1256,7 +1251,7 @@ NAN_METHOD(Map::clone)
     NanScope();
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     Map* m2 = new Map();
-    m2->map_ = MAPNIK_MAKE_SHARED<mapnik::Map>(*m->map_);
+    m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
     Handle<Value> ext = NanNew<External>(m2);
     NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
 }

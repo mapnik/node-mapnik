@@ -1,6 +1,4 @@
 
-#include "mapnik3x_compatibility.hpp"
-
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
@@ -151,7 +149,7 @@ NAN_METHOD(Datasource::parameters)
     for (; it != end; ++it)
     {
         node_mapnik::params_to_object serializer( ds , it->first);
-        MAPNIK_APPLY_VISITOR( serializer, it->second );
+        mapnik::util::apply_visitor( serializer, it->second );
     }
     NanReturnValue(ds);
 }

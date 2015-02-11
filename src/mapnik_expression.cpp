@@ -1,6 +1,3 @@
- #include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
@@ -12,9 +9,6 @@
 #include <mapnik/attribute.hpp>
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
-
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <exception>                    // for exception
@@ -147,6 +141,6 @@ NAN_METHOD(Expression::evaluate)
             object_to_container(vars,bind_opt->ToObject());
         }
     }
-    mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
-    NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj));
+    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
+    NanReturnValue(mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj));
 }
