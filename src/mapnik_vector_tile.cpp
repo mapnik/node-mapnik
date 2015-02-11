@@ -79,8 +79,8 @@ double path_to_point_distance(PathType & path, double x, double y)
                 first = false;
                 continue;
             }
-            double d = mapnik::distance(x, y, x0, y0);
-            if (d < distance) distance = d;
+            double dist = mapnik::distance(x, y, x0, y0);
+            if (dist < distance) distance = dist;
         }
         return distance;
         break;
@@ -136,8 +136,8 @@ double path_to_point_distance(PathType & path, double x, double y)
             }
             else
             {
-                double d = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                if (d >= 0 && d < distance) distance = d;
+                double dist = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
+                if (dist >= 0 && dist < distance) distance = dist;
             }
             x0 = x1;
             y0 = y1;
@@ -1212,16 +1212,16 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                 for (mapnik::geometry_type const& geom : feature->paths())
                 {
                     mapnik::vertex_adapter va(geom);
-                    double d = path_to_point_distance(va,pt.x,pt.y);
-                    if (d >= 0)
+                    double dist = path_to_point_distance(va,pt.x,pt.y);
+                    if (dist >= 0)
                     {
                         if (distance >= 0)
                         {
-                            if (d < distance) distance = d;
+                            if (dist < distance) distance = dist;
                         }
                         else
                         {
-                            distance = d;
+                            distance = dist;
                         }
                     }
                 }
