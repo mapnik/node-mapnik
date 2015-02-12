@@ -132,7 +132,7 @@ describe('mapnik.Feature ', function() {
         });
     });
 
-    it.only('should be able to reproject geojson feature', function (done) {
+    it('should be able to reproject geojson feature', function (done) {
         var merc_poly = {
          "type": "MultiPolygon",
          "coordinates": [
