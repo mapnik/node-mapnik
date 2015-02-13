@@ -15,9 +15,10 @@ struct proj_transform_adapter
     using size_type = std::size_t;
     using value_type = typename Geometry::value_type;
 
-    proj_transform_adapter(Geometry & geom,
+    proj_transform_adapter(Geometry const& geom,
                            proj_transform const& prj_trans)
         : geom_(geom),
+          va_(geom),
           prj_trans_(prj_trans)  {}
 
     unsigned vertex(double *x, double *y) const
@@ -27,7 +28,7 @@ struct proj_transform_adapter
         bool skipped_points = false;
         while (!ok)
         {
-            command = geom_.vertex(x,y);
+            command = va_.vertex(x,y);
             if (command == SEG_END)
             {
                 return command;
@@ -47,7 +48,7 @@ struct proj_transform_adapter
 
     void rewind(unsigned pos) const
     {
-        geom_.rewind(pos);
+        va_.rewind(pos);
     }
 
     unsigned type() const
@@ -61,14 +62,15 @@ struct proj_transform_adapter
     }
 
 private:
-    Geometry & geom_;
+    Geometry const& geom_;
+    mapnik::vertex_adapter va_;
     proj_transform const& prj_trans_;
 };
 
 }
 
 namespace node_mapnik {
-    using proj_transform_path_type = mapnik::proj_transform_adapter<mapnik::vertex_adapter>;
+    using proj_transform_path_type = mapnik::proj_transform_adapter<mapnik::geometry_type>;
     using proj_transform_container = boost::ptr_vector<proj_transform_path_type>;
 }
 
