@@ -39,7 +39,7 @@ install:
   - SET PATH=C:\Program Files\7-Zip;%PATH%
   - SET ARCHPATH=
   - if %platform% == x64 (SET ARCHPATH=x64/)
-  - SET SDK_VERSION=v3.0.0-rc1-450-g30c6cf6
+  - SET SDK_VERSION=v3.0.0-rc1-460-g2aaaecb
   - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:SDK_VERSION.7z"
   - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:SDK_VERSION.7z -FileName mapnik-sdk.7z
   - ps: Write-Output "extracting mapnik sdk"

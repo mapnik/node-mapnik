@@ -49,7 +49,13 @@ What if you already committed the `package.json` bump and you have no changes to
 git commit --allow-empty -m "[publish binary]"
 ```
 
-Note: it is not possible to overwrite previously published binaries. So don't run `"[publish binary]"` unless you really mean it!
+If you need to republish binaries you can do this with the command below, however this should not be a common thing for you to do!
+
+```sh
+git commit --allow-empty -m "[republish binary]"
+```
+
+Note: NEVER republish binaries for an existing released version.
 
 **6)** Test your binaries
 
