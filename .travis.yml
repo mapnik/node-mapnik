@@ -16,8 +16,10 @@ matrix:
 
 env:
   matrix:
-   - NODE_NVM_VERSION="0.11.14" JOBS=8
-   - NODE_NVM_VERSION="0.10.33" JOBS=8
+   - NODE_NVM_VERSION="0.10.36" JOBS=8 # node abi 11
+   - NODE_NVM_VERSION="0.12.0" JOBS=8 # node abi 14
+   - NODE_NVM_VERSION="1.0.4" JOBS=8 # node abi 42
+   - NODE_NVM_VERSION="1.2.0" JOBS=8 # node abi 43
   global:
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
