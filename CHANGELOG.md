@@ -12,6 +12,8 @@
 
 Notable changes in the Mapnik SDK include:
  - Changes: https://github.com/mapnik/mapnik/compare/8063fa0...30c6cf636c
+ - `shapeindex` now works properly for point 3d shapes
+ - Improved auto-detection of `geometry_table` from sql subselects for PostGIS plugin
  - Fixed hextree encoder (will produce non-visible image differences)
  - Fixed bugs in GeoJSON parser
  - GroupSymbolizer now supports MarkersSymbolizer and not PointSymbolizer
