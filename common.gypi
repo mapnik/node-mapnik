@@ -60,6 +60,10 @@
               "/MP", # compile across multiple CPUs
               "/bigobj", #compiling: x86 fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj
             ],
+            "DebugInformationFormat": "3"
+          }
+          "VCLinkerTool": {
+            "GenerateDebugInformation": "true",
           }
         }
       }
