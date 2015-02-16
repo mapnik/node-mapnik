@@ -211,6 +211,106 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel.b, 255);
         assert.equal(pixel.a, 255);
     });
+    
+    it('should support setting and getting gray8 pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray8);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), 0);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray8s pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray8s);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), -1);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray16 pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray16);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), 0);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray16s pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray16s);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), -1);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray32 pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), 0);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray32s pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32s);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), -1);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray32f pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32f);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), -1);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray64 pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray64);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), 0);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray64s pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray64s);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), -1);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
+    
+    it('should support setting and getting gray64f pixel', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray64f);
+        gray.setPixel(0,0,-1);
+        gray.setPixel(1,0,0);
+        gray.setPixel(2,0,1);
+        assert.equal(gray.getPixel(0,0), -1);
+        assert.equal(gray.getPixel(1,0), 0);
+        assert.equal(gray.getPixel(2,0), 1);
+    });
 
     it('should support have set_pixel protecting overflow and underflows', function() {
         var imx = new mapnik.Image(4, 4, mapnik.imageType.gray16);
