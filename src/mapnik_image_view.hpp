@@ -8,15 +8,14 @@
 
 #include <mapnik/image.hpp>        // for image_rgba8
 #include <mapnik/image_view_any.hpp>
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 class Image;
 namespace mapnik { template <typename T> class image_view; }
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::image_view_any> image_view_ptr;
+typedef std::shared_ptr<mapnik::image_view_any> image_view_ptr;
 
 class ImageView: public node::ObjectWrap {
 public:

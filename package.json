@@ -38,8 +38,8 @@
   ],
   "dependencies"  : {
       "nan": "~1.4.0",
-      "mapnik-vector-tile": "git://github.com/mapbox/mapnik-vector-tile.git#feature/data_raster",
-      "node-pre-gyp": "~0.6.1"
+      "mapnik-vector-tile": "~0.7.0",
+      "node-pre-gyp": "0.6.2"
   },
   "bundledDependencies": [
       "mapnik-vector-tile",
@@ -47,7 +47,8 @@
   ],
   "bin"           : {
       "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
-      "mapnik-render.js"  : "./bin/mapnik-render.js"
+      "mapnik-render.js"  : "./bin/mapnik-render.js",
+      "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
   },
   "engines": {
       "node": ">= 0.8.0 < 0.11.0 || >= 0.11.13 < 0.13.0"
@@ -55,7 +56,7 @@
   "engineStrict": true,
   "scripts"       : {
       "prepublish" : "npm ls",
-      "test"    : "mocha -R spec --timeout 50000",
+      "test"    : "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
       "install": "node-pre-gyp install --fallback-to-build"
   },
   "devDependencies": {

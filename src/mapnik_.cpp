@@ -1,7 +1,7 @@
 #include "utils.hpp"
 #include "mapnik_•.hpp"
+#include <memory>
 
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> •::constructor;
 
@@ -19,7 +19,7 @@ void •::Initialize(Handle<Object> target) {
 
 •::•(std::string const& name) :
 ObjectWrap(),
-    this_(MAPNIK_MAKE_SHARED<mapnik::•>(name)) {}
+    this_(std::make_shared<mapnik::•>(name)) {}
 
 •::~•()
 {

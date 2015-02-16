@@ -1,8 +1,4 @@
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
-
 #include "utils.hpp"
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
@@ -13,8 +9,6 @@
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/json/feature_parser.hpp>
 #include <mapnik/value_types.hpp>
-
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 #include <mapnik/json/feature_generator_grammar.hpp>
 
@@ -50,7 +44,7 @@ Feature::Feature(int id) :
     node::ObjectWrap(),
     this_() {
     // TODO - accept/require context object to reused
-    ctx_ = MAPNIK_MAKE_SHARED<mapnik::context_type>();
+    ctx_ = std::make_shared<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
 }
 
@@ -97,7 +91,7 @@ NAN_METHOD(Feature::fromJSON)
         NanReturnUndefined();
     }
     std::string json = TOSTR(args[0]);
-    mapnik::feature_ptr f(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
+    mapnik::feature_ptr f(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     if (!mapnik::json::from_geojson(json,*f))
     {
         throw std::runtime_error("Failed to parse geojson feature");
@@ -152,8 +146,8 @@ NAN_METHOD(Feature::attributes)
     mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
-        node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
-        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr) );
+        node_mapnik::params_to_object serializer( feat , std::get<0>(*itr));
+        mapnik::util::apply_visitor( serializer, std::get<1>(*itr) );
     }
     NanReturnValue(feat);
 }

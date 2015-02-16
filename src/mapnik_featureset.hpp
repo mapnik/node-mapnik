@@ -7,7 +7,7 @@
 #pragma GCC diagnostic pop
 
 #include <mapnik/featureset.hpp>
-#include "mapnik3x_compatibility.hpp"
+#include <memory>
 
 using namespace v8;
 

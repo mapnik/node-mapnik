@@ -11,9 +11,6 @@
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 // std
 #include <exception>
 
@@ -85,7 +82,7 @@ Handle<Value> ImageView::NewInstance(Image * JSImage ,
 {
     NanEscapableScope();
     ImageView* imv = new ImageView(JSImage);
-    imv->this_ = MAPNIK_MAKE_SHARED<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
+    imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
     Handle<Value> ext = NanNew<External>(imv);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);

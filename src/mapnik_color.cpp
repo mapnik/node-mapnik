@@ -8,11 +8,7 @@
 // stl
 #include <exception>                    // for exception
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Color::constructor;
-
 
 void Color::Initialize(Handle<Object> target) {
 
@@ -69,13 +65,13 @@ NAN_METHOD(Color::New)
         if (args.Length() == 1 && 
             args[0]->IsString())
         {
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(TOSTR(args[0]));
+            c_p = std::make_shared<mapnik::color>(TOSTR(args[0]));
         }
         else if (args.Length() == 2 && 
                  args[0]->IsString() &&
                  args[1]->IsBoolean())
         {
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(TOSTR(args[0]),args[1]->BooleanValue());
+            c_p = std::make_shared<mapnik::color>(TOSTR(args[0]),args[1]->BooleanValue());
         }
         else if (args.Length() == 3 &&
                  args[0]->IsNumber() &&
@@ -90,7 +86,7 @@ NAN_METHOD(Color::New)
                 NanThrowTypeError("color value out of range");
                 NanReturnUndefined();
             }
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b);
+            c_p = std::make_shared<mapnik::color>(r,g,b);
         } 
         else if (args.Length() == 4 &&
                  args[0]->IsNumber() &&
@@ -106,7 +102,7 @@ NAN_METHOD(Color::New)
                 NanThrowTypeError("color value out of range");
                 NanReturnUndefined();
             }
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,255,args[3]->BooleanValue());
+            c_p = std::make_shared<mapnik::color>(r,g,b,255,args[3]->BooleanValue());
         } 
         else if (args.Length() == 4 &&
                  args[0]->IsNumber() &&
@@ -123,7 +119,7 @@ NAN_METHOD(Color::New)
                 NanThrowTypeError("color value out of range");
                 NanReturnUndefined();
             }
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,a);
+            c_p = std::make_shared<mapnik::color>(r,g,b,a);
         } 
         else if (args.Length() == 5 &&
                  args[0]->IsNumber() &&
@@ -141,7 +137,7 @@ NAN_METHOD(Color::New)
                 NanThrowTypeError("color value out of range");
                 NanReturnUndefined();
             }
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,a,args[4]->BooleanValue());
+            c_p = std::make_shared<mapnik::color>(r,g,b,a,args[4]->BooleanValue());
         } 
         else 
         {
@@ -176,7 +172,7 @@ NAN_METHOD(Color::New)
 Handle<Value> Color::NewInstance(mapnik::color const& color) {
     NanEscapableScope();
     Color* c = new Color();
-    c->this_ = MAPNIK_MAKE_SHARED<mapnik::color>(color);
+    c->this_ = std::make_shared<mapnik::color>(color);
     Handle<Value> ext = NanNew<External>(c);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);

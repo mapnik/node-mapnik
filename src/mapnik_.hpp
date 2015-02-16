@@ -15,7 +15,7 @@
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::•> •_ptr;
+typedef std::shared_ptr<mapnik::•> •_ptr;
 
 class •: public node::ObjectWrap {
 public:

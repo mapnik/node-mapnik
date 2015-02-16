@@ -6,8 +6,7 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 using namespace v8;
 
@@ -16,7 +15,7 @@ namespace mapnik {
     enum image_dtype : std::uint8_t;
 }
 
-typedef MAPNIK_SHARED_PTR<mapnik::image_any> image_ptr;
+typedef std::shared_ptr<mapnik::image_any> image_ptr;
 
 class Image: public node::ObjectWrap {
 public:

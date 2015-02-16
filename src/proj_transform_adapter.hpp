@@ -15,9 +15,10 @@ struct proj_transform_adapter
     using size_type = std::size_t;
     using value_type = typename Geometry::value_type;
 
-    proj_transform_adapter(Geometry & geom,
+    proj_transform_adapter(Geometry const& geom,
                            proj_transform const& prj_trans)
         : geom_(geom),
+          va_(geom),
           prj_trans_(prj_trans)  {}
 
     unsigned vertex(double *x, double *y) const
@@ -27,7 +28,7 @@ struct proj_transform_adapter
         bool skipped_points = false;
         while (!ok)
         {
-            command = geom_.vertex(x,y);
+            command = va_.vertex(x,y);
             if (command == SEG_END)
             {
                 return command;
@@ -47,7 +48,7 @@ struct proj_transform_adapter
 
     void rewind(unsigned pos) const
     {
-        geom_.rewind(pos);
+        va_.rewind(pos);
     }
 
     unsigned type() const
@@ -61,7 +62,8 @@ struct proj_transform_adapter
     }
 
 private:
-    Geometry & geom_;
+    Geometry const& geom_;
+    mapnik::vertex_adapter va_;
     proj_transform const& prj_trans_;
 };
 

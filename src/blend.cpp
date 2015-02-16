@@ -25,8 +25,7 @@
 #include <sstream>
 #include <cstring>
 #include <cstdlib>
-
-#include MAPNIK_MAKE_SHARED_INCLUDE
+#include <memory>
 
 using namespace v8;
 using namespace node;
@@ -312,9 +311,9 @@ void Work_Blend(uv_work_t* req) {
         if (!alpha) break;
 
         BImage *image = &**rit;
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> image_reader;
+        std::unique_ptr<mapnik::image_reader> image_reader;
         try {
-            image_reader = MAPNIK_UNIQUE_PTR<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
+            image_reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
         } catch (std::exception const& ex) {
             baton->message = ex.what();
             return;
@@ -358,7 +357,7 @@ void Work_Blend(uv_work_t* req) {
         }
 
         // allocate image for decoded pixels
-        MAPNIK_UNIQUE_PTR<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
+        std::unique_ptr<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
         // actually decode pixels now
         try {
             image_reader->read(0,0,*im_ptr);
@@ -435,7 +434,7 @@ void Work_AfterBlend(uv_work_t* req) {
 
 NAN_METHOD(Blend) {
     NanScope();
-    MAPNIK_UNIQUE_PTR<BlendBaton> baton(new BlendBaton());
+    std::unique_ptr<BlendBaton> baton(new BlendBaton());
 
     Local<Object> options;
     if (args.Length() == 0 || !args[0]->IsArray()) {
@@ -602,7 +601,7 @@ NAN_METHOD(Blend) {
     }
 
     for (uint32_t i = 0; i < length; i++) {
-        ImagePtr image = MAPNIK_MAKE_SHARED<BImage>();
+        ImagePtr image = std::make_shared<BImage>();
         Local<Value> buffer = js_images->Get(i);
         if (Buffer::HasInstance(buffer)) {
             NanAssignPersistent(image->buffer,buffer.As<Object>());

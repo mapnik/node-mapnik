@@ -7,9 +7,6 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Geometry::constructor;
 
 void Geometry::Initialize(Handle<Object> target) {
@@ -26,11 +23,11 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Point",MAPNIK_POINT)
+                                "Point",mapnik::geometry_type::types::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "LineString",MAPNIK_LINESTRING)
+                                "LineString",mapnik::geometry_type::types::LineString)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Polygon",MAPNIK_POLYGON)
+                                "Polygon",mapnik::geometry_type::types::Polygon)
     target->Set(NanNew("Geometry"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -111,7 +108,7 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
             ProjTransform* tr = node::ObjectWrap::Unwrap<ProjTransform>(obj);
             mapnik::proj_transform const& prj_trans = *tr->get();
             node_mapnik::proj_transform_container projected_paths;
-            for (auto & geom : g->feat_->paths())
+            for (auto const& geom : g->feat_->paths())
             {
                 projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
             }
@@ -189,7 +186,7 @@ void Geometry::to_json(uv_work_t* req)
         {
             mapnik::proj_transform const& prj_trans = *closure->tr->get();
             node_mapnik::proj_transform_container projected_paths;
-            for (auto & geom : closure->g->feat_->paths())
+            for (auto const& geom : closure->g->feat_->paths())
             {
                 projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
             }

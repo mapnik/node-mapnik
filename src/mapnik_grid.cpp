@@ -8,8 +8,6 @@
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
 
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 // std
 #include <exception>
 
@@ -44,7 +42,7 @@ void Grid::Initialize(Handle<Object> target) {
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
     node::ObjectWrap(),
-    this_(MAPNIK_MAKE_SHARED<mapnik::grid>(width,height,key,resolution)),
+    this_(std::make_shared<mapnik::grid>(width,height,key,resolution)),
     estimated_size_(width * height) {
     NanAdjustExternalMemory(estimated_size_);
 }
