@@ -11,6 +11,7 @@ var overwrite_expected_data = false;
 var data_base = './test/data/vector_tile/compositing';
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
 function render_data(name,coords,callback) {
     var map = new mapnik.Map(256, 256);
@@ -305,7 +306,6 @@ describe('mapnik.VectorTile.composite', function() {
     });
 
     it('non intersecting layers should be discarded when compositing', function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         // two tiles that do not overlap
         var vt1 = new mapnik.VectorTile(1,0,0); // north america
         var vt2 = new mapnik.VectorTile(1,0,1); // south america
@@ -364,7 +364,6 @@ describe('mapnik.VectorTile.composite', function() {
     });
 
     it('compositing a non-intersecting layer into an empty layer should not throw when parsed', function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         // two tiles that do not overlap
         var vt1 = new mapnik.VectorTile(1,0,0); // north america
         var vt2 = new mapnik.VectorTile(1,0,1); // south america

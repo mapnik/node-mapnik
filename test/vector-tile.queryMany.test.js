@@ -5,8 +5,9 @@ var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
+
 describe('mapnik.VectorTile queryMany', function() {
-    mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
     var geojson = {
       "type": "FeatureCollection",
       "features": [
