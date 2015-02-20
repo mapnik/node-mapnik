@@ -8,6 +8,8 @@ var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
+
 var trunc_6 = function(key, val) {
     return val.toFixed ? Number(val.toFixed(6)) : val;
 };
@@ -58,7 +60,6 @@ describe('mapnik.VectorTile ', function() {
     });
 
     it('should be able to create a vector tile from geojson', function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -101,7 +102,6 @@ describe('mapnik.VectorTile ', function() {
     });
 
     it('should be able to create a vector tile from multiple geojson files', function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",

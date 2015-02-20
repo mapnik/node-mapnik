@@ -5,6 +5,8 @@ var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
+
 describe('mapnik.VectorTile query polygon', function() {
     var vtile;
     before(function(done) {
@@ -106,7 +108,6 @@ describe('mapnik.VectorTile query polygon (clipped)', function() {
 describe('mapnik.VectorTile query point', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -205,7 +206,6 @@ describe('mapnik.VectorTile query point', function() {
 describe('mapnik.VectorTile query line', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -321,7 +321,6 @@ describe('mapnik.VectorTile query line', function() {
 describe('mapnik.VectorTile query multiline', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -386,7 +385,6 @@ describe('mapnik.VectorTile query multiline', function() {
 describe('mapnik.VectorTile query multipoint', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var coords = [
           [0.1,0.1],

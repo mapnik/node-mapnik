@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.6
+
+ - Now supporting IO.js 1.x and Node v0.12.x
+ - Optimized `vtile.addGeoJSON` by switching to Mapnik native GeoJSON plugin internally rather than OGR.
+ - Upgraded to node-pre-gyp@0.6.4
+
 ## 3.1.5
 
  - Security Fix: now throwing error instead of abort when vtile.getData() is called which needs to produce a node::Buffer larger than node::Buffer::kMaxLength (bed994a). However this condition did not previously happen due to integer overflow which is now also fixed (#371)

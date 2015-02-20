@@ -1934,10 +1934,8 @@ NAN_METHOD(VectorTile::addGeoJSON)
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(8);
         mapnik::parameters p;
-        // TODO - use mapnik core GeoJSON parser
-        p["type"]="ogr";
-        p["file"]=geojson_string;
-        p["layer_by_index"]="0";
+        p["type"]="geojson";
+        p["inline"]=geojson_string;
         mapnik::layer lyr(geojson_name,"+init=epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
         map.add_layer(lyr);
