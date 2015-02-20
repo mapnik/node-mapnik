@@ -110,12 +110,12 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
     upgrade_compiler
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-464-g1ebd6af"
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-593-gdc0cfef"
 fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-464-g1ebd6af-lto"
+    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-593-gdc0cfef-lto"
 fi
 
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
