@@ -309,7 +309,7 @@ NAN_METHOD(ImageView::width)
     NanScope();
 
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    NanReturnValue(NanNew<Integer>(im->this_->width()));
+    NanReturnValue(NanNew<Int32>(static_cast<std::int32_t>(im->this_->width())));
 }
 
 NAN_METHOD(ImageView::height)
@@ -317,7 +317,7 @@ NAN_METHOD(ImageView::height)
     NanScope();
 
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    NanReturnValue(NanNew<Integer>(im->this_->height()));
+    NanReturnValue(NanNew<Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
 
 
