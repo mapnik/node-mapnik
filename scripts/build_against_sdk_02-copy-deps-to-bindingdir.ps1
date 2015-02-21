@@ -10,7 +10,7 @@ Try{
     Copy-Item $env:MAPNIK_SDK\bin\shapeindex.exe $env:NODEMAPNIK_BINDING_DIR\ -ErrorAction Stop
 
 
-    $deps = Get-ChildItem -Path $env:MAPNIK_SDK\libs -Filter *.dll | % { $_.FullName }
+    $deps = Get-ChildItem -Path $env:MAPNIK_SDK\lib -Filter *.dll | % { $_.FullName }
 
 	##COPY DEPENDENCIES TO BINDING DIR
 	Write-Output "$msg_prefix copying dependencies to binding dir:"
@@ -20,7 +20,7 @@ Try{
 	}
 
 	###COPY FONTS AND INPUT PLUGINS TO BINDING DIR
-    $srcDir="$env:MAPNIK_SDK\libs\mapnik\"
+    $srcDir="$env:MAPNIK_SDK\lib\mapnik\"
     $destDir="$env:NODEMAPNIK_BINDING_DIR\mapnik\"
 	Write-Output "$msg_prefix copying fonts and input plugins to binding dir:"
 	Write-Output "$srcDir --> $destDir"
