@@ -65,7 +65,7 @@ describe('mapnik.VectorTile queryMany', function() {
     it('vtile.queryMany', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
-        var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1,fields:['name'],layer:'layer-name'});
+        var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'layer-name'});
         check(manyResults);
         done();
     });
@@ -73,7 +73,7 @@ describe('mapnik.VectorTile queryMany', function() {
     it('vtile.queryMany async', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
-        vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1,fields:['name'],layer:'layer-name'}, function(err, manyResults) {
+        vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'layer-name'}, function(err, manyResults) {
             assert.ifError(err);
             check(manyResults);
             done();
@@ -85,7 +85,7 @@ describe('mapnik.VectorTile queryMany', function() {
         function run() {
             var vtile = new mapnik.VectorTile(0,0,0);
             vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
-            vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1,fields:['name'],layer:'layer-name'}, function(err, manyResults) {
+            vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'layer-name'}, function(err, manyResults) {
                 assert.ifError(err);
                 check(manyResults);
                 if (!--remaining) done();

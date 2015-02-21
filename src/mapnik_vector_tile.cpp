@@ -1225,7 +1225,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         }
                     }
                 }
-                if (distance >= 0)
+                if (distance >= 0 && distance <= tolerance)
                 {
                     has_hit = 1;
                     query_result res;
