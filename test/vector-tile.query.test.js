@@ -427,7 +427,7 @@ describe('mapnik.VectorTile query multipoint', function() {
     });
 });
 
-describe('mapnik.VectorTile query line (distance <= tolerance)', function() {
+describe('mapnik.VectorTile query (distance <= tolerance)', function() {
     it('LineString - no features', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify({
