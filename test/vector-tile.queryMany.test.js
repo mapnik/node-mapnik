@@ -189,3 +189,56 @@ describe('mapnik.VectorTile queryMany', function() {
         assert.deepEqual(manyResults.features[1].attributes(), { name: 'B' });
     }
 });
+
+describe('mapnik.VectorTile queryMany (distance <= tolerance)', function() {
+    it('LineString - no features', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [ [-180,85], [180,-85] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"data");
+        assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
+        done();
+    });
+    it('MultiPoint - no features', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "MultiPoint",
+              "coordinates": [ [-180,85], [180,-85] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"data");
+        assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
+        done();
+    });
+    // why does this fail (?)
+    it.skip('Polygon - no features', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [ [-180,85], [180,-85], [-180,-85], [-180,85] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"data");
+        assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
+        done();
+    });
+});
+
