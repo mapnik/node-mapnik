@@ -284,8 +284,8 @@ struct visitor_get_pixel
     Local<Value> operator() (mapnik::image_rgba8 const& data)
     {
         NanEscapableScope();
-        mapnik::color val = mapnik::get_pixel<mapnik::color>(data, x_, y_);
-        return NanEscapeScope(Color::NewInstance(val));
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
     }
 
   private:
@@ -299,6 +299,13 @@ NAN_METHOD(Image::getPixel)
     NanScope();
     int x = 0;
     int y = 0;
+    bool get_color = false;
+    if (args.Length() >= 3) {
+        if (args[2]->IsBoolean()) {
+            get_color = args[2]->BooleanValue();
+        }
+    }
+
     if (args.Length() >= 2) {
         if (!args[0]->IsNumber()) {
             NanThrowTypeError("first arg, 'x' must be an integer");
@@ -318,8 +325,14 @@ NAN_METHOD(Image::getPixel)
     if (x >= 0 && x < static_cast<int>(im->this_->width())
         && y >= 0 && y < static_cast<int>(im->this_->height()))
     {
-        visitor_get_pixel visitor(x, y);
-        NanReturnValue(mapnik::util::apply_visitor(visitor, *im->this_));
+        if (get_color)
+        {
+            mapnik::color val = mapnik::get_pixel<mapnik::color>(*im->this_, x, y);
+            NanReturnValue(Color::NewInstance(val));
+        } else {
+            visitor_get_pixel visitor(x, y);
+            NanReturnValue(mapnik::util::apply_visitor(visitor, *im->this_));
+        }
     }
     NanReturnUndefined();
 }

@@ -137,7 +137,7 @@ describe('mapnik.Image ', function() {
         m2.background = new mapnik.Color('green');
         m2.render(im_blank2, {},function(err,im_blank2) {
             assert.equal(im_blank2.painted(), false);
-            assert.equal(im_blank2.getPixel(0,0).g, 128);
+            assert.equal(im_blank2.getPixel(0,0,true).g, 128);
             done();
         });
     });
@@ -180,7 +180,7 @@ describe('mapnik.Image ', function() {
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
         assert.equal(gray_view.isSolidSync(), true);
-        var pixel = gray.getPixel(0, 0);
+        var pixel = gray.getPixel(0, 0, true);
         assert.equal(pixel.r, 255);
         assert.equal(pixel.g, 255);
         assert.equal(pixel.b, 255);
@@ -188,14 +188,14 @@ describe('mapnik.Image ', function() {
 
         gray.fill(new mapnik.Color('black'));
         gray.setGrayScaleToAlpha();
-        var pixel2 = gray.getPixel(0, 0);
+        var pixel2 = gray.getPixel(0, 0, true);
         assert.equal(pixel2.r, 255);
         assert.equal(pixel2.g, 255);
         assert.equal(pixel2.b, 255);
         assert.equal(pixel2.a, 0);
 
         gray.setGrayScaleToAlpha(new mapnik.Color('green'));
-        var pixel3 = gray.getPixel(0, 0);
+        var pixel3 = gray.getPixel(0, 0, true);
         assert.equal(pixel3.r, 0);
         assert.equal(pixel3.g, 128);
         assert.equal(pixel3.b, 0);
@@ -205,7 +205,7 @@ describe('mapnik.Image ', function() {
     it('should support setting an individual pixel', function() {
         var gray = new mapnik.Image(256, 256);
         gray.setPixel(0,0,new mapnik.Color('white'));
-        var pixel = gray.getPixel(0,0);
+        var pixel = gray.getPixel(0,0,true);
         assert.equal(pixel.r, 255);
         assert.equal(pixel.g, 255);
         assert.equal(pixel.b, 255);
@@ -360,10 +360,10 @@ describe('mapnik.Image ', function() {
         var two = new mapnik.Image(256, 256);
         // white image but fully alpha
         two.fill(new mapnik.Color('rgba(255,255,255,0)'));
-        assert.equal(two.getPixel(0,0).r, 255);
-        assert.equal(two.getPixel(0,0).g, 255);
-        assert.equal(two.getPixel(0,0).b, 255);
-        assert.equal(two.getPixel(0,0).a, 0);
+        assert.equal(two.getPixel(0,0,true).r, 255);
+        assert.equal(two.getPixel(0,0,true).g, 255);
+        assert.equal(two.getPixel(0,0,true).b, 255);
+        assert.equal(two.getPixel(0,0,true).a, 0);
         // if we consider alpha all pixels should be different
         assert.equal(one.compare(two),one.width()*one.height());
         // but ignoring alpha all pixels should pass as the same
@@ -426,10 +426,7 @@ describe('mapnik.Image ', function() {
         assert.equal(im.isSolidSync(), true);
         im.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel.r, 0);
-            assert.equal(pixel.g, 0);
-            assert.equal(pixel.b, 0);
-            assert.equal(pixel.a, 0);
+            assert.equal(pixel, 0);
             done();
         });
     });
@@ -441,10 +438,7 @@ describe('mapnik.Image ', function() {
         assert.equal(im.isSolidSync(), true);
         im.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel.r, color.r);
-            assert.equal(pixel.g, color.g);
-            assert.equal(pixel.b, color.b);
-            assert.equal(pixel.a, color.a);
+            assert.equal(pixel, 0xffffffff);
             done();
         });
     });
