@@ -301,9 +301,23 @@ NAN_METHOD(Image::getPixel)
     int y = 0;
     bool get_color = false;
     if (args.Length() >= 3) {
-        if (args[2]->IsBoolean()) {
-            get_color = args[2]->BooleanValue();
+
+        if (!args[2]->IsObject()) {
+            NanThrowTypeError("optional third argument must be an options object");
+            NanReturnUndefined();
         }
+
+        Local<Object> options = args[2]->ToObject();
+
+        if (options->Has(NanNew("get_color"))) {
+            Local<Value> bind_opt = options->Get(NanNew("get_color"));
+            if (!bind_opt->IsBoolean()) {
+                NanThrowTypeError("optional arg 'color' must be a boolean");
+                NanReturnUndefined();
+            }
+            get_color = bind_opt->BooleanValue();
+        }
+
     }
 
     if (args.Length() >= 2) {
@@ -397,7 +411,6 @@ NAN_METHOD(Image::compare)
         NanReturnUndefined();
     }
 
-    Local<Object> options = NanNew<Object>();
     int threshold = 16;
     unsigned alpha = true;
 
@@ -408,7 +421,7 @@ NAN_METHOD(Image::compare)
             NanReturnUndefined();
         }
 
-        options = args[1]->ToObject();
+        Local<Object> options = args[1]->ToObject();
 
         if (options->Has(NanNew("threshold"))) {
             Local<Value> bind_opt = options->Get(NanNew("threshold"));
