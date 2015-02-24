@@ -22,6 +22,7 @@
  - Added `imageCopy` to copy an image into a new image type
  - `Image` `rgba8` objects are not automatically premultiplied prior to using `composite` operation
  - Added image view support for all new grayscale image types
+ - Added new tolerance optional parameter to `query` on vector tiles.
 
 ## 3.1.6
 
