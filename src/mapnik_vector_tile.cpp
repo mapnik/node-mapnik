@@ -910,7 +910,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                             }
                         }
                     }
-                    if (distance >= 0)
+                    if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
                         res.distance = distance;
@@ -958,7 +958,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                             }
                         }
                     }
-                    if (distance >= 0)
+                    if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
                         res.distance = distance;
@@ -1225,7 +1225,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         }
                     }
                 }
-                if (distance >= 0)
+                if (distance >= 0 && distance <= tolerance)
                 {
                     has_hit = 1;
                     query_result res;
