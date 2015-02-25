@@ -17,10 +17,9 @@
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/attribute.hpp>        // for attributes
 #include <mapnik/featureset.hpp>        // for featureset_ptr
-#include <mapnik/graphics.hpp>          // for image_32
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
-#include <mapnik/image_data.hpp>        // for image_data_rgba8
+#include <mapnik/image.hpp>             // for image_rgba8
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
@@ -29,6 +28,9 @@
 #include <mapnik/save_map.hpp>          // for save_map, etc
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/request.hpp>
+#if defined(HAVE_CAIRO)
+#include <mapnik/cairo_io.hpp>
+#endif
 
 // stl
 #include <exception>                    // for exception
@@ -1882,6 +1884,45 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     delete closure;
 }
 
+struct agg_renderer_visitor
+{
+    agg_renderer_visitor(mapnik::Map const& m, 
+                         mapnik::request const& req, 
+                         mapnik::attributes const& vars,
+                         double scale_factor, 
+                         unsigned offset_x, 
+                         unsigned offset_y, 
+                         double scale_denominator)
+        : m_(m),
+          req_(req),
+          vars_(vars),
+          scale_factor_(scale_factor), 
+          offset_x_(offset_x), 
+          offset_y_(offset_y),
+          scale_denominator_(scale_denominator) {}
+
+    void operator() (mapnik::image_rgba8 & pixmap)
+    {
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_,req_,vars_,pixmap,scale_factor_,offset_x_,offset_y_);
+        ren.apply(scale_denominator_);
+    }
+    
+    template <typename T>
+    void operator() (T &)
+    {
+        throw std::runtime_error("This image type is not currently supported for rendering.");
+    }
+
+  private:
+    mapnik::Map const& m_;
+    mapnik::request const& req_;
+    mapnik::attributes const& vars_;
+    double scale_factor_;
+    unsigned offset_x_;
+    unsigned offset_y_;
+    double scale_denominator_;
+};
+
 void Map::EIO_RenderImage(uv_work_t* req)
 {
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
@@ -1891,14 +1932,14 @@ void Map::EIO_RenderImage(uv_work_t* req)
         mapnik::Map const& map = *closure->m->map_;
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(closure->buffer_size);
-        mapnik::agg_renderer<mapnik::image_32> ren(map,
-                                                   m_req,
-                                                   closure->variables,
-                                                   *closure->im->get(),
-                                                   closure->scale_factor,
-                                                   closure->offset_x,
-                                                   closure->offset_y);
-        ren.apply(closure->scale_denominator);
+        agg_renderer_visitor visit(map, 
+                                   m_req, 
+                                   closure->variables, 
+                                   closure->scale_factor, 
+                                   closure->offset_x,
+                                   closure->offset_y,
+                                   closure->scale_denominator);
+        mapnik::util::apply_visitor(visit, *closure->im->get());
     }
     catch (std::exception const& ex)
     {
@@ -2112,11 +2153,11 @@ void Map::EIO_RenderFile(uv_work_t* req)
         }
         else
         {
-            mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
+            mapnik::image_rgba8 im(closure->m->map_->width(),closure->m->map_->height());
             mapnik::Map const& map = *closure->m->map_;
             mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
             m_req.set_buffer_size(closure->buffer_size);
-            mapnik::agg_renderer<mapnik::image_32> ren(map,
+            mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
                                                    m_req,
                                                    closure->variables,
                                                    im,
@@ -2124,9 +2165,9 @@ void Map::EIO_RenderFile(uv_work_t* req)
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
-                mapnik::save_to_file(im.data(),closure->output,*closure->palette);
+                mapnik::save_to_file(im,closure->output,*closure->palette);
             } else {
-                mapnik::save_to_file(im.data(),closure->output);
+                mapnik::save_to_file(im,closure->output);
             }
         }
     }
@@ -2269,11 +2310,11 @@ NAN_METHOD(Map::renderSync)
     std::string s;
     try
     {
-        mapnik::image_32 im(m->map_->width(),m->map_->height());
+        mapnik::image_rgba8 im(m->map_->width(),m->map_->height());
         mapnik::Map const& map = *m->map_;
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(buffer_size);
-        mapnik::agg_renderer<mapnik::image_32> ren(map,
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
                                                    m_req,
                                                    mapnik::attributes(),
                                                    im,
@@ -2282,10 +2323,10 @@ NAN_METHOD(Map::renderSync)
 
         if (palette.get())
         {
-            s = save_to_string(im.data(), format, *palette);
+            s = save_to_string(im, format, *palette);
         }
         else {
-            s = save_to_string(im.data(), format);
+            s = save_to_string(im, format);
         }
     }
     catch (std::exception const& ex)
@@ -2408,11 +2449,11 @@ NAN_METHOD(Map::renderFileSync)
         }
         else
         {
-            mapnik::image_32 im(m->map_->width(),m->map_->height());
+            mapnik::image_rgba8 im(m->map_->width(),m->map_->height());
             mapnik::Map const& map = *m->map_;
             mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
             m_req.set_buffer_size(buffer_size);
-            mapnik::agg_renderer<mapnik::image_32> ren(map,
+            mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
                                                    m_req,
                                                    mapnik::attributes(),
                                                    im,
@@ -2422,10 +2463,10 @@ NAN_METHOD(Map::renderFileSync)
 
             if (palette.get())
             {
-                mapnik::save_to_file(im.data(),output,*palette);
+                mapnik::save_to_file(im,output,*palette);
             }
             else {
-                mapnik::save_to_file(im.data(),output);
+                mapnik::save_to_file(im,output);
             }
         }
     }

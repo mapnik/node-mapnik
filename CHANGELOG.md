@@ -1,5 +1,29 @@
 # Changelog
 
+## 3.2.0
+ - Added support for a variety of different grayscale images and `mapnik.imageType` list
+   - `mapnik.imageType.null`
+   - `mapnik.imageType.rgba8`
+   - `mapnik.imageType.gray8`
+   - `mapnik.imageType.gray8s`
+   - `mapnik.imageType.gray16`
+   - `mapnik.imageType.gray16s`
+   - `mapnik.imageType.gray32`
+   - `mapnik.imageType.gray32s`
+   - `mapnik.imageType.gray32f`
+   - `mapnik.imageType.gray64`
+   - `mapnik.imageType.gray64s`
+   - `mapnik.imageType.gray64f`
+ - Added the ability to return colors optionally with `getPixel` on `Image` objects
+ - Added new constructors for `Color` object
+ - Added the concept of premultiplied to `Image` and `Color` objects
+ - `Image` objects no longer have a `background` property
+ - Added `fill` and `fillSync` methods to `Image` objects to replace `background` property
+ - Added `imageCopy` to copy an image into a new image type
+ - `Image` `rgba8` objects are not automatically premultiplied prior to using `composite` operation
+ - Added image view support for all new grayscale image types
+ - Added new tolerance optional parameter to `query` on vector tiles.
+
 ## 3.1.6
 
  - Now supporting IO.js 1.x and Node v0.12.x

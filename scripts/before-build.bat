@@ -1,7 +1,7 @@
 @echo off
 SET EL=0
 
-SET PATH=%MAPNIK_SDK%\bin;%MAPNIK_SDK%\libs;%PATH%
+SET PATH=%MAPNIK_SDK%\bin;%MAPNIK_SDK%\lib;%PATH%
 SET PROJ_LIB=%MAPNIK_SDK%\share\proj
 SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
 SET ICU_DATA=%MAPNIK_SDK%\share\icu

@@ -4,7 +4,7 @@
   "url"           : "http://github.com/mapnik/node-mapnik",
   "homepage"      : "http://mapnik.org",
   "author"        : "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version"       : "3.1.6",
+  "version"       : "3.2.0",
   "main"          : "./lib/mapnik.js",
   "binary": {
       "module_name" : "mapnik",
@@ -29,7 +29,7 @@
            "type" : "git",
            "url"  : "git://github.com/mapnik/node-mapnik.git"
   },
-  "contributors"  : ["Konstantin Käfer"],
+  "contributors"  : ["Konstantin Käfer", "Blake Thompson"],
   "licenses"      : [
       {
         "type": "BSD",
@@ -38,7 +38,7 @@
   ],
   "dependencies"  : {
       "nan": "~1.6.2",
-      "mapnik-vector-tile": "~0.7.0",
+      "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/master",
       "node-pre-gyp": "~0.6.4"
   },
   "bundledDependencies": [

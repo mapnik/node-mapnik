@@ -26,7 +26,7 @@ describe('mapnik.ImageView ', function() {
         assert.equal(pixel.a, 0);
 
         im = new mapnik.Image(256, 256);
-        im.background = new mapnik.Color(2, 2, 2, 2);
+        im.fill(new mapnik.Color(2, 2, 2, 2));
         view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
         pixel = view.getPixel(0, 0);
@@ -43,7 +43,10 @@ describe('mapnik.ImageView ', function() {
         assert.equal(view.isSolidSync(), true);
         view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel, 0);
+            assert.equal(pixel.r, 0);
+            assert.equal(pixel.g, 0);
+            assert.equal(pixel.b, 0);
+            assert.equal(pixel.a, 0);
             done();
         });
     });
@@ -51,18 +54,15 @@ describe('mapnik.ImageView ', function() {
     it('isSolid async works if true and white', function(done) {
         var im = new mapnik.Image(256, 256);
         var color = new mapnik.Color('white');
-        im.background = color;
+        im.fill(color);
         var view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
         view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel, 4294967295);
-            // NOTE: shifts are 32 bit signed ints in js, so creating the unsigned
-            // rgba for white is not possible using normal bit ops
-            // var rgba = (color.a << 24) | (color.b << 16) | (color.g << 8) | (color.r);
-            // how about this? (from tilelive source)
-            var rgba = color.a*(1<<24) + ((color.b<<16) | (color.g<<8) | color.r);
-            assert.equal(pixel, rgba);
+            assert.equal(pixel.r, 255);
+            assert.equal(pixel.g, 255);
+            assert.equal(pixel.b, 255);
+            assert.equal(pixel.a, 255);
             done();
         });
     });
@@ -81,7 +81,7 @@ describe('mapnik.ImageView ', function() {
     if (mapnik.supports.webp) {
         it('should support webp encoding', function(done) {
             var im = new mapnik.Image(256,256);
-            im.background = new mapnik.Color('green');
+            im.fill(new mapnik.Color('green'));
             im.encode('webp',function(err,buf1) { // jshint ignore:line
                 if (err) throw err;
                 var v = im.view(0,0,256,256);
