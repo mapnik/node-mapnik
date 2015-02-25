@@ -2549,7 +2549,7 @@ struct agg_renderer_visitor
     agg_renderer_visitor(mapnik::Map const& m, 
                          mapnik::request const& req, 
                          vector_tile_render_baton_t * closure,
-                         mapnik::projection & map_proj,
+                         mapnik::projection const& map_proj,
                          std::vector<mapnik::layer> const& layers,
                          vector_tile::Tile const& tiledata,
                          double scale_denominator)
@@ -2581,7 +2581,7 @@ struct agg_renderer_visitor
     mapnik::Map const& m_;
     mapnik::request const& req_;
     vector_tile_render_baton_t * closure_;
-    mapnik::projection & map_proj_;
+    mapnik::projection const& map_proj_;
     std::vector<mapnik::layer> const& layers_;
     vector_tile::Tile const& tiledata_;
     double scale_denominator_;
