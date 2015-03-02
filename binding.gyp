@@ -1,5 +1,8 @@
 {
   'includes': [ 'common.gypi' ],
+  'variables': {
+    'coverage': 'false'
+  },
   'targets': [
     {
       'target_name': 'action_before_build',
@@ -73,6 +76,17 @@
       ],
       'defines': ['MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"'],
       'conditions': [
+        ["coverage == 'true'", {
+            "cflags_cc": ["--coverage"],
+            "xcode_settings": {
+                "OTHER_CPLUSPLUSFLAGS":[
+                    "--coverage"
+                ],
+                'OTHER_LDFLAGS':[
+                    '--coverage'
+                ]
+            }
+        }],
         ['OS=="win"',
           {
             'include_dirs':[
