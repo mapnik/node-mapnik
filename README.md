@@ -68,7 +68,7 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 
 ## Depends
 
-* Node v0.10.x or v0.11.x
+* Node v0.10.x or v0.12.x (v0.12.x support requires node-mapnik >= v3.1.6)
 * C++11 compatible C++ runtime library
 
 
