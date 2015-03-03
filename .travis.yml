@@ -72,7 +72,7 @@ install:
       then npm install --fallback-to-build=false; 
       else ./scripts/build_against_sdk.sh && rm -rf sdk; 
    fi;
-   else ./scripts/build_against_sdk.sh --coverage=true && rm -rf sdk;
+   else ./scripts/build_against_sdk.sh --coverage=true;
    fi;
  - npm test
 
