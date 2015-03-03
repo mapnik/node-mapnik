@@ -13,6 +13,16 @@ var data_base = './test/data/vector_tile/compositing';
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
+var rendering_defaults = {
+    path_multiplier: 16,
+    tolerance: 8,
+    scale: 1,
+    scale_denominator: 0.0,
+    offset_x: 0,
+    offset_y: 0,
+    buffer_size: 1
+};
+
 function render_data(name,coords,callback) {
     var map = new mapnik.Map(256, 256);
     map.loadSync(data_base +'/layers/'+name+'.xml');
@@ -20,9 +30,11 @@ function render_data(name,coords,callback) {
     var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
     name = name + '-' + coords.join('-');
     map.extent = extent;
-    //map.renderFileSync('./test/data/vector_tile/compositing/'+name+'.png')
+    var opts = JSON.parse(JSON.stringify(rendering_defaults));
     // buffer of >=5 is needed to ensure point ends up in tiles touching null island
-    map.render(vtile,{buffer_size:5},function(err,vtile) {
+    opts.buffer_size = 5;
+    //map.renderFileSync('./test/data/vector_tile/compositing/'+name+'.png')
+    map.render(vtile,opts,function(err,vtile) {
         if (err) return callback(err);
         var tiledata = vtile.getData();
         var tilename = data_base +'/tiles/'+name+'.vector.pbf';
@@ -38,7 +50,10 @@ function render_fresh_tile(name,coords,callback) {
     var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
     name = name + '-' + coords.join('-');
     map.extent = extent;
-    map.render(vtile,{buffer_size:5},function(err,vtile) {
+    var opts = JSON.parse(JSON.stringify(rendering_defaults));
+    // buffer of >=5 is needed to ensure point ends up in tiles touching null island
+    opts.buffer_size = 5;
+    map.render(vtile,opts,function(err,vtile) {
         if (err) return callback(err);
         return callback(null,vtile);
     });
