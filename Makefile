@@ -15,8 +15,11 @@ all: build-all
 build-all: ./node_modules ./build
 	./node_modules/.bin/node-pre-gyp build --loglevel=error --clang=1
 
-debug: ./node_modules
+debug: ./node_modules ./build
 	./node_modules/.bin/node-pre-gyp build --debug --clang=1
+
+coverage: ./node_modules ./build
+	./node_modules/.bin/node-pre-gyp build --debug --clang=1 --coverage=true
 
 verbose: ./node_modules
 	./node_modules/.bin/node-pre-gyp build --loglevel=verbose --clang=1
