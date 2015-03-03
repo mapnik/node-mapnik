@@ -97,6 +97,8 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(lcons, "background", get_prop, set_prop);
     ATTR(lcons, "parameters", get_prop, set_prop);
     ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
+    // A complete test coverage of get_prop
+    ATTR(lcons, "undefined_property", get_prop, set_prop);
 
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
@@ -220,8 +222,6 @@ NAN_GETTER(Map::get_prop)
     }
     else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
-        if (!e)
-            NanReturnUndefined();
         Local<Array> arr = NanNew<Array>(4);
         arr->Set(0, NanNew<Number>(e->minx()));
         arr->Set(1, NanNew<Number>(e->miny()));
@@ -306,7 +306,7 @@ NAN_SETTER(Map::set_prop)
             return;
         } else {
             int val = value->IntegerValue();
-            if (val < mapnik::Map::aspect_fix_mode_MAX) {
+            if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0) {
                 m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
             } else {
                 NanThrowError("'aspect_fix_mode' value is invalid");
@@ -368,11 +368,6 @@ NAN_SETTER(Map::set_prop)
         }
 
         Local<Object> obj = value->ToObject();
-        if (obj->IsNull() || obj->IsUndefined()) {
-            NanThrowTypeError("object expected for map.parameters, cannot be null/undefined");
-            return;
-        }
-
         mapnik::parameters params;
         Local<Array> names = obj->GetPropertyNames();
         unsigned int i = 0;
@@ -423,43 +418,35 @@ NAN_METHOD(Map::registerFonts)
 {
     NanScope();
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    try
+    if (args.Length() == 0 || !args[0]->IsString())
     {
-        if (args.Length() == 0 || !args[0]->IsString())
-        {
-            NanThrowTypeError("first argument must be a path to a directory of fonts");
-            NanReturnUndefined();
-        }
-
-        bool recurse = false;
-
-        if (args.Length() >= 2)
-        {
-            if (!args[1]->IsObject())
-            {
-                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
-                NanReturnUndefined();
-            }
-            Local<Object> options = args[1].As<Object>();
-            if (options->Has(NanNew("recurse")))
-            {
-                Local<Value> recurse_opt = options->Get(NanNew("recurse"));
-                if (!recurse_opt->IsBoolean())
-                {
-                    NanThrowTypeError("'recurse' must be a Boolean");
-                    NanReturnUndefined();
-                }
-                recurse = recurse_opt->BooleanValue();
-            }
-        }
-        std::string path = TOSTR(args[0]);
-        NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
-    }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
+        NanThrowTypeError("first argument must be a path to a directory of fonts");
         NanReturnUndefined();
     }
+
+    bool recurse = false;
+
+    if (args.Length() >= 2)
+    {
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
+            NanReturnUndefined();
+        }
+        Local<Object> options = args[1].As<Object>();
+        if (options->Has(NanNew("recurse")))
+        {
+            Local<Value> recurse_opt = options->Get(NanNew("recurse"));
+            if (!recurse_opt->IsBoolean())
+            {
+                NanThrowTypeError("'recurse' must be a Boolean");
+                NanReturnUndefined();
+            }
+            recurse = recurse_opt->BooleanValue();
+        }
+    }
+    std::string path = TOSTR(args[0]);
+    NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
 }
 
 NAN_METHOD(Map::fonts)
@@ -618,7 +605,7 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                 if (layer_idx < 0) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid"
-                      << " must be a positive integer";
+                      << " must be a positive integer, ";
                     if (layer_num > 0)
                     {
                         s << "only '" << layer_num << "' layers exist in map";
@@ -643,9 +630,6 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                     NanThrowTypeError(s.str().c_str());
                     return NanUndefined();
                 }
-            } else {
-                NanThrowTypeError("layer id must be a string or index number");
-                return NanUndefined();
             }
         }
     }
@@ -851,12 +835,7 @@ NAN_METHOD(Map::get_layer)
         }
 
     }
-    else
-    {
-        NanThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
-        NanReturnUndefined();
-    }
-
+    NanThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
     NanReturnUndefined();
 }
 

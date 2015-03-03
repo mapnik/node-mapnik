@@ -16,7 +16,7 @@ matrix:
 
 matrix:
   include:
-     - os: osx
+     - os: linux
        compiler: clang
        env: NODE_VERSION="1.2.0" JOBS=8 COVERAGE=true
 

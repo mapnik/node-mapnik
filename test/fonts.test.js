@@ -20,7 +20,11 @@ describe('map local fonts ', function() {
     });
     it('fonts can be registered locally registerFonts', function(done) {
         var map = new mapnik.Map(4, 4);
-        map.registerFonts('./test/data/map-a/', {recurse:false});
+        assert.throws(function() { map.registerFonts(); });
+        assert.throws(function() { map.registerFonts(12); });
+        assert.throws(function() { map.registerFonts('./test/data/map-a/', {recurse:1}); });
+        assert.equal(map.registerFonts('./test/data/DOESNOTEXIST/', {recurse:false}), false);
+        assert.equal(map.registerFonts('./test/data/map-a/', {recurse:false}), true);
         assert.equal(map.fonts().indexOf('DejaVu Serif Condensed Bold Italic'),0);
         done();
     });
@@ -36,6 +40,7 @@ describe('font scope', function() {
     });
     it('map a has ' + a, function(done) {
         var map = new mapnik.Map(4, 4);
+        assert.equal(map.fontDirectory(), undefined);
         assert.doesNotThrow(function() {
             map.fromStringSync(xmlWithFont(a), {
                 strict:true,
