@@ -31,5 +31,13 @@ describe('mapnik.Expression', function() {
         assert.equal(expr.evaluate(feature), true);
         assert.equal(expr.evaluate(feature).toString(), 'true');
     });
+
+    it('should support evaluation with variables', function() {
+        var expr = new mapnik.Expression("[zoom]=@zoom");
+        var feature = new mapnik.Feature.fromJSON('{"type":"Feature","properties":{"zoom":22},"geometry":null}');
+        var options = {variables: { zoom: 22} };
+        assert.equal(expr.evaluate(feature, options), true);
+        assert.equal(expr.evaluate(feature, options).toString(), 'true');
+    });
 });
 
