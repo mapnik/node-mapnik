@@ -128,7 +128,7 @@ NAN_METHOD(Expression::evaluate)
             NanThrowTypeError("optional second argument must be an options object");
             NanReturnUndefined();
         }
-        options = args[2]->ToObject();
+        options = args[1]->ToObject();
 
         if (options->Has(NanNew("variables")))
         {

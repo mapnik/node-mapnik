@@ -1,4 +1,5 @@
 environment:
+  MAPNIK_GIT: v3.0.0-rc1-597-g4b5cc89
   node_pre_gyp_accessKeyId:
     secure: 7DrSVc5eIGtmMcki5H+iRft+Tk3MJTwDBQEUuJHWaQ4=
   node_pre_gyp_secretAccessKey:
@@ -48,9 +49,8 @@ install:
   - SET PATH=C:\Program Files\7-Zip;%PATH%
   - SET ARCHPATH=
   - if %platform% == x64 (SET ARCHPATH=x64/)
-  - SET SDK_VERSION=v3.0.0-rc1-597-g4b5cc89
-  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:SDK_VERSION.7z"
-  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:SDK_VERSION.7z -FileName mapnik-sdk.7z
+  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:MAPNIK_GIT.7z"
+  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:MAPNIK_GIT.7z -FileName mapnik-sdk.7z
   - ps: Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
   # install node version per visual studio toolset

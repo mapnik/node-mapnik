@@ -31,5 +31,13 @@ describe('mapnik.Expression', function() {
         assert.equal(expr.evaluate(feature), true);
         assert.equal(expr.evaluate(feature).toString(), 'true');
     });
+
+    it('should support evaluation with variables', function() {
+        var expr = new mapnik.Expression("[integer]=@integer and [bool]=@bool and [string]=@string and [double]=@double");
+        var options = {variables: { 'integer': 22, 'bool': true, 'string': "string", 'double': 1.0001 } };
+        var feature = new mapnik.Feature.fromJSON('{"type":"Feature","properties":{"integer":22, "bool": 1, "string": "string", "double":1.0001},"geometry":null}');
+        assert.equal(expr.evaluate(feature, options), true);
+        assert.equal(expr.evaluate(feature, options).toString(), 'true');
+    });
 });
 
