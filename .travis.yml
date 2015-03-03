@@ -66,7 +66,14 @@ before_install:
 
 install:
  - if [[ "${CXX}" =~ "g++" ]]; then export JOBS=2; fi;
- - if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]]; then npm install --fallback-to-build=false; else ./scripts/build_against_sdk.sh && rm -rf sdk; fi;
+ - if [[ ${COVERAGE} == false ]];
+   then
+   if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]]; 
+      then npm install --fallback-to-build=false; 
+      else ./scripts/build_against_sdk.sh && rm -rf sdk; 
+   fi;
+   else make coverage;
+   fi;
  - npm test
 
 before_script:
