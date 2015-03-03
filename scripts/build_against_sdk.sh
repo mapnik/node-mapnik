@@ -8,6 +8,11 @@ On linux depends on node and:
     sudo apt-get install pkg-config build-essential zlib1g-dev
 '
 
+if [[ ${MAPNIK_GIT:-unset} == "unset" ]]; then
+    echo '${MAPNIK_GIT}' env variable must be defined - see .travis.yml
+    exit 1
+fi
+
 ARGS=""
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 mkdir -p $CURRENT_DIR/../sdk
@@ -110,12 +115,12 @@ platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstu
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
     upgrade_compiler
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-608-g81a3be6"
+    TARBALL_NAME="mapnik-${platform}-sdk-${MAPNIK_GIT}"
 fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
-    TARBALL_NAME="mapnik-${platform}-sdk-v3.0.0-rc1-608-g81a3be6-lto"
+    TARBALL_NAME="mapnik-${platform}-sdk-${MAPNIK_GIT}-lto"
 fi
 
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
