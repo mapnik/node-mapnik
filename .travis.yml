@@ -66,7 +66,7 @@ before_install:
  - PUBLISH_BINARY=false
  - REPUBLISH_BINARY=false
  - if [[ ${COVERAGE} == true ]]; then
-     sudo pip install cpp-coveralls
+     sudo pip install cpp-coveralls;
      fi;
 
 install:
