@@ -3,6 +3,7 @@
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
+var fs = require('fs');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
@@ -275,6 +276,32 @@ describe('mapnik.Map', function() {
         map2.toXML();
         map2.toXML();
         assert.equal(layers2.length, 1);
+    });
+
+    it('should save round robin', function(done) {
+        var map = new mapnik.Map(600,400);
+        map.loadSync('./test/stylesheet.xml');
+        var layers = map.layers();
+        // Test bad parameters
+        assert.throws(function() { map.save(1); });
+        assert.throws(function() { map.save('./test/stylesheet_copy.xml', 2); });
+        map.save('./test/stylesheet_copy.xml');
+        var map2 = new mapnik.Map(600,400);
+        map2.loadSync('./test/stylesheet_copy.xml')
+        var layers2 = map2.layers();
+
+        assert.equal(layers.length, layers2.length);
+        assert.equal(layers[0].name, layers2[0].name);
+        assert.equal(layers[0].srs, layers2[0].srs);
+        assert.deepEqual(layers[0].styles, layers2[0].styles);
+        assert.equal(layers[0].datasource.type, layers2[0].datasource.type);
+        assert.equal(layers[0].datasource.parameters().type,layers2[0].datasource.parameters().type);
+        assert.equal(layers[0].datasource.type, layers2[0].datasource.type);
+
+        fs.unlink('./test/stylesheet_copy.xml', function(err) {
+            if (err) throw err;
+            done();
+        });
     });
 
     it('should allow access to layers', function() {
