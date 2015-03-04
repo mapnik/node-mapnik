@@ -2192,50 +2192,92 @@ NAN_METHOD(VectorTile::getData)
     NanReturnUndefined();
 }
 
+using surface_type = mapnik::util::variant<Image *, CairoSurface *, Grid *>;
+
+struct deref_visitor
+{
+    void operator() (Image * surface)
+    {
+        surface->_unref();
+    }
+    void operator() (CairoSurface * surface)
+    {
+        surface->_unref();
+    }
+    void operator() (Grid * surface)
+    {
+        surface->_unref();
+    }
+};
+
 struct vector_tile_render_baton_t {
     uv_work_t request;
     Map* m;
     VectorTile * d;
-    Image * im;
-    CairoSurface * c;
-    Grid * g;
+    surface_type surface;
+    mapnik::attributes variables;
+    std::string error_name;
+    Persistent<Function> cb;
+    std::string result;
     std::size_t layer_idx;
     int z;
     int x;
     int y;
     unsigned width;
     unsigned height;
-    bool zxy_override;
-    bool error;
     int buffer_size;
     double scale_factor;
     double scale_denominator;
-    mapnik::attributes variables;
-    std::string error_name;
-    Persistent<Function> cb;
-    std::string result;
     bool use_cairo;
+    bool zxy_override;
+    bool error;
     vector_tile_render_baton_t() :
         request(),
-        m(NULL),
-        d(NULL),
-        im(NULL),
-        c(NULL),
-        g(NULL),
+        m(nullptr),
+        d(nullptr),
+        surface(nullptr),
+        variables(),
+        error_name(),
+        cb(),
+        result(),
         layer_idx(0),
         z(0),
         x(0),
         y(0),
         width(0),
         height(0),
-        zxy_override(false),
-        error(false),
         buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
-        variables(),
-        use_cairo(true) {}
+        use_cairo(true),
+        zxy_override(false),
+        error(false)
+        {}
+    ~vector_tile_render_baton_t() {
+        mapnik::util::apply_visitor(deref_visitor(),surface);
+    }
 };
+
+struct baton_guard
+{
+    baton_guard(vector_tile_render_baton_t * baton) :
+      baton_(baton),
+      released_(false) {}
+
+    ~baton_guard()
+    {
+        if (!released_) delete baton_;
+    }
+
+    void release()
+    {
+        released_ = true;
+    }
+
+    vector_tile_render_baton_t * baton_;
+    bool released_;
+};
+
 
 NAN_METHOD(VectorTile::render)
 {
@@ -2272,13 +2314,13 @@ NAN_METHOD(VectorTile::render)
     }
 
     vector_tile_render_baton_t *closure = new vector_tile_render_baton_t();
+    baton_guard guard(closure);
     Local<Object> options = NanNew<Object>();
 
     if (args.Length() > 2)
     {
         if (!args[2]->IsObject())
         {
-            delete closure;
             NanThrowTypeError("optional third argument must be an options object");
             NanReturnUndefined();
         }
@@ -2301,7 +2343,6 @@ NAN_METHOD(VectorTile::render)
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
             if (!bind_opt->IsNumber()) {
-                delete closure;
                 NanThrowTypeError("optional arg 'buffer_size' must be a number");
                 NanReturnUndefined();
             }
@@ -2311,7 +2352,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> bind_opt = options->Get(NanNew("scale"));
             if (!bind_opt->IsNumber())
             {
-                delete closure;
                 NanThrowTypeError("optional arg 'scale' must be a number");
                 NanReturnUndefined();
             }
@@ -2322,7 +2362,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
             if (!bind_opt->IsNumber())
             {
-                delete closure;
                 NanThrowTypeError("optional arg 'scale_denominator' must be a number");
                 NanReturnUndefined();
             }
@@ -2333,7 +2372,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> bind_opt = options->Get(NanNew("variables"));
             if (!bind_opt->IsObject())
             {
-                delete closure;
                 NanThrowTypeError("optional arg 'variables' must be an object");
                 NanReturnUndefined();
             }
@@ -2345,24 +2383,23 @@ NAN_METHOD(VectorTile::render)
     if (NanNew(Image::constructor)->HasInstance(im_obj))
     {
         Image *im = node::ObjectWrap::Unwrap<Image>(im_obj);
-        closure->im = im;
+        im->_ref();
         closure->width = im->get()->width();
         closure->height = im->get()->height();
-        closure->im->_ref();
+        closure->surface = im;
     }
     else if (NanNew(CairoSurface::constructor)->HasInstance(im_obj))
     {
         CairoSurface *c = node::ObjectWrap::Unwrap<CairoSurface>(im_obj);
-        closure->c = c;
+        c->_ref();
         closure->width = c->width();
         closure->height = c->height();
-        closure->c->_ref();
+        closure->surface = c;
         if (options->Has(NanNew("renderer")))
         {
             Local<Value> renderer = options->Get(NanNew("renderer"));
             if (!renderer->IsString() )
             {
-                delete closure;
                 NanThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
                 NanReturnUndefined();
             }
@@ -2377,7 +2414,6 @@ NAN_METHOD(VectorTile::render)
             }
             else
             {
-                delete closure;
                 NanThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
                 NanReturnUndefined();
             }
@@ -2386,17 +2422,16 @@ NAN_METHOD(VectorTile::render)
     else if (NanNew(Grid::constructor)->HasInstance(im_obj))
     {
         Grid *g = node::ObjectWrap::Unwrap<Grid>(im_obj);
-        closure->g = g;
+        g->_ref();
         closure->width = g->get()->width();
         closure->height = g->get()->height();
-        closure->g->_ref();
+        closure->surface = g;
 
         std::size_t layer_idx = 0;
 
         // grid requires special options for now
         if (!options->Has(NanNew("layer")))
         {
-            delete closure;
             NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
             NanReturnUndefined();
         } else {
@@ -2405,7 +2440,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> layer_id = options->Get(NanNew("layer"));
             if (! (layer_id->IsString() || layer_id->IsNumber()) )
             {
-                delete closure;
                 NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
                 NanReturnUndefined();
             }
@@ -2428,7 +2462,6 @@ NAN_METHOD(VectorTile::render)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    delete closure;
                     NanThrowTypeError(s.str().c_str());
                     NanReturnUndefined();
                 }
@@ -2447,12 +2480,12 @@ NAN_METHOD(VectorTile::render)
                     {
                         s << "no layers found in map";
                     }
-                    delete closure;
                     NanThrowTypeError(s.str().c_str());
                     NanReturnUndefined();
                 }
-            } else {
-                delete closure;
+            }
+            else
+            {
                 NanThrowTypeError("layer id must be a string or index number");
                 NanReturnUndefined();
             }
@@ -2462,7 +2495,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> param_val = options->Get(NanNew("fields"));
             if (!param_val->IsArray())
             {
-                delete closure;
                 NanThrowTypeError("option 'fields' must be an array of strings");
                 NanReturnUndefined();
             }
@@ -2481,7 +2513,6 @@ NAN_METHOD(VectorTile::render)
     }
     else
     {
-        delete closure;
         NanThrowTypeError("renderable mapnik object expected as second arg");
         NanReturnUndefined();
     }
@@ -2493,6 +2524,7 @@ NAN_METHOD(VectorTile::render)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, (uv_after_work_cb)EIO_AfterRenderTile);
     m->_ref();
     d->Ref();
+    guard.release();
     NanReturnUndefined();
 }
 
@@ -2571,12 +2603,13 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         std::vector<mapnik::layer> const& layers = map_in.layers();
         vector_tile::Tile const& tiledata = closure->d->get_tile();
         // render grid for layer
-        if (closure->g)
+        if (closure->surface.is<Grid *>())
         {
+            Grid * g = mapnik::util::get<Grid *>(closure->surface);
             mapnik::grid_renderer<mapnik::grid> ren(map_in,
                                                     m_req,
                                                     closure->variables,
-                                                    *closure->g->get(),
+                                                    *(g->get()),
                                                     closure->scale_factor);
             ren.start_map_processing(map_in);
 
@@ -2602,14 +2635,14 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     }
 
                     // copy property names
-                    std::set<std::string> attributes = closure->g->get()->property_names();
+                    std::set<std::string> attributes = g->get()->property_names();
                     // todo - make this a static constant
                     std::string known_id_key = "__id__";
                     if (attributes.find(known_id_key) != attributes.end())
                     {
                         attributes.erase(known_id_key);
                     }
-                    std::string join_field = closure->g->get()->get_key();
+                    std::string join_field = g->get()->get_key();
                     if (known_id_key != join_field &&
                         attributes.find(join_field) == attributes.end())
                     {
@@ -2641,20 +2674,21 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 ren.end_map_processing(map_in);
             }
         }
-        else if (closure->c)
+        else if (closure->surface.is<CairoSurface *>())
         {
+            CairoSurface * c = mapnik::util::get<CairoSurface *>(closure->surface);
             if (closure->use_cairo)
             {
 #if defined(HAVE_CAIRO)
                 mapnik::cairo_surface_ptr surface;
                 // TODO - support any surface type
                 surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
-                                                       (cairo_write_func_t)closure->c->write_callback,
-                                                       (void*)(&closure->c->ss_),
-                                                       static_cast<double>(closure->c->width()),
-                                                       static_cast<double>(closure->c->height())
+                                                       (cairo_write_func_t)c->write_callback,
+                                                       (void*)(&c->ss_),
+                                                       static_cast<double>(c->width()),
+                                                       static_cast<double>(c->height())
                                                     ),mapnik::cairo_surface_closer());
-                mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
+                mapnik::cairo_ptr c_context = mapnik::create_context(surface);
                 mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,
                                                                 closure->variables,
                                                                 c_context,closure->scale_factor);
@@ -2670,7 +2704,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             {
 #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
-                std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
+                std::ostream_iterator<char> output_stream_iterator(c->ss_);
                 svg_ren ren(map_in, m_req,
                             closure->variables,
                             output_stream_iterator, closure->scale_factor);
@@ -2684,9 +2718,10 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             }
         }
         // render all layers with agg
-        else
+        else if (closure->surface.is<Image *>())
         {
-            mapnik::image_any & im = *closure->im->get();
+            Image * js_image = mapnik::util::get<Image *>(closure->surface);
+            mapnik::image_any & im = *(js_image->get());
             if (im.is<mapnik::image_rgba8>())
             {
                 mapnik::image_rgba8 & im_data = mapnik::util::get<mapnik::image_rgba8>(im);
@@ -2722,26 +2757,24 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     }
     else
     {
-        if (closure->im)
+        if (closure->surface.is<Image *>())
         {
-            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
+            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<Image *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
-        else if (closure->g)
+        else if (closure->surface.is<Grid *>())
         {
-            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->g) };
+            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<Grid *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
-        else if (closure->c)
+        else if (closure->surface.is<CairoSurface *>())
         {
-            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->c) };
+            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<CairoSurface *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
     }
 
     closure->m->_unref();
-    if (closure->im) closure->im->_unref();
-    if (closure->g) closure->g->_unref();
     closure->d->Unref();
     NanDisposePersistent(closure->cb);
     delete closure;
