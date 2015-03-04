@@ -159,6 +159,7 @@ describe('mapnik sync rendering', function() {
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
         assert.throws(function() { map.zoomToBox(1); });
+        assert.throws(function() { map.zoomToBox(1,2,3); });
         assert.throws(function() { map.zoomToBox('1',2,3,4); });
         map.zoomToBox([10,10,11,11]);
         map.zoomToBox(10,10,11,11);
