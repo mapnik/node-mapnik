@@ -35,10 +35,10 @@ matrix:
      - os: osx
        compiler: clang
        env: NODE_VERSION="0.10.36" COVERAGE=false # node abi 11
-  
+
 env:
   global:
-   - JOBS: 8
+   - JOBS: "8"
    - MAPNIK_GIT: v3.0.0-rc1-608-g81a3be6
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
@@ -73,7 +73,7 @@ install:
  - if [[ "${CXX}" =~ "g++" ]]; then export JOBS=2; fi;
  - if [[ ${COVERAGE} == false ]];
    then
-   if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]]; 
+   if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]];
       then npm install --fallback-to-build=false; 
       else ./scripts/build_against_sdk.sh && rm -rf sdk; 
    fi;
