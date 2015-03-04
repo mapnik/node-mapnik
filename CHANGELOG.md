@@ -22,7 +22,9 @@
  - Added `imageCopy` to copy an image into a new image type
  - `Image` `rgba8` objects are not automatically premultiplied prior to using `composite` operation
  - Added image view support for all new grayscale image types
- - Added new tolerance optional parameter to `query` on vector tiles.
+ - Modified tolerance option on `query` and `queryMany` to only include features within that tolerance into the vector tile.
+ - Modified the `renderSync` method on the `Map` object to only take an optional parameters object. Format can still be set by passing format as a optional argument. This was done so that it mirrors `renderFileSync`. The default format if none is provide is 'png'
+
 
 ## 3.1.6
 

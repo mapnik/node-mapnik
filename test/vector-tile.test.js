@@ -554,9 +554,6 @@ describe('mapnik.VectorTile ', function() {
         map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
-        //var png = map.renderSync('png', new mapnik.Image(256, 256), {});
-        //fs.writeFileSync('./test/data/vector_tile/tile0.expected.png', png);
-
         map.render(vtile, {}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);

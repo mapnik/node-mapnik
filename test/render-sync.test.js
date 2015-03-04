@@ -8,7 +8,67 @@ var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
-describe('mapnik sync rendering ', function() {
+describe('mapnik sync rendering', function() {
+    
+    it('should render - png (default)', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+
+        // Test some bad parameter passings
+        assert.throws(function() { map.renderSync(null); });
+        assert.throws(function() { map.renderSync({format:null}); });
+        assert.throws(function() { map.renderSync({palette:null}); });
+        assert.throws(function() { map.renderSync({palette:{}}); });
+        assert.throws(function() { map.renderSync({scale:null}); });
+        assert.throws(function() { map.renderSync({scale_denominator:null}); });
+        assert.throws(function() { map.renderSync({buffer_size:null}); });
+
+        var out = map.renderSync();
+        assert.ok(out);
+    });
+    
+    it('should render - tiff', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+        var out = map.renderSync({format:'tiff'});
+        assert.ok(out);
+    });
+    
+    it('should render - scale', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+        var out = map.renderSync({scale:2});
+        assert.ok(out);
+    });
+    
+    it('should render - scale_denominator', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+        var out = map.renderSync({scale_denominator:2});
+        assert.ok(out);
+    });
+    
+    it('should render - buffer_size', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+        var out = map.renderSync({buffer_size:2});
+        assert.ok(out);
+    });
+    
+    it('should fail to render - png', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+        map.srs = 'pie';
+        assert.throws(function() { map.renderSync(); });
+    });
+
+
     it('should render to a file', function() {
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -22,13 +82,23 @@ describe('mapnik sync rendering ', function() {
         assert.throws(function() { map.renderFileSync(filename, {format:null}); });
         assert.throws(function() { map.renderFileSync(filename, {palette:null}); });
         assert.throws(function() { map.renderFileSync(filename, {palette:{}}); });
-        assert.throws(function() { map.renderFileSync(filename, {palette:{}}); });
         assert.throws(function() { map.renderFileSync(filename, {scale:null}); });
         assert.throws(function() { map.renderFileSync(filename, {scale_denominator:null}); });
         assert.throws(function() { map.renderFileSync(filename, {buffer_size:null}); });
 
         map.renderFileSync(filename);
         assert.ok(exists(filename));
+    });
+    
+    it('should fail render to a file', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.zoomAll();
+        var layers = map.layers();
+        map.srs = 'pie';
+        layers[0].srs = 'pizza';
+        var filename = helper.filename();
+        assert.throws(function() { map.renderFileSync(filename, {format:''}); });
     });
     
     it('should render to a file - empty format', function() {

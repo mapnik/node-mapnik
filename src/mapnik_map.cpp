@@ -2195,24 +2195,21 @@ NAN_METHOD(Map::renderSync)
 {
     NanScope();
 
-    if (args.Length() < 1 || !args[0]->IsString()) {
-        NanThrowTypeError("argument must be a format string");
-        NanReturnUndefined();
-    }
-
-    std::string format = TOSTR(args[0]);
+    std::string format = "png";
     palette_ptr palette;
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
     int buffer_size = 0;
 
-    if (args.Length() >= 2){
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
+    if (args.Length() >= 1) 
+    {
+        if (!args[0]->IsObject()) 
+        {
+            NanThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
             NanReturnUndefined();
         }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[0]->ToObject();
         if (options->Has(NanNew("format")))
         {
             Local<Value> format_opt = options->Get(NanNew("format"));
@@ -2266,33 +2263,6 @@ NAN_METHOD(Map::renderSync)
             }
 
             buffer_size = bind_opt->IntegerValue();
-        }
-    }
-
-    // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("optional second arg must be an options object");
-            NanReturnUndefined();
-        }
-
-        Local<Object> options = args[1].As<Object>();
-
-        if (options->Has(NanNew("palette")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("palette"));
-            if (!bind_opt->IsObject()) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
-            }
-
-            Local<Object> obj = bind_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
-            }
-
-            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
     }
 
