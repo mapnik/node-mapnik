@@ -1306,12 +1306,23 @@ NAN_METHOD(Map::zoomToBox)
     {
         NanThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
         NanReturnUndefined();
-    } else {
+    } 
+    else if (args[0]->IsNumber() && 
+               args[1]->IsNumber() &&
+               args[2]->IsNumber() &&
+               args[3]->IsNumber())
+    {
         minx = args[0]->NumberValue();
         miny = args[1]->NumberValue();
         maxx = args[2]->NumberValue();
         maxy = args[3]->NumberValue();
     }
+    else
+    {
+        NanThrowError("If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers");
+        NanReturnUndefined();
+    }
+
     mapnik::box2d<double> box(minx,miny,maxx,maxy);
     m->map_->zoom_to_box(box);
     NanReturnUndefined();

@@ -12,7 +12,7 @@ describe('mapnik.queryPoint', function() {
         map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         assert.throws(function() { map.queryPoint(); });
-        assert.throws(function() { map.queryPoint(0, 'foo'); });
+        assert.throws(function() { map.queryPoint(0, 'foo', function(err, results) {}); });
         assert.throws(function() { map.queryPoint(0, 0, {layer:null}, function(err,results) {}); });
         assert.throws(function() { map.queryPoint(0, 0, 0); });
         assert.throws(function() { map.queryPoint(0, 0, {},0); });
@@ -31,7 +31,7 @@ describe('mapnik.queryPoint', function() {
         assert.throws(function() { map.queryPoint(-12957605.0331, 5518141.9452, {layer:99}, function(err,results) {}); });
         // Give bad layer name
         assert.throws(function() { map.queryPoint(-12957605.0331, 5518141.9452, {layer:'foo'}, function(err,results) {}); });
-        map.queryPoint(-12957605.0331, 5518141.9452, {layer: 0}, function(err, results) {
+        map.queryPoint(-12957605.0331, 5518141.9452, {layer: 'world'}, function(err, results) {
             assert.equal(results.length, 1);
             var result = results[0];
             assert.equal(result.layer, 'world');

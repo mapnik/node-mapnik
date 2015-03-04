@@ -144,6 +144,8 @@ describe('mapnik.Map', function() {
         // Assert bad ways to loadSync
         assert.throws(function() { map.load(); });
         assert.throws(function() { map.load(1); });
+        assert.throws(function() { map.load(1,2); });
+        assert.throws(function() { map.load(1, function(err, result_map) {}); });
         assert.throws(function() { map.load('./test/stylesheet.xml', null, function(err, result_map) {}); });
         assert.throws(function() { map.load('./test/stylesheet.xml', {strict: 12 }, function(err, result_map) {}); });
         assert.throws(function() { map.load('./test/stylesheet.xml', {base: 12 }, function(err, result_map) {}); });
@@ -216,6 +218,32 @@ describe('mapnik.Map', function() {
         assert.equal(layers2.length, 0);
     });
     
+    it('should load fromString Sync', function(done) {
+        var map = new mapnik.Map(4, 4);
+        var s = '<xMap>';
+        s += '<Style name="points">';
+        s += ' <Rule>';
+        s += '  <PointSymbolizer />';
+        s += ' </Rule>';
+        s += '</Style>';
+        s += '</aMap>';
+
+        // Test some bad parameter passings
+        assert.throws(function() { map.fromString(); });
+        assert.throws(function() { map.fromString(1); });
+        assert.throws(function() { map.fromString(s, null); });
+        assert.throws(function() { map.fromString(s, {strict:null}); });
+        assert.throws(function() { map.fromString(s, {base:null}); });
+
+
+        map.fromString(s, {strict:false, base:''}, function(err, result_map) {
+            assert.ok(err);
+            assert.equal(result_map, undefined);
+            done();
+        });
+    });
+
+    
     it('should not load fromString Async - bad string', function(done) {
         var map = new mapnik.Map(4, 4);
         var s = '<xMap>';
@@ -245,7 +273,8 @@ describe('mapnik.Map', function() {
 
         // Test passing bad parameters
         assert.throws(function() { map.fromString(); });
-        assert.throws(function() { map.fromString(12); });
+        assert.throws(function() { map.fromString(s, 1); });
+        assert.throws(function() { map.fromString(12, function(err, result_map) {}); });
         assert.throws(function() { map.fromString(s, null, function(err, result_map) {});  });
         assert.throws(function() { map.fromString(s, {strict:12}, function(err, result_map) {}); });
         assert.throws(function() { map.fromString(s, {base:12}, function(err, result_map) {}); });

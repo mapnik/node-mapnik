@@ -22,6 +22,7 @@ describe('map local fonts ', function() {
         var map = new mapnik.Map(4, 4);
         assert.throws(function() { map.registerFonts(); });
         assert.throws(function() { map.registerFonts(12); });
+        assert.throws(function() { map.registerFonts('./test/data/map-a/', null); });
         assert.throws(function() { map.registerFonts('./test/data/map-a/', {recurse:1}); });
         assert.equal(map.registerFonts('./test/data/DOESNOTEXIST/', {recurse:false}), false);
         assert.equal(map.registerFonts('./test/data/map-a/', {recurse:false}), true);
