@@ -2,7 +2,7 @@ language: cpp
 
 matrix:
   include:
-     - os: linux
+     - os: osx
        compiler: clang
        env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43 WITH COVERAGE
      - os: linux
@@ -66,7 +66,14 @@ before_install:
  - PUBLISH_BINARY=false
  - REPUBLISH_BINARY=false
  - if [[ ${COVERAGE} == true ]]; then
-     sudo pip install cpp-coveralls;
+      brew update;
+      brew install pyenv;
+      eval "$(pyenv init -)";
+      pyenv install 2.7.6;
+      pyenv global 2.7.6;
+      pyenv rehash;
+      pip install cpp-coveralls;
+      pyenv rehash;
      fi;
 
 install:
