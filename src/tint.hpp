@@ -4,7 +4,7 @@
 #include <cmath>
 #include <string>
 
-static inline void rgb2hsl(unsigned red, unsigned green, unsigned blue,
+static inline void rgb_to_hsl(unsigned red, unsigned green, unsigned blue,
              double & h, double & s, double & l) {
     double r = red/255.0;
     double g = green/255.0;
@@ -33,7 +33,7 @@ static inline double hueToRGB(double m1, double m2, double h) {
     return m1;
 }
 
-static inline void hsl2rgb(double h, double s, double l,
+static inline void hsl_to_rgb(double h, double s, double l,
              unsigned & r, unsigned & g, unsigned & b) {
     if (!s) {
         r = g = b = static_cast<unsigned>(std::floor((l * 255.0)+.5));

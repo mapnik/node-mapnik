@@ -74,5 +74,33 @@ describe('mapnik.blend', function() {
         });
     });
 
+    it('hsl to rgb works properly', function() {
+        // Assert throws on bad parameters
+        assert.throws(function() { mapnik.hsl2rgb(); });
+        assert.throws(function() { mapnik.hsl2rgb(1); });
+        assert.throws(function() { mapnik.hsl2rgb(1,2); });
+        assert.throws(function() { mapnik.hsl2rgb(1,2,'3'); });
+        
+        var c = new mapnik.Color('green');
+        var result = mapnik.hsl2rgb(1/3,1,0.25098039215686274);
+        assert(Math.abs(result[0] - c.r) < 1e-7);
+        assert(Math.abs(result[1] - c.g) < 1e-7);
+        assert(Math.abs(result[2] - c.b) < 1e-7);
+    });
+    
+    it('rgb to hsl works properly', function() {
+        // Assert throws on bad parameters
+        assert.throws(function() { mapnik.rgb2hsl(); });
+        assert.throws(function() { mapnik.rgb2hsl(1); });
+        assert.throws(function() { mapnik.rgb2hsl(1,2); });
+        assert.throws(function() { mapnik.rgb2hsl(1,2,'3'); });
+        
+        var c = new mapnik.Color('green');
+        var result = mapnik.rgb2hsl(c.r,c.g,c.b);
+        assert(Math.abs(result[0] - 1/3) < 1e-7);
+        assert(Math.abs(result[1] - 1) < 1e-7);
+        assert(Math.abs(result[2] - 0.25098039215686274) < 1e-7);
+    });
+
 
 });

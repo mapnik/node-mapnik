@@ -51,7 +51,7 @@ static unsigned int hexToUInt32Color(char *hex) {
     }
 }
 
-NAN_METHOD(rgb2hsl2) {
+NAN_METHOD(rgb2hsl) {
     NanScope();
     if (args.Length() != 3) {
         NanThrowTypeError("Please pass r,g,b integer values as three arguments");
@@ -67,14 +67,14 @@ NAN_METHOD(rgb2hsl2) {
     b = args[2]->IntegerValue();
     Local<Array> hsl = NanNew<Array>(3);
     double h,s,l;
-    rgb2hsl(r,g,b,h,s,l);
+    rgb_to_hsl(r,g,b,h,s,l);
     hsl->Set(0,NanNew<Number>(h));
     hsl->Set(1,NanNew<Number>(s));
     hsl->Set(2,NanNew<Number>(l));
     NanReturnValue(hsl);
 }
 
-NAN_METHOD(hsl2rgb2) {
+NAN_METHOD(hsl2rgb) {
     NanScope();
     if (args.Length() != 3) {
         NanThrowTypeError("Please pass hsl fractional values as three arguments");
@@ -90,7 +90,7 @@ NAN_METHOD(hsl2rgb2) {
     l = args[2]->NumberValue();
     Local<Array> rgb = NanNew<Array>(3);
     unsigned r,g,b;
-    hsl2rgb(h,s,l,r,g,b);
+    hsl_to_rgb(h,s,l,r,g,b);
     rgb->Set(0,NanNew<Integer>(r));
     rgb->Set(1,NanNew<Integer>(g));
     rgb->Set(2,NanNew<Integer>(b));
@@ -177,7 +177,7 @@ static inline void TintPixel(unsigned & r,
     double h;
     double s;
     double l;
-    rgb2hsl(r,g,b,h,s,l);
+    rgb_to_hsl(r,g,b,h,s,l);
     double h2 = tint.h0 + (h * (tint.h1 - tint.h0));
     double s2 = tint.s0 + (s * (tint.s1 - tint.s0));
     double l2 = tint.l0 + (l * (tint.l1 - tint.l0));
@@ -187,7 +187,7 @@ static inline void TintPixel(unsigned & r,
     if (s2 < 0) s2 = 0;
     if (l2 > 1) l2 = 1;
     if (l2 < 0) l2 = 0;
-    hsl2rgb(h2,s2,l2,r,g,b);
+    hsl_to_rgb(h2,s2,l2,r,g,b);
 }
 
 

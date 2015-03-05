@@ -76,8 +76,8 @@ extern "C" {
 
         // module level functions
         NODE_SET_METHOD(target, "blend",node_mapnik::Blend);
-        NODE_SET_METHOD(target, "rgb2hsl2", rgb2hsl2);
-        NODE_SET_METHOD(target, "hsl2rgb2", hsl2rgb2);
+        NODE_SET_METHOD(target, "rgb2hsl", rgb2hsl);
+        NODE_SET_METHOD(target, "hsl2rgb", hsl2rgb);
         // back compat
         NODE_SET_METHOD(target, "registerFonts", node_mapnik::register_fonts);
         NODE_SET_METHOD(target, "registerDatasource", node_mapnik::register_datasource);
