@@ -244,7 +244,7 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
     try {
         if (baton->format == BLEND_FORMAT_JPEG) {
 #if defined(HAVE_JPEG)
-            if (baton->quality == 0) baton->quality = 80;
+            if (baton->quality == 0) baton->quality = 85;
             mapnik::save_as_jpeg(baton->stream, baton->quality, image);
 #else
             baton->message = "Mapnik not built with jpeg support";
@@ -473,7 +473,7 @@ NAN_METHOD(Blend) {
             if (strcmp(*String::Utf8Value(format_val), "jpeg") == 0 ||
                     strcmp(*String::Utf8Value(format_val), "jpg") == 0) {
                 baton->format = BLEND_FORMAT_JPEG;
-                if (baton->quality == 0) baton->quality = 80;
+                if (baton->quality == 0) baton->quality = 85; // 85 is same default as mapnik core jpeg
                 else if (baton->quality < 0 || baton->quality > 100) {
                     NanThrowTypeError("JPEG quality is range 0-100.");
                     NanReturnUndefined();
