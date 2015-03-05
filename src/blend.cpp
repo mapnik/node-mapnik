@@ -413,20 +413,12 @@ void Work_AfterBlend(uv_work_t* req) {
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
 
     if (!baton->message.length()) {
-        Local<Array> warnings = NanNew<Array>();
-        std::vector<std::string>::iterator pos = baton->warnings.begin();
-        std::vector<std::string>::iterator end = baton->warnings.end();
-        for (int i = 0; pos != end; pos++, i++) {
-            warnings->Set(i, NanNew((*pos).c_str()));
-        }
-
         std::string result = baton->stream.str();
         Local<Value> argv[] = {
             NanNull(),
             NanNewBufferHandle((char *)result.data(), result.length()),
-            warnings
         };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 3, argv);
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
     } else {
         Local<Value> argv[] = {
             NanError(baton->message.c_str())

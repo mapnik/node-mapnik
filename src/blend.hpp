@@ -65,7 +65,6 @@ struct BlendBaton {
     Images images;
 
     std::string message;
-    std::vector<std::string> warnings;
 
     int quality;
     BlendFormat format;
