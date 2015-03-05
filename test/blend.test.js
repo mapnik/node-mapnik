@@ -33,11 +33,58 @@ describe('mapnik.blend', function() {
         assert.throws(function() { mapnik.blend(images, {matte:'foo'}, function(err, result) {}); });
         assert.throws(function() { mapnik.blend(images, {matte:''}, function(err, result) {}); });
         assert.throws(function() { mapnik.blend(images, {matte:'#0000000'}, function(err, result) {}); });
+        assert.throws(function() { mapnik.blend(images, {compression:20}, function(err, result) {}); });
+        assert.throws(function() { mapnik.blend(images, {compression:'foo'}, function(err, result) {}); });
     });
 
-    it('blended', function(done) {
+    it('blended png', function(done) {
         var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
         mapnik.blend(images, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png with palette', function(done) {
+        var pal = new mapnik.Palette(fs.readFileSync('./test/support/palettes/palette256.act'), 'act');
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-palette-256.png');
+        mapnik.blend(images, {palette:pal}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //fs.writeFileSync('test/blend-fixtures/expected-palette-256.png',result);
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended png with quality - paletted - octree', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-oct-palette-256.png');
+        mapnik.blend(images, {quality:256, mode:"octree"}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //fs.writeFileSync('test/blend-fixtures/actual-oct-palette-256.png',result);
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png with quality - paletted - hextree', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-hex-palette-256.png');
+        mapnik.blend(images_alpha, {quality:256, mode:"hextree"}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //fs.writeFileSync('test/blend-fixtures/actual-hex-palette-256.png',result);
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended png with compression', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
+        mapnik.blend(images, {compression:8}, function(err, result) {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //actual.save('test/blend-fixtures/actual.png')
@@ -106,6 +153,20 @@ describe('mapnik.blend', function() {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //fs.writeFileSync('test/blend-fixtures/actual.webp',result);
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended pass format webp with compression', function(done) {
+        assert.throws(function() { 
+            mapnik.blend(images, {format:"webp", compression:999}, function(err, result) {});
+        });
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-compression-5.webp');
+        mapnik.blend(images, {format:"webp", compression:5}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //fs.writeFileSync('test/blend-fixtures/actual-compression-5.webp',result);
             assert.equal(0,expected.compare(actual));
             done();
         });

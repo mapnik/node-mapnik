@@ -548,7 +548,16 @@ NAN_METHOD(Blend) {
         }
 
         if (options->Has(NanNew("compression"))) {
-            baton->compression = options->Get(NanNew("compression"))->Int32Value();
+            Local<Value> compression_val = options->Get(NanNew("compression"));
+            if (!compression_val.IsEmpty() && compression_val->IsNumber())
+            {
+                baton->compression = compression_val->Int32Value();
+            }
+            else
+            {
+                NanThrowTypeError("Compression option must be a number");
+                NanReturnUndefined();
+            }
         }
 
         int min_compression = Z_NO_COMPRESSION;
