@@ -26,6 +26,15 @@
  - Modified the `renderSync` method on the `Map` object to only take an optional parameters object. Format can still be set by passing format as a optional argument. This was done so that it mirrors `renderFileSync`. The default format if none is provide is 'png'
 
 
+Notable changes in the Mapnik SDK include:
+ - Changes: https://github.com/mapnik/mapnik/compare/30c6cf636c...7f597233c9
+ - Mapnik TopoJSON plugin now supports optional `bbox` property on layer
+ - Various improvements to Mapnik pgraster plugin
+ - Mapnik GDAL plugin now keeps datasets open for the lifetime of the datasource (rather than per featureset)
+ - Mapnik GDAL plugin now has optimized nodata handling for RGB images.
+ - Mapnik no longer calls `dlclose` on gdal.input (mapnik/mapnik#2716)
+ - Upgraded Clipper to v6.2.8 / svn r492.
+
 ## 3.1.6
 
  - Now supporting IO.js 1.x and Node v0.12.x
