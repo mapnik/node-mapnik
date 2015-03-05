@@ -142,10 +142,6 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.a0 = val_array->Get(0)->NumberValue();
         tinter.a1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> debug = tint->Get(NanNew("debug"));
-    if (!debug.IsEmpty()) {
-        tinter.debug = debug->BooleanValue();
-    }
 }
 
 static inline void Blend_CompositePixel(unsigned int& target, unsigned int const& source) {

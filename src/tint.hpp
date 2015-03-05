@@ -55,7 +55,6 @@ struct Tinter {
     double l1;
     double a0;
     double a1;
-    bool debug;
 
     Tinter() :
       h0(0),
@@ -65,8 +64,7 @@ struct Tinter {
       l0(0),
       l1(1),
       a0(0),
-      a1(1),
-      debug(false) { }
+      a1(1) {}
 
     bool is_identity() const {
         return (h0 == 0 &&

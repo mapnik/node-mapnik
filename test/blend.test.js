@@ -9,6 +9,10 @@ var images = [
     fs.readFileSync('test/blend-fixtures/2.png')
 ];
 
+var images_one = [
+    fs.readFileSync('test/blend-fixtures/1.png')
+];
+
 var images_bad = [
     fs.readFileSync('test/blend-fixtures/not_a_real_image.txt'),
     fs.readFileSync('test/blend-fixtures/not_a_real_image.txt')
@@ -40,6 +44,164 @@ describe('mapnik.blend', function() {
     it('blended png', function(done) {
         var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
         mapnik.blend(images, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png - objects', function(done) {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1.png')
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2.png')
+            }];
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
+        mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png - objects - BAD fails', function() {
+        var input = [{
+                buffer: null
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2.png')
+            }];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+        }); });
+    });
+    
+    it('blended png - objects - x and y', function(done) {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1.png'),
+                x: 10,
+                y: 10
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2.png')
+            }];
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-object-x-y.png');
+        mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png - objects - tinting', function(done) {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1a.png'),
+                tint: {
+                    h: [0.1, 0.9],
+                    s: [0.1, 0.9],
+                    l: [0.1, 0.9], 
+                    a: [0.1, 0.9]
+                }
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2a.png')
+            }];
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-object-tint.png');
+        mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/expected-object-tint.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended png - objects - tinting - fails h', function() {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1a.png'),
+                tint: {
+                    h: [0.1],
+                    s: [0.1, 0.9],
+                    l: [0.1, 0.9], 
+                    a: [0.1, 0.9]
+                }
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2a.png')
+            }];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+        }); });
+    });
+    
+    it('blended png - objects - tinting - fails s', function() {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1a.png'),
+                tint: {
+                    h: [0.1, 0.9],
+                    s: [0.1],
+                    l: [0.1, 0.9], 
+                    a: [0.1, 0.9]
+                }
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2a.png')
+            }];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+        }); });
+    });
+    
+    it('blended png - objects - tinting - fails l', function() {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1a.png'),
+                tint: {
+                    h: [0.1, 0.9],
+                    s: [0.1, 0.9], 
+                    l: [0.1],
+                    a: [0.1, 0.9]
+                }
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2a.png')
+            }];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+        }); });
+    });
+    
+    it('blended png - objects - tinting - fails a', function() {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1a.png'),
+                tint: {
+                    h: [0.1, 0.9],
+                    s: [0.1, 0.9], 
+                    l: [0.1, 0.9],
+                    a: [0.1]
+                }
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/2a.png')
+            }];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+        }); });
+    });
+    
+    it('blended png - encoder: miniz', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
+        mapnik.blend(images, {encoder:"miniz"}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png - one image', function(done) {
+        // should be the same
+        var expected = new mapnik.Image.open('test/blend-fixtures/1.png');
+        mapnik.blend(images_one, function(err, result) {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //actual.save('test/blend-fixtures/actual.png')
