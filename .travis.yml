@@ -2,39 +2,42 @@ language: cpp
 
 matrix:
   include:
+     # Coverage
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43 WITH COVERAGE
+       env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43
+     # Linux
      - os: linux
        compiler: clang
-       env: NODE_VERSION="1.2.0" COVERAGE=false # node abi 43
+       env: NODE_VERSION="1.2.0" # node abi 43
      - os: linux
        compiler: clang
-       env: NODE_VERSION="1.0.4" COVERAGE=false # node abi 42
+       env: NODE_VERSION="1.0.4" # node abi 42
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.12.0" COVERAGE=false # node abi 14
+       env: NODE_VERSION="0.12.0" # node abi 14
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.11.4" COVERAGE=false # node abi 14, but versioned on major.minor.patch since it is an unstable series
+       env: NODE_VERSION="0.11.14" # node abi 14, but versioned on major.minor.patch since it is an unstable series
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.10.36" COVERAGE=false # node abi 11
+       env: NODE_VERSION="0.10.36" # node abi 11
+     # OS X
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.2.0" COVERAGE=false # node abi 43
+       env: NODE_VERSION="1.2.0" # node abi 43
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.0.4" COVERAGE=false # node abi 42
+       env: NODE_VERSION="1.0.4" # node abi 42
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.12.0" COVERAGE=false # node abi 14
+       env: NODE_VERSION="0.12.0" # node abi 14
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.11.4" COVERAGE=false # node abi 14, but versioned on major.minor.patch since it is an unstable series
+       env: NODE_VERSION="0.11.14" # node abi 14, but versioned on major.minor.patch since it is an unstable series
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.10.36" COVERAGE=false # node abi 11
+       env: NODE_VERSION="0.10.36" # node abi 11
 
 env:
   global:
@@ -45,6 +48,7 @@ env:
 
 
 before_install:
+ - export COVERAGE={COVERAGE:-false}
  - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
  # upgrade libstdc++ to support C++11
  - if [[ ${platform} == 'linux' ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;sudo apt-get update -y;sudo apt-get install -y libstdc++6; fi;
