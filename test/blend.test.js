@@ -9,6 +9,16 @@ var images = [
     fs.readFileSync('test/blend-fixtures/2.png')
 ];
 
+var images_bad = [
+    fs.readFileSync('test/blend-fixtures/not_a_real_image.txt'),
+    fs.readFileSync('test/blend-fixtures/not_a_real_image.txt')
+];
+
+var images_alpha = [
+    fs.readFileSync('test/blend-fixtures/1a.png'),
+    fs.readFileSync('test/blend-fixtures/2a.png')
+];
+
 describe('mapnik.blend', function() {
 
     it('blend fails', function() {
@@ -18,6 +28,11 @@ describe('mapnik.blend', function() {
         assert.throws(function() { mapnik.blend(images, null, function(err, result) {}); });
         assert.throws(function() { mapnik.blend(images, {}, null); });
         assert.throws(function() { mapnik.blend(images, {format:'foo'}, function(err, result) {}); });
+        assert.throws(function() { mapnik.blend([1,2], function(err, result) {}); });
+        assert.throws(function() { mapnik.blend(images_bad, function(err, result) {}); if (err) throw err;});
+        assert.throws(function() { mapnik.blend(images, {matte:'foo'}, function(err, result) {}); });
+        assert.throws(function() { mapnik.blend(images, {matte:''}, function(err, result) {}); });
+        assert.throws(function() { mapnik.blend(images, {matte:'#0000000'}, function(err, result) {}); });
     });
 
     it('blended', function(done) {
@@ -26,6 +41,28 @@ describe('mapnik.blend', function() {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended with matte 8', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-matte-8.png');
+        mapnik.blend(images_alpha, {matte: '#12345678'}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual-matte-8.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended with matte 6', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-matte-6.png');
+        mapnik.blend(images, {matte: '123456'}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual-matte-6.png')
             assert.equal(0,expected.compare(actual));
             done();
         });

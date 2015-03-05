@@ -32,11 +32,16 @@ using namespace node;
 
 namespace node_mapnik {
 
-static unsigned int hexToUInt32Color(char *hex) {
-    if (!hex) return 0;
+static bool hexToUInt32Color(char *hex, unsigned int & value) {
+    if (!hex) return false;
+    int len_original = strlen(hex);
+    // Return is the length of the string is less then six
+    // otherwise the line after this could go to some other
+    // pointer in memory, resulting in strange behaviours.
+    if (len_original < 6) return false; 
     if (hex[0] == '#') hex++;
     int len = strlen(hex);
-    if (len != 6 && len != 8) return 0;
+    if (len != 6 && len != 8) return false;
 
     unsigned int color = 0;
     std::stringstream ss;
@@ -45,9 +50,11 @@ static unsigned int hexToUInt32Color(char *hex) {
 
     if (len == 8) {
         // Circular shift to get from RGBA to ARGB.
-        return (color << 24) | ((color & 0xFF00) << 8) | ((color & 0xFF0000) >> 8) | ((color & 0xFF000000) >> 24);
+        value = (color << 24) | ((color & 0xFF00) << 8) | ((color & 0xFF0000) >> 8) | ((color & 0xFF000000) >> 24);
+        return true;
     } else {
-        return 0xFF000000 | ((color & 0xFF) << 16) | (color & 0xFF00) | ((color & 0xFF0000) >> 16);
+        value = 0xFF000000 | ((color & 0xFF) << 16) | (color & 0xFF00) | ((color & 0xFF0000) >> 16);
+        return true;
     }
 }
 
@@ -392,8 +399,9 @@ void Work_Blend(uv_work_t* req) {
 
     mapnik::image_rgba8 target(baton->width, baton->height);
     // When we don't actually have transparent pixels, we don't need to set the matte.
-    if (alpha) target.set(baton->matte);
-
+    if (alpha) {
+        target.set(baton->matte);
+    }
     for (auto image_ptr : baton->images)
     {
         if (image_ptr && image_ptr->im_ptr.get())
@@ -502,7 +510,11 @@ NAN_METHOD(Blend) {
 
         Local<Value> matte_val = options->Get(NanNew("matte"));
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            baton->matte = hexToUInt32Color(*String::Utf8Value(matte_val->ToString()));
+            if (!hexToUInt32Color(*String::Utf8Value(matte_val->ToString()), baton->matte))
+            {
+                NanThrowTypeError("Invalid batte provided.");
+                NanReturnUndefined();
+            }
 
             // Make sure we're reencoding in the case of single alpha PNGs
             if (baton->matte && !baton->reencode) {
