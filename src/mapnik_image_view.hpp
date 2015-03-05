@@ -43,7 +43,6 @@ public:
     static NAN_METHOD(getPixel);
 
     ImageView(Image * JSImage);
-    inline image_view_ptr get() { return this_; }
 
 private:
     ~ImageView();
