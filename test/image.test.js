@@ -12,8 +12,24 @@ describe('mapnik.Image ', function() {
         // invalid args
         assert.throws(function() { new mapnik.Image(); });
         assert.throws(function() { new mapnik.Image(1); });
+        assert.throws(function() { new mapnik.Image(256,256, 999); });
+        assert.throws(function() { new mapnik.Image(256,256, null); });
+        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,null); });
+        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{premultiplied:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{intialize:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{painted:null}); });
         assert.throws(function() { new mapnik.Image('foo'); });
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
+    });
+
+    it('should intialize image successfully with options', function() {
+        var options = {
+            premultiplied: false,
+            intialize: true,
+            painted: false
+        };
+        var im1 = new mapnik.Image(256,256, mapnik.imageType.gray8, options);
+        assert.ok(im1);
     });
 
     it('should throw with filename lacking an extension', function() {
@@ -115,6 +131,27 @@ describe('mapnik.Image ', function() {
         });
     });
 
+    it('should support premultiply and demultiply', function(done) {
+        var im = new mapnik.Image(5,5);
+        assert.equal(im.premultiplied(), false);
+        im.premultiplySync();
+        assert.equal(im.premultiplied(), true);
+        im.demultiplySync();
+        assert.equal(im.premultiplied(), false);
+        assert.throws(function() { im.premultiply(null) });
+        im.premultiply();
+        assert.equal(im.premultiplied(), true);
+        assert.throws(function() { im.demultiply(null) });
+        im.demultiply();
+        assert.equal(im.premultiplied(), false);
+        im.premultiply(function(err, im_res) {
+            assert.equal(im_res.premultiplied(), true);
+            im.demultiply(function (err, im_res2) {
+                assert.equal(im_res.premultiplied(), false);
+                done();
+            });
+        });
+    });
 
     it('should not be painted after rendering', function(done) {
         var im_blank = new mapnik.Image(4, 4);
@@ -177,6 +214,8 @@ describe('mapnik.Image ', function() {
     it('should support setting the alpha channel based on the amount of gray', function() {
         var gray = new mapnik.Image(256, 256);
         gray.fill(new mapnik.Color('white'));
+        assert.throws(function() { gray.setGrayScaleToAlpha(null) });
+        assert.throws(function() { gray.setGrayScaleToAlpha({}) });
         gray.setGrayScaleToAlpha();
         var gray_view = gray.view(0, 0, gray.width(), gray.height());
         assert.equal(gray_view.isSolidSync(), true);
@@ -202,15 +241,50 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel3.a, 255);
     });
 
+    it('should fail to compare', function() {
+        var im1 = new mapnik.Image(256,256);
+        var im2 = new mapnik.Image(256,256);
+        im1.fillSync(new mapnik.Color('blue'));
+        im2.fillSync(new mapnik.Color('blue'));
+        assert.throws(function() { im1.compare(null); });
+        assert.throws(function() { im1.compare({}); });
+        assert.throws(function() { im1.compare(im2, null); });
+        assert.throws(function() { im1.compare(im2, {threshold:null}); });
+        assert.throws(function() { im1.compare(im2, {alpha:null}); });
+    });
+
     it('should support setting an individual pixel', function() {
         var gray = new mapnik.Image(256, 256);
+        assert.throws(function() { gray.setPixel(); });
+        assert.throws(function() { gray.setPixel(1); });
+        assert.throws(function() { gray.setPixel(1,2); });
+        assert.throws(function() { gray.setPixel(1,2,null); });
+        assert.throws(function() { gray.setPixel(1,2, {}); });
+        assert.throws(function() { gray.setPixel(-1,-1,3); });
         gray.setPixel(0,0,new mapnik.Color('white'));
+        assert.throws(function() { gray.getPixel(); });
+        assert.throws(function() { gray.getPixel(0,0, null); });
+        assert.throws(function() { gray.getPixel(null,0); });
+        assert.throws(function() { gray.getPixel(0,null); });
+        assert.throws(function() { gray.getPixel(0,0, {get_color:null}); });
+        assert.equal(gray.getPixel(-1,-1), undefined);
         var pixel = gray.getPixel(0,0,{get_color:true});
         assert.equal(pixel.r, 255);
         assert.equal(pixel.g, 255);
         assert.equal(pixel.b, 255);
         assert.equal(pixel.a, 255);
     });
+    
+    it('should handle setting and getting of a null image ', function() {
+        var gray = new mapnik.Image(256, 256, mapnik.imageType.null);
+        assert.throws(function() { gray.setPixel(0,0,-1); });
+        assert.throws(function() { gray.setPixel(1,0,0); });
+        assert.throws(function() { gray.setPixel(2,0,1); });
+        assert.equal(gray.getPixel(0,0), undefined);
+        assert.equal(gray.getPixel(1,0), undefined);
+        assert.equal(gray.getPixel(2,0), undefined);
+    });
+    
     
     it('should support setting and getting gray8 pixel', function() {
         var gray = new mapnik.Image(256, 256, mapnik.imageType.gray8);
@@ -274,12 +348,12 @@ describe('mapnik.Image ', function() {
     
     it('should support setting and getting gray32f pixel', function() {
         var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32f);
-        gray.setPixel(0,0,-1);
-        gray.setPixel(1,0,0);
-        gray.setPixel(2,0,1);
-        assert.equal(gray.getPixel(0,0), -1);
-        assert.equal(gray.getPixel(1,0), 0);
-        assert.equal(gray.getPixel(2,0), 1);
+        gray.setPixel(0,0,-1.9);
+        gray.setPixel(1,0,0.8);
+        gray.setPixel(2,0,1.2);
+        assert(Math.abs(gray.getPixel(0,0) + 1.9) < 1e-7);
+        assert(Math.abs(gray.getPixel(1,0) - 0.8) < 1e-7);
+        assert(Math.abs(gray.getPixel(2,0) - 1.2) < 1e-7);
     });
     
     it('should support setting and getting gray64 pixel', function() {
@@ -324,23 +398,64 @@ describe('mapnik.Image ', function() {
         assert.equal(imx.getPixel(1,1), 256);
     });
 
-    it('should support copying from gray16 to gray8', function() {
+    it('should support scaling and offset', function() {
+        var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
+        assert.equal(im.scaling, 1);
+        assert.equal(im.offset, 0);
+        assert.throws(function() { im.scaling = null });
+        assert.throws(function() { im.scaling = 0 });
+        assert.throws(function() { im.offset = null });
+        im.scaling = 2.2;
+        im.offset = 1.1;
+        assert.equal(im.scaling, 2.2);
+        assert.equal(im.offset, 1.1);
+
+    });
+
+    it('should support copying from gray16 to gray8', function(done) {
         var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
         im.setPixel(0,0,12);
         im.setPixel(0,1,-1);
         im.setPixel(1,0,99999);
         im.setPixel(1,1,256);
-        var im2= im.copySync(mapnik.imageType.gray8);
+        assert.throws(function() { im.copySync(null); });
+        assert.throws(function() { im.copySync({scaling:null}); });
+        assert.throws(function() { im.copySync({offset:null}); });
+        assert.throws(function() { im.copySync(mapnik.imageType.gray8, null); });
+        assert.throws(function() { im.copySync(mapnik.imageType.gray8, {offset:null}); });
+        var im2 = im.copySync(mapnik.imageType.gray8);
         assert.equal(im2.getPixel(0,0), 12);
         assert.equal(im2.getPixel(0,1), 0);
         assert.equal(im2.getPixel(1,0), 255);
         assert.equal(im2.getPixel(1,1), 255);
+        var im3 = im2.copySync(mapnik.imageType.gray16, {offset:1, scaling:2});
+        assert.equal(im3.scaling, 2);
+        assert.equal(im3.offset, 1);
+        assert.equal(im3.getPixel(0,0), 5);
+        assert.equal(im3.getPixel(0,1), 0);
+        assert.equal(im3.getPixel(1,0), 127);
+        assert.equal(im3.getPixel(1,1), 127);
+        assert.throws(function() { im.copy(null); });
+        assert.throws(function() { im.copy({scaling:null}); });
+        assert.throws(function() { im.copy({offset:null}); });
+        assert.throws(function() { im.copy(mapnik.imageType.gray8, null); });
+        assert.throws(function() { im.copy(mapnik.imageType.gray8, {offset:null}); });
         im.copy(mapnik.imageType.gray8, function(err, im2) {
             if (err) throw err;
             assert.equal(im2.getPixel(0,0), 12);
             assert.equal(im2.getPixel(0,1), 0);
             assert.equal(im2.getPixel(1,0), 255);
             assert.equal(im2.getPixel(1,1), 255);
+            im2.copy(mapnik.imageType.gray16, {offset:1, scaling:2}, function (err, im3) {
+                if (err) throw err;
+                assert.equal(im3.scaling, 2);
+                assert.equal(im3.offset, 1);
+                assert.equal(im3.getPixel(0,0), 5);
+                assert.equal(im3.getPixel(0,1), 0);
+                assert.equal(im3.getPixel(1,0), 127);
+                assert.equal(im3.getPixel(1,1), 127);
+                done();
+            });
         });
     });
 
@@ -423,10 +538,22 @@ describe('mapnik.Image ', function() {
 
     it('isSolid async works if true', function(done) {
         var im = new mapnik.Image(256, 256);
+        assert.throws(function() { im.isSolid(null); });
+        assert.equal(im.isSolid(), true);
         assert.equal(im.isSolidSync(), true);
         im.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
             assert.equal(pixel, 0);
+            done();
+        });
+    });
+
+    it('isSolid fails', function(done) {
+        var im = new mapnik.Image(0, 0);
+        assert.throws(function() { im.isSolidSync(); });
+        assert.throws(function() { im.isSolid(); });
+        im.isSolid(function(err,solid,pixel) {
+            assert.throws(function() { if (err) throw err });
             done();
         });
     });
@@ -449,6 +576,96 @@ describe('mapnik.Image ', function() {
         im.isSolid(function(err,solid,pixel) {
             assert.equal(solid, false);
             assert.equal(pixel, undefined);
+            done();
+        });
+    });
+
+    it('fill fails', function(done) {
+        var im = new mapnik.Image(5,5, mapnik.imageType.null);
+        assert.throws(function() { im.fillSync(new mapnik.Color('blue')); });
+        assert.throws(function() { im.fillSync({}); });
+        assert.throws(function() { im.fillSync(0); });
+        assert.throws(function() { im.fillSync(null); });
+        assert.throws(function() { im.fill({}, function(err, result) {}); });
+        im.fill(new mapnik.Color('blue'), function(err, result) { 
+            assert.throws(function() { if (err) throw err; });
+            done(); 
+        });
+    });
+
+    it('fill sync works', function() {
+        var im = new mapnik.Image(5,5);
+        im.fillSync(new mapnik.Color('blue'));
+        assert.equal(im.getPixel(0,0), 4294901760);
+        im.fillSync(-1);
+        assert.equal(im.getPixel(0,0), 0);
+        im.fillSync(1);
+        assert.equal(im.getPixel(0,0), 1);
+        im.fillSync(1.99);
+        assert.equal(im.getPixel(0,0), 1);
+    });
+
+    it('fill async works - color', function(done) {
+        var im = new mapnik.Image(5,5);
+        im.fill(new mapnik.Color('blue'), function(err, im_res) {
+            if (err) throw err;
+            assert.equal(im_res.getPixel(0,0), 4294901760);
+            done();
+        });
+    });
+    
+    it('fill async works - int', function(done) {
+        var im = new mapnik.Image(5,5);
+        im.fill(-1, function(err, im_res) {
+            if (err) throw err;
+            assert.equal(im_res.getPixel(0,0), 0);
+            done();
+        });
+    });
+    
+    it('fill async works - uint', function(done) {
+        var im = new mapnik.Image(5,5);
+        im.fill(1, function(err, im_res) {
+            if (err) throw err;
+            assert.equal(im_res.getPixel(0,0), 1);
+            done();
+        });
+    });
+
+    it('fill async works - double', function(done) {
+        var im = new mapnik.Image(5,5);
+        im.fill(1.99, function(err, im_res) {
+            if (err) throw err;
+            assert.equal(im_res.getPixel(0,0), 1);
+            done();
+        });
+    });
+
+    it('clear fails', function(done) {
+        var im = new mapnik.Image(5,5,mapnik.imageType.null);
+        assert.throws(function() { im.clear(); });
+        assert.throws(function() { im.clearSync(); });
+        assert.throws(function() { im.clear(null); });
+        im.clear(function(err,im_res) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+    
+    it('clear sync', function() {
+        var im = new mapnik.Image(5,5);
+        im.fillSync(1);
+        assert.equal(im.getPixel(0,0), 1);
+        im.clearSync();
+        assert.equal(im.getPixel(0,0), 0);
+    });
+
+    it('clear async', function(done) {
+        var im = new mapnik.Image(5,5);
+        im.fillSync(1);
+        assert.equal(im.getPixel(0,0), 1);
+        im.clear(function(err,im_res) {
+            assert.equal(im_res.getPixel(0,0), 0);
             done();
         });
     });

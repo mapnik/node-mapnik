@@ -55,6 +55,7 @@ public:
     static Local<Value> _premultiplySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(premultiplySync);
     static NAN_METHOD(premultiply);
+    static NAN_METHOD(premultiplied);
     static void EIO_Premultiply(uv_work_t* req);
     static Local<Value> _demultiplySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(demultiplySync);
@@ -79,6 +80,11 @@ public:
     static void EIO_AfterCopy(uv_work_t* req);
     static Local<Value> _copySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(copySync);
+    
+    static NAN_GETTER(get_scaling);
+    static NAN_SETTER(set_scaling);
+    static NAN_GETTER(get_offset);
+    static NAN_SETTER(set_offset);
 
     void _ref() { Ref(); }
     void _unref() { Unref(); }

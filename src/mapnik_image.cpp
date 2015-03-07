@@ -52,6 +52,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "fill", fill);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplySync", premultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiply", premultiply);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplied", premultiplied);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiplySync", demultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
@@ -61,6 +62,10 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "copy", copy);
     NODE_SET_PROTOTYPE_METHOD(lcons, "copySync", copySync);
+    
+    // properties
+    ATTR(lcons, "scaling", get_scaling, set_scaling);
+    ATTR(lcons, "offset", get_offset, set_offset);
 
     // This *must* go after the ATTR setting
     NODE_SET_METHOD(lcons->GetFunction(),
@@ -116,85 +121,100 @@ NAN_METHOD(Image::New)
         NanReturnValue(args.This());
     }
 
-    try
+    if (args.Length() >= 2)
     {
-        if (args.Length() >= 2)
+        mapnik::image_dtype type = mapnik::image_dtype_rgba8;
+        bool initialize = true;
+        bool premultiplied = false;
+        bool painted = false;
+        if (!args[0]->IsNumber() || !args[1]->IsNumber())
         {
-            mapnik::image_dtype type = mapnik::image_dtype_rgba8;
-            bool initialize = true;
-            bool premultiplied = false;
-            bool painted = false;
-            if (!args[0]->IsNumber() || !args[1]->IsNumber())
+            NanThrowTypeError("Image 'width' and 'height' must be a integers");
+            NanReturnUndefined();
+        }
+        if (args.Length() >= 3)
+        {
+            if (args[2]->IsNumber())
             {
-                NanThrowTypeError("Image 'width' and 'height' must be a integers");
-                NanReturnUndefined();
-            }
-            if (args.Length() >= 3)
-            {
-                if (args[2]->IsNumber())
-                {
-                    type = static_cast<mapnik::image_dtype>(args[2]->IntegerValue());
-                }
-                else
+                type = static_cast<mapnik::image_dtype>(args[2]->IntegerValue());
+                if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
                 {
                     NanThrowTypeError("Image 'type' must be a valid image type");
                     NanReturnUndefined();
                 }
             }
-            if (args.Length() >= 4)
+            else
             {
-                if (args[3]->IsBoolean())
-                {
-                    initialize = args[3]->BooleanValue();
-                }
-                else
-                {
-                    NanThrowTypeError("Image 'intialize' must be a boolean");
-                    NanReturnUndefined();
-                }
+                NanThrowTypeError("Image 'type' must be a valid image type");
+                NanReturnUndefined();
             }
-            if (args.Length() >= 5)
-            {
-                if (args[4]->IsBoolean())
-                {
-                    premultiplied = args[4]->BooleanValue();
-                }
-                else
-                {
-                    NanThrowTypeError("Image 'premultiplied' must be a boolean");
-                    NanReturnUndefined();
-                }
-            }
-            if (args.Length() >= 6)
-            {
-                if (args[5]->IsBoolean())
-                {
-                    painted = args[5]->BooleanValue();
-                }
-                else
-                {
-                    NanThrowTypeError("Image 'painted' must be a boolean");
-                    NanReturnUndefined();
-                }
-            }
-            Image* im = new Image(args[0]->IntegerValue(),
-                                  args[1]->IntegerValue(),
-                                  type,
-                                  initialize,
-                                  premultiplied,
-                                  painted);
-            im->Wrap(args.This());
-            NanReturnValue(args.This());
         }
-        else
+        if (args.Length() >= 4)
         {
-            NanThrowError("please provide at least Image width and height");
-            NanReturnUndefined();
+            if (args[3]->IsObject())
+            {
+                Local<Object> options = Local<Object>::Cast(args[3]);
+                if (options->Has(NanNew("intialize")))
+                {
+                    Local<Value> init_val = options->Get(NanNew("intialize"));
+                    if (!init_val.IsEmpty() && init_val->IsBoolean())
+                    {
+                        initialize = init_val->BooleanValue();
+                    }
+                    else
+                    {
+                        NanThrowTypeError("intialize option must be a boolean");
+                        NanReturnUndefined();
+                    }
+                }
+
+                if (options->Has(NanNew("premultiplied")))
+                {
+                    Local<Value> pre_val = options->Get(NanNew("premultiplied"));
+                    if (!pre_val.IsEmpty() && pre_val->IsBoolean())
+                    {
+                        premultiplied = pre_val->BooleanValue();
+                    }
+                    else
+                    {
+                        NanThrowTypeError("premulitplied option must be a boolean");
+                        NanReturnUndefined();
+                    }
+                }
+
+                if (options->Has(NanNew("painted")))
+                {
+                    Local<Value> painted_val = options->Get(NanNew("painted"));
+                    if (!painted_val.IsEmpty() && painted_val->IsBoolean())
+                    {
+                        painted = painted_val->BooleanValue();
+                    }
+                    else
+                    {
+                        NanThrowTypeError("painted option must be a boolean");
+                        NanReturnUndefined();
+                    }
+                }
+            }
+            else
+            {
+                NanThrowTypeError("Options parameter must be an object");
+                NanReturnUndefined();
+            }
         }
+        
+        Image* im = new Image(args[0]->IntegerValue(),
+                              args[1]->IntegerValue(),
+                              type,
+                              initialize,
+                              premultiplied,
+                              painted);
+        im->Wrap(args.This());
+        NanReturnValue(args.This());
     }
-    catch (std::exception const& ex)
+    else
     {
-        NanThrowError(ex.what());
+        NanThrowError("please provide at least Image width and height");
         NanReturnUndefined();
     }
     NanReturnUndefined();
@@ -361,7 +381,7 @@ NAN_METHOD(Image::setPixel)
     int x = args[0]->IntegerValue();
     int y = args[1]->IntegerValue();
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    if (x < 0 && x >= static_cast<int>(im->this_->width()) && y < 0 && y >= static_cast<int>(im->this_->height()))
+    if (x < 0 || x >= static_cast<int>(im->this_->width()) || y < 0 || y >= static_cast<int>(im->this_->height()))
     {
         NanThrowTypeError("invalid pixel requested");
         NanReturnUndefined();
@@ -381,7 +401,7 @@ NAN_METHOD(Image::setPixel)
         double val = args[2]->NumberValue();
         mapnik::set_pixel<double>(*im->this_,x,y,val);
     }
-    else 
+    else if (args[2]->IsObject())
     {
         Local<Object> obj = args[2]->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) 
@@ -393,6 +413,10 @@ NAN_METHOD(Image::setPixel)
             Color * color = node::ObjectWrap::Unwrap<Color>(obj);
             mapnik::set_pixel(*im->this_,x,y,*(color->get()));
         }
+    }
+    else
+    {
+        NanThrowTypeError("A numeric or color value is expected as third arg");
     }
     NanReturnUndefined();
 }
@@ -462,24 +486,68 @@ NAN_METHOD(Image::fillSync)
 Local<Value> Image::_fillSync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
     if (args.Length() < 1 ) {
-        NanThrowTypeError("expects one argument: color");
+        NanThrowTypeError("expects one argument: Color object or a number");
         NanEscapeScope(NanUndefined());
     }
-    Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) {
-        NanThrowTypeError("mapnik.Color expected as arg");
-        NanEscapeScope(NanUndefined());
-    }
-    Color * color = node::ObjectWrap::Unwrap<Color>(obj);
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    mapnik::fill(*im->this_,*color->get());
+    try
+    {
+        if (args[0]->IsUint32())
+        {
+            std::uint32_t val = args[0]->Uint32Value();
+            mapnik::fill<std::uint32_t>(*im->this_,val);
+        }
+        else if (args[0]->IsInt32())
+        {
+            std::int32_t val = args[0]->Int32Value();
+            mapnik::fill<std::int32_t>(*im->this_,val);
+        }
+        else if (args[0]->IsNumber())
+        {
+            double val = args[0]->NumberValue();
+            mapnik::fill<double>(*im->this_,val);
+        }
+        else if (args[0]->IsObject())
+        {
+            Local<Object> obj = args[0]->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) 
+            {
+                NanThrowTypeError("A numeric or color value is expected");
+            }
+            else 
+            {
+                Color * color = node::ObjectWrap::Unwrap<Color>(obj);
+                mapnik::fill(*im->this_,*(color->get()));
+            }
+        }
+        else
+        {
+            NanThrowTypeError("A numeric or color value is expected");
+        }
+    }
+    catch(std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+    }
     return NanEscapeScope(NanUndefined());
 }
+
+enum fill_type : std::uint8_t
+{
+    FILL_COLOR = 0,
+    FILL_UINT32,
+    FILL_INT32,
+    FILL_DOUBLE
+};
 
 typedef struct {
     uv_work_t request;
     Image* im;
+    fill_type type;
     mapnik::color c;
+    std::uint32_t val_u32;
+    std::int32_t val_32;
+    double val_double;
     //std::string format;
     bool error;
     std::string error_name;
@@ -493,9 +561,40 @@ NAN_METHOD(Image::fill)
         NanReturnValue(_fillSync(args));
     }
     
-    Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) {
-        NanThrowTypeError("mapnik.Color expected as arg");
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    fill_image_baton_t *closure = new fill_image_baton_t();
+    if (args[0]->IsUint32())
+    {
+        closure->val_u32 = args[0]->Uint32Value();
+        closure->type = FILL_UINT32;
+    }
+    else if (args[0]->IsInt32())
+    {
+        closure->val_32 = args[0]->Int32Value();
+        closure->type = FILL_INT32;
+    }
+    else if (args[0]->IsNumber())
+    {
+        closure->val_double = args[0]->NumberValue();
+        closure->type = FILL_DOUBLE;
+    }
+    else if (args[0]->IsObject())
+    {
+        Local<Object> obj = args[0]->ToObject();
+        if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) 
+        {
+            NanThrowTypeError("A numeric or color value is expected");
+            NanReturnUndefined();
+        }
+        else 
+        {
+            Color * color = node::ObjectWrap::Unwrap<Color>(obj);
+            closure->c = *(color->get());
+        }
+    }
+    else
+    {
+        NanThrowTypeError("A numeric or color value is expected");
         NanReturnUndefined();
     }
     // ensure callback is a function
@@ -505,11 +604,7 @@ NAN_METHOD(Image::fill)
         NanReturnUndefined();
     }
 
-    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    Color * c = node::ObjectWrap::Unwrap<Color>(obj);
-    fill_image_baton_t *closure = new fill_image_baton_t();
     closure->request.data = closure;
-    closure->c = *(c->get());
     closure->im = im;
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
@@ -523,7 +618,22 @@ void Image::EIO_Fill(uv_work_t* req)
     fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
     try
     {
-        mapnik::fill(*closure->im->this_,closure->c);
+        switch (closure->type)
+        {
+            case FILL_UINT32:
+                mapnik::fill(*closure->im->this_, closure->val_u32);
+                break;
+            case FILL_INT32:
+                mapnik::fill(*closure->im->this_, closure->val_32);
+                break;
+            default:
+            case FILL_DOUBLE:
+                mapnik::fill(*closure->im->this_, closure->val_double);
+                break;
+            case FILL_COLOR:
+                mapnik::fill(*closure->im->this_,closure->c);
+                break;
+        }
     }
     catch(std::exception const& ex)
     {
@@ -536,7 +646,6 @@ void Image::EIO_AfterFill(uv_work_t* req)
 {
     NanScope();
     fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
-    TryCatch try_catch;
     if (closure->error)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
@@ -544,8 +653,8 @@ void Image::EIO_AfterFill(uv_work_t* req)
     }
     else
     {
-        Local<Value> argv[1] = { NanNull() };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     closure->im->Unref();
     NanDisposePersistent(closure->cb);
@@ -562,7 +671,14 @@ NAN_METHOD(Image::clearSync)
 Local<Value> Image::_clearSync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    mapnik::fill(*im->this_, 0);
+    try
+    {
+        mapnik::fill(*im->this_, 0);
+    }
+    catch(std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+    }
     return NanEscapeScope(NanUndefined());
 }
 
@@ -617,7 +733,6 @@ void Image::EIO_AfterClear(uv_work_t* req)
 {
     NanScope();
     clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
-    TryCatch try_catch;
     if (closure->error)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
@@ -625,8 +740,8 @@ void Image::EIO_AfterClear(uv_work_t* req)
     }
     else
     {
-        Local<Value> argv[1] = { NanNull() };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     closure->im->Unref();
     NanDisposePersistent(closure->cb);
@@ -663,11 +778,16 @@ NAN_METHOD(Image::setGrayScaleToAlpha)
 typedef struct {
     uv_work_t request;
     Image* im;
-    bool error;
-    std::string error_name;
     Persistent<Function> cb;
 } image_op_baton_t;
 
+NAN_METHOD(Image::premultiplied)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    bool premultiplied = im->this_->get_premultiplied();
+    NanReturnValue(NanNew<Boolean>(premultiplied));
+}
 
 NAN_METHOD(Image::premultiplySync)
 {
@@ -700,7 +820,6 @@ NAN_METHOD(Image::premultiply)
     image_op_baton_t *closure = new image_op_baton_t();
     closure->request.data = closure;
     closure->im = im;
-    closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Premultiply, (uv_after_work_cb)EIO_AfterMultiply);
     im->Ref();
@@ -710,32 +829,15 @@ NAN_METHOD(Image::premultiply)
 void Image::EIO_Premultiply(uv_work_t* req)
 {
     image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
-
-    try
-    {
-        mapnik::premultiply_alpha(*closure->im->this_);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
+    mapnik::premultiply_alpha(*closure->im->this_);
 }
 
 void Image::EIO_AfterMultiply(uv_work_t* req)
 {
     NanScope();
     image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
-    }
-    else
-    {
-        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
-    }
+    Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
+    NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     closure->im->Unref();
     NanDisposePersistent(closure->cb);
     delete closure;
@@ -772,7 +874,6 @@ NAN_METHOD(Image::demultiply)
     image_op_baton_t *closure = new image_op_baton_t();
     closure->request.data = closure;
     closure->im = im;
-    closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Demultiply, (uv_after_work_cb)EIO_AfterMultiply);
     im->Ref();
@@ -782,16 +883,7 @@ NAN_METHOD(Image::demultiply)
 void Image::EIO_Demultiply(uv_work_t* req)
 {
     image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
-
-    try
-    {
-        mapnik::demultiply_alpha(*closure->im->this_);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
+    mapnik::demultiply_alpha(*closure->im->this_);
 }
 
 typedef struct {
@@ -883,7 +975,12 @@ Local<Value> Image::_isSolidSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    return NanEscapeScope(NanNew<Boolean>(mapnik::is_solid(*(im->this_))));
+    if (im->this_->width() > 0 && im->this_->height() > 0)
+    {
+        return NanEscapeScope(NanNew<Boolean>(mapnik::is_solid(*(im->this_))));
+    }
+    NanThrowError("image does not have valid dimensions");
+    return NanEscapeScope(NanUndefined());
 }
 
 typedef struct {
@@ -902,58 +999,89 @@ NAN_METHOD(Image::copy)
 {
     NanScope();
 
-    if (args.Length() == 0) {
-        NanThrowTypeError("copy expects the arguments of (ImageType, [offset, [scaling]], callback)");
-        NanReturnUndefined();
-    }
     // ensure callback is a function
     Local<Value> callback = args[args.Length() - 1];
     if (!args[args.Length()-1]->IsFunction()) {
         NanReturnValue(_copySync(args));
     }
     
-    double offset = 0.0;
-    double scaling = 1.0;
-    mapnik::image_dtype type = mapnik::image_dtype_gray8;
     Image* im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    double offset = 0.0;
+    bool scaling_or_offset_set = false;
+    double scaling = 1.0;
+    mapnik::image_dtype type = im1->this_->get_dtype();
+    Local<Object> options = NanNew<Object>();
     
     if (args.Length() >= 2)
     {
         if (args[0]->IsNumber())
         {
             type = static_cast<mapnik::image_dtype>(args[0]->IntegerValue());
+            if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+            {
+                NanThrowTypeError("Image 'type' must be a valid image type");
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+        else if (args[0]->IsObject())
+        {
+            options = args[0]->ToObject();
         }
         else
         {
-            NanThrowTypeError("Image 'type' must be a valid image type");
-            NanReturnUndefined();
+            NanThrowTypeError("Unknown parameters passed");
+            return NanEscapeScope(NanUndefined());
         }
     }
     if (args.Length() >= 3)
     {
-        if (args[1]->IsNumber())
+        if (args[1]->IsObject())
         {
-            offset = args[1]->NumberValue();
+            options = args[1]->ToObject();
         }
         else
         {
-            NanThrowTypeError("offset (a number) expected as second arg");
-            NanReturnUndefined();
+            NanThrowTypeError("Expected options object as second argument");
+            return NanEscapeScope(NanUndefined());
         }
     }
-    if (args.Length() >= 4)
+    
+    if (options->Has(NanNew("scaling")))
     {
-        if (args[2]->IsNumber())
+        Local<Value> scaling_val = options->Get(NanNew("scaling"));
+        if (scaling_val->IsNumber())
         {
-            offset = args[2]->NumberValue();
+            scaling = scaling_val->NumberValue();
+            scaling_or_offset_set = true;
         }
         else
         {
-            NanThrowTypeError("scaling (a number) expected as third arg");
-            NanReturnUndefined();
+            NanThrowTypeError("scaling argument must be a number");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    
+    if (options->Has(NanNew("offset")))
+    {
+        Local<Value> offset_val = options->Get(NanNew("offset"));
+        if (offset_val->IsNumber())
+        {
+            offset = offset_val->NumberValue();
+            scaling_or_offset_set = true;
+        }
+        else
+        {
+            NanThrowTypeError("offset argument must be a number");
+            return NanEscapeScope(NanUndefined());
         }
     }
 
+    if (!scaling_or_offset_set && type == im1->this_->get_dtype())
+    {
+        scaling = im1->this_->get_scaling();
+        offset = im1->this_->get_offset();
+    }
+    
     copy_image_baton_t *closure = new copy_image_baton_t();
     closure->request.data = closure;
     closure->im1 = im1;
@@ -1018,51 +1146,82 @@ NAN_METHOD(Image::copySync)
 Local<Value> Image::_copySync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
-    if (args.Length() == 0) {
-        NanThrowTypeError("copy expects the arguments of (ImageType, [offset, [scaling]], callback)");
-        return NanEscapeScope(NanUndefined());
-    }
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     double offset = 0.0;
+    bool scaling_or_offset_set = false;
     double scaling = 1.0;
-    mapnik::image_dtype type = mapnik::image_dtype_gray8;
-    
+    mapnik::image_dtype type = im->this_->get_dtype();
+    Local<Object> options = NanNew<Object>();
     if (args.Length() >= 1)
     {
         if (args[0]->IsNumber())
         {
             type = static_cast<mapnik::image_dtype>(args[0]->IntegerValue());
+            if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+            {
+                NanThrowTypeError("Image 'type' must be a valid image type");
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+        else if (args[0]->IsObject())
+        {
+            options = args[0]->ToObject();
         }
         else
         {
-            NanThrowTypeError("Image 'type' must be a valid image type");
+            NanThrowTypeError("Unknown parameters passed");
             return NanEscapeScope(NanUndefined());
         }
     }
     if (args.Length() >= 2)
     {
-        if (args[1]->IsNumber())
+        if (args[1]->IsObject())
         {
-            offset = args[1]->NumberValue();
+            options = args[1]->ToObject();
         }
         else
         {
-            NanThrowTypeError("offset (a number) expected as second arg");
+            NanThrowTypeError("Expected options object as second argument");
             return NanEscapeScope(NanUndefined());
         }
     }
-    if (args.Length() >= 3)
+    
+    if (options->Has(NanNew("scaling")))
     {
-        if (args[2]->IsNumber())
+        Local<Value> scaling_val = options->Get(NanNew("scaling"));
+        if (scaling_val->IsNumber())
         {
-            offset = args[2]->NumberValue();
+            scaling = scaling_val->NumberValue();
+            scaling_or_offset_set = true;
         }
         else
         {
-            NanThrowTypeError("scaling (a number) expected as third arg");
+            NanThrowTypeError("scaling argument must be a number");
             return NanEscapeScope(NanUndefined());
         }
     }
+    
+    if (options->Has(NanNew("offset")))
+    {
+        Local<Value> offset_val = options->Get(NanNew("offset"));
+        if (offset_val->IsNumber())
+        {
+            offset = offset_val->NumberValue();
+            scaling_or_offset_set = true;
+        }
+        else
+        {
+            NanThrowTypeError("offset argument must be a number");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+
+    if (!scaling_or_offset_set && type == im->this_->get_dtype())
+    {
+        scaling = im->this_->get_scaling();
+        offset = im->this_->get_offset();
+    }
+
     try
     {
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(
@@ -1832,4 +1991,53 @@ void Image::EIO_AfterComposite(uv_work_t* req)
     closure->im2->Unref();
     NanDisposePersistent(closure->cb);
     delete closure;
+}
+
+NAN_GETTER(Image::get_scaling)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    NanReturnValue(NanNew<Number>(im->this_->get_scaling()));
+}
+
+NAN_GETTER(Image::get_offset)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    NanReturnValue(NanNew<Number>(im->this_->get_offset()));
+}
+
+NAN_SETTER(Image::set_scaling)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    if (!value->IsNumber())
+    {
+        NanThrowError("Must provide a number");
+    } 
+    else 
+    {
+        double val = value->NumberValue();
+        if (val == 0.0)
+        {
+            NanThrowError("Scaling value can not be zero");
+            return;
+        }
+        im->this_->set_scaling(val);
+    }
+}
+
+NAN_SETTER(Image::set_offset)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    if (!value->IsNumber())
+    {
+        NanThrowError("Must provide a number");
+    } 
+    else 
+    {
+        double val = value->NumberValue();
+        im->this_->set_offset(val);
+    }
 }
