@@ -1020,7 +1020,7 @@ NAN_METHOD(Image::copy)
             if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
             {
                 NanThrowTypeError("Image 'type' must be a valid image type");
-                return NanEscapeScope(NanUndefined());
+                NanReturnUndefined();
             }
         }
         else if (args[0]->IsObject())
@@ -1030,7 +1030,7 @@ NAN_METHOD(Image::copy)
         else
         {
             NanThrowTypeError("Unknown parameters passed");
-            return NanEscapeScope(NanUndefined());
+            NanReturnUndefined();
         }
     }
     if (args.Length() >= 3)
@@ -1042,7 +1042,7 @@ NAN_METHOD(Image::copy)
         else
         {
             NanThrowTypeError("Expected options object as second argument");
-            return NanEscapeScope(NanUndefined());
+            NanReturnUndefined();
         }
     }
     
@@ -1057,7 +1057,7 @@ NAN_METHOD(Image::copy)
         else
         {
             NanThrowTypeError("scaling argument must be a number");
-            return NanEscapeScope(NanUndefined());
+            NanReturnUndefined();
         }
     }
     
@@ -1072,7 +1072,7 @@ NAN_METHOD(Image::copy)
         else
         {
             NanThrowTypeError("offset argument must be a number");
-            return NanEscapeScope(NanUndefined());
+            NanReturnUndefined();
         }
     }
 
