@@ -196,7 +196,8 @@ describe('mapnik.Image ', function() {
         s += '</Style>';
         s += '</Map>';
         m3.fromStringSync(s);
-
+        
+        assert.throws(function() { mapnik.MemoryDatasource({'extent': '-180,-90,180,90'}); }); 
         var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         mem_datasource.add({ 'x': 0, 'y': 0 });
         mem_datasource.add({ 'x': 1, 'y': 1 });
