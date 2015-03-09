@@ -266,7 +266,15 @@ Local<Value> ImageView::_isSolidSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    return NanEscapeScope(NanNew<Boolean>(mapnik::is_solid(*(im->this_))));
+    if (im->this_->width() > 0 && im->this_->height() > 0)
+    {
+        return NanEscapeScope(NanNew<Boolean>(mapnik::is_solid(*(im->this_))));
+    }
+    else
+    {
+        NanThrowTypeError("image does not have valid dimensions");
+        return NanEscapeScope(NanUndefined());
+    }
 }
 
 

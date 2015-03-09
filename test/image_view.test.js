@@ -6,13 +6,8 @@ var assert = require('assert');
 describe('mapnik.ImageView ', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword
-        assert.throws(function() { mapnik.Image(1, 1); });
-
-        // invalid args
-        assert.throws(function() { new mapnik.Image(); });
-        assert.throws(function() { new mapnik.Image(1); });
-        assert.throws(function() { new mapnik.Image('foo'); });
-        assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
+        assert.throws(function() { mapnik.ImageView(1, 1); });
+        assert.throws(function() { new mapnik.ImageView(); });
     });
 
     it('should be initialized properly', function() {
@@ -70,10 +65,22 @@ describe('mapnik.ImageView ', function() {
     it('isSolid async works if false', function(done) {
         var im = new mapnik.Image.open('./test/support/a.png');
         var view = im.view(0, 0, im.width(), im.height());
+        assert.equal(view.isSolid(), false);
+        assert.throws(function() { view.isSolid(null); });
         assert.equal(view.isSolidSync(), false);
         view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, false);
             assert.equal(pixel, undefined);
+            done();
+        });
+    });
+
+    it('isSolid should fail with bad parameters', function(done) {
+        var im = new mapnik.Image(0,0);
+        var view = im.view(0,0,0,0);
+        assert.throws(function() { view.isSolidSync(); });
+        view.isSolid(function(err,solid,pixel) {
+            assert.throws(function() { if (err) throw err; });
             done();
         });
     });
