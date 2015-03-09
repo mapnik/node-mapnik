@@ -91,14 +91,23 @@ NAN_METHOD(Feature::fromJSON)
         NanReturnUndefined();
     }
     std::string json = TOSTR(args[0]);
-    mapnik::feature_ptr f(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
-    if (!mapnik::json::from_geojson(json,*f))
+    try
     {
-        throw std::runtime_error("Failed to parse geojson feature");
+        mapnik::feature_ptr f(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
+        if (!mapnik::json::from_geojson(json,*f))
+        {
+            NanThrowError("Failed to read GeoJSON");
+            NanReturnUndefined();
+        }
+        Feature* feat = new Feature(f);
+        Handle<Value> ext = NanNew<External>(feat);
+        NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
     }
-    Feature* feat = new Feature(f);
-    Handle<Value> ext = NanNew<External>(feat);
-    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        NanReturnUndefined();
+    }
 }
 
 Handle<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
@@ -169,8 +178,8 @@ NAN_METHOD(Feature::toJSON)
     sink_type sink(json);
     if (!boost::spirit::karma::generate(sink, grammar, *(fp->get())))
     {
-        NanThrowError("Failed to generate GeoJSON");
-        NanReturnUndefined();
+        NanThrowError("Failed to generate GeoJSON"); /* LCOV_EXCL_LINE */
+        NanReturnUndefined(); /* LCOV_EXCL_LINE */    
     }
     NanReturnValue(NanNew(json.c_str()));
 }

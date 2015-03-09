@@ -29,6 +29,18 @@ describe('mapnik.Feature ', function() {
         assert.throws(function() { new mapnik.Feature('foo'); });
     });
 
+    it('should construct a feature properly', function() {
+        var feature = new mapnik.Feature(1);
+        assert.ok(feature);
+        assert.deepEqual(feature.extent(),[0,0,-1,-1]);
+        assert.throws(function() { mapnik.Feature.fromJSON(); });
+        assert.throws(function() { mapnik.Feature.fromJSON(null); });
+        assert.throws(function() { mapnik.Feature.fromJSON('foo'); });
+        assert.throws(function() {
+            var feat = mapnik.Feature.fromJSON('{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[0,"b"]},"properties":{"feat_id":1,"name":"name"}}');
+        });
+    });
+
     it('should match known features', function() {
         var options = {
             type: 'shape',
@@ -64,8 +76,10 @@ describe('mapnik.Feature ', function() {
     it('should report null values as js null',function() {
         var extent = '-180,-60,180,60';
         var ds = new mapnik.MemoryDatasource({'extent': extent});
-        var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name"}};
-        ds.add(feat);
+        var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name",stuff: {hi:"wee"}}};
+        var bad_feat = {x:'0',y:0,properties: {feat_id:1,null_val:null,name:"name",stuff: {hi:"wee"}}};
+        assert.equal(ds.add(feat), true);
+        assert.equal(ds.add(bad_feat), false);
         var featureset = ds.featureset();
         var feature = featureset.next();
         assert.equal(feature.id(),1);
