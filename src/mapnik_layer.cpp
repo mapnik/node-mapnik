@@ -7,6 +7,7 @@
 
 // mapnik
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
+#include <mapnik/memory_datasource.hpp> // for memory_datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
 
@@ -130,7 +131,15 @@ NAN_GETTER(Layer::get_prop)
         mapnik::datasource_ptr ds = l->layer_->datasource();
         if (ds)
         {
-            NanReturnValue(Datasource::NewInstance(ds));
+            mapnik::memory_datasource * mem_ptr = dynamic_cast<mapnik::memory_datasource*>(ds.get());
+            if (mem_ptr)
+            {
+                NanReturnValue(MemoryDatasource::NewInstance(ds));
+            }
+            else
+            {
+                NanReturnValue(Datasource::NewInstance(ds));
+            }
         }
     }
     NanReturnUndefined();

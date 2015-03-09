@@ -198,6 +198,8 @@ describe('mapnik.Image ', function() {
         m3.fromStringSync(s);
         
         assert.throws(function() { mapnik.MemoryDatasource({'extent': '-180,-90,180,90'}); }); 
+        assert.throws(function() { new mapnik.MemoryDatasource(); }); 
+        assert.throws(function() { new mapnik.MemoryDatasource(null); }); 
         var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         mem_datasource.add({ 'x': 0, 'y': 0 });
         mem_datasource.add({ 'x': 1, 'y': 1 });
@@ -207,6 +209,8 @@ describe('mapnik.Image ', function() {
         l.srs = m3.srs;
         l.styles = ['points'];
         l.datasource = mem_datasource;
+        var mem_datasource_same = l.datasource;
+        assert.deepEqual(mem_datasource.parameters(), mem_datasource_same.parameters());
         m3.add_layer(l);
         m3.zoomAll();
         m3.render(im_blank3, {},function(err,im_blank3) {
