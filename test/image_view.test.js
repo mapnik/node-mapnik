@@ -14,7 +14,7 @@ describe('mapnik.ImageView ', function() {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
-        var pixel = view.getPixel(0, 0);
+        var pixel = view.getPixel(0, 0, {get_color:true});
         assert.equal(pixel.r, 0);
         assert.equal(pixel.g, 0);
         assert.equal(pixel.b, 0);
@@ -24,7 +24,7 @@ describe('mapnik.ImageView ', function() {
         im.fill(new mapnik.Color(2, 2, 2, 2));
         view = im.view(0, 0, 256, 256);
         assert.equal(view.isSolidSync(), true);
-        pixel = view.getPixel(0, 0);
+        pixel = view.getPixel(0, 0, {get_color:true});
         assert.equal(pixel.r, 2);
         assert.equal(pixel.g, 2);
         assert.equal(pixel.b, 2);
@@ -38,10 +38,7 @@ describe('mapnik.ImageView ', function() {
         assert.equal(view.isSolidSync(), true);
         view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel.r, 0);
-            assert.equal(pixel.g, 0);
-            assert.equal(pixel.b, 0);
-            assert.equal(pixel.a, 0);
+            assert.equal(pixel, 0);
             done();
         });
     });
@@ -54,10 +51,7 @@ describe('mapnik.ImageView ', function() {
         assert.equal(view.isSolidSync(), true);
         view.isSolid(function(err,solid,pixel) {
             assert.equal(solid, true);
-            assert.equal(pixel.r, 255);
-            assert.equal(pixel.g, 255);
-            assert.equal(pixel.b, 255);
-            assert.equal(pixel.a, 255);
+            assert.equal(pixel, 4294967295);
             done();
         });
     });
@@ -83,6 +77,95 @@ describe('mapnik.ImageView ', function() {
             assert.throws(function() { if (err) throw err; });
             done();
         });
+    });
+
+    it('getPixel should fail with bad parameters', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.rgba8);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.throws(function() { view.getPixel(); });
+        assert.throws(function() { view.getPixel(1); });
+        assert.throws(function() { view.getPixel(1,'2'); });
+        assert.throws(function() { view.getPixel('1',2); });
+        assert.throws(function() { view.getPixel(1,2, null); });
+        assert.throws(function() { view.getPixel(1,2, {get_color:1}); });
+    });
+    
+    it('getPixel supports rgba8', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.rgba8);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray8', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray8);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray8s', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray8s);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray16', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray16);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray16s', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray16s);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray32', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray32);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray32s', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray32s);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray32f', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray32f);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray64', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray64);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray64s', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray64s);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
+    });
+
+    it('getPixel supports gray64f', function() {
+        var im = new mapnik.Image(4,4,mapnik.imageType.gray64f);
+        im.fill(1);
+        var view = im.view(0,0,4,4);
+        assert.equal(view.getPixel(0,0), 1);
     });
 
     if (mapnik.supports.webp) {
