@@ -13,6 +13,16 @@ describe('mapnik.GridView ', function() {
         view = grid.view(0, 0, 256, 256);
         done();
     });
+    
+    it('should fail to encode properly', function() {
+        assert.throws(function() { view.encodeSync("foo"); });
+        assert.throws(function() { view.encode("foo"); });
+        assert.throws(function() { view.encode("foo", function(err, result) {}); });
+        assert.throws(function() { view.encodeSync({features:null}); });
+        assert.throws(function() { view.encodeSync({resolution:null}); });
+        assert.throws(function() { view.encode({features:null}, function(err, result) {}); });
+        assert.throws(function() { view.encode({resolution:null}, function(err, result) {}); });
+    });
 
     it('should be solid', function() {
         assert.equal(view.isSolidSync(), true);

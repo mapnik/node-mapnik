@@ -22,6 +22,11 @@ struct extra_param_visitor
     {
         return NanNull();
     }
+    
+    Local<Value> operator() (mapnik::value_bool const& val)
+    {
+        return NanNew<Boolean>(val);
+    }
 
     Local<Value> operator() (mapnik::value_integer const& val)
     {

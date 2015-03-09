@@ -178,8 +178,10 @@ NAN_METHOD(Feature::toJSON)
     sink_type sink(json);
     if (!boost::spirit::karma::generate(sink, grammar, *(fp->get())))
     {
-        NanThrowError("Failed to generate GeoJSON"); /* LCOV_EXCL_LINE */
-        NanReturnUndefined(); /* LCOV_EXCL_LINE */    
+        /* LCOV_EXCL_START */
+        NanThrowError("Failed to generate GeoJSON");
+        NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
     NanReturnValue(NanNew(json.c_str()));
 }

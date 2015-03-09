@@ -44,7 +44,7 @@ namespace node_mapnik {
 typedef mapnik::value_integer value_integer;
 
 // adapted to work for both mapnik features and mapnik parameters
-struct params_to_object : public mapnik::util::static_visitor<>
+struct params_to_object
 {
 public:
     params_to_object( Local<Object>& ds, std::string key):
@@ -56,7 +56,7 @@ public:
         ds_->Set(NanNew(key_.c_str()), NanNew<Number>(val) );
     }
 
-    void operator () ( bool val )
+    void operator () ( mapnik::value_bool val )
     {
         ds_->Set(NanNew(key_.c_str()), NanNew<Boolean>(val) );
     }
@@ -89,7 +89,7 @@ private:
     std::string key_;
 };
 
-struct value_converter: public mapnik::util::static_visitor<Handle<Value> >
+struct value_converter
 {
     Handle<Value> operator () ( value_integer val ) const
     {

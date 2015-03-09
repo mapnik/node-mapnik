@@ -197,10 +197,19 @@ describe('mapnik.Image ', function() {
         s += '</Map>';
         m3.fromStringSync(s);
         
-        assert.throws(function() { mapnik.MemoryDatasource({'extent': '-180,-90,180,90'}); }); 
+        assert.throws(function() { mapnik.MemoryDatasource({extent: '-180,-90,180,90'}); }); 
         assert.throws(function() { new mapnik.MemoryDatasource(); }); 
-        assert.throws(function() { new mapnik.MemoryDatasource(null); }); 
-        var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        assert.throws(function() { new mapnik.MemoryDatasource(null); });
+        var params = {
+            extent:'-180,-90,180,90',
+            foo: 1,
+            waffle: 22.2,
+            fee: true,
+            boom: {},
+            lalala: null,
+            heheheh: undefined
+        }
+        var mem_datasource = new mapnik.MemoryDatasource(params);
         mem_datasource.add({ 'x': 0, 'y': 0 });
         mem_datasource.add({ 'x': 1, 'y': 1 });
         mem_datasource.add({ 'x': 2, 'y': 2 });

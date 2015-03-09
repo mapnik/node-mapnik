@@ -143,7 +143,6 @@ Local<Value> Grid::_clearSync(_NAN_METHOD_ARGS)
 typedef struct {
     uv_work_t request;
     Grid* g;
-    std::string format;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -298,36 +297,25 @@ NAN_METHOD(Grid::view)
     NanReturnValue(GridView::NewInstance(g,x,y,w,h));
 }
 
-NAN_METHOD(Grid::encodeSync) // format, resolution
+NAN_METHOD(Grid::encodeSync) 
 {
     NanScope();
 
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
 
     // defaults
-    std::string format("utf");
     unsigned int resolution = 4;
     bool add_features = true;
 
-    // accept custom format
-    if (args.Length() >= 1){
-        if (!args[0]->IsString())
-        {
-            NanThrowTypeError("first arg, 'format' must be a string");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[0]);
-    }
-
     // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
+    if (args.Length() >= 1) {
+        if (!args[0]->IsObject())
         {
-            NanThrowTypeError("optional second arg must be an options object");
+            NanThrowTypeError("optional arg must be an options object");
             NanReturnUndefined();
         }
 
-        Local<Object> options = args[1].As<Object>();
+        Local<Object> options = args[0].As<Object>();
 
         if (options->Has(NanNew("resolution")))
         {
@@ -404,7 +392,6 @@ NAN_METHOD(Grid::encodeSync) // format, resolution
 typedef struct {
     uv_work_t request;
     Grid* g;
-    std::string format;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -414,36 +401,25 @@ typedef struct {
     std::vector<mapnik::grid::lookup_type> key_order;
 } encode_grid_baton_t;
 
-NAN_METHOD(Grid::encode) // format, resolution
+NAN_METHOD(Grid::encode) 
 {
     NanScope();
 
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
 
     // defaults
-    std::string format("utf");
     unsigned int resolution = 4;
     bool add_features = true;
 
-    // accept custom format
-    if (args.Length() >= 1){
-        if (!args[0]->IsString())
-        {
-            NanThrowTypeError("first arg, 'format' must be a string");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[0]);
-    }
-
     // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
+    if (args.Length() >= 1) {
+        if (!args[0]->IsObject())
         {
-            NanThrowTypeError("optional second arg must be an options object");
+            NanThrowTypeError("optional arg must be an options object");
             NanReturnUndefined();
         }
 
-        Local<Object> options = args[1].As<Object>();
+        Local<Object> options = args[0].As<Object>();
 
         if (options->Has(NanNew("resolution")))
         {
@@ -481,7 +457,6 @@ NAN_METHOD(Grid::encode) // format, resolution
     encode_grid_baton_t *closure = new encode_grid_baton_t();
     closure->request.data = closure;
     closure->g = g;
-    closure->format = format;
     closure->error = false;
     closure->resolution = resolution;
     closure->add_features = add_features;

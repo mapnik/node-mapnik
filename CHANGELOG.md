@@ -26,6 +26,7 @@
  - Modified the `renderSync` method on the `Map` object to only take an optional parameters object. Format can still be set by passing format as a optional argument. This was done so that it mirrors `renderFileSync`. The default format if none is provide is 'png'
  - Changed name of method `hsl2rgb2` to `hsl2rgb`
  - Changed name of method `rgb2hsl2` to `rgb2hsl`
+ - Removed format parameter from `Grid` and `GridView` objects `encode` and `encodeSync` methods as it had no affect.
 
 Notable changes in the Mapnik SDK include:
  - Changes: https://github.com/mapnik/mapnik/compare/30c6cf636c...7f597233c9

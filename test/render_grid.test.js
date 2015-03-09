@@ -26,14 +26,14 @@ describe('mapnik grid rendering ', function() {
         map.zoomAll();
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
         var options = {'layer': 0,
-                       'fields': ['NAME']
+                       'fields': ['NAME', 'LAT', 'LON', 'AREA', 'ISO2', 'ISO3', 'FIPS']
                       };
         map.render(grid, options, function(err, grid) {
             if (err) throw err;
-            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            var grid_utf = grid.encodeSync({resolution: 4, features:true});
             // pull an identical view and compare it to original grid
             var gv = grid.view(0, 0, 256, 256);
-            var gv_utf = gv.encodeSync('utf', {resolution: 4});
+            var gv_utf = gv.encodeSync({resolution: 4, features:true});
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference,JSON.stringify(grid_utf,null,1));
             } else {
@@ -47,7 +47,7 @@ describe('mapnik grid rendering ', function() {
             var gv2 = grid.view(64, 64, 64, 64);
             assert.equal(gv2.width(), 64);
             assert.equal(gv2.height(), 64);
-            var gv_utf2 = gv2.encodeSync('utf', {resolution: 4});
+            var gv_utf2 = gv2.encodeSync({resolution: 4});
             var expected_view = fs.readFileSync(reference_view,'utf8');
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1));
@@ -70,7 +70,7 @@ describe('mapnik grid rendering ', function() {
                           };
             map.render(grid, options, function(err, grid) {
                 if (err) throw err;
-                grid.encode('utf', {resolution: 4}, function(err,utf) {
+                grid.encode({resolution: 4}, function(err,utf) {
                     var equal = _c(JSON.stringify(utf,null,1),fs.readFileSync(reference,'utf8'));
                     assert.ok(equal);
                     done();
@@ -92,7 +92,7 @@ describe('mapnik grid rendering ', function() {
             map.render(grid, options, function(err, grid) {
                 assert.ok(!err);
                 var gv = grid.view(0, 0, 256, 256);
-                gv.encode('utf', {resolution: 4}, function(err,gv_utf1) {
+                gv.encode({resolution: 4}, function(err,gv_utf1) {
                     var equal = _c(JSON.stringify(gv_utf1,null,1),fs.readFileSync(reference,'utf8'));
                     assert.ok(equal);
                     done();
@@ -117,7 +117,7 @@ describe('mapnik grid rendering ', function() {
                 var gv2 = grid.view(64, 64, 64, 64);
                 assert.equal(gv2.width(), 64);
                 assert.equal(gv2.height(), 64);
-                gv2.encode('utf', {resolution: 4}, function(err,gv_utf2) {
+                gv2.encode({resolution: 4}, function(err,gv_utf2) {
                     if (process.env.UPDATE) {
                         fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1));
                     } else {
@@ -140,7 +140,7 @@ describe('mapnik grid rendering ', function() {
                       };
         map.render(grid, options, function(err, grid) {
             if (err) throw err;
-            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            var grid_utf = grid.encodeSync({resolution: 4});
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference__id__,JSON.stringify(grid_utf,null,1));
             } else {
@@ -161,7 +161,7 @@ describe('mapnik grid rendering ', function() {
                       };
         map.render(grid, options, function(err, grid) {
             if (err) throw err;
-            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            var grid_utf = grid.encodeSync({resolution: 4});
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference__id__2,JSON.stringify(grid_utf,null,1));
             } else {
@@ -182,7 +182,7 @@ describe('mapnik grid rendering ', function() {
                       };
         map.render(grid, options, function(err, grid) {
             if (err) throw err;
-            var grid_utf = grid.encodeSync('utf', {resolution: 4});
+            var grid_utf = grid.encodeSync({resolution: 4});
             if (process.env.UPDATE) {
                 fs.writeFileSync(reference__id__3,JSON.stringify(grid_utf,null,1));
             } else {

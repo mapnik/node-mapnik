@@ -82,11 +82,25 @@ NAN_METHOD(MemoryDatasource::New)
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);
-        params[TOSTR(name)] = TOSTR(value);
+        if (value->IsUint32() || value->IsInt32())
+        {
+            params[TOSTR(name)] = value->IntegerValue();
+        }
+        else if (value->IsNumber())
+        {   
+            params[TOSTR(name)] = value->NumberValue();
+        }
+        else if (value->IsBoolean())
+        {
+            params[TOSTR(name)] = value->BooleanValue();
+        }
+        else
+        {
+            params[TOSTR(name)] = TOSTR(value);
+        }
         i++;
     }
     params["type"] = "memory";
-
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());

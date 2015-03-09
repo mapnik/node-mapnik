@@ -258,7 +258,9 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
             WebPConfig config;
             // Default values set here will be lossless=0 and quality=75 (as least as of webp v0.3.1)
             if (!WebPConfigInit(&config)) {
-                baton->message = "WebPConfigInit failed: version mismatch"; /* LCOV_EXCL_LINE */
+                /* LCOV_EXCL_START */
+                baton->message = "WebPConfigInit failed: version mismatch";
+                /* LCOV_EXCL_END */ 
             } else {
                 // see for more details: https://github.com/mapnik/mapnik/wiki/Image-IO#webp-output-options
                 config.quality = baton->quality;

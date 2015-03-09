@@ -28,6 +28,17 @@ describe('mapnik.Grid ', function() {
         assert.equal(grid.encodeSync().length, v.encodeSync().length);
     });
 
+    it('should fail to encode properly', function() {
+        var grid = new mapnik.Grid(256, 256);
+        assert.throws(function() { grid.encodeSync("foo"); });
+        assert.throws(function() { grid.encode("foo"); });
+        assert.throws(function() { grid.encode("foo", function(err, result) {}); });
+        assert.throws(function() { grid.encodeSync({features:null}); });
+        assert.throws(function() { grid.encodeSync({resolution:null}); });
+        assert.throws(function() { grid.encode({features:null}, function(err, result) {}); });
+        assert.throws(function() { grid.encode({resolution:null}, function(err, result) {}); });
+    });
+
     it('should not be painted after rendering', function(done) {
         var grid_blank = new mapnik.Grid(4, 4);
         assert.equal(grid_blank.painted(), false);
