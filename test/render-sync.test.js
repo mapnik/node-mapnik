@@ -10,6 +10,10 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.
 
 describe('mapnik sync rendering', function() {
     
+    it('should clear marker cache', function() {
+        assert.equal(mapnik.clearCache(), undefined);
+    });
+
     it('should render - png (default)', function() {
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');

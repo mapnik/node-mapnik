@@ -346,6 +346,10 @@ describe('mapnik.blend', function() {
         assert(Math.abs(result[0] - c.r) < 1e-7);
         assert(Math.abs(result[1] - c.g) < 1e-7);
         assert(Math.abs(result[2] - c.b) < 1e-7);
+        var result2 = mapnik.hsl2rgb(1/3,0,0.25098039215686274);
+        assert(Math.abs(result2[0] - 64) < 1e-7);
+        assert(Math.abs(result2[1] - 64) < 1e-7);
+        assert(Math.abs(result2[2] - 64) < 1e-7);
     });
     
     it('rgb to hsl works properly', function() {

@@ -67,14 +67,8 @@ NAN_METHOD(Palette::New) {
     {
 
         Palette* p = new Palette(palette, type);
-        if (!p->palette()->valid()) {
-            delete p;
-            NanThrowTypeError("Invalid palette length");
-            NanReturnUndefined();
-        } else {        
-            p->Wrap(args.This());
-            NanReturnValue(args.This());
-        }
+        p->Wrap(args.This());
+        NanReturnValue(args.This());
     }
     catch (std::exception const& ex)
     {

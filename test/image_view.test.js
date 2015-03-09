@@ -168,6 +168,24 @@ describe('mapnik.ImageView ', function() {
         assert.equal(view.getPixel(0,0), 1);
     });
 
+    it('should throw with filename lacking an extension', function() {
+        var im = new mapnik.Image(256, 256);
+        var view = im.view(0,0,256,256);
+        assert.throws(function() { view.save('foo'); });
+    });
+
+    it('should throw with invalid encoding format 1', function() {
+        var im = new mapnik.Image(256, 256);
+        var view = im.view(0,0,256,256);
+        assert.throws(function() { view.encodeSync('foo'); });
+    });
+
+    it('should throw with invalid encoding format 2', function() {
+        var im = new mapnik.Image(256, 256);
+        var view = im.view(0,0,256,256);
+        assert.throws(function() { view.save('foo','foo'); });
+    });
+
     if (mapnik.supports.webp) {
         it('should support webp encoding', function(done) {
             var im = new mapnik.Image(256,256);

@@ -9,7 +9,7 @@ var helper = require('./support/helper');
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik.Palette ', function() {
-    it('should throw with invalid usage', function() {
+    it.only('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.Palette(); });
         // invalid args
