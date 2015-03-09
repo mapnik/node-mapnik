@@ -153,20 +153,10 @@ NAN_METHOD(Color::New)
         NanReturnUndefined();
     }
 
-    if (c_p)
-    {
-        Color* c = new Color();
-        c->Wrap(args.This());
-        c->this_ = c_p;
-        NanReturnValue(args.This());
-    }
-    else
-    {
-        NanThrowError("unknown exception happened, please file bug");
-        NanReturnUndefined();
-    }
-
-    NanReturnUndefined();
+    Color* c = new Color();
+    c->Wrap(args.This());
+    c->this_ = c_p;
+    NanReturnValue(args.This());
 }
 
 Handle<Value> Color::NewInstance(mapnik::color const& color) {
@@ -190,9 +180,8 @@ NAN_GETTER(Color::get_prop)
         NanReturnValue(NanNew<Integer>(c->get()->red()));
     else if (a == "g")
         NanReturnValue(NanNew<Integer>(c->get()->green()));
-    else if (a == "b")
+    else //if (a == "b")
         NanReturnValue(NanNew<Integer>(c->get()->blue()));
-    NanReturnUndefined();
 }
 
 NAN_SETTER(Color::set_prop)
