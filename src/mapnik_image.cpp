@@ -1438,12 +1438,8 @@ Local<Value> Image::_fromBytesSync(_NAN_METHOD_ARGS)
     }
 
     Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined()) {
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         NanThrowTypeError("first argument is invalid, must be a Buffer");
-        return NanEscapeScope(NanUndefined());
-    }
-    if (!node::Buffer::HasInstance(obj)) {
-        NanThrowTypeError("first argument must be a buffer");
         return NanEscapeScope(NanUndefined());
     }
 

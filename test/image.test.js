@@ -48,7 +48,10 @@ describe('mapnik.Image ', function() {
     });
 
     it('should throw with invalid binary read from buffer', function() {
-        assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(0)); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync()); });
+        assert.throws(function() { new mapnik.Image.fromBytes()); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync({})); });
+        assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0)); });
         assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
         var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
         assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
@@ -412,6 +415,17 @@ describe('mapnik.Image ', function() {
 
     });
 
+    it('should fail to copy a null image', function(done) {
+        var im = new mapnik.Image(4,4,mapnik.imageType.null);
+        var im3 = new mapnik.Image(4,4,mapnik.imageType.gray8);
+        assert.throws(function() { im2 = im.copy(); });
+        assert.throws(function() { im2 = im3.copy(mapnik.imageType.null); });
+        im.copy(function(err, im2) { 
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
     it('should support copying from gray16 to gray8', function(done) {
         var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
         im.setPixel(0,0,12);
@@ -492,6 +506,27 @@ describe('mapnik.Image ', function() {
         assert.equal(blank.compare(blank2),0);
         // with 15 or below threshold should fail
         assert.equal(blank.compare(blank2,{threshold:15}),1);
+    });
+
+    it('should fail to open', function(done) {
+        assert.throws(function() { var im = new mapnik.Image.openSync(); });
+        assert.throws(function() { var im = new mapnik.Image.open(); });
+        assert.throws(function() { var im = new mapnik.Image.openSync(null); });
+        assert.throws(function() { var im = new mapnik.Image.openSync('./PATH/FILE_DOES_NOT_EXIST.tiff'); });
+        assert.throws(function() { var im = new mapnik.Image.openSync('./test/data/markers.xml'); });
+        assert.throws(function() { var im = new mapnik.Image.openSync('./test/images/corrupt-10x10.png'); });
+        assert.throws(function() { var im = new mapnik.Image.open(null, function(err, result) {}); });
+        assert.throws(function() { var im = new mapnik.Image.open('./test/images/10x10.png', null); });
+        mapnik.Image.open('./PATH/FILE_DOES_NOT_EXIST.tiff', function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            mapnik.Image.open('./test/data/markers.xml', function(err, result) {
+                assert.throws(function() { if (err) throw err; });
+                mapnik.Image.open('./test/images/corrupt-10x10.png', function(err, result) {
+                    assert.throws(function() { if (err) throw err; });
+                    done();
+                });
+            });
+        });
     });
 
     it('should be able to open and save jpeg', function(done) {
