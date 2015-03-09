@@ -48,9 +48,9 @@ describe('mapnik.Image ', function() {
     });
 
     it('should throw with invalid binary read from buffer', function() {
-        assert.throws(function() { new mapnik.Image.fromBytesSync()); });
-        assert.throws(function() { new mapnik.Image.fromBytes()); });
-        assert.throws(function() { new mapnik.Image.fromBytesSync({})); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync(); });
+        assert.throws(function() { new mapnik.Image.fromBytes(); });
+        assert.throws(function() { new mapnik.Image.fromBytesSync({}); });
         assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0)); });
         assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
         var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
