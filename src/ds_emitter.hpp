@@ -105,8 +105,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         description->Set(NanNew("geometry_type"), js_type);
         for (auto const& param : ld.get_extra_parameters()) 
         {
-            node_mapnik::params_to_object serializer(description,param.first);
-            mapnik::util::apply_visitor(serializer, param.second);
+            node_mapnik::params_to_object(description,param.first, param.second);
         }
     }
     catch (std::exception const& ex)

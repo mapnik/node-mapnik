@@ -148,8 +148,7 @@ NAN_METHOD(Datasource::parameters)
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
     for (; it != end; ++it)
     {
-        node_mapnik::params_to_object serializer( ds , it->first);
-        mapnik::util::apply_visitor( serializer, it->second );
+        node_mapnik::params_to_object(ds, it->first, it->second);
     }
     NanReturnValue(ds);
 }

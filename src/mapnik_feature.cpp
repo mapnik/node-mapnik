@@ -155,8 +155,9 @@ NAN_METHOD(Feature::attributes)
     mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
-        node_mapnik::params_to_object serializer( feat , std::get<0>(*itr));
-        mapnik::util::apply_visitor( serializer, std::get<1>(*itr) );
+        feat->Set(NanNew(std::get<0>(*itr).c_str()), 
+                  mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
+        );
     }
     NanReturnValue(feat);
 }

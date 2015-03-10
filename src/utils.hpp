@@ -15,6 +15,8 @@
 #include <mapnik/value_types.hpp>
 #include <mapnik/value.hpp>
 #include <mapnik/version.hpp>
+#include <mapnik/params.hpp>
+#include <mapnik/utils.hpp>
 
 #define TOSTR(obj) (*String::Utf8Value((obj)->ToString()))
 
@@ -44,51 +46,6 @@ namespace node_mapnik {
 typedef mapnik::value_integer value_integer;
 
 // adapted to work for both mapnik features and mapnik parameters
-struct params_to_object
-{
-public:
-    params_to_object( Local<Object>& ds, std::string key):
-        ds_(ds),
-        key_(key) {}
-
-    void operator () ( value_integer val )
-    {
-        ds_->Set(NanNew(key_.c_str()), NanNew<Number>(val) );
-    }
-
-    void operator () ( mapnik::value_bool val )
-    {
-        ds_->Set(NanNew(key_.c_str()), NanNew<Boolean>(val) );
-    }
-
-    void operator () ( double val )
-    {
-        ds_->Set(NanNew(key_.c_str()), NanNew<Number>(val) );
-    }
-
-    void operator () ( std::string const& val )
-    {
-
-        ds_->Set(NanNew(key_.c_str()), NanNew<String>(val.c_str()) );
-    }
-
-    void operator () ( mapnik::value_unicode_string const& val)
-    {
-        std::string buffer;
-        mapnik::to_utf8(val,buffer);
-        ds_->Set(NanNew(key_.c_str()), NanNew<String>(buffer.c_str()) );
-    }
-
-    void operator () ( mapnik::value_null const& )
-    {
-        ds_->Set(NanNew(key_.c_str()), NanNull() );
-    }
-
-private:
-    Local<Object>& ds_;
-    std::string key_;
-};
-
 struct value_converter
 {
     Handle<Value> operator () ( value_integer val ) const
@@ -96,7 +53,7 @@ struct value_converter
         return NanNew<Number>(val);
     }
 
-    Handle<Value> operator () ( bool val ) const
+    Handle<Value> operator () (mapnik::value_bool val ) const
     {
         return NanNew<Boolean>(val);
     }
@@ -120,9 +77,14 @@ struct value_converter
 
     Handle<Value> operator () ( mapnik::value_null const& ) const
     {
-        return NanUndefined();
+        return NanNull();
     }
 };
 
+inline void params_to_object(Local<Object>& ds, std::string const& key, mapnik::value_holder const& val)
+{
+    ds->Set(NanNew(key.c_str()), mapnik::util::apply_visitor(value_converter(), val));
 }
+
+} // end ns
 #endif
