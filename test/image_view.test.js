@@ -168,7 +168,7 @@ describe('mapnik.ImageView ', function() {
         assert.equal(view.getPixel(0,0), 1);
     });
 
-    it.only('should throw with invalid encoding', function(done) {
+    it('should throw with invalid encoding', function(done) {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0,0,256,256);
         assert.throws(function() { view.encodeSync('foo'); });
