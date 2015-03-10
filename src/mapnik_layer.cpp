@@ -29,9 +29,14 @@ void Layer::Initialize(Handle<Object> target) {
 
     // properties
     ATTR(lcons, "name", get_prop, set_prop);
+    ATTR(lcons, "active", get_prop, set_prop);
     ATTR(lcons, "srs", get_prop, set_prop);
     ATTR(lcons, "styles", get_prop, set_prop);
     ATTR(lcons, "datasource", get_prop, set_prop);
+    ATTR(lcons, "minzoom", get_prop, set_prop);
+    ATTR(lcons, "maxzoom", get_prop, set_prop);
+    ATTR(lcons, "queryable", get_prop, set_prop);
+    ATTR(lcons, "clear_label_cache", get_prop, set_prop);
 
     target->Set(NanNew("Layer"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
@@ -141,8 +146,28 @@ NAN_GETTER(Layer::get_prop)
                 NanReturnValue(Datasource::NewInstance(ds));
             }
         }
+        NanReturnUndefined();
     }
-    NanReturnUndefined();
+    else if (a == "minzoom") 
+    {
+        NanReturnValue(NanNew<Number>(l->layer_->min_zoom()));   
+    }
+    else if (a == "maxzoom") 
+    {
+        NanReturnValue(NanNew<Number>(l->layer_->max_zoom()));   
+    }
+    else if (a == "queryable") 
+    {
+        NanReturnValue(NanNew<Boolean>(l->layer_->queryable()));   
+    }
+    else if (a == "clear_label_cache") 
+    {
+        NanReturnValue(NanNew<Boolean>(l->layer_->clear_label_cache()));   
+    }
+    else // if (a == "active") 
+    {
+        NanReturnValue(NanNew<Boolean>(l->layer_->active()));   
+    }
 }
 
 NAN_SETTER(Layer::set_prop)
@@ -207,10 +232,50 @@ NAN_SETTER(Layer::set_prop)
             }
             else
             {
-                NanThrowTypeError("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected");
+                NanThrowTypeError("mapnik.Datasource or mapnik.MemoryDatasource instance expected");
                 return;
             }
         }
+    }
+    else if (a == "minzoom")
+    {
+        if (!value->IsNumber()) {
+            NanThrowTypeError("Must provide a number");
+            return;
+        }
+        l->layer_->set_min_zoom(value->NumberValue());
+    }
+    else if (a == "maxzoom")
+    {
+        if (!value->IsNumber()) {
+            NanThrowTypeError("Must provide a number");
+            return;
+        }
+        l->layer_->set_max_zoom(value->NumberValue());
+    }
+    else if (a == "queryable")
+    {
+        if (!value->IsBoolean()) {
+            NanThrowTypeError("Must provide a boolean");
+            return;
+        }
+        l->layer_->set_queryable(value->BooleanValue());
+    }
+    else if (a == "clear_label_cache")
+    {
+        if (!value->IsBoolean()) {
+            NanThrowTypeError("Must provide a boolean");
+            return;
+        }
+        l->layer_->set_clear_label_cache(value->BooleanValue());
+    }
+    else if (a == "active")
+    {
+        if (!value->IsBoolean()) {
+            NanThrowTypeError("Must provide a boolean");
+            return;
+        }
+        l->layer_->set_active(value->BooleanValue());
     }
 }
 
@@ -222,40 +287,20 @@ NAN_METHOD(Layer::describe)
 
     Local<Object> description = NanNew<Object>();
     mapnik::layer const& layer = *l->layer_;
-    if ( layer.name() != "" )
-    {
-        description->Set(NanNew("name"), NanNew(layer.name().c_str()));
-    }
+        
+    description->Set(NanNew("name"), NanNew(layer.name().c_str()));
 
-    if ( layer.srs() != "" )
-    {
-        description->Set(NanNew("srs"), NanNew(layer.srs().c_str()));
-    }
+    description->Set(NanNew("srs"), NanNew(layer.srs().c_str()));
 
-    if ( !layer.active())
-    {
-        description->Set(NanNew("status"), NanNew<Boolean>(layer.active()));
-    }
+    description->Set(NanNew("active"), NanNew<Boolean>(layer.active()));
 
-    if ( layer.clear_label_cache())
-    {
-        description->Set(NanNew("clear_label_cache"), NanNew<Boolean>(layer.clear_label_cache()));
-    }
+    description->Set(NanNew("clear_label_cache"), NanNew<Boolean>(layer.clear_label_cache()));
 
-    if ( layer.min_zoom() > 0)
-    {
-        description->Set(NanNew("minzoom"), NanNew<Number>(layer.min_zoom()));
-    }
+    description->Set(NanNew("minzoom"), NanNew<Number>(layer.min_zoom()));
 
-    if ( layer.max_zoom() != std::numeric_limits<double>::max() )
-    {
-        description->Set(NanNew("maxzoom"), NanNew<Number>(layer.max_zoom()));
-    }
+    description->Set(NanNew("maxzoom"), NanNew<Number>(layer.max_zoom()));
 
-    if ( layer.queryable())
-    {
-        description->Set(NanNew("queryable"), NanNew<Boolean>(layer.queryable()));
-    }
+    description->Set(NanNew("queryable"), NanNew<Boolean>(layer.queryable()));
 
     std::vector<std::string> const& style_names = layer.styles();
     Local<Array> s = NanNew<Array>(style_names.size());
