@@ -47,15 +47,6 @@ NAN_METHOD(Expression::New)
         NanReturnUndefined();
     }
 
-    if (args[0]->IsExternal())
-    {
-        Local<External> ext = args[0].As<External>();
-        void* ptr = ext->Value();
-        Expression* e = static_cast<Expression*>(ptr);
-        e->Wrap(args.This());
-        NanReturnValue(args.This());
-    }
-
     mapnik::expression_ptr e_ptr;
     try
     {
@@ -72,20 +63,10 @@ NAN_METHOD(Expression::New)
         NanReturnUndefined();
     }
 
-    if (e_ptr)
-    {
-        Expression* e = new Expression();
-        e->Wrap(args.This());
-        e->this_ = e_ptr;
-        NanReturnValue(args.This());
-    }
-    else
-    {
-        NanThrowError("unknown exception happened, please file bug");
-        NanReturnUndefined();
-    }
-
-    NanReturnUndefined();
+    Expression* e = new Expression();
+    e->Wrap(args.This());
+    e->this_ = e_ptr;
+    NanReturnValue(args.This());
 }
 
 NAN_METHOD(Expression::toString)
@@ -106,12 +87,7 @@ NAN_METHOD(Expression::evaluate)
     }
 
     Local<Object> obj = args[0].As<Object>();
-    if (obj->IsNull() || obj->IsUndefined()) {
-        NanThrowTypeError("first argument is invalid, must be a mapnik.Feature not null/undefined");
-        NanReturnUndefined();
-    }
-
-    if (!NanNew(Feature::constructor)->HasInstance(obj)) {
+    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Feature::constructor)->HasInstance(obj)) {
         NanThrowTypeError("first argument is invalid, must be a mapnik.Feature");
         NanReturnUndefined();
     }

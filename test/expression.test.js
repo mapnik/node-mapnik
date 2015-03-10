@@ -10,6 +10,7 @@ describe('mapnik.Expression', function() {
         // invalid args
         assert.throws(function() { new mapnik.Expression(); });
         assert.throws(function() { new mapnik.Expression(1); });
+        assert.throws(function() { new mapnik.Expression('[asdfadsa]]'); });
     });
 
     it('should accept complex expressions', function() {
@@ -28,6 +29,13 @@ describe('mapnik.Expression', function() {
     it('should support evaluation to js types', function() {
         var expr = new mapnik.Expression("[attr]='value'");
         var feature = new mapnik.Feature.fromJSON('{"type":"Feature","properties":{"attr":"value"},"geometry":null}');
+        
+        // Test bad parameters
+        assert.throws(function() { expr.evaluate(); });
+        assert.throws(function() { expr.evaluate(null); });
+        assert.throws(function() { expr.evaluate(feature, null); });
+        assert.throws(function() { expr.evaluate(feature, {variables:null}); });
+        
         assert.equal(expr.evaluate(feature), true);
         assert.equal(expr.evaluate(feature).toString(), 'true');
     });
