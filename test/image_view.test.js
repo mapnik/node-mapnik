@@ -168,22 +168,44 @@ describe('mapnik.ImageView ', function() {
         assert.equal(view.getPixel(0,0), 1);
     });
 
-    it('should throw with filename lacking an extension', function() {
-        var im = new mapnik.Image(256, 256);
-        var view = im.view(0,0,256,256);
-        assert.throws(function() { view.save('foo'); });
-    });
-
-    it('should throw with invalid encoding format 1', function() {
+    it.only('should throw with invalid encoding', function(done) {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0,0,256,256);
         assert.throws(function() { view.encodeSync('foo'); });
+        assert.throws(function() { view.encodeSync(1); });
+        assert.throws(function() { view.encodeSync('png', null); });
+        assert.throws(function() { view.encodeSync('png', {palette:null}); });
+        assert.throws(function() { view.encodeSync('png', {palette:{}}); });
+        assert.throws(function() { view.encode('png', {palette:{}}, function(err, result) {}); });
+        assert.throws(function() { view.encode('png', {palette:null}, function(err, result) {}); });
+        assert.throws(function() { view.encode('png', null, function(err, result) {}); });
+        assert.throws(function() { view.encode(1, {}, function(err, result) {}); });
+        assert.throws(function() { view.encode('png', {}, null); });
+        view.encode('foo', {}, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
     });
-
-    it('should throw with invalid encoding format 2', function() {
+    
+    it('should encode with a pallete', function(done) {
+        var im = new mapnik.Image(256, 256);
+        var view = im.view(0,0,256,256);
+        var pal = new mapnik.Palette('\xff\x09\x93\xFF\x01\x02\x03\x04');
+        assert.ok(view.encodeSync('png', {palette:pal}));
+        view.encode('png', {palette:pal}, function(err, result) {
+            if (err) throw err;
+            assert.ok(result);
+            done();
+        });
+    });
+    
+    it('should throw with invalid formats', function() {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0,0,256,256);
         assert.throws(function() { view.save('foo','foo'); });
+        assert.throws(function() { view.save(); });
+        assert.throws(function() { view.save('file.png', null); });
+        assert.throws(function() { view.save('foo'); });
     });
 
     if (mapnik.supports.webp) {

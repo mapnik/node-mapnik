@@ -74,7 +74,9 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { new mapnik.Image.fromBytesSync(); });
         assert.throws(function() { new mapnik.Image.fromBytes(); });
         assert.throws(function() { new mapnik.Image.fromBytes(null); });
+        assert.throws(function() { new mapnik.Image.fromBytes(null, function(err, result) {}); });
         assert.throws(function() { new mapnik.Image.fromBytes({}); });
+        assert.throws(function() { new mapnik.Image.fromBytes({}, function(err, result) {}); });
         assert.throws(function() { new mapnik.Image.fromBytesSync({}); });
         assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0)); });
         assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0), null); });
@@ -466,11 +468,17 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { im2 = im.copy(); });
         assert.throws(function() { im2 = im3.copy(mapnik.imageType.null); });
         assert.throws(function() { im2 = im3.copy(mapnik.imageType.gray8, null); });
-        assert.throws(function() { im2 = im3.copy(99); });
+        assert.throws(function() { im2 = im3.copy(99, function(err, result) {}); });
+        assert.throws(function() { im2 = im3.copy({}, function(err, result) {}); });
+        assert.throws(function() { im2 = im3.copy(mapnik.imageType.gray8, {}, function(err, result) {}); });
+        assert.throws(function() { im2 = im3.copy(null, function(err, result) {}); });
         assert.throws(function() { im2 = im3.copySync(99); });
         assert.throws(function() { im2 = im3.copy({}, null); });
-        assert.throws(function() { im2 = im3.copy({scaling:null}); });
-        assert.throws(function() { im2 = im3.copy({offset:null}); });
+        assert.throws(function() { im2 = im3.copySync({scaling:null}); });
+        assert.throws(function() { im2 = im3.copySync({offset:null}); });
+        assert.throws(function() { im2 = im3.copy({}, null); });
+        assert.throws(function() { im2 = im3.copy({scaling:null}, function(err, result) {}); });
+        assert.throws(function() { im2 = im3.copy({offset:null}, function(err, result) {}); });
         im.copy(function(err, im2) { 
             assert.throws(function() { if (err) throw err; });
             done();
