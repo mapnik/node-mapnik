@@ -227,8 +227,13 @@ struct visitor_get_pixel
 
     Local<Value> operator() (mapnik::image_null const&)
     {
+        // This should never be reached because the width and height of 0 for a null
+        // image will prevent the visitor from being called.
+        /* LCOV_EXCL_START */
         NanEscapableScope();
         return NanEscapeScope(NanUndefined());
+        /* LCOV_EXCL_END */
+
     }
 
     Local<Value> operator() (mapnik::image_gray8 const& data)
@@ -487,7 +492,7 @@ Local<Value> Image::_fillSync(_NAN_METHOD_ARGS) {
     NanEscapableScope();
     if (args.Length() < 1 ) {
         NanThrowTypeError("expects one argument: Color object or a number");
-        NanEscapeScope(NanUndefined());
+        return NanEscapeScope(NanUndefined());
     }
     Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
     try
@@ -1301,8 +1306,6 @@ Local<Value> Image::_openSync(_NAN_METHOD_ARGS)
                 Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
                 return NanEscapeScope(obj);
             }
-            NanThrowTypeError(("Failed to load: " + filename).c_str());
-            return NanEscapeScope(NanUndefined());
         }
         NanThrowTypeError(("Unsupported image format:" + filename).c_str());
         return NanEscapeScope(NanUndefined());
@@ -1389,8 +1392,13 @@ void Image::EIO_Open(uv_work_t* req)
             }
             else
             {
+                // The only way this is ever reached is if the reader factory in 
+                // mapnik was not providing an image type it should. This should never
+                // be occuring so marking this out from coverage
+                /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->error_name = "Failed to load: " + closure->filename;
+                /* LCOV_EXCL_END */
             }
         }
     }
@@ -1453,8 +1461,13 @@ Local<Value> Image::_fromBytesSync(_NAN_METHOD_ARGS)
             Handle<Value> ext = NanNew<External>(im);
             return NanEscapeScope(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
         }
+        // The only way this is ever reached is if the reader factory in 
+        // mapnik was not providing an image type it should. This should never
+        // be occuring so marking this out from coverage
+        /* LCOV_EXCL_START */
         NanThrowTypeError("Failed to load from buffer");
         return NanEscapeScope(NanUndefined());
+        /* LCOV_EXCL_END */
     }
     catch (std::exception const& ex)
     {
@@ -1482,14 +1495,11 @@ NAN_METHOD(Image::fromBytes)
     }
 
     Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined()) {
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         NanThrowTypeError("first argument is invalid, must be a Buffer");
         NanReturnUndefined();
     }
-    if (!node::Buffer::HasInstance(obj)) {
-        NanThrowTypeError("first argument must be a buffer");
-        NanReturnUndefined();
-    }
+
     // ensure callback is a function
     Local<Value> callback = args[args.Length() - 1];
     if (!args[args.Length()-1]->IsFunction()) {
@@ -1521,8 +1531,13 @@ void Image::EIO_FromBytes(uv_work_t* req)
         }
         else
         {
+            // The only way this is ever reached is if the reader factory in 
+            // mapnik was not providing an image type it should. This should never
+            // be occuring so marking this out from coverage
+            /* LCOV_EXCL_START */
             closure->error = true;
             closure->error_name = "Failed to load from buffer";
+            /* LCOV_EXCL_END */
         }
     }
     catch (std::exception const& ex)
@@ -1840,99 +1855,91 @@ NAN_METHOD(Image::composite)
         NanReturnUndefined();
     }
 
-    try
-    {
-        mapnik::composite_mode_e mode = mapnik::src_over;
-        float opacity = 1.0;
-        std::vector<mapnik::filter::filter_type> filters;
-        int dx = 0;
-        int dy = 0;
-        if (args.Length() >= 2) {
-            if (!args[1]->IsObject())
-            {
-                NanThrowTypeError("optional second arg must be an options object");
-                NanReturnUndefined();
-            }
-
-            Local<Object> options = args[1].As<Object>();
-
-            if (options->Has(NanNew("comp_op")))
-            {
-                Local<Value> opt = options->Get(NanNew("comp_op"));
-                if (!opt->IsNumber()) {
-                    NanThrowTypeError("comp_op must be a mapnik.compositeOp value");
-                    NanReturnUndefined();
-                }
-                mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
-            }
-
-            if (options->Has(NanNew("opacity")))
-            {
-                Local<Value> opt = options->Get(NanNew("opacity"));
-                if (!opt->IsNumber()) {
-                    NanThrowTypeError("opacity must be a floating point number");
-                    NanReturnUndefined();
-                }
-                opacity = opt->NumberValue();
-            }
-
-            if (options->Has(NanNew("dx")))
-            {
-                Local<Value> opt = options->Get(NanNew("dx"));
-                if (!opt->IsNumber()) {
-                    NanThrowTypeError("dx must be an integer");
-                    NanReturnUndefined();
-                }
-                dx = opt->IntegerValue();
-            }
-
-            if (options->Has(NanNew("dy")))
-            {
-                Local<Value> opt = options->Get(NanNew("dy"));
-                if (!opt->IsNumber()) {
-                    NanThrowTypeError("dy must be an integer");
-                    NanReturnUndefined();
-                }
-                dy = opt->IntegerValue();
-            }
-
-            if (options->Has(NanNew("image_filters")))
-            {
-                Local<Value> opt = options->Get(NanNew("image_filters"));
-                if (!opt->IsString()) {
-                    NanThrowTypeError("image_filters argument must string of filter names");
-                    NanReturnUndefined();
-                }
-                std::string filter_str = TOSTR(opt);
-                bool result = mapnik::filter::parse_image_filters(filter_str, filters);
-                if (!result)
-                {
-                    NanThrowTypeError("could not parse image_filters");
-                    NanReturnUndefined();
-                }
-            }
+    mapnik::composite_mode_e mode = mapnik::src_over;
+    float opacity = 1.0;
+    std::vector<mapnik::filter::filter_type> filters;
+    int dx = 0;
+    int dy = 0;
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("optional second arg must be an options object");
+            NanReturnUndefined();
         }
 
-        composite_image_baton_t *closure = new composite_image_baton_t();
-        closure->request.data = closure;
-        closure->im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
-        closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
-        closure->mode = mode;
-        closure->opacity = opacity;
-        closure->filters = filters;
-        closure->dx = dx;
-        closure->dy = dy;
-        closure->error = false;
-        NanAssignPersistent(closure->cb, callback.As<Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
-        closure->im1->Ref();
-        closure->im2->Ref();
+        Local<Object> options = args[1].As<Object>();
+
+        if (options->Has(NanNew("comp_op")))
+        {
+            Local<Value> opt = options->Get(NanNew("comp_op"));
+            if (!opt->IsNumber()) {
+                NanThrowTypeError("comp_op must be a mapnik.compositeOp value");
+                NanReturnUndefined();
+            }
+            mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
+        }
+
+        if (options->Has(NanNew("opacity")))
+        {
+            Local<Value> opt = options->Get(NanNew("opacity"));
+            if (!opt->IsNumber()) {
+                NanThrowTypeError("opacity must be a floating point number");
+                NanReturnUndefined();
+            }
+            opacity = opt->NumberValue();
+        }
+
+        if (options->Has(NanNew("dx")))
+        {
+            Local<Value> opt = options->Get(NanNew("dx"));
+            if (!opt->IsNumber()) {
+                NanThrowTypeError("dx must be an integer");
+                NanReturnUndefined();
+            }
+            dx = opt->IntegerValue();
+        }
+
+        if (options->Has(NanNew("dy")))
+        {
+            Local<Value> opt = options->Get(NanNew("dy"));
+            if (!opt->IsNumber()) {
+                NanThrowTypeError("dy must be an integer");
+                NanReturnUndefined();
+            }
+            dy = opt->IntegerValue();
+        }
+
+        if (options->Has(NanNew("image_filters")))
+        {
+            Local<Value> opt = options->Get(NanNew("image_filters"));
+            if (!opt->IsString()) {
+                NanThrowTypeError("image_filters argument must string of filter names");
+                NanReturnUndefined();
+            }
+            std::string filter_str = TOSTR(opt);
+            bool result = mapnik::filter::parse_image_filters(filter_str, filters);
+            if (!result)
+            {
+                NanThrowTypeError("could not parse image_filters");
+                NanReturnUndefined();
+            }
+        }
     }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
+
+    composite_image_baton_t *closure = new composite_image_baton_t();
+    closure->request.data = closure;
+    closure->im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
+    closure->mode = mode;
+    closure->opacity = opacity;
+    closure->filters = filters;
+    closure->dx = dx;
+    closure->dy = dy;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
+    closure->im1->Ref();
+    closure->im2->Ref();
     NanReturnUndefined();
 }
 

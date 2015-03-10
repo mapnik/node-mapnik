@@ -32,31 +32,61 @@ describe('mapnik.Image ', function() {
         assert.ok(im1);
     });
 
-    it('should throw with filename lacking an extension', function() {
+
+    it('should throw with invalid encoding', function(done) {
         var im = new mapnik.Image(256, 256);
+        assert.throws(function() { im.encodeSync('foo'); });
+        assert.throws(function() { im.encodeSync(1); });
+        assert.throws(function() { im.encodeSync('png', null); });
+        assert.throws(function() { im.encodeSync('png', {palette:null}); });
+        assert.throws(function() { im.encodeSync('png', {palette:{}}); });
+        assert.throws(function() { im.encode('png', {palette:{}}, function(err, result) {}); });
+        assert.throws(function() { im.encode('png', {palette:null}, function(err, result) {}); });
+        assert.throws(function() { im.encode('png', null, function(err, result) {}); });
+        assert.throws(function() { im.encode(1, {}, function(err, result) {}); });
+        assert.throws(function() { im.encode('png', {}, null); });
+        im.encode('foo', {}, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+    
+    it('should encode with a pallete', function(done) {
+        var im = new mapnik.Image(256, 256);
+        var pal = new mapnik.Palette('\xff\x09\x93\xFF\x01\x02\x03\x04');
+        assert.ok(im.encodeSync('png', {palette:pal}));
+        im.encode('png', {palette:pal}, function(err, result) {
+            if (err) throw err;
+            assert.ok(result);
+            done();
+        });
+    });
+
+    it('should throw with invalid formats', function() {
+        var im = new mapnik.Image(256, 256);
+        assert.throws(function() { im.save('foo','foo'); });
+        assert.throws(function() { im.save(); });
+        assert.throws(function() { im.save('file.png', null); });
         assert.throws(function() { im.save('foo'); });
     });
 
-    it('should throw with invalid encoding format 1', function() {
-        var im = new mapnik.Image(256, 256);
-        assert.throws(function() { im.encodeSync('foo'); });
-    });
-
-    it('should throw with invalid encoding format 2', function() {
-        var im = new mapnik.Image(256, 256);
-        assert.throws(function() { im.save('foo','foo'); });
-    });
-
-    it('should throw with invalid binary read from buffer', function() {
+    it('should throw with invalid binary read from buffer', function(done) {
         assert.throws(function() { new mapnik.Image.fromBytesSync(); });
         assert.throws(function() { new mapnik.Image.fromBytes(); });
+        assert.throws(function() { new mapnik.Image.fromBytes(null); });
+        assert.throws(function() { new mapnik.Image.fromBytes({}); });
         assert.throws(function() { new mapnik.Image.fromBytesSync({}); });
         assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0)); });
+        assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0), null); });
         assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
         var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
         assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
         buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
         assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
+        var stuff = new mapnik.Image.fromBytes(buffer, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
     });
 
     it('should throw with invalid encoding format 3', function(done) {
@@ -73,6 +103,7 @@ describe('mapnik.Image ', function() {
 
         assert.equal(im.width(), 256);
         assert.equal(im.height(), 256);
+        assert.throws(function() { im.view(); });
         var v = im.view(0, 0, 256, 256);
         assert.ok(v instanceof mapnik.ImageView);
         assert.equal(v.width(), 256);
@@ -434,6 +465,12 @@ describe('mapnik.Image ', function() {
         var im3 = new mapnik.Image(4,4,mapnik.imageType.gray8);
         assert.throws(function() { im2 = im.copy(); });
         assert.throws(function() { im2 = im3.copy(mapnik.imageType.null); });
+        assert.throws(function() { im2 = im3.copy(mapnik.imageType.gray8, null); });
+        assert.throws(function() { im2 = im3.copy(99); });
+        assert.throws(function() { im2 = im3.copySync(99); });
+        assert.throws(function() { im2 = im3.copy({}, null); });
+        assert.throws(function() { im2 = im3.copy({scaling:null}); });
+        assert.throws(function() { im2 = im3.copy({offset:null}); });
         im.copy(function(err, im2) { 
             assert.throws(function() { if (err) throw err; });
             done();
@@ -633,9 +670,12 @@ describe('mapnik.Image ', function() {
         var im = new mapnik.Image(5,5, mapnik.imageType.null);
         assert.throws(function() { im.fillSync(new mapnik.Color('blue')); });
         assert.throws(function() { im.fillSync({}); });
+        assert.throws(function() { im.fillSync(); });
         assert.throws(function() { im.fillSync(0); });
         assert.throws(function() { im.fillSync(null); });
+        assert.throws(function() { im.fill(null, function(err, result) {}); });
         assert.throws(function() { im.fill({}, function(err, result) {}); });
+        assert.throws(function() { im.fill(1, null); });
         im.fill(new mapnik.Color('blue'), function(err, result) { 
             assert.throws(function() { if (err) throw err; });
             done(); 

@@ -61,15 +61,6 @@ NAN_METHOD(Grid::New)
         NanReturnUndefined();
     }
 
-    if (args[0]->IsExternal())
-    {
-        Local<External> ext = args[0].As<External>();
-        void* ptr = ext->Value();
-        Grid* g =  static_cast<Grid*>(ptr);
-        g->Wrap(args.This());
-        NanReturnValue(args.This());
-    }
-
     if (args.Length() >= 2)
     {
         if (!args[0]->IsNumber() || !args[1]->IsNumber())
