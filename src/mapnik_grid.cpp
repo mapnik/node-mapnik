@@ -24,6 +24,7 @@ void Grid::Initialize(Handle<Object> target) {
     // methods
     NODE_SET_PROTOTYPE_METHOD(lcons, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "encode", encode);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "addField", addField);
     NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
     NODE_SET_PROTOTYPE_METHOD(lcons, "view", view);
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
@@ -32,7 +33,7 @@ void Grid::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
     // properties
-    ATTR(lcons, "key", get_prop, set_prop);
+    ATTR(lcons, "key", get_key, set_key);
 
     target->Set(NanNew("Grid"), lcons->GetFunction());
     NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(lcons->GetFunction(), "base_mask", mapnik::grid::base_mask);
@@ -40,9 +41,9 @@ void Grid::Initialize(Handle<Object> target) {
     NanAssignPersistent(constructor, lcons);
 }
 
-Grid::Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution) :
+Grid::Grid(unsigned int width, unsigned int height, std::string const& key) :
     node::ObjectWrap(),
-    this_(std::make_shared<mapnik::grid>(width,height,key,resolution)),
+    this_(std::make_shared<mapnik::grid>(width,height,key)),
     estimated_size_(width * height) {
     NanAdjustExternalMemory(estimated_size_);
 }
@@ -71,7 +72,6 @@ NAN_METHOD(Grid::New)
 
         // defaults
         std::string key("__id__");
-        unsigned int resolution = 1;
 
         if (args.Length() >= 3) {
 
@@ -92,20 +92,9 @@ NAN_METHOD(Grid::New)
 
                 key = TOSTR(bind_opt);
             }
-            // TODO - remove, deprecated
-            if (options->Has(NanNew("resolution"))) {
-                Local<Value> bind_opt = options->Get(NanNew("resolution"));
-                if (!bind_opt->IsNumber())
-                {
-                    NanThrowTypeError("optional arg 'resolution' must be an string");
-                    NanReturnUndefined();
-                }
-
-                resolution = bind_opt->IntegerValue();
-            }
         }
 
-        Grid* g = new Grid(args[0]->IntegerValue(), args[1]->IntegerValue(), key, resolution);
+        Grid* g = new Grid(args[0]->IntegerValue(), args[1]->IntegerValue(), key);
         g->Wrap(args.This());
         NanReturnValue(args.This());
     }
@@ -114,7 +103,6 @@ NAN_METHOD(Grid::New)
         NanThrowError("please provide Grid width and height");
         NanReturnUndefined();
     }
-    NanReturnUndefined();
 }
 
 NAN_METHOD(Grid::clearSync)
@@ -173,8 +161,12 @@ void Grid::EIO_Clear(uv_work_t* req)
     }
     catch(std::exception const& ex)
     {
+        // It is not clear how clear could EVER throw an exception but leaving
+        // it in but removing the following lines from coverage test.
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -184,13 +176,18 @@ void Grid::EIO_AfterClear(uv_work_t* req)
     clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
     if (closure->error)
     {
+        // There seems to be no possible way for the exception to be thrown in the previous 
+        // process and therefore not possible to have an error here so removing it from code
+        // coverage
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
-        Local<Value> argv[2] = { NanNull() };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->g) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     closure->g->Unref();
     NanDisposePersistent(closure->cb);
@@ -221,40 +218,52 @@ NAN_METHOD(Grid::height)
     NanReturnValue(NanNew<Integer>(g->get()->height()));
 }
 
-NAN_GETTER(Grid::get_prop)
+NAN_GETTER(Grid::get_key)
 {
     NanScope();
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-    std::string a = TOSTR(property);
-    if (a == "key")
+    NanReturnValue(NanNew(g->get()->get_key().c_str()));
+}
+
+NAN_SETTER(Grid::set_key)
+{
+    NanScope();
+    Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
+    if (!value->IsString())
     {
-        NanReturnValue(NanNew(g->get()->get_key().c_str()));
+        NanThrowTypeError("key must be an string");
+        return;
     }
-    NanReturnUndefined();
+    g->get()->set_key(TOSTR(value));
 }
 
-NAN_SETTER(Grid::set_prop)
+NAN_METHOD(Grid::addField)
 {
     NanScope();
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-    std::string a = TOSTR(property);
-    if (a == "key") {
-        if (!value->IsNumber())
+
+    if (args.Length() == 1) {
+        if (!args[0]->IsString())
         {
-            NanThrowTypeError("width must be an integer");
-            return;
+            NanThrowTypeError("argument must be a string");
+            NanReturnUndefined();
         }
-        g->get()->set_key(TOSTR(value));
+        g->get()->add_field(TOSTR(args[0]));
+        NanReturnUndefined();
+    }
+    else
+    {
+        NanThrowTypeError("one parameter, a string is required");
+        NanReturnUndefined();
     }
 }
-
 
 NAN_METHOD(Grid::fields)
 {
     NanScope();
 
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-    std::set<std::string> const& a = g->get()->property_names();
+    std::set<std::string> const& a = g->get()->get_fields();
     std::set<std::string>::const_iterator itr = a.begin();
     std::set<std::string>::const_iterator end = a.end();
     Local<Array> l = NanNew<Array>(a.size());
@@ -266,7 +275,6 @@ NAN_METHOD(Grid::fields)
         ++idx;
     }
     NanReturnValue(l);
-
 }
 
 NAN_METHOD(Grid::view)
@@ -318,6 +326,11 @@ NAN_METHOD(Grid::encodeSync)
             }
 
             resolution = bind_opt->IntegerValue();
+            if (resolution == 0)
+            {
+                NanThrowTypeError("'resolution' can not be zero");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("features")))
@@ -375,8 +388,12 @@ NAN_METHOD(Grid::encodeSync)
     }
     catch (std::exception const& ex)
     {
+        // There is no known exception throws in the processing above
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -422,6 +439,11 @@ NAN_METHOD(Grid::encode)
             }
 
             resolution = bind_opt->IntegerValue();
+            if (resolution == 0)
+            {
+                NanThrowTypeError("'resolution' can not be zero");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("features")))
@@ -471,8 +493,12 @@ void Grid::EIO_Encode(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // There is no known exception throws in the processing above
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -484,8 +510,12 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
 
 
     if (closure->error) {
+        // There is no known ways to throw errors in the processing prior
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     } else {
 
         // convert key order to proper javascript array

@@ -22,6 +22,7 @@ void GridView::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(lcons, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "encode", encode);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
     NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
@@ -98,6 +99,25 @@ NAN_METHOD(GridView::height)
 
     GridView* g = node::ObjectWrap::Unwrap<GridView>(args.Holder());
     NanReturnValue(NanNew<Integer>(g->get()->height()));
+}
+
+NAN_METHOD(GridView::fields)
+{
+    NanScope();
+
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.Holder());
+    std::set<std::string> const& a = g->get()->get_fields();
+    std::set<std::string>::const_iterator itr = a.begin();
+    std::set<std::string>::const_iterator end = a.end();
+    Local<Array> l = NanNew<Array>(a.size());
+    int idx = 0;
+    for (; itr != end; ++itr)
+    {
+        std::string name = *itr;
+        l->Set(idx, NanNew(name.c_str()));
+        ++idx;
+    }
+    NanReturnValue(l);
 }
 
 typedef struct {
@@ -286,6 +306,12 @@ NAN_METHOD(GridView::encodeSync)
             }
 
             resolution = bind_opt->IntegerValue();
+            
+            if (resolution == 0)
+            {
+                NanThrowTypeError("'resolution' can not be zero");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("features")))
@@ -343,8 +369,12 @@ NAN_METHOD(GridView::encodeSync)
     }
     catch (std::exception const& ex)
     {
+        // There is no known exception throws in the processing above
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
 }
@@ -392,6 +422,12 @@ NAN_METHOD(GridView::encode)
             }
 
             resolution = bind_opt->IntegerValue();
+
+            if (resolution == 0)
+            {
+                NanThrowTypeError("'resolution' can not be zero");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("features")))
@@ -441,8 +477,12 @@ void GridView::EIO_Encode(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // There is no known exception throws in the processing above
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -453,8 +493,12 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     encode_grid_view_baton_t *closure = static_cast<encode_grid_view_baton_t *>(req->data);
 
     if (closure->error) {
+        // There is no known ways to throw errors in the processing prior
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {

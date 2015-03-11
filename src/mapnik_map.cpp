@@ -97,8 +97,6 @@ void Map::Initialize(Handle<Object> target) {
     ATTR(lcons, "background", get_prop, set_prop);
     ATTR(lcons, "parameters", get_prop, set_prop);
     ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
-    // A complete test coverage of get_prop
-    ATTR(lcons, "undefined_property", get_prop, set_prop);
 
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
@@ -257,7 +255,8 @@ NAN_GETTER(Map::get_prop)
         else
             NanReturnUndefined();
     }
-    else if (a == "parameters") {
+    else //if (a == "parameters") 
+    {
         Local<Object> ds = NanNew<Object>();
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
@@ -268,7 +267,6 @@ NAN_GETTER(Map::get_prop)
         }
         NanReturnValue(ds);
     }
-    NanReturnUndefined();
 }
 
 NAN_SETTER(Map::set_prop)
@@ -1626,7 +1624,7 @@ NAN_METHOD(Map::render)
                 while (i < num_fields) {
                     Local<Value> name = a->Get(i);
                     if (name->IsString()){
-                        g->get()->add_property_name(TOSTR(name));
+                        g->get()->add_field(TOSTR(name));
                     }
                     i++;
                 }
@@ -1816,7 +1814,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
     try
     {
         // copy property names
-        std::set<std::string> attributes = closure->g->get()->property_names();
+        std::set<std::string> attributes = closure->g->get()->get_fields();
 
         // todo - make this a static constant
         std::string known_id_key = "__id__";

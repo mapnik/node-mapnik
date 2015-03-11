@@ -2504,7 +2504,7 @@ NAN_METHOD(VectorTile::render)
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
-                    g->get()->add_property_name(TOSTR(name));
+                    g->get()->add_field(TOSTR(name));
                 }
                 ++i;
             }
@@ -2634,8 +2634,8 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                         return;
                     }
 
-                    // copy property names
-                    std::set<std::string> attributes = g->get()->property_names();
+                    // copy field names
+                    std::set<std::string> attributes = g->get()->get_fields();
                     // todo - make this a static constant
                     std::string known_id_key = "__id__";
                     if (attributes.find(known_id_key) != attributes.end())

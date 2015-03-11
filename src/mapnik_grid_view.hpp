@@ -24,6 +24,7 @@ public:
 
     static NAN_METHOD(encodeSync);
     static NAN_METHOD(encode);
+    static NAN_METHOD(fields);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 

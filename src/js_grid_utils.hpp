@@ -94,7 +94,7 @@ static void write_features(T const& grid_type,
     {
         return;
     }
-    std::set<std::string> const& attributes = grid_type.property_names();
+    std::set<std::string> const& attributes = grid_type.get_fields();
     typename T::feature_type::const_iterator feat_end = g_features.end();
     for (std::string const& key_item : key_order)
     {

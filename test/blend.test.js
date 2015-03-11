@@ -23,6 +23,11 @@ var images_alpha = [
     fs.readFileSync('test/blend-fixtures/2a.png')
 ];
 
+var images_tiny = [
+    fs.readFileSync('test/blend-fixtures/1x1.png'),
+    fs.readFileSync('test/blend-fixtures/1x1.png')
+];
+
 describe('mapnik.blend', function() {
 
     it('blend fails', function() {
@@ -93,6 +98,25 @@ describe('mapnik.blend', function() {
             var actual = new mapnik.Image.fromBytesSync(result);
             //actual.save('test/blend-fixtures/actual.png')
             assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended png - objects - x and y way offset', function(done) {
+        var input = [{
+                buffer: fs.readFileSync('test/blend-fixtures/1.png'),
+                x: 260,
+                y: 260
+            },{
+                buffer: fs.readFileSync('test/blend-fixtures/1.png')
+            }];
+        //var expected = new mapnik.Image.open('test/blend-fixtures/expected-object-x-y.png');
+        mapnik.blend(input, {width:0, height:0}, function(err, result) {
+            if (err) throw err;
+            assert.ok(result);
+            //var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            //assert.equal(0,expected.compare(actual));
             done();
         });
     });
@@ -240,6 +264,13 @@ describe('mapnik.blend', function() {
             var actual = new mapnik.Image.fromBytesSync(result);
             //fs.writeFileSync('test/blend-fixtures/actual-hex-palette-256.png',result);
             assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended fails png with quality - paletted - hextree', function(done) {
+        mapnik.blend(images_tiny, {quality:256, mode:"hextree"}, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
             done();
         });
     });
