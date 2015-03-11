@@ -123,30 +123,31 @@ void Map::Initialize(Handle<Object> target) {
 Map::Map(int width, int height) :
     node::ObjectWrap(),
     map_(std::make_shared<mapnik::Map>(width,height)),
-    in_use_(0) {}
+    in_use_(false) {}
 
 Map::Map(int width, int height, std::string const& srs) :
     node::ObjectWrap(),
     map_(std::make_shared<mapnik::Map>(width,height,srs)),
-    in_use_(0) {}
+    in_use_(false) {}
 
 Map::Map() :
     node::ObjectWrap(),
     map_(),
-    in_use_(0) {}
+    in_use_(false) {}
 
 Map::~Map() { }
 
-void Map::acquire() {
-    ++in_use_;
+bool Map::acquire() {
+    if (in_use_)
+    {
+        return false;
+    }
+    in_use_ = true;
+    return true;
 }
 
 void Map::release() {
-    --in_use_;
-}
-
-int Map::active() const {
-    return in_use_;
+    in_use_ = false;
 }
 
 NAN_METHOD(Map::New)
@@ -1431,15 +1432,6 @@ NAN_METHOD(Map::render)
 
     try
     {
-        if (m->active() != 0) {
-            std::ostringstream s;
-            s << "render: this map appears to be in use by "
-              << m->active()
-              << " other thread(s) which is not allowed."
-              << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
-            std::clog << s.str() << "\n";
-        }
-
         // parse options
 
         // defaults
@@ -1542,6 +1534,11 @@ NAN_METHOD(Map::render)
                     NanReturnUndefined();
                 }
                 object_to_container(closure->variables,bind_opt->ToObject());
+            }
+            if (!m->acquire())
+            {
+                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+                NanReturnUndefined();
             }
             NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
@@ -1655,6 +1652,11 @@ NAN_METHOD(Map::render)
             closure->offset_x = offset_x;
             closure->offset_y = offset_y;
             closure->error = false;
+            if (!m->acquire())
+            {
+                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+                NanReturnUndefined();
+            }
             NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
         } else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
@@ -1731,6 +1733,11 @@ NAN_METHOD(Map::render)
             closure->offset_x = offset_x;
             closure->offset_y = offset_y;
             closure->error = false;
+            if (!m->acquire())
+            {
+                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+                NanReturnUndefined();
+            }
             NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
         } else {
@@ -1738,7 +1745,6 @@ NAN_METHOD(Map::render)
             NanReturnUndefined();
         }
 
-        m->acquire();
         m->Ref();
         NanReturnUndefined();
     }
@@ -2104,6 +2110,11 @@ NAN_METHOD(Map::renderFile)
         closure->use_cairo = false;
     }
 
+    if (!m->acquire())
+    {
+        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        NanReturnUndefined();
+    }
     closure->request.data = closure;
 
     closure->m = m;
@@ -2264,6 +2275,11 @@ NAN_METHOD(Map::renderSync)
     }
 
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    if (!m->acquire())
+    {
+        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        NanReturnUndefined();
+    }
     std::string s;
     try
     {
@@ -2288,9 +2304,11 @@ NAN_METHOD(Map::renderSync)
     }
     catch (std::exception const& ex)
     {
+        m->release();
         NanThrowError(ex.what());
         NanReturnUndefined();
     }
+    m->release();
     NanReturnValue(NanNewBufferHandle((char*)s.data(), s.size()));
 }
 
@@ -2389,6 +2407,11 @@ NAN_METHOD(Map::renderFileSync)
             NanReturnUndefined();
         }
     }
+    if (!m->acquire())
+    {
+        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        NanReturnUndefined();
+    }
 
     try
     {
@@ -2400,6 +2423,7 @@ NAN_METHOD(Map::renderFileSync)
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
+            m->release();
             NanThrowError(s.str().c_str());
             NanReturnUndefined();
 #endif
@@ -2429,8 +2453,10 @@ NAN_METHOD(Map::renderFileSync)
     }
     catch (std::exception const& ex)
     {
+        m->release();
         NanThrowError(ex.what());
         NanReturnUndefined();
     }
+    m->release();
     NanReturnUndefined();
 }

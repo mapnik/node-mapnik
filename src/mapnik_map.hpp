@@ -83,9 +83,8 @@ public:
     Map(int width, int height, std::string const& srs);
     Map();
 
-    void acquire();
+    bool acquire();
     void release();
-    int active() const;
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
@@ -94,7 +93,7 @@ public:
 private:
     ~Map();
     map_ptr map_;
-    int in_use_;
+    bool in_use_;
 };
 
 #endif

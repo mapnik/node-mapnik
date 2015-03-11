@@ -31,7 +31,7 @@ void Grid::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
     NODE_SET_PROTOTYPE_METHOD(lcons, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clearSync);
     // properties
     ATTR(lcons, "key", get_key, set_key);
 
@@ -509,14 +509,17 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
     encode_grid_baton_t *closure = static_cast<encode_grid_baton_t *>(req->data);
 
 
-    if (closure->error) {
+    if (closure->error) 
+    {
         // There is no known ways to throw errors in the processing prior
         // so simply removing the following from coverage
         /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
         /* LCOV_EXCL_END */
-    } else {
+    } 
+    else 
+    {
 
         // convert key order to proper javascript array
         Local<Array> keys_a = NanNew<Array>(closure->key_order.size());

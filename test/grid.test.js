@@ -112,6 +112,7 @@ describe('mapnik.Grid ', function() {
             // TODO - expose grid background
             //assert.equal(grid_blank3.background,undefined);
             grid_blank3.key = "stuff";
+            assert.throws(function() { grid_blank3.key = null; });
             assert.throws(function() { grid_blank3.clear(null); });
             grid_blank3.clear(function(err, grid_blank4) {
                 assert.equal(grid_blank4.key, "stuff");
@@ -149,6 +150,7 @@ describe('mapnik.Grid ', function() {
         m3.render(grid_blank3, {layer: 0},function(err,grid_blank3) {
             assert.equal(grid_blank3.painted(), true);
             assert.throws(function() { grid_blank3.addField(null); });
+            assert.throws(function() { grid_blank3.addField(); });
             grid_blank3.addField("foo");
             assert.deepEqual(grid_blank3.fields(), ["foo"]);
             // TODO - expose grid background
