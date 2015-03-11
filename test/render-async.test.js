@@ -69,6 +69,13 @@ describe('mapnik async rendering', function() {
             assert.throws(function() { map.render(); } );
             assert.throws(function() { map.render(im, null); } );
             assert.throws(function() { map.render(null, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, null, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, {buffer_size:null}, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, {scale:null}, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, {scale_denominator:null}, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, {offset_x:null}, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, {offset_y:null}, function(err, im) {}); } );
+            assert.throws(function() { map.render(im, {variables:null}, function(err, im) {}); } );
             map.render(im, function(err, im) {
                 assert.throws(function() { if (err) throw err; });
                 done();
@@ -83,7 +90,7 @@ describe('mapnik async rendering', function() {
             map.zoomAll();
             var im = new mapnik.Image(map.width, map.height);
             map.render(im, function(err, im) {
-                im.encode('png', function(err,buffer) {
+                im.encode('png', {variables: {pizza:'pie'}}, function(err,buffer) {
                     assert.ok(buffer);
                     var string = im.toString();
                     assert.ok(string);

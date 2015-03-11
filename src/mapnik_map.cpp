@@ -1505,10 +1505,6 @@ NAN_METHOD(Map::render)
         }
 
         Local<Object> obj = args[0]->ToObject();
-        if (obj->IsNull() || obj->IsUndefined()) {
-            NanThrowTypeError("first argument is invalid, must be a renderable mapnik object, not null/undefined");
-            NanReturnUndefined();
-        }
 
         if (NanNew(Image::constructor)->HasInstance(obj)) {
 
@@ -1537,6 +1533,7 @@ NAN_METHOD(Map::render)
             }
             if (!m->acquire())
             {
+                delete closure;
                 NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 NanReturnUndefined();
             }
@@ -1654,6 +1651,7 @@ NAN_METHOD(Map::render)
             closure->error = false;
             if (!m->acquire())
             {
+                delete closure;
                 NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 NanReturnUndefined();
             }
@@ -1735,6 +1733,7 @@ NAN_METHOD(Map::render)
             closure->error = false;
             if (!m->acquire())
             {
+                    delete closure;
                 NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 NanReturnUndefined();
             }

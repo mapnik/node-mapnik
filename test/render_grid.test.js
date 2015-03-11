@@ -175,10 +175,20 @@ describe('mapnik grid rendering ', function() {
     it('should match expected output if __id__ the grid key and the only attributes', function(done) {
         var map = new mapnik.Map(256, 256);
         map.loadSync(stylesheet, {strict: true});
+        var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        mem_datasource.add({ 'x': 0, 'y': 0 });
+        mem_datasource.add({ 'x': 1, 'y': 1 });
+        mem_datasource.add({ 'x': 2, 'y': 2 });
+        mem_datasource.add({ 'x': 3, 'y': 3 });
+        var l = new mapnik.Layer('test');
+        l.srs = map.srs;
+        l.datasource = mem_datasource;
+        map.add_layer(l);
         map.zoomAll();
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
-        var options = {'layer': 0,
-                       'fields': ['__id__']
+        var options = {'layer': 'world',
+                       'fields': ['__id__'],
+                       variables: {pizza:'pie'}
                       };
         map.render(grid, options, function(err, grid) {
             if (err) throw err;
@@ -191,6 +201,45 @@ describe('mapnik grid rendering ', function() {
             }
             done();
         });
+    });
+    
+    it('should fail to render two things at once', function() {
+        var map = new mapnik.Map(256, 256);
+        map.loadSync(stylesheet, {strict: true});
+        map.zoomAll();
+        var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
+        var options = {'layer': 0,
+                       'fields': ['__id__','NAME']
+                      };
+        assert.throws(function() {
+            map.render(grid, options, function(err, result) {});
+            map.render(grid, options, function(err, result) {});
+        });
+    });
+
+    it('should fail to render grid', function() {
+        var map = new mapnik.Map(256, 256);
+        var map2 = new mapnik.Map(256, 256);
+        map.loadSync(stylesheet, {strict: true});
+        var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        mem_datasource.add({ 'x': 0, 'y': 0 });
+        mem_datasource.add({ 'x': 1, 'y': 1 });
+        mem_datasource.add({ 'x': 2, 'y': 2 });
+        mem_datasource.add({ 'x': 3, 'y': 3 });
+        var l = new mapnik.Layer('test');
+        l.srs = map.srs;
+        l.datasource = mem_datasource;
+        map.add_layer(l);
+        map.zoomAll();
+        var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
+        // Requires options layer
+        assert.throws(function() { map.render(grid, {}, function(err, result) {}); });
+        assert.throws(function() { map.render(grid, {layer:null}, function(err, result) {}); });
+        assert.throws(function() { map.render(grid, {layer:'foo'}, function(err, result) {}); });
+        assert.throws(function() { map.render(grid, {layer:99}, function(err, result) {}); });
+        assert.throws(function() { map2.render(grid, {layer:0}, function(err, result) {}); });
+        assert.throws(function() { map.render(grid, {layer:0, fields:null}, function(err, result) {}); });
+        assert.throws(function() { map.render(grid, {layer:0, variables:null}, function(err, result) {}); });
     });
 
 });
