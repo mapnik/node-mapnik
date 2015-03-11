@@ -325,21 +325,30 @@ void Work_Blend(uv_work_t* req) {
         }
 
         if (!image_reader || !image_reader.get()) {
+            // Not quite sure anymore how the pointer would not be returned
+            // from the reader and can't find a way to make this fail.
+            // So removing from coverage
+            /* LCOV_EXCL_START */
             baton->message = "Unknown image format";
             return;
+            /* LCOV_EXCL_END */
         }
 
         unsigned layer_width = image_reader->width();
         unsigned layer_height = image_reader->height();
         // Error out on invalid images.
         if (layer_width == 0 || layer_height == 0) {
+            // No idea how to create a zero height or width image
+            // so removing from coverage, because I am fairly certain
+            // it is not possible in almost every image format.
+            /* LCOV_EXCL_START */
             baton->message = "zero width/height image encountered";
             return;
+            /* LCOV_EXCL_END */
         }
 
         int visibleWidth = (int)layer_width + image->x;
         int visibleHeight = (int)layer_height + image->y;
-
         // The first image that is in the viewport sets the width/height, if not user supplied.
         if (baton->width <= 0) baton->width = std::max(0, visibleWidth);
         if (baton->height <= 0) baton->height = std::max(0, visibleHeight);
