@@ -1668,7 +1668,7 @@ NAN_METHOD(Map::render)
                 Local<Value> param_val = options->Get(NanNew("image_scaling"));
                 if (!param_val->IsString()) {
                     delete closure;
-                    NanThrowTypeError("option 'image_scaling' must be an unsigned integer");
+                    NanThrowTypeError("option 'image_scaling' must be a string");
                     NanReturnUndefined();
                 }
                 std::string image_scaling = TOSTR(param_val);
