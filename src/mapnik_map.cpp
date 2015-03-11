@@ -1749,8 +1749,11 @@ NAN_METHOD(Map::render)
     }
     catch (std::exception const& ex)
     {
+        // I am not quite sure it is possible to put a test in to cover an exception here
+        /* LCOV_EXCL_START */
         NanThrowTypeError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -2111,6 +2114,7 @@ NAN_METHOD(Map::renderFile)
 
     if (!m->acquire())
     {
+        delete closure;
         NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
         NanReturnUndefined();
     }

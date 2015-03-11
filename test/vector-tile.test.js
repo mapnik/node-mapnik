@@ -516,7 +516,7 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
-
+    
     it('should render expected results', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
@@ -547,6 +547,37 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+    
+    it('should fail to render due to bad parameters', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        map.loadSync('./test/stylesheet.xml');
+        map.srs = '+init=PIZZA';
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        assert.throws(function() { map.render(vtile, {image_scaling:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {image_scaling:'foo'}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {image_format:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {tolerance:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {path_multiplier:null}, function(err, vtile) {}); });
+        map.render(vtile, {}, function(err, vtile) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+    
+    it('should fail to render two vector tiles at once', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        assert.throws(function() {
+            map.render(vtile, {}, function(err, vtile) {});
+            map.render(vtile, {}, function(err, vtile) {});
+        });
+
+    });
+
 
     it('should render a vector_tile of the whole world', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
@@ -554,7 +585,7 @@ describe('mapnik.VectorTile ', function() {
         map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
-        map.render(vtile, {}, function(err, vtile) {
+        map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
             fs.writeFileSync('./test/data/vector_tile/tile0.vector.pbf', vtile.getData());

@@ -217,7 +217,7 @@ describe('mapnik grid rendering ', function() {
         });
     });
 
-    it('should fail to render grid', function() {
+    it('should fail to render grid', function(done) {
         var map = new mapnik.Map(256, 256);
         var map2 = new mapnik.Map(256, 256);
         map.loadSync(stylesheet, {strict: true});
@@ -231,6 +231,7 @@ describe('mapnik grid rendering ', function() {
         l.datasource = mem_datasource;
         map.add_layer(l);
         map.zoomAll();
+        map.srs = '+init=PIZZA';
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
         // Requires options layer
         assert.throws(function() { map.render(grid, {}, function(err, result) {}); });
@@ -240,6 +241,10 @@ describe('mapnik grid rendering ', function() {
         assert.throws(function() { map2.render(grid, {layer:0}, function(err, result) {}); });
         assert.throws(function() { map.render(grid, {layer:0, fields:null}, function(err, result) {}); });
         assert.throws(function() { map.render(grid, {layer:0, variables:null}, function(err, result) {}); });
+        map.render(grid, {layer:0}, function(err, result) {
+            assert.throws(function() { if(err) throw err; });
+            done();    
+        }); 
     });
 
 });
