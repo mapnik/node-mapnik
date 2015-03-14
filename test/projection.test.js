@@ -5,6 +5,7 @@ var assert = require('assert');
 
 describe('mapnik.Projection ', function() {
     it('should throw with invalid usage', function() {
+        assert.throws(function() { mapnik.Projection('+init=epsg:foo'); } );
         assert.throws(function() { new mapnik.Projection('+init=epsg:foo'); } );
         assert.throws(function() { new mapnik.Projection('+proj +foo'); } );
         assert.throws(function() { new mapnik.Projection(1); });
@@ -31,6 +32,9 @@ describe('mapnik.Projection ', function() {
             'from your proj4 epsg table (/usr/local/share/proj/epsg)');
 
         var long_lat_coords = [-122.33517, 47.63752];
+        assert.throws(function() { merc.forward() });
+        assert.throws(function() { merc.forward(null) });
+        assert.throws(function() { merc.forward([1,2,3]) });
         var merc_coords = merc.forward(long_lat_coords);
 
         assert.equal(merc_coords.length, 2);
