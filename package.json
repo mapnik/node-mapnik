@@ -50,10 +50,6 @@
       "mapnik-render.js"  : "./bin/mapnik-render.js",
       "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
   },
-  "engines": {
-      "node": ">= 0.8.0 < 0.11.0 || >= 0.11.13 < 0.13.0 || >= 1.2.0 < 2.0.0"
-  },
-  "engineStrict": true,
   "scripts"       : {
       "prepublish" : "npm ls",
       "test"    : "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
