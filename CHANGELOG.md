@@ -30,15 +30,20 @@
  - Added `active`, `queryable`, `clear_label_cache`, `minzoom`, and `maxzoom` property to `Layer` objects
  - Added `compositeSync` to `VectorTile` object.
  - Changed `composite` in `VectorTile` to accept a callback
+ - Binaries updated to use Mapnik v3.x (master branch) at 5a49842952 and mapnik-packaging@6638de9b5b
 
 Notable changes in the Mapnik SDK include:
- - Changes: https://github.com/mapnik/mapnik/compare/30c6cf636c...7f597233c9
+ - Changes: https://github.com/mapnik/mapnik/compare/30c6cf636c...5a49842952
  - Mapnik TopoJSON plugin now supports optional `bbox` property on layer
  - Various improvements to Mapnik pgraster plugin
  - Mapnik GDAL plugin now keeps datasets open for the lifetime of the datasource (rather than per featureset)
  - Mapnik GDAL plugin now has optimized nodata handling for RGB images.
  - Mapnik no longer calls `dlclose` on gdal.input (mapnik/mapnik#2716)
  - Upgraded Clipper to v6.2.8 / svn r492.
+ - Upgraded libtiff to 4.0.4beta
+ - Upgraded libjpeg-turbo to 1.4.0
+ - Upgraded GDAL to 1.11.2
+ - Upgraded harfbuzz to 0.9.38
 
 ## 3.1.6
 
