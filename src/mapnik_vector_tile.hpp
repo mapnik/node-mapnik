@@ -84,6 +84,10 @@ public:
     static Local<Value> _parseSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(addData);
     static NAN_METHOD(composite);
+    static NAN_METHOD(compositeSync);
+    static Local<Value> _compositeSync(_NAN_METHOD_ARGS);
+    static void EIO_Composite(uv_work_t* req);
+    static void EIO_AfterComposite(uv_work_t* req);
     // methods common to mapnik.Image
     static NAN_METHOD(width);
     static NAN_METHOD(height);
@@ -131,6 +135,9 @@ public:
     }
     unsigned height() const {
         return height_;
+    }
+    int byte_size() {
+        return byte_size_;
     }
     void _ref() { Ref(); }
     void _unref() { Unref(); }

@@ -185,6 +185,8 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { new mapnik.VectorTile(1); });
         assert.throws(function() { new mapnik.VectorTile('foo'); });
         assert.throws(function() { new mapnik.VectorTile('a', 'b', 'c'); });
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,null); });
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,null); });
     });
 
     it('should be initialized properly', function(done) {

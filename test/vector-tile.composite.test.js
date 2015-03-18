@@ -113,15 +113,83 @@ describe('mapnik.VectorTile.composite', function() {
         }
     });
 
-    it('should support compositing tiles that were just rendered to', function(done) {
+    it('should fail to composite due to bad parameters', function() {
+        var vtile1 = new mapnik.VectorTile(1,0,0);
+        var vtile2 = new mapnik.VectorTile(1,0,0);
+        assert.throws(function() { vtile1.composite(); });
+        assert.throws(function() { vtile1.compositeSync(); });
+        assert.throws(function() { vtile1.composite(function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync(null); });
+        assert.throws(function() { vtile1.composite(null, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([]); });
+        assert.throws(function() { vtile1.composite([], function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([null]); });
+        assert.throws(function() { vtile1.composite([null], function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([{}]); });
+        assert.throws(function() { vtile1.composite([{}], function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], null); });
+        assert.throws(function() { vtile1.composite([vtile2], null, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {path_multiplier:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {path_multiplier:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {buffer_size:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {buffer_size:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {scale:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {scale:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {offset_x:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {offset_x:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {offset_y:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {offset_y:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {scale_denominator:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {scale_denominator:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {tolerance:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {tolerance:null}, function(err, result) {}); });
+    });
+
+    it('should support compositing tiles that were just rendered to sync', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
             assert.equal(vtile1.getData().length,49);
             var vtile2 = new mapnik.VectorTile(1,0,0);
-            vtile2.composite([vtile1,vtile1],{});
+            // Since the tiles are same location, no rendering is required
+            // so these options have no effect
+            var options = {
+                path_multiplier: 16,
+                buffer_size: 1,
+                scale: 1.0,
+                offset_x: 0,
+                offset_y: 0,
+                tolerance: 8,
+                scale_denominator: 0.0
+            }
+            vtile2.compositeSync([vtile1,vtile1],options);
             assert.equal(vtile2.getData().length,98);
             assert.deepEqual(vtile2.names(),["lines","lines"]);
             done();
+        });
+    });
+    
+    it('should support compositing tiles that were just rendered to async', function(done) {
+        render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
+            if (err) throw err;
+            assert.equal(vtile1.getData().length,49);
+            var vtile2 = new mapnik.VectorTile(1,0,0);
+            // Since the tiles are same location, no rendering is required
+            // so these options have no effect
+            var options = {
+                path_multiplier: 16,
+                buffer_size: 1,
+                scale: 1.0,
+                offset_x: 0,
+                offset_y: 0,
+                tolerance: 8,
+                scale_denominator: 0.0
+            }
+            vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
+                if (err) throw err;
+                assert.equal(vtile2.getData().length,98);
+                assert.deepEqual(vtile2.names(),["lines","lines"]);
+                done();
+            });
         });
     });
 
