@@ -116,6 +116,8 @@ describe('mapnik.VectorTile.composite', function() {
     it('should fail to composite due to bad parameters', function() {
         var vtile1 = new mapnik.VectorTile(1,0,0);
         var vtile2 = new mapnik.VectorTile(1,0,0);
+        var vtile3 = new mapnik.VectorTile(1,0,0, {width:0, height:0});
+        var vtile4 = new mapnik.VectorTile(2,0,0, {width:-1, height:-1});
         assert.throws(function() { vtile1.composite(); });
         assert.throws(function() { vtile1.compositeSync(); });
         assert.throws(function() { vtile1.composite(function(err, result) {}); });

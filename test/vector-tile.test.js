@@ -186,7 +186,8 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { new mapnik.VectorTile('foo'); });
         assert.throws(function() { new mapnik.VectorTile('a', 'b', 'c'); });
         assert.throws(function() { new mapnik.VectorTile(0,0,0,null); });
-        assert.throws(function() { new mapnik.VectorTile(0,0,0,null); });
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,{width:null}); });
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,{height:null}); });
     });
 
     it('should be initialized properly', function(done) {
@@ -235,14 +236,17 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should error out if we pass invalid data to setData/addData', function(done) {
+    it('should error out if we pass invalid data to setData - 1', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.setData('foo'); }); // first arg must be a buffer object
+        assert.throws(function() { vtile.setDataSync({}); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData('foo',function(){}); }); // first arg must be a buffer object
+        assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
+        assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
+        assert.throws(function() { vtile.setData(new Buffer('foo'), null); });
         assert.throws(function() { vtile.setData(new Buffer('foo'));vtile.parse(); });
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
-        assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
         vtile.setData(new Buffer('foo'),function(err) {
             if (err) throw err;
             vtile.parse(function(err) {
@@ -250,6 +254,37 @@ describe('mapnik.VectorTile ', function() {
                 done();
             });
         });
+    });
+
+    it('should error out if we pass invalid data to setData - 2', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
+        vtile.setData(new Buffer(0),function(err) {
+            if (err) throw err;
+            vtile.parse(function(err) {
+                assert.throws(function() { if (err) throw err; });
+                done();
+            });
+        });
+    });
+
+    it('should error out if we pass invalid data to addData', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.addData(null); }); // empty buffer is not valid
+        assert.throws(function() { vtile.addData({}); }); // empty buffer is not valid
+        assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
+        assert.throws(function() {
+            vtile.addData(new Buffer('foo'));
+            vtile.parse();
+        });
+    });
+    
+    it('should fail to parse', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addData(new Buffer('foo'));
+        vtile.clear();
+        assert.throws(function() { vtile.parse(); });
     });
 
     it('should be able to setData/parse (async)', function(done) {

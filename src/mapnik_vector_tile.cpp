@@ -207,7 +207,11 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     painted_(false),
     byte_size_(0) {}
 
+// For some reason coverage never seems to be considered here even though 
+// I have tested it and it does print
+/* LCOV_EXCL_START */
 VectorTile::~VectorTile() { }
+/* LCOV_EXCL_END */
 
 NAN_METHOD(VectorTile::New)
 {
@@ -385,7 +389,14 @@ void _composite(VectorTile* target_vt,
                 vector_tile::Tile const& tiledata = vt->get_tile();
                 if (!tiledata.SerializeToString(&new_message))
                 {
+                    /* The only time this could possible be reached it seems is 
+                    if there is a protobuf that is attempted to be serialized that is
+                    larger then two GBs, see link below:
+                    https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
+                    */
+                    /* LCOV_EXCL_START */
                     std::runtime_error("could not serialize new data for vt");
+                    /* LCOV_EXCL_END */
                 }
                 if (!new_message.empty())
                 {
@@ -492,7 +503,14 @@ void _composite(VectorTile* target_vt,
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
             {
+                /* The only time this could possible be reached it seems is 
+                if there is a protobuf that is attempted to be serialized that is
+                larger then two GBs, see link below:
+                https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
+                */
+                /* LCOV_EXCL_START */
                 std::runtime_error("could not serialize new data for vt");
+                /* LCOV_EXCL_END */
             }
             if (!new_message.empty())
             {
