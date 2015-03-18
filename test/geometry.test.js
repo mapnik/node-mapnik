@@ -29,5 +29,26 @@ describe('mapnik.Geometry ', function() {
         var expected_wkb = new Buffer('0104000000020000000101000000000000000000000000000000000000000101000000000000000000f03f000000000000f03f', 'hex');
         assert.deepEqual(geom.toWKB(),expected_wkb);
     });
+    
+    it('should fail on toJSON due to bad parameters', function() {
+        var feature = new mapnik.Feature(1);
+        var point = {
+         "type": "MultiPoint",
+         "coordinates": [[0,0],[1,1]]
+        };
+        var input = {
+            type: "Feature",
+            properties: {},
+            geometry: point
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.throws(function() { geom.toJSONSync(null); });
+        assert.throws(function() { geom.toJSONSync({transform:null}); });
+        assert.throws(function() { geom.toJSONSync({transform:{}}); });
+        assert.throws(function() { geom.toJSON(null, function(err,json) {}); });
+        assert.throws(function() { geom.toJSON({transform:null}, function(err, json) {}); });
+        assert.throws(function() { geom.toJSONSync({transform:{}}, function(err, json) {}); });
+    });
 
 });

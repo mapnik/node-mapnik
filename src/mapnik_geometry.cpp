@@ -81,8 +81,12 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
     {
         if (!mapnik::util::to_geojson(json,g->feat_->paths()))
         {
+            // Fairly certain this situation can never be reached but 
+            // leaving it none the less
+            /* LCOV_EXCL_START */
             NanThrowError("Failed to generate GeoJSON");
             return NanEscapeScope(NanUndefined());
+            /* LCOV_EXCL_END */
         }
     }
     else
@@ -117,8 +121,12 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
             sink_type sink(json);
             if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
             {
+                // Fairly certain this situation can never be reached but 
+                // leaving it none the less
+                /* LCOV_EXCL_START */
                 NanThrowError("Failed to generate GeoJSON");
                 return NanEscapeScope(NanUndefined());
+                /* LCOV_EXCL_END */
             }
         }
     }
@@ -195,23 +203,35 @@ void Geometry::to_json(uv_work_t* req)
             sink_type sink(closure->result);
             if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
             {
+                // Fairly certain this situation can never be reached but 
+                // leaving it none the less
+                /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
+                /* LCOV_EXCL_END */
             }
         }
         else
         {
             if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->paths()))
             {
+                // Fairly certain this situation can never be reached but 
+                // leaving it none the less
+                /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
+                /* LCOV_EXCL_END */
             }
         }
     }
     catch (std::exception const& ex)
     {
+        // Fairly certain this situation can never be reached but 
+        // leaving it none the less
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->result = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -221,8 +241,12 @@ void Geometry::after_to_json(uv_work_t* req)
     to_json_baton *closure = static_cast<to_json_baton *>(req->data);
     if (closure->error)
     {
+        // Fairly certain this situation can never be reached but 
+        // leaving it none the less
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->result.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
@@ -257,8 +281,12 @@ NAN_METHOD(Geometry::toWKT)
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
     if (!mapnik::util::to_wkt(wkt, g->feat_->paths()))
     {
+        // Fairly certain this situation can never be reached but 
+        // leaving it none the less
+        /* LCOV_EXCL_START */
         NanThrowError("Failed to generate WKT");
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
     NanReturnValue(NanNew(wkt.c_str()));
 }
