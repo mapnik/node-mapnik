@@ -259,12 +259,49 @@ describe('mapnik.VectorTile ', function() {
     it('should error out if we pass invalid data to setData - 2', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
-        vtile.setData(new Buffer(0),function(err) {
+        vtile.setData(new Buffer('0'),function(err) {
             if (err) throw err;
+            assert.throws(function() { 
+                vtile.names(); 
+            }); //  unterminated varint, unexpected end of buffer
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
                 done();
             });
+        });
+    });
+
+    it('should error out if we pass invalid data to setData - 3', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
+        vtile.setData(new Buffer('0B1234', 'hex'),function(err) {
+            if (err) throw err;
+            assert.throws(function() { 
+                vtile.names(); 
+            }); // "can not skip unknown type 3"
+            done();
+        });
+    });
+    
+    it('should error out if we pass invalid data to setData - 4', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
+        vtile.setData(new Buffer('120774657374696e67', 'hex')); // should set fine as string 
+        vtile.names(); // should not throw and does nothing.
+        vtile.setData(new Buffer('089601', 'hex')); // variant should work fine.
+        vtile.names(); // should not throw and does nothing.
+        assert.throws(function() { 
+            vtile.setData(new Buffer('0896818181818181818181818181818181818181', 'hex')); 
+            // variant should fail because it is too long.
+            vtile.names(); // should throw
+        });
+        vtile.setData(new Buffer('090123456789012345', 'hex')); // 64 should work fine.
+        vtile.names(); // should not throw and does nothing.
+        vtile.setData(new Buffer('0D01234567', 'hex')); // 32 should work fine.
+        vtile.names(); // should not throw and does nothing.
+        assert.throws(function() { 
+            vtile.setData(new Buffer('0D0123456', 'hex')); // 32 should fail because missing a byte
+            vtile.names(); // should throw
         });
     });
 

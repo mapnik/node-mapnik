@@ -887,15 +887,23 @@ NAN_METHOD(VectorTile::names)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
-    {
-        std::vector<std::string> names = d->lazy_names();
-        Local<Array> arr = NanNew<Array>(names.size());
-        unsigned idx = 0;
-        for (std::string const& name : names)
+    {   
+        try
         {
-            arr->Set(idx++,NanNew(name.c_str()));
+            std::vector<std::string> names = d->lazy_names();
+            Local<Array> arr = NanNew<Array>(names.size());
+            unsigned idx = 0;
+            for (std::string const& name : names)
+            {
+                arr->Set(idx++,NanNew(name.c_str()));
+            }
+            NanReturnValue(arr);
         }
-        NanReturnValue(arr);
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
     } else {
         vector_tile::Tile const& tiledata = d->get_tile();
         Local<Array> arr = NanNew<Array>(tiledata.layers_size());
