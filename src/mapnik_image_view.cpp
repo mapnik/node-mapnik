@@ -142,6 +142,16 @@ struct visitor_get_pixel_view
 {
     visitor_get_pixel_view(int x, int y)
         : x_(x), y_(y) {}
+    
+    Local<Value> operator() (mapnik::image_view_null const& data)
+    {
+        // This should never be reached because the width and height of 0 for a null
+        // image will prevent the visitor from being called.
+        /* LCOV_EXCL_START */
+        NanEscapableScope();
+        return NanEscapeScope(NanUndefined());
+        /* LCOV_EXCL_END */
+    }
 
     Local<Value> operator() (mapnik::image_view_gray8 const& data)
     {
