@@ -381,7 +381,7 @@ describe('mapnik.blend', function() {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //fs.writeFileSync('test/blend-fixtures/actual.jpg',result);
-            assert.equal(0,expected.compare(actual));
+            assert.equal(0,expected.compare(actual, {threshold:20}));
             done();
         });
     });

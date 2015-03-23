@@ -297,5 +297,10 @@ NAN_METHOD(Geometry::toWKB)
     std::string wkt;
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->paths(), mapnik::util::wkbNDR);
+    if (!wkb)
+    {
+        NanThrowError("Failed to generate WKB - geometry likely null");
+        NanReturnUndefined();
+    }
     NanReturnValue(NanNewBufferHandle(wkb->buffer(), wkb->size()));
 }

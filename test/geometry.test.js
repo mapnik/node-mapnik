@@ -51,4 +51,25 @@ describe('mapnik.Geometry ', function() {
         assert.throws(function() { geom.toJSONSync({transform:{}}, function(err, json) {}); });
     });
 
+    it('should throw from emptry geojson from toWKB', function() {
+        var src = new mapnik.Projection('+init=epsg:4326');
+        var dst = new mapnik.Projection('+init=epsg:3857');
+        var trans = new mapnik.ProjTransform(src,dst);
+         
+        var feature = {
+          type: 'Feature',
+          properties: { crossing_ref: 'zebra', highway: 'crossing' },
+          geometry: {
+            type: 'Point',
+            coordinates: [ 7.415119300000001, 43.730364300000005 ]
+          }
+        }
+        var transformed = mapnik.Feature.fromJSON(JSON.stringify(feature))
+          .geometry().toJSON({transform:trans});
+        var s = new mapnik.Feature.fromJSON(transformed);
+        var g = s.geometry();
+        assert.throws(function() {
+            var geom = g.toWKB();
+        });
+    });
 });
