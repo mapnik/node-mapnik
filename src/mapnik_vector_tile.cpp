@@ -941,7 +941,10 @@ bool VectorTile::lazy_empty()
             }
         }
     }
+    // Due to protection prior to this being called this should never be reached
+    /* LCOV_EXCL_START */
     return true;
+    /* LCOV_EXCL_END */
 }
 
 
@@ -952,7 +955,15 @@ NAN_METHOD(VectorTile::empty)
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
     {
-        NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+        try
+        {
+            NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
     } else {
         vector_tile::Tile const& tiledata = d->get_tile();
         if (tiledata.layers_size() == 0) {
@@ -1088,8 +1099,12 @@ void VectorTile::EIO_Query(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // The only possible exception in _query can not be 
+        // currently reached in code.
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -1098,8 +1113,11 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     NanScope();
     vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
     if (closure->error) {
+        // No possible way currently known to get to this point in the code
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
@@ -1124,7 +1142,11 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     double z = 0;
     if (!tr.forward(x,y,z))
     {
+        // THIS CAN NEVER BE REACHED CURRENTLY 
+        // internally lonlat2merc in mapnik can never return false.
+        /* LCOV_EXCL_START */
         throw std::runtime_error("could not reproject lon/lat to mercator");
+        /* LCOV_EXCL_END */
     }
     vector_tile::Tile const& tiledata = d->get_tile();
     mapnik::coord2d pt(x,y);
@@ -1428,7 +1450,9 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
         double z = 0;
         if (!tr.forward(x,y,z))
         {
+            /* LCOV_EXCL_START */
             throw std::runtime_error("could not reproject lon/lat to mercator");
+            /* LCOV_EXCL_END */
         }
         mapnik::coord2d pt(x,y);
         bbox.expand_to_include(pt);
@@ -1757,7 +1781,9 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 }
                 else
                 {
+                    /* LCOV_EXCL_START */
                     throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    /* LCOV_EXCL_END */
                 }
             }
             result += ",\"properties\":";
@@ -1769,7 +1795,9 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             }
             else
             {
+                /* LCOV_EXCL_START */
                 throw std::runtime_error("Failed to generate GeoJSON properties");
+                /* LCOV_EXCL_END */
             }
             result += "}";
         }

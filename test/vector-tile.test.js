@@ -249,8 +249,9 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
         vtile.setData(new Buffer('foo'),function(err) {
             if (err) throw err;
+            assert.throws(function() { vtile.empty(); });
             vtile.parse(function(err) {
-                assert.ok(err);
+                assert.throws(function() { if (err) throw err; });
                 done();
             });
         });
@@ -263,6 +264,9 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.throws(function() { 
                 vtile.names(); 
+            }); //  unterminated varint, unexpected end of buffer
+            assert.throws(function() { 
+                vtile.empty(); 
             }); //  unterminated varint, unexpected end of buffer
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
@@ -278,6 +282,9 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.throws(function() { 
                 vtile.names(); 
+            }); // "can not skip unknown type 3"
+            assert.throws(function() { 
+                vtile.empty(); 
             }); // "can not skip unknown type 3"
             done();
         });
@@ -295,6 +302,11 @@ describe('mapnik.VectorTile ', function() {
             // variant should fail because it is too long.
             vtile.names(); // should throw
         });
+        assert.throws(function() { 
+            vtile.setData(new Buffer('0896818181818181818181818181818181818181', 'hex')); 
+            // variant should fail because it is too long.
+            vtile.empty(); // should throw
+        });
         vtile.setData(new Buffer('090123456789012345', 'hex')); // 64 should work fine.
         vtile.names(); // should not throw and does nothing.
         vtile.setData(new Buffer('0D01234567', 'hex')); // 32 should work fine.
@@ -303,7 +315,26 @@ describe('mapnik.VectorTile ', function() {
             vtile.setData(new Buffer('0D0123456', 'hex')); // 32 should fail because missing a byte
             vtile.names(); // should throw
         });
+        assert.throws(function() { 
+            vtile.setData(new Buffer('0D0123456', 'hex')); // 32 should fail because missing a byte
+            vtile.empty(); // should throw
+        });
     });
+    
+    it('should error out if we pass invalid data to setData - 5', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
+        vtile.parse();
+        assert.equal(vtile.empty(), true);
+        vtile.setData(new Buffer(0),function(err) {
+            if (err) throw err;
+            vtile.parse(function(err) {
+                assert.throws(function() { if (err) throw err; });
+                done();
+            });
+        });
+    });
+
 
     it('should error out if we pass invalid data to addData', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
@@ -542,6 +573,17 @@ describe('mapnik.VectorTile ', function() {
                 assert.equal(key, "world-world2");
                 done();
             });
+        });
+    });
+    
+    it('should render an empty vector', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/layers.xml');
+        map.extent = [-1,1,-1,1];
+        map.render(vtile,{},function(err,vtile) {
+            assert.equal(vtile.empty(), true);
+            done();
         });
     });
 

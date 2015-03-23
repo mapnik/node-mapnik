@@ -16,6 +16,16 @@ describe('mapnik.VectorTile query polygon', function() {
         vtile.parse();
         done();
     });
+
+    it('query fails due to bad parameters', function() {
+        assert.throws(function() { vtile.query(); });
+        assert.throws(function() { vtile.query(1); });
+        assert.throws(function() { vtile.query(1,'2'); });
+        assert.throws(function() { vtile.query(1,2,null); });
+        assert.throws(function() { vtile.query(1,2,{tolerance:null}); });
+        assert.throws(function() { vtile.query(1,2,{layer:null}); });
+    });
+
     it('query polygon', function(done) {
         check(vtile.query(139.6142578125,37.17782559332976,{tolerance:0}));
         vtile.query(139.6142578125,37.17782559332976,{tolerance:0}, function(err, features) {

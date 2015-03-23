@@ -62,6 +62,34 @@ describe('mapnik.VectorTile queryMany', function() {
       ]
     };
 
+    it('vtile.queryMany bad parameters fails', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        assert.throws(function() {
+            var manyResults = vtile.queryMany();
+        });
+        assert.throws(function() {
+            var manyResults = vtile.queryMany(null);
+        });
+        assert.throws(function() {
+            var manyResults = vtile.queryMany([1,2]);
+        });
+        assert.throws(function() {
+            var manyResults = vtile.queryMany([[1,'2']]);
+        });
+        assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]]);});
+        assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], null);});
+        assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], {tolerance:null});});
+        assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], {fields:null});});
+        assert.throws(function() {
+            var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'donkey'});
+        });
+        vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'donkey'}, function(err, manyResults) {
+            assert.throws(function() { if (err) throw err; });
+            done();   
+        });
+    });
+
     it('vtile.queryMany', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
@@ -69,6 +97,15 @@ describe('mapnik.VectorTile queryMany', function() {
         check(manyResults);
         done();
     });
+    
+    it('vtile.queryMany with out fields', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,layer:'layer-name'});
+        check(manyResults);
+        done();
+    });
+
 
     it('vtile.queryMany async', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
