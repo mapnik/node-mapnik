@@ -381,7 +381,8 @@ describe('mapnik.blend', function() {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //fs.writeFileSync('test/blend-fixtures/actual.jpg',result);
-            assert(4000 > expected.compare(actual));
+            // This is so flexible because windows is a PITA
+            assert(6200 > expected.compare(actual));
             done();
         });
     });
