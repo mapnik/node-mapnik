@@ -384,6 +384,8 @@ NAN_SETTER(Map::set_prop)
                     double dub_val = a_value->NumberValue();
                     params[TOSTR(name)] = dub_val;
                 }
+            } else if (a_value->IsBoolean()) {
+                params[TOSTR(name)] = static_cast<mapnik::value_bool>(a_value->BooleanValue());
             }
             i++;
         }
