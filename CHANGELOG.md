@@ -30,6 +30,7 @@
  - Added `active`, `queryable`, `clear_label_cache`, `minzoom`, and `maxzoom` property to `Layer` objects
  - Added `compositeSync` to `VectorTile` object.
  - Changed `composite` in `VectorTile` to accept a callback
+ - Upgraded to nan@1.7.0 and mapnik-vector-tile@0.7.1
  - Binaries updated to use Mapnik v3.x (master branch) at 5a49842952 and mapnik-packaging@6638de9b5b
 
 Notable changes in the Mapnik SDK include:
