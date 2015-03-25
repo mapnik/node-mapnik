@@ -31,7 +31,8 @@
  - Added `compositeSync` to `VectorTile` object.
  - Changed `composite` in `VectorTile` to accept a callback
  - Upgraded to nan@1.7.0 and mapnik-vector-tile@0.7.1
- - Binaries updated to use Mapnik v3.x (master branch) at 5a49842952 and mapnik-packaging@6638de9b5b
+ - Changed boolean on `Parameters` for `Map` object such that 1 and 0 are no longer boolean but integers.
+ - Binaries updated to use Mapnik v3.x (master branch) at 3270d42b74821ac733db169487b5cd5d5748c1e6 and mapnik-packaging@6638de9b5b
 
 Notable changes in the Mapnik SDK include:
  - Changes: https://github.com/mapnik/mapnik/compare/30c6cf636c...5a49842952
