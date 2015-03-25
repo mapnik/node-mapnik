@@ -12,6 +12,7 @@ configure
 Makefile
 scripts
 .travis.yml
+appveyor.yml
 examples
 tools
 vcbuild.bat
