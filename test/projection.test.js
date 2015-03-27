@@ -11,6 +11,7 @@ describe('mapnik.Projection ', function() {
         assert.throws(function() { new mapnik.Projection(1); });
         assert.throws(function() { new mapnik.Projection({}); });
         assert.throws(function() { new mapnik.Projection('+init=epsg:3857', null); } );
+        assert.throws(function() { new mapnik.Projection('+init=epsg:3857', {lazy:null}); } );
     });
 
     it('should initialize properly', function() {
@@ -56,7 +57,7 @@ describe('mapnik.Projection ', function() {
     });
 
     it('should fail some methods with an uninitialized projection', function() {
-        var wgs84 = new mapnik.Projection('+init=epsg:4326', true);
+        var wgs84 = new mapnik.Projection('+init=epsg:4326', {lazy:true});
         assert.ok(wgs84 instanceof mapnik.Projection);
         var long_lat_coords = [-122.33517, 47.63752];
         assert.throws(function() { wgs84.forward(long_lat_coords); });

@@ -57,20 +57,30 @@ NAN_METHOD(Projection::New)
         NanThrowTypeError("please provide a proj4 intialization string");
         NanReturnUndefined();
     }
-    bool defer = false;
+    bool lazy = false;
     if (args.Length() >= 2)
     {
-        if (!args[1]->IsBoolean())
+        if (!args[1]->IsObject())
         {
-            NanThrowTypeError("defering to initialize parameter requires a boolean.");
+            NanThrowTypeError("The second parameter provided should be an options object");
             NanReturnUndefined();
         }
-        defer = args[1]->BooleanValue();
+        Local<Object> options = args[1].As<Object>();
+        if (options->Has(NanNew("lazy")))
+        {
+            Local<Value> lazy_opt = options->Get(NanNew("lazy"));
+            if (!lazy_opt->IsBoolean())
+            {
+                NanThrowTypeError("'lazy' must be a Boolean");
+                NanReturnUndefined();
+            }
+            lazy = lazy_opt->BooleanValue();
+        }
     }
             
     try
     {
-        Projection* p = new Projection(TOSTR(args[0]), defer);
+        Projection* p = new Projection(TOSTR(args[0]), lazy);
         p->Wrap(args.This());
         NanReturnValue(args.This());
     }
