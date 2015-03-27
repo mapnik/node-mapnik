@@ -1583,7 +1583,7 @@ NAN_METHOD(Map::render)
                         NanThrowTypeError(s.str().c_str());
                         NanReturnUndefined();
                     }
-                } else if (layer_id->IsNumber()) {
+                } else { // IS NUMBER
                     layer_idx = layer_id->IntegerValue();
                     std::size_t layer_num = layers.size();
 
@@ -1601,9 +1601,6 @@ NAN_METHOD(Map::render)
                         NanThrowTypeError(s.str().c_str());
                         NanReturnUndefined();
                     }
-                } else {
-                    NanThrowTypeError("layer id must be a string or index number");
-                    NanReturnUndefined();
                 }
             }
 

@@ -84,6 +84,7 @@ describe('mapnik sync rendering', function() {
         // Test some bad parameter passings
         assert.throws(function() { map.renderFileSync(); });
         assert.throws(function() { map.renderFileSync(1); });
+        assert.throws(function() { map.renderFileSync(filename,2,3); });
         assert.throws(function() { map.renderFileSync(filename, null); });
         assert.throws(function() { map.renderFileSync(filename, {format:null}); });
         assert.throws(function() { map.renderFileSync(filename, {palette:null}); });
@@ -91,6 +92,7 @@ describe('mapnik sync rendering', function() {
         assert.throws(function() { map.renderFileSync(filename, {scale:null}); });
         assert.throws(function() { map.renderFileSync(filename, {scale_denominator:null}); });
         assert.throws(function() { map.renderFileSync(filename, {buffer_size:null}); });
+        assert.throws(function() { map.renderFileSync('test/data/tmp'); });
 
         map.renderFileSync(filename);
         assert.ok(exists(filename));
