@@ -62,8 +62,11 @@ static inline NAN_METHOD(register_fonts)
     }
     catch (std::exception const& ex)
     {
+        // Does not appear that this line can ever be reached, not certain what would ever throw an exception
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 }
 

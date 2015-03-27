@@ -33,14 +33,11 @@ describe('mapnik.Parameters ', function() {
         assert.equal(actual, expected);
         map.parameters = {'a': 'b','bool':false, 'num': 12.2, 'num2': 1};
         actual = cleanXml(map.toXML());
-        console.log(map.toXML());
         if (mapnik.versions.mapnik_number >= 300000) {
             expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">\n    <Parameters>\n        <Parameter name="a">b</Parameter>\n    <Parameter name="bool">false</Parameter>\n    <Parameter name="num">12.2</Parameter>\n    <Parameter name="num2">1</Parameter>\n</Parameters>\n</Map>\n');
         } else {
             expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">\n    <Parameters>\n        <Parameter name="a" type="string">b</Parameter>\n    </Parameters>\n</Map>\n');
         }
-        console.log(actual);
-        console.log(expected);
         assert.equal(actual, expected);
     });
 });

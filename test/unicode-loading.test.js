@@ -14,20 +14,48 @@ mapnik.register_default_input_plugins();
 
 var available_ds = mapnik.datasources();
 
+function xmlWithFont(font) {
+    var val = '<Map><Style name="text"><Rule>';
+    val += '<TextSymbolizer size="12" face-name="' + font + '"><![CDATA[[name]]]></TextSymbolizer>';
+    val += '</Rule></Style>';    
+    val += '<Layer name="text" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">';
+    val += '<StyleName>text</StyleName>';
+    val += '<Datasource>'
+    val += '<Parameter name="type">csv</Parameter>';
+    val += '<Parameter name="inline">\n';
+    val += 'x,y,name\n';
+    val += '2,2.5,blake\n';
+    val += '3,2.5,joe\n';
+    val += '</Parameter></Datasource></Layer></Map>';
+    return val;
+}
+
 describe('Handling unicode paths, filenames, and data', function(){
 
     // beware: folder storage can get messed up
     // https://github.com/mapnik/node-mapnik/issues/142
 
-    /*
-    // not a valid test due to https://github.com/mapbox/tilemill/issues/1870
-    it('register font file with unicode directory and name', function(){
+    it('register font file with unicode directory and name', function(done){
         var filepath = './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf';
         assert.ok(existsSync(filepath));
-        mapnik.register_fonts(filepath);
+        assert.throws(function() { mapnik.register_fonts(); });
+        assert.throws(function() { mapnik.register_fonts(filepath, null); });
+        assert.throws(function() { mapnik.register_fonts(filepath, {recurse:null}); });
+        assert.equal(mapnik.register_fonts('./fooooooo.ttf'), false);
+        assert.equal(mapnik.register_fonts(filepath), true);
         assert.deepEqual(mapnik.fontFiles()['DejaVu Sans Mono Bold Oblique'],filepath);
+
+        var map = new mapnik.Map(256, 256);
+        map.fromStringSync(xmlWithFont('DejaVu Sans Mono Bold Oblique'));
+
+        map.zoomAll();
+        var im = new mapnik.Image(map.width, map.height);
+        map.render(im, function(err, im) {
+            if (err) throw err;
+            assert.equal(mapnik.memoryFonts().length, 1)
+            done();
+        });
     });
-    */
 
     it('render a map with unicode markers', function(done){
         if (available_ds.indexOf('csv') == -1) {
