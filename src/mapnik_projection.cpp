@@ -23,9 +23,9 @@ void Projection::Initialize(Handle<Object> target) {
     NanAssignPersistent(constructor, lcons);
 }
 
-Projection::Projection(std::string const& name) :
+Projection::Projection(std::string const& name, bool defer_init) :
     node::ObjectWrap(),
-    projection_(std::make_shared<mapnik::projection>(name)) {}
+    projection_(std::make_shared<mapnik::projection>(name, defer_init)) {}
 
 Projection::~Projection()
 {
@@ -57,9 +57,20 @@ NAN_METHOD(Projection::New)
         NanThrowTypeError("please provide a proj4 intialization string");
         NanReturnUndefined();
     }
+    bool defer = false;
+    if (args.Length() >= 2)
+    {
+        if (!args[1]->IsBoolean())
+        {
+            NanThrowTypeError("defering to initialize parameter requires a boolean.");
+            NanReturnUndefined();
+        }
+        defer = args[1]->BooleanValue();
+    }
+            
     try
     {
-        Projection* p = new Projection(TOSTR(args[0]));
+        Projection* p = new Projection(TOSTR(args[0]), defer);
         p->Wrap(args.This());
         NanReturnValue(args.This());
     }

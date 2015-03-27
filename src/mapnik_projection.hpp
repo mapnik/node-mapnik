@@ -27,7 +27,7 @@ public:
     static NAN_METHOD(forward);
     static bool HasInstance(Handle<Value> val);
 
-    explicit Projection(std::string const& name);
+    explicit Projection(std::string const& name, bool defer_init);
 
     inline proj_ptr get() { return projection_; }
 

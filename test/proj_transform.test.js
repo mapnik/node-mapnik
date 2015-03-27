@@ -11,6 +11,14 @@ describe('mapnik.ProjTransform ', function() {
         assert.throws(function() { new mapnik.ProjTransform({},{}); });
     });
 
+    it('should not initialize properly', function() {
+        var wgs84 = new mapnik.Projection('+proj=totalmadeup', true);
+        var wgs84_2 = new mapnik.Projection('+proj=abcdefg', true);
+        assert.throws(function() { mapnik.ProjTransform(wgs84,wgs84_2); });
+        assert.throws(function() { new mapnik.ProjTransform(wgs84,{}); });
+        assert.throws(function() { new mapnik.ProjTransform(wgs84,wgs84_2); });
+    });
+
     it('should initialize properly', function() {
         var wgs84 = new mapnik.Projection('+init=epsg:4326');
         var wgs84_2 = new mapnik.Projection('+init=epsg:4326');
@@ -38,6 +46,15 @@ describe('mapnik.ProjTransform ', function() {
     it('should forward coords properly (4326 -> 3857)', function() {
         var from = new mapnik.Projection('+init=epsg:4326');
         var to = new mapnik.Projection('+init=epsg:3857');
+        var trans = new mapnik.ProjTransform(from,to);
+        var long_lat_coords = [-122.33517, 47.63752];
+        var merc = [-13618288.8305, 6046761.54747];
+        assert.notStrictEqual(merc,trans.forward(long_lat_coords));
+    });
+    
+    it('should forward coords properly (4326 -> 3857) - no init proj4', function() {
+        var from = new mapnik.Projection('+init=epsg:4326', true);
+        var to = new mapnik.Projection('+init=epsg:3857', true);
         var trans = new mapnik.ProjTransform(from,to);
         var long_lat_coords = [-122.33517, 47.63752];
         var merc = [-13618288.8305, 6046761.54747];
