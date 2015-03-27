@@ -371,8 +371,16 @@ void _composite(VectorTile* target_vt,
     vector_tile::Tile new_tiledata;
     std::string merc_srs("+init=epsg:3857");
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
+    if (target_vt->width() <= 0 || target_vt->height() <= 0)
+    {
+        throw std::runtime_error("Vector tile width and height must be great than zero");
+    }
     for (VectorTile* vt : vtiles)
     {
+        if (vt->width() <= 0 || vt->height() <= 0)
+        {
+            throw std::runtime_error("Vector tile width and height must be great than zero");
+        }
         // TODO - handle name clashes
         if (target_vt->z_ == vt->z_ &&
             target_vt->x_ == vt->x_ &&
@@ -395,7 +403,7 @@ void _composite(VectorTile* target_vt,
                     https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
                     */
                     /* LCOV_EXCL_START */
-                    std::runtime_error("could not serialize new data for vt");
+                    throw std::runtime_error("could not serialize new data for vt");
                     /* LCOV_EXCL_END */
                 }
                 if (!new_message.empty())
@@ -509,7 +517,7 @@ void _composite(VectorTile* target_vt,
                 https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
                 */
                 /* LCOV_EXCL_START */
-                std::runtime_error("could not serialize new data for vt");
+                throw std::runtime_error("could not serialize new data for vt");
                 /* LCOV_EXCL_END */
             }
             if (!new_message.empty())
@@ -657,7 +665,8 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
     } 
     catch (std::exception const& ex) 
     {
-        NanThrowError(ex.what());
+        NanThrowTypeError(ex.what());
+        return NanEscapeScope(NanUndefined());
     }
 
     return NanEscapeScope(NanUndefined());

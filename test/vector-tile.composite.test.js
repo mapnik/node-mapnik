@@ -113,11 +113,11 @@ describe('mapnik.VectorTile.composite', function() {
         }
     });
 
-    it('should fail to composite due to bad parameters', function() {
+    it('should fail to composite due to bad parameters', function(done) {
         var vtile1 = new mapnik.VectorTile(1,0,0);
         var vtile2 = new mapnik.VectorTile(1,0,0);
-        var vtile3 = new mapnik.VectorTile(1,0,0, {width:0, height:0});
-        var vtile4 = new mapnik.VectorTile(2,0,0, {width:-1, height:-1});
+        var vtile3 = new mapnik.VectorTile(3,0,0, {width:0, height:0});
+        var vtile4 = new mapnik.VectorTile(4,0,0, {width:-1, height:-1});
         assert.throws(function() { vtile1.composite(); });
         assert.throws(function() { vtile1.compositeSync(); });
         assert.throws(function() { vtile1.composite(function(err, result) {}); });
@@ -145,6 +145,15 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {scale_denominator:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {tolerance:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {tolerance:null}, function(err, result) {}); });
+        assert.throws(function() { vtile3.compositeSync([vtile1]); });
+        assert.throws(function() { vtile1.compositeSync([vtile3]); });
+        vtile3.composite([vtile1], function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            vtile1.composite([vtile3], function(err, result) {
+                assert.throws(function() { if (err) throw err; });
+                done();
+            });
+        });
     });
 
     it('should support compositing tiles that were just rendered to sync', function(done) {

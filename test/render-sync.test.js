@@ -92,7 +92,7 @@ describe('mapnik sync rendering', function() {
         assert.throws(function() { map.renderFileSync(filename, {scale:null}); });
         assert.throws(function() { map.renderFileSync(filename, {scale_denominator:null}); });
         assert.throws(function() { map.renderFileSync(filename, {buffer_size:null}); });
-        assert.throws(function() { map.renderFileSync('test/data/tmp'); });
+        assert.throws(function() { map.renderFileSync('test/data/tmp', {format:''}); });
 
         map.renderFileSync(filename);
         assert.ok(exists(filename));
