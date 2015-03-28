@@ -945,15 +945,14 @@ bool VectorTile::lazy_empty()
                     }
                 }
                 item.skipBytes(len);
-            } else {
+            } 
+            else 
+            {
                 item.skip();
             }
         }
     }
-    // Due to protection prior to this being called this should never be reached
-    /* LCOV_EXCL_START */
     return true;
-    /* LCOV_EXCL_END */
 }
 
 

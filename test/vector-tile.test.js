@@ -309,8 +309,10 @@ describe('mapnik.VectorTile ', function() {
         });
         vtile.setData(new Buffer('090123456789012345', 'hex')); // 64 should work fine.
         vtile.names(); // should not throw and does nothing.
+        assert.equal(vtile.empty(), true);
         vtile.setData(new Buffer('0D01234567', 'hex')); // 32 should work fine.
         vtile.names(); // should not throw and does nothing.
+        assert.equal(vtile.empty(), true);
         assert.throws(function() { 
             vtile.setData(new Buffer('0D0123456', 'hex')); // 32 should fail because missing a byte
             vtile.names(); // should throw
@@ -335,6 +337,13 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should return empty but have layer name', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        // a layer with only a name "layer-name" and no features
+        vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
+        assert.equal(vtile.names()[0], 'layer-name');
+        assert.equal(vtile.empty(), true);
+    });
 
     it('should error out if we pass invalid data to addData', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
