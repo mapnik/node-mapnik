@@ -142,8 +142,8 @@ double path_to_point_distance(PathType & path, double x, double y)
             x0 = x1;
             y0 = y1;
         }
-        return distance;
-        break;
+        // Don't return just fall through to distance below 
+        // return distance;
     }
     default:
         return distance;
@@ -1107,12 +1107,8 @@ void VectorTile::EIO_Query(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
-        // The only possible exception in _query can not be 
-        // currently reached in code.
-        /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
-        /* LCOV_EXCL_END */
     }
 }
 
@@ -1121,11 +1117,8 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     NanScope();
     vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
     if (closure->error) {
-        // No possible way currently known to get to this point in the code
-        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
     }
     else
     {
@@ -1140,7 +1133,12 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     delete closure;
 }
 
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) {
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) 
+{
+    if (d->width() <= 0 || d->height() <= 0)
+    {
+        throw std::runtime_error("Can not query a vector tile with width or height of zero");
+    }
     std::vector<query_result> arr;
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
@@ -1192,16 +1190,9 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     {
                         mapnik::vertex_adapter va(geom);
                         double dist = path_to_point_distance(va,x,y);
-                        if (dist >= 0)
+                        if (dist >= 0 && (distance < 0 || dist < distance))
                         {
-                            if (distance >= 0)
-                            {
-                                if (dist < distance) distance = dist;
-                            }
-                            else
-                            {
-                                distance = dist;
-                            }
+                            distance = dist;
                         }
                     }
                     if (distance >= 0 && distance <= tolerance)
@@ -1240,16 +1231,9 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     {
                         mapnik::vertex_adapter va(geom);
                         double dist = path_to_point_distance(va,x,y);
-                        if (dist >= 0)
+                        if (dist >= 0 && (distance < 0 || dist < distance))
                         {
-                            if (distance >= 0)
-                            {
-                                if (dist < distance) distance = dist;
-                            }
-                            else
-                            {
-                                distance = dist;
-                            }
+                            distance = dist;
                         }
                     }
                     if (distance >= 0 && distance <= tolerance)
@@ -1509,16 +1493,9 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                 {
                     mapnik::vertex_adapter va(geom);
                     double dist = path_to_point_distance(va,pt.x,pt.y);
-                    if (dist >= 0)
+                    if (dist >= 0 && (distance < 0 || dist < distance))
                     {
-                        if (distance >= 0)
-                        {
-                            if (dist < distance) distance = dist;
-                        }
-                        else
-                        {
-                            distance = dist;
-                        }
+                        distance = dist;
                     }
                 }
                 if (distance >= 0 && distance <= tolerance)
@@ -1748,17 +1725,13 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
         q.add_property_name(item.get_name());
     }
     mapnik::featureset_ptr fs = ds.features(q);
-    if (!fs)
-    {
-        return false;
-    }
-    else
+    bool first = true;
+    if (fs)
     {
         using sink_type = std::back_insert_iterator<std::string>;
         static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
         static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
         mapnik::feature_ptr feature;
-        bool first = true;
         while ((feature = fs->next()))
         {
             if (first)
@@ -1809,8 +1782,8 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             }
             result += "}";
         }
-        return !first;
     }
+    return !first;
 }
 
 NAN_METHOD(VectorTile::toGeoJSONSync)

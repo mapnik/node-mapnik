@@ -72,15 +72,17 @@ describe('mapnik.VectorTile queryMany', function() {
             var manyResults = vtile.queryMany(null);
         });
         assert.throws(function() {
-            var manyResults = vtile.queryMany([1,2]);
+            var manyResults = vtile.queryMany([1,2], {layer:"layer-name"});
         });
         assert.throws(function() {
-            var manyResults = vtile.queryMany([[1,'2']]);
+            var manyResults = vtile.queryMany([[1,'2']], {layer:"layer-name"});
         });
         assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]]);});
         assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], null);});
         assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], {tolerance:null});});
         assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], {fields:null});});
+        assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], {layer:null});});
+        assert.throws(function() { vtile.queryMany([[0,0],[0,0],[-40,-40]], {layer:''});});
         assert.throws(function() {
             var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'donkey'});
         });

@@ -26,6 +26,15 @@ describe('mapnik.VectorTile query polygon', function() {
         assert.throws(function() { vtile.query(1,2,{layer:null}); });
     });
 
+    it('should not be able to query on a vector tile with width or height of zero', function(done) {
+        var vtile2 = new mapnik.VectorTile(5,28,12,{width:0, height:0});
+        assert.throws(function() { vtile2.query(1,2); });
+        vtile2.query(1,2, function(err, results) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
     it('query polygon', function(done) {
         check(vtile.query(139.6142578125,37.17782559332976,{tolerance:0}));
         vtile.query(139.6142578125,37.17782559332976,{tolerance:0}, function(err, features) {
@@ -41,6 +50,7 @@ describe('mapnik.VectorTile query polygon', function() {
             assert.equal(features[0].layer,'world');
         }
     });
+
     it('query polygon + tolerance (noop)', function(done) {
         // tolerance only applies to points and lines currently in mapnik::hit_test
         check(vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000}));
