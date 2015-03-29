@@ -1,5 +1,7 @@
 language: cpp
 
+sudo: false
+
 matrix:
   include:
      # Coverage
@@ -51,7 +53,9 @@ before_install:
  - export COVERAGE=${COVERAGE:-false}
  - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
  # upgrade libstdc++ to support C++11
- - if [[ ${platform} == 'linux' ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;sudo apt-get update -y;sudo apt-get install -y libstdc++6; fi;
+ - if [[ ${platform} == 'linux' ]]; then
+       curl https://raw.githubusercontent.com/mapbox/mason/master/scripts/setup_cpp11_toolchain.sh | sh;
+     fi;
  - if [[ ${platform} == 'darwin' ]]; then xcrun --sdk macosx --show-sdk-version; fi;
  # check if tag exists and matches package.json
  - scripts/validate_tag.sh

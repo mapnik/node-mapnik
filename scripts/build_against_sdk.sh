@@ -26,95 +26,13 @@ if [[ ${1:-false} != false ]]; then
     ARGS=$1
 fi
 
-function upgrade_compiler {
-    CLANG_VERSION="3.5"
-    if [[ $(lsb_release --id) =~ "Ubuntu" ]]; then
-        echo "adding clang + gcc-4.8 ppa"
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        if [[ $(lsb_release --release) =~ "12.04" ]]; then
-           sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${CLANG_VERSION} main"
-        fi
-        if [[ $(lsb_release --release) =~ "14.04" ]]; then
-           sudo add-apt-repository "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-${CLANG_VERSION} main"
-        fi
-        echo "updating apt"
-        sudo apt-get update -y
-        echo 'upgrading libstdc++'
-        sudo apt-get install -y libstdc++6 libstdc++-4.8-dev
-    fi
-    if [[ $(lsb_release --id) =~ "Debian" ]]; then
-        if [[ $(lsb_release --codename) =~ "wheezy" ]]; then
-           sudo apt-get install -y python-software-properties
-           sudo add-apt-repository "deb http://llvm.org/apt/wheezy/ llvm-toolchain-wheezy-${CLANG_VERSION} main"
-        fi
-        if [[ $(lsb_release --codename) =~ "jessie" ]]; then
-           sudo apt-get install -y software-properties-common
-           sudo add-apt-repository "deb http://llvm.org/apt/unstable/ llvm-toolchain-${CLANG_VERSION} main"
-        fi
-        echo "updating apt"
-        sudo apt-get update -y
-        echo 'upgrading libstdc++'
-        sudo apt-get install -y libstdc++6 libstdc++-4.9-dev
-    fi
-    wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
-    echo "updating apt"
-    sudo apt-get update -y
-    if [[ "$CXX" != "g++" ]]; then
-        echo "installing clang-${CLANG_VERSION}"
-        apt-cache policy clang-${CLANG_VERSION}
-        sudo apt-get install -y clang-${CLANG_VERSION}
-    else
-        sudo apt-get install -y gcc-4.8 g++-4.8
-    fi
-    echo "installing C++11 compiler"
-    if [[ ${LTO:-false} != false ]]; then
-        echo "upgrading binutils-gold"
-        sudo apt-get install -y -qq binutils-gold
-        if [[ ! -h "/usr/lib/LLVMgold.so" ]] && [[ ! -f "/usr/lib/LLVMgold.so" ]]; then
-            echo "symlinking /usr/lib/llvm-${CLANG_VERSION}/lib/LLVMgold.so"
-            sudo ln -s /usr/lib/llvm-${CLANG_VERSION}/lib/LLVMgold.so /usr/lib/LLVMgold.so
-        fi
-        if [[ ! -h "/usr/lib/libLTO.so" ]] && [[ ! -f "/usr/lib/libLTO.so" ]]; then
-            echo "symlinking /usr/lib/llvm-${CLANG_VERSION}/lib/libLTO.so"
-            sudo ln -s /usr/lib/llvm-${CLANG_VERSION}/lib/libLTO.so /usr/lib/libLTO.so
-        fi
-        # TODO - needed on trusty for pkg-config
-        # since 'binutils-gold' on trusty does not switch
-        # /usr/bin/ld to point to /usr/bin/ld.gold like it does
-        # in the precise package
-        #sudo rm /usr/bin/ld
-        #sudo ln -s /usr/bin/ld.gold /usr/bin/ld
-    fi
-    if [[ "$CXX" != "g++" ]]; then
-        # for bjam since it can't find a custom named clang-3.4
-        if [[ ! -h "/usr/bin/clang" ]] && [[ ! -f "/usr/bin/clang" ]]; then
-            echo "symlinking /usr/bin/clang-${CLANG_VERSION}"
-            sudo ln -s /usr/bin/clang-${CLANG_VERSION} /usr/bin/clang
-        fi
-        if [[ ! -h "/usr/bin/clang++" ]] && [[ ! -f "/usr/bin/clang++" ]]; then
-            echo "symlinking /usr/bin/clang++-${CLANG_VERSION}"
-            sudo ln -s /usr/bin/clang++-${CLANG_VERSION} /usr/bin/clang++
-        fi
-        # prefer upgraded clang
-        if [[ -f "/usr/bin/clang++-${CLANG_VERSION}" ]]; then
-            export CC="/usr/bin/clang-${CLANG_VERSION}"
-            export CXX="/usr/bin/clang++-${CLANG_VERSION}"
-        else
-            export CC="/usr/bin/clang"
-            export CXX="/usr/bin/clang++"
-        fi
-    else
-        export CC="gcc-4.8"
-        export CXX="g++-4.8"
-    fi
-}
 
 COMPRESSION="tar.bz2"
 SDK_URI="http://mapnik.s3.amazonaws.com/dist/dev"
 platform=$(echo $UNAME | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
+
 # mapnik 3.x / c++11 enabled
 if [[ ${platform} == 'linux' ]]; then
-    upgrade_compiler
     TARBALL_NAME="mapnik-${platform}-sdk-${MAPNIK_GIT}"
 fi
 
@@ -151,12 +69,8 @@ fi
 
 if [[ $UNAME == 'Linux' ]]; then
     readelf -d $MAPNIK_SDK/lib/libmapnik.so
-    #sudo apt-get install chrpath -y
-    #chrpath -r '$ORIGIN/' ${MAPNIK_SDK}/lib/libmapnik.so
     export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
 else
-    # until 10.10 lands: http://blog.travis-ci.com/2014-11-03-xcode-61-beta/
-    #python -c "data=open('${MAPNIK_SDK}/bin/mapnik-config','r').read();open('${MAPNIK_SDK}/bin/mapnik-config','w').write(data.replace('10.10','10.9'))"
     otool -L $MAPNIK_SDK/lib/libmapnik.dylib
 fi
 
