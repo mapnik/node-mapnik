@@ -54,7 +54,7 @@ before_install:
  - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
  # upgrade libstdc++ to support C++11
  - if [[ ${platform} == 'linux' ]]; then
-       curl https://raw.githubusercontent.com/mapbox/mason/master/scripts/setup_cpp11_toolchain.sh | sh;
+       source ./scripts/setup_cpp11_toolchain.sh;
      fi;
  - if [[ ${platform} == 'darwin' ]]; then xcrun --sdk macosx --show-sdk-version; fi;
  # check if tag exists and matches package.json
