@@ -2,6 +2,8 @@
 #include "proj_transform_adapter.hpp"
 #include <string>
 
+/*
+
 namespace mapnik { namespace json { namespace detail {
 
 // adapt mapnik::vertex_adapter get_first
@@ -26,3 +28,5 @@ struct get_first<node_mapnik::proj_transform_path_type>
 
 using sink_type = std::back_insert_iterator<std::string>;
 template struct mapnik::json::multi_geometry_generator_grammar<sink_type, node_mapnik::proj_transform_container>;
+
+*/

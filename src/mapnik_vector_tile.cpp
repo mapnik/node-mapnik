@@ -63,6 +63,7 @@ double path_to_point_distance(PathType & path, double x, double y)
     double y0 = 0;
     double distance = -1;
     path.rewind(0);
+    /*
     mapnik::geometry_type::types geom_type = static_cast<mapnik::geometry_type::types>(path.type());
     switch(geom_type)
     {
@@ -149,6 +150,7 @@ double path_to_point_distance(PathType & path, double x, double y)
         return distance;
         break;
     }
+    */
     return distance;
 }
 
@@ -1186,6 +1188,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     double distance = -1;
+                    /*
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
                         mapnik::vertex_adapter va(geom);
@@ -1203,6 +1206,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                         res.feature = feature;
                         arr.push_back(std::move(res));
                     }
+                    */
                 }
             }
         }
@@ -1227,6 +1231,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     double distance = -1;
+                    /*
                     for (mapnik::geometry_type const& geom : feature->paths())
                     {
                         mapnik::vertex_adapter va(geom);
@@ -1244,6 +1249,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                         res.feature = feature;
                         arr.push_back(std::move(res));
                     }
+                    */
                 }
             }
         }
@@ -1489,6 +1495,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             for (std::size_t p = 0; p < points.size(); ++p) {
                 mapnik::coord2d const& pt = points[p];
                 double distance = -1;
+                /*
                 for (mapnik::geometry_type const& geom : feature->paths())
                 {
                     mapnik::vertex_adapter va(geom);
@@ -1523,6 +1530,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         hits_it->second.push_back(std::move(hit));
                     }
                 }
+                */
             }
             if (has_hit > 0) {
                 idx++;
@@ -1713,8 +1721,7 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                                                  x,
                                                  y,
                                                  z,
-                                                 width,
-                                                 true);
+                                                 width);
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
@@ -1729,6 +1736,7 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
     if (fs)
     {
         using sink_type = std::back_insert_iterator<std::string>;
+        /*
         static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
         static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
         mapnik::feature_ptr feature;
@@ -1762,9 +1770,9 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                 }
                 else
                 {
-                    /* LCOV_EXCL_START */
+                    // LCOV_EXCL_START
                     throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    /* LCOV_EXCL_END */
+                    // LCOV_EXCL_END
                 }
             }
             result += ",\"properties\":";
@@ -1776,12 +1784,13 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             }
             else
             {
-                /* LCOV_EXCL_START */
+                // LCOV_EXCL_START
                 throw std::runtime_error("Failed to generate GeoJSON properties");
-                /* LCOV_EXCL_END */
+                // LCOV_EXCL_END
             }
             result += "}";
         }
+        */
     }
     return !first;
 }

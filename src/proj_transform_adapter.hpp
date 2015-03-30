@@ -1,9 +1,10 @@
 #ifndef __NODE_MAPNIK_PROJ_TRANSFORM_ADAPTER__
 #define __NODE_MAPNIK_PROJ_TRANSFORM_ADAPTER__
 
+/*
+
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_container.hpp>
 #include <mapnik/util/path_iterator.hpp>
 #include <boost/spirit/include/support_container.hpp>
 
@@ -110,5 +111,6 @@ struct end_container<node_mapnik::proj_transform_path_type const>
 
 }}}
 
+*/
 
 #endif

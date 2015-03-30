@@ -69,7 +69,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         }
         else
         {
-            boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
+            /*boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
             if (geom_type)
             {
                 mapnik::datasource::geometry_t g_type = *geom_type;
@@ -101,6 +101,7 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                 }
                 }
             }
+            */
         }
         description->Set(NanNew("geometry_type"), js_type);
         for (auto const& param : ld.get_extra_parameters()) 

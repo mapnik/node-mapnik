@@ -214,12 +214,12 @@ NAN_METHOD(MemoryDatasource::add)
         Local<Value> y = obj->Get(NanNew("y"));
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
-            mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::geometry_type::types::Point);
-            pt->move_to(x->NumberValue(),y->NumberValue());
+            //mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::geometry_type::types::Point);
+            //pt->move_to(x->NumberValue(),y->NumberValue());
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
-            feature->add_geometry(pt);
+            //feature->add_geometry(pt);
             if (obj->Has(NanNew("properties")))
             {
                 Local<Value> props = obj->Get(NanNew("properties"));

@@ -3,9 +3,9 @@
 #include "mapnik_projection.hpp"
 
 #include <mapnik/util/geometry_to_geojson.hpp>
-#include "proj_transform_adapter.hpp"
-#include <mapnik/util/geometry_to_wkt.hpp>
-#include <mapnik/util/geometry_to_wkb.hpp>
+//#include "proj_transform_adapter.hpp"
+//#include <mapnik/util/geometry_to_wkt.hpp>
+//#include <mapnik/util/geometry_to_wkb.hpp>
 
 Persistent<FunctionTemplate> Geometry::constructor;
 
@@ -22,12 +22,14 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toWKT", toWKT);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSONSync", toJSONSync);
+    /*
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "Point",mapnik::geometry_type::types::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "LineString",mapnik::geometry_type::types::LineString)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "Polygon",mapnik::geometry_type::types::Polygon)
+    */
     target->Set(NanNew("Geometry"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -79,7 +81,7 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
     std::string json;
     if (args.Length() < 1)
     {
-        if (!mapnik::util::to_geojson(json,g->feat_->paths()))
+        //if (!mapnik::util::to_geojson(json,g->feat_->paths()))
         {
             // Fairly certain this situation can never be reached but 
             // leaving it none the less
@@ -110,6 +112,7 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
                 return NanEscapeScope(NanUndefined());
             }
             ProjTransform* tr = node::ObjectWrap::Unwrap<ProjTransform>(obj);
+            /*
             mapnik::proj_transform const& prj_trans = *tr->get();
             node_mapnik::proj_transform_container projected_paths;
             for (auto const& geom : g->feat_->paths())
@@ -123,11 +126,12 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
             {
                 // Fairly certain this situation can never be reached but 
                 // leaving it none the less
-                /* LCOV_EXCL_START */
+                // LCOV_EXCL_START
                 NanThrowError("Failed to generate GeoJSON");
                 return NanEscapeScope(NanUndefined());
-                /* LCOV_EXCL_END */
+                // LCOV_EXCL_END
             }
+            */
         }
     }
     return NanEscapeScope(NanNew(json));
@@ -192,6 +196,7 @@ void Geometry::to_json(uv_work_t* req)
     {
         if (closure->tr)
         {
+            /*
             mapnik::proj_transform const& prj_trans = *closure->tr->get();
             node_mapnik::proj_transform_container projected_paths;
             for (auto const& geom : closure->g->feat_->paths())
@@ -205,15 +210,16 @@ void Geometry::to_json(uv_work_t* req)
             {
                 // Fairly certain this situation can never be reached but 
                 // leaving it none the less
-                /* LCOV_EXCL_START */
+                // LCOV_EXCL_START
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                /* LCOV_EXCL_END */
+                // LCOV_EXCL_END
             }
+            */
         }
         else
         {
-            if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->paths()))
+            //if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->paths()))
             {
                 // Fairly certain this situation can never be reached but 
                 // leaving it none the less
@@ -279,7 +285,7 @@ NAN_METHOD(Geometry::toWKT)
     NanScope();
     std::string wkt;
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
-    if (!mapnik::util::to_wkt(wkt, g->feat_->paths()))
+    //if (!mapnik::util::to_wkt(wkt, g->feat_->paths()))
     {
         // Fairly certain this situation can never be reached but 
         // leaving it none the less
@@ -296,6 +302,7 @@ NAN_METHOD(Geometry::toWKB)
     NanScope();
     std::string wkt;
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
+    /*
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->paths(), mapnik::util::wkbNDR);
     if (!wkb)
     {
@@ -303,4 +310,5 @@ NAN_METHOD(Geometry::toWKB)
         NanReturnUndefined();
     }
     NanReturnValue(NanNewBufferHandle(wkb->buffer(), wkb->size()));
+    */
 }
