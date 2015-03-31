@@ -53,105 +53,126 @@
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
-
+#include <mapnik/hit_test_filter.hpp>
 #include <google/protobuf/io/coded_stream.h>
 
-template <typename PathType>
-double path_to_point_distance(PathType & path, double x, double y)
+namespace detail {
+
+struct p2p_distance
 {
-    double x0 = 0;
-    double y0 = 0;
-    double distance = -1;
-    path.rewind(0);
-    /*
-    mapnik::geometry_type::types geom_type = static_cast<mapnik::geometry_type::types>(path.type());
-    switch(geom_type)
+    p2p_distance(double x, double y)
+     : x_(x),
+       y_(y) {}
+
+    double operator() (mapnik::geometry::geometry_empty const& ) const
     {
-    case mapnik::geometry_type::types::Point:
+        return -1;
+    }
+
+    double operator() (mapnik::geometry::point const& geom) const
     {
-        unsigned command;
-        bool first = true;
-        while (mapnik::SEG_END != (command = path.vertex(&x0, &y0)))
+        return mapnik::distance(geom.x, geom.y, x_, y_);
+    }
+    double operator() (mapnik::geometry::multi_point const& geom) const
+    {
+        double distance = -1;
+        for (auto const& pt : geom)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (first)
-            {
-                distance = mapnik::distance(x, y, x0, y0);
-                first = false;
-                continue;
-            }
-            double dist = mapnik::distance(x, y, x0, y0);
-            if (dist < distance) distance = dist;
+            double dist = operator()(pt);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
         return distance;
-        break;
     }
-    case mapnik::geometry_type::types::Polygon:
+    double operator() (mapnik::geometry::line_string const& geom) const
     {
-        double x1 = 0;
-        double y1 = 0;
-        bool inside = false;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return distance;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        double distance = -1;
+        std::size_t num_points = geom.num_points();
+        if (num_points > 1)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
+            for (std::size_t i = 1; i < num_points; ++i)
             {
-                x0 = x1;
-                y0 = y1;
-                continue;
+                auto const& pt0 = geom[i-1];
+                auto const& pt1 = geom[i];
+                double dist = mapnik::point_to_segment_distance(x_,y_,pt0.x,pt0.y,pt1.x,pt1.y);
+                if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
             }
-            if ((((y1 <= y) && (y < y0)) ||
-                 ((y0 <= y) && (y < y1))) &&
-                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
+        }
+        return distance;
+    }
+    double operator() (mapnik::geometry::multi_line_string const& geom) const
+    {
+        double distance = -1;
+        for (auto const& line: geom)
+        {
+            double dist = operator()(line);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+        }
+        return distance;
+    }
+    double operator() (mapnik::geometry::polygon const& geom) const
+    {
+        auto const& exterior = geom.exterior_ring;
+        std::size_t num_points = exterior.num_points();
+        if (num_points < 2) return -1;
+        bool inside = false;
+        for (std::size_t i = 1; i < num_points; ++i)
+        {
+            auto const& pt0 = exterior[i-1];
+            auto const& pt1 = exterior[i];
+            // todo - account for tolerance
+            if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
             {
-                inside=!inside;
+                inside = true;
+                break;
             }
-            x0 = x1;
-            y0 = y1;
+        }
+        if (!inside) return -1;
+        for (auto const& ring :  geom.interior_rings)
+        {
+            std::size_t num_interior_points = ring.size();
+            for (std::size_t j = 1; j < num_interior_points; ++j)
+            {
+                auto const& pt0 = ring[j-1];
+                auto const& pt1 = ring[j];
+                if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
+                {
+                    inside=!inside;
+                    break;
+                }
+            }
         }
         return inside ? 0 : -1;
-        break;
     }
-    case mapnik::geometry_type::types::LineString:
+    double operator() (mapnik::geometry::multi_polygon const& geom) const
     {
-        double x1 = 0;
-        double y1 = 0;
-        bool first = true;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return distance;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        double distance = -1;
+        for (auto const& poly: geom)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
-            {
-                x0 = x1;
-                y0 = y1;
-                continue;
-            }
-            if (first)
-            {
-                distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                first = false;
-            }
-            else
-            {
-                double dist = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                if (dist >= 0 && dist < distance) distance = dist;
-            }
-            x0 = x1;
-            y0 = y1;
+            double dist = operator()(poly);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
-        // Don't return just fall through to distance below 
-        // return distance;
-    }
-    default:
         return distance;
-        break;
     }
-    */
-    return distance;
+    double operator() (mapnik::geometry::geometry_collection const& collection) const
+    {
+        double distance = -1;
+        for (auto const& geom: collection)
+        {
+            double dist = mapnik::util::apply_visitor((*this),geom);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+        }
+        return distance;
+    }
+
+    double x_;
+    double y_;
+};
+
+}
+
+double path_to_point_distance(mapnik::geometry::geometry const& geom, double x, double y)
+{
+    return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
 
 Persistent<FunctionTemplate> VectorTile::constructor;
@@ -1188,15 +1209,11 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     double distance = -1;
-                    /*
-                    for (mapnik::geometry_type const& geom : feature->paths())
+                    auto const& geom = feature->get_geometry();
+                    double dist = path_to_point_distance(geom,x,y);
+                    if (dist >= 0 && (distance < 0 || dist < distance))
                     {
-                        mapnik::vertex_adapter va(geom);
-                        double dist = path_to_point_distance(va,x,y);
-                        if (dist >= 0 && (distance < 0 || dist < distance))
-                        {
-                            distance = dist;
-                        }
+                        distance = dist;
                     }
                     if (distance >= 0 && distance <= tolerance)
                     {
@@ -1206,7 +1223,6 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                         res.feature = feature;
                         arr.push_back(std::move(res));
                     }
-                    */
                 }
             }
         }
@@ -1231,15 +1247,11 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     double distance = -1;
-                    /*
-                    for (mapnik::geometry_type const& geom : feature->paths())
+                    auto const& geom = feature->get_geometry();
+                    double dist = path_to_point_distance(geom,x,y);
+                    if (dist >= 0 && (distance < 0 || dist < distance))
                     {
-                        mapnik::vertex_adapter va(geom);
-                        double dist = path_to_point_distance(va,x,y);
-                        if (dist >= 0 && (distance < 0 || dist < distance))
-                        {
-                            distance = dist;
-                        }
+                        distance = dist;
                     }
                     if (distance >= 0 && distance <= tolerance)
                     {
@@ -1249,7 +1261,6 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                         res.feature = feature;
                         arr.push_back(std::move(res));
                     }
-                    */
                 }
             }
         }
@@ -1495,15 +1506,11 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             for (std::size_t p = 0; p < points.size(); ++p) {
                 mapnik::coord2d const& pt = points[p];
                 double distance = -1;
-                /*
-                for (mapnik::geometry_type const& geom : feature->paths())
+                auto const& geom = feature->get_geometry();
+                double dist = path_to_point_distance(geom,pt.x,pt.y);
+                if (dist >= 0 && (distance < 0 || dist < distance))
                 {
-                    mapnik::vertex_adapter va(geom);
-                    double dist = path_to_point_distance(va,pt.x,pt.y);
-                    if (dist >= 0 && (distance < 0 || dist < distance))
-                    {
-                        distance = dist;
-                    }
+                    distance = dist;
                 }
                 if (distance >= 0 && distance <= tolerance)
                 {
@@ -1530,7 +1537,6 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
                         hits_it->second.push_back(std::move(hit));
                     }
                 }
-                */
             }
             if (has_hit > 0) {
                 idx++;
