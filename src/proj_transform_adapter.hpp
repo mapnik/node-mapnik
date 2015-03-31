@@ -1,6 +1,51 @@
 #ifndef __NODE_MAPNIK_PROJ_TRANSFORM_ADAPTER__
 #define __NODE_MAPNIK_PROJ_TRANSFORM_ADAPTER__
 
+
+struct transformer
+{
+    transformer(mapnik::proj_transform const& prj_trans)
+     : prj_trans_(prj_trans) {}
+
+    template <typename T>
+    mapnik::geometry::geometry operator() (T const& geom) const
+    {
+        return mapnik::util::apply_visitor(*this, geom);
+    }
+
+    mapnik::geometry::geometry operator () ( mapnik::geometry::point const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+    mapnik::geometry::geometry operator () ( mapnik::geometry::multi_point const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+    mapnik::geometry::geometry operator () ( mapnik::geometry::line_string const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+    mapnik::geometry::geometry operator () ( mapnik::geometry::multi_line_string const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+    mapnik::geometry::geometry operator () ( mapnik::geometry::polygon const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+    mapnik::geometry::geometry operator () ( mapnik::geometry::multi_polygon const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+    mapnik::geometry::geometry operator () ( mapnik::geometry::geometry_collection const& geom ) const
+    {
+        return mapnik::geometry::geometry();
+    }
+
+
+    mapnik::proj_transform const& prj_trans_;
+};
+
 /*
 
 #include <mapnik/proj_transform.hpp>

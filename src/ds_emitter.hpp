@@ -69,28 +69,28 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
         }
         else
         {
-            /*boost::optional<mapnik::datasource::geometry_t> geom_type = ds->get_geometry_type();
+            boost::optional<mapnik::datasource_geometry_t> geom_type = ds->get_geometry_type();
             if (geom_type)
             {
-                mapnik::datasource::geometry_t g_type = *geom_type;
+                mapnik::datasource_geometry_t g_type = *geom_type;
                 switch (g_type)
                 {
-                case mapnik::datasource::Point:
+                case mapnik::datasource_geometry_t::Point:
                 {
                     js_type = NanNew<String>("point");
                     break;
                 }
-                case mapnik::datasource::LineString:
+                case mapnik::datasource_geometry_t::LineString:
                 {
                     js_type = NanNew<String>("linestring");
                     break;
                 }
-                case mapnik::datasource::Polygon:
+                case mapnik::datasource_geometry_t::Polygon:
                 {
                     js_type = NanNew<String>("polygon");
                     break;
                 }
-                case mapnik::datasource::Collection:
+                case mapnik::datasource_geometry_t::Collection:
                 {
                     js_type = NanNew<String>("collection");
                     break;
@@ -101,7 +101,6 @@ static void describe_datasource(Local<Object> description, mapnik::datasource_pt
                 }
                 }
             }
-            */
         }
         description->Set(NanNew("geometry_type"), js_type);
         for (auto const& param : ld.get_extra_parameters()) 

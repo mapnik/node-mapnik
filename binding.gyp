@@ -45,7 +45,6 @@
       'target_name': '<(module_name)',
       'dependencies': [ 'action_before_build' ],
       'sources': [
-        "src/json_proj_transform_grammar.cpp",
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
         "src/blend.cpp",
