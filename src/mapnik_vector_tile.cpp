@@ -1741,7 +1741,6 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
     if (fs)
     {
         mapnik::feature_ptr feature;
-        static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
         while ((feature = fs->next()))
         {
             if (first)
