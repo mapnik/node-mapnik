@@ -3,8 +3,8 @@
 #include "mapnik_projection.hpp"
 
 #include <mapnik/datasource.hpp>
+#include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
-#include "proj_transform_adapter.hpp"
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
@@ -74,14 +74,13 @@ NAN_METHOD(Geometry::toJSONSync)
     NanReturnValue(_toJSONSync(args));
 }
 
-// FIXME: stopgap until we have proper geometry-filters to chain
-// operations on `mapnik::geometry::geometry` types
 bool to_geojson_projected(std::string & json,
                           mapnik::geometry::geometry const& geom,
                           mapnik::proj_transform const& prj_trans)
 {
-    transformer trans(prj_trans);
-    mapnik::geometry::geometry projected_geom;// = trans(geom); // TODO - not compiling yet
+    unsigned int n_err = 0;
+    mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err);
+    if (n_err > 0) return false;
     return mapnik::util::to_geojson(json,projected_geom);
 }
 
