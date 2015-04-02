@@ -137,6 +137,7 @@ struct p2p_distance
                     inside=!inside;
                 }
             }
+            if (!inside) return -1;
         }
         return inside ? 0 : -1;
     }
