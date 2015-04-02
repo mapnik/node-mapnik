@@ -714,7 +714,6 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
-            fs.writeFileSync('./test/data/vector_tile/tile0.vector.pbf', vtile.getData());
             done();
         });
     });
