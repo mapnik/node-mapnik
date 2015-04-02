@@ -5,6 +5,7 @@
 #include <mapnik/datasource.hpp>
 #include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 

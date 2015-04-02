@@ -30,10 +30,9 @@
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/util/feature_to_geojson.hpp>
 #include <mapnik/feature_kv_iterator.hpp>
 #include <mapnik/geometry_reprojection.hpp>
-#include <mapnik/json/geometry_generator_grammar.hpp>
-#include <mapnik/json/properties_generator_grammar.hpp>
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
 #include <cairo.h>
@@ -1741,7 +1740,6 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
     bool first = true;
     if (fs)
     {
-        using sink_type = std::back_insert_iterator<std::string>;
         mapnik::feature_ptr feature;
         static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
         while ((feature = fs->next()))
@@ -1754,42 +1752,18 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             {
                 result += "\n,";
             }
-            result += "{\"type\":\"Feature\",\"geometry\":";
-            auto const& geom = feature->get_geometry();
-            if (mapnik::geometry::is_empty(geom))
-            {
-                result += "null";
-            }
-            else
-            {
-                unsigned int n_err = 0;
-                std::string json_geom;
-                mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err);
-                if (n_err == 0 && mapnik::util::to_geojson(json_geom,projected_geom))
-                {
-                    result += json_geom;
-                }
-                else
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_END
-                }
-            }
-            result += ",\"properties\":";
-            std::string properties;
-            sink_type sink(properties);
-            if (boost::spirit::karma::generate(sink, prop_grammar, *feature))
-            {
-                result += properties;
-            }
-            else
+            std::string feature_str;
+            mapnik::feature_impl feature_new(feature->context(),feature->id());
+            feature_new.set_data(feature->get_data());
+            unsigned int n_err = 0;
+            feature_new.set_geometry(mapnik::reproject(feature->get_geometry(), prj_trans, n_err)); 
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
                 // LCOV_EXCL_START
-                throw std::runtime_error("Failed to generate GeoJSON properties");
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
                 // LCOV_EXCL_END
             }
-            result += "}";
+            result += feature_str;
         }
     }
     return !first;
