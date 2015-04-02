@@ -121,8 +121,7 @@ struct p2p_distance
             // todo - account for tolerance
             if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
             {
-                inside = true;
-                break;
+                inside = !inside;
             }
         }
         if (!inside) return -1;
@@ -136,7 +135,6 @@ struct p2p_distance
                 if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
                 {
                     inside=!inside;
-                    break;
                 }
             }
         }
@@ -1207,13 +1205,8 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
-                    double distance = -1;
                     auto const& geom = feature->get_geometry();
-                    double dist = path_to_point_distance(geom,x,y);
-                    if (dist >= 0 && (distance < 0 || dist < distance))
-                    {
-                        distance = dist;
-                    }
+                    double distance = path_to_point_distance(geom,x,y);
                     if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
@@ -1245,13 +1238,8 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
-                    double distance = -1;
                     auto const& geom = feature->get_geometry();
-                    double dist = path_to_point_distance(geom,x,y);
-                    if (dist >= 0 && (distance < 0 || dist < distance))
-                    {
-                        distance = dist;
-                    }
+                    double distance = path_to_point_distance(geom,x,y);
                     if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
@@ -1504,13 +1492,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             unsigned has_hit = 0;
             for (std::size_t p = 0; p < points.size(); ++p) {
                 mapnik::coord2d const& pt = points[p];
-                double distance = -1;
                 auto const& geom = feature->get_geometry();
-                double dist = path_to_point_distance(geom,pt.x,pt.y);
-                if (dist >= 0 && (distance < 0 || dist < distance))
-                {
-                    distance = dist;
-                }
+                double distance = path_to_point_distance(geom,pt.x,pt.y);
                 if (distance >= 0 && distance <= tolerance)
                 {
                     has_hit = 1;
