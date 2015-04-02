@@ -807,11 +807,12 @@ describe('mapnik.VectorTile ', function() {
 
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:-64}, function(err, vtile_image) {
             if (err) throw err;
-            //var actual = './test/data/vector_tile/tile0-b.actual.png';
+            var actual = './test/data/vector_tile/tile0-b.actual.png';
             var expected = './test/data/vector_tile/tile0-b.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
+            vtile_image.save(actual, 'png32');
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
@@ -854,11 +855,12 @@ describe('mapnik.VectorTile ', function() {
 
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:-64}, function(err, vtile_image) {
             if (err) throw err;
-            //var actual = './test/data/vector_tile/tile0-c.actual.png';
+            var actual = './test/data/vector_tile/tile0-c.actual.png';
             var expected = './test/data/vector_tile/tile0-c.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
+            vtile_image.save(actual, 'png32');
             // TODO - visual difference in master vs 2.3.x due to https://github.com/mapnik/mapnik/commit/ecc5acbdb953e172fcc652b55ed19b8b581e2146
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
