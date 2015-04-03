@@ -1392,6 +1392,7 @@ struct vector_tile_baton_t {
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
+    double simplify_distance;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1405,6 +1406,7 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
+        simplify_distance(0.0),
         error(false) {}
 };
 
@@ -1708,6 +1710,26 @@ NAN_METHOD(Map::render)
                 closure->path_multiplier = param_val->NumberValue();
             }
 
+            if (options->Has(NanNew("simplify_algorithm"))) {
+                Local<Value> param_val = options->Get(NanNew("simplify_algorithm"));
+                if (!param_val->IsString()) {
+                    delete closure;
+                    NanThrowTypeError("option 'simplify_algorithm' must be an string");
+                    NanReturnUndefined();
+                }
+                // TODO
+            }
+
+            if (options->Has(NanNew("simplify_distance"))) {
+                Local<Value> param_val = options->Get(NanNew("simplify_distance"));
+                if (!param_val->IsNumber()) {
+                    delete closure;
+                    NanThrowTypeError("option 'simplify_distance' must be an string");
+                    NanReturnUndefined();
+                }
+                closure->simplify_distance = param_val->NumberValue();
+            }
+
             if (options->Has(NanNew("variables")))
             {
                 Local<Value> bind_opt = options->Get(NanNew("variables"));
@@ -1777,6 +1799,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->tolerance,
                           closure->image_format,
                           closure->scaling_method);
+        ren.set_simplify_distance(closure->simplify_distance);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
         closure->d->cache_bytesize();
