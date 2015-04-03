@@ -112,7 +112,7 @@ struct p2p_distance
     {
         auto const& exterior = geom.exterior_ring;
         std::size_t num_points = exterior.num_points();
-        if (num_points < 2) return -1;
+        if (num_points < 4) return -1;
         bool inside = false;
         for (std::size_t i = 1; i < num_points; ++i)
         {
