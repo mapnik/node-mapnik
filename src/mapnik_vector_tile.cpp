@@ -128,6 +128,10 @@ struct p2p_distance
         for (auto const& ring :  geom.interior_rings)
         {
             std::size_t num_interior_points = ring.size();
+            if (num_interior_points < 4)
+            {
+                continue;
+            }
             for (std::size_t j = 1; j < num_interior_points; ++j)
             {
                 auto const& pt0 = ring[j-1];
@@ -137,7 +141,6 @@ struct p2p_distance
                     inside=!inside;
                 }
             }
-            if (!inside) return -1;
         }
         return inside ? 0 : -1;
     }
