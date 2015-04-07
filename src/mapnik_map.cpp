@@ -1393,7 +1393,6 @@ struct vector_tile_baton_t {
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
     double simplify_distance;
-    unsigned simplify_tolerance;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -1408,7 +1407,6 @@ struct vector_tile_baton_t {
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
         simplify_distance(0.0),
-        simplify_tolerance(0),
         error(false) {}
 };
 
@@ -1732,16 +1730,6 @@ NAN_METHOD(Map::render)
                 closure->simplify_distance = param_val->NumberValue();
             }
 
-            if (options->Has(NanNew("simplify_tolerance"))) {
-                Local<Value> param_val = options->Get(NanNew("simplify_tolerance"));
-                if (!param_val->IsNumber()) {
-                    delete closure;
-                    NanThrowTypeError("option 'simplify_tolerance' must be an unsigned integer");
-                    NanReturnUndefined();
-                }
-                closure->simplify_tolerance = param_val->NumberValue();
-            }
-
             if (options->Has(NanNew("variables")))
             {
                 Local<Value> bind_opt = options->Get(NanNew("variables"));
@@ -1812,7 +1800,6 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->image_format,
                           closure->scaling_method);
         ren.set_simplify_distance(closure->simplify_distance);
-        ren.set_simplify_tolerance(closure->simplify_tolerance);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
         closure->d->cache_bytesize();
