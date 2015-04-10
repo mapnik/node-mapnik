@@ -1742,7 +1742,7 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             mapnik::feature_impl feature_new(feature->context(),feature->id());
             feature_new.set_data(feature->get_data());
             unsigned int n_err = 0;
-            feature_new.set_geometry(mapnik::reproject(feature->get_geometry(), prj_trans, n_err)); 
+            feature_new.set_geometry(mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err)); 
             if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
                 // LCOV_EXCL_START

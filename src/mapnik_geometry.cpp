@@ -80,7 +80,7 @@ bool to_geojson_projected(std::string & json,
                           mapnik::proj_transform const& prj_trans)
 {
     unsigned int n_err = 0;
-    mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err);
+    mapnik::geometry::geometry projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
     if (n_err > 0) return false;
     return mapnik::util::to_geojson(json,projected_geom);
 }
