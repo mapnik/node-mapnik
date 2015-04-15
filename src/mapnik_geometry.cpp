@@ -76,11 +76,11 @@ NAN_METHOD(Geometry::toJSONSync)
 }
 
 bool to_geojson_projected(std::string & json,
-                          mapnik::geometry::geometry const& geom,
+                          mapnik::geometry::geometry<double> const& geom,
                           mapnik::proj_transform const& prj_trans)
 {
     unsigned int n_err = 0;
-    mapnik::geometry::geometry projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
     if (n_err > 0) return false;
     return mapnik::util::to_geojson(json,projected_geom);
 }
@@ -123,7 +123,7 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
             }
             ProjTransform* tr = node::ObjectWrap::Unwrap<ProjTransform>(obj);
             mapnik::proj_transform const& prj_trans = *tr->get();
-            mapnik::geometry::geometry const& geom = g->feat_->get_geometry();
+            mapnik::geometry::geometry<double> const& geom = g->feat_->get_geometry();
             if (!to_geojson_projected(json,geom,prj_trans))
             {
                 // Fairly certain this situation can never be reached but 
@@ -198,7 +198,7 @@ void Geometry::to_json(uv_work_t* req)
         if (closure->tr)
         {
             mapnik::proj_transform const& prj_trans = *closure->tr->get();
-            mapnik::geometry::geometry const& geom = closure->g->feat_->get_geometry();
+            mapnik::geometry::geometry<double> const& geom = closure->g->feat_->get_geometry();
             if (!to_geojson_projected(closure->result,geom,prj_trans))
             {
                 // Fairly certain this situation can never be reached but 

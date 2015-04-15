@@ -68,11 +68,11 @@ struct p2p_distance
         return -1;
     }
 
-    double operator() (mapnik::geometry::point const& geom) const
+    double operator() (mapnik::geometry::point<double> const& geom) const
     {
         return mapnik::distance(geom.x, geom.y, x_, y_);
     }
-    double operator() (mapnik::geometry::multi_point const& geom) const
+    double operator() (mapnik::geometry::multi_point<double> const& geom) const
     {
         double distance = -1;
         for (auto const& pt : geom)
@@ -82,7 +82,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::line_string const& geom) const
+    double operator() (mapnik::geometry::line_string<double> const& geom) const
     {
         double distance = -1;
         std::size_t num_points = geom.num_points();
@@ -98,7 +98,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::multi_line_string const& geom) const
+    double operator() (mapnik::geometry::multi_line_string<double> const& geom) const
     {
         double distance = -1;
         for (auto const& line: geom)
@@ -108,7 +108,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::polygon const& geom) const
+    double operator() (mapnik::geometry::polygon<double> const& geom) const
     {
         auto const& exterior = geom.exterior_ring;
         std::size_t num_points = exterior.num_points();
@@ -144,7 +144,7 @@ struct p2p_distance
         }
         return inside ? 0 : -1;
     }
-    double operator() (mapnik::geometry::multi_polygon const& geom) const
+    double operator() (mapnik::geometry::multi_polygon<double> const& geom) const
     {
         double distance = -1;
         for (auto const& poly: geom)
@@ -154,7 +154,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::geometry_collection const& collection) const
+    double operator() (mapnik::geometry::geometry_collection<double> const& collection) const
     {
         double distance = -1;
         for (auto const& geom: collection)
@@ -171,7 +171,7 @@ struct p2p_distance
 
 }
 
-double path_to_point_distance(mapnik::geometry::geometry const& geom, double x, double y)
+double path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
 {
     return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
