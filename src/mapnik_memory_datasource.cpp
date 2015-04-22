@@ -1,4 +1,3 @@
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
@@ -87,7 +86,7 @@ NAN_METHOD(MemoryDatasource::New)
             params[TOSTR(name)] = value->IntegerValue();
         }
         else if (value->IsNumber())
-        {   
+        {
             params[TOSTR(name)] = value->NumberValue();
         }
         else if (value->IsBoolean())
@@ -217,7 +216,7 @@ NAN_METHOD(MemoryDatasource::add)
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
-            feature->set_geometry(mapnik::geometry::point(x->NumberValue(),y->NumberValue()));
+            feature->set_geometry(mapnik::geometry::point<double>(x->NumberValue(),y->NumberValue()));
             if (obj->Has(NanNew("properties")))
             {
                 Local<Value> props = obj->Get(NanNew("properties"));

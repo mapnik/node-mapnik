@@ -68,11 +68,11 @@ struct p2p_distance
         return -1;
     }
 
-    double operator() (mapnik::geometry::point const& geom) const
+    double operator() (mapnik::geometry::point<double> const& geom) const
     {
         return mapnik::distance(geom.x, geom.y, x_, y_);
     }
-    double operator() (mapnik::geometry::multi_point const& geom) const
+    double operator() (mapnik::geometry::multi_point<double> const& geom) const
     {
         double distance = -1;
         for (auto const& pt : geom)
@@ -82,7 +82,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::line_string const& geom) const
+    double operator() (mapnik::geometry::line_string<double> const& geom) const
     {
         double distance = -1;
         std::size_t num_points = geom.num_points();
@@ -98,7 +98,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::multi_line_string const& geom) const
+    double operator() (mapnik::geometry::multi_line_string<double> const& geom) const
     {
         double distance = -1;
         for (auto const& line: geom)
@@ -108,7 +108,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::polygon const& geom) const
+    double operator() (mapnik::geometry::polygon<double> const& geom) const
     {
         auto const& exterior = geom.exterior_ring;
         std::size_t num_points = exterior.num_points();
@@ -144,7 +144,7 @@ struct p2p_distance
         }
         return inside ? 0 : -1;
     }
-    double operator() (mapnik::geometry::multi_polygon const& geom) const
+    double operator() (mapnik::geometry::multi_polygon<double> const& geom) const
     {
         double distance = -1;
         for (auto const& poly: geom)
@@ -154,7 +154,7 @@ struct p2p_distance
         }
         return distance;
     }
-    double operator() (mapnik::geometry::geometry_collection const& collection) const
+    double operator() (mapnik::geometry::geometry_collection<double> const& collection) const
     {
         double distance = -1;
         for (auto const& geom: collection)
@@ -171,7 +171,7 @@ struct p2p_distance
 
 }
 
-double path_to_point_distance(mapnik::geometry::geometry const& geom, double x, double y)
+double path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
 {
     return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
@@ -231,7 +231,7 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     painted_(false),
     byte_size_(0) {}
 
-// For some reason coverage never seems to be considered here even though 
+// For some reason coverage never seems to be considered here even though
 // I have tested it and it does print
 /* LCOV_EXCL_START */
 VectorTile::~VectorTile() { }
@@ -421,7 +421,7 @@ void _composite(VectorTile* target_vt,
                 vector_tile::Tile const& tiledata = vt->get_tile();
                 if (!tiledata.SerializeToString(&new_message))
                 {
-                    /* The only time this could possible be reached it seems is 
+                    /* The only time this could possible be reached it seems is
                     if there is a protobuf that is attempted to be serialized that is
                     larger then two GBs, see link below:
                     https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
@@ -438,7 +438,7 @@ void _composite(VectorTile* target_vt,
             }
         }
         else
-        {   
+        {
             new_tiledata.Clear();
             // set up to render to new vtile
             typedef mapnik::vector_tile_impl::backend_pbf backend_type;
@@ -535,7 +535,7 @@ void _composite(VectorTile* target_vt,
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
             {
-                /* The only time this could possible be reached it seems is 
+                /* The only time this could possible be reached it seems is
                 if there is a protobuf that is attempted to be serialized that is
                 larger then two GBs, see link below:
                 https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
@@ -686,8 +686,8 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
                    offset_y,
                    tolerance,
                    scale_denominator);
-    } 
-    catch (std::exception const& ex) 
+    }
+    catch (std::exception const& ex)
     {
         NanThrowTypeError(ex.what());
         return NanEscapeScope(NanUndefined());
@@ -834,14 +834,14 @@ NAN_METHOD(VectorTile::composite)
     closure->vtiles.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j) {
         Local<Value> val = vtiles->Get(j);
-        if (!val->IsObject()) 
+        if (!val->IsObject())
         {
             delete closure;
             NanThrowTypeError("must provide an array of VectorTile objects");
             NanReturnUndefined();
         }
         Local<Object> tile_obj = val->ToObject();
-        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj)) 
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj))
         {
             delete closure;
             NanThrowTypeError("must provide an array of VectorTile objects");
@@ -885,12 +885,12 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
 
     vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
 
-    if (closure->error) 
+    if (closure->error)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
-    } 
-    else 
+    }
+    else
     {
         Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->d) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
@@ -920,7 +920,7 @@ NAN_METHOD(VectorTile::names)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
-    {   
+    {
         try
         {
             std::vector<std::string> names = d->lazy_names();
@@ -969,8 +969,8 @@ bool VectorTile::lazy_empty()
                     }
                 }
                 item.skipBytes(len);
-            } 
-            else 
+            }
+            else
             {
                 item.skip();
             }
@@ -1157,7 +1157,7 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     delete closure;
 }
 
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) 
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name)
 {
     if (d->width() <= 0 || d->height() <= 0)
     {
@@ -1172,7 +1172,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     double z = 0;
     if (!tr.forward(x,y,z))
     {
-        // THIS CAN NEVER BE REACHED CURRENTLY 
+        // THIS CAN NEVER BE REACHED CURRENTLY
         // internally lonlat2merc in mapnik can never return false.
         /* LCOV_EXCL_START */
         throw std::runtime_error("could not reproject lon/lat to mercator");
@@ -1742,7 +1742,7 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             mapnik::feature_impl feature_new(feature->context(),feature->id());
             feature_new.set_data(feature->get_data());
             unsigned int n_err = 0;
-            feature_new.set_geometry(mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err)); 
+            feature_new.set_geometry(mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
             if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
                 // LCOV_EXCL_START
