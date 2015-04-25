@@ -74,7 +74,6 @@ before_install:
  - PUBLISH_BINARY=false
  - REPUBLISH_BINARY=false
  - if [[ ${COVERAGE} == true ]]; then
-      brew update;
       brew install pyenv;
       eval "$(pyenv init -)";
       pyenv install 2.7.6;
