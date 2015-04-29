@@ -94,7 +94,7 @@ install:
    fi;
    else ./scripts/build_against_sdk.sh --coverage=true;
    fi;
- - npm test || true
+ - npm test
 
 before_script:
  - if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]] && [[ ${CXX} =~ "clang" ]] && [[ ${COVERAGE} == false ]]; then PUBLISH_BINARY=true; fi;
