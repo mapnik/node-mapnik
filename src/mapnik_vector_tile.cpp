@@ -389,7 +389,7 @@ void _composite(VectorTile* target_vt,
                 double scale_factor,
                 unsigned offset_x,
                 unsigned offset_y,
-                unsigned tolerance,
+                double area_threshold,
                 double scale_denominator)
 {
     vector_tile::Tile new_tiledata;
@@ -485,7 +485,7 @@ void _composite(VectorTile* target_vt,
                                       scale_factor,
                                       offset_x,
                                       offset_y,
-                                      tolerance);
+                                      area_threshold);
                     ren.apply(scale_denominator);
                 }
             }
@@ -522,7 +522,7 @@ void _composite(VectorTile* target_vt,
                                               scale_factor,
                                               offset_x,
                                               offset_y,
-                                              tolerance);
+                                              area_threshold);
                             ren.apply(scale_denominator);
                         }
                     }
@@ -581,7 +581,7 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    unsigned tolerance = 8;
+    double area_threshold = 0.1;
     double scale_denominator = 0.0;
 
     if (args.Length() > 1) {
@@ -602,15 +602,15 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
             }
             path_multiplier = param_val->NumberValue();
         }
-        if (options->Has(NanNew("tolerance")))
+        if (options->Has(NanNew("area_threshold")))
         {
-            Local<Value> tol = options->Get(NanNew("tolerance"));
-            if (!tol->IsNumber())
+            Local<Value> area_thres = options->Get(NanNew("area_threshold"));
+            if (!area_thres->IsNumber())
             {
-                NanThrowTypeError("tolerance value must be a number");
+                NanThrowTypeError("area_threshold value must be a number");
                 return NanEscapeScope(NanUndefined());
             }
-            tolerance = tol->NumberValue();
+            area_threshold = area_thres->NumberValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -684,7 +684,7 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
                    scale_factor,
                    offset_x,
                    offset_y,
-                   tolerance,
+                   area_threshold,
                    scale_denominator);
     }
     catch (std::exception const& ex)
@@ -704,7 +704,7 @@ typedef struct {
     double scale_factor;
     unsigned offset_x;
     unsigned offset_y;
-    unsigned tolerance;
+    double area_threshold;
     double scale_denominator;
     std::vector<VectorTile*> vtiles;
     bool error;
@@ -737,7 +737,7 @@ NAN_METHOD(VectorTile::composite)
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    unsigned tolerance = 8;
+    double area_threshold = 0.1;
     double scale_denominator = 0.0;
     // not options yet, likely should never be....
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
@@ -761,15 +761,15 @@ NAN_METHOD(VectorTile::composite)
             }
             path_multiplier = param_val->NumberValue();
         }
-        if (options->Has(NanNew("tolerance")))
+        if (options->Has(NanNew("area_threshold")))
         {
-            Local<Value> tol = options->Get(NanNew("tolerance"));
-            if (!tol->IsNumber())
+            Local<Value> area_thres = options->Get(NanNew("area_threshold"));
+            if (!area_thres->IsNumber())
             {
-                NanThrowTypeError("tolerance value must be a number");
+                NanThrowTypeError("area_threshold value must be a number");
                 NanReturnUndefined();
             }
-            tolerance = tol->NumberValue();
+            area_threshold = area_thres->NumberValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -824,7 +824,7 @@ NAN_METHOD(VectorTile::composite)
     closure->request.data = closure;
     closure->offset_x = offset_x;
     closure->offset_y = offset_y;
-    closure->tolerance = tolerance;
+    closure->area_threshold = area_threshold;
     closure->path_multiplier = path_multiplier;
     closure->buffer_size = buffer_size;
     closure->scale_factor = scale_factor;
@@ -869,7 +869,7 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->scale_factor,
                    closure->offset_x,
                    closure->offset_y,
-                   closure->tolerance,
+                   closure->area_threshold,
                    closure->scale_denominator);
     }
     catch (std::exception const& ex)
@@ -2132,7 +2132,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     std::string geojson_name = TOSTR(args[1]);
 
     Local<Object> options = NanNew<Object>();
-    unsigned tolerance = 1;
+    double area_threshold = 0.1;
     unsigned path_multiplier = 16;
 
     if (args.Length() > 2) {
@@ -2144,13 +2144,13 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
         options = args[2]->ToObject();
 
-        if (options->Has(NanNew("tolerance"))) {
-            Local<Value> param_val = options->Get(NanNew("tolerance"));
+        if (options->Has(NanNew("area_threshold"))) {
+            Local<Value> param_val = options->Get(NanNew("area_threshold"));
             if (!param_val->IsNumber()) {
-                NanThrowError("option 'tolerance' must be an unsigned integer");
+                NanThrowError("option 'area_threshold' must be a number");
                 NanReturnUndefined();
             }
-            tolerance = param_val->IntegerValue();
+            area_threshold = param_val->IntegerValue();
         }
 
         if (options->Has(NanNew("path_multiplier"))) {
@@ -2187,7 +2187,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           1,
                           0,
                           0,
-                          tolerance);
+                          area_threshold);
         ren.apply();
         d->painted(ren.painted());
         d->cache_bytesize();
