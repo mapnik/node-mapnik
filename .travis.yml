@@ -2,6 +2,17 @@ language: cpp
 
 sudo: false
 
+git:
+  depth: 2
+
+addons:
+  apt:
+    sources:
+     - ubuntu-toolchain-r-test
+     - llvm-toolchain-precise-3.6
+    packages:
+     - clang-3.6
+
 matrix:
   include:
      # Coverage
@@ -36,63 +47,41 @@ env:
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
 
-
 before_install:
- - export COVERAGE=${COVERAGE:-false}
- - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
- # upgrade libstdc++ to support C++11
- - if [[ ${platform} == 'linux' ]]; then
-       source ./scripts/setup_cpp11_toolchain.sh;
-     fi;
- - if [[ ${platform} == 'darwin' ]]; then xcrun --sdk macosx --show-sdk-version; fi;
- # check if tag exists and matches package.json
  - scripts/validate_tag.sh
- - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
- # put node-pre-gyp on path
+ - export COVERAGE=${COVERAGE:-false}
+ - if [[ $(uname -s) == 'Linux' ]]; then
+     export CXX="clang++-3.6";
+     export CC="clang-3.6";
+     export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python2.7/site-packages;
+   else
+     export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages;
+   fi;
+ - source ./scripts/install_node.sh ${NODE_VERSION}
  - export PATH=./node_modules/.bin/:$PATH
- # here we set up the node version on the fly based on the matrix value.
- # This is done manually so that it is easy to flip the 'language' to
- # objective-c in another branch (to run the same travis.yml on OS X)
- - git clone https://github.com/creationix/nvm.git ../.nvm
- - source ../.nvm/nvm.sh
- - nvm install $NODE_VERSION
- - nvm use $NODE_VERSION
- - node --version
- - npm --version
- - PUBLISH_BINARY=false
- - REPUBLISH_BINARY=false
- - if [[ ${COVERAGE} == true ]]; then
-      brew install pyenv;
-      eval "$(pyenv init -)";
-      pyenv install 2.7.6;
-      pyenv global 2.7.6;
-      pyenv rehash;
-      pip install cpp-coveralls;
-      pyenv rehash;
-     fi;
 
 install:
- - if [[ "${CXX}" =~ "g++" ]]; then export JOBS=2; fi;
- - if [[ ${COVERAGE} == false ]];
-   then
-   if [[ ${COMMIT_MESSAGE} =~ "[test binary]" ]];
-      then npm install --fallback-to-build=false; 
-      else ./scripts/build_against_sdk.sh && rm -rf sdk; 
-   fi;
-   else ./scripts/build_against_sdk.sh --coverage=true;
-   fi;
+ - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+ - if [[ ${COVERAGE} == true ]]; then
+     PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
+     ./scripts/build_against_sdk.sh --coverage=true;
+   else
+     ./scripts/build_against_sdk.sh;
+   fi
+ - rm -rf sdk
+ - node-pre-gyp package testpackage
  - npm test
 
 before_script:
- - if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]] && [[ ${CXX} =~ "clang" ]] && [[ ${COVERAGE} == false ]]; then PUBLISH_BINARY=true; fi;
- - if [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]] && [[ ${CXX} =~ "clang" ]] && [[ ${COVERAGE} == false ]]; then REPUBLISH_BINARY=true; fi;
+ - if [[ ${CXX} =~ "clang" ]] && [[ ${COVERAGE} == false ]]; then
+      if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]]; then
+        node-pre-gyp publish;
+      elif [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]]; then
+        node-pre-gyp unpublish publish;
+      fi
+   fi
 
 script:
- - node-pre-gyp package testpackage
- - if [[ ${COVERAGE} == true ]]; then cpp-coveralls --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp; fi;
- - if [[ ${PUBLISH_BINARY} == true ]]; then node-pre-gyp publish; fi;
- - if [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp unpublish && node-pre-gyp publish; fi;
- #- if [[ ${PUBLISH_BINARY} == true ]] || [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
- # always killed by travis
+ - node --expose-gc bench/error/test_vt_abort2.js
+ # ugh: always killed by travis
  #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js
- - nice -n 19 node --expose-gc bench/error/test_vt_abort2.js
