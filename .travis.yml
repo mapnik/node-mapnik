@@ -14,32 +14,20 @@ matrix:
        env: NODE_VERSION="1.2.0" # node abi 43
      - os: linux
        compiler: clang
-       env: NODE_VERSION="1.0.4" # node abi 42
+       env: NODE_VERSION="0.12.2" # node abi 14
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.12.0" # node abi 14
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="0.11.14" # node abi 14, but versioned on major.minor.patch since it is an unstable series
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="0.10.36" # node abi 11
+       env: NODE_VERSION="0.10.38" # node abi 11
      # OS X
      - os: osx
        compiler: clang
        env: NODE_VERSION="1.2.0" # node abi 43
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.0.4" # node abi 42
+       env: NODE_VERSION="0.12.2" # node abi 14
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.12.0" # node abi 14
-     - os: osx
-       compiler: clang
-       env: NODE_VERSION="0.11.14" # node abi 14, but versioned on major.minor.patch since it is an unstable series
-     - os: osx
-       compiler: clang
-       env: NODE_VERSION="0.10.36" # node abi 11
+       env: NODE_VERSION="0.10.38" # node abi 11
 
 env:
   global:
@@ -74,7 +62,6 @@ before_install:
  - PUBLISH_BINARY=false
  - REPUBLISH_BINARY=false
  - if [[ ${COVERAGE} == true ]]; then
-      brew update;
       brew install pyenv;
       eval "$(pyenv init -)";
       pyenv install 2.7.6;
