@@ -9,9 +9,9 @@ addons:
   apt:
     sources:
      - ubuntu-toolchain-r-test
-     - llvm-toolchain-precise-3.6
+     - llvm-toolchain-precise-3.5
     packages:
-     - clang-3.6
+     - clang-3.5
 
 matrix:
   include:
