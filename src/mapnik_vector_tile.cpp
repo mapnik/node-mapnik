@@ -30,10 +30,9 @@
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/util/feature_to_geojson.hpp>
 #include <mapnik/feature_kv_iterator.hpp>
-#include "proj_transform_adapter.hpp"
-#include <mapnik/json/geometry_generator_grammar.hpp>
-#include <mapnik/json/properties_generator_grammar.hpp>
+#include <mapnik/geometry_reprojection.hpp>
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
 #include <cairo.h>
@@ -53,103 +52,128 @@
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
-
+#include <mapnik/hit_test_filter.hpp>
 #include <google/protobuf/io/coded_stream.h>
 
-template <typename PathType>
-double path_to_point_distance(PathType & path, double x, double y)
+namespace detail {
+
+struct p2p_distance
 {
-    double x0 = 0;
-    double y0 = 0;
-    double distance = -1;
-    path.rewind(0);
-    mapnik::geometry_type::types geom_type = static_cast<mapnik::geometry_type::types>(path.type());
-    switch(geom_type)
+    p2p_distance(double x, double y)
+     : x_(x),
+       y_(y) {}
+
+    double operator() (mapnik::geometry::geometry_empty const& ) const
     {
-    case mapnik::geometry_type::types::Point:
+        return -1;
+    }
+
+    double operator() (mapnik::geometry::point<double> const& geom) const
     {
-        unsigned command;
-        bool first = true;
-        while (mapnik::SEG_END != (command = path.vertex(&x0, &y0)))
+        return mapnik::distance(geom.x, geom.y, x_, y_);
+    }
+    double operator() (mapnik::geometry::multi_point<double> const& geom) const
+    {
+        double distance = -1;
+        for (auto const& pt : geom)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (first)
-            {
-                distance = mapnik::distance(x, y, x0, y0);
-                first = false;
-                continue;
-            }
-            double dist = mapnik::distance(x, y, x0, y0);
-            if (dist < distance) distance = dist;
+            double dist = operator()(pt);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
         return distance;
-        break;
     }
-    case mapnik::geometry_type::types::Polygon:
+    double operator() (mapnik::geometry::line_string<double> const& geom) const
     {
-        double x1 = 0;
-        double y1 = 0;
-        bool inside = false;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return distance;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        double distance = -1;
+        std::size_t num_points = geom.num_points();
+        if (num_points > 1)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
+            for (std::size_t i = 1; i < num_points; ++i)
             {
-                x0 = x1;
-                y0 = y1;
+                auto const& pt0 = geom[i-1];
+                auto const& pt1 = geom[i];
+                double dist = mapnik::point_to_segment_distance(x_,y_,pt0.x,pt0.y,pt1.x,pt1.y);
+                if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+            }
+        }
+        return distance;
+    }
+    double operator() (mapnik::geometry::multi_line_string<double> const& geom) const
+    {
+        double distance = -1;
+        for (auto const& line: geom)
+        {
+            double dist = operator()(line);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+        }
+        return distance;
+    }
+    double operator() (mapnik::geometry::polygon<double> const& geom) const
+    {
+        auto const& exterior = geom.exterior_ring;
+        std::size_t num_points = exterior.num_points();
+        if (num_points < 4) return -1;
+        bool inside = false;
+        for (std::size_t i = 1; i < num_points; ++i)
+        {
+            auto const& pt0 = exterior[i-1];
+            auto const& pt1 = exterior[i];
+            // todo - account for tolerance
+            if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
+            {
+                inside = !inside;
+            }
+        }
+        if (!inside) return -1;
+        for (auto const& ring :  geom.interior_rings)
+        {
+            std::size_t num_interior_points = ring.size();
+            if (num_interior_points < 4)
+            {
                 continue;
             }
-            if ((((y1 <= y) && (y < y0)) ||
-                 ((y0 <= y) && (y < y1))) &&
-                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
+            for (std::size_t j = 1; j < num_interior_points; ++j)
             {
-                inside=!inside;
+                auto const& pt0 = ring[j-1];
+                auto const& pt1 = ring[j];
+                if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
+                {
+                    inside=!inside;
+                }
             }
-            x0 = x1;
-            y0 = y1;
         }
         return inside ? 0 : -1;
-        break;
     }
-    case mapnik::geometry_type::types::LineString:
+    double operator() (mapnik::geometry::multi_polygon<double> const& geom) const
     {
-        double x1 = 0;
-        double y1 = 0;
-        bool first = true;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return distance;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        double distance = -1;
+        for (auto const& poly: geom)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
-            {
-                x0 = x1;
-                y0 = y1;
-                continue;
-            }
-            if (first)
-            {
-                distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                first = false;
-            }
-            else
-            {
-                double dist = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                if (dist >= 0 && dist < distance) distance = dist;
-            }
-            x0 = x1;
-            y0 = y1;
+            double dist = operator()(poly);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
-        // Don't return just fall through to distance below 
-        // return distance;
-    }
-    default:
         return distance;
-        break;
     }
-    return distance;
+    double operator() (mapnik::geometry::geometry_collection<double> const& collection) const
+    {
+        double distance = -1;
+        for (auto const& geom: collection)
+        {
+            double dist = mapnik::util::apply_visitor((*this),geom);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+        }
+        return distance;
+    }
+
+    double x_;
+    double y_;
+};
+
+}
+
+double path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
+{
+    return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
 
 Persistent<FunctionTemplate> VectorTile::constructor;
@@ -207,7 +231,7 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     painted_(false),
     byte_size_(0) {}
 
-// For some reason coverage never seems to be considered here even though 
+// For some reason coverage never seems to be considered here even though
 // I have tested it and it does print
 /* LCOV_EXCL_START */
 VectorTile::~VectorTile() { }
@@ -365,7 +389,7 @@ void _composite(VectorTile* target_vt,
                 double scale_factor,
                 unsigned offset_x,
                 unsigned offset_y,
-                unsigned tolerance,
+                double area_threshold,
                 double scale_denominator)
 {
     vector_tile::Tile new_tiledata;
@@ -397,7 +421,7 @@ void _composite(VectorTile* target_vt,
                 vector_tile::Tile const& tiledata = vt->get_tile();
                 if (!tiledata.SerializeToString(&new_message))
                 {
-                    /* The only time this could possible be reached it seems is 
+                    /* The only time this could possible be reached it seems is
                     if there is a protobuf that is attempted to be serialized that is
                     larger then two GBs, see link below:
                     https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
@@ -414,7 +438,7 @@ void _composite(VectorTile* target_vt,
             }
         }
         else
-        {   
+        {
             new_tiledata.Clear();
             // set up to render to new vtile
             typedef mapnik::vector_tile_impl::backend_pbf backend_type;
@@ -461,7 +485,7 @@ void _composite(VectorTile* target_vt,
                                       scale_factor,
                                       offset_x,
                                       offset_y,
-                                      tolerance);
+                                      area_threshold);
                     ren.apply(scale_denominator);
                 }
             }
@@ -498,7 +522,7 @@ void _composite(VectorTile* target_vt,
                                               scale_factor,
                                               offset_x,
                                               offset_y,
-                                              tolerance);
+                                              area_threshold);
                             ren.apply(scale_denominator);
                         }
                     }
@@ -511,7 +535,7 @@ void _composite(VectorTile* target_vt,
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
             {
-                /* The only time this could possible be reached it seems is 
+                /* The only time this could possible be reached it seems is
                 if there is a protobuf that is attempted to be serialized that is
                 larger then two GBs, see link below:
                 https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
@@ -557,7 +581,7 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    unsigned tolerance = 8;
+    double area_threshold = 0.1;
     double scale_denominator = 0.0;
 
     if (args.Length() > 1) {
@@ -578,15 +602,15 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
             }
             path_multiplier = param_val->NumberValue();
         }
-        if (options->Has(NanNew("tolerance")))
+        if (options->Has(NanNew("area_threshold")))
         {
-            Local<Value> tol = options->Get(NanNew("tolerance"));
-            if (!tol->IsNumber())
+            Local<Value> area_thres = options->Get(NanNew("area_threshold"));
+            if (!area_thres->IsNumber())
             {
-                NanThrowTypeError("tolerance value must be a number");
+                NanThrowTypeError("area_threshold value must be a number");
                 return NanEscapeScope(NanUndefined());
             }
-            tolerance = tol->NumberValue();
+            area_threshold = area_thres->NumberValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -660,10 +684,10 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
                    scale_factor,
                    offset_x,
                    offset_y,
-                   tolerance,
+                   area_threshold,
                    scale_denominator);
-    } 
-    catch (std::exception const& ex) 
+    }
+    catch (std::exception const& ex)
     {
         NanThrowTypeError(ex.what());
         return NanEscapeScope(NanUndefined());
@@ -680,7 +704,7 @@ typedef struct {
     double scale_factor;
     unsigned offset_x;
     unsigned offset_y;
-    unsigned tolerance;
+    double area_threshold;
     double scale_denominator;
     std::vector<VectorTile*> vtiles;
     bool error;
@@ -713,7 +737,7 @@ NAN_METHOD(VectorTile::composite)
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    unsigned tolerance = 8;
+    double area_threshold = 0.1;
     double scale_denominator = 0.0;
     // not options yet, likely should never be....
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
@@ -737,15 +761,15 @@ NAN_METHOD(VectorTile::composite)
             }
             path_multiplier = param_val->NumberValue();
         }
-        if (options->Has(NanNew("tolerance")))
+        if (options->Has(NanNew("area_threshold")))
         {
-            Local<Value> tol = options->Get(NanNew("tolerance"));
-            if (!tol->IsNumber())
+            Local<Value> area_thres = options->Get(NanNew("area_threshold"));
+            if (!area_thres->IsNumber())
             {
-                NanThrowTypeError("tolerance value must be a number");
+                NanThrowTypeError("area_threshold value must be a number");
                 NanReturnUndefined();
             }
-            tolerance = tol->NumberValue();
+            area_threshold = area_thres->NumberValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -800,7 +824,7 @@ NAN_METHOD(VectorTile::composite)
     closure->request.data = closure;
     closure->offset_x = offset_x;
     closure->offset_y = offset_y;
-    closure->tolerance = tolerance;
+    closure->area_threshold = area_threshold;
     closure->path_multiplier = path_multiplier;
     closure->buffer_size = buffer_size;
     closure->scale_factor = scale_factor;
@@ -810,14 +834,14 @@ NAN_METHOD(VectorTile::composite)
     closure->vtiles.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j) {
         Local<Value> val = vtiles->Get(j);
-        if (!val->IsObject()) 
+        if (!val->IsObject())
         {
             delete closure;
             NanThrowTypeError("must provide an array of VectorTile objects");
             NanReturnUndefined();
         }
         Local<Object> tile_obj = val->ToObject();
-        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj)) 
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj))
         {
             delete closure;
             NanThrowTypeError("must provide an array of VectorTile objects");
@@ -845,7 +869,7 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->scale_factor,
                    closure->offset_x,
                    closure->offset_y,
-                   closure->tolerance,
+                   closure->area_threshold,
                    closure->scale_denominator);
     }
     catch (std::exception const& ex)
@@ -861,12 +885,12 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
 
     vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
 
-    if (closure->error) 
+    if (closure->error)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
-    } 
-    else 
+    }
+    else
     {
         Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->d) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
@@ -896,7 +920,7 @@ NAN_METHOD(VectorTile::names)
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
-    {   
+    {
         try
         {
             std::vector<std::string> names = d->lazy_names();
@@ -945,8 +969,8 @@ bool VectorTile::lazy_empty()
                     }
                 }
                 item.skipBytes(len);
-            } 
-            else 
+            }
+            else
             {
                 item.skip();
             }
@@ -1133,7 +1157,7 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     delete closure;
 }
 
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) 
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name)
 {
     if (d->width() <= 0 || d->height() <= 0)
     {
@@ -1148,7 +1172,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     double z = 0;
     if (!tr.forward(x,y,z))
     {
-        // THIS CAN NEVER BE REACHED CURRENTLY 
+        // THIS CAN NEVER BE REACHED CURRENTLY
         // internally lonlat2merc in mapnik can never return false.
         /* LCOV_EXCL_START */
         throw std::runtime_error("could not reproject lon/lat to mercator");
@@ -1185,16 +1209,8 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
-                    double distance = -1;
-                    for (mapnik::geometry_type const& geom : feature->paths())
-                    {
-                        mapnik::vertex_adapter va(geom);
-                        double dist = path_to_point_distance(va,x,y);
-                        if (dist >= 0 && (distance < 0 || dist < distance))
-                        {
-                            distance = dist;
-                        }
-                    }
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,x,y);
                     if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
@@ -1226,16 +1242,8 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
-                    double distance = -1;
-                    for (mapnik::geometry_type const& geom : feature->paths())
-                    {
-                        mapnik::vertex_adapter va(geom);
-                        double dist = path_to_point_distance(va,x,y);
-                        if (dist >= 0 && (distance < 0 || dist < distance))
-                        {
-                            distance = dist;
-                        }
-                    }
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,x,y);
                     if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
@@ -1488,16 +1496,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             unsigned has_hit = 0;
             for (std::size_t p = 0; p < points.size(); ++p) {
                 mapnik::coord2d const& pt = points[p];
-                double distance = -1;
-                for (mapnik::geometry_type const& geom : feature->paths())
-                {
-                    mapnik::vertex_adapter va(geom);
-                    double dist = path_to_point_distance(va,pt.x,pt.y);
-                    if (dist >= 0 && (distance < 0 || dist < distance))
-                    {
-                        distance = dist;
-                    }
-                }
+                auto const& geom = feature->get_geometry();
+                double distance = path_to_point_distance(geom,pt.x,pt.y);
                 if (distance >= 0 && distance <= tolerance)
                 {
                     has_hit = 1;
@@ -1713,8 +1713,7 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                                                  x,
                                                  y,
                                                  z,
-                                                 width,
-                                                 true);
+                                                 width);
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
@@ -1728,9 +1727,6 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
     bool first = true;
     if (fs)
     {
-        using sink_type = std::back_insert_iterator<std::string>;
-        static const mapnik::json::properties_generator_grammar<sink_type, mapnik::feature_impl> prop_grammar;
-        static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
         {
@@ -1742,45 +1738,18 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
             {
                 result += "\n,";
             }
-            result += "{\"type\":\"Feature\",\"geometry\":";
-            if (feature->paths().empty())
+            std::string feature_str;
+            mapnik::feature_impl feature_new(feature->context(),feature->id());
+            feature_new.set_data(feature->get_data());
+            unsigned int n_err = 0;
+            feature_new.set_geometry(mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
-                result += "null";
+                // LCOV_EXCL_START
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
+                // LCOV_EXCL_END
             }
-            else
-            {
-                std::string geometry;
-                sink_type sink(geometry);
-                node_mapnik::proj_transform_container projected_paths;
-                for (auto const& geom : feature->paths())
-                {
-                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
-                }
-                if (boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
-                {
-                    result += geometry;
-                }
-                else
-                {
-                    /* LCOV_EXCL_START */
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    /* LCOV_EXCL_END */
-                }
-            }
-            result += ",\"properties\":";
-            std::string properties;
-            sink_type sink(properties);
-            if (boost::spirit::karma::generate(sink, prop_grammar, *feature))
-            {
-                result += properties;
-            }
-            else
-            {
-                /* LCOV_EXCL_START */
-                throw std::runtime_error("Failed to generate GeoJSON properties");
-                /* LCOV_EXCL_END */
-            }
-            result += "}";
+            result += feature_str;
         }
     }
     return !first;
@@ -2163,7 +2132,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     std::string geojson_name = TOSTR(args[1]);
 
     Local<Object> options = NanNew<Object>();
-    unsigned tolerance = 1;
+    double area_threshold = 0.1;
     unsigned path_multiplier = 16;
 
     if (args.Length() > 2) {
@@ -2175,13 +2144,13 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
         options = args[2]->ToObject();
 
-        if (options->Has(NanNew("tolerance"))) {
-            Local<Value> param_val = options->Get(NanNew("tolerance"));
+        if (options->Has(NanNew("area_threshold"))) {
+            Local<Value> param_val = options->Get(NanNew("area_threshold"));
             if (!param_val->IsNumber()) {
-                NanThrowError("option 'tolerance' must be an unsigned integer");
+                NanThrowError("option 'area_threshold' must be a number");
                 NanReturnUndefined();
             }
-            tolerance = param_val->IntegerValue();
+            area_threshold = param_val->IntegerValue();
         }
 
         if (options->Has(NanNew("path_multiplier"))) {
@@ -2218,7 +2187,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           1,
                           0,
                           0,
-                          tolerance);
+                          area_threshold);
         ren.apply();
         d->painted(ren.painted());
         d->cache_bytesize();
