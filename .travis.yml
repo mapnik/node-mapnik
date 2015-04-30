@@ -68,7 +68,6 @@ install:
    else
      ./scripts/build_against_sdk.sh;
    fi
- - rm -rf sdk
  - node-pre-gyp package testpackage
  - npm test
 
