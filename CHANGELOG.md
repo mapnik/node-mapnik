@@ -1,7 +1,11 @@
 # Changelog
 
-## 3.2.1
- - Added an additional parameter to Projection intialization. This prevents the intialization of a proj4 object internally. This will only be useful when reprojecting from epsg:4326 to epsg:3857 and vise versa. 
+## 3.3.0
+ - Upgraded to node-pre-gyp@0.6.5
+ - Ugraded to Mapnik 3.x version with totally new geometry storage
+ - Added an additional parameter to Projection initialization. This prevents the initialization
+   of a proj4 object internally. This will only be useful when reprojecting from epsg:4326 to
+   epsg:3857 and vise versa.
 
 ## 3.2.0
  - Added support for a variety of different grayscale images and `mapnik.imageType` list
