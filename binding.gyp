@@ -123,7 +123,8 @@
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                '<!@(mapnik-config --cflags)'
+                '<!@(mapnik-config --cflags)',
+                '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
               ],
               'OTHER_CFLAGS':[
                 '<!@(mapnik-config --cflags)'
