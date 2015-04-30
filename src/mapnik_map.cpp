@@ -1382,7 +1382,7 @@ struct vector_tile_baton_t {
     uv_work_t request;
     Map *m;
     VectorTile *d;
-    unsigned tolerance;
+    double area_threshold;
     unsigned path_multiplier;
     int buffer_size;
     double scale_factor;
@@ -1392,11 +1392,12 @@ struct vector_tile_baton_t {
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
+    double simplify_distance;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
     vector_tile_baton_t() :
-        tolerance(1),
+        area_threshold(0.1),
         path_multiplier(16),
         scale_factor(1.0),
         scale_denominator(0.0),
@@ -1405,6 +1406,7 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
+        simplify_distance(0.0),
         error(false) {}
 };
 
@@ -1688,14 +1690,14 @@ NAN_METHOD(Map::render)
                 closure->image_format = TOSTR(param_val);
             }
 
-            if (options->Has(NanNew("tolerance"))) {
-                Local<Value> param_val = options->Get(NanNew("tolerance"));
+            if (options->Has(NanNew("area_threshold"))) {
+                Local<Value> param_val = options->Get(NanNew("area_threshold"));
                 if (!param_val->IsNumber()) {
                     delete closure;
-                    NanThrowTypeError("option 'tolerance' must be an unsigned integer");
+                    NanThrowTypeError("option 'area_threshold' must be an number");
                     NanReturnUndefined();
                 }
-                closure->tolerance = param_val->IntegerValue();
+                closure->area_threshold = param_val->IntegerValue();
             }
 
             if (options->Has(NanNew("path_multiplier"))) {
@@ -1706,6 +1708,26 @@ NAN_METHOD(Map::render)
                     NanReturnUndefined();
                 }
                 closure->path_multiplier = param_val->NumberValue();
+            }
+
+            if (options->Has(NanNew("simplify_algorithm"))) {
+                Local<Value> param_val = options->Get(NanNew("simplify_algorithm"));
+                if (!param_val->IsString()) {
+                    delete closure;
+                    NanThrowTypeError("option 'simplify_algorithm' must be an string");
+                    NanReturnUndefined();
+                }
+                // TODO
+            }
+
+            if (options->Has(NanNew("simplify_distance"))) {
+                Local<Value> param_val = options->Get(NanNew("simplify_distance"));
+                if (!param_val->IsNumber()) {
+                    delete closure;
+                    NanThrowTypeError("option 'simplify_distance' must be an floating point number");
+                    NanReturnUndefined();
+                }
+                closure->simplify_distance = param_val->NumberValue();
             }
 
             if (options->Has(NanNew("variables")))
@@ -1774,9 +1796,10 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->scale_factor,
                           closure->offset_x,
                           closure->offset_y,
-                          closure->tolerance,
+                          closure->area_threshold,
                           closure->image_format,
                           closure->scaling_method);
+        ren.set_simplify_distance(closure->simplify_distance);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
         closure->d->cache_bytesize();
