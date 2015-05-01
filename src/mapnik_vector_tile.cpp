@@ -2133,6 +2133,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
     Local<Object> options = NanNew<Object>();
     double area_threshold = 0.1;
+    double simplify_distance = 0.0;
     unsigned path_multiplier = 16;
 
     if (args.Length() > 2) {
@@ -2161,6 +2162,15 @@ NAN_METHOD(VectorTile::addGeoJSON)
             }
             path_multiplier = param_val->NumberValue();
         }
+
+        if (options->Has(NanNew("simplify_distance"))) {
+            Local<Value> param_val = options->Get(NanNew("simplify_distance"));
+            if (!param_val->IsNumber()) {
+                NanThrowTypeError("option 'simplify_distance' must be an floating point number");
+                NanReturnUndefined();
+            }
+            simplify_distance = param_val->NumberValue();
+        }
     }
 
     try
@@ -2188,6 +2198,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           0,
                           0,
                           area_threshold);
+        ren.set_simplify_distance(simplify_distance);
         ren.apply();
         d->painted(ren.painted());
         d->cache_bytesize();

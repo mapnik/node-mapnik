@@ -59,6 +59,37 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
+    it('should fail when adding bad parameters to add geoJSON', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        var geo_str = JSON.stringify(geojson);
+        assert.throws(function() { vtile.addGeoJSON(); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str); });
+        assert.throws(function() { vtile.addGeoJSON(1, "layer"); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, 1); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", null); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {area_threshold:null}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {path_multiplier:null}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:null}); });
+    });
+
     it('should be able to create a vector tile from geojson', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
@@ -96,6 +127,149 @@ describe('mapnik.VectorTile ', function() {
             var coords = out2.features[0].geometry.coordinates;
             assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
             assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
+            assert.equal(out2.features[0].properties.name,'geojson data');
+            done();
+        });
+    });
+    
+    it('should be able to create a vector tile from geojson - with simplification', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {simplify_distance:1.0,path_multiplier:16,area_threshold:0.1} );
+        assert.equal(vtile.getData().length,58);
+        var out = JSON.parse(vtile.toGeoJSON(0));
+        assert.equal(out.type,'FeatureCollection');
+        assert.equal(out.features.length,1);
+        var coords = out.features[0].geometry.coordinates;
+        assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
+        assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
+        assert.equal(out.features[0].properties.name,'geojson data');
+        assert.equal(vtile.toGeoJSON(0),vtile.toGeoJSONSync(0));
+        vtile.toGeoJSON(0,function(err,json_string) {
+            var out2 = JSON.parse(json_string);
+            assert.equal(out2.type,'FeatureCollection');
+            assert.equal(out2.features.length,1);
+            var coords = out2.features[0].geometry.coordinates;
+            assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
+            assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
+            assert.equal(out2.features[0].properties.name,'geojson data');
+            done();
+        });
+    });
+    
+    
+    it('should be able to create a vector tile from geojson - multipoint', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "MultiPoint",
+                "coordinates": [[
+                  -122,
+                  48
+                ],
+                [ 
+                  -121,
+                  48
+                ]]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        assert.equal(vtile.getData().length,61);
+        var out = JSON.parse(vtile.toGeoJSON(0));
+        assert.equal(out.type,'FeatureCollection');
+        assert.equal(out.features.length,1);
+        var coords = out.features[0].geometry.coordinates;
+        assert.ok(Math.abs(coords[0][0] - geojson.features[0].geometry.coordinates[0][0]) < 0.3);
+        assert.ok(Math.abs(coords[0][1] - geojson.features[0].geometry.coordinates[0][1]) < 0.3);
+        assert.ok(Math.abs(coords[1][0] - geojson.features[0].geometry.coordinates[1][0]) < 0.3);
+        assert.ok(Math.abs(coords[1][1] - geojson.features[0].geometry.coordinates[1][1]) < 0.3);
+        assert.equal(out.features[0].properties.name,'geojson data');
+        assert.equal(vtile.toGeoJSON(0),vtile.toGeoJSONSync(0));
+        vtile.toGeoJSON(0,function(err,json_string) {
+            var out2 = JSON.parse(json_string);
+            assert.equal(out2.type,'FeatureCollection');
+            assert.equal(out2.features.length,1);
+            var coords = out2.features[0].geometry.coordinates;
+            assert.ok(Math.abs(coords[0][0] - geojson.features[0].geometry.coordinates[0][0]) < 0.3);
+            assert.ok(Math.abs(coords[0][1] - geojson.features[0].geometry.coordinates[0][1]) < 0.3);
+            assert.ok(Math.abs(coords[1][0] - geojson.features[0].geometry.coordinates[1][0]) < 0.3);
+            assert.ok(Math.abs(coords[1][1] - geojson.features[0].geometry.coordinates[1][1]) < 0.3);
+            assert.equal(out2.features[0].properties.name,'geojson data');
+            done();
+        });
+    });
+
+    it('should be able to create a vector tile from geojson - multipoint - with simplification', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "MultiPoint",
+                "coordinates": [[
+                  -122,
+                  48
+                ],
+                [ 
+                  -121,
+                  48
+                ]]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {simplify_distance:1.0});
+        assert.equal(vtile.getData().length,61);
+        var out = JSON.parse(vtile.toGeoJSON(0));
+        assert.equal(out.type,'FeatureCollection');
+        assert.equal(out.features.length,1);
+        var coords = out.features[0].geometry.coordinates;
+        assert.ok(Math.abs(coords[0][0] - geojson.features[0].geometry.coordinates[0][0]) < 0.3);
+        assert.ok(Math.abs(coords[0][1] - geojson.features[0].geometry.coordinates[0][1]) < 0.3);
+        assert.ok(Math.abs(coords[1][0] - geojson.features[0].geometry.coordinates[1][0]) < 0.3);
+        assert.ok(Math.abs(coords[1][1] - geojson.features[0].geometry.coordinates[1][1]) < 0.3);
+        assert.equal(out.features[0].properties.name,'geojson data');
+        assert.equal(vtile.toGeoJSON(0),vtile.toGeoJSONSync(0));
+        vtile.toGeoJSON(0,function(err,json_string) {
+            var out2 = JSON.parse(json_string);
+            assert.equal(out2.type,'FeatureCollection');
+            assert.equal(out2.features.length,1);
+            var coords = out2.features[0].geometry.coordinates;
+            assert.ok(Math.abs(coords[0][0] - geojson.features[0].geometry.coordinates[0][0]) < 0.3);
+            assert.ok(Math.abs(coords[0][1] - geojson.features[0].geometry.coordinates[0][1]) < 0.3);
+            assert.ok(Math.abs(coords[1][0] - geojson.features[0].geometry.coordinates[1][0]) < 0.3);
+            assert.ok(Math.abs(coords[1][1] - geojson.features[0].geometry.coordinates[1][1]) < 0.3);
             assert.equal(out2.features[0].properties.name,'geojson data');
             done();
         });
