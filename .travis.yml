@@ -3,7 +3,7 @@ language: cpp
 sudo: false
 
 git:
-  depth: 2
+  depth: 10
 
 addons:
   apt:
@@ -16,26 +16,32 @@ addons:
 matrix:
   include:
      # Coverage
-     #- os: osx
-     #  compiler: clang
-     #  env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43
      # Linux
-     #- os: linux
-     #  compiler: clang
-     #  env: NODE_VERSION="1.2.0" # node abi 43
-     #- os: linux
-     #  compiler: clang
-     #  env: NODE_VERSION="0.12.2" # node abi 14
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="2.0.0" # node abi 44
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="1.2.0" # node abi 43
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="0.12.2" # node abi 14
      - os: linux
        compiler: clang
        env: NODE_VERSION="0.10.38" # node abi 11
      # OS X
-     #- os: osx
-     #  compiler: clang
-     #  env: NODE_VERSION="1.2.0" # node abi 43
-     #- os: osx
-     #  compiler: clang
-     #  env: NODE_VERSION="0.12.2" # node abi 14
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="2.0.0" # node abi 44
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="1.2.0" # node abi 43
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="0.12.2" # node abi 14
      - os: osx
        compiler: clang
        env: NODE_VERSION="0.10.38" # node abi 11
