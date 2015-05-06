@@ -38,7 +38,7 @@ fi
 
 if [[ $platform == 'darwin' ]]; then
     platform="macosx"
-    TARBALL_NAME="mapnik-${platform}-sdk-${MAPNIK_GIT}-lto"
+    TARBALL_NAME="mapnik-${platform}-sdk-${MAPNIK_GIT}"
 fi
 
 REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
