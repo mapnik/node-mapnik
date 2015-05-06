@@ -164,11 +164,11 @@ void GridView::EIO_IsSolid(uv_work_t* req)
     grid_view_ptr view = closure->g->get();
     if (view->width() > 0 && view->height() > 0)
     {
-        mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
+        mapnik::grid_view::value_type first_pixel = view->get_row(0)[0];
         closure->pixel = first_pixel;
         for (unsigned y = 0; y < view->height(); ++y)
         {
-            mapnik::grid_view::value_type const * row = view->getRow(y);
+            mapnik::grid_view::value_type const * row = view->get_row(y);
             for (unsigned x = 0; x < view->width(); ++x)
             {
                 if (first_pixel != row[x])
@@ -224,10 +224,10 @@ NAN_METHOD(GridView::isSolidSync)
     grid_view_ptr view = g->get();
     if (view->width() > 0 && view->height() > 0)
     {
-        mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
+        mapnik::grid_view::value_type first_pixel = view->get_row(0)[0];
         for (unsigned y = 0; y < view->height(); ++y)
         {
-            mapnik::grid_view::value_type const * row = view->getRow(y);
+            mapnik::grid_view::value_type const * row = view->get_row(y);
             for (unsigned x = 0; x < view->width(); ++x)
             {
                 if (first_pixel != row[x])
@@ -270,7 +270,7 @@ NAN_METHOD(GridView::getPixel)
     grid_view_ptr view = g->get();
     if (x < view->width() && y < view->height())
     {
-        mapnik::grid_view::value_type pixel = view->getRow(y)[x];
+        mapnik::grid_view::value_type pixel = view->get_row(y)[x];
         NanReturnValue(NanNew<Number>(pixel));
     }
     NanReturnUndefined();

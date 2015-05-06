@@ -42,7 +42,7 @@ static void grid2utf(T const& grid_type,
     {
         uint16_t idx = 0;
         grid_line_type line(new uint16_t[array_size]);
-        typename T::value_type const* row = grid_type.getRow(y);
+        typename T::value_type const* row = grid_type.get_row(y);
         for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
         {
             // todo - this lookup is expensive

@@ -195,7 +195,7 @@ static inline void TintPixel(unsigned & r,
 
 
 static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *image) {
-    const unsigned int *source = image->im_ptr->getData();
+    const unsigned int *source = image->im_ptr->data();
 
     int sourceX = std::max(0, -image->x);
     int sourceY = std::max(0, -image->y);
@@ -413,7 +413,7 @@ void Work_Blend(uv_work_t* req) {
     {
         if (image_ptr && image_ptr->im_ptr.get())
         {
-            Blend_Composite(target.getData(), baton, &*image_ptr);
+            Blend_Composite(target.data(), baton, &*image_ptr);
         }
     }
     Blend_Encode(target, baton, alpha);
