@@ -916,7 +916,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should read back the vector tile and render a native svg with it', function(done) {
+    it.skip('should read back the vector tile and render a native svg with it', function(done) {
         if (mapnik.supports.svg) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
@@ -942,7 +942,7 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
-    it('should read back the vector tile and render a cairo svg with it', function(done) {
+    it.skip('should read back the vector tile and render a cairo svg with it', function(done) {
         if (mapnik.supports.cairo) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
