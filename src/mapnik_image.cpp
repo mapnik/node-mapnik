@@ -588,6 +588,7 @@ NAN_METHOD(Image::fill)
         Local<Object> obj = args[0]->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) 
         {
+            delete closure;
             NanThrowTypeError("A numeric or color value is expected");
             NanReturnUndefined();
         }
@@ -599,22 +600,26 @@ NAN_METHOD(Image::fill)
     }
     else
     {
+        delete closure;
         NanThrowTypeError("A numeric or color value is expected");
         NanReturnUndefined();
     }
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
     if (!args[args.Length()-1]->IsFunction()) {
+        delete closure;
         NanThrowTypeError("last argument must be a callback function");
         NanReturnUndefined();
     }
-
-    closure->request.data = closure;
-    closure->im = im;
-    closure->error = false;
-    NanAssignPersistent(closure->cb, callback.As<Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Fill, (uv_after_work_cb)EIO_AfterFill);
-    im->Ref();
+    else
+    {
+        closure->request.data = closure;
+        closure->im = im;
+        closure->error = false;
+        NanAssignPersistent(closure->cb, callback.As<Function>());
+        uv_queue_work(uv_default_loop(), &closure->request, EIO_Fill, (uv_after_work_cb)EIO_AfterFill);
+        im->Ref();
+    }
     NanReturnUndefined();
 }
 
@@ -1096,7 +1101,7 @@ NAN_METHOD(Image::copy)
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Copy, (uv_after_work_cb)EIO_AfterCopy);
-    im1->Ref();
+    closure->im1->Ref();
     NanReturnUndefined();
 }
 
@@ -1123,9 +1128,14 @@ void Image::EIO_AfterCopy(uv_work_t* req)
 {
     NanScope();
     copy_image_baton_t *closure = static_cast<copy_image_baton_t *>(req->data);
-    if (closure->error || !closure->im1)
+    if (closure->error)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else if (!closure->im2)
+    {
+        Local<Value> argv[1] = { NanError("could not render to image") };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     }
     else
