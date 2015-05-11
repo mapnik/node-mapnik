@@ -31,6 +31,21 @@ describe('mapnik.ImageView ', function() {
         assert.equal(pixel.a, 2);
         assert.equal(view.getPixel(99999999, 9999999), undefined);
     });
+    
+    it('isSolid for view should return blue with view being offset', function(done) {
+        var im = new mapnik.Image(256, 256);
+        im.fill(new mapnik.Color('blue'));
+        im.setPixel(0,0,new mapnik.Color('green'));
+        var view = im.view(1, 1, 255, 255);
+        assert.equal(view.isSolid(), true);
+        assert.equal(view.isSolidSync(), true);
+        view.isSolid(function(err,solid,pixel) {
+            assert.equal(solid, true);
+            assert.equal(pixel, 4294901760);
+            done();
+        });
+    });
+
 
     it('isSolid async works if true', function(done) {
         var im = new mapnik.Image(256, 256);

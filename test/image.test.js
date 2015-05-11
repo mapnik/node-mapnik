@@ -641,6 +641,17 @@ describe('mapnik.Image ', function() {
         });
     });
 
+    it('isSolid should fail as not solid', function(done) {
+        var im = new mapnik.Image(256, 256);
+        im.setPixel(0,0,new mapnik.Color('green'));
+        assert.equal(im.isSolid(), false);
+        assert.equal(im.isSolidSync(), false);
+        im.isSolid(function(err,solid,pixel) {
+            assert.equal(solid, false);
+            done();
+        });
+    });
+
     it('isSolid fails', function(done) {
         var im = new mapnik.Image(0, 0);
         assert.throws(function() { im.isSolidSync(); });
