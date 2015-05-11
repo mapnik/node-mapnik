@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.1
+
+ - TODO
+
 ## 3.3.0
  - Ugraded to Mapnik 3.x version with totally new geometry storage
  - Upgrade to mapnik-vector-tile@0.8.0
