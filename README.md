@@ -97,24 +97,31 @@ Note: This will install the latest node-mapnik 3.x series, which is recommended.
 By default, binaries are provided for:
 
  - 64 bit OS X 10.9, 64 bit Linux (>= Ubuntu Trusty), and 64/32 bit Windows
- - Node v0.10.x and Node v0.11.13
+ - several node versions:
+   - [versions forLinux/Mac](<https://github.com/mapnik/node-mapnik/blob/master/.travis.yml#L19-L47>)
+   - [versions for Windows](<https://github.com/mapnik/node-mapnik/blob/master/appveyor.yml#L9-L32>)
 
 On those platforms no external dependencies are needed.
 
+Other platforms will fall back to a source compile: see [Source Build](#source-build) for details.
+
 Binaries started being provided at node-mapnik >= 1.4.2 for OSX and Linux and at 1.4.8 for Windows.
 
-NOTE: Windows binaries for the 3.x series require the Visual C++ Redistributable Packages for Visual Studio 2014:
+### Windows specific
 
-  - https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_x64.exe
-  - https://mapbox.s3.amazonaws.com/node-cpp11/vcredist_x86.exe
+**NOTE:** Windows binaries for the **3.x** series require the Visual C++ Redistributable Packages for **Visual Studio 2014 CTP4**:
+
+  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2014-CTP4/vcredist_x64.exe>
+  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2014-CTP4/vcredist_x86.exe>
+
+**Attention:** *Installing a more recent vcredist than 2014 CTP4 will remove any other 2014/2015 CTP vcredists in the background and render the provided binaries non functional! This should not happen after a final Version of VS2015 is available.*
 
 See https://github.com/mapnik/node-mapnik/wiki/WindowsBinaries for more details.
 
-And the 1.x series require the Visual C++ Redistributable Packages for Visual Studio 2013:
+The **1.x** series require the Visual C++ Redistributable Packages for **Visual Studio 2013**:
 
  - http://www.microsoft.com/en-us/download/details.aspx?id=40784
 
-Other platforms will fall back to a source compile: see [Source Build](#source-build) for details.
 
 ## Source Build
 
