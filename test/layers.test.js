@@ -26,18 +26,18 @@ describe('mapnik.Layer ', function() {
         assert.equal(layer.queryable, false);
         layer.clear_label_cache = false;
         assert.equal(layer.clear_label_cache, false);
-        layer.minzoom = 1;
-        assert.equal(layer.minzoom, 1);
-        layer.maxzoom = 50;
-        assert.equal(layer.maxzoom, 50);
+        layer.minimum_scale_denominator = 1;
+        assert.equal(layer.minimum_scale_denominator, 1);
+        layer.maximum_scale_denominator = 50;
+        assert.equal(layer.maximum_scale_denominator, 50);
         assert.throws(function() { layer.name = null; });
         assert.throws(function() { layer.srs = null; });
         assert.throws(function() { layer.styles = null; });
         assert.throws(function() { layer.datasource = null; });
         assert.throws(function() { layer.datasource = {}; });
         assert.throws(function() { layer.active = null; });
-        assert.throws(function() { layer.minzoom = null; });
-        assert.throws(function() { layer.maxzoom = null; });
+        assert.throws(function() { layer.minimum_scale_denominator = null; });
+        assert.throws(function() { layer.maximum_scale_denominator = null; });
         assert.throws(function() { layer.queryable = null; });
         assert.throws(function() { layer.clear_label_cache = null; });
         assert.equal(layer.srs, '+init=epsg:4326');
@@ -55,8 +55,8 @@ describe('mapnik.Layer ', function() {
 
         // json representation
         var meta = layer.describe();
-        assert.equal(meta.minzoom, 1);
-        assert.equal(meta.maxzoom, 50);
+        assert.equal(meta.minimum_scale_denominator, 1);
+        assert.equal(meta.maximum_scale_denominator, 50);
         assert.equal(meta.active, true);
         assert.equal(meta.queryable, false);
         assert.equal(meta.clear_label_cache, false);

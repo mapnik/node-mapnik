@@ -33,8 +33,8 @@ void Layer::Initialize(Handle<Object> target) {
     ATTR(lcons, "srs", get_prop, set_prop);
     ATTR(lcons, "styles", get_prop, set_prop);
     ATTR(lcons, "datasource", get_prop, set_prop);
-    ATTR(lcons, "minzoom", get_prop, set_prop);
-    ATTR(lcons, "maxzoom", get_prop, set_prop);
+    ATTR(lcons, "minimum_scale_denominator", get_prop, set_prop);
+    ATTR(lcons, "maximum_scale_denominator", get_prop, set_prop);
     ATTR(lcons, "queryable", get_prop, set_prop);
     ATTR(lcons, "clear_label_cache", get_prop, set_prop);
 
@@ -148,13 +148,13 @@ NAN_GETTER(Layer::get_prop)
         }
         NanReturnUndefined();
     }
-    else if (a == "minzoom") 
+    else if (a == "minimum_scale_denominator") 
     {
-        NanReturnValue(NanNew<Number>(l->layer_->min_zoom()));   
+        NanReturnValue(NanNew<Number>(l->layer_->minimum_scale_denominator()));   
     }
-    else if (a == "maxzoom") 
+    else if (a == "maximum_scale_denominator") 
     {
-        NanReturnValue(NanNew<Number>(l->layer_->max_zoom()));   
+        NanReturnValue(NanNew<Number>(l->layer_->maximum_scale_denominator()));   
     }
     else if (a == "queryable") 
     {
@@ -237,21 +237,21 @@ NAN_SETTER(Layer::set_prop)
             }
         }
     }
-    else if (a == "minzoom")
+    else if (a == "minimum_scale_denominator")
     {
         if (!value->IsNumber()) {
             NanThrowTypeError("Must provide a number");
             return;
         }
-        l->layer_->set_min_zoom(value->NumberValue());
+        l->layer_->set_minimum_scale_denominator(value->NumberValue());
     }
-    else if (a == "maxzoom")
+    else if (a == "maximum_scale_denominator")
     {
         if (!value->IsNumber()) {
             NanThrowTypeError("Must provide a number");
             return;
         }
-        l->layer_->set_max_zoom(value->NumberValue());
+        l->layer_->set_maximum_scale_denominator(value->NumberValue());
     }
     else if (a == "queryable")
     {
@@ -296,9 +296,9 @@ NAN_METHOD(Layer::describe)
 
     description->Set(NanNew("clear_label_cache"), NanNew<Boolean>(layer.clear_label_cache()));
 
-    description->Set(NanNew("minzoom"), NanNew<Number>(layer.min_zoom()));
+    description->Set(NanNew("minimum_scale_denominator"), NanNew<Number>(layer.minimum_scale_denominator()));
 
-    description->Set(NanNew("maxzoom"), NanNew<Number>(layer.max_zoom()));
+    description->Set(NanNew("maximum_scale_denominator"), NanNew<Number>(layer.maximum_scale_denominator()));
 
     description->Set(NanNew("queryable"), NanNew<Boolean>(layer.queryable()));
 
