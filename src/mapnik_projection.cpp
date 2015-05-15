@@ -120,17 +120,20 @@ NAN_METHOD(Projection::forward)
             }
             else if (array_length == 4)
             {
-                double minx = a->Get(0)->NumberValue();
-                double miny = a->Get(1)->NumberValue();
-                double maxx = a->Get(2)->NumberValue();
-                double maxy = a->Get(3)->NumberValue();
-                p->projection_->forward(minx,miny);
-                p->projection_->forward(maxx,maxy);
+                double ulx, uly, urx, ury, lrx, lry, llx, lly;
+                ulx = llx = a->Get(0)->NumberValue();
+                lry = lly = a->Get(1)->NumberValue();
+                lrx = urx = a->Get(2)->NumberValue();
+                uly = ury = a->Get(3)->NumberValue();
+                p->projection_->forward(ulx,uly);
+                p->projection_->forward(urx,ury);
+                p->projection_->forward(lrx,lry);
+                p->projection_->forward(llx,lly);
                 Local<Array> arr = NanNew<Array>(4);
-                arr->Set(0, NanNew(minx));
-                arr->Set(1, NanNew(miny));
-                arr->Set(2, NanNew(maxx));
-                arr->Set(3, NanNew(maxy));
+                arr->Set(0, NanNew(std::min(ulx,llx)));
+                arr->Set(1, NanNew(std::min(lry,lly)));
+                arr->Set(2, NanNew(std::max(urx,lrx)));
+                arr->Set(3, NanNew(std::max(ury,uly)));
                 NanReturnValue(arr);
             }
             else
