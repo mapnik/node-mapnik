@@ -80,7 +80,7 @@ An optimization is possible when calling applications might create many differen
 
 Some background is needed for explaining why this is a potentially powerful optimization. By default Mapnik lazily caches font files in memory the first time their face is accessed during rendering. This makes sure that potentially slow font i/o does not hold back rendering speeds. However the drawback of this behavior is that over time if many different font faces are rendered by the same process memory usage will grow quite large and might hold on to font data that is rarely used.
 
-A common solution to this problem in software is to use a LRU cache. If this were how Mapnik worked then  infrequently used fonts could be purged from the global cache if the cache size grew too large. However Mapnik does not support and LRU cache and instead has an API to enable fonts to be cached per map. Caching per map makes it possible to:
+A common solution to this problem in software is to use a LRU cache. If this were how Mapnik worked then  infrequently used fonts could be purged from the global cache if the cache size grew too large. However Mapnik does not currently support an LRU cache and instead has an API to enable fonts to be cached per map. Caching per map makes it possible to:
 
   - Load in-memory on the map instance any needed fonts before rendering `map.loadFonts()`
   - Avoids them needing to be lazily cached globally during rendering (and avoids the mutex lock to make this threadsafe).
