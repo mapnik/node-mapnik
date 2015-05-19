@@ -28,7 +28,7 @@ Mapnik provides a few APIs for registering fonts:
 
 ##### Global
 
- - `mapnik.registerFonts(String font_directory, [Boolean recurse])` - Registers all fonts, globally. The `recurse` argument is optional and if set to `true` then fonts inside subdirectories will also be registered.
+ - `mapnik.registerFonts(String font_directory, [Boolean recurse])` - Registers all fonts inside the directory provided and registers them globally so they will be available to all maps being rendered. The `recurse` argument is optional and if set to `true` then fonts inside subdirectories will also be registered.
  - `mapnik.register_default_fonts()` -  Globally registers any fonts inside `settings.paths.fonts` recursively. The value of `settings.paths.fonts` comes from the `mapnik_settings.js` file generated when node-mapnik is built. For pre-built packages this is a directory inside the node-mapnik package and for source-compiled node-mapnik is is the value of `mapnik-config --fonts` which is usually `/usr/local/lib/mapnik/fonts`.
  - `mapnik.register_system_fonts()` - Globally registers all fonts possible in known system font directories which are `/Library/Fonts`, `/System/Library/Fonts`, and `~/Library/Fonts` on Mac OS X, `C:\\Windows\\Fonts` on Windows, and `/usr/share/fonts/` and `/usr/local/share/fonts/` on other Unix systems.
  - `MAPNIK_FONT_PATH`. If this environment variable is set then any fonts inside the directory will be globally registered when `require('mapnik')` is called. Multiple directories can be separated by `:` on Unix and `;` on Windows.
@@ -36,7 +36,7 @@ Mapnik provides a few APIs for registering fonts:
 ##### Map level
 
  - The `<Map font-directory="..." />` parameter in XML. Any fonts within this directory path will be registered on the Map when the XML is loaded. The `font-directory` path is interpreted as relative to the location of the map being loaded. If the map is being loaded from a string using `map.fromString` then the `font-directory` path is interpreted as relative to the location of the `{base:"some/path"}` parameter and if that is not provided it is interpreted as relative to the current working directory of the calling program.
- - `map.registerFonts(String font_directory, [Boolean recurse])` - Registers fonts on the map. The `recurse` argument is optional and if set to `true` then fonts inside subdirectories will also be registered.
+ - `map.registerFonts(String font_directory, [Boolean recurse])` - Registers all fonts inside the directory provided at the leve of the map such that these fonts will be available only on this specific map. The `recurse` argument is optional and if set to `true` then fonts inside subdirectories will also be registered.
 
 Note: if `{strict:true}` is passed when loading a map then face names found in the stylesheet will be validated and an error will be thrown if they are not already registered by calling `registerFonts` or by the `font-directory` parameter.
 
