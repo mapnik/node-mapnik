@@ -25,6 +25,7 @@ public:
     static NAN_METHOD(describe);
     static NAN_METHOD(featureset);
     static NAN_METHOD(extent);
+    static NAN_METHOD(fields);
 
     Datasource();
     inline datasource_ptr get() { return datasource_; }

@@ -90,6 +90,8 @@ describe('mapnik.Datasource', function() {
         assert.deepEqual(actual.geometry_type, expected.geometry_type);
 
         assert.deepEqual(ds.extent(), expected.extent);
+
+        assert.deepEqual(ds.fields(), expected.fields);
     });
     it('should validate with known shapefile', function() {
         var options = {
@@ -154,6 +156,8 @@ describe('mapnik.Datasource', function() {
         assert.deepEqual(actual.geometry_type, expected.geometry_type);
 
         assert.deepEqual(ds.extent(), expected.extent);
+
+        assert.deepEqual(ds.fields(), expected.fields);
     });
 
 

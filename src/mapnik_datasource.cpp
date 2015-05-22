@@ -32,6 +32,7 @@ void Datasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
 
     target->Set(NanNew("Datasource"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
@@ -229,4 +230,22 @@ NAN_METHOD(Datasource::featureset)
     }
 
     NanReturnUndefined();
+}
+
+NAN_METHOD(Datasource::fields)
+{
+    NanScope();
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
+    Local<Object> fields = NanNew<Object>();
+    try
+    {
+        node_mapnik::get_fields(fields,d->datasource_);
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        NanReturnUndefined();
+    }
+
+    NanReturnValue(fields);
 }
