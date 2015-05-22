@@ -21,27 +21,28 @@ namespace node_mapnik {
 
 static void get_fields(Local<Object> fields, mapnik::datasource_ptr ds)
 {
-        mapnik::layer_descriptor ld = ds->get_descriptor();
-        // field names and types
-        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-        while (itr != end)
-        {
-            unsigned field_type = itr->get_type();
-            std::string type("");
-            if (field_type == mapnik::Integer) type = "Number";
-            else if (field_type == mapnik::Float) type = "Number";
-            else if (field_type == mapnik::Double) type = "Number";
-            else if (field_type == mapnik::String) type = "String";
-            else if (field_type == mapnik::Boolean) type = "Boolean";
-            else if (field_type == mapnik::Geometry) type = "Geometry";
-            else if (field_type == mapnik::Object) type = "Object";
-            else type = "Unknown";
-            fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
-            fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
-            ++itr;
-        }
+    NanScope();
+    mapnik::layer_descriptor ld = ds->get_descriptor();
+    // field names and types
+    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+    while (itr != end)
+    {
+        unsigned field_type = itr->get_type();
+        std::string type("");
+        if (field_type == mapnik::Integer) type = "Number";
+        else if (field_type == mapnik::Float) type = "Number";
+        else if (field_type == mapnik::Double) type = "Number";
+        else if (field_type == mapnik::String) type = "String";
+        else if (field_type == mapnik::Boolean) type = "Boolean";
+        else if (field_type == mapnik::Geometry) type = "Geometry";
+        else if (field_type == mapnik::Object) type = "Object";
+        else type = "Unknown";
+        fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
+        fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
+        ++itr;
+    }
 }
 
 static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
