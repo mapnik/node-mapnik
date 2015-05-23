@@ -23,6 +23,7 @@ public:
     static NAN_METHOD(features);
     static NAN_METHOD(featureset);
     static NAN_METHOD(add);
+    static NAN_METHOD(fields);
 
     MemoryDatasource();
     inline mapnik::datasource_ptr get() { return datasource_; }

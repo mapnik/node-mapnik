@@ -28,6 +28,7 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(lcons, "add", add);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
 
     target->Set(NanNew("MemoryDatasource"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
@@ -256,4 +257,22 @@ NAN_METHOD(MemoryDatasource::add)
         }
     }
     NanReturnValue(NanFalse());
+}
+
+NAN_METHOD(MemoryDatasource::fields)
+{
+    NanScope();
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
+    Local<Object> fields = NanNew<Object>();
+    if (d->datasource_) {
+        try {
+            node_mapnik::get_fields(fields,d->datasource_);
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
+    }
+    NanReturnValue(fields);
 }
