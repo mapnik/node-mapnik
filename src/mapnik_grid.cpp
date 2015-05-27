@@ -207,7 +207,7 @@ NAN_METHOD(Grid::width)
     NanScope();
 
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-    NanReturnValue(NanNew<Integer>(g->get()->width()));
+    NanReturnValue(NanNew<Integer>((unsigned)g->get()->width()));
 }
 
 NAN_METHOD(Grid::height)
@@ -215,7 +215,7 @@ NAN_METHOD(Grid::height)
     NanScope();
 
     Grid* g = node::ObjectWrap::Unwrap<Grid>(args.Holder());
-    NanReturnValue(NanNew<Integer>(g->get()->height()));
+    NanReturnValue(NanNew<Integer>((unsigned)g->get()->height()));
 }
 
 NAN_GETTER(Grid::get_key)
