@@ -10,6 +10,14 @@
 
 Persistent<FunctionTemplate> Color::constructor;
 
+/**
+ * @name Color
+ * @class
+ * @param {string|Array<number>} value either an array of [r, g, b, a],
+ * a color keyword, or a CSS color in rgba() form.
+ * @example
+ * var c = new mapnik.Color('green');
+ */
 void Color::Initialize(Handle<Object> target) {
 
     NanScope();

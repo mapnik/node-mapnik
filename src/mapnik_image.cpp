@@ -29,6 +29,17 @@
 
 Persistent<FunctionTemplate> Image::constructor;
 
+/**
+ * @name mapnik.Image
+ * @class
+ * @param {number} width
+ * @param {number} height
+ * @param {Object} options
+ * @example
+ * var im = new mapnik.Image(256,256, mapnik.imageType.gray8, {
+ *   premultiplied: true
+ * });
+ */
 void Image::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -319,6 +330,15 @@ struct visitor_get_pixel
         
 };
 
+/**
+ * @name getPixel
+ * @instance
+ * @memberof mapnik.Image
+ * @param {number} x position within image from top left
+ * @param {number} y position within image from top left
+ * @param {Object} options
+ * @returns {number} color
+ */
 NAN_METHOD(Image::getPixel)
 {
     NanScope();
@@ -376,6 +396,14 @@ NAN_METHOD(Image::getPixel)
     NanReturnUndefined();
 }
 
+/**
+ * @name setPixel
+ * @instance
+ * @memberof mapnik.Image
+ * @param {number} x position within image from top left
+ * @param {number} y position within image from top left
+ * @param {Object|number} numeric or object representation of a color
+ */
 NAN_METHOD(Image::setPixel)
 {
     NanScope();
