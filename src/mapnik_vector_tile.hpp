@@ -44,6 +44,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
+    static Local<Value> _getData(_NAN_METHOD_ARGS);
     static NAN_METHOD(getData);
     static NAN_METHOD(render);
     static NAN_METHOD(toJSON);
@@ -148,6 +149,7 @@ public:
     parsing_status status_;
 private:
     ~VectorTile();
+    static std::string _gzip_compress(const unsigned char * str, const int len, int compressionlevel, int strategy);
     vector_tile::Tile tiledata_;
     unsigned width_;
     unsigned height_;
