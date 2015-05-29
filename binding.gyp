@@ -75,6 +75,14 @@
       ],
       'defines': ['MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"'],
       'conditions': [
+        ["'<!@(echo $MASON_HOME)'!=''", {
+           'include_dirs':[
+             '<!@(echo $MASON_HOME)/include/cairo'
+           ],
+           'libraries': [
+             '-L<!@(echo $MASON_HOME)/lib'
+             ]
+        }],
         ["coverage == 'true'", {
             "cflags_cc": ["--coverage"],
             "xcode_settings": {
