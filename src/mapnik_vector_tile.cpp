@@ -2547,7 +2547,7 @@ Local<Value> VectorTile::_getData(_NAN_METHOD_ARGS)
                     s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                     throw std::runtime_error(s.str());
                 }
-                return NanNewBufferHandle(compressed_data.c_str(), compressed_data.size());
+                return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
             }
             if (raw_size >= node::Buffer::kMaxLength) {
                 std::ostringstream s;
@@ -2555,10 +2555,10 @@ Local<Value> VectorTile::_getData(_NAN_METHOD_ARGS)
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                 throw std::runtime_error(s.str());
             }
-            return NanNewBufferHandle((char*)d->buffer_.data(),raw_size);
+            return NanEscapeScope(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         } else {
             if (d->byte_size_ <= 0) {
-                return NanNewBufferHandle(0);
+                return NanEscapeScope(NanNewBufferHandle(0));
             } else {
                 // NOTE: tiledata.ByteSize() must be called
                 // after each modification of tiledata otherwise the
@@ -2583,9 +2583,9 @@ Local<Value> VectorTile::_getData(_NAN_METHOD_ARGS)
                 if (gzip)
                 {
                   std::string compressed_data = _gzip_compress(start, d->byte_size_, level);
-                  return NanNewBufferHandle(compressed_data.c_str(), compressed_data.size());
+                  return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
                 }
-                return retbuf;
+                return NanEscapeScope(retbuf);
             }
         }
     }
