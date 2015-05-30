@@ -50,7 +50,11 @@ describe('mapnik.VectorTile compression', function() {
 
         assert.equal(vtile.getData().length, 58);
         assert.equal(vtile.getData({ compression: 'gzip'}).length,76);
-        assert.equal(zlib.gunzipSync(vtile.getData({ compression: 'gzip'})).length,58);
+
+        // Actually test decompressing, but only available on NodeJS >= 0.12.4
+        if (typeof zlib.gunzipSync != 'undefined') {
+            assert.equal(zlib.gunzipSync(vtile.getData({ compression: 'gzip'})).length,58);
+        }
 
         done();
     });
