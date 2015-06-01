@@ -99,6 +99,7 @@
               'mapnik-json.lib',
               '<!@(mapnik-config --dep-libs)',
               'libprotobuf-lite.lib',
+              'zlib.lib'
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
@@ -120,6 +121,7 @@
               '-lmapnik-json',
               '<!@(mapnik-config --ldflags)',
               '-lprotobuf-lite',
+              '-lz'
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[

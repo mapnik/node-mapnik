@@ -55,6 +55,8 @@
 #include <mapnik/hit_test_filter.hpp>
 #include <google/protobuf/io/coded_stream.h>
 
+#include <zlib.h>
+
 namespace detail {
 
 struct p2p_distance
@@ -2397,24 +2399,166 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     delete closure;
 }
 
+#define MOD_GZIP_ZLIB_WINDOWSIZE 15
+#define MOD_GZIP_ZLIB_CFACTOR 9
+
+std::string VectorTile::_gzip_compress(const unsigned char * str, const int len,
+                                        int compressionlevel = Z_BEST_COMPRESSION,
+                                        int strategy = Z_DEFAULT_STRATEGY)
+{
+
+
+    z_stream zs;
+    memset(&zs, 0, sizeof(zs));
+
+    if (deflateInit2(&zs, compressionlevel, Z_DEFLATED,
+                      MOD_GZIP_ZLIB_WINDOWSIZE + 16,
+                      MOD_GZIP_ZLIB_CFACTOR,
+                      strategy) != Z_OK)
+        throw(std::runtime_error("deflateInit failed while compressing."));
+
+    zs.next_in = (unsigned char *)str;
+    zs.avail_in = len;
+
+    int ret;
+    char outbuffer[32768];
+    std::string outstring;
+
+    // retrieve the compressed bytes blockwise
+    do {
+        zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
+        zs.avail_out = sizeof(outbuffer);
+
+        ret = deflate(&zs, Z_FINISH);
+
+        if (outstring.size() < zs.total_out) {
+            // append the block to the output string
+            outstring.append(outbuffer,
+                             zs.total_out - outstring.size());
+        }
+    } while (ret == Z_OK);
+
+    deflateEnd(&zs);
+
+    if (ret != Z_STREAM_END) {          // an error occurred that was not EOF
+        std::ostringstream oss;
+        oss << "Exception during zlib compression: (" << ret << ") " << zs.msg;
+        throw(std::runtime_error(oss.str()));
+    }
+
+    return outstring;
+}
+
+
 NAN_METHOD(VectorTile::getData)
 {
     NanScope();
+    NanReturnValue(_getData(args));
+}
+
+
+
+Local<Value> VectorTile::_getData(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+
+    Local<Object> options = NanNew<Object>();
+    bool gzip = false;
+    int level = 9;
+    int strategy = Z_DEFAULT_STRATEGY;
+
+    if (args.Length() > 0)
+    {
+        // options object
+        if (!args[0]->IsObject())
+        {
+            throw std::runtime_error("first argument must be an options object");
+        }
+
+        options = args[0]->ToObject();
+
+        if (options->Has(NanNew("compression")))
+        {
+            Local<Value> param_val = options->Get(NanNew("compression"));
+            if (!param_val->IsString())
+            {
+                throw std::runtime_error("option 'compression' must be a string, either 'gzip', or 'none' (default)");
+            }
+            gzip = std::string("gzip") == (TOSTR(param_val->ToString()));
+        }
+
+        if (options->Has(NanNew("level")))
+        {
+            Local<Value> param_val = options->Get(NanNew("level"));
+            if (!param_val->IsNumber())
+            {
+                throw std::runtime_error("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
+            }
+            level = param_val->IntegerValue();
+            if (level < 0 || level > 9)
+            {
+                throw std::runtime_error("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
+            }
+        }
+        if (options->Has(NanNew("strategy")))
+        {
+            Local<Value> param_val = options->Get(NanNew("level"));
+            if (!param_val->IsString())
+            {
+                throw std::runtime_error("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
+            }
+            else if (std::string("FILTERED") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_FILTERED;
+            }
+            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_HUFFMAN_ONLY;
+            }
+            else if (std::string("RLE") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_RLE;
+            }
+            else if (std::string("FIXED") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_FIXED;
+            }
+            else if (std::string("DEFAULT") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_DEFAULT_STRATEGY;
+            }
+            else
+            {
+                throw std::runtime_error("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
+            }
+        }
+    }
     try {
         // shortcut: return raw data and avoid trip through proto object
         std::size_t raw_size = d->buffer_.size();
         if (raw_size > 0 && (d->byte_size_ < 0 || static_cast<std::size_t>(d->byte_size_) <= raw_size)) {
+            if (gzip)
+            {
+                std::string compressed_data = _gzip_compress((unsigned char *)d->buffer_.data(), raw_size, level);
+                if (compressed_data.size() >= node::Buffer::kMaxLength) {
+                    std::ostringstream s;
+                    s << "Compressed data is too large to convert to a node::Buffer ";
+                    s << "(" << compressed_data.size() << " compressed bytes >= node::Buffer::kMaxLength)";
+                    throw std::runtime_error(s.str());
+                }
+                return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
+            }
             if (raw_size >= node::Buffer::kMaxLength) {
                 std::ostringstream s;
                 s << "Data is too large to convert to a node::Buffer ";
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                 throw std::runtime_error(s.str());
             }
-            NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
+            return NanEscapeScope(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         } else {
             if (d->byte_size_ <= 0) {
-                NanReturnValue(NanNewBufferHandle(0));
+                return NanEscapeScope(NanNewBufferHandle(0));
             } else {
                 // NOTE: tiledata.ByteSize() must be called
                 // after each modification of tiledata otherwise the
@@ -2426,6 +2570,7 @@ NAN_METHOD(VectorTile::getData)
                     s << "(" << d->byte_size_ << " cached bytes >= node::Buffer::kMaxLength)";
                     throw std::runtime_error(s.str());
                 }
+                // TODO: possible memory leak here if gzip is used????
                 Local<Object> retbuf = NanNewBufferHandle(d->byte_size_);
                 // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
                 // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
@@ -2435,14 +2580,27 @@ NAN_METHOD(VectorTile::getData)
                 if (end - start != d->byte_size_) {
                     throw std::runtime_error("serialization failed, possible race condition");
                 }
-                NanReturnValue(retbuf);
+                if (gzip)
+                {
+                    std::string compressed_data = _gzip_compress(start, d->byte_size_, level);
+                    if (compressed_data.size() >= node::Buffer::kMaxLength) {
+                        std::ostringstream s;
+                        s << "Compressed data is too large to convert to a node::Buffer ";
+                        s << "(" << compressed_data.size() << " compressed bytes >= node::Buffer::kMaxLength)";
+                        throw std::runtime_error(s.str());
+                    }
+                    return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
+                }
+                return NanEscapeScope(retbuf);
             }
         }
-    } catch (std::exception const& ex) {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
     }
-    NanReturnUndefined();
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
+    return NanEscapeScope(NanUndefined());
 }
 
 using surface_type = mapnik::util::variant<Image *, CairoSurface *, Grid *>;
