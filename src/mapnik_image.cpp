@@ -1111,11 +1111,11 @@ void Image::EIO_Copy(uv_work_t* req)
     try
     {
         closure->im2 = std::make_shared<mapnik::image_any>(
-                               std::move(mapnik::image_copy(*(closure->im1->this_), 
-                                                            closure->type, 
-                                                            closure->offset, 
+                               mapnik::image_copy(*(closure->im1->this_),
+                                                            closure->type,
+                                                            closure->offset,
                                                             closure->scaling)
-                               ));
+                               );
     }
     catch (std::exception const& ex)
     {
@@ -1240,11 +1240,11 @@ Local<Value> Image::_copySync(_NAN_METHOD_ARGS)
     try
     {
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(
-                                               std::move(mapnik::image_copy(*(im->this_), 
-                                                                            type, 
-                                                                            offset, 
+                                               mapnik::image_copy(*(im->this_),
+                                                                            type,
+                                                                            offset,
                                                                             scaling)
-                                               ));
+                                               );
         Image* im = new Image(image_ptr);
         Handle<Value> ext = NanNew<External>(im);
         Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
