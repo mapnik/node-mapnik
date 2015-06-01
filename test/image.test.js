@@ -16,16 +16,16 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { new mapnik.Image(256,256, null); });
         assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,null); });
         assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{premultiplied:null}); });
-        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{intialize:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{initialize:null}); });
         assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{painted:null}); });
         assert.throws(function() { new mapnik.Image('foo'); });
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
     });
 
-    it('should intialize image successfully with options', function() {
+    it('should initialize image successfully with options', function() {
         var options = {
             premultiplied: false,
-            intialize: true,
+            initialize: true,
             painted: false
         };
         var im1 = new mapnik.Image(256,256, mapnik.imageType.gray8, options);

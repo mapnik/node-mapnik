@@ -154,16 +154,16 @@ NAN_METHOD(Image::New)
             if (args[3]->IsObject())
             {
                 Local<Object> options = Local<Object>::Cast(args[3]);
-                if (options->Has(NanNew("intialize")))
+                if (options->Has(NanNew("initialize")))
                 {
-                    Local<Value> init_val = options->Get(NanNew("intialize"));
+                    Local<Value> init_val = options->Get(NanNew("initialize"));
                     if (!init_val.IsEmpty() && init_val->IsBoolean())
                     {
                         initialize = init_val->BooleanValue();
                     }
                     else
                     {
-                        NanThrowTypeError("intialize option must be a boolean");
+                        NanThrowTypeError("initialize option must be a boolean");
                         NanReturnUndefined();
                     }
                 }
