@@ -2544,7 +2544,7 @@ Local<Value> VectorTile::_getData(_NAN_METHOD_ARGS)
                 if (compressed_data.size() >= node::Buffer::kMaxLength) {
                     std::ostringstream s;
                     s << "Compressed data is too large to convert to a node::Buffer ";
-                    s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
+                    s << "(" << compressed_data.size() << " compressed bytes >= node::Buffer::kMaxLength)";
                     throw std::runtime_error(s.str());
                 }
                 return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
@@ -2582,8 +2582,14 @@ Local<Value> VectorTile::_getData(_NAN_METHOD_ARGS)
                 }
                 if (gzip)
                 {
-                  std::string compressed_data = _gzip_compress(start, d->byte_size_, level);
-                  return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
+                    std::string compressed_data = _gzip_compress(start, d->byte_size_, level);
+                    if (compressed_data.size() >= node::Buffer::kMaxLength) {
+                        std::ostringstream s;
+                        s << "Compressed data is too large to convert to a node::Buffer ";
+                        s << "(" << compressed_data.size() << " compressed bytes >= node::Buffer::kMaxLength)";
+                        throw std::runtime_error(s.str());
+                    }
+                    return NanEscapeScope(NanNewBufferHandle(compressed_data.c_str(), compressed_data.size()));
                 }
                 return NanEscapeScope(retbuf);
             }
