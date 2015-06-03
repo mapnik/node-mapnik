@@ -16,7 +16,6 @@
 #include <mapnik/value.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>
-#include <mapnik/utils.hpp>
 
 #define TOSTR(obj) (*String::Utf8Value((obj)->ToString()))
 
