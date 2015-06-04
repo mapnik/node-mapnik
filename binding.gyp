@@ -68,7 +68,7 @@
         "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
       ],
       'include_dirs': [
-        './deps/clipper/'
+        './deps/clipper/',
         './node_modules/mapnik-vector-tile/src/',
         '<(SHARED_INTERMEDIATE_DIR)/',
         './src',
