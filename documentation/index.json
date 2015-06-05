@@ -1,0 +1,6871 @@
+[
+  {
+    "description": "",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "blend"
+      },
+      {
+        "title": "param",
+        "description": "an array of buffers",
+        "type": {
+          "type": "TypeApplication",
+          "expression": {
+            "type": "NameExpression",
+            "name": "Array"
+          },
+          "applications": [
+            {
+              "type": "NameExpression",
+              "name": "Buffer"
+            }
+          ]
+        },
+        "name": "buffers"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "Object"
+        },
+        "name": "options"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "Function"
+        },
+        "name": "callback"
+      },
+      {
+        "title": "example",
+        "description": "mapnik.blend([\n fs.readFileSync('foo.png'),\n fs.readFileSync('bar.png'),\n], function(err, result) {\n if (err) throw err;\n fs.writeFileSync('result.png', result);\n});"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 442,
+          "column": 0
+        },
+        "end": {
+          "line": 455,
+          "column": 3
+        }
+      },
+      "file": "src/blend.cpp"
+    },
+    "name": "blend",
+    "params": [
+      {
+        "title": "param",
+        "description": "an array of buffers",
+        "type": {
+          "type": "TypeApplication",
+          "expression": {
+            "type": "NameExpression",
+            "name": "Array"
+          },
+          "applications": [
+            {
+              "type": "NameExpression",
+              "name": "Buffer"
+            }
+          ]
+        },
+        "name": "buffers"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "Object"
+        },
+        "name": "options"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "Function"
+        },
+        "name": "callback"
+      }
+    ],
+    "examples": [
+      "mapnik.blend([\n fs.readFileSync(<span class=\"hljs-string\">'foo.png'</span>),\n fs.readFileSync(<span class=\"hljs-string\">'bar.png'</span>),\n], <span class=\"hljs-function\"><span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">err, result</span>) </span>{\n <span class=\"hljs-keyword\">if</span> (err) <span class=\"hljs-keyword\">throw</span> err;\n fs.writeFileSync(<span class=\"hljs-string\">'result.png'</span>, result);\n});"
+    ],
+    "members": {
+      "instance": [],
+      "static": []
+    },
+    "path": [
+      "blend"
+    ]
+  },
+  {
+    "description": "",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Color"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      },
+      {
+        "title": "param",
+        "description": "either an array of [r, g, b, a],\na color keyword, or a CSS color in rgba() form.",
+        "type": {
+          "type": "UnionType",
+          "elements": [
+            {
+              "type": "NameExpression",
+              "name": "string"
+            },
+            {
+              "type": "TypeApplication",
+              "expression": {
+                "type": "NameExpression",
+                "name": "Array"
+              },
+              "applications": [
+                {
+                  "type": "NameExpression",
+                  "name": "number"
+                }
+              ]
+            }
+          ]
+        },
+        "name": "value"
+      },
+      {
+        "title": "example",
+        "description": "var c = new mapnik.Color('green');"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 13,
+          "column": 0
+        },
+        "end": {
+          "line": 20,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_color.cpp"
+    },
+    "name": "mapnik.Color",
+    "params": [
+      {
+        "title": "param",
+        "description": "either an array of [r, g, b, a],\na color keyword, or a CSS color in rgba() form.",
+        "type": {
+          "type": "UnionType",
+          "elements": [
+            {
+              "type": "NameExpression",
+              "name": "string"
+            },
+            {
+              "type": "TypeApplication",
+              "expression": {
+                "type": "NameExpression",
+                "name": "Array"
+              },
+              "applications": [
+                {
+                  "type": "NameExpression",
+                  "name": "number"
+                }
+              ]
+            }
+          ]
+        },
+        "name": "value"
+      }
+    ],
+    "examples": [
+      "<span class=\"hljs-keyword\">var</span> c = <span class=\"hljs-keyword\">new</span> mapnik.Color(<span class=\"hljs-string\">'green'</span>);"
+    ],
+    "members": {
+      "instance": [],
+      "static": []
+    },
+    "path": [
+      "mapnik.Color"
+    ]
+  },
+  {
+    "description": "A Datasource object. This is the connector from Mapnik to any kind\nof file, network, or database source of geographical data.",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Datasource"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 22,
+          "column": 0
+        },
+        "end": {
+          "line": 28,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_datasource.cpp"
+    },
+    "name": "mapnik.Datasource",
+    "members": {
+      "instance": [
+        {
+          "description": "Describe the datasource's contents and type.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "describe"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Datasource"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "description: an object with type, fields, encoding,\ngeometry_type, and proj4 code",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 195,
+                "column": 0
+              },
+              "end": {
+                "line": 203,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_datasource.cpp"
+          },
+          "name": "describe",
+          "memberof": "mapnik.Datasource",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "description: an object with type, fields, encoding,\ngeometry_type, and proj4 code",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Datasource",
+            "describe"
+          ]
+        },
+        {
+          "description": "Get the Datasource's extent",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "extent"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Datasource"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "extent [minx, miny, maxx, maxy] order feature extent.",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 164,
+                "column": 0
+              },
+              "end": {
+                "line": 171,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_datasource.cpp"
+          },
+          "name": "extent",
+          "memberof": "mapnik.Datasource",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "extent [minx, miny, maxx, maxy] order feature extent.",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Datasource",
+            "extent"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.Datasource"
+    ]
+  },
+  {
+    "description": "A single geographic feature, with geometry and properties. This is\ntypically derived from data by a datasource, but can be manually\ncreated.",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Feature"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 16,
+          "column": 0
+        },
+        "end": {
+          "line": 23,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_feature.cpp"
+    },
+    "name": "mapnik.Feature",
+    "members": {
+      "instance": [
+        {
+          "description": "Get the feature's attributes as an object.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "attributes"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Feature"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "attributes",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 174,
+                "column": 0
+              },
+              "end": {
+                "line": 181,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_feature.cpp"
+          },
+          "name": "attributes",
+          "memberof": "mapnik.Feature",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "attributes",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Feature",
+            "attributes"
+          ]
+        },
+        {
+          "description": "Get the feature's extent",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "extent"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Feature"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "extent [minx, miny, maxx, maxy] order feature extent.",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 150,
+                "column": 0
+              },
+              "end": {
+                "line": 157,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_feature.cpp"
+          },
+          "name": "extent",
+          "memberof": "mapnik.Feature",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "extent [minx, miny, maxx, maxy] order feature extent.",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Feature",
+            "extent"
+          ]
+        },
+        {
+          "description": "Get the feature's attributes as a Mapnik geometry.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "geometry"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Feature"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "geometry",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Geometry"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 203,
+                "column": 0
+              },
+              "end": {
+                "line": 210,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_feature.cpp"
+          },
+          "name": "geometry",
+          "memberof": "mapnik.Feature",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "geometry",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Geometry"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Feature",
+            "geometry"
+          ]
+        },
+        {
+          "description": "",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Feature"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "id"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "id the feature's internal id",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 137,
+                "column": 0
+              },
+              "end": {
+                "line": 142,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_feature.cpp"
+          },
+          "memberof": "mapnik.Feature",
+          "name": "id",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "id the feature's internal id",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Feature",
+            "id"
+          ]
+        },
+        {
+          "description": "Generate and return a GeoJSON representation of this feature",
+          "tags": [
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "toJSON"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Feature"
+            },
+            {
+              "title": "returns",
+              "description": "geojson Feature object in stringified GeoJSON",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 218,
+                "column": 0
+              },
+              "end": {
+                "line": 225,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_feature.cpp"
+          },
+          "scope": "instance",
+          "name": "toJSON",
+          "memberof": "mapnik.Feature",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "geojson Feature object in stringified GeoJSON",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Feature",
+            "toJSON"
+          ]
+        }
+      ],
+      "static": [
+        {
+          "description": "",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Feature"
+            },
+            {
+              "title": "static",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "fromJSON"
+            },
+            {
+              "title": "param",
+              "description": "string\n\nCreate a feature from a GeoJSON representation.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "geojson"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 93,
+                "column": 0
+              },
+              "end": {
+                "line": 100,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_feature.cpp"
+          },
+          "memberof": "mapnik.Feature",
+          "scope": "static",
+          "name": "fromJSON",
+          "params": [
+            {
+              "title": "param",
+              "description": "string\n\nCreate a feature from a GeoJSON representation.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "geojson"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Feature",
+            "fromJSON"
+          ]
+        }
+      ]
+    },
+    "path": [
+      "mapnik.Feature"
+    ]
+  },
+  {
+    "description": "An iterator of {@link mapnik.Feature} objects.",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Featureset"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 6,
+          "column": 0
+        },
+        "end": {
+          "line": 11,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_featureset.cpp"
+    },
+    "name": "mapnik.Featureset",
+    "members": {
+      "instance": [
+        {
+          "description": "Return the next Feature in this featureset if it exists, or `null` if it\ndoes not.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "next"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Featureset"
+            },
+            {
+              "title": "returns",
+              "description": "next feature",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Feature"
+                  },
+                  {
+                    "type": "NullLiteral"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 57,
+                "column": 0
+              },
+              "end": {
+                "line": 65,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_featureset.cpp"
+          },
+          "name": "next",
+          "scope": "instance",
+          "memberof": "mapnik.Featureset",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "next feature",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Feature"
+                  },
+                  {
+                    "type": "NullLiteral"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Featureset",
+            "next"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.Featureset"
+    ]
+  },
+  {
+    "description": "Geometry: a representation of geographical features in terms of\nshape alone. This class provides many useful functions for conversion\nto and from formats.\n\nYou'll never create a mapnik.Geometry instance manually: it is always\npart of a {@link mapnik.Feature} instance, which is often a part of\na {@link mapnik.Featureset} instance.",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Geometry"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 13,
+          "column": 0
+        },
+        "end": {
+          "line": 24,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_geometry.cpp"
+    },
+    "name": "mapnik.Geometry",
+    "members": {
+      "instance": [
+        {
+          "description": "Get the geometry's extent",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "extent"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Geometry"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "extent [minx, miny, maxx, maxy] order geometry extent.",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 293,
+                "column": 0
+              },
+              "end": {
+                "line": 300,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_geometry.cpp"
+          },
+          "name": "extent",
+          "memberof": "mapnik.Geometry",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "extent [minx, miny, maxx, maxy] order geometry extent.",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Geometry",
+            "extent"
+          ]
+        },
+        {
+          "description": "Convert this geometry into a [GeoJSON](http://geojson.org/) representation,\nasynchronously.",
+          "tags": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NullableType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                },
+                "prefix": false
+              },
+              "name": "options"
+            },
+            {
+              "title": "param",
+              "description": "called with (err, result)",
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Geometry"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "toJSON"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 171,
+                "column": 0
+              },
+              "end": {
+                "line": 180,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_geometry.cpp"
+          },
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NullableType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                },
+                "prefix": false
+              },
+              "name": "options"
+            },
+            {
+              "title": "param",
+              "description": "called with (err, result)",
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "memberof": "mapnik.Geometry",
+          "scope": "instance",
+          "name": "toJSON",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Geometry",
+            "toJSON"
+          ]
+        },
+        {
+          "description": "Convert this geometry into a [GeoJSON](http://geojson.org/) representation,\nsynchronously.",
+          "tags": [
+            {
+              "title": "returns",
+              "description": "GeoJSON, string-encoded representation of this geometry.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Geometry"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "toJSONSync"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 83,
+                "column": 0
+              },
+              "end": {
+                "line": 91,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_geometry.cpp"
+          },
+          "returns": [
+            {
+              "title": "returns",
+              "description": "GeoJSON, string-encoded representation of this geometry.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "memberof": "mapnik.Geometry",
+          "scope": "instance",
+          "name": "toJSONSync",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Geometry",
+            "toJSONSync"
+          ]
+        },
+        {
+          "description": "Get the geometry's representation as Well-Known Binary",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "toWKB"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Geometry"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "wkb representation of this geometry",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 339,
+                "column": 0
+              },
+              "end": {
+                "line": 346,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_geometry.cpp"
+          },
+          "name": "toWKB",
+          "memberof": "mapnik.Geometry",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "wkb representation of this geometry",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Geometry",
+            "toWKB"
+          ]
+        },
+        {
+          "description": "Get the geometry's representation as [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text)",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "toWKT"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Geometry"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "wkt representation of this geometry",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 314,
+                "column": 0
+              },
+              "end": {
+                "line": 321,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_geometry.cpp"
+          },
+          "name": "toWKT",
+          "memberof": "mapnik.Geometry",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "wkt representation of this geometry",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Geometry",
+            "toWKT"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.Geometry"
+    ]
+  },
+  {
+    "description": "Generator for [UTFGrid](https://www.mapbox.com/guides/an-open-platform)\nrepresentations of data.",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Grid"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "height"
+      },
+      {
+        "title": "param",
+        "description": "optional argument, which can have a 'key' property",
+        "type": {
+          "type": "OptionalType",
+          "expression": {
+            "type": "NameExpression",
+            "name": "Object"
+          }
+        },
+        "name": "options",
+        "default": "{}"
+      },
+      {
+        "title": "property",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "string"
+        },
+        "name": "key"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 16,
+          "column": 0
+        },
+        "end": {
+          "line": 26,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_grid.cpp"
+    },
+    "name": "mapnik.Grid",
+    "params": [
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "height"
+      },
+      {
+        "title": "param",
+        "description": "optional argument, which can have a 'key' property",
+        "type": {
+          "type": "OptionalType",
+          "expression": {
+            "type": "NameExpression",
+            "name": "Object"
+          }
+        },
+        "name": "options",
+        "default": "{}"
+      }
+    ],
+    "properties": [
+      {
+        "title": "property",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "string"
+        },
+        "name": "key"
+      }
+    ],
+    "members": {
+      "instance": [
+        {
+          "description": "Get all of this grid's fields",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "addField"
+            },
+            {
+              "title": "returns",
+              "description": "fields",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 294,
+                "column": 0
+              },
+              "end": {
+                "line": 300,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "addField",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "fields",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "addField"
+          ]
+        },
+        {
+          "description": "Add a field to this grid's output",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "addField"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "field"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 266,
+                "column": 0
+              },
+              "end": {
+                "line": 272,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "addField",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "field"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "addField"
+          ]
+        },
+        {
+          "description": "Get a constrained view of this field given x, y, width, height parameters.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "encodeSync"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{ resolution: 4, features: false }"
+            },
+            {
+              "title": "returns",
+              "description": "an encoded field with `grid`, `keys`, and `data` members.",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 350,
+                "column": 0
+              },
+              "end": {
+                "line": 357,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "encodeSync",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{ resolution: 4, features: false }"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "an encoded field with `grid`, `keys`, and `data` members.",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "encodeSync"
+          ]
+        },
+        {
+          "description": "Get this grid's height",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "height"
+            },
+            {
+              "title": "returns",
+              "description": "height",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 231,
+                "column": 0
+              },
+              "end": {
+                "line": 237,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "height",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "height",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "height"
+          ]
+        },
+        {
+          "description": "Get a constrained view of this field given x, y, width, height parameters.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "view"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            },
+            {
+              "title": "returns",
+              "description": "a grid constrained to this new view",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Grid"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 320,
+                "column": 0
+              },
+              "end": {
+                "line": 330,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "view",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "a grid constrained to this new view",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Grid"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "view"
+          ]
+        },
+        {
+          "description": "Get this grid's width",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "width"
+            },
+            {
+              "title": "returns",
+              "description": "width",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 216,
+                "column": 0
+              },
+              "end": {
+                "line": 222,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "width",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "width",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "width"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.Grid"
+    ]
+  },
+  {
+    "description": "",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Image"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "height"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "Object"
+        },
+        "name": "options"
+      },
+      {
+        "title": "example",
+        "description": "var im = new mapnik.Image(256,256, mapnik.imageType.gray8, {\n  premultiplied: true\n});"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 32,
+          "column": 0
+        },
+        "end": {
+          "line": 42,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_image.cpp"
+    },
+    "name": "mapnik.Image",
+    "params": [
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "height"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "Object"
+        },
+        "name": "options"
+      }
+    ],
+    "examples": [
+      "<span class=\"hljs-keyword\">var</span> im = <span class=\"hljs-keyword\">new</span> mapnik.Image(<span class=\"hljs-number\">256</span>,<span class=\"hljs-number\">256</span>, mapnik.imageType.gray8, {\n  premultiplied: <span class=\"hljs-literal\">true</span>\n});"
+    ],
+    "members": {
+      "instance": [
+        {
+          "description": "Make this image transparent, removing all image data from it.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "clear"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 766,
+                "column": 0
+              },
+              "end": {
+                "line": 773,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "clear",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "clear"
+          ]
+        },
+        {
+          "description": "Make this image transparent, removing all image data from it.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "clearSync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 730,
+                "column": 0
+              },
+              "end": {
+                "line": 736,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "clearSync",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "clearSync"
+          ]
+        },
+        {
+          "description": "Compare two images visually. This is useful for algorithms and tests that\nconfirm whether a certain image has changed significantly.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "compare"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "param",
+              "description": "another image instance",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              },
+              "name": "other"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{threshold:16,alpha:true}"
+            },
+            {
+              "title": "returns",
+              "description": "quantified visual difference between these two images",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 457,
+                "column": 0
+              },
+              "end": {
+                "line": 467,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "compare",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "params": [
+            {
+              "title": "param",
+              "description": "another image instance",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              },
+              "name": "other"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{threshold:16,alpha:true}"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "quantified visual difference between these two images",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "compare"
+          ]
+        },
+        {
+          "description": "Overlay this image with another image, creating a layered composite as\na new image",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "composite"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              },
+              "name": "other"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2048,
+                "column": 0
+              },
+              "end": {
+                "line": 2057,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "composite",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              },
+              "name": "other"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "composite"
+          ]
+        },
+        {
+          "description": "Copy this image data so that changes can be made to a clone of it.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "copy"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1126,
+                "column": 0
+              },
+              "end": {
+                "line": 1134,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "copy",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "copy"
+          ]
+        },
+        {
+          "description": "Copy this image data so that changes can be made to a clone of it.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "copySync"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "returns",
+              "description": "copy",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              }
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1281,
+                "column": 0
+              },
+              "end": {
+                "line": 1289,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "copySync",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "copy",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              }
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "copySync"
+          ]
+        },
+        {
+          "description": "Demultiply the pixels in this image, asynchronously. The opposite of\npremultiplying",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "demultiply"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 970,
+                "column": 0
+              },
+              "end": {
+                "line": 978,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "demultiply",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "demultiply"
+          ]
+        },
+        {
+          "description": "Demultiply the pixels in this image. The opposite of\npremultiplying",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "demultiplySync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 949,
+                "column": 0
+              },
+              "end": {
+                "line": 956,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "demultiplySync",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "demultiplySync"
+          ]
+        },
+        {
+          "description": "Encode this image into a buffer of encoded data",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "encode"
+            },
+            {
+              "title": "param",
+              "description": "image format",
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "string"
+                }
+              },
+              "name": "format",
+              "default": "png"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "returns",
+              "description": "encoded image data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              }
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "example",
+              "description": "var fs = require('fs');\nmyImage.encode('png', function(err, encoded) {\n  fs.writeFileSync('myimage.png', encoded);\n});"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1827,
+                "column": 0
+              },
+              "end": {
+                "line": 1841,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "encode",
+          "params": [
+            {
+              "title": "param",
+              "description": "image format",
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "string"
+                }
+              },
+              "name": "format",
+              "default": "png"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "encoded image data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              }
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nmyImage.encode(<span class=\"hljs-string\">'png'</span>, <span class=\"hljs-function\"><span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">err, encoded</span>) </span>{\n  fs.writeFileSync(<span class=\"hljs-string\">'myimage.png'</span>, encoded);\n});"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "encode"
+          ]
+        },
+        {
+          "description": "Encode this image into a buffer of encoded data",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "encodeSync"
+            },
+            {
+              "title": "param",
+              "description": "image format",
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "string"
+                }
+              },
+              "name": "format",
+              "default": "png"
+            },
+            {
+              "title": "returns",
+              "description": "encoded image data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              }
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "example",
+              "description": "var fs = require('fs');\nfs.writeFileSync('myimage.png', myImage.encodeSync('png'));"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1742,
+                "column": 0
+              },
+              "end": {
+                "line": 1753,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "encodeSync",
+          "params": [
+            {
+              "title": "param",
+              "description": "image format",
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "string"
+                }
+              },
+              "name": "format",
+              "default": "png"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "encoded image data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              }
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nfs.writeFileSync(<span class=\"hljs-string\">'myimage.png'</span>, myImage.encodeSync(<span class=\"hljs-string\">'png'</span>));"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "encodeSync"
+          ]
+        },
+        {
+          "description": "Asynchronously fill this image with a given color.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "fill"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Color"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "color"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 609,
+                "column": 0
+              },
+              "end": {
+                "line": 617,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "fill",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Color"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "color"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "fill"
+          ]
+        },
+        {
+          "description": "Fill this image with a given color",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "fillSync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Color"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "color"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 530,
+                "column": 0
+              },
+              "end": {
+                "line": 537,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "fillSync",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Color"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "color"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "fillSync"
+          ]
+        },
+        {
+          "description": "",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "getPixel"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              },
+              "name": "options"
+            },
+            {
+              "title": "returns",
+              "description": "color",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 333,
+                "column": 0
+              },
+              "end": {
+                "line": 341,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "getPixel",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "params": [
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              },
+              "name": "options"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "color",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "getPixel"
+          ]
+        },
+        {
+          "description": "Get this image's height",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "height"
+            },
+            {
+              "title": "returns",
+              "description": "height",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1419,
+                "column": 0
+              },
+              "end": {
+                "line": 1426,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "height",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "height",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "height"
+          ]
+        },
+        {
+          "description": "Determine whether the image is solid - whether it has alpha values of greater\nthan one.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "isSolidSync"
+            },
+            {
+              "title": "returns",
+              "description": "whether the image is solid",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1087,
+                "column": 0
+              },
+              "end": {
+                "line": 1095,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "isSolidSync",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "whether the image is solid",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "isSolidSync"
+          ]
+        },
+        {
+          "description": "Determine whether the given image is premultiplied.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "premultiplied"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "premultiplied true if the image is premultiplied",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 864,
+                "column": 0
+              },
+              "end": {
+                "line": 871,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "premultiplied",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "premultiplied true if the image is premultiplied",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            }
+          ],
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "premultiplied"
+          ]
+        },
+        {
+          "description": "Premultiply the pixels in this image, asynchronously",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "premultiply"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 900,
+                "column": 0
+              },
+              "end": {
+                "line": 907,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "premultiply",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "premultiply"
+          ]
+        },
+        {
+          "description": "Premultiply the pixels in this image",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "premultiplySync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 880,
+                "column": 0
+              },
+              "end": {
+                "line": 886,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "premultiplySync",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "premultiplySync"
+          ]
+        },
+        {
+          "description": "Encode this image and save it to disk as a file.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "save"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "filename"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "string"
+                }
+              },
+              "name": "format",
+              "default": "png"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "example",
+              "description": "myImage.save('foo.png');"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1979,
+                "column": 0
+              },
+              "end": {
+                "line": 1989,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "save",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "filename"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "string"
+                }
+              },
+              "name": "format",
+              "default": "png"
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "examples": [
+            "myImage.save(<span class=\"hljs-string\">'foo.png'</span>);"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "save"
+          ]
+        },
+        {
+          "description": "",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "setPixel"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": "or object representation of a color",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "Object"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "numeric"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 399,
+                "column": 0
+              },
+              "end": {
+                "line": 406,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "setPixel",
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "params": [
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": "position within image from top left",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": "or object representation of a color",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "Object"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "numeric"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "setPixel"
+          ]
+        },
+        {
+          "description": "Get a constrained view of this image given x, y, width, height parameters.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "view"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            },
+            {
+              "title": "returns",
+              "description": "an image constrained to this new view",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1949,
+                "column": 0
+              },
+              "end": {
+                "line": 1959,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "memberof": "mapnik.Image",
+          "scope": "instance",
+          "name": "view",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "x"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "y"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "an image constrained to this new view",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "view"
+          ]
+        },
+        {
+          "description": "Get this image's width",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "width"
+            },
+            {
+              "title": "returns",
+              "description": "width",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1403,
+                "column": 0
+              },
+              "end": {
+                "line": 1410,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "width",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "width",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "scope": "instance",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "width"
+          ]
+        }
+      ],
+      "static": [
+        {
+          "description": "Create a new image from a buffer",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "fromBytes"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              },
+              "name": "buffer"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "static",
+              "description": null
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Image"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1640,
+                "column": 0
+              },
+              "end": {
+                "line": 1648,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_image.cpp"
+          },
+          "name": "fromBytes",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              },
+              "name": "buffer"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "scope": "static",
+          "memberof": "mapnik.Image",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Image",
+            "fromBytes"
+          ]
+        }
+      ]
+    },
+    "path": [
+      "mapnik.Image"
+    ]
+  },
+  {
+    "description": "A map in mapnik is an object that combined data sources and styles in\na way that lets you produce styled cartographic output.",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Map"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": "as a proj4 code",
+        "type": {
+          "type": "NameExpression",
+          "name": "string"
+        },
+        "name": "projection"
+      },
+      {
+        "title": "example",
+        "description": "var map = new mapnik.Map(25, 25, '+init=epsg:3857');"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 47,
+          "column": 0
+        },
+        "end": {
+          "line": 58,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_map.cpp"
+    },
+    "name": "mapnik.Map",
+    "params": [
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "width"
+      },
+      {
+        "title": "param",
+        "description": "as a proj4 code",
+        "type": {
+          "type": "NameExpression",
+          "name": "string"
+        },
+        "name": "projection"
+      }
+    ],
+    "examples": [
+      "<span class=\"hljs-keyword\">var</span> map = <span class=\"hljs-keyword\">new</span> mapnik.Map(<span class=\"hljs-number\">25</span>, <span class=\"hljs-number\">25</span>, <span class=\"hljs-string\">'+init=epsg:3857'</span>);"
+    ],
+    "members": {
+      "instance": [
+        {
+          "description": "Add a new layer to this map",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "add_layer"
+            },
+            {
+              "title": "param",
+              "description": "layer",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Layer"
+              },
+              "name": "new"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 827,
+                "column": 0
+              },
+              "end": {
+                "line": 834,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "add_layer",
+          "params": [
+            {
+              "title": "param",
+              "description": "layer",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Layer"
+              },
+              "name": "new"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "add_layer"
+          ]
+        },
+        {
+          "description": "Remove all layers and styles from this map",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "clear"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 918,
+                "column": 0
+              },
+              "end": {
+                "line": 924,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "clear",
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "clear"
+          ]
+        },
+        {
+          "description": "Clone this map object, returning a value which can be changed\nwithout mutating the original",
+          "tags": [
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "clone"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "returns",
+              "description": "clone",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Map"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1374,
+                "column": 0
+              },
+              "end": {
+                "line": 1382,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "scope": "instance",
+          "name": "clone",
+          "memberof": "mapnik.Map",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "clone",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Map"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "clone"
+          ]
+        },
+        {
+          "description": "Get all of the fonts currently registered as part of this map",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "font"
+            },
+            {
+              "title": "returns",
+              "description": "fonts",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 464,
+                "column": 0
+              },
+              "end": {
+                "line": 470,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "font",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "fonts",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "font"
+          ]
+        },
+        {
+          "description": "Get the currently-registered font directory, if any",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "fontDirectory"
+            },
+            {
+              "title": "returns",
+              "description": "fonts",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  },
+                  {
+                    "type": "UndefinedLiteral"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 506,
+                "column": 0
+              },
+              "end": {
+                "line": 512,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "fontDirectory",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "fonts",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  },
+                  {
+                    "type": "UndefinedLiteral"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "fontDirectory"
+          ]
+        },
+        {
+          "description": "Get all of the fonts currently registered as part of this map, as a mapping\nfrom font to font file",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "fontFiles"
+            },
+            {
+              "title": "returns",
+              "description": "fonts",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 485,
+                "column": 0
+              },
+              "end": {
+                "line": 492,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "fontFiles",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "fonts",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "fontFiles"
+          ]
+        },
+        {
+          "description": "Load styles, layers, and other information for this map from a Mapnik\nXML stylesheet given as a string.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "fromStringSync"
+            },
+            {
+              "title": "param",
+              "description": "contents",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "example",
+              "description": "var fs = require('fs');\nmap.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1168,
+                "column": 0
+              },
+              "end": {
+                "line": 1180,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "fromStringSync",
+          "params": [
+            {
+              "title": "param",
+              "description": "contents",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            }
+          ],
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nmap.fromStringSync(fs.readFileSync(<span class=\"hljs-string\">'./style.xml'</span>, <span class=\"hljs-string\">'utf8'</span>));"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "fromStringSync"
+          ]
+        },
+        {
+          "description": "Load styles, layers, and other information for this map from a Mapnik\nXML stylesheet given as a string.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "fromStringSync"
+            },
+            {
+              "title": "param",
+              "description": "contents",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "example",
+              "description": "var fs = require('fs');\nmap.fromStringSync(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {\n  // details loaded\n});"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1247,
+                "column": 0
+              },
+              "end": {
+                "line": 1262,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "fromStringSync",
+          "params": [
+            {
+              "title": "param",
+              "description": "contents",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nmap.fromStringSync(fs.readFileSync(<span class=\"hljs-string\">'./style.xml'</span>, <span class=\"hljs-string\">'utf8'</span>), <span class=\"hljs-function\"><span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">err, res</span>) </span>{\n  <span class=\"hljs-comment\">// details loaded</span>\n});"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "fromStringSync"
+          ]
+        },
+        {
+          "description": "Get a layer out of this map, given a name or index",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "get_layer"
+            },
+            {
+              "title": "param",
+              "description": "name or index",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "layer"
+            },
+            {
+              "title": "returns",
+              "description": "the layer",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Layer"
+              }
+            },
+            {
+              "title": "throws",
+              "description": "if index is incorrect or layer is not found",
+              "type": {
+                "type": "NameExpression",
+                "name": "Error"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 854,
+                "column": 0
+              },
+              "end": {
+                "line": 863,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "get_layer",
+          "params": [
+            {
+              "title": "param",
+              "description": "name or index",
+              "type": {
+                "type": "UnionType",
+                "elements": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  },
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "layer"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "the layer",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Layer"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "get_layer"
+          ]
+        },
+        {
+          "description": "Get all of the currently-added layers in this map",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "layers"
+            },
+            {
+              "title": "returns",
+              "description": "layers",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Layer"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 806,
+                "column": 0
+              },
+              "end": {
+                "line": 813,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "layers",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "layers",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.Layer"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "layers"
+          ]
+        },
+        {
+          "description": "Load styles, layers, and other information for this map from a Mapnik\nXML stylesheet.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "load"
+            },
+            {
+              "title": "param",
+              "description": "path",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 974,
+                "column": 0
+              },
+              "end": {
+                "line": 984,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "load",
+          "params": [
+            {
+              "title": "param",
+              "description": "path",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "load"
+          ]
+        },
+        {
+          "description": "Load styles, layers, and other information for this map from a Mapnik\nXML stylesheet.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "loadSync"
+            },
+            {
+              "title": "param",
+              "description": "path",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "example",
+              "description": "map.loadSync('./style.xml');"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1089,
+                "column": 0
+              },
+              "end": {
+                "line": 1100,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "loadSync",
+          "params": [
+            {
+              "title": "param",
+              "description": "path",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            }
+          ],
+          "examples": [
+            "map.loadSync(<span class=\"hljs-string\">'./style.xml'</span>);"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "loadSync"
+          ]
+        },
+        {
+          "description": "Give this map new dimensions",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "resize"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 933,
+                "column": 0
+              },
+              "end": {
+                "line": 941,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "resize",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "resize"
+          ]
+        },
+        {
+          "description": "Get the map's scale factor. This is the ratio between pixels and geographical\nunits like meters.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "scale"
+            },
+            {
+              "title": "returns",
+              "description": "scale",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 525,
+                "column": 0
+              },
+              "end": {
+                "line": 532,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "scale",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "scale",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "scale"
+          ]
+        },
+        {
+          "description": "Get the map's scale denominator.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "scaleDenominator"
+            },
+            {
+              "title": "returns",
+              "description": "scale denominator",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 540,
+                "column": 0
+              },
+              "end": {
+                "line": 547,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "scaleDenominator",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "scale denominator",
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "scaleDenominator"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.Map"
+    ]
+  },
+  {
+    "description": "A geographical projection: this class makes it possible to translate between\nlocations in different projections",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.Projection"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      },
+      {
+        "title": "param",
+        "description": "projection as a proj4 definition string",
+        "type": {
+          "type": "NameExpression",
+          "name": "string"
+        },
+        "name": "projection"
+      },
+      {
+        "title": "param",
+        "description": "whether to lazily instantiate the\ndata backing this projection.",
+        "type": {
+          "type": "OptionalType",
+          "expression": {
+            "type": "NameExpression",
+            "name": "Object"
+          }
+        },
+        "name": "options",
+        "default": "{lazy:false}"
+      },
+      {
+        "title": "example",
+        "description": "var wgs84 = new mapnik.Projection('+init=epsg:4326');"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 11,
+          "column": 0
+        },
+        "end": {
+          "line": 22,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_projection.cpp"
+    },
+    "name": "mapnik.Projection",
+    "params": [
+      {
+        "title": "param",
+        "description": "projection as a proj4 definition string",
+        "type": {
+          "type": "NameExpression",
+          "name": "string"
+        },
+        "name": "projection"
+      },
+      {
+        "title": "param",
+        "description": "whether to lazily instantiate the\ndata backing this projection.",
+        "type": {
+          "type": "OptionalType",
+          "expression": {
+            "type": "NameExpression",
+            "name": "Object"
+          }
+        },
+        "name": "options",
+        "default": "{lazy:false}"
+      }
+    ],
+    "examples": [
+      "<span class=\"hljs-keyword\">var</span> wgs84 = <span class=\"hljs-keyword\">new</span> mapnik.Projection(<span class=\"hljs-string\">'+init=epsg:4326'</span>);"
+    ],
+    "members": {
+      "instance": [
+        {
+          "description": "Project from a position in WGS84 space to a position in this projection.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "forward"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Projection"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "as [x, y] or extent as [minx,miny,maxx,maxy]",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "position"
+            },
+            {
+              "title": "returns",
+              "description": "projected coordinates",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            },
+            {
+              "title": "example",
+              "description": "var merc = new mapnik.Projection('+init=epsg:3857');\nvar long_lat_coords = [-122.33517, 47.63752];\nvar projected = merc.forward(long_lat_coords);"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 106,
+                "column": 0
+              },
+              "end": {
+                "line": 118,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_projection.cpp"
+          },
+          "name": "forward",
+          "memberof": "mapnik.Projection",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "as [x, y] or extent as [minx,miny,maxx,maxy]",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "position"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "projected coordinates",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> merc = <span class=\"hljs-keyword\">new</span> mapnik.Projection(<span class=\"hljs-string\">'+init=epsg:3857'</span>);\n<span class=\"hljs-keyword\">var</span> long_lat_coords = [-<span class=\"hljs-number\">122.33517</span>, <span class=\"hljs-number\">47.63752</span>];\n<span class=\"hljs-keyword\">var</span> projected = merc.forward(long_lat_coords);"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Projection",
+            "forward"
+          ]
+        },
+        {
+          "description": "Unproject from a position in this projection to the same position in WGS84\nspace.",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "inverse"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Projection"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "as [x, y] or extent as [minx,miny,maxx,maxy]",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "position"
+            },
+            {
+              "title": "returns",
+              "description": "unprojected coordinates",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 176,
+                "column": 0
+              },
+              "end": {
+                "line": 185,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_projection.cpp"
+          },
+          "name": "inverse",
+          "memberof": "mapnik.Projection",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "as [x, y] or extent as [minx,miny,maxx,maxy]",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              },
+              "name": "position"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "unprojected coordinates",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "number"
+                  }
+                ]
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Projection",
+            "inverse"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.Projection"
+    ]
+  },
+  {
+    "description": "A generator for the [Mapbox Vector Tile](https://www.mapbox.com/developers/vector-tiles/)\nspecification of compressed and simplified tiled vector data",
+    "tags": [
+      {
+        "title": "name",
+        "description": null,
+        "name": "mapnik.VectorTile"
+      },
+      {
+        "title": "class",
+        "description": null,
+        "type": null,
+        "name": null
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "z"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "x"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "y"
+      },
+      {
+        "title": "example",
+        "description": "var vtile = new mapnik.VectorTile(9,112,195);"
+      }
+    ],
+    "context": {
+      "loc": {
+        "start": {
+          "line": 181,
+          "column": 0
+        },
+        "end": {
+          "line": 192,
+          "column": 3
+        }
+      },
+      "file": "src/mapnik_vector_tile.cpp"
+    },
+    "name": "mapnik.VectorTile",
+    "params": [
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "z"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "x"
+      },
+      {
+        "title": "param",
+        "description": null,
+        "type": {
+          "type": "NameExpression",
+          "name": "number"
+        },
+        "name": "y"
+      }
+    ],
+    "examples": [
+      "<span class=\"hljs-keyword\">var</span> vtile = <span class=\"hljs-keyword\">new</span> mapnik.VectorTile(<span class=\"hljs-number\">9</span>,<span class=\"hljs-number\">112</span>,<span class=\"hljs-number\">195</span>);"
+    ],
+    "members": {
+      "instance": [
+        {
+          "description": "Add raw data to this tile as a Buffer",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "addData"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              },
+              "name": "raw"
+            },
+            {
+              "title": "param",
+              "description": "of the layer to be added",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "name"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2364,
+                "column": 0
+              },
+              "end": {
+                "line": 2372,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "addData",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              },
+              "name": "raw"
+            },
+            {
+              "title": "param",
+              "description": "of the layer to be added",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "name"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "addData"
+          ]
+        },
+        {
+          "description": "Add features to this tile from a GeoJSON string",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "addGeoJSON"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "as a string",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "geojson"
+            },
+            {
+              "title": "param",
+              "description": "of the layer to be added",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "name"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2219,
+                "column": 0
+              },
+              "end": {
+                "line": 2227,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "addGeoJSON",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "as a string",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "geojson"
+            },
+            {
+              "title": "param",
+              "description": "of the layer to be added",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "name"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "addGeoJSON"
+          ]
+        },
+        {
+          "description": "Remove all data from this vector tile",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "clear"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 3203,
+                "column": 0
+              },
+              "end": {
+                "line": 3210,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "clear",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "clear"
+          ]
+        },
+        {
+          "description": "Composite an array of vector tiles into one vector tile",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "compositeSync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "tiles",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.VectorTile"
+                  }
+                ]
+              },
+              "name": "vector"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 568,
+                "column": 0
+              },
+              "end": {
+                "line": 575,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "compositeSync",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "tiles",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "mapnik.VectorTile"
+                  }
+                ]
+              },
+              "name": "vector"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "compositeSync"
+          ]
+        },
+        {
+          "description": "Return whether this vector tile is empty - whether it has no\nlayers and no features",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "empty"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "the layer is empty",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              },
+              "name": "whether"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1012,
+                "column": 0
+              },
+              "end": {
+                "line": 1020,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "empty",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "the layer is empty",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              },
+              "name": "whether"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "empty"
+          ]
+        },
+        {
+          "description": "Get the data in this vector tile as a buffer",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "getData"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "raw data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2528,
+                "column": 0
+              },
+              "end": {
+                "line": 2535,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "getData",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "raw data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "getData"
+          ]
+        },
+        {
+          "description": "Render this vector tile to a surface, like a {@link mapnik.Image}",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "getData"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "object",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Map"
+              },
+              "name": "map"
+            },
+            {
+              "title": "param",
+              "description": "surface",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              },
+              "name": "renderable"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2670,
+                "column": 0
+              },
+              "end": {
+                "line": 2679,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "getData",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "object",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Map"
+              },
+              "name": "map"
+            },
+            {
+              "title": "param",
+              "description": "surface",
+              "type": {
+                "type": "NameExpression",
+                "name": "mapnik.Image"
+              },
+              "name": "renderable"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "getData"
+          ]
+        },
+        {
+          "description": "Get the vector tile's height",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "height"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1070,
+                "column": 0
+              },
+              "end": {
+                "line": 1077,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "height",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "height"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "height"
+          ]
+        },
+        {
+          "description": "Test whether this tile is solid - whether it has features",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "isSolid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 3317,
+                "column": 0
+              },
+              "end": {
+                "line": 3324,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "isSolid",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "isSolid"
+          ]
+        },
+        {
+          "description": "Test whether this tile is solid - whether it has features",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "isSolidSync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "whether the tile is solid",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 3268,
+                "column": 0
+              },
+              "end": {
+                "line": 3275,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "isSolidSync",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "whether the tile is solid",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "isSolidSync"
+          ]
+        },
+        {
+          "description": "Get the names of all of the layers in this vector tile",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "names"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "names",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  }
+                ]
+              },
+              "name": "layer"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 938,
+                "column": 0
+              },
+              "end": {
+                "line": 945,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "names",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "names",
+              "type": {
+                "type": "TypeApplication",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Array"
+                },
+                "applications": [
+                  {
+                    "type": "NameExpression",
+                    "name": "string"
+                  }
+                ]
+              },
+              "name": "layer"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "names"
+          ]
+        },
+        {
+          "description": "Get whether the vector tile has been painted",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "painted"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              },
+              "name": "painted"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1085,
+                "column": 0
+              },
+              "end": {
+                "line": 1092,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "painted",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              },
+              "name": "painted"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "painted"
+          ]
+        },
+        {
+          "description": "Query a vector tile by longitude and latitude",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "query"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "longitude"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "latitude"
+            },
+            {
+              "title": "param",
+              "description": "tolerance: allow results that\nare not exactly on this longitude, latitude position.",
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{tolerance:0}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1113,
+                "column": 0
+              },
+              "end": {
+                "line": 1124,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "query",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "longitude"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "latitude"
+            },
+            {
+              "title": "param",
+              "description": "tolerance: allow results that\nare not exactly on this longitude, latitude position.",
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{tolerance:0}"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "query"
+          ]
+        },
+        {
+          "description": "Replace the data in this vector tile with new raw data",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "setData"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": "data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              },
+              "name": "raw"
+            },
+            {
+              "title": "param",
+              "description": "of the layer to be added",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "name"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2441,
+                "column": 0
+              },
+              "end": {
+                "line": 2449,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "setData",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": "data",
+              "type": {
+                "type": "NameExpression",
+                "name": "Buffer"
+              },
+              "name": "raw"
+            },
+            {
+              "title": "param",
+              "description": "of the layer to be added",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "name"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "setData"
+          ]
+        },
+        {
+          "description": "Get a [GeoJSON](http://geojson.org/) representation of this tile",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "toGeoJSON"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            },
+            {
+              "title": "returns",
+              "description": "stringified GeoJSON of all the features in this tile.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 2045,
+                "column": 0
+              },
+              "end": {
+                "line": 2053,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "toGeoJSON",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "Function"
+              },
+              "name": "callback"
+            }
+          ],
+          "returns": [
+            {
+              "title": "returns",
+              "description": "stringified GeoJSON of all the features in this tile.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "toGeoJSON"
+          ]
+        },
+        {
+          "description": "Get a [GeoJSON](http://geojson.org/) representation of this tile",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "toGeoJSONSync"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "stringified GeoJSON of all the features in this tile.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1841,
+                "column": 0
+              },
+              "end": {
+                "line": 1848,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "toGeoJSONSync",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "stringified GeoJSON of all the features in this tile.",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "toGeoJSONSync"
+          ]
+        },
+        {
+          "description": "Get a JSON representation of this tile",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "toJSON"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "json representation of this tile with name, extent,\nand version properties",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1690,
+                "column": 0
+              },
+              "end": {
+                "line": 1698,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "toJSON",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "json representation of this tile with name, extent,\nand version properties",
+              "type": {
+                "type": "NameExpression",
+                "name": "Object"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "toJSON"
+          ]
+        },
+        {
+          "description": "Get the vector tile's width",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.VectorTile"
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "width"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1055,
+                "column": 0
+              },
+              "end": {
+                "line": 1062,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_vector_tile.cpp"
+          },
+          "memberof": "mapnik.VectorTile",
+          "name": "width",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "number"
+              },
+              "name": "width"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.VectorTile",
+            "width"
+          ]
+        }
+      ],
+      "static": []
+    },
+    "path": [
+      "mapnik.VectorTile"
+    ]
+  }
+]
