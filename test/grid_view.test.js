@@ -14,7 +14,7 @@ describe('mapnik.GridView ', function() {
         done();
     });
     
-    it('should fail to intialize view', function() {
+    it('should fail to initialize view', function() {
         assert.throws(function() { grid.view(); });
     });
 
