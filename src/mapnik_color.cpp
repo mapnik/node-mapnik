@@ -11,7 +11,7 @@
 Persistent<FunctionTemplate> Color::constructor;
 
 /**
- * @name Color
+ * @name mapnik.Color
  * @class
  * @param {string|Array<number>} value either an array of [r, g, b, a],
  * a color keyword, or a CSS color in rgba() form.

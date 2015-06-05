@@ -13,6 +13,17 @@
 
 Persistent<FunctionTemplate> Grid::constructor;
 
+/**
+ * Generator for [UTFGrid](https://www.mapbox.com/guides/an-open-platform)
+ * representations of data.
+ *
+ * @name mapnik.Grid
+ * @class
+ * @param {number} width
+ * @param {number} height
+ * @param {Object} [options={}] optional argument, which can have a 'key' property
+ * @property {string} key
+ */
 void Grid::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -202,6 +213,13 @@ NAN_METHOD(Grid::painted)
     NanReturnValue(NanNew(g->get()->painted()));
 }
 
+/**
+ * Get this grid's width
+ * @memberof mapnik.Grid
+ * @instance
+ * @name width
+ * @returns {number} width
+ */
 NAN_METHOD(Grid::width)
 {
     NanScope();
@@ -210,6 +228,13 @@ NAN_METHOD(Grid::width)
     NanReturnValue(NanNew<Integer>((unsigned)g->get()->width()));
 }
 
+/**
+ * Get this grid's height
+ * @memberof mapnik.Grid
+ * @instance
+ * @name height
+ * @returns {number} height
+ */
 NAN_METHOD(Grid::height)
 {
     NanScope();
@@ -237,6 +262,14 @@ NAN_SETTER(Grid::set_key)
     g->get()->set_key(TOSTR(value));
 }
 
+
+/**
+ * Add a field to this grid's output
+ * @memberof mapnik.Grid
+ * @instance
+ * @name addField
+ * @param {string} field
+ */
 NAN_METHOD(Grid::addField)
 {
     NanScope();
@@ -258,6 +291,13 @@ NAN_METHOD(Grid::addField)
     }
 }
 
+/**
+ * Get all of this grid's fields
+ * @memberof mapnik.Grid
+ * @instance
+ * @name addField
+ * @returns {Array<string>} fields
+ */
 NAN_METHOD(Grid::fields)
 {
     NanScope();
@@ -277,6 +317,17 @@ NAN_METHOD(Grid::fields)
     NanReturnValue(l);
 }
 
+/**
+ * Get a constrained view of this field given x, y, width, height parameters.
+ * @memberof mapnik.Grid
+ * @instance
+ * @name view
+ * @param {number} x
+ * @param {number} y
+ * @param {number} width
+ * @param {number} height
+ * @returns {mapnik.Grid} a grid constrained to this new view
+ */
 NAN_METHOD(Grid::view)
 {
     NanScope();
@@ -296,7 +347,15 @@ NAN_METHOD(Grid::view)
     NanReturnValue(GridView::NewInstance(g,x,y,w,h));
 }
 
-NAN_METHOD(Grid::encodeSync) 
+/**
+ * Get a constrained view of this field given x, y, width, height parameters.
+ * @memberof mapnik.Grid
+ * @instance
+ * @name encodeSync
+ * @param {Object} [options={ resolution: 4, features: false }]
+ * @returns {Object} an encoded field with `grid`, `keys`, and `data` members.
+ */
+NAN_METHOD(Grid::encodeSync)
 {
     NanScope();
 
@@ -409,7 +468,7 @@ typedef struct {
     std::vector<mapnik::grid::lookup_type> key_order;
 } encode_grid_baton_t;
 
-NAN_METHOD(Grid::encode) 
+NAN_METHOD(Grid::encode)
 {
     NanScope();
 

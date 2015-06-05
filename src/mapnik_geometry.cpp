@@ -10,6 +10,18 @@
 
 Persistent<FunctionTemplate> Geometry::constructor;
 
+/**
+ * Geometry: a representation of geographical features in terms of
+ * shape alone. This class provides many useful functions for conversion
+ * to and from formats.
+ *
+ * You'll never create a mapnik.Geometry instance manually: it is always
+ * part of a {@link mapnik.Feature} instance, which is often a part of
+ * a {@link mapnik.Featureset} instance.
+ *
+ * @name mapnik.Geometry
+ * @class
+ */
 void Geometry::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -68,6 +80,15 @@ Handle<Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     return NanEscapeScope(obj);
 }
 
+/**
+ * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
+ * synchronously.
+ *
+ * @returns {string} GeoJSON, string-encoded representation of this geometry.
+ * @memberof mapnik.Geometry
+ * @instance
+ * @name toJSONSync
+ */
 NAN_METHOD(Geometry::toJSONSync)
 {
     NanScope();
@@ -146,6 +167,17 @@ struct to_json_baton {
     Persistent<Function> cb;
 };
 
+
+/**
+ * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
+ * asynchronously.
+ *
+ * @param {Object?} options
+ * @param {Function} callback called with (err, result)
+ * @memberof mapnik.Geometry
+ * @instance
+ * @name toJSON
+ */
 NAN_METHOD(Geometry::toJSON)
 {
     NanScope();
@@ -258,6 +290,14 @@ void Geometry::after_to_json(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Get the geometry's extent
+ *
+ * @name extent
+ * @memberof mapnik.Geometry
+ * @instance
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
+ */
 NAN_METHOD(Geometry::extent)
 {
     NanScope();
@@ -271,6 +311,14 @@ NAN_METHOD(Geometry::extent)
     NanReturnValue(a);
 }
 
+/**
+ * Get the geometry's representation as [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text)
+ *
+ * @name toWKT
+ * @memberof mapnik.Geometry
+ * @instance
+ * @returns {string} wkt representation of this geometry
+ */
 NAN_METHOD(Geometry::toWKT)
 {
     NanScope();
@@ -288,6 +336,14 @@ NAN_METHOD(Geometry::toWKT)
     NanReturnValue(NanNew(wkt.c_str()));
 }
 
+/**
+ * Get the geometry's representation as Well-Known Binary
+ *
+ * @name toWKB
+ * @memberof mapnik.Geometry
+ * @instance
+ * @returns {string} wkb representation of this geometry
+ */
 NAN_METHOD(Geometry::toWKB)
 {
     NanScope();

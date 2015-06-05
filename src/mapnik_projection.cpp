@@ -8,6 +8,18 @@
 
 Persistent<FunctionTemplate> Projection::constructor;
 
+/**
+ * A geographical projection: this class makes it possible to translate between
+ * locations in different projections
+ *
+ * @name mapnik.Projection
+ * @class
+ * @param {string} projection projection as a proj4 definition string
+ * @param {Object} [options={lazy:false}] whether to lazily instantiate the
+ * data backing this projection.
+ * @example
+ * var wgs84 = new mapnik.Projection('+init=epsg:4326');
+ */
 void Projection::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -91,6 +103,19 @@ NAN_METHOD(Projection::New)
     }
 }
 
+/**
+ * Project from a position in WGS84 space to a position in this projection.
+ *
+ * @name forward
+ * @memberof mapnik.Projection
+ * @instance
+ * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {Array<number>} projected coordinates
+ * @example
+ * var merc = new mapnik.Projection('+init=epsg:3857');
+ * var long_lat_coords = [-122.33517, 47.63752];
+ * var projected = merc.forward(long_lat_coords);
+ */
 NAN_METHOD(Projection::forward)
 {
     NanScope();
@@ -148,6 +173,16 @@ NAN_METHOD(Projection::forward)
     }
 }
 
+/**
+ * Unproject from a position in this projection to the same position in WGS84
+ * space.
+ *
+ * @name inverse
+ * @memberof mapnik.Projection
+ * @instance
+ * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {Array<number>} unprojected coordinates
+ */
 NAN_METHOD(Projection::inverse)
 {
     NanScope();

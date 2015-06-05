@@ -19,6 +19,13 @@
 
 Persistent<FunctionTemplate> Datasource::constructor;
 
+/**
+ * A Datasource object. This is the connector from Mapnik to any kind
+ * of file, network, or database source of geographical data.
+ *
+ * @name mapnik.Datasource
+ * @class
+ */
 void Datasource::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -154,6 +161,14 @@ NAN_METHOD(Datasource::parameters)
     NanReturnValue(ds);
 }
 
+/**
+ * Get the Datasource's extent
+ *
+ * @name extent
+ * @memberof mapnik.Datasource
+ * @instance
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ */
 NAN_METHOD(Datasource::extent)
 {
     NanScope();
@@ -177,6 +192,15 @@ NAN_METHOD(Datasource::extent)
     NanReturnValue(a);
 }
 
+/**
+ * Describe the datasource's contents and type.
+ *
+ * @name describe
+ * @memberof mapnik.Datasource
+ * @instance
+ * @returns {Object} description: an object with type, fields, encoding,
+ * geometry_type, and proj4 code
+ */
 NAN_METHOD(Datasource::describe)
 {
     NanScope();

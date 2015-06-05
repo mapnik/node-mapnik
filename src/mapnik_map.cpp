@@ -44,6 +44,18 @@
 
 Persistent<FunctionTemplate> Map::constructor;
 
+/**
+ * A map in mapnik is an object that combined data sources and styles in
+ * a way that lets you produce styled cartographic output.
+ *
+ * @name mapnik.Map
+ * @class
+ * @param {number} width
+ * @param {number} width
+ * @param {string} projection as a proj4 code
+ * @example
+ * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
+ */
 void Map::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -449,6 +461,13 @@ NAN_METHOD(Map::registerFonts)
     NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
 }
 
+/**
+ * Get all of the fonts currently registered as part of this map
+ * @memberof mapnik.Map
+ * @instance
+ * @name font
+ * @returns {Array<string>} fonts
+ */
 NAN_METHOD(Map::fonts)
 {
     NanScope();
@@ -463,6 +482,14 @@ NAN_METHOD(Map::fonts)
     NanReturnValue(a);
 }
 
+/**
+ * Get all of the fonts currently registered as part of this map, as a mapping
+ * from font to font file
+ * @memberof mapnik.Map
+ * @instance
+ * @name fontFiles
+ * @returns {Object} fonts
+ */
 NAN_METHOD(Map::fontFiles)
 {
     NanScope();
@@ -476,6 +503,13 @@ NAN_METHOD(Map::fontFiles)
     NanReturnValue(obj);
 }
 
+/**
+ * Get the currently-registered font directory, if any
+ * @memberof mapnik.Map
+ * @instance
+ * @name fontDirectory
+ * @returns {string|undefined} fonts
+ */
 NAN_METHOD(Map::fontDirectory)
 {
     NanScope();
@@ -488,6 +522,14 @@ NAN_METHOD(Map::fontDirectory)
     NanReturnUndefined();
 }
 
+/**
+ * Get the map's scale factor. This is the ratio between pixels and geographical
+ * units like meters.
+ * @memberof mapnik.Map
+ * @instance
+ * @name scale
+ * @returns {number} scale
+ */
 NAN_METHOD(Map::scale)
 {
     NanScope();
@@ -495,6 +537,14 @@ NAN_METHOD(Map::scale)
     NanReturnValue(NanNew<Number>(m->map_->scale()));
 }
 
+/**
+ * Get the map's scale denominator.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name scaleDenominator
+ * @returns {number} scale denominator
+ */
 NAN_METHOD(Map::scaleDenominator)
 {
     NanScope();
@@ -753,6 +803,14 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Get all of the currently-added layers in this map
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name layers
+ * @returns {Array<mapnik.Layer>} layers
+ */
 NAN_METHOD(Map::layers)
 {
     NanScope();
@@ -766,6 +824,14 @@ NAN_METHOD(Map::layers)
     NanReturnValue(a);
 }
 
+/**
+ * Add a new layer to this map
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name add_layer
+ * @param {mapnik.Layer} new layer
+ */
 NAN_METHOD(Map::add_layer) {
     NanScope();
 
@@ -785,6 +851,16 @@ NAN_METHOD(Map::add_layer) {
     NanReturnUndefined();
 }
 
+/**
+ * Get a layer out of this map, given a name or index
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name get_layer
+ * @param {string|number} layer name or index
+ * @returns {mapnik.Layer} the layer
+ * @throws {Error} if index is incorrect or layer is not found
+ */
 NAN_METHOD(Map::get_layer)
 {
     NanScope();
@@ -839,6 +915,13 @@ NAN_METHOD(Map::get_layer)
     NanReturnUndefined();
 }
 
+/**
+ * Remove all layers and styles from this map
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name clear
+ */
 NAN_METHOD(Map::clear)
 {
     NanScope();
@@ -847,6 +930,15 @@ NAN_METHOD(Map::clear)
     NanReturnUndefined();
 }
 
+/**
+ * Give this map new dimensions
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name resize
+ * @param {number} width
+ * @param {number} height
+ */
 NAN_METHOD(Map::resize)
 {
     NanScope();
@@ -879,6 +971,17 @@ typedef struct {
 } load_xml_baton_t;
 
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name load
+ * @param {string} stylesheet path
+ * @param {Object} [options={}]
+ * @param {Function} callback
+ */
 NAN_METHOD(Map::load)
 {
     NanScope();
@@ -983,6 +1086,18 @@ void Map::EIO_AfterLoad(uv_work_t* req)
 }
 
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name loadSync
+ * @param {string} stylesheet path
+ * @param {Object} [options={}]
+ * @example
+ * map.loadSync('./style.xml');
+ */
 NAN_METHOD(Map::loadSync)
 {
     NanScope();
@@ -1050,6 +1165,19 @@ NAN_METHOD(Map::loadSync)
     NanReturnUndefined();
 }
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet given as a string.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name fromStringSync
+ * @param {string} stylesheet contents
+ * @param {Object} [options={}]
+ * @example
+ * var fs = require('fs');
+ * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));
+ */
 NAN_METHOD(Map::fromStringSync)
 {
     NanScope();
@@ -1116,6 +1244,22 @@ NAN_METHOD(Map::fromStringSync)
     NanReturnUndefined();
 }
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet given as a string.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name fromStringSync
+ * @param {string} stylesheet contents
+ * @param {Object} [options={}]
+ * @param {Function} callback
+ * @example
+ * var fs = require('fs');
+ * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {
+ *   // details loaded
+ * });
+ */
 NAN_METHOD(Map::fromString)
 {
     NanScope();
@@ -1227,6 +1371,14 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Clone this map object, returning a value which can be changed
+ * without mutating the original
+ *
+ * @instance
+ * @memberof mapnik.Map
+ * @returns {mapnik.Map} clone
+ */
 NAN_METHOD(Map::clone)
 {
     NanScope();
