@@ -1376,6 +1376,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  * without mutating the original
  *
  * @instance
+ * @name clone
  * @memberof mapnik.Map
  * @returns {mapnik.Map} clone
  */
