@@ -439,6 +439,20 @@ void Work_AfterBlend(uv_work_t* req) {
     delete baton;
 }
 
+/**
+ * @name blend
+ * @param {Array<Buffer>} buffers an array of buffers
+ * @param {Object} options
+ * @param {Function} callback
+ * @example
+ * mapnik.blend([
+ *  fs.readFileSync('foo.png'),
+ *  fs.readFileSync('bar.png'),
+ * ], function(err, result) {
+ *  if (err) throw err;
+ *  fs.writeFileSync('result.png', result);
+ * });
+ */
 NAN_METHOD(Blend) {
     NanScope();
     std::unique_ptr<BlendBaton> baton(new BlendBaton());

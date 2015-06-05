@@ -3,6 +3,12 @@
 
 Persistent<FunctionTemplate> Featureset::constructor;
 
+/**
+ * An iterator of {@link mapnik.Feature} objects.
+ *
+ * @name mapnik.Featureset
+ * @class
+ */
 void Featureset::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -48,6 +54,15 @@ NAN_METHOD(Featureset::New)
     NanReturnUndefined();
 }
 
+/**
+ * Return the next Feature in this featureset if it exists, or `null` if it
+ * does not.
+ *
+ * @name next
+ * @instance
+ * @memberof mapnik.Featureset
+ * @returns {mapnik.Feature|null} next feature
+ */
 NAN_METHOD(Featureset::next)
 {
     NanScope();

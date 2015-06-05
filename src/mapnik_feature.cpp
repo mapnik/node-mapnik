@@ -13,6 +13,14 @@
 
 Persistent<FunctionTemplate> Feature::constructor;
 
+/**
+ * A single geographic feature, with geometry and properties. This is
+ * typically derived from data by a datasource, but can be manually
+ * created.
+ *
+ * @name mapnik.Feature
+ * @class
+ */
 void Feature::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -82,6 +90,14 @@ NAN_METHOD(Feature::New)
     NanReturnValue(args.This());
 }
 
+/**
+ * @memberof mapnik.Feature
+ * @static
+ * @name fromJSON
+ * @param {string} geojson string
+ *
+ * Create a feature from a GeoJSON representation.
+ */
 NAN_METHOD(Feature::fromJSON)
 {
     NanScope();
@@ -118,6 +134,12 @@ Handle<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
     return NanEscapeScope(obj);
 }
 
+/**
+ * @memberof mapnik.Feature
+ * @name id
+ * @instance
+ * @returns {number} id the feature's internal id
+ */
 NAN_METHOD(Feature::id)
 {
     NanScope();
@@ -125,6 +147,14 @@ NAN_METHOD(Feature::id)
     NanReturnValue(NanNew<Number>(fp->get()->id()));
 }
 
+/**
+ * Get the feature's extent
+ *
+ * @name extent
+ * @memberof mapnik.Feature
+ * @instance
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ */
 NAN_METHOD(Feature::extent)
 {
     NanScope();
@@ -141,6 +171,14 @@ NAN_METHOD(Feature::extent)
     NanReturnValue(a);
 }
 
+/**
+ * Get the feature's attributes as an object.
+ *
+ * @name attributes
+ * @memberof mapnik.Feature
+ * @instance
+ * @returns {Object} attributes
+ */
 NAN_METHOD(Feature::attributes)
 {
     NanScope();
@@ -161,6 +199,15 @@ NAN_METHOD(Feature::attributes)
     NanReturnValue(feat);
 }
 
+
+/**
+ * Get the feature's attributes as a Mapnik geometry.
+ *
+ * @name geometry
+ * @memberof mapnik.Feature
+ * @instance
+ * @returns {mapnik.Geometry} geometry
+ */
 NAN_METHOD(Feature::geometry)
 {
     NanScope();
@@ -168,6 +215,14 @@ NAN_METHOD(Feature::geometry)
     NanReturnValue(Geometry::NewInstance(fp->get()));
 }
 
+/**
+ * Generate and return a GeoJSON representation of this feature
+ *
+ * @instance
+ * @name toJSON
+ * @memberof mapnik.Feature
+ * @returns {string} geojson Feature object in stringified GeoJSON
+ */
 NAN_METHOD(Feature::toJSON)
 {
     NanScope();
