@@ -65,6 +65,7 @@
         "src/mapnik_expression.cpp",
         "src/mapnik_cairo_surface.cpp",
         "src/mapnik_vector_tile.cpp",
+        "deps/clipper/clipper.cpp",
         "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
       ],
       'include_dirs': [
@@ -74,7 +75,13 @@
         './src',
         "<!(node -e \"require('nan')\")"
       ],
-      'defines': ['MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"'],
+      'defines': [
+          'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
+          'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
+          'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
+          'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
+          'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
+      ],
       'conditions': [
         ["coverage == 'true'", {
             "cflags_cc": ["--coverage"],
