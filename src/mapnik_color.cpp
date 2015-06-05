@@ -219,6 +219,15 @@ NAN_SETTER(Color::set_prop)
     }
 }
 
+
+/**
+ * Get whether this coloris premultiplied
+ *
+ * @name get_premultiplied
+ * @memberof mapnik.Color
+ * @instance
+ * @returns {boolean} premultiplied
+ */
 NAN_GETTER(Color::get_premultiplied)
 {
     NanScope();
@@ -227,6 +236,14 @@ NAN_GETTER(Color::get_premultiplied)
     NanReturnUndefined();
 }
 
+/**
+ * Set whether this color should be premultiplied
+ *
+ * @name set_premultiplied
+ * @memberof mapnik.Color
+ * @instance
+ * @param {boolean} premultiplied
+ */
 NAN_SETTER(Color::set_premultiplied)
 {
     NanScope();
@@ -239,6 +256,14 @@ NAN_SETTER(Color::set_premultiplied)
     c->get()->set_premultiplied(value->BooleanValue());
 }
 
+/**
+ * Get this color's representation as a string
+ *
+ * @name toString
+ * @memberof mapnik.Color
+ * @instance
+ * @returns {string} color as a string
+ */
 NAN_METHOD(Color::toString)
 {
     NanScope();
@@ -247,7 +272,14 @@ NAN_METHOD(Color::toString)
     NanReturnValue(NanNew(c->get()->to_string().c_str()));
 }
 
-
+/**
+ * Get this color represented as a hexademical string
+ *
+ * @name hex
+ * @memberof mapnik.Color
+ * @instance
+ * @returns {string} hex representation
+ */
 NAN_METHOD(Color::hex)
 {
     NanScope();

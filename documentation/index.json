@@ -59,7 +59,9 @@
           "column": 3
         }
       },
-      "file": "src/blend.cpp"
+      "file": "src/blend.cpp",
+      "path": "src/blend.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/blend.cpp#L442-L455"
     },
     "name": "blend",
     "params": [
@@ -168,7 +170,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_color.cpp"
+      "file": "src/mapnik_color.cpp",
+      "path": "src/mapnik_color.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L13-L20"
     },
     "name": "mapnik.Color",
     "params": [
@@ -204,7 +208,258 @@
       "<span class=\"hljs-keyword\">var</span> c = <span class=\"hljs-keyword\">new</span> mapnik.Color(<span class=\"hljs-string\">'green'</span>);"
     ],
     "members": {
-      "instance": [],
+      "instance": [
+        {
+          "description": "Get whether this coloris premultiplied",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "get_premultiplied"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Color"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "premultiplied",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 223,
+                "column": 0
+              },
+              "end": {
+                "line": 230,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_color.cpp",
+            "path": "src/mapnik_color.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L223-L230"
+          },
+          "name": "get_premultiplied",
+          "memberof": "mapnik.Color",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "premultiplied",
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Color",
+            "get_premultiplied"
+          ]
+        },
+        {
+          "description": "Get this color represented as a hexademical string",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "hex"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Color"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "hex representation",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 275,
+                "column": 0
+              },
+              "end": {
+                "line": 282,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_color.cpp",
+            "path": "src/mapnik_color.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L275-L282"
+          },
+          "name": "hex",
+          "memberof": "mapnik.Color",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "hex representation",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Color",
+            "hex"
+          ]
+        },
+        {
+          "description": "Set whether this color should be premultiplied",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "set_premultiplied"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Color"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              },
+              "name": "premultiplied"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 239,
+                "column": 0
+              },
+              "end": {
+                "line": 246,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_color.cpp",
+            "path": "src/mapnik_color.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L239-L246"
+          },
+          "name": "set_premultiplied",
+          "memberof": "mapnik.Color",
+          "scope": "instance",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "boolean"
+              },
+              "name": "premultiplied"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Color",
+            "set_premultiplied"
+          ]
+        },
+        {
+          "description": "Get this color's representation as a string",
+          "tags": [
+            {
+              "title": "name",
+              "description": null,
+              "name": "toString"
+            },
+            {
+              "title": "memberof",
+              "description": "mapnik.Color"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "returns",
+              "description": "color as a string",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 259,
+                "column": 0
+              },
+              "end": {
+                "line": 266,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_color.cpp",
+            "path": "src/mapnik_color.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L259-L266"
+          },
+          "name": "toString",
+          "memberof": "mapnik.Color",
+          "scope": "instance",
+          "returns": [
+            {
+              "title": "returns",
+              "description": "color as a string",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              }
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Color",
+            "toString"
+          ]
+        }
+      ],
       "static": []
     },
     "path": [
@@ -237,7 +492,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_datasource.cpp"
+      "file": "src/mapnik_datasource.cpp",
+      "path": "src/mapnik_datasource.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L22-L28"
     },
     "name": "mapnik.Datasource",
     "members": {
@@ -278,7 +535,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_datasource.cpp"
+            "file": "src/mapnik_datasource.cpp",
+            "path": "src/mapnik_datasource.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L195-L203"
           },
           "name": "describe",
           "memberof": "mapnik.Datasource",
@@ -347,7 +606,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_datasource.cpp"
+            "file": "src/mapnik_datasource.cpp",
+            "path": "src/mapnik_datasource.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L164-L171"
           },
           "name": "extent",
           "memberof": "mapnik.Datasource",
@@ -413,7 +674,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_feature.cpp"
+      "file": "src/mapnik_feature.cpp",
+      "path": "src/mapnik_feature.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L16-L23"
     },
     "name": "mapnik.Feature",
     "members": {
@@ -454,7 +717,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_feature.cpp"
+            "file": "src/mapnik_feature.cpp",
+            "path": "src/mapnik_feature.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L174-L181"
           },
           "name": "attributes",
           "memberof": "mapnik.Feature",
@@ -523,7 +788,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_feature.cpp"
+            "file": "src/mapnik_feature.cpp",
+            "path": "src/mapnik_feature.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L150-L157"
           },
           "name": "extent",
           "memberof": "mapnik.Feature",
@@ -592,7 +859,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_feature.cpp"
+            "file": "src/mapnik_feature.cpp",
+            "path": "src/mapnik_feature.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L203-L210"
           },
           "name": "geometry",
           "memberof": "mapnik.Feature",
@@ -652,7 +921,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_feature.cpp"
+            "file": "src/mapnik_feature.cpp",
+            "path": "src/mapnik_feature.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L137-L142"
           },
           "memberof": "mapnik.Feature",
           "name": "id",
@@ -712,7 +983,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_feature.cpp"
+            "file": "src/mapnik_feature.cpp",
+            "path": "src/mapnik_feature.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L218-L225"
           },
           "scope": "instance",
           "name": "toJSON",
@@ -775,7 +1048,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_feature.cpp"
+            "file": "src/mapnik_feature.cpp",
+            "path": "src/mapnik_feature.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L93-L100"
           },
           "memberof": "mapnik.Feature",
           "scope": "static",
@@ -832,7 +1107,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_featureset.cpp"
+      "file": "src/mapnik_featureset.cpp",
+      "path": "src/mapnik_featureset.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_featureset.cpp#L6-L11"
     },
     "name": "mapnik.Featureset",
     "members": {
@@ -881,7 +1158,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_featureset.cpp"
+            "file": "src/mapnik_featureset.cpp",
+            "path": "src/mapnik_featureset.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_featureset.cpp#L57-L65"
           },
           "name": "next",
           "scope": "instance",
@@ -946,7 +1225,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_geometry.cpp"
+      "file": "src/mapnik_geometry.cpp",
+      "path": "src/mapnik_geometry.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L13-L24"
     },
     "name": "mapnik.Geometry",
     "members": {
@@ -996,7 +1277,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_geometry.cpp"
+            "file": "src/mapnik_geometry.cpp",
+            "path": "src/mapnik_geometry.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L293-L300"
           },
           "name": "extent",
           "memberof": "mapnik.Geometry",
@@ -1079,7 +1362,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_geometry.cpp"
+            "file": "src/mapnik_geometry.cpp",
+            "path": "src/mapnik_geometry.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L171-L180"
           },
           "params": [
             {
@@ -1153,7 +1438,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_geometry.cpp"
+            "file": "src/mapnik_geometry.cpp",
+            "path": "src/mapnik_geometry.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L83-L91"
           },
           "returns": [
             {
@@ -1213,7 +1500,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_geometry.cpp"
+            "file": "src/mapnik_geometry.cpp",
+            "path": "src/mapnik_geometry.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L339-L346"
           },
           "name": "toWKB",
           "memberof": "mapnik.Geometry",
@@ -1273,7 +1562,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_geometry.cpp"
+            "file": "src/mapnik_geometry.cpp",
+            "path": "src/mapnik_geometry.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L314-L321"
           },
           "name": "toWKT",
           "memberof": "mapnik.Geometry",
@@ -1370,7 +1661,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_grid.cpp"
+      "file": "src/mapnik_grid.cpp",
+      "path": "src/mapnik_grid.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L16-L26"
     },
     "name": "mapnik.Grid",
     "params": [
@@ -1420,6 +1713,70 @@
     "members": {
       "instance": [
         {
+          "description": "Add a field to this grid's output",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Grid"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "addField"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "field"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 266,
+                "column": 0
+              },
+              "end": {
+                "line": 272,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_grid.cpp",
+            "path": "src/mapnik_grid.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L266-L272"
+          },
+          "memberof": "mapnik.Grid",
+          "scope": "instance",
+          "name": "addField",
+          "params": [
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "field"
+            }
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Grid",
+            "addField"
+          ]
+        },
+        {
           "description": "Get all of this grid's fields",
           "tags": [
             {
@@ -1464,7 +1821,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_grid.cpp"
+            "file": "src/mapnik_grid.cpp",
+            "path": "src/mapnik_grid.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L294-L300"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1486,68 +1845,6 @@
                   }
                 ]
               }
-            }
-          ],
-          "members": {
-            "instance": [],
-            "static": []
-          },
-          "path": [
-            "mapnik.Grid",
-            "addField"
-          ]
-        },
-        {
-          "description": "Add a field to this grid's output",
-          "tags": [
-            {
-              "title": "memberof",
-              "description": "mapnik.Grid"
-            },
-            {
-              "title": "instance",
-              "description": null
-            },
-            {
-              "title": "name",
-              "description": null,
-              "name": "addField"
-            },
-            {
-              "title": "param",
-              "description": null,
-              "type": {
-                "type": "NameExpression",
-                "name": "string"
-              },
-              "name": "field"
-            }
-          ],
-          "context": {
-            "loc": {
-              "start": {
-                "line": 266,
-                "column": 0
-              },
-              "end": {
-                "line": 272,
-                "column": 3
-              }
-            },
-            "file": "src/mapnik_grid.cpp"
-          },
-          "memberof": "mapnik.Grid",
-          "scope": "instance",
-          "name": "addField",
-          "params": [
-            {
-              "title": "param",
-              "description": null,
-              "type": {
-                "type": "NameExpression",
-                "name": "string"
-              },
-              "name": "field"
             }
           ],
           "members": {
@@ -1608,7 +1905,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_grid.cpp"
+            "file": "src/mapnik_grid.cpp",
+            "path": "src/mapnik_grid.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L350-L357"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1683,7 +1982,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_grid.cpp"
+            "file": "src/mapnik_grid.cpp",
+            "path": "src/mapnik_grid.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L231-L237"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1779,7 +2080,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_grid.cpp"
+            "file": "src/mapnik_grid.cpp",
+            "path": "src/mapnik_grid.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L320-L330"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1877,7 +2180,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_grid.cpp"
+            "file": "src/mapnik_grid.cpp",
+            "path": "src/mapnik_grid.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L216-L222"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1965,7 +2270,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_image.cpp"
+      "file": "src/mapnik_image.cpp",
+      "path": "src/mapnik_image.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L32-L42"
     },
     "name": "mapnik.Image",
     "params": [
@@ -2039,7 +2346,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L766-L773"
           },
           "name": "clear",
           "scope": "instance",
@@ -2092,7 +2401,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L730-L736"
           },
           "name": "clearSync",
           "scope": "instance",
@@ -2164,7 +2475,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L457-L467"
           },
           "name": "compare",
           "scope": "instance",
@@ -2258,7 +2571,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L2048-L2057"
           },
           "name": "composite",
           "params": [
@@ -2342,7 +2657,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1126-L1134"
           },
           "name": "copy",
           "params": [
@@ -2429,7 +2746,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1281-L1289"
           },
           "name": "copySync",
           "params": [
@@ -2505,7 +2824,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L970-L978"
           },
           "name": "demultiply",
           "params": [
@@ -2558,7 +2879,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L949-L956"
           },
           "name": "demultiplySync",
           "scope": "instance",
@@ -2634,7 +2957,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1827-L1841"
           },
           "name": "encode",
           "params": [
@@ -2738,7 +3063,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1742-L1753"
           },
           "name": "encodeSync",
           "params": [
@@ -2835,7 +3162,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L609-L617"
           },
           "name": "fill",
           "scope": "instance",
@@ -2924,7 +3253,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L530-L537"
           },
           "name": "fillSync",
           "scope": "instance",
@@ -3021,7 +3352,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L333-L341"
           },
           "name": "getPixel",
           "scope": "instance",
@@ -3110,7 +3443,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1419-L1426"
           },
           "name": "height",
           "returns": [
@@ -3170,7 +3505,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1087-L1095"
           },
           "name": "isSolidSync",
           "returns": [
@@ -3230,7 +3567,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L864-L871"
           },
           "name": "premultiplied",
           "scope": "instance",
@@ -3291,7 +3630,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L900-L907"
           },
           "name": "premultiply",
           "params": [
@@ -3344,7 +3685,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L880-L886"
           },
           "name": "premultiplySync",
           "scope": "instance",
@@ -3412,7 +3755,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1979-L1989"
           },
           "name": "save",
           "params": [
@@ -3517,7 +3862,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L399-L406"
           },
           "name": "setPixel",
           "scope": "instance",
@@ -3641,7 +3988,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1949-L1959"
           },
           "memberof": "mapnik.Image",
           "scope": "instance",
@@ -3739,7 +4088,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1403-L1410"
           },
           "name": "width",
           "returns": [
@@ -3811,7 +4162,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_image.cpp"
+            "file": "src/mapnik_image.cpp",
+            "path": "src/mapnik_image.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1640-L1648"
           },
           "name": "fromBytes",
           "params": [
@@ -3908,7 +4261,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_map.cpp"
+      "file": "src/mapnik_map.cpp",
+      "path": "src/mapnik_map.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L47-L58"
     },
     "name": "mapnik.Map",
     "params": [
@@ -3982,7 +4337,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L827-L834"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4035,7 +4392,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L918-L924"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4085,7 +4444,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1374-L1382"
           },
           "scope": "instance",
           "name": "clone",
@@ -4154,7 +4515,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L464-L470"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4231,7 +4594,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L506-L512"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4299,7 +4664,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L485-L492"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4321,101 +4688,6 @@
           "path": [
             "mapnik.Map",
             "fontFiles"
-          ]
-        },
-        {
-          "description": "Load styles, layers, and other information for this map from a Mapnik\nXML stylesheet given as a string.",
-          "tags": [
-            {
-              "title": "memberof",
-              "description": "mapnik.Map"
-            },
-            {
-              "title": "instance",
-              "description": null
-            },
-            {
-              "title": "name",
-              "description": null,
-              "name": "fromStringSync"
-            },
-            {
-              "title": "param",
-              "description": "contents",
-              "type": {
-                "type": "NameExpression",
-                "name": "string"
-              },
-              "name": "stylesheet"
-            },
-            {
-              "title": "param",
-              "description": null,
-              "type": {
-                "type": "OptionalType",
-                "expression": {
-                  "type": "NameExpression",
-                  "name": "Object"
-                }
-              },
-              "name": "options",
-              "default": "{}"
-            },
-            {
-              "title": "example",
-              "description": "var fs = require('fs');\nmap.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));"
-            }
-          ],
-          "context": {
-            "loc": {
-              "start": {
-                "line": 1168,
-                "column": 0
-              },
-              "end": {
-                "line": 1180,
-                "column": 3
-              }
-            },
-            "file": "src/mapnik_map.cpp"
-          },
-          "memberof": "mapnik.Map",
-          "scope": "instance",
-          "name": "fromStringSync",
-          "params": [
-            {
-              "title": "param",
-              "description": "contents",
-              "type": {
-                "type": "NameExpression",
-                "name": "string"
-              },
-              "name": "stylesheet"
-            },
-            {
-              "title": "param",
-              "description": null,
-              "type": {
-                "type": "OptionalType",
-                "expression": {
-                  "type": "NameExpression",
-                  "name": "Object"
-                }
-              },
-              "name": "options",
-              "default": "{}"
-            }
-          ],
-          "examples": [
-            "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nmap.fromStringSync(fs.readFileSync(<span class=\"hljs-string\">'./style.xml'</span>, <span class=\"hljs-string\">'utf8'</span>));"
-          ],
-          "members": {
-            "instance": [],
-            "static": []
-          },
-          "path": [
-            "mapnik.Map",
-            "fromStringSync"
           ]
         },
         {
@@ -4481,7 +4753,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1247-L1262"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4521,6 +4795,103 @@
           ],
           "examples": [
             "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nmap.fromStringSync(fs.readFileSync(<span class=\"hljs-string\">'./style.xml'</span>, <span class=\"hljs-string\">'utf8'</span>), <span class=\"hljs-function\"><span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">err, res</span>) </span>{\n  <span class=\"hljs-comment\">// details loaded</span>\n});"
+          ],
+          "members": {
+            "instance": [],
+            "static": []
+          },
+          "path": [
+            "mapnik.Map",
+            "fromStringSync"
+          ]
+        },
+        {
+          "description": "Load styles, layers, and other information for this map from a Mapnik\nXML stylesheet given as a string.",
+          "tags": [
+            {
+              "title": "memberof",
+              "description": "mapnik.Map"
+            },
+            {
+              "title": "instance",
+              "description": null
+            },
+            {
+              "title": "name",
+              "description": null,
+              "name": "fromStringSync"
+            },
+            {
+              "title": "param",
+              "description": "contents",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            },
+            {
+              "title": "example",
+              "description": "var fs = require('fs');\nmap.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));"
+            }
+          ],
+          "context": {
+            "loc": {
+              "start": {
+                "line": 1168,
+                "column": 0
+              },
+              "end": {
+                "line": 1180,
+                "column": 3
+              }
+            },
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1168-L1180"
+          },
+          "memberof": "mapnik.Map",
+          "scope": "instance",
+          "name": "fromStringSync",
+          "params": [
+            {
+              "title": "param",
+              "description": "contents",
+              "type": {
+                "type": "NameExpression",
+                "name": "string"
+              },
+              "name": "stylesheet"
+            },
+            {
+              "title": "param",
+              "description": null,
+              "type": {
+                "type": "OptionalType",
+                "expression": {
+                  "type": "NameExpression",
+                  "name": "Object"
+                }
+              },
+              "name": "options",
+              "default": "{}"
+            }
+          ],
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">'fs'</span>);\nmap.fromStringSync(fs.readFileSync(<span class=\"hljs-string\">'./style.xml'</span>, <span class=\"hljs-string\">'utf8'</span>));"
           ],
           "members": {
             "instance": [],
@@ -4593,7 +4964,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L854-L863"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4682,7 +5055,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L806-L813"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4774,7 +5149,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L974-L984"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4875,7 +5252,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1089-L1100"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4962,7 +5341,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L933-L941"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5032,7 +5413,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L525-L532"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5092,7 +5475,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_map.cpp"
+            "file": "src/mapnik_map.cpp",
+            "path": "src/mapnik_map.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L540-L547"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5175,7 +5560,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_projection.cpp"
+      "file": "src/mapnik_projection.cpp",
+      "path": "src/mapnik_projection.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L11-L22"
     },
     "name": "mapnik.Projection",
     "params": [
@@ -5274,7 +5661,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_projection.cpp"
+            "file": "src/mapnik_projection.cpp",
+            "path": "src/mapnik_projection.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L106-L118"
           },
           "name": "forward",
           "memberof": "mapnik.Projection",
@@ -5393,7 +5782,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_projection.cpp"
+            "file": "src/mapnik_projection.cpp",
+            "path": "src/mapnik_projection.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L176-L185"
           },
           "name": "inverse",
           "memberof": "mapnik.Projection",
@@ -5510,7 +5901,9 @@
           "column": 3
         }
       },
-      "file": "src/mapnik_vector_tile.cpp"
+      "file": "src/mapnik_vector_tile.cpp",
+      "path": "src/mapnik_vector_tile.cpp",
+      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L181-L192"
     },
     "name": "mapnik.VectorTile",
     "params": [
@@ -5593,7 +5986,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2364-L2372"
           },
           "memberof": "mapnik.VectorTile",
           "name": "addData",
@@ -5673,7 +6068,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2219-L2227"
           },
           "memberof": "mapnik.VectorTile",
           "name": "addGeoJSON",
@@ -5744,7 +6141,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3203-L3210"
           },
           "memberof": "mapnik.VectorTile",
           "name": "clear",
@@ -5815,7 +6214,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L568-L575"
           },
           "memberof": "mapnik.VectorTile",
           "name": "compositeSync",
@@ -5886,7 +6287,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1012-L1020"
           },
           "memberof": "mapnik.VectorTile",
           "name": "empty",
@@ -5947,7 +6350,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2528-L2535"
           },
           "memberof": "mapnik.VectorTile",
           "name": "getData",
@@ -6026,7 +6431,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2670-L2679"
           },
           "memberof": "mapnik.VectorTile",
           "name": "getData",
@@ -6106,7 +6513,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1070-L1077"
           },
           "memberof": "mapnik.VectorTile",
           "name": "height",
@@ -6168,7 +6577,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3317-L3324"
           },
           "memberof": "mapnik.VectorTile",
           "name": "isSolid",
@@ -6229,7 +6640,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3268-L3275"
           },
           "memberof": "mapnik.VectorTile",
           "name": "isSolidSync",
@@ -6299,7 +6712,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L938-L945"
           },
           "memberof": "mapnik.VectorTile",
           "name": "names",
@@ -6370,7 +6785,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1085-L1092"
           },
           "memberof": "mapnik.VectorTile",
           "name": "painted",
@@ -6463,7 +6880,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1113-L1124"
           },
           "memberof": "mapnik.VectorTile",
           "name": "query",
@@ -6565,7 +6984,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2441-L2449"
           },
           "memberof": "mapnik.VectorTile",
           "name": "setData",
@@ -6644,7 +7065,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2045-L2053"
           },
           "memberof": "mapnik.VectorTile",
           "name": "toGeoJSON",
@@ -6715,7 +7138,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1841-L1848"
           },
           "memberof": "mapnik.VectorTile",
           "name": "toGeoJSONSync",
@@ -6775,7 +7200,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1690-L1698"
           },
           "memberof": "mapnik.VectorTile",
           "name": "toJSON",
@@ -6836,7 +7263,9 @@
                 "column": 3
               }
             },
-            "file": "src/mapnik_vector_tile.cpp"
+            "file": "src/mapnik_vector_tile.cpp",
+            "path": "src/mapnik_vector_tile.cpp",
+            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1055-L1062"
           },
           "memberof": "mapnik.VectorTile",
           "name": "width",

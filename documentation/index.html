@@ -22,6 +22,26 @@
                 class='regular block'>
                 <code>mapnik.Color</code>
               </a>
+                <a
+                  href='#mapnik-color/get-premultiplied'
+                  class='px1 regular block'>
+                  <code>#get_premultiplied</code>
+                </a>
+                <a
+                  href='#mapnik-color/hex'
+                  class='px1 regular block'>
+                  <code>#hex</code>
+                </a>
+                <a
+                  href='#mapnik-color/set-premultiplied'
+                  class='px1 regular block'>
+                  <code>#set_premultiplied</code>
+                </a>
+                <a
+                  href='#mapnik-color/tostring'
+                  class='px1 regular block'>
+                  <code>#toString</code>
+                </a>
               <a
                 href='#mapnik-datasource'
                 class='regular block'>
@@ -464,6 +484,9 @@
         <div class='flex-auto full-width'>
           <div class='px1'>
 <section id='blend'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/blend.cpp#L442-L455'><code>src/blend.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#blend'>
       <code>
@@ -519,6 +542,9 @@
 
 </section>
 <section id='mapnik-color'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L13-L20'><code>src/mapnik_color.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-color'>
       <code>
@@ -552,9 +578,137 @@ a color keyword, or a CSS color in rgba() form.</p>
 <pre><span class="hljs-keyword">var</span> c = <span class="hljs-keyword">new</span> mapnik.Color(<span class="hljs-string">'green'</span>);</pre>
 
 
+      <div class='section-indent'>
+<section id='mapnik-color/get-premultiplied'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L223-L230'><code>src/mapnik_color.cpp</code></a>
+    </div>
+  <h3 class='regular'>
+    <a class='black' href='#mapnik-color/get-premultiplied'>
+      <code>
+        get_premultiplied<span class='gray'></span>
+      </code>
+    </a>
+  </h3>
+  <p>Get whether this coloris premultiplied</p>
+
+
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>premultiplied</p>
+
+      </span>
+
+
+
+
+</section>
+      </div>
+      <div class='section-indent'>
+<section id='mapnik-color/hex'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L275-L282'><code>src/mapnik_color.cpp</code></a>
+    </div>
+  <h3 class='regular'>
+    <a class='black' href='#mapnik-color/hex'>
+      <code>
+        hex<span class='gray'></span>
+      </code>
+    </a>
+  </h3>
+  <p>Get this color represented as a hexademical string</p>
+
+
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>hex representation</p>
+
+      </span>
+
+
+
+
+</section>
+      </div>
+      <div class='section-indent'>
+<section id='mapnik-color/set-premultiplied'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L239-L246'><code>src/mapnik_color.cpp</code></a>
+    </div>
+  <h3 class='regular'>
+    <a class='black' href='#mapnik-color/set-premultiplied'>
+      <code>
+        set_premultiplied<span class='gray'>(premultiplied)</span>
+      </code>
+    </a>
+  </h3>
+  <p>Set whether this color should be premultiplied</p>
+
+
+    <p>
+      <table class='table-light overflow-hidden bg-cloudy-light'>
+        <thead>
+          <th class='col-3'>parameter</th>
+          <th class='col-3'>type</th>
+          <th class='col-6'>description</th>
+        </thead>
+          <tr>
+            <td>premultiplied</td>
+            <td>
+              <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code>
+            </td>
+            <td></td>
+          </tr>
+      </table>
+    </p>
+
+
+
+
+
+</section>
+      </div>
+      <div class='section-indent'>
+<section id='mapnik-color/tostring'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L259-L266'><code>src/mapnik_color.cpp</code></a>
+    </div>
+  <h3 class='regular'>
+    <a class='black' href='#mapnik-color/tostring'>
+      <code>
+        toString<span class='gray'></span>
+      </code>
+    </a>
+  </h3>
+  <p>Get this color's representation as a string</p>
+
+
+
+      <h4>Returns</h4>
+      <code><code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code></code>
+      :
+      <span class='force-inline'>
+        <p>color as a string</p>
+
+      </span>
+
+
+
+
+</section>
+      </div>
 
 </section>
 <section id='mapnik-datasource'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L22-L28'><code>src/mapnik_datasource.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-datasource'>
       <code>
@@ -572,6 +726,9 @@ of file, network, or database source of geographical data.</p>
 
       <div class='section-indent'>
 <section id='mapnik-datasource/describe'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L195-L203'><code>src/mapnik_datasource.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-datasource/describe'>
       <code>
@@ -599,6 +756,9 @@ geometry_type, and proj4 code</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-datasource/extent'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L164-L171'><code>src/mapnik_datasource.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-datasource/extent'>
       <code>
@@ -626,6 +786,9 @@ geometry_type, and proj4 code</p>
 
 </section>
 <section id='mapnik-feature'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L16-L23'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature'>
       <code>
@@ -643,6 +806,9 @@ created.</p>
 
       <div class='section-indent'>
 <section id='mapnik-feature/fromjson'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L93-L100'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature/fromjson'>
       <code>
@@ -680,6 +846,9 @@ created.</p>
 
       <div class='section-indent'>
 <section id='mapnik-feature/attributes'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L174-L181'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature/attributes'>
       <code>
@@ -706,6 +875,9 @@ created.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-feature/extent'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L150-L157'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature/extent'>
       <code>
@@ -732,6 +904,9 @@ created.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-feature/geometry'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L203-L210'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature/geometry'>
       <code>
@@ -758,6 +933,9 @@ created.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-feature/id'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L137-L142'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature/id'>
       <code>
@@ -783,6 +961,9 @@ created.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-feature/tojson'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L218-L225'><code>src/mapnik_feature.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-feature/tojson'>
       <code>
@@ -810,6 +991,9 @@ created.</p>
 
 </section>
 <section id='mapnik-featureset'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_featureset.cpp#L6-L11'><code>src/mapnik_featureset.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-featureset'>
       <code>
@@ -826,6 +1010,9 @@ created.</p>
 
       <div class='section-indent'>
 <section id='mapnik-featureset/next'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_featureset.cpp#L57-L65'><code>src/mapnik_featureset.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-featureset/next'>
       <code>
@@ -854,6 +1041,9 @@ does not.</p>
 
 </section>
 <section id='mapnik-geometry'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L13-L24'><code>src/mapnik_geometry.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-geometry'>
       <code>
@@ -875,6 +1065,9 @@ a <a href="mapnik-featureset"><code>mapnik.Featureset</code></a> instance.</p>
 
       <div class='section-indent'>
 <section id='mapnik-geometry/extent'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L293-L300'><code>src/mapnik_geometry.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-geometry/extent'>
       <code>
@@ -901,6 +1094,9 @@ a <a href="mapnik-featureset"><code>mapnik.Featureset</code></a> instance.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-geometry/tojson'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L171-L180'><code>src/mapnik_geometry.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-geometry/tojson'>
       <code>
@@ -945,6 +1141,9 @@ asynchronously.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-geometry/tojsonsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L83-L91'><code>src/mapnik_geometry.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-geometry/tojsonsync'>
       <code>
@@ -972,6 +1171,9 @@ synchronously.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-geometry/towkb'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L339-L346'><code>src/mapnik_geometry.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-geometry/towkb'>
       <code>
@@ -998,6 +1200,9 @@ synchronously.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-geometry/towkt'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L314-L321'><code>src/mapnik_geometry.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-geometry/towkt'>
       <code>
@@ -1025,6 +1230,9 @@ synchronously.</p>
 
 </section>
 <section id='mapnik-grid'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L16-L26'><code>src/mapnik_grid.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-grid'>
       <code>
@@ -1074,32 +1282,9 @@ representations of data.</p>
 
       <div class='section-indent'>
 <section id='mapnik-grid/addfield'class='mt2 mb2 py1 px2 keyline-top'>
-  <h3 class='regular'>
-    <a class='black' href='#mapnik-grid/addfield'>
-      <code>
-        addField<span class='gray'></span>
-      </code>
-    </a>
-  </h3>
-  <p>Get all of this grid's fields</p>
-
-
-
-      <h4>Returns</h4>
-      <code>Array<<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>></code>
-      :
-      <span class='force-inline'>
-        <p>fields</p>
-
-      </span>
-
-
-
-
-</section>
-      </div>
-      <div class='section-indent'>
-<section id='mapnik-grid/addfield'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L266-L272'><code>src/mapnik_grid.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-grid/addfield'>
       <code>
@@ -1134,7 +1319,39 @@ representations of data.</p>
 </section>
       </div>
       <div class='section-indent'>
+<section id='mapnik-grid/addfield'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L294-L300'><code>src/mapnik_grid.cpp</code></a>
+    </div>
+  <h3 class='regular'>
+    <a class='black' href='#mapnik-grid/addfield'>
+      <code>
+        addField<span class='gray'></span>
+      </code>
+    </a>
+  </h3>
+  <p>Get all of this grid's fields</p>
+
+
+
+      <h4>Returns</h4>
+      <code>Array<<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>></code>
+      :
+      <span class='force-inline'>
+        <p>fields</p>
+
+      </span>
+
+
+
+
+</section>
+      </div>
+      <div class='section-indent'>
 <section id='mapnik-grid/encodesync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L350-L357'><code>src/mapnik_grid.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-grid/encodesync'>
       <code>
@@ -1178,6 +1395,9 @@ representations of data.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-grid/height'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L231-L237'><code>src/mapnik_grid.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-grid/height'>
       <code>
@@ -1204,6 +1424,9 @@ representations of data.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-grid/view'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L320-L330'><code>src/mapnik_grid.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-grid/view'>
       <code>
@@ -1267,6 +1490,9 @@ representations of data.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-grid/width'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L216-L222'><code>src/mapnik_grid.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-grid/width'>
       <code>
@@ -1294,6 +1520,9 @@ representations of data.</p>
 
 </section>
 <section id='mapnik-image'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L32-L42'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image'>
       <code>
@@ -1342,6 +1571,9 @@ representations of data.</p>
 
       <div class='section-indent'>
 <section id='mapnik-image/frombytes'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1640-L1648'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/frombytes'>
       <code>
@@ -1385,6 +1617,9 @@ representations of data.</p>
 
       <div class='section-indent'>
 <section id='mapnik-image/clear'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L766-L773'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/clear'>
       <code>
@@ -1420,6 +1655,9 @@ representations of data.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/clearsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L730-L736'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/clearsync'>
       <code>
@@ -1439,6 +1677,9 @@ representations of data.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/compare'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L457-L467'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/compare'>
       <code>
@@ -1491,6 +1732,9 @@ confirm whether a certain image has changed significantly.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/composite'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L2048-L2057'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/composite'>
       <code>
@@ -1534,6 +1778,9 @@ a new image</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/copy'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1126-L1134'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/copy'>
       <code>
@@ -1577,6 +1824,9 @@ a new image</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/copysync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1281-L1289'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/copysync'>
       <code>
@@ -1620,6 +1870,9 @@ a new image</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/demultiply'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L970-L978'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/demultiply'>
       <code>
@@ -1656,6 +1909,9 @@ premultiplying</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/demultiplysync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L949-L956'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/demultiplysync'>
       <code>
@@ -1676,6 +1932,9 @@ premultiplying</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/encode'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1827-L1841'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/encode'>
       <code>
@@ -1732,6 +1991,9 @@ myImage.encode(<span class="hljs-string">'png'</span>, <span class="hljs-functio
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/encodesync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1742-L1753'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/encodesync'>
       <code>
@@ -1779,6 +2041,9 @@ fs.writeFileSync(<span class="hljs-string">'myimage.png'</span>, myImage.encodeS
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/fill'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L609-L617'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/fill'>
       <code>
@@ -1821,6 +2086,9 @@ fs.writeFileSync(<span class="hljs-string">'myimage.png'</span>, myImage.encodeS
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/fillsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L530-L537'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/fillsync'>
       <code>
@@ -1856,6 +2124,9 @@ fs.writeFileSync(<span class="hljs-string">'myimage.png'</span>, myImage.encodeS
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/getpixel'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L333-L341'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/getpixel'>
       <code>
@@ -1913,6 +2184,9 @@ fs.writeFileSync(<span class="hljs-string">'myimage.png'</span>, myImage.encodeS
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/height'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1419-L1426'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/height'>
       <code>
@@ -1939,6 +2213,9 @@ fs.writeFileSync(<span class="hljs-string">'myimage.png'</span>, myImage.encodeS
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/issolidsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1087-L1095'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/issolidsync'>
       <code>
@@ -1966,6 +2243,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/premultiplied'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L864-L871'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/premultiplied'>
       <code>
@@ -1992,6 +2272,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/premultiply'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L900-L907'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/premultiply'>
       <code>
@@ -2027,6 +2310,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/premultiplysync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L880-L886'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/premultiplysync'>
       <code>
@@ -2046,6 +2332,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/save'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1979-L1989'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/save'>
       <code>
@@ -2091,6 +2380,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/setpixel'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L399-L406'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/setpixel'>
       <code>
@@ -2142,6 +2434,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/view'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1949-L1959'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/view'>
       <code>
@@ -2205,6 +2500,9 @@ than one.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-image/width'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1403-L1410'><code>src/mapnik_image.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-image/width'>
       <code>
@@ -2232,6 +2530,9 @@ than one.</p>
 
 </section>
 <section id='mapnik-map'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L47-L58'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map'>
       <code>
@@ -2282,6 +2583,9 @@ a way that lets you produce styled cartographic output.</p>
 
       <div class='section-indent'>
 <section id='mapnik-map/add-layer'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L827-L834'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/add-layer'>
       <code>
@@ -2318,6 +2622,9 @@ a way that lets you produce styled cartographic output.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/clear'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L918-L924'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/clear'>
       <code>
@@ -2337,6 +2644,9 @@ a way that lets you produce styled cartographic output.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/clone'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1374-L1382'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/clone'>
       <code>
@@ -2364,6 +2674,9 @@ without mutating the original</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/font'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L464-L470'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/font'>
       <code>
@@ -2390,6 +2703,9 @@ without mutating the original</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/fontdirectory'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L506-L512'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/fontdirectory'>
       <code>
@@ -2416,6 +2732,9 @@ without mutating the original</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/fontfiles'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L485-L492'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/fontfiles'>
       <code>
@@ -2443,54 +2762,9 @@ from font to font file</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/fromstringsync'class='mt2 mb2 py1 px2 keyline-top'>
-  <h3 class='regular'>
-    <a class='black' href='#mapnik-map/fromstringsync'>
-      <code>
-        fromStringSync<span class='gray'>(stylesheet, [options])</span>
-      </code>
-    </a>
-  </h3>
-  <p>Load styles, layers, and other information for this map from a Mapnik
-XML stylesheet given as a string.</p>
-
-
-    <p>
-      <table class='table-light overflow-hidden bg-cloudy-light'>
-        <thead>
-          <th class='col-3'>parameter</th>
-          <th class='col-3'>type</th>
-          <th class='col-6'>description</th>
-        </thead>
-          <tr>
-            <td>stylesheet</td>
-            <td>
-              <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>
-            </td>
-            <td><p>contents</p>
-</td>
-          </tr>
-          <tr>
-            <td>options</td>
-            <td>
-              <code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>]</code>
-                (default <code>{}</code>)
-            </td>
-            <td></td>
-          </tr>
-      </table>
-    </p>
-
-
-    <h4>Examples</h4>
-<pre><span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
-map.fromStringSync(fs.readFileSync(<span class="hljs-string">'./style.xml'</span>, <span class="hljs-string">'utf8'</span>));</pre>
-
-
-
-</section>
-      </div>
-      <div class='section-indent'>
-<section id='mapnik-map/fromstringsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1247-L1262'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/fromstringsync'>
       <code>
@@ -2547,7 +2821,61 @@ map.fromStringSync(fs.readFileSync(<span class="hljs-string">'./style.xml'</span
 </section>
       </div>
       <div class='section-indent'>
+<section id='mapnik-map/fromstringsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1168-L1180'><code>src/mapnik_map.cpp</code></a>
+    </div>
+  <h3 class='regular'>
+    <a class='black' href='#mapnik-map/fromstringsync'>
+      <code>
+        fromStringSync<span class='gray'>(stylesheet, [options])</span>
+      </code>
+    </a>
+  </h3>
+  <p>Load styles, layers, and other information for this map from a Mapnik
+XML stylesheet given as a string.</p>
+
+
+    <p>
+      <table class='table-light overflow-hidden bg-cloudy-light'>
+        <thead>
+          <th class='col-3'>parameter</th>
+          <th class='col-3'>type</th>
+          <th class='col-6'>description</th>
+        </thead>
+          <tr>
+            <td>stylesheet</td>
+            <td>
+              <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>
+            </td>
+            <td><p>contents</p>
+</td>
+          </tr>
+          <tr>
+            <td>options</td>
+            <td>
+              <code>[<code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></code>]</code>
+                (default <code>{}</code>)
+            </td>
+            <td></td>
+          </tr>
+      </table>
+    </p>
+
+
+    <h4>Examples</h4>
+<pre><span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+map.fromStringSync(fs.readFileSync(<span class="hljs-string">'./style.xml'</span>, <span class="hljs-string">'utf8'</span>));</pre>
+
+
+
+</section>
+      </div>
+      <div class='section-indent'>
 <section id='mapnik-map/get-layer'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L854-L863'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/get-layer'>
       <code>
@@ -2591,6 +2919,9 @@ map.fromStringSync(fs.readFileSync(<span class="hljs-string">'./style.xml'</span
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/layers'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L806-L813'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/layers'>
       <code>
@@ -2617,6 +2948,9 @@ map.fromStringSync(fs.readFileSync(<span class="hljs-string">'./style.xml'</span
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/load'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L974-L984'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/load'>
       <code>
@@ -2669,6 +3003,9 @@ XML stylesheet.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/loadsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1089-L1100'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/loadsync'>
       <code>
@@ -2716,6 +3053,9 @@ XML stylesheet.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/resize'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L933-L941'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/resize'>
       <code>
@@ -2758,6 +3098,9 @@ XML stylesheet.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/scale'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L525-L532'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/scale'>
       <code>
@@ -2785,6 +3128,9 @@ units like meters.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-map/scaledenominator'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L540-L547'><code>src/mapnik_map.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-map/scaledenominator'>
       <code>
@@ -2812,6 +3158,9 @@ units like meters.</p>
 
 </section>
 <section id='mapnik-projection'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L11-L22'><code>src/mapnik_projection.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-projection'>
       <code>
@@ -2858,6 +3207,9 @@ data backing this projection.</p>
 
       <div class='section-indent'>
 <section id='mapnik-projection/forward'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L106-L118'><code>src/mapnik_projection.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-projection/forward'>
       <code>
@@ -2905,6 +3257,9 @@ data backing this projection.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-projection/inverse'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L176-L185'><code>src/mapnik_projection.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-projection/inverse'>
       <code>
@@ -2950,6 +3305,9 @@ space.</p>
 
 </section>
 <section id='mapnik-vectortile'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L181-L192'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile'>
       <code>
@@ -2999,6 +3357,9 @@ specification of compressed and simplified tiled vector data</p>
 
       <div class='section-indent'>
 <section id='mapnik-vectortile/adddata'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2364-L2372'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/adddata'>
       <code>
@@ -3043,6 +3404,9 @@ specification of compressed and simplified tiled vector data</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/addgeojson'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2219-L2227'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/addgeojson'>
       <code>
@@ -3087,6 +3451,9 @@ specification of compressed and simplified tiled vector data</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/clear'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3203-L3210'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/clear'>
       <code>
@@ -3122,6 +3489,9 @@ specification of compressed and simplified tiled vector data</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/compositesync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L568-L575'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/compositesync'>
       <code>
@@ -3158,6 +3528,9 @@ specification of compressed and simplified tiled vector data</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/empty'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1012-L1020'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/empty'>
       <code>
@@ -3195,6 +3568,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/getdata'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2528-L2535'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/getdata'>
       <code>
@@ -3221,6 +3597,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/getdata'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2670-L2679'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/getdata'>
       <code>
@@ -3272,6 +3651,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/height'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1070-L1077'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/height'>
       <code>
@@ -3307,6 +3689,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/issolid'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3317-L3324'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/issolid'>
       <code>
@@ -3342,6 +3727,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/issolidsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3268-L3275'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/issolidsync'>
       <code>
@@ -3368,6 +3756,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/names'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L938-L945'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/names'>
       <code>
@@ -3404,6 +3795,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/painted'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1085-L1092'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/painted'>
       <code>
@@ -3439,6 +3833,9 @@ layers and no features</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/query'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1113-L1124'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/query'>
       <code>
@@ -3498,6 +3895,9 @@ are not exactly on this longitude, latitude position.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/setdata'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2441-L2449'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/setdata'>
       <code>
@@ -3542,6 +3942,9 @@ are not exactly on this longitude, latitude position.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/togeojson'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2045-L2053'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/togeojson'>
       <code>
@@ -3584,6 +3987,9 @@ are not exactly on this longitude, latitude position.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/togeojsonsync'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1841-L1848'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/togeojsonsync'>
       <code>
@@ -3610,6 +4016,9 @@ are not exactly on this longitude, latitude position.</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/tojson'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1690-L1698'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/tojson'>
       <code>
@@ -3637,6 +4046,9 @@ and version properties</p>
       </div>
       <div class='section-indent'>
 <section id='mapnik-vectortile/width'class='mt2 mb2 py1 px2 keyline-top'>
+    <div class='right py2'>
+      <a class='fade font-smaller' href='https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1055-L1062'><code>src/mapnik_vector_tile.cpp</code></a>
+    </div>
   <h3 class='regular'>
     <a class='black' href='#mapnik-vectortile/width'>
       <code>
