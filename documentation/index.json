@@ -61,7 +61,7 @@
       },
       "file": "src/blend.cpp",
       "path": "src/blend.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/blend.cpp#L442-L455"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/blend.cpp#L442-L455"
     },
     "name": "blend",
     "params": [
@@ -172,7 +172,7 @@
       },
       "file": "src/mapnik_color.cpp",
       "path": "src/mapnik_color.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L13-L20"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_color.cpp#L13-L20"
     },
     "name": "mapnik.Color",
     "params": [
@@ -247,7 +247,7 @@
             },
             "file": "src/mapnik_color.cpp",
             "path": "src/mapnik_color.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L223-L230"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_color.cpp#L223-L230"
           },
           "name": "get_premultiplied",
           "memberof": "mapnik.Color",
@@ -294,22 +294,26 @@
                 "type": "NameExpression",
                 "name": "string"
               }
+            },
+            {
+              "title": "example",
+              "description": "var c = new mapnik.Color('green');"
             }
           ],
           "context": {
             "loc": {
               "start": {
-                "line": 275,
+                "line": 278,
                 "column": 0
               },
               "end": {
-                "line": 282,
+                "line": 287,
                 "column": 3
               }
             },
             "file": "src/mapnik_color.cpp",
             "path": "src/mapnik_color.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L275-L282"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_color.cpp#L278-L287"
           },
           "name": "hex",
           "memberof": "mapnik.Color",
@@ -323,6 +327,9 @@
                 "name": "string"
               }
             }
+          ],
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> c = <span class=\"hljs-keyword\">new</span> mapnik.Color(<span class=\"hljs-string\">'green'</span>);"
           ],
           "members": {
             "instance": [],
@@ -357,6 +364,10 @@
                 "name": "boolean"
               },
               "name": "premultiplied"
+            },
+            {
+              "title": "example",
+              "description": "var c = new mapnik.Color('green');\nc.set_premultiplied(true);"
             }
           ],
           "context": {
@@ -366,13 +377,13 @@
                 "column": 0
               },
               "end": {
-                "line": 246,
+                "line": 249,
                 "column": 3
               }
             },
             "file": "src/mapnik_color.cpp",
             "path": "src/mapnik_color.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L239-L246"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_color.cpp#L239-L249"
           },
           "name": "set_premultiplied",
           "memberof": "mapnik.Color",
@@ -387,6 +398,9 @@
               },
               "name": "premultiplied"
             }
+          ],
+          "examples": [
+            "<span class=\"hljs-keyword\">var</span> c = <span class=\"hljs-keyword\">new</span> mapnik.Color(<span class=\"hljs-string\">'green'</span>);\nc.set_premultiplied(<span class=\"hljs-literal\">true</span>);"
           ],
           "members": {
             "instance": [],
@@ -425,17 +439,17 @@
           "context": {
             "loc": {
               "start": {
-                "line": 259,
+                "line": 262,
                 "column": 0
               },
               "end": {
-                "line": 266,
+                "line": 269,
                 "column": 3
               }
             },
             "file": "src/mapnik_color.cpp",
             "path": "src/mapnik_color.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_color.cpp#L259-L266"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_color.cpp#L262-L269"
           },
           "name": "toString",
           "memberof": "mapnik.Color",
@@ -494,7 +508,7 @@
       },
       "file": "src/mapnik_datasource.cpp",
       "path": "src/mapnik_datasource.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L22-L28"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_datasource.cpp#L22-L28"
     },
     "name": "mapnik.Datasource",
     "members": {
@@ -537,7 +551,7 @@
             },
             "file": "src/mapnik_datasource.cpp",
             "path": "src/mapnik_datasource.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L195-L203"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_datasource.cpp#L195-L203"
           },
           "name": "describe",
           "memberof": "mapnik.Datasource",
@@ -608,7 +622,7 @@
             },
             "file": "src/mapnik_datasource.cpp",
             "path": "src/mapnik_datasource.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_datasource.cpp#L164-L171"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_datasource.cpp#L164-L171"
           },
           "name": "extent",
           "memberof": "mapnik.Datasource",
@@ -676,7 +690,7 @@
       },
       "file": "src/mapnik_feature.cpp",
       "path": "src/mapnik_feature.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L16-L23"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L16-L23"
     },
     "name": "mapnik.Feature",
     "members": {
@@ -719,7 +733,7 @@
             },
             "file": "src/mapnik_feature.cpp",
             "path": "src/mapnik_feature.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L174-L181"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L174-L181"
           },
           "name": "attributes",
           "memberof": "mapnik.Feature",
@@ -790,7 +804,7 @@
             },
             "file": "src/mapnik_feature.cpp",
             "path": "src/mapnik_feature.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L150-L157"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L150-L157"
           },
           "name": "extent",
           "memberof": "mapnik.Feature",
@@ -861,7 +875,7 @@
             },
             "file": "src/mapnik_feature.cpp",
             "path": "src/mapnik_feature.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L203-L210"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L203-L210"
           },
           "name": "geometry",
           "memberof": "mapnik.Feature",
@@ -923,7 +937,7 @@
             },
             "file": "src/mapnik_feature.cpp",
             "path": "src/mapnik_feature.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L137-L142"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L137-L142"
           },
           "memberof": "mapnik.Feature",
           "name": "id",
@@ -985,7 +999,7 @@
             },
             "file": "src/mapnik_feature.cpp",
             "path": "src/mapnik_feature.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L218-L225"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L218-L225"
           },
           "scope": "instance",
           "name": "toJSON",
@@ -1050,7 +1064,7 @@
             },
             "file": "src/mapnik_feature.cpp",
             "path": "src/mapnik_feature.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_feature.cpp#L93-L100"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_feature.cpp#L93-L100"
           },
           "memberof": "mapnik.Feature",
           "scope": "static",
@@ -1109,7 +1123,7 @@
       },
       "file": "src/mapnik_featureset.cpp",
       "path": "src/mapnik_featureset.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_featureset.cpp#L6-L11"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_featureset.cpp#L6-L11"
     },
     "name": "mapnik.Featureset",
     "members": {
@@ -1160,7 +1174,7 @@
             },
             "file": "src/mapnik_featureset.cpp",
             "path": "src/mapnik_featureset.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_featureset.cpp#L57-L65"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_featureset.cpp#L57-L65"
           },
           "name": "next",
           "scope": "instance",
@@ -1227,7 +1241,7 @@
       },
       "file": "src/mapnik_geometry.cpp",
       "path": "src/mapnik_geometry.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L13-L24"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_geometry.cpp#L13-L24"
     },
     "name": "mapnik.Geometry",
     "members": {
@@ -1279,7 +1293,7 @@
             },
             "file": "src/mapnik_geometry.cpp",
             "path": "src/mapnik_geometry.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L293-L300"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_geometry.cpp#L293-L300"
           },
           "name": "extent",
           "memberof": "mapnik.Geometry",
@@ -1364,7 +1378,7 @@
             },
             "file": "src/mapnik_geometry.cpp",
             "path": "src/mapnik_geometry.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L171-L180"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_geometry.cpp#L171-L180"
           },
           "params": [
             {
@@ -1440,7 +1454,7 @@
             },
             "file": "src/mapnik_geometry.cpp",
             "path": "src/mapnik_geometry.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L83-L91"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_geometry.cpp#L83-L91"
           },
           "returns": [
             {
@@ -1502,7 +1516,7 @@
             },
             "file": "src/mapnik_geometry.cpp",
             "path": "src/mapnik_geometry.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L339-L346"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_geometry.cpp#L339-L346"
           },
           "name": "toWKB",
           "memberof": "mapnik.Geometry",
@@ -1564,7 +1578,7 @@
             },
             "file": "src/mapnik_geometry.cpp",
             "path": "src/mapnik_geometry.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_geometry.cpp#L314-L321"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_geometry.cpp#L314-L321"
           },
           "name": "toWKT",
           "memberof": "mapnik.Geometry",
@@ -1663,7 +1677,7 @@
       },
       "file": "src/mapnik_grid.cpp",
       "path": "src/mapnik_grid.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L16-L26"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L16-L26"
     },
     "name": "mapnik.Grid",
     "params": [
@@ -1751,7 +1765,7 @@
             },
             "file": "src/mapnik_grid.cpp",
             "path": "src/mapnik_grid.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L266-L272"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L266-L272"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1823,7 +1837,7 @@
             },
             "file": "src/mapnik_grid.cpp",
             "path": "src/mapnik_grid.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L294-L300"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L294-L300"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1907,7 +1921,7 @@
             },
             "file": "src/mapnik_grid.cpp",
             "path": "src/mapnik_grid.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L350-L357"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L350-L357"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -1984,7 +1998,7 @@
             },
             "file": "src/mapnik_grid.cpp",
             "path": "src/mapnik_grid.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L231-L237"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L231-L237"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -2082,7 +2096,7 @@
             },
             "file": "src/mapnik_grid.cpp",
             "path": "src/mapnik_grid.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L320-L330"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L320-L330"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -2182,7 +2196,7 @@
             },
             "file": "src/mapnik_grid.cpp",
             "path": "src/mapnik_grid.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_grid.cpp#L216-L222"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_grid.cpp#L216-L222"
           },
           "memberof": "mapnik.Grid",
           "scope": "instance",
@@ -2272,7 +2286,7 @@
       },
       "file": "src/mapnik_image.cpp",
       "path": "src/mapnik_image.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L32-L42"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L32-L42"
     },
     "name": "mapnik.Image",
     "params": [
@@ -2348,7 +2362,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L766-L773"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L766-L773"
           },
           "name": "clear",
           "scope": "instance",
@@ -2403,7 +2417,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L730-L736"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L730-L736"
           },
           "name": "clearSync",
           "scope": "instance",
@@ -2477,7 +2491,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L457-L467"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L457-L467"
           },
           "name": "compare",
           "scope": "instance",
@@ -2573,7 +2587,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L2048-L2057"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L2048-L2057"
           },
           "name": "composite",
           "params": [
@@ -2659,7 +2673,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1126-L1134"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1126-L1134"
           },
           "name": "copy",
           "params": [
@@ -2748,7 +2762,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1281-L1289"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1281-L1289"
           },
           "name": "copySync",
           "params": [
@@ -2826,7 +2840,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L970-L978"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L970-L978"
           },
           "name": "demultiply",
           "params": [
@@ -2881,7 +2895,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L949-L956"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L949-L956"
           },
           "name": "demultiplySync",
           "scope": "instance",
@@ -2959,7 +2973,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1827-L1841"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1827-L1841"
           },
           "name": "encode",
           "params": [
@@ -3065,7 +3079,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1742-L1753"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1742-L1753"
           },
           "name": "encodeSync",
           "params": [
@@ -3164,7 +3178,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L609-L617"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L609-L617"
           },
           "name": "fill",
           "scope": "instance",
@@ -3255,7 +3269,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L530-L537"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L530-L537"
           },
           "name": "fillSync",
           "scope": "instance",
@@ -3354,7 +3368,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L333-L341"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L333-L341"
           },
           "name": "getPixel",
           "scope": "instance",
@@ -3445,7 +3459,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1419-L1426"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1419-L1426"
           },
           "name": "height",
           "returns": [
@@ -3507,7 +3521,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1087-L1095"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1087-L1095"
           },
           "name": "isSolidSync",
           "returns": [
@@ -3569,7 +3583,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L864-L871"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L864-L871"
           },
           "name": "premultiplied",
           "scope": "instance",
@@ -3632,7 +3646,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L900-L907"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L900-L907"
           },
           "name": "premultiply",
           "params": [
@@ -3687,7 +3701,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L880-L886"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L880-L886"
           },
           "name": "premultiplySync",
           "scope": "instance",
@@ -3757,7 +3771,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1979-L1989"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1979-L1989"
           },
           "name": "save",
           "params": [
@@ -3864,7 +3878,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L399-L406"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L399-L406"
           },
           "name": "setPixel",
           "scope": "instance",
@@ -3990,7 +4004,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1949-L1959"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1949-L1959"
           },
           "memberof": "mapnik.Image",
           "scope": "instance",
@@ -4090,7 +4104,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1403-L1410"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1403-L1410"
           },
           "name": "width",
           "returns": [
@@ -4164,7 +4178,7 @@
             },
             "file": "src/mapnik_image.cpp",
             "path": "src/mapnik_image.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_image.cpp#L1640-L1648"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_image.cpp#L1640-L1648"
           },
           "name": "fromBytes",
           "params": [
@@ -4263,7 +4277,7 @@
       },
       "file": "src/mapnik_map.cpp",
       "path": "src/mapnik_map.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L47-L58"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L47-L58"
     },
     "name": "mapnik.Map",
     "params": [
@@ -4339,7 +4353,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L827-L834"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L827-L834"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4394,7 +4408,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L918-L924"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L918-L924"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4446,7 +4460,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1374-L1382"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L1374-L1382"
           },
           "scope": "instance",
           "name": "clone",
@@ -4517,7 +4531,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L464-L470"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L464-L470"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4596,7 +4610,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L506-L512"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L506-L512"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4666,7 +4680,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L485-L492"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L485-L492"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4755,7 +4769,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1247-L1262"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L1247-L1262"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4861,7 +4875,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1168-L1180"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L1168-L1180"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -4966,7 +4980,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L854-L863"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L854-L863"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5057,7 +5071,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L806-L813"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L806-L813"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5151,7 +5165,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L974-L984"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L974-L984"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5254,7 +5268,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L1089-L1100"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L1089-L1100"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5343,7 +5357,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L933-L941"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L933-L941"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5415,7 +5429,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L525-L532"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L525-L532"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5477,7 +5491,7 @@
             },
             "file": "src/mapnik_map.cpp",
             "path": "src/mapnik_map.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_map.cpp#L540-L547"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_map.cpp#L540-L547"
           },
           "memberof": "mapnik.Map",
           "scope": "instance",
@@ -5562,7 +5576,7 @@
       },
       "file": "src/mapnik_projection.cpp",
       "path": "src/mapnik_projection.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L11-L22"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_projection.cpp#L11-L22"
     },
     "name": "mapnik.Projection",
     "params": [
@@ -5663,7 +5677,7 @@
             },
             "file": "src/mapnik_projection.cpp",
             "path": "src/mapnik_projection.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L106-L118"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_projection.cpp#L106-L118"
           },
           "name": "forward",
           "memberof": "mapnik.Projection",
@@ -5784,7 +5798,7 @@
             },
             "file": "src/mapnik_projection.cpp",
             "path": "src/mapnik_projection.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_projection.cpp#L176-L185"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_projection.cpp#L176-L185"
           },
           "name": "inverse",
           "memberof": "mapnik.Projection",
@@ -5903,7 +5917,7 @@
       },
       "file": "src/mapnik_vector_tile.cpp",
       "path": "src/mapnik_vector_tile.cpp",
-      "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L181-L192"
+      "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L181-L192"
     },
     "name": "mapnik.VectorTile",
     "params": [
@@ -5988,7 +6002,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2364-L2372"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L2364-L2372"
           },
           "memberof": "mapnik.VectorTile",
           "name": "addData",
@@ -6070,7 +6084,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2219-L2227"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L2219-L2227"
           },
           "memberof": "mapnik.VectorTile",
           "name": "addGeoJSON",
@@ -6143,7 +6157,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3203-L3210"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L3203-L3210"
           },
           "memberof": "mapnik.VectorTile",
           "name": "clear",
@@ -6216,7 +6230,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L568-L575"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L568-L575"
           },
           "memberof": "mapnik.VectorTile",
           "name": "compositeSync",
@@ -6289,7 +6303,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1012-L1020"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1012-L1020"
           },
           "memberof": "mapnik.VectorTile",
           "name": "empty",
@@ -6352,7 +6366,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2528-L2535"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L2528-L2535"
           },
           "memberof": "mapnik.VectorTile",
           "name": "getData",
@@ -6433,7 +6447,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2670-L2679"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L2670-L2679"
           },
           "memberof": "mapnik.VectorTile",
           "name": "getData",
@@ -6515,7 +6529,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1070-L1077"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1070-L1077"
           },
           "memberof": "mapnik.VectorTile",
           "name": "height",
@@ -6579,7 +6593,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3317-L3324"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L3317-L3324"
           },
           "memberof": "mapnik.VectorTile",
           "name": "isSolid",
@@ -6642,7 +6656,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L3268-L3275"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L3268-L3275"
           },
           "memberof": "mapnik.VectorTile",
           "name": "isSolidSync",
@@ -6714,7 +6728,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L938-L945"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L938-L945"
           },
           "memberof": "mapnik.VectorTile",
           "name": "names",
@@ -6787,7 +6801,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1085-L1092"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1085-L1092"
           },
           "memberof": "mapnik.VectorTile",
           "name": "painted",
@@ -6882,7 +6896,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1113-L1124"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1113-L1124"
           },
           "memberof": "mapnik.VectorTile",
           "name": "query",
@@ -6986,7 +7000,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2441-L2449"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L2441-L2449"
           },
           "memberof": "mapnik.VectorTile",
           "name": "setData",
@@ -7067,7 +7081,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L2045-L2053"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L2045-L2053"
           },
           "memberof": "mapnik.VectorTile",
           "name": "toGeoJSON",
@@ -7140,7 +7154,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1841-L1848"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1841-L1848"
           },
           "memberof": "mapnik.VectorTile",
           "name": "toGeoJSONSync",
@@ -7202,7 +7216,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1690-L1698"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1690-L1698"
           },
           "memberof": "mapnik.VectorTile",
           "name": "toJSON",
@@ -7265,7 +7279,7 @@
             },
             "file": "src/mapnik_vector_tile.cpp",
             "path": "src/mapnik_vector_tile.cpp",
-            "github": "https://github.com/mapnik/node-mapnik/blob/3d0d9feefa8cbe7c3eb8cb2168b42a34dfbf50b1/src/mapnik_vector_tile.cpp#L1055-L1062"
+            "github": "https://github.com/mapnik/node-mapnik/blob/681b8057b2691e190f9dc165db5bd4b859691c2e/src/mapnik_vector_tile.cpp#L1055-L1062"
           },
           "memberof": "mapnik.VectorTile",
           "name": "width",

@@ -243,6 +243,9 @@ NAN_GETTER(Color::get_premultiplied)
  * @memberof mapnik.Color
  * @instance
  * @param {boolean} premultiplied
+ * @example
+ * var c = new mapnik.Color('green');
+ * c.set_premultiplied(true);
  */
 NAN_SETTER(Color::set_premultiplied)
 {
@@ -279,6 +282,8 @@ NAN_METHOD(Color::toString)
  * @memberof mapnik.Color
  * @instance
  * @returns {string} hex representation
+ * @example
+ * var c = new mapnik.Color('green');
  */
 NAN_METHOD(Color::hex)
 {
