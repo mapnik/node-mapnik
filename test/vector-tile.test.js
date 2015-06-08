@@ -993,17 +993,17 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should read back the vector tile and render a grid with it', function(done) {
-        var vtile = new mapnik.VectorTile(0, 0, 0);
-        vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-        vtile.parse();
-        var map = new mapnik.Map(256, 256);
-        map.loadSync('./test/stylesheet.xml');
-        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+    if (mapnik.supports.grid) {
+        it('should read back the vector tile and render a grid with it', function(done) {
+            var vtile = new mapnik.VectorTile(0, 0, 0);
+            vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
+            vtile.parse();
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/stylesheet.xml');
+            map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
 
-        assert.equal(vtile.isSolid(), false);
+            assert.equal(vtile.isSolid(), false);
 
-        if (mapnik.supports.grid) {
             vtile.render(map, new mapnik.Grid(256, 256), {layer:0}, function(err, vtile_image) {
                 if (err) throw err;
                 var utf = vtile_image.encodeSync();
@@ -1017,10 +1017,10 @@ describe('mapnik.VectorTile ', function() {
                 assert.deepEqual(utf,expected);
                 done();
             });
-        } else {
-          done();
-        }
-    });
+        });
+    } else {
+      it.skip('should read back the vector tile and render a grid with it', function() { });
+    }
 
     it('should read back the vector tile and render an image with markers', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);

@@ -127,14 +127,18 @@ describe('mapnik sync rendering', function() {
         assert.ok(exists(filename));
     });
     
-    it('should render to a file - pdf', function() {
-        var map = new mapnik.Map(256, 256);
-        map.loadSync('./test/stylesheet.xml');
-        map.zoomAll();
-        var filename = helper.filename();
-        map.renderFileSync(filename, {format:'pdf'});
-        assert.ok(exists(filename));
-    });
+    if (mapnik.supports.cairo) {
+        it('should render to a file - pdf', function() {
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/stylesheet.xml');
+            map.zoomAll();
+            var filename = helper.filename();
+            map.renderFileSync(filename, {format:'pdf'});
+            assert.ok(exists(filename));
+        });
+    } else {
+        it.skip('should render to a file - pdf', function() { });
+    }
     
     it('should render to a file - scale', function() {
         var map = new mapnik.Map(256, 256);
