@@ -17,6 +17,9 @@ Persistent<FunctionTemplate> Projection::constructor;
  * @param {string} projection projection as a proj4 definition string
  * @param {Object} [options={lazy:false}] whether to lazily instantiate the
  * data backing this projection.
+ * @throws {TypeError} if the projection string or options argument is the wrong type
+ * @throws {Error} the projection could not be initialized - it was not found
+ * in proj4's tables or the string was malformed
  * @example
  * var wgs84 = new mapnik.Projection('+init=epsg:4326');
  */
