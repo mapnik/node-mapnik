@@ -3,6 +3,8 @@
 var mapnik = require('../');
 var assert = require('assert');
 
+if (mapnik.supports.grid) {
+
 describe('mapnik.Grid ', function() {
     it('should throw with invalid usage', function() {
         // no 'new' keyword
@@ -163,3 +165,5 @@ describe('mapnik.Grid ', function() {
         });
     });
 });
+
+}

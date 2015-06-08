@@ -1,6 +1,8 @@
 #ifndef __NODE_MAPNIK_GRID_VIEW_H__
 #define __NODE_MAPNIK_GRID_VIEW_H__
 
+#if defined(GRID_RENDERER)
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <nan.h>
@@ -44,5 +46,7 @@ private:
     grid_view_ptr this_;
     Grid * JSGrid_;
 };
+
+#endif
 
 #endif

@@ -44,8 +44,10 @@ public:
     static NAN_METHOD(render);
     static void EIO_RenderImage(uv_work_t* req);
     static void EIO_AfterRenderImage(uv_work_t* req);
+#if defined(GRID_RENDERER)
     static void EIO_RenderGrid(uv_work_t* req);
     static void EIO_AfterRenderGrid(uv_work_t* req);
+#endif
     static void EIO_RenderVectorTile(uv_work_t* req);
     static void EIO_AfterRenderVectorTile(uv_work_t* req);
 

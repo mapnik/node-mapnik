@@ -1,7 +1,8 @@
 
+#if defined(GRID_RENDERER)
+
 // mapnik
 #include <mapnik/version.hpp>
-
 
 #include "mapnik_grid.hpp"
 #include "mapnik_grid_view.hpp"
@@ -619,3 +620,5 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+
+#endif

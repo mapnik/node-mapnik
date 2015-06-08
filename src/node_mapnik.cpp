@@ -16,9 +16,11 @@
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
-#include "mapnik_grid.hpp"
 #include "mapnik_cairo_surface.hpp"
+#if defined(GRID_RENDERER)
+#include "mapnik_grid.hpp"
 #include "mapnik_grid_view.hpp"
+#endif
 #include "mapnik_expression.hpp"
 #include "utils.hpp"
 #include "blend.hpp"
@@ -104,8 +106,10 @@ extern "C" {
         Projection::Initialize(target);
         ProjTransform::Initialize(target);
         Layer::Initialize(target);
+#if defined(GRID_RENDERER)
         Grid::Initialize(target);
         GridView::Initialize(target);
+#endif
         Datasource::Initialize(target);
         Featureset::Initialize(target);
         Logger::Initialize(target);

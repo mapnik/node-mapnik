@@ -4,6 +4,8 @@ var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 
+if (mapnik.supports.grid) {
+
 var grid;
 var view;
 
@@ -88,3 +90,5 @@ describe('mapnik.GridView ', function() {
         });
     });
 });
+
+}

@@ -12,11 +12,13 @@ var reference__id__ = './test/support/grid__id__.json';
 var reference__id__2 = './test/support/grid__id__2.json';
 var reference__id__3 = './test/support/grid__id__3.json';
 
-mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
-
 function _c(grid1,grid2) {
     return grid2.replace(/\r/g, '') == grid2.replace(/\r/g, '');
 }
+
+if (mapnik.supports.grid) {
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik grid rendering ', function() {
 
@@ -248,3 +250,5 @@ describe('mapnik grid rendering ', function() {
     });
 
 });
+
+}

@@ -2,7 +2,9 @@
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
 #include "mapnik_featureset.hpp"        // for Featureset
+#if defined(GRID_RENDERER)
 #include "mapnik_grid.hpp"              // for Grid, Grid::constructor
+#endif
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
@@ -17,8 +19,10 @@
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/attribute.hpp>        // for attributes
 #include <mapnik/featureset.hpp>        // for featureset_ptr
+#if defined(GRID_RENDERER)
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
+#endif
 #include <mapnik/image.hpp>             // for image_rgba8
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
@@ -1505,6 +1509,7 @@ struct image_baton_t {
       error_name() {}
 };
 
+#if defined(GRID_RENDERER)
 struct grid_baton_t {
     uv_work_t request;
     Map *m;
@@ -1530,6 +1535,7 @@ struct grid_baton_t {
       error(false),
       error_name() {}
 };
+#endif
 
 struct vector_tile_baton_t {
     uv_work_t request;
@@ -1697,7 +1703,9 @@ NAN_METHOD(Map::render)
             NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
 
-        } else if (NanNew(Grid::constructor)->HasInstance(obj)) {
+        }
+#if defined(GRID_RENDERER)
+        else if (NanNew(Grid::constructor)->HasInstance(obj)) {
 
             Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
 
@@ -1811,7 +1819,9 @@ NAN_METHOD(Map::render)
             }
             NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
-        } else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
+        }
+#endif
+        else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
             VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
@@ -1987,6 +1997,7 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     delete closure;
 }
 
+#if defined(GRID_RENDERER)
 void Map::EIO_RenderGrid(uv_work_t* req)
 {
 
@@ -2020,7 +2031,6 @@ void Map::EIO_RenderGrid(uv_work_t* req)
                                                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
         ren.apply(layer,attributes,closure->scale_denominator);
-
     }
     catch (std::exception const& ex)
     {
@@ -2028,7 +2038,6 @@ void Map::EIO_RenderGrid(uv_work_t* req)
         closure->error_name = ex.what();
     }
 }
-
 
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
@@ -2053,6 +2062,7 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+#endif
 
 struct agg_renderer_visitor
 {

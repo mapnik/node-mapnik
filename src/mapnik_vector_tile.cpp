@@ -1,7 +1,9 @@
 #include "utils.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_image.hpp"
+#if defined(GRID_RENDERER)
 #include "mapnik_grid.hpp"
+#endif
 #include "mapnik_feature.hpp"
 #include "mapnik_cairo_surface.hpp"
 #ifdef SVG_RENDERER
@@ -25,8 +27,10 @@
 #include <mapnik/projection.hpp>
 #include <mapnik/featureset.hpp>
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
+#if defined(GRID_RENDERER)
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
+#endif
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
@@ -2581,19 +2585,17 @@ NAN_METHOD(VectorTile::getData)
     NanReturnUndefined();
 }
 
-using surface_type = mapnik::util::variant<Image *, CairoSurface *, Grid *>;
+using surface_type = mapnik::util::variant<Image *
+  , CairoSurface *
+#if defined(GRID_RENDERER)
+  , Grid *
+#endif
+  >;
 
 struct deref_visitor
 {
-    void operator() (Image * surface)
-    {
-        surface->_unref();
-    }
-    void operator() (CairoSurface * surface)
-    {
-        surface->_unref();
-    }
-    void operator() (Grid * surface)
+    template <typename SurfaceType>
+    void operator() (SurfaceType * surface)
     {
         surface->_unref();
     }
@@ -2817,6 +2819,7 @@ NAN_METHOD(VectorTile::render)
             }
         }
     }
+#if defined(GRID_RENDERER)
     else if (NanNew(Grid::constructor)->HasInstance(im_obj))
     {
         Grid *g = node::ObjectWrap::Unwrap<Grid>(im_obj);
@@ -2909,6 +2912,7 @@ NAN_METHOD(VectorTile::render)
         }
         closure->layer_idx = layer_idx;
     }
+#endif
     else
     {
         NanThrowTypeError("renderable mapnik object expected as second arg");
@@ -3000,6 +3004,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
         vector_tile::Tile const& tiledata = closure->d->get_tile();
+#if defined(GRID_RENDERER)
         // render grid for layer
         if (closure->surface.is<Grid *>())
         {
@@ -3072,7 +3077,9 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 ren.end_map_processing(map_in);
             }
         }
-        else if (closure->surface.is<CairoSurface *>())
+        else
+#endif
+        if (closure->surface.is<CairoSurface *>())
         {
             CairoSurface * c = mapnik::util::get<CairoSurface *>(closure->surface);
             if (closure->use_cairo)
@@ -3160,11 +3167,13 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
             Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<Image *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
+#if defined(GRID_RENDERER)
         else if (closure->surface.is<Grid *>())
         {
             Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<Grid *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
+#endif
         else if (closure->surface.is<CairoSurface *>())
         {
             Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<CairoSurface *>(closure->surface)) };

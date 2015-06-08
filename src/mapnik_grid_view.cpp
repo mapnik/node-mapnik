@@ -1,3 +1,5 @@
+#if defined(GRID_RENDERER)
+
 // mapnik
 #include <mapnik/grid/grid.hpp>         // for hit_grid<>::lookup_type, etc
 #include <mapnik/grid/grid_view.hpp>    // for grid_view, hit_grid_view, etc
@@ -541,3 +543,5 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+
+#endif
