@@ -16,6 +16,21 @@
 
 Persistent<FunctionTemplate> ImageView::constructor;
 
+/**
+ * This is usually not initialized directly: you'll use the `mapnik.Image#view`
+ * method to instantiate an instance.
+ *
+ * @name mapnik.ImageView
+ * @class
+ * @param {number} left
+ * @param {number} top
+ * @param {number} width
+ * @param {number} height
+ * @throws {TypeError} if any argument is missing or not numeric
+ * @example
+ * var im = new mapnik.Image(256, 256);
+ * var view = im.view(0, 0, 256, 256);
+ */
 void ImageView::Initialize(Handle<Object> target) {
 
     NanScope();

@@ -34,9 +34,14 @@ Persistent<FunctionTemplate> Image::constructor;
  * @class
  * @param {number} width
  * @param {number} height
- * @param {Object} options
+ * @param {string} type a valid image type constant, usually taken from
+ * `mapnik.imageType`
+ * @param {Object} options valid options are `premultiplied`, `painted`,
+ * and `initialize`.
+ * @throws {TypeError} if any argument is the wrong type, like if width
+ * or height is not numeric.
  * @example
- * var im = new mapnik.Image(256,256, mapnik.imageType.gray8, {
+ * var im = new mapnik.Image(256, 256, mapnik.imageType.gray8, {
  *   premultiplied: true
  * });
  */
@@ -336,8 +341,17 @@ struct visitor_get_pixel
  * @memberof mapnik.Image
  * @param {number} x position within image from top left
  * @param {number} y position within image from top left
- * @param {Object} options
+ * @param {Object} options the only valid option is `get_color`, which
+ * should be a `boolean`.
  * @returns {number} color
+ * @example
+ * var im = new mapnik.Image(256, 256);
+ * var view = im.view(0, 0, 256, 256);
+ * var pixel = view.getPixel(0, 0, {get_color:true});
+ * assert.equal(pixel.r, 0);
+ * assert.equal(pixel.g, 0);
+ * assert.equal(pixel.b, 0);
+ * assert.equal(pixel.a, 0);
  */
 NAN_METHOD(Image::getPixel)
 {
@@ -614,6 +628,12 @@ typedef struct {
  * @memberof mapnik.Image
  * @param {mapnik.Color|number} color
  * @param {Function} callback
+ * @example
+ * var im = new mapnik.Image(5, 5);
+ * im.fill(1, function(err, im_res) {
+ *   if (err) throw err;
+ *   assert.equal(im_res.getPixel(0, 0), 1);
+ * });
  */
 NAN_METHOD(Image::fill)
 {
@@ -728,11 +748,17 @@ void Image::EIO_AfterFill(uv_work_t* req)
 }
 
 /**
- * Make this image transparent, removing all image data from it.
+ * Make this image transparent.
  *
  * @name clearSync
  * @instance
  * @memberof mapnik.Image
+ * @example
+ * var im = new mapnik.Image(5,5);
+ * im.fillSync(1);
+ * assert.equal(im.getPixel(0, 0), 1);
+ * im.clearSync();
+ * assert.equal(im.getPixel(0, 0), 0);
  */
 NAN_METHOD(Image::clearSync)
 {
@@ -1092,6 +1118,10 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
  * @returns {boolean} whether the image is solid
  * @instance
  * @memberof mapnik.Image
+ * @example
+ * var im = new mapnik.Image(256, 256);
+ * var view = im.view(0, 0, 256, 256);
+ * assert.equal(view.isSolidSync(), true);
  */
 NAN_METHOD(Image::isSolidSync)
 {

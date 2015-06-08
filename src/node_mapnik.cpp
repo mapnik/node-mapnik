@@ -69,6 +69,20 @@ static NAN_METHOD(shutdown)
     NanReturnUndefined();
 }
 
+/**
+ * Mapnik is the core of cartographic design and processing.
+ *
+ * @name mapnik
+ * @class
+ * @property {string} version current version of mapnik
+ * @property {string} module_path path to native mapnik binding
+ * @property {Object} supports indicates which of the following are supported:
+ * grid, svg, cairo, cairo_pdf, cairo_svg, png, jpeg, tiff, webp, proj4, threadsafe
+ * @property {Object} versions diagnostic object with versions of
+ * node, v8, boost, boost_number, mapnik, mapnik_number, mapnik_git_describe, cairo
+ * @example
+ * var mapnik = require('node-mapnik');
+ */
 extern "C" {
 
     static void InitMapnik (Handle<Object> target)
@@ -200,6 +214,52 @@ extern "C" {
 
         target->Set(NanNew("supports"), supports);
 
+
+/**
+ * Image type constants representing color and grayscale encodings.
+ * Composite operation constants
+ *
+ * @property {number} clear
+ * @property {number} src
+ * @property {number} dst
+ * @property {number} src_over
+ * @property {number} dst_over
+ * @property {number} src_in
+ * @property {number} dst_in
+ * @property {number} src_out
+ * @property {number} dst_out
+ * @property {number} src_atop
+ * @property {number} dst_atop
+ * @property {number} xor
+ * @property {number} plus
+ * @property {number} minus
+ * @property {number} multiply
+ * @property {number} screen
+ * @property {number} overlay
+ * @property {number} darken
+ * @property {number} lighten
+ * @property {number} color_dodge
+ * @property {number} color_burn
+ * @property {number} hard_light
+ * @property {number} soft_light
+ * @property {number} difference
+ * @property {number} exclusion
+ * @property {number} contrast
+ * @property {number} invert
+ * @property {number} invert-rgb
+ * @property {number} grain_merge
+ * @property {number} grain_extract
+ * @property {number} hue
+ * @property {number} saturation
+ * @property {number} color
+ * @property {number} linear_dodge
+ * @property {number} linear_burn
+ * @property {number} divide
+ * @name compositeOp
+ * @memberof mapnik
+ * @static
+ * @class
+ */
         Local<Object> composite_ops = NanNew<Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
@@ -239,6 +299,25 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "divide", mapnik::divide)
         target->Set(NanNew("compositeOp"), composite_ops);
         
+/**
+ * Image type constants representing color and grayscale encodings.
+ *
+ * @name imageType
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} rgba8
+ * @property {number} gray8
+ * @property {number} gray8s
+ * @property {number} gray16
+ * @property {number} gray16s
+ * @property {number} gray32
+ * @property {number} gray32s
+ * @property {number} gray32f
+ * @property {number} gray63
+ * @property {number} gray63s
+ * @property {number} gray63f
+ */
         Local<Object> image_types = NanNew<Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "null", mapnik::image_dtype_null)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "rgba8", mapnik::image_dtype_rgba8)
