@@ -1003,19 +1003,23 @@ describe('mapnik.VectorTile ', function() {
 
         assert.equal(vtile.isSolid(), false);
 
-        vtile.render(map, new mapnik.Grid(256, 256), {layer:0}, function(err, vtile_image) {
-            if (err) throw err;
-            var utf = vtile_image.encodeSync();
-            var expected_file = './test/data/vector_tile/tile0.expected.grid.json';
-            var actual_file = './test/data/vector_tile/tile0.actual.grid.json';
-            if (!existsSync(expected_file) || process.env.UPDATE) {
-                fs.writeFileSync(expected_file,JSON.stringify(utf,null,1));
-            }
-            fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
-            var expected = JSON.parse(fs.readFileSync(expected_file));
-            assert.deepEqual(utf,expected);
-            done();
-        });
+        if (mapnik.supports.grid) {
+            vtile.render(map, new mapnik.Grid(256, 256), {layer:0}, function(err, vtile_image) {
+                if (err) throw err;
+                var utf = vtile_image.encodeSync();
+                var expected_file = './test/data/vector_tile/tile0.expected.grid.json';
+                var actual_file = './test/data/vector_tile/tile0.actual.grid.json';
+                if (!existsSync(expected_file) || process.env.UPDATE) {
+                    fs.writeFileSync(expected_file,JSON.stringify(utf,null,1));
+                }
+                fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
+                var expected = JSON.parse(fs.readFileSync(expected_file));
+                assert.deepEqual(utf,expected);
+                done();
+            });
+        } else {
+          done();
+        }
     });
 
     it('should read back the vector tile and render an image with markers', function(done) {
