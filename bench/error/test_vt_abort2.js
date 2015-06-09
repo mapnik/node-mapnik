@@ -7,12 +7,13 @@ var vtile = new mapnik.VectorTile(16,33275,22518);
 vtile.addData(fs.readFileSync(path.join(__dirname,'../boundary.pbf')));
 
 var error;
-
+var count = 0;
 for (var i=0;i< 20;++i) {
     vtile.composite([vtile]);
     // call parse to trigger a "too large" warning inside `google::protobuf::io::CodedInputStream::PrintTotalBytesLimitError`
     try {
         vtile.parse();
+        ++count;
         gc();
     } catch (err) {
         error = err;
@@ -36,7 +37,7 @@ Error: could not merge buffer as protobuf
 
 if (error) {
     assert.equal(error.message,'could not merge buffer as protobuf');
-    console.log('Test success!');
+    console.log('Test success! (ran ' + count + ' iterations)');
     process.exit(0)
 } else {
     console.log('Test failed, should have thrown and caught error but did not');
