@@ -50,7 +50,8 @@
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
-#include "pbf.hpp"
+#include "pbf_common.hpp"
+#include "pbf_reader.hpp"
 
 // addGeoJSON
 #include "vector_tile_processor.hpp"
@@ -322,19 +323,17 @@ std::vector<std::string> VectorTile::lazy_names()
     std::size_t bytes = buffer_.size();
     if (bytes > 0)
     {
-        pbf::message item(buffer_.data(),bytes);
+        mapbox::util::pbf item(buffer_.data(),bytes);
         while (item.next()) {
-            if (item.tag == 3) {
-                uint64_t len = item.varint();
-                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
                 while (layermsg.next()) {
-                    if (layermsg.tag == 1) {
-                        names.emplace_back(layermsg.string());
+                    if (layermsg.tag() == 1) {
+                        names.emplace_back(layermsg.get_string());
                     } else {
                         layermsg.skip();
                     }
                 }
-                item.skipBytes(len);
             } else {
                 item.skip();
             }
@@ -988,20 +987,18 @@ bool VectorTile::lazy_empty()
     std::size_t bytes = buffer_.size();
     if (bytes > 0)
     {
-        pbf::message item(buffer_.data(),bytes);
+        mapbox::util::pbf item(buffer_.data(),bytes);
         while (item.next()) {
-            if (item.tag == 3) {
-                uint64_t len = item.varint();
-                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
                 while (layermsg.next()) {
-                    if (layermsg.tag == 2) {
+                    if (layermsg.tag() == 2) {
                         // we hit a feature, assume we've got data
                         return false;
                     } else {
                         layermsg.skip();
                     }
                 }
-                item.skipBytes(len);
             }
             else
             {
