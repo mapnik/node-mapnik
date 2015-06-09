@@ -1,8 +1,8 @@
 /*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.3.0                                                           *
-* Date      :  19 April 2015                                                   *
+* Version   :  6.2.9                                                           *
+* Date      :  16 February 2015                                                *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2015                                         *
 *                                                                              *
@@ -40,7 +40,7 @@
 //improve performance but coordinate values are limited to the range +/- 46340
 //#define use_int32
 
-//use_xyz: adds a z member to IntPoint. Adds a minor cost to perfomance.
+//use_xyz: adds a Z member to IntPoint. Adds a minor cost to perfomance.
 //#define use_xyz
 
 //use_lines: Enables line clipping. Adds a very minor cost to performance.
@@ -64,10 +64,10 @@
 
 namespace ClipperLib {
 
-enum ClipType { ctIntersection, ctUnion, ctDifference, ctxor };
+enum ClipType { ctIntersection, ctUnion, ctDifference, ctXor };
 enum PolyType { ptSubject, ptClip };
 //By far the most widely used winding rules for polygon filling are
-//EvenOdd & NonZero (GDI, GDI+, xLib, OpenGL, Cairo, AGG, Quartz, SVG, Gr32)
+//EvenOdd & NonZero (GDI, GDI+, XLib, OpenGL, Cairo, AGG, Quartz, SVG, Gr32)
 //Others rules include Positive, Negative and ABS_GTR_EQ_TWO (only in OpenGL)
 //see http://glprogramming.com/red/chapter11.html
 enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
@@ -92,22 +92,22 @@ typedef CLIPPER_INTPOINT_IMPL IntPoint;
 #else
 
 struct IntPoint {
-  cInt x;
-  cInt y;
+  cInt X;
+  cInt Y;
 #ifdef use_xyz
-  cInt z;
-  IntPoint(cInt X = 0, cInt Y = 0, cInt Z = 0): x(X), y(Y), z(Z) {};
+  cInt Z;
+  IntPoint(cInt x = 0, cInt y = 0, cInt z = 0): X(x), Y(y), Z(z) {};
 #else
-  IntPoint(cInt X = 0, cInt Y = 0): x(X), y(Y) {};
+  IntPoint(cInt x = 0, cInt y = 0): X(x), Y(y) {};
 #endif
 
   friend inline bool operator== (const IntPoint& a, const IntPoint& b)
   {
-    return a.x == b.x && a.y == b.y;
+    return a.X == b.X && a.Y == b.Y;
   }
   friend inline bool operator!= (const IntPoint& a, const IntPoint& b)
   {
-    return a.x != b.x  || a.y != b.y; 
+    return a.X != b.X  || a.Y != b.Y; 
   }
 };
 #endif
@@ -146,15 +146,15 @@ std::ostream& operator <<(std::ostream &s, const Paths &p);
 
 struct DoublePoint
 {
-  double x;
-  double y;
-  DoublePoint(double x = 0, double y = 0) : x(x), y(y) {}
-  DoublePoint(IntPoint ip) : x((double)ip.x), y((double)ip.y) {}
+  double X;
+  double Y;
+  DoublePoint(double x = 0, double y = 0) : X(x), Y(y) {}
+  DoublePoint(IntPoint ip) : X((double)ip.X), Y((double)ip.Y) {}
 };
 //------------------------------------------------------------------------------
 
 #ifdef use_xyz
-typedef void (*zFillCallback)(IntPoint& e1bot, IntPoint& e1top, IntPoint& e2bot, IntPoint& e2top, IntPoint& pt);
+typedef void (*ZFillCallback)(IntPoint& e1bot, IntPoint& e1top, IntPoint& e2bot, IntPoint& e2top, IntPoint& pt);
 #endif
 
 enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveCollinear = 4};
@@ -251,7 +251,7 @@ class ClipperBase
 public:
   ClipperBase();
   virtual ~ClipperBase();
-  virtual bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
+  bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
   virtual void Clear();
   IntRect GetBounds();
@@ -260,18 +260,11 @@ public:
 protected:
   void DisposeLocalMinimaList();
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
+  void PopLocalMinima();
   virtual void Reset();
   TEdge* ProcessBound(TEdge* E, bool IsClockwise);
-  void InsertScanbeam(const cInt y);
-  bool PopScanbeam(cInt &y);
-  bool LocalMinimaPending();
-  bool PopLocalMinima(cInt y, const LocalMinimum *&locMin);
-  OutRec* CreateOutRec();
-  void DisposeAllOutRecs();
-  void DisposeOutRec(PolyOutList::size_type index);
-  void SwapPositionsInAEL(TEdge *edge1, TEdge *edge2);
-  void DeleteFromAEL(TEdge *e);
-  void UpdateEdgeIntoAEL(TEdge *&e);
+  TEdge* DescendToMin(TEdge *&E);
+  void AscendToMax(TEdge *&E, bool Appending, bool IsClosed);
 
   typedef std::vector<LocalMinimum> MinimaList;
   MinimaList::iterator m_CurrentLM;
@@ -279,13 +272,8 @@ protected:
 
   bool              m_UseFullRange;
   EdgeList          m_edges;
-  bool              m_PreserveCollinear;
-  bool              m_HasOpenPaths;
-  PolyOutList       m_PolyOuts;
-  TEdge           *m_ActiveEdges;
-
-  typedef std::priority_queue<cInt> ScanbeamList;
-  ScanbeamList     m_Scanbeam;
+  bool             m_PreserveCollinear;
+  bool             m_HasOpenPaths;
 };
 //------------------------------------------------------------------------------
 
@@ -293,6 +281,7 @@ class Clipper : public virtual ClipperBase
 {
 public:
   Clipper(int initOptions = 0);
+  ~Clipper();
   bool Execute(ClipType clipType,
       Paths &solution,
       PolyFillType fillType = pftEvenOdd);
@@ -311,19 +300,24 @@ public:
   void ReverseSolution(bool value) {m_ReverseOutput = value;};
   bool StrictlySimple() {return m_StrictSimple;};
   void StrictlySimple(bool value) {m_StrictSimple = value;};
-  //set the callback function for z value filling on intersections (otherwise z is 0)
+  //set the callback function for z value filling on intersections (otherwise Z is 0)
 #ifdef use_xyz
-  void zFillFunction(zFillCallback zFillFunc);
+  void ZFillFunction(ZFillCallback zFillFunc);
 #endif
 protected:
+  void Reset();
   virtual bool ExecuteInternal();
 private:
+  PolyOutList      m_PolyOuts;
   JoinList         m_Joins;
   JoinList         m_GhostJoins;
   IntersectList    m_IntersectList;
   ClipType         m_ClipType;
+  typedef std::priority_queue<cInt> ScanbeamList;
+  ScanbeamList     m_Scanbeam;
   typedef std::list<cInt> MaximaList;
   MaximaList       m_Maxima;
+  TEdge           *m_ActiveEdges;
   TEdge           *m_SortedEdges;
   bool             m_ExecuteLocked;
   PolyFillType     m_ClipFillType;
@@ -332,20 +326,24 @@ private:
   bool             m_UsingPolyTree; 
   bool             m_StrictSimple;
 #ifdef use_xyz
-  zFillCallback   m_zFill; //custom callback 
+  ZFillCallback   m_ZFill; //custom callback 
 #endif
   void SetWindingCount(TEdge& edge);
   bool IsEvenOddFillType(const TEdge& edge) const;
   bool IsEvenOddAltFillType(const TEdge& edge) const;
-  void InsertLocalMinimaIntoAEL(const cInt boty);
+  void InsertScanbeam(const cInt Y);
+  cInt PopScanbeam();
+  void InsertLocalMinimaIntoAEL(const cInt botY);
   void InsertEdgeIntoAEL(TEdge *edge, TEdge* startEdge);
   void AddEdgeToSEL(TEdge *edge);
-  bool PopEdgeFromSEL(TEdge *&edge);
   void CopyAELToSEL();
   void DeleteFromSEL(TEdge *e);
+  void DeleteFromAEL(TEdge *e);
+  void UpdateEdgeIntoAEL(TEdge *&e);
   void SwapPositionsInSEL(TEdge *edge1, TEdge *edge2);
   bool IsContributing(const TEdge& edge) const;
-  bool IsTopHorz(const cInt xPos);
+  bool IsTopHorz(const cInt XPos);
+  void SwapPositionsInAEL(TEdge *edge1, TEdge *edge2);
   void DoMaxima(TEdge *e);
   void ProcessHorizontals();
   void ProcessHorizontal(TEdge *horzEdge);
@@ -354,12 +352,15 @@ private:
   OutRec* GetOutRec(int idx);
   void AppendPolygon(TEdge *e1, TEdge *e2);
   void IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &pt);
+  OutRec* CreateOutRec();
   OutPt* AddOutPt(TEdge *e, const IntPoint &pt);
   OutPt* GetLastOutPt(TEdge *e);
-  bool ProcessIntersections(const cInt topy);
-  void BuildIntersectList(const cInt topy);
+  void DisposeAllOutRecs();
+  void DisposeOutRec(PolyOutList::size_type index);
+  bool ProcessIntersections(const cInt topY);
+  void BuildIntersectList(const cInt topY);
   void ProcessIntersectList();
-  void ProcessEdgesAtTopOfScanbeam(const cInt topy);
+  void ProcessEdgesAtTopOfScanbeam(const cInt topY);
   void BuildResult(Paths& polys);
   void BuildResult2(PolyTree& polytree);
   void SetHoleState(TEdge *e, OutRec *outrec);
@@ -378,10 +379,9 @@ private:
   void JoinCommonEdges();
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
-  void FixupFirstLefts2(OutRec* InnerOutRec, OutRec* OuterOutRec);
-  void FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec);
+  void FixupFirstLefts2(OutRec* OldOutRec, OutRec* NewOutRec);
 #ifdef use_xyz
-  void Setz(IntPoint& pt, TEdge& e1, TEdge& e2);
+  void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
 };
 //------------------------------------------------------------------------------
