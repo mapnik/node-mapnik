@@ -92,22 +92,22 @@ typedef CLIPPER_INTPOINT_IMPL IntPoint;
 #else
 
 struct IntPoint {
-  cInt X;
-  cInt Y;
+  cInt x;
+  cInt y;
 #ifdef use_xyz
   cInt Z;
-  IntPoint(cInt x = 0, cInt y = 0, cInt z = 0): X(x), Y(y), Z(z) {};
+  IntPoint(cInt x = 0, cInt y = 0, cInt z = 0): x(x), y(y), Z(z) {};
 #else
-  IntPoint(cInt x = 0, cInt y = 0): X(x), Y(y) {};
+  IntPoint(cInt x = 0, cInt y = 0): x(x), y(y) {};
 #endif
 
   friend inline bool operator== (const IntPoint& a, const IntPoint& b)
   {
-    return a.X == b.X && a.Y == b.Y;
+    return a.x == b.x && a.y == b.y;
   }
   friend inline bool operator!= (const IntPoint& a, const IntPoint& b)
   {
-    return a.X != b.X  || a.Y != b.Y; 
+    return a.x != b.x  || a.y != b.y; 
   }
 };
 #endif
@@ -146,10 +146,10 @@ std::ostream& operator <<(std::ostream &s, const Paths &p);
 
 struct DoublePoint
 {
-  double X;
-  double Y;
-  DoublePoint(double x = 0, double y = 0) : X(x), Y(y) {}
-  DoublePoint(IntPoint ip) : X((double)ip.X), Y((double)ip.Y) {}
+  double x;
+  double y;
+  DoublePoint(double x = 0, double y = 0) : x(x), y(y) {}
+  DoublePoint(IntPoint ip) : x((double)ip.x), y((double)ip.y) {}
 };
 //------------------------------------------------------------------------------
 
