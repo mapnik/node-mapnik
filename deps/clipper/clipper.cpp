@@ -47,6 +47,7 @@
 #include <cstdlib>
 #include <ostream>
 #include <functional>
+#include <sstream>
 
 namespace ClipperLib {
 
@@ -885,8 +886,13 @@ void RangeTest(const IntPoint& Pt, bool& useFullRange)
 {
   if (useFullRange)
   {
-    if (Pt.x > hiRange || Pt.y > hiRange || -Pt.x > hiRange || -Pt.y > hiRange) 
-      throw "Coordinate outside allowed range";
+    if (Pt.x > hiRange || Pt.y > hiRange || -Pt.x > hiRange || -Pt.y > hiRange)
+    {
+      std::stringstream s;
+      s << "Coordinate outside allowed range: ";
+      s << std::fixed << Pt.x << " " << Pt.y << " " << -Pt.x << " " << -Pt.y << "\n";
+      throw clipperException(s.str().c_str());
+    }
   }
   else if (Pt.x > loRange|| Pt.y > loRange || -Pt.x > loRange || -Pt.y > loRange) 
   {
@@ -1063,7 +1069,7 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
       InitEdge(&edges[i], &edges[i+1], &edges[i-1], pg[i]);
     }
   }
-  catch(...)
+  catch(std::exception const&)
   {
     delete [] edges;
     throw; //range test fails
@@ -1445,7 +1451,7 @@ bool Clipper::ExecuteInternal()
       botY = topY;
     } while (!m_Scanbeam.empty() || m_CurrentLM != m_MinimaList.end());
   }
-  catch(...) 
+  catch(std::exception const&) 
   {
     succeeded = false;
   }
@@ -2761,8 +2767,8 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
 
 void Clipper::UpdateEdgeIntoAEL(TEdge *&e)
 {
-  if( !e->NextInLML ) throw
-    clipperException("UpdateEdgeIntoAEL: invalid call");
+  if( !e->NextInLML )
+    throw clipperException("UpdateEdgeIntoAEL: invalid call");
 
   e->NextInLML->OutIdx = e->OutIdx;
   TEdge* AelPrev = e->PrevInAEL;
@@ -2792,11 +2798,11 @@ bool Clipper::ProcessIntersections(const cInt topY)
     if (IlSize == 1 || FixupIntersectionOrder()) ProcessIntersectList();
     else return false;
   }
-  catch(...) 
+  catch(std::exception const& ex) 
   {
     m_SortedEdges = 0;
     DisposeIntersectNodes();
-    throw clipperException("ProcessIntersections error");
+    throw clipperException((std::string("ProcessIntersections error ") + ex.what()).c_str());
   }
   m_SortedEdges = 0;
   return true;
