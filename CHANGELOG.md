@@ -2,7 +2,8 @@
 
 ## 3.3.1
 
- - TODO
+ - Upgrade to mapnik-vector-tile@0.8.1
+ - Upgraded to node-pre-gyp@0.6.7
 
 ## 3.3.0
  - Ugraded to Mapnik 3.x version with totally new geometry storage
