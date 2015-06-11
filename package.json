@@ -41,7 +41,7 @@
   ],
   "dependencies": {
     "nan": "~1.8.4",
-    "mapnik-vector-tile": "~0.8.1",
+    "mapnik-vector-tile": "~0.8.2",
     "node-pre-gyp": "~0.6.7"
   },
   "bundledDependencies": [
