@@ -1410,8 +1410,8 @@ Local<Value> Image::_copySync(_NAN_METHOD_ARGS)
                                                                             offset,
                                                                             scaling)
                                                );
-        Image* im = new Image(image_ptr);
-        Handle<Value> ext = NanNew<External>(im);
+        Image* new_im = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(new_im);
         Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
         return NanEscapeScope(obj);
     }
