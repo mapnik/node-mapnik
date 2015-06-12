@@ -1,29 +1,32 @@
 #!/usr/bin/env bash
 
 function setup_mason() {
-    if [[ ! -d ./.mason ]]; then
-        git clone --depth 1 https://github.com/mapbox/mason.git ./.mason
+    if [[ ! -d ./build ]]; then
+        mkdir ./build
+    fi
+    if [[ ! -d ./build/.mason ]]; then
+        git clone --depth 1 https://github.com/mapbox/mason.git ./build/.mason
     else
         echo "Updating to latest mason"
-        (cd ./.mason && git pull)
+        (cd ./build/.mason && git pull)
     fi
-    export MASON_DIR=$(pwd)/.mason
-    if [[ $(uname -s) == 'Linux' ]]; then source ./.mason/scripts/setup_cpp11_toolchain.sh; fi
-    export PATH=$(pwd)/.mason:$PATH
+    export MASON_DIR=$(pwd)/build/.mason
+    if [[ $(uname -s) == 'Linux' ]]; then source ./build/.mason/scripts/setup_cpp11_toolchain.sh; fi
+    export PATH=$(pwd)/build/.mason:$PATH
     export CXX=${CXX:-clang++}
     export CC=${CXX:-clang++}
 }
 
 function install() {
     MASON_PLATFORM_ID=$(mason env MASON_PLATFORM_ID)
-    if [[ ! -d ./mason_packages/${MASON_PLATFORM_ID}/${1}/ ]]; then
-        mason install $1 $2
-        mason link $1 $2
+    if [[ ! -d ./build/mason_packages/${MASON_PLATFORM_ID}/${1}/ ]]; then
+        (cd ./build && mason install $1 $2)
+        (cd ./build && mason link $1 $2)
     fi
 }
 
 function install_mason_deps() {
-    install mapnik 3.0.0-rc3
+    install mapnik latest
     install protobuf 2.6.1
     install freetype 2.5.4
     install harfbuzz 2cd5323
@@ -47,16 +50,16 @@ function install_mason_deps() {
 }
 
 function setup_runtime_settings() {
-    local MASON_LINKED_ABS=$(pwd)/mason_packages/.link
+    local MASON_LINKED_ABS=$(pwd)/build/mason_packages/.link
     export PROJ_LIB=${MASON_LINKED_ABS}/share/proj
     export ICU_DATA=${MASON_LINKED_ABS}/share/icu/54.1
     export GDAL_DATA=${MASON_LINKED_ABS}/share/gdal
     if [[ $(uname -s) == 'Darwin' ]]; then
-        export DYLD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${DYLD_LIBRARY_PATH}
+        export DYLD_LIBRARY_PATH=$(pwd)/build/mason_packages/.link/lib:${DYLD_LIBRARY_PATH}
     else
-        export LD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${LD_LIBRARY_PATH}
+        export LD_LIBRARY_PATH=$(pwd)/build/mason_packages/.link/lib:${LD_LIBRARY_PATH}
     fi
-    export PATH=$(pwd)/mason_packages/.link/bin:${PATH}
+    export PATH=$(pwd)/build/mason_packages/.link/bin:${PATH}
 }
 
 function main() {
