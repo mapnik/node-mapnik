@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+set -u -e
+
+
+export ARGS=""
+if [[ ${1:-false} != false ]]; then
+    export ARGS=$1
+fi
+
+echo $ARGS
 
 function setup_mason() {
     if [[ ! -d ./build ]]; then
@@ -51,6 +60,12 @@ function install_mason_deps() {
 
 function setup_runtime_settings() {
     local MASON_LINKED_ABS=$(pwd)/build/mason_packages/.link
+    if [[ $(uname -s) == 'Linux' ]]; then
+        readelf -d ${MASON_LINKED_ABS}/lib/libmapnik.so
+        export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
+    else
+        otool -L $MAPNIK_SDK/lib/libmapnik.dylib
+    fi
     export PROJ_LIB=${MASON_LINKED_ABS}/share/proj
     export ICU_DATA=${MASON_LINKED_ABS}/share/icu/54.1
     export GDAL_DATA=${MASON_LINKED_ABS}/share/gdal
@@ -62,13 +77,46 @@ function setup_runtime_settings() {
     export PATH=$(pwd)/build/mason_packages/.link/bin:${PATH}
 }
 
+function build_node_mapnik() {
+    local MASON_LINKED_ABS=$(pwd)/build/mason_packages/.link
+    npm install node-pre-gyp
+    local MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
+    # note: dangerous!
+    rm -rf ${MODULE_PATH}
+    npm install --build-from-source ${ARGS} --clang=1
+    npm ls
+    # copy shapeindex
+    cp ${MASON_LINKED_ABS}/bin/shapeindex ${MODULE_PATH}
+    # copy lib
+    cp ${MASON_LINKED_ABS}/lib/libmapnik.* ${MODULE_PATH}
+    # copy plugins
+    cp -r ${MASON_LINKED_ABS}/lib/mapnik ${MODULE_PATH}
+    # copy share data
+    mkdir -p ${MODULE_PATH}/share/
+    cp -r ${MASON_LINKED_ABS}/share/mapnik ${MODULE_PATH}/share/
+    echo "
+    var path = require('path');
+    module.exports.paths = {
+        'fonts': path.join(__dirname, 'mapnik/fonts'),
+        'input_plugins': path.join(__dirname, 'mapnik/input')
+    };
+    module.exports.env = {
+        'ICU_DATA': path.join(__dirname, 'share/mapnik/icu'),
+        'GDAL_DATA': path.join(__dirname, 'share/mapnik/gdal'),
+        'PROJ_LIB': path.join(__dirname, 'share/mapnik/proj')
+    };
+    " > ${MODULE_PATH}/mapnik_settings.js
+}
+
 function main() {
     setup_mason
     install_mason_deps
     setup_runtime_settings
+    build_node_mapnik
     echo "Ready, now run:"
     echo ""
     echo "    make test"
 }
 
 main
+set +u +e
