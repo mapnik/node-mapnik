@@ -79,3 +79,15 @@ An official release requires:
  - Test mapnik-swoop again for your new tagged version
  - Ensure you have a clean checkout (no extra files in your check that are not known by git). You need to be careful, for instance, to avoid a large accidental file being packaged by npm. You can get a view of what npm will publish by running `make testpack`
  - Then publish the module to npm repositories by running `npm publish`
+
+### Documentation
+
+node-mapnik is documented with [JSDoc](http://usejsdoc.org/) comments embedded
+in the C++ code and formatted into HTML with [documentationjs](http://documentation.js.org/).
+
+To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation/):
+
+* Switch to the `gh-pages` branch: `git checkout gh-pages`
+* Regenerate documentation: `npm run docs`
+* Add the changed files in the `documentation` path
+* Commit the changes
