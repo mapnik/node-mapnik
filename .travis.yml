@@ -70,9 +70,9 @@ install:
  - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
  - if [[ ${COVERAGE} == true ]]; then
      PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
-     ./bootstrap.sh --coverage=true;
+     source bootstrap.sh --coverage=true;
    else
-     ./bootstrap.sh;
+     source bootstrap.sh;
    fi
  - node-pre-gyp package testpackage
  - npm test
