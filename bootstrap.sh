@@ -64,7 +64,7 @@ function setup_runtime_settings() {
         readelf -d ${MASON_LINKED_ABS}/lib/libmapnik.so
         export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
     else
-        otool -L $MAPNIK_SDK/lib/libmapnik.dylib
+        otool -L ${MASON_LINKED_ABS}/lib/libmapnik.dylib
     fi
     export PROJ_LIB=${MASON_LINKED_ABS}/share/proj
     export ICU_DATA=${MASON_LINKED_ABS}/share/icu/54.1
