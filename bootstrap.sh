@@ -19,7 +19,7 @@ function setup_mason() {
     export MASON_DIR=$(pwd)/.mason
     export PATH=$(pwd)/.mason:$PATH
     export CXX=${CXX:-clang++}
-    export CC=${CXX:-clang}
+    export CC=${CC:-clang}
 }
 
 function install() {
