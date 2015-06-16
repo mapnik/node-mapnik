@@ -77,7 +77,7 @@ function setup_runtime_settings() {
     local MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
     # note: dangerous!
     rm -rf ${MODULE_PATH}
-    npm install --build-from-source ${ARGS} --clang=1
+    npm install --build-from-source=mapnik ${ARGS} --clang=1
     npm ls
     # copy shapeindex
     cp ${MASON_LINKED_ABS}/bin/shapeindex ${MODULE_PATH}
