@@ -890,7 +890,7 @@ void RangeTest(const IntPoint& Pt, bool& useFullRange)
     {
       std::stringstream s;
       s << "Coordinate outside allowed range: ";
-      s << std::fixed << Pt.x << " " << Pt.y << " " << -Pt.x << " " << -Pt.y << "\n";
+      s << std::fixed << Pt.x << " " << Pt.y << " " << -Pt.x << " " << -Pt.y;
       throw clipperException(s.str().c_str());
     }
   }
@@ -3167,7 +3167,7 @@ void Clipper::BuildResult(Paths &polys)
     int cnt = PointCount(p);
     if (cnt < 2) continue;
     pg.reserve(cnt);
-    for (int i = 0; i < cnt; ++i)
+    for (int j = 0; j < cnt; ++j)
     {
       pg.push_back(p->Pt);
       p = p->Prev;
