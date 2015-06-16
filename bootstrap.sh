@@ -10,27 +10,24 @@ fi
 echo $ARGS
 
 function setup_mason() {
-    if [[ ! -d ./build ]]; then
-        mkdir ./build
-    fi
-    if [[ ! -d ./build/.mason ]]; then
-        git clone --depth 1 https://github.com/mapbox/mason.git ./build/.mason
+    if [[ ! -d ./.mason ]]; then
+        git clone --depth 1 https://github.com/mapbox/mason.git ./.mason
     else
         echo "Updating to latest mason"
-        (cd ./build/.mason && git pull)
+        (cd ./.mason && git pull)
     fi
-    export MASON_DIR=$(pwd)/build/.mason
-    if [[ $(uname -s) == 'Linux' ]]; then source ./build/.mason/scripts/setup_cpp11_toolchain.sh; fi
-    export PATH=$(pwd)/build/.mason:$PATH
+    export MASON_DIR=$(pwd)/.mason
+    if [[ $(uname -s) == 'Linux' ]]; then source ./.mason/scripts/setup_cpp11_toolchain.sh; fi
+    export PATH=$(pwd)/.mason:$PATH
     export CXX=${CXX:-clang++}
-    export CC=${CXX:-clang++}
+    export CC=${CXX:-clang}
 }
 
 function install() {
     MASON_PLATFORM_ID=$(mason env MASON_PLATFORM_ID)
-    if [[ ! -d ./build/mason_packages/${MASON_PLATFORM_ID}/${1}/ ]]; then
-        (cd ./build && mason install $1 $2)
-        (cd ./build && mason link $1 $2)
+    if [[ ! -d ./mason_packages/${MASON_PLATFORM_ID}/${1}/ ]]; then
+        (mason install $1 $2)
+        (mason link $1 $2)
     fi
 }
 
@@ -59,7 +56,7 @@ function install_mason_deps() {
 }
 
 function setup_runtime_settings() {
-    local MASON_LINKED_ABS=$(pwd)/build/mason_packages/.link
+    local MASON_LINKED_ABS=$(pwd)/mason_packages/.link
     if [[ $(uname -s) == 'Linux' ]]; then
         readelf -d ${MASON_LINKED_ABS}/lib/libmapnik.so
         export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
@@ -69,16 +66,14 @@ function setup_runtime_settings() {
     export PROJ_LIB=${MASON_LINKED_ABS}/share/proj
     export ICU_DATA=${MASON_LINKED_ABS}/share/icu/54.1
     export GDAL_DATA=${MASON_LINKED_ABS}/share/gdal
+    export NODE_CONFIG_PREFIX="../"
     if [[ $(uname -s) == 'Darwin' ]]; then
-        export DYLD_LIBRARY_PATH=$(pwd)/build/mason_packages/.link/lib:${DYLD_LIBRARY_PATH:-''}
+        export DYLD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${DYLD_LIBRARY_PATH:-''}
     else
-        export LD_LIBRARY_PATH=$(pwd)/build/mason_packages/.link/lib:${LD_LIBRARY_PATH:-''}
+        export LD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${LD_LIBRARY_PATH:-''}
     fi
-    export PATH=$(pwd)/build/mason_packages/.link/bin:${PATH}
-}
-
-function build_node_mapnik() {
-    local MASON_LINKED_ABS=$(pwd)/build/mason_packages/.link
+    export PATH=$(pwd)/mason_packages/.link/bin:${PATH}
+    export PATH=./node_modules/.bin/:$PATH
     npm install node-pre-gyp
     local MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
     # note: dangerous!
@@ -91,9 +86,7 @@ function build_node_mapnik() {
     cp ${MASON_LINKED_ABS}/lib/libmapnik.* ${MODULE_PATH}
     # copy plugins
     cp -r ${MASON_LINKED_ABS}/lib/mapnik ${MODULE_PATH}
-    # copy share data
-    mkdir -p ${MODULE_PATH}/share/
-    cp -r ${MASON_LINKED_ABS}/share/mapnik ${MODULE_PATH}/share/
+    cp -r ${MASON_LINKED_ABS}/share ${MODULE_PATH}
     echo "
     var path = require('path');
     module.exports.paths = {
@@ -112,10 +105,6 @@ function main() {
     setup_mason
     install_mason_deps
     setup_runtime_settings
-    build_node_mapnik
-    echo "Ready, now run:"
-    echo ""
-    echo "    make test"
 }
 
 main
