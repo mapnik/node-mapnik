@@ -2146,6 +2146,10 @@ NAN_METHOD(Image::composite)
                 NanReturnUndefined();
             }
             opacity = opt->NumberValue();
+            if (opacity < 0 || opacity > 1) {
+                NanThrowTypeError("opacity must be a floating point number between 0-1");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("dx")))
