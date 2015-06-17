@@ -84,11 +84,20 @@ function setup_runtime_settings() {
     # copy lib
     cp ${MASON_LINKED_ABS}/lib/libmapnik.* ${MODULE_PATH}
     # copy plugins
-    cp -rL ${MASON_LINKED_ABS}/lib/mapnik ${MODULE_PATH}
-    mkdir -p ${MODULE_PATH}/share/mapnik/
-    cp -rL ${MASON_LINKED_ABS}/share/icu ${MODULE_PATH}/share/mapnik/
-    cp -rL ${MASON_LINKED_ABS}/share/proj ${MODULE_PATH}/share/mapnik/
-    cp -rL ${MASON_LINKED_ABS}/share/gdal ${MODULE_PATH}/share/mapnik/
+    if [[ $(uname -s) == 'Darwin' ]]; then
+        cp -rL ${MASON_LINKED_ABS}/lib/mapnik ${MODULE_PATH}
+        mkdir -p ${MODULE_PATH}/share/mapnik/
+        cp -rL ${MASON_LINKED_ABS}/share/icu ${MODULE_PATH}/share/mapnik/
+        cp -rL ${MASON_LINKED_ABS}/share/proj ${MODULE_PATH}/share/mapnik/
+        cp -rL ${MASON_LINKED_ABS}/share/gdal ${MODULE_PATH}/share/mapnik/
+    else
+        cp -r ${MASON_LINKED_ABS}/lib/mapnik ${MODULE_PATH}
+        mkdir -p ${MODULE_PATH}/share/mapnik/
+        cp -r ${MASON_LINKED_ABS}/share/icu ${MODULE_PATH}/share/mapnik/
+        cp -r ${MASON_LINKED_ABS}/share/proj ${MODULE_PATH}/share/mapnik/
+        cp -r ${MASON_LINKED_ABS}/share/gdal ${MODULE_PATH}/share/mapnik/
+
+    fi
     echo "
     var path = require('path');
     module.exports.paths = {
