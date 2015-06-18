@@ -11,12 +11,30 @@
 #include <mapnik/image_filter_types.hpp>
 #include <mapnik/image_filter.hpp> // filter_visitor
 
+#include <mapnik/marker.hpp>
+#include <mapnik/marker_cache.hpp>
+#include <mapnik/svg/svg_parser.hpp>
+#include <mapnik/svg/svg_storage.hpp>
+#include <mapnik/svg/svg_converter.hpp>
+#include <mapnik/svg/svg_path_adapter.hpp>
+#include <mapnik/svg/svg_path_attributes.hpp>
+#include <mapnik/svg/svg_path_adapter.hpp>
+#include <mapnik/svg/svg_renderer_agg.hpp>
+#include <mapnik/svg/svg_path_attributes.hpp>
+
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
 #include "utils.hpp"
+
+#include "agg_rasterizer_scanline_aa.h"
+#include "agg_basics.h"
+#include "agg_rendering_buffer.h"
+#include "agg_renderer_base.h"
+#include "agg_pixfmt_rgba.h"
+#include "agg_scanline_u.h"
 
 // boost
 #include <boost/optional/optional.hpp>
@@ -96,6 +114,12 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_METHOD(lcons->GetFunction(),
                     "fromBytesSync",
                     Image::fromBytesSync);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromSVGSync",
+                    Image::fromSVGSync);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromSVGBytesSync",
+                    Image::fromSVGBytesSync);
     target->Set(NanNew("Image"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -1619,6 +1643,131 @@ void Image::EIO_AfterOpen(uv_work_t* req)
     }
     NanDisposePersistent(closure->cb);
     delete closure;
+}
+
+// Read from a Buffer
+NAN_METHOD(Image::fromSVGBytesSync)
+{
+    NanScope();
+    NanReturnValue(_fromSVGSync(false, args));
+}
+
+// Read from a file
+NAN_METHOD(Image::fromSVGSync)
+{
+    NanScope();
+    NanReturnValue(_fromSVGSync(true, args));
+}
+
+Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+
+    if (!fromFile && (args.Length() < 1 || !args[0]->IsObject())) {
+        NanThrowTypeError("must provide a buffer argument");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    if (fromFile && (args.Length() < 1 || !args[0]->IsString())) {
+        NanThrowTypeError("must provide a filename argument");
+        return NanEscapeScope(NanUndefined());
+    }
+
+
+    double scale = 1.0;
+    if (args.Length() >= 2) {
+        if (!args[1]->IsObject()) {
+            NanThrowTypeError("optional second arg must be an options object");
+            return NanEscapeScope(NanUndefined());
+        }
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(NanNew("scale")))
+        {
+            Local<Value> scale_opt = options->Get(NanNew("scale"));
+            if (!scale_opt->IsNumber()) {
+                NanThrowTypeError("'scale' must be an number");
+                return NanEscapeScope(NanUndefined());
+            }
+            scale = scale_opt->NumberValue();
+        }
+    }
+
+    try
+    {
+
+        //std::shared_ptr<mapnik::marker const> marker = mapnik::marker_cache::instance().find(svg_filename, false);
+
+        using namespace mapnik::svg;
+        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
+        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
+        svg_path_adapter svg_path(stl_storage);
+        svg_converter_type svg(svg_path, marker_path->attributes());
+        svg_parser p(svg);
+        if (fromFile)
+        {
+            p.parse(TOSTR(args[0]));
+        }
+        else
+        {
+            Local<Object> obj = args[0]->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
+                NanThrowTypeError("first argument is invalid, must be a Buffer");
+                return NanEscapeScope(NanUndefined());
+            }
+            std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
+            p.parse_from_string(svg_buffer);
+        }
+
+        double lox,loy,hix,hiy;
+        svg.bounding_rect(&lox, &loy, &hix, &hiy);
+        marker_path->set_bounding_box(lox,loy,hix,hiy);
+        marker_path->set_dimensions(svg.width(),svg.height());
+
+        using pixfmt = agg::pixfmt_rgba32_pre;
+        using renderer_base = agg::renderer_base<pixfmt>;
+        using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+        agg::rasterizer_scanline_aa<> ras_ptr;
+        agg::scanline_u8 sl;
+
+        double opacity = 1;
+        int w = svg.width() * scale;
+        int h = svg.height() * scale;
+
+        mapnik::image_rgba8 im(w, h);
+        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
+        pixfmt pixf(buf);
+        renderer_base renb(pixf);
+
+        mapnik::box2d<double> const& bbox = marker_path->bounding_box();
+        mapnik::coord<double,2> c = bbox.center();
+        // center the svg marker on '0,0'
+        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+        // Scale the image
+        mtx.scale(scale);
+        // render the marker at the center of the marker box
+        mtx.translate(0.5 * im.width(), 0.5 * im.height());
+
+        //mapnik::svg::vertex_stl_adapter<mapnik::svg::svg_path_storage> stl_storage(marker->get_data()->source());
+        //mapnik::svg::svg_path_adapter svg_path(stl_storage);
+        mapnik::svg::svg_renderer_agg<mapnik::svg::svg_path_adapter,
+            agg::pod_bvector<mapnik::svg::path_attributes>,
+            renderer_solid,
+            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
+                                                       marker_path->attributes());
+
+        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        demultiply_alpha(im);
+
+        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
+        Image *im2 = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(im2);
+        return NanEscapeScope(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
 }
 
 NAN_METHOD(Image::fromBytesSync)

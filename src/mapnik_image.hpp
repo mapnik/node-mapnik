@@ -44,6 +44,9 @@ public:
     static NAN_METHOD(fromBytes);
     static void EIO_FromBytes(uv_work_t* req);
     static void EIO_AfterFromBytes(uv_work_t* req);
+    static Local<Value> _fromSVGSync(bool fromFile, _NAN_METHOD_ARGS);
+    static NAN_METHOD(fromSVGSync);
+    static NAN_METHOD(fromSVGBytesSync);
     static NAN_METHOD(save);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
