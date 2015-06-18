@@ -13,7 +13,7 @@ describe('mapnik.compositeOp', function() {
                 //im1.premultiplySync();
                 var im2 = mapnik.Image.open('test/support/b.png');
                 //im2.premultiplySync();
-                im2.composite(im1, {comp_op:mapnik.compositeOp[name], opacity:100, dx:0, dy:0}, function(err,im_out) {
+                im2.composite(im1, {comp_op:mapnik.compositeOp[name], opacity:1, dx:0, dy:0}, function(err,im_out) {
                     if (err) throw err;
                     assert.ok(im_out);
                     var out = './test/tmp/' + name + '.png';
@@ -37,6 +37,7 @@ describe('mapnik.compositeOp', function() {
         assert.throws(function() { im2.composite(im1, null, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {comp_op:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {opacity:null}, function(err, im_out) {}); });
+        assert.throws(function() { im2.composite(im1, {opacity:1000}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {dx:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {dy:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {image_filters:null}, function(err, im_out) {}); });

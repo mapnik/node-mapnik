@@ -2,7 +2,10 @@
 
 ## 3.3.1
 
- - Upgrade to mapnik-vector-tile@0.8.2
+ - Upgrade to mapnik-vector-tile@0.8.3
+  - Fixes support for geometry collections
+  - Includes fixes to clipper to avoid aborting on out of range coordinates
+  - Fixed support for gracefully handling proj4 transformation errors
  - Upgraded to node-pre-gyp@0.6.7
 
 ## 3.3.0
@@ -12,6 +15,7 @@
  - Added an additional parameter to Projection initialization. This prevents the initialization
    of a proj4 object internally. This will only be useful when reprojecting from epsg:4326 to
    epsg:3857 and vise versa.
+ - Binaries updated to use Mapnik v3.x (master branch) at 126c777.
 
 ## 3.2.0
  - Added support for a variety of different grayscale images and `mapnik.imageType` list

@@ -1410,8 +1410,8 @@ Local<Value> Image::_copySync(_NAN_METHOD_ARGS)
                                                                             offset,
                                                                             scaling)
                                                );
-        Image* im = new Image(image_ptr);
-        Handle<Value> ext = NanNew<External>(im);
+        Image* new_im = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(new_im);
         Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
         return NanEscapeScope(obj);
     }
@@ -2146,6 +2146,10 @@ NAN_METHOD(Image::composite)
                 NanReturnUndefined();
             }
             opacity = opt->NumberValue();
+            if (opacity < 0 || opacity > 1) {
+                NanThrowTypeError("opacity must be a floating point number between 0-1");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("dx")))

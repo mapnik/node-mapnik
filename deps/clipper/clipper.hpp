@@ -44,7 +44,7 @@
 //#define use_xyz
 
 //use_lines: Enables line clipping. Adds a very minor cost to performance.
-#define use_lines
+//#define use_lines
   
 //use_deprecated: Enables temporary support for the obsolete functions
 //#define use_deprecated  
@@ -96,9 +96,9 @@ struct IntPoint {
   cInt y;
 #ifdef use_xyz
   cInt Z;
-  IntPoint(cInt x = 0, cInt y = 0, cInt z = 0): x(x), y(y), Z(z) {};
+  IntPoint(cInt _x = 0, cInt _y = 0, cInt z = 0): x(_x), y(_y), Z(z) {};
 #else
-  IntPoint(cInt x = 0, cInt y = 0): x(x), y(y) {};
+  IntPoint(cInt _x = 0, cInt _y = 0): x(_x), y(_y) {};
 #endif
 
   friend inline bool operator== (const IntPoint& a, const IntPoint& b)
@@ -148,7 +148,7 @@ struct DoublePoint
 {
   double x;
   double y;
-  DoublePoint(double x = 0, double y = 0) : x(x), y(y) {}
+  DoublePoint(double _x = 0, double _y = 0) : x(_x), y(_y) {}
   DoublePoint(IntPoint ip) : x((double)ip.x), y((double)ip.y) {}
 };
 //------------------------------------------------------------------------------
