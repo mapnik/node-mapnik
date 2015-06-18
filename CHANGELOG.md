@@ -12,6 +12,7 @@
  - Added an additional parameter to Projection initialization. This prevents the initialization
    of a proj4 object internally. This will only be useful when reprojecting from epsg:4326 to
    epsg:3857 and vise versa.
+ - Binaries updated to use Mapnik v3.x (master branch) at 126c777.
 
 ## 3.2.0
  - Added support for a variety of different grayscale images and `mapnik.imageType` list
