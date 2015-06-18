@@ -2,7 +2,7 @@
 
 ## 3.3.1
 
- - Upgrade to mapnik-vector-tile@0.8.2
+ - Upgrade to mapnik-vector-tile@0.8.3
  - Upgraded to node-pre-gyp@0.6.7
 
 ## 3.3.0
