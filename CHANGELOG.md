@@ -3,6 +3,9 @@
 ## 3.3.1
 
  - Upgrade to mapnik-vector-tile@0.8.3
+  - Fixes support for geometry collections
+  - Includes fixes to clipper to avoid aborting on out of range coordinates
+  - Fixed support for gracefully handling proj4 transformation errors
  - Upgraded to node-pre-gyp@0.6.7
 
 ## 3.3.0
