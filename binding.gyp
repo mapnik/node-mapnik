@@ -74,9 +74,6 @@
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/'
         ],
-        'libraries':[
-          '-lprotobuf-lite'
-        ],
         'cflags_cc' : [
             '-D_THREAD_SAFE'
         ],
@@ -85,7 +82,24 @@
              '-D_THREAD_SAFE',
           ],
         },
-      }
+      },
+      'conditions': [
+        ['OS=="win"',
+          {
+            'include_dirs':[
+              '<!@(mapnik-config --includes)'
+            ],
+            'libraries': [
+              'libprotobuf-lite.lib'
+            ]
+          },
+          {
+            'libraries':[
+              '-lprotobuf-lite'
+            ],
+          }
+        ]
+      ]
     },
     {
       'target_name': '<(module_name)',
