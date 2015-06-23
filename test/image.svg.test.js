@@ -7,21 +7,23 @@ var fs = require('fs');
 describe('mapnik.Image SVG', function() {
     it('should throw with invalid usage', function() {
         assert.throws(function() { new mapnik.Image.fromSVGSync(); });
+        assert.throws(function() { new mapnik.Image.fromSVG(); });
     });
     
     it('load from SVG file', function() {
-        var img = new mapnik.Image.fromSVGSync("./test/data/vector_tile/tile0.expected-svg.svg");
+        var img = mapnik.Image.fromSVGSync("./test/data/vector_tile/tile0.expected-svg.svg");
         assert.ok(img);
         assert.ok(img instanceof mapnik.Image);
         assert.equal(img.width(), 256);
         assert.equal(img.height(), 256);
         assert.equal(img.encodeSync("png32").length, 17272);
+
     });
     
     it('load from SVG buffer', function() {
         var svgdata = "<svg width='100' height='100'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
-        var buffer = new Buffer(svgdata, 'binary');
-        var img = new mapnik.Image.fromSVGBytesSync(buffer);
+        var buffer = new Buffer(svgdata);
+        var img = mapnik.Image.fromSVGBytesSync(buffer);
         assert.ok(img);
         assert.ok(img instanceof mapnik.Image);
         assert.equal(img.width(), 100);
@@ -31,8 +33,8 @@ describe('mapnik.Image SVG', function() {
 
     it('svg scaling', function() {
         var svgdata = "<svg width='100' height='100'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
-        var buffer = new Buffer(svgdata, 'binary');
-        var img = new mapnik.Image.fromSVGBytesSync(buffer, { scale: 0.5});
+        var buffer = new Buffer(svgdata);
+        var img = mapnik.Image.fromSVGBytesSync(buffer, { scale: 0.5});
         assert.ok(img);
         assert.ok(img instanceof mapnik.Image);
         assert.equal(img.width(), 50);
