@@ -2,6 +2,7 @@
 
 ## 3.3.1
 
+ - `mapnik.imageType` is now passed in options to new mapnik.Image
  - Upgrade to mapnik-vector-tile@0.8.3
   - Fixes support for geometry collections
   - Includes fixes to clipper to avoid aborting on out of range coordinates
