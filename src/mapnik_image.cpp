@@ -2114,6 +2114,21 @@ NAN_METHOD(Image::composite)
         NanReturnUndefined();
     }
 
+    Image * dest_image = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    Image * source_image = node::ObjectWrap::Unwrap<Image>(im2);
+
+    if (!dest_image->this_->get_premultiplied())
+    {
+        NanThrowTypeError("destination image must be premultiplied");
+        NanReturnUndefined();
+    }
+
+    if (!source_image->this_->get_premultiplied())
+    {
+        NanThrowTypeError("source image must be premultiplied");
+        NanReturnUndefined();
+    }
+
     mapnik::composite_mode_e mode = mapnik::src_over;
     float opacity = 1.0;
     std::vector<mapnik::filter::filter_type> filters;
@@ -2191,8 +2206,8 @@ NAN_METHOD(Image::composite)
 
     composite_image_baton_t *closure = new composite_image_baton_t();
     closure->request.data = closure;
-    closure->im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
+    closure->im1 = dest_image;
+    closure->im2 = source_image;
     closure->mode = mode;
     closure->opacity = opacity;
     closure->filters = filters;
@@ -2220,17 +2235,7 @@ void Image::EIO_Composite(uv_work_t* req)
                 mapnik::util::apply_visitor(visitor, filter_tag);
             }
         }
-        bool demultiply_im1 = mapnik::premultiply_alpha(*closure->im1->this_);
-        bool demultiply_im2 = mapnik::premultiply_alpha(*closure->im2->this_);
         mapnik::composite(*closure->im1->this_,*closure->im2->this_, closure->mode, closure->opacity, closure->dx, closure->dy);
-        if (demultiply_im1) 
-        {
-            mapnik::demultiply_alpha(*closure->im1->this_);
-        }
-        if (demultiply_im2)
-        {
-            mapnik::demultiply_alpha(*closure->im2->this_);
-        }
     }
     catch (std::exception const& ex)
     {
