@@ -52,15 +52,14 @@ Persistent<FunctionTemplate> Image::constructor;
  * @class
  * @param {number} width
  * @param {number} height
- * @param {string} type a valid image type constant, usually taken from
- * `mapnik.imageType`
  * @param {Object} options valid options are `premultiplied`, `painted`,
- * and `initialize`.
+ * `type` and `initialize`.
  * @throws {TypeError} if any argument is the wrong type, like if width
  * or height is not numeric.
  * @example
- * var im = new mapnik.Image(256, 256, mapnik.imageType.gray8, {
- *   premultiplied: true
+ * var im = new mapnik.Image(256, 256, {
+ *   premultiplied: true,
+ *   type: mapnik.imageType.gray8
  * });
  */
 void Image::Initialize(Handle<Object> target) {
@@ -174,26 +173,29 @@ NAN_METHOD(Image::New)
         }
         if (args.Length() >= 3)
         {
-            if (args[2]->IsNumber())
+            if (args[2]->IsObject())
             {
-                type = static_cast<mapnik::image_dtype>(args[2]->IntegerValue());
-                if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+                Local<Object> options = Local<Object>::Cast(args[2]);
+                if (options->Has(NanNew("type")))
                 {
-                    NanThrowTypeError("Image 'type' must be a valid image type");
-                    NanReturnUndefined();
+                    Local<Value> init_val = options->Get(NanNew("type"));
+
+                    if (!init_val.IsEmpty() && init_val->IsNumber())
+                    {
+                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
+                        if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+                        {
+                            NanThrowTypeError("Image 'type' must be a valid image type");
+                            NanReturnUndefined();
+                        }
+                    }
+                    else
+                    {
+                        NanThrowTypeError("'type' option must be a valid 'mapnik.imageType'");
+                        NanReturnUndefined();
+                    }
                 }
-            }
-            else
-            {
-                NanThrowTypeError("Image 'type' must be a valid image type");
-                NanReturnUndefined();
-            }
-        }
-        if (args.Length() >= 4)
-        {
-            if (args[3]->IsObject())
-            {
-                Local<Object> options = Local<Object>::Cast(args[3]);
+
                 if (options->Has(NanNew("initialize")))
                 {
                     Local<Value> init_val = options->Get(NanNew("initialize"));
@@ -2263,6 +2265,21 @@ NAN_METHOD(Image::composite)
         NanReturnUndefined();
     }
 
+    Image * dest_image = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    Image * source_image = node::ObjectWrap::Unwrap<Image>(im2);
+
+    if (!dest_image->this_->get_premultiplied())
+    {
+        NanThrowTypeError("destination image must be premultiplied");
+        NanReturnUndefined();
+    }
+
+    if (!source_image->this_->get_premultiplied())
+    {
+        NanThrowTypeError("source image must be premultiplied");
+        NanReturnUndefined();
+    }
+
     mapnik::composite_mode_e mode = mapnik::src_over;
     float opacity = 1.0;
     std::vector<mapnik::filter::filter_type> filters;
@@ -2340,8 +2357,8 @@ NAN_METHOD(Image::composite)
 
     composite_image_baton_t *closure = new composite_image_baton_t();
     closure->request.data = closure;
-    closure->im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    closure->im2 = node::ObjectWrap::Unwrap<Image>(im2);
+    closure->im1 = dest_image;
+    closure->im2 = source_image;
     closure->mode = mode;
     closure->opacity = opacity;
     closure->filters = filters;
@@ -2369,17 +2386,7 @@ void Image::EIO_Composite(uv_work_t* req)
                 mapnik::util::apply_visitor(visitor, filter_tag);
             }
         }
-        bool demultiply_im1 = mapnik::premultiply_alpha(*closure->im1->this_);
-        bool demultiply_im2 = mapnik::premultiply_alpha(*closure->im2->this_);
         mapnik::composite(*closure->im1->this_,*closure->im2->this_, closure->mode, closure->opacity, closure->dx, closure->dy);
-        if (demultiply_im1) 
-        {
-            mapnik::demultiply_alpha(*closure->im1->this_);
-        }
-        if (demultiply_im2)
-        {
-            mapnik::demultiply_alpha(*closure->im2->this_);
-        }
     }
     catch (std::exception const& ex)
     {

@@ -65,7 +65,7 @@ describe('mapnik async rendering', function() {
         map.load('./test/stylesheet.xml', function(err,map) {
             if (err) throw err;
             map.zoomAll();
-            var im = new mapnik.Image(map.width, map.height, mapnik.imageType.gray8);
+            var im = new mapnik.Image(map.width, map.height, {type:mapnik.imageType.gray8});
             assert.throws(function() { map.render(); } );
             assert.throws(function() { map.render(im, null); } );
             assert.throws(function() { map.render(null, function(err, im) {}); } );

@@ -95,7 +95,7 @@ describe('mapnik.ImageView ', function() {
     });
 
     it('getPixel should fail with bad parameters', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.rgba8);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.rgba8});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.throws(function() { view.getPixel(); });
@@ -107,77 +107,77 @@ describe('mapnik.ImageView ', function() {
     });
     
     it('getPixel supports rgba8', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.rgba8);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.rgba8});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray8', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray8);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray8});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray8s', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray8s);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray8s});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray16', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray16);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray16});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray16s', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray16s);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray16s});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray32', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray32);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray32});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray32s', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray32s);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray32s});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray32f', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray32f);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray32f});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray64', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray64);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray64s', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray64s);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64s});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);
     });
 
     it('getPixel supports gray64f', function() {
-        var im = new mapnik.Image(4,4,mapnik.imageType.gray64f);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64f});
         im.fill(1);
         var view = im.view(0,0,4,4);
         assert.equal(view.getPixel(0,0), 1);

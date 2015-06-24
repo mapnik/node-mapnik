@@ -10,9 +10,9 @@ describe('mapnik.compositeOp', function() {
         (function(name) {
             it('should blend image correctly with op:' + name, function(done) {
                 var im1 = mapnik.Image.open('test/support/a.png');
-                //im1.premultiplySync();
+                im1.premultiplySync();
                 var im2 = mapnik.Image.open('test/support/b.png');
-                //im2.premultiplySync();
+                im2.premultiplySync();
                 im2.composite(im1, {comp_op:mapnik.compositeOp[name], opacity:1, dx:0, dy:0}, function(err,im_out) {
                     if (err) throw err;
                     assert.ok(im_out);
@@ -29,7 +29,7 @@ describe('mapnik.compositeOp', function() {
     it('should fail with bad parameters', function(done) {
         var im1 = mapnik.Image.open('test/support/a.png');
         var im2 = mapnik.Image.open('test/support/b.png');
-        var im3 = new mapnik.Image(5,5,mapnik.imageType.null);
+        var im3 = new mapnik.Image(5,5,{type:mapnik.imageType.null});
         assert.throws(function() { im2.composite(); });
         assert.throws(function() { im2.composite(null); });
         assert.throws(function() { im2.composite({}); });
@@ -42,10 +42,8 @@ describe('mapnik.compositeOp', function() {
         assert.throws(function() { im2.composite(im1, {dy:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {image_filters:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {image_filters:'foo'}, function(err, im_out) {}); });
-        im3.composite(im1, {}, function(err, im_out) {
-            assert.throws(function() { if (err) throw err; });
-            done();
-        });
+        assert.throws(function() { im3.composite(im1, {}, function(err, im_out) {}); });
+        done();
     });
 });
 
