@@ -29,7 +29,7 @@ describe('mapnik.compositeOp', function() {
     it('should fail with bad parameters', function(done) {
         var im1 = mapnik.Image.open('test/support/a.png');
         var im2 = mapnik.Image.open('test/support/b.png');
-        var im3 = new mapnik.Image(5,5,mapnik.imageType.null);
+        var im3 = new mapnik.Image(5,5,{type:mapnik.imageType.null});
         assert.throws(function() { im2.composite(); });
         assert.throws(function() { im2.composite(null); });
         assert.throws(function() { im2.composite({}); });

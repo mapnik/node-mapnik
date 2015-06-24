@@ -34,15 +34,14 @@ Persistent<FunctionTemplate> Image::constructor;
  * @class
  * @param {number} width
  * @param {number} height
- * @param {string} type a valid image type constant, usually taken from
- * `mapnik.imageType`
  * @param {Object} options valid options are `premultiplied`, `painted`,
- * and `initialize`.
+ * `type` and `initialize`.
  * @throws {TypeError} if any argument is the wrong type, like if width
  * or height is not numeric.
  * @example
- * var im = new mapnik.Image(256, 256, mapnik.imageType.gray8, {
- *   premultiplied: true
+ * var im = new mapnik.Image(256, 256, {
+ *   premultiplied: true,
+ *   type: mapnik.imageType.gray8
  * });
  */
 void Image::Initialize(Handle<Object> target) {
@@ -150,26 +149,29 @@ NAN_METHOD(Image::New)
         }
         if (args.Length() >= 3)
         {
-            if (args[2]->IsNumber())
+            if (args[2]->IsObject())
             {
-                type = static_cast<mapnik::image_dtype>(args[2]->IntegerValue());
-                if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+                Local<Object> options = Local<Object>::Cast(args[2]);
+                if (options->Has(NanNew("type")))
                 {
-                    NanThrowTypeError("Image 'type' must be a valid image type");
-                    NanReturnUndefined();
+                    Local<Value> init_val = options->Get(NanNew("type"));
+
+                    if (!init_val.IsEmpty() && init_val->IsNumber())
+                    {
+                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
+                        if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+                        {
+                            NanThrowTypeError("Image 'type' must be a valid image type");
+                            NanReturnUndefined();
+                        }
+                    }
+                    else
+                    {
+                        NanThrowTypeError("'type' option must be a valid 'mapnik.imageType'");
+                        NanReturnUndefined();
+                    }
                 }
-            }
-            else
-            {
-                NanThrowTypeError("Image 'type' must be a valid image type");
-                NanReturnUndefined();
-            }
-        }
-        if (args.Length() >= 4)
-        {
-            if (args[3]->IsObject())
-            {
-                Local<Object> options = Local<Object>::Cast(args[3]);
+
                 if (options->Has(NanNew("initialize")))
                 {
                     Local<Value> init_val = options->Get(NanNew("initialize"));

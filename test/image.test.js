@@ -14,10 +14,9 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { new mapnik.Image(1); });
         assert.throws(function() { new mapnik.Image(256,256, 999); });
         assert.throws(function() { new mapnik.Image(256,256, null); });
-        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,null); });
-        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{premultiplied:null}); });
-        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{initialize:null}); });
-        assert.throws(function() { new mapnik.Image(256,256,mapnik.imageType.gray8,{painted:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,{premultiplied:'asdf'}); });
+        assert.throws(function() { new mapnik.Image(256,256,{initialize:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,{painted:null}); });
         assert.throws(function() { new mapnik.Image('foo'); });
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
     });
@@ -26,9 +25,10 @@ describe('mapnik.Image ', function() {
         var options = {
             premultiplied: false,
             initialize: true,
-            painted: false
+            painted: false,
+            type: mapnik.imageType.gray8
         };
-        var im1 = new mapnik.Image(256,256, mapnik.imageType.gray8, options);
+        var im1 = new mapnik.Image(256,256,options);
         assert.ok(im1);
     });
 
@@ -326,7 +326,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should handle setting and getting of a null image ', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.null);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.null});
         assert.throws(function() { gray.setPixel(0,0,-1); });
         assert.throws(function() { gray.setPixel(1,0,0); });
         assert.throws(function() { gray.setPixel(2,0,1); });
@@ -337,7 +337,7 @@ describe('mapnik.Image ', function() {
     
     
     it('should support setting and getting gray8 pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray8);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray8});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -347,7 +347,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray8s pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray8s);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray8s});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -357,7 +357,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray16 pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray16);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray16});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -367,7 +367,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray16s pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray16s);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray16s});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -377,7 +377,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray32 pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray32});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -387,7 +387,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray32s pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32s);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray32s});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -397,7 +397,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray32f pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray32f);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray32f});
         gray.setPixel(0,0,-1.9);
         gray.setPixel(1,0,0.8);
         gray.setPixel(2,0,1.2);
@@ -407,7 +407,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray64 pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray64);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray64});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -417,7 +417,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray64s pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray64s);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray64s});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -427,7 +427,7 @@ describe('mapnik.Image ', function() {
     });
     
     it('should support setting and getting gray64f pixel', function() {
-        var gray = new mapnik.Image(256, 256, mapnik.imageType.gray64f);
+        var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray64f});
         gray.setPixel(0,0,-1);
         gray.setPixel(1,0,0);
         gray.setPixel(2,0,1);
@@ -437,7 +437,7 @@ describe('mapnik.Image ', function() {
     });
 
     it('should support have set_pixel protecting overflow and underflows', function() {
-        var imx = new mapnik.Image(4, 4, mapnik.imageType.gray16);
+        var imx = new mapnik.Image(4, 4, {type: mapnik.imageType.gray16});
         imx.setPixel(0,0,12);
         imx.setPixel(0,1,-1);
         imx.setPixel(1,0,99999);
@@ -449,7 +449,7 @@ describe('mapnik.Image ', function() {
     });
 
     it('should support scaling and offset', function() {
-        var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
+        var im = new mapnik.Image(4, 4, {type: mapnik.imageType.gray16});
         assert.equal(im.scaling, 1);
         assert.equal(im.offset, 0);
         assert.throws(function() { im.scaling = null });
@@ -463,8 +463,8 @@ describe('mapnik.Image ', function() {
     });
 
     it('should fail to copy a null image', function(done) {
-        var im = new mapnik.Image(4,4,mapnik.imageType.null);
-        var im3 = new mapnik.Image(4,4,mapnik.imageType.gray8);
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.null});
+        var im3 = new mapnik.Image(4,4,{type: mapnik.imageType.gray8});
         assert.throws(function() { var im2 = im.copy(); });
         assert.throws(function() { var im2 = im3.copy(mapnik.imageType.null); });
         assert.throws(function() { var im2 = im3.copy(mapnik.imageType.gray8, null); });
@@ -485,7 +485,7 @@ describe('mapnik.Image ', function() {
     });
 
     it('should support copying from gray16 to gray8', function(done) {
-        var im = new mapnik.Image(4, 4, mapnik.imageType.gray16);
+        var im = new mapnik.Image(4, 4, {type: mapnik.imageType.gray16});
         im.setPixel(0,0,12);
         im.setPixel(0,1,-1);
         im.setPixel(1,0,99999);
@@ -685,7 +685,7 @@ describe('mapnik.Image ', function() {
     });
 
     it('fill fails', function(done) {
-        var im = new mapnik.Image(5,5, mapnik.imageType.null);
+        var im = new mapnik.Image(5,5, {type: mapnik.imageType.null});
         assert.throws(function() { im.fillSync(new mapnik.Color('blue')); });
         assert.throws(function() { im.fillSync({}); });
         assert.throws(function() { im.fillSync(); });
@@ -749,7 +749,7 @@ describe('mapnik.Image ', function() {
     });
 
     it('clear fails', function(done) {
-        var im = new mapnik.Image(5,5,mapnik.imageType.null);
+        var im = new mapnik.Image(5,5,{type: mapnik.imageType.null});
         assert.throws(function() { im.clear(); });
         assert.throws(function() { im.clearSync(); });
         assert.throws(function() { im.clear(null); });
