@@ -3,8 +3,11 @@
 ## 3.4.0
 
  - `mapnik.imageType` is now passed in options to new mapnik.Image
- - Upgrade to mapnik-vector-tile@0.8.3
+ - Upgrade to mapnik-vector-tile@0.8.4
+  - Fixes support for decoding known degenerate polygons (from AGG clipper)
+  - Fixes support for handling data in alternative projections
   - Fixes support for geometry collections
+  - Fixes support for skipping out of range coordinates to avoid aborting polygon clipping
   - Includes fixes to clipper to avoid aborting on out of range coordinates
   - Fixed support for gracefully handling proj4 transformation errors
  - Upgraded to node-pre-gyp@0.6.7
