@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.3.1
+## 3.4.0
 
  - `mapnik.imageType` is now passed in options to new mapnik.Image
  - Upgrade to mapnik-vector-tile@0.8.3
