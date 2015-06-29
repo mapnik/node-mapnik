@@ -85,7 +85,7 @@ function get_image_vtile() {
 }
 
 function compare_to_image(actual,expected_file) {
-    if (!existsSync(expected_file)) {
+    if (!existsSync(expected_file) || process.env.UPDATE) {
         console.log('generating expected image',expected_file);
         actual.save(expected_file,"png32");
     }

@@ -1102,7 +1102,8 @@ describe('mapnik.VectorTile ', function() {
         map.loadSync('./test/data/vector_tile/raster_style.xml');
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
             if (err) throw err;
-            //var actual = './test/data/vector_tile/tile-raster2.actual.png';
+            var actual = './test/data/vector_tile/tile-raster2.actual.png';
+            vtile_image.save(actual, 'png32');
             var expected = './test/data/vector_tile/tile-raster2.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
