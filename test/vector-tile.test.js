@@ -1139,4 +1139,42 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(json_obj, json_obj2);
         done();
     });
+
+    it('should be able to render data->vtile and vtile->image with roughtly the same results', function(done) {
+        var x=3;
+        var y=2;
+        var z=2;
+        //var extent = [10018754.171394622,-10018754.17139462,20037508.342789244,9.313225746154785e-10];
+        var extent = mercator.bbox(x, y, z, false, '900913');
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/map.xml');
+        map.extent = extent;
+        // render a png from the map
+        var expected_1 = './test/data/vector_tile/nz-1.png';
+        var expected_2 = './test/data/vector_tile/nz-1b.png';
+        var actual_1 = './test/data/vector_tile/nz-1-actual.png';
+        var actual_2 = './test/data/vector_tile/nz-1b-actual.png';
+        map.render(new mapnik.Image(256,256),{},function(err,im) {
+            if (err) throw err;
+            im.save(actual_1, 'png32');
+            if (!existsSync(expected_2) || process.env.UPDATE) {
+                im.save(expected_1, 'png32');
+            }
+            assert.equal(0,im.compare(new mapnik.Image.open(expected_1)));
+            // render a vtile
+            map.render(new mapnik.VectorTile(z,x,y),{},function(err,vtile) {
+                if (err) throw err;
+                vtile.render(map,new mapnik.Image(256,256),{},function(err, vtile_image) {
+                    if (err) throw err;
+                    vtile_image.save(actual_2, 'png32');
+                    if (!existsSync(expected_2) || process.env.UPDATE) {
+                        vtile_image.save(expected_2, 'png32');
+                    }
+                    assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected_2)));
+                    done();
+                });
+            });
+        });
+    });
+
 });
