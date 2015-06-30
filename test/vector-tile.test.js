@@ -1073,13 +1073,7 @@ describe('mapnik.VectorTile ', function() {
                 if (diff > 0) {
                     vtile_image.save(actual, 'jpeg80');
                 }
-                if (process.platform === 'win32') {
-                    // TODO - JPEG colors differ slightly on windows
-                    // version difference perhaps?
-                    assert.ok(diff < 3000,"jpeg raster diff "+diff+" not less that 3000");
-                } else {
-                    assert.equal(0,diff);
-                }
+                assert.equal(0,diff);
                 done();
             });
         });
@@ -1108,13 +1102,7 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
-            //vtile_image.save(actual, 'png32');
-            // TODO: NON-visual differences on windows - why?
-            if (process.platform === 'win32') {
-                assert.ok(vtile_image.compare(new mapnik.Image.open(expected)) < 52);
-            } else {
-                assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            }
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
     });
