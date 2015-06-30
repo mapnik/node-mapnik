@@ -1,5 +1,5 @@
 environment:
-  MAPNIK_GIT: v3.0.0-rc-offset-35-g789e07d
+  MAPNIK_GIT: v3.0.0-rc-offset-36-g89f0f53
   node_pre_gyp_accessKeyId:
     secure: 7DrSVc5eIGtmMcki5H+iRft+Tk3MJTwDBQEUuJHWaQ4=
   node_pre_gyp_secretAccessKey:
