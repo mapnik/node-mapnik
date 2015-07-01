@@ -26,7 +26,7 @@ mapnik.register_default_input_plugins();
 
 function renderMap(stylesheet, image) {
     var map = new mapnik.Map(600, 400);
-    map.loadSync(stylesheet);
+    map.loadSync(stylesheet,{strict:true});
     map.zoomAll();
     map.renderFileSync(image);
     child_process.exec('open ' + image);
