@@ -22,6 +22,8 @@ if (!image) {
 
 var mapnik = require('mapnik');
 
+mapnik.register_default_input_plugins();
+
 function renderMap(stylesheet, image) {
     var map = new mapnik.Map(600, 400);
     map.loadSync(stylesheet);
