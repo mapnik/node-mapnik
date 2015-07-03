@@ -11,6 +11,23 @@
   - Includes fixes to clipper to avoid aborting on out of range coordinates
   - Fixed support for gracefully handling proj4 transformation errors
  - Upgraded to node-pre-gyp@0.6.7
+ - Binaries updated to use Mapnik v3.x (master branch) at g39eab41 and mapnik-packaging@3ab051556e
+
+Notable changes in the Mapnik SDK include:
+
+ - Fixed potential crash when rendering metatiles to webp
+ - Now throws on missing style when loading map in strict mode
+ - Now handling when proj4 returns HUGE_VAL
+ - Fixed crash when jpeg reader is used to open a png
+ - Fixed gamma pollution for dot symbolizer
+ - Purged usage of `boost::ptr_vector` and `boost::unordered_map`
+ - Support for GDAL 2.0
+ - Update boost 1.57.0->1.58.0
+ - Update icu 1.54.1->1.55.1
+ - Update sqlite 3.8.8.2->3.8.10.2
+ - Update png 1.6.16->1.6.17
+ - Update tiff 4.0.4beta->4.0.4
+ - Update jpeg-turbo 1.4.0->1.4.1
 
 ## 3.3.0
  - Ugraded to Mapnik 3.x version with totally new geometry storage
