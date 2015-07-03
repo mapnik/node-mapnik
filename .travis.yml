@@ -87,6 +87,7 @@ before_script:
    fi
 
 script:
+ - if [[ ${COVERAGE} == true ]]; then cpp-coveralls --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp; fi;
  - node --expose-gc bench/error/test_vt_abort2.js
  # ugh: always killed by travis
  #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js
