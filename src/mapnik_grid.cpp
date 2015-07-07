@@ -55,14 +55,12 @@ void Grid::Initialize(Handle<Object> target) {
 
 Grid::Grid(unsigned int width, unsigned int height, std::string const& key) :
     node::ObjectWrap(),
-    this_(std::make_shared<mapnik::grid>(width,height,key)),
-    estimated_size_(width * height) {
-    NanAdjustExternalMemory(estimated_size_);
+    this_(std::make_shared<mapnik::grid>(width,height,key))
+{
 }
 
 Grid::~Grid()
 {
-    NanAdjustExternalMemory(-estimated_size_);
 }
 
 NAN_METHOD(Grid::New)

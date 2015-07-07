@@ -50,7 +50,6 @@ public:
 private:
     ~Grid();
     grid_ptr this_;
-    int estimated_size_;
 };
 
 #endif
