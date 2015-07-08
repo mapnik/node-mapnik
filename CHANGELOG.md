@@ -1,5 +1,17 @@
 # Changelog
 
+## Future
+
+ - Now setting `VRT_SHARED_SOURCE=0` (#437)
+ - Removed usage of `V8::AdjustAmountOfExternalAllocatedMemory` in `mapnik.Image` and `mapnik.Grid` (#136)
+ - Binaries updated to use Mapnik v3.0.0 and mapnik-packaging@049968d24
+
+Notable changes in the Mapnik SDK include:
+
+ - Update gdal 1.11.2->2.0.0
+ - Update freetype 2.5.5->2.6
+ - Update harfbuzz 0.9.40->0.9.41
+
 ## 3.4.0
 
  - `mapnik.imageType` is now passed in options to new mapnik.Image
