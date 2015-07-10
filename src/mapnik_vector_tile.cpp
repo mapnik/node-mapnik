@@ -58,9 +58,38 @@
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/hit_test_filter.hpp>
+
+
 #include <google/protobuf/io/coded_stream.h>
+#include "vector_tile.pb.h"
 
 namespace detail {
+
+inline void add_tile(std::string & buffer, vector_tile::Tile const& tile)
+{
+    std::string new_message;
+    if (!tile.SerializeToString(&new_message))
+    {
+        /* LCOV_EXCL_START */
+        throw std::runtime_error("could not serialize new data for vt");
+        /* LCOV_EXCL_END */
+    }
+    if (!new_message.empty())
+    {
+        buffer.append(new_message.data(),new_message.size());
+    }
+}
+
+inline vector_tile::Tile get_tile(std::string const& buffer)
+{
+    vector_tile::Tile tile;
+    if (!tile.ParseFromArray(buffer.data(), buffer.size()))
+    {
+        throw std::runtime_error("could not parse as proto from buf");
+    }
+    return tile;
+}
+
 
 struct p2p_distance
 {
@@ -238,12 +267,8 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     x_(x),
     y_(y),
     buffer_(),
-    status_(VectorTile::LAZY_DONE),
-    tiledata_(),
     width_(w),
-    height_(h),
-    painted_(false),
-    byte_size_(0) {}
+    height_(h) {}
 
 // For some reason coverage never seems to be considered here even though
 // I have tested it and it does print
@@ -341,56 +366,20 @@ std::vector<std::string> VectorTile::lazy_names()
 
 void VectorTile::parse_proto()
 {
-    switch (status_)
+    std::size_t bytes = buffer_.size();
+    if (bytes == 0)
     {
-    case LAZY_DONE:
-    {
-        // no-op
-        break;
+        throw std::runtime_error("cannot parse 0 length buffer as protobuf");
     }
-    case LAZY_SET:
+    vector_tile::Tile throwaway_tile;
+    if (throwaway_tile.ParseFromArray(buffer_.data(), buffer_.size()))
     {
-        status_ = LAZY_DONE;
-        std::size_t bytes = buffer_.size();
-        if (bytes == 0)
-        {
-            throw std::runtime_error("cannot parse 0 length buffer as protobuf");
-        }
-        if (tiledata_.ParseFromArray(buffer_.data(), bytes))
-        {
-            painted(true);
-            cache_bytesize();
-        }
-        else
-        {
-            throw std::runtime_error("could not parse buffer as protobuf");
-        }
-        break;
+        throwaway_tile.Clear();
     }
-    case LAZY_MERGE:
+    else
     {
-        status_ = LAZY_DONE;
-        std::size_t bytes = buffer_.size();
-        if (bytes == 0)
-        {
-            throw std::runtime_error("cannot parse 0 length buffer as protobuf");
-        }
-        unsigned remaining = bytes - byte_size_;
-        const char * data = buffer_.data() + byte_size_;
-        google::protobuf::io::CodedInputStream input(
-              reinterpret_cast<const google::protobuf::uint8*>(
-                  data), remaining);
-        if (tiledata_.MergeFromCodedStream(&input))
-        {
-            painted(true);
-            cache_bytesize();
-        }
-        else
-        {
-            throw std::runtime_error("could not merge buffer as protobuf");
-        }
-        break;
-    }
+        throwaway_tile.Clear();
+        throw std::runtime_error("could not merge buffer as protobuf");
     }
 }
 
@@ -423,30 +412,8 @@ void _composite(VectorTile* target_vt,
             target_vt->y_ == vt->y_)
         {
             int bytes = static_cast<int>(vt->buffer_.size());
-            if (bytes > 0 && vt->byte_size() <= bytes) {
+            if (bytes > 0) {
                 target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
-                target_vt->status_ = VectorTile::LAZY_MERGE;
-            }
-            else if (vt->byte_size() > 0)
-            {
-                std::string new_message;
-                vector_tile::Tile const& tiledata = vt->get_tile();
-                if (!tiledata.SerializeToString(&new_message))
-                {
-                    /* The only time this could possible be reached it seems is
-                    if there is a protobuf that is attempted to be serialized that is
-                    larger then two GBs, see link below:
-                    https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
-                    */
-                    /* LCOV_EXCL_START */
-                    throw std::runtime_error("could not serialize new data for vt");
-                    /* LCOV_EXCL_END */
-                }
-                if (!new_message.empty())
-                {
-                    target_vt->buffer_.append(new_message.data(),new_message.size());
-                    target_vt->status_ = VectorTile::LAZY_MERGE;
-                }
             }
         }
         else
@@ -468,81 +435,34 @@ void _composite(VectorTile* target_vt,
             // create map
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
-            // ensure data is in tile object
-            if (vt->status_ == VectorTile::LAZY_DONE) // tile is already parsed, we're good
+            vector_tile::Tile tiledata = detail::get_tile(vt->buffer_);
+            unsigned num_layers = tiledata.layers_size();
+            if (num_layers > 0)
             {
-                vector_tile::Tile const& tiledata = vt->get_tile();
-                unsigned num_layers = tiledata.layers_size();
-                if (num_layers > 0)
+                for (int i=0; i < tiledata.layers_size(); ++i)
                 {
-                    for (int i=0; i < tiledata.layers_size(); ++i)
-                    {
-                        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                        mapnik::layer lyr(layer.name(),merc_srs);
-                        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                                        mapnik::vector_tile_impl::tile_datasource>(
-                                                            layer,
-                                                            vt->x_,
-                                                            vt->y_,
-                                                            vt->z_,
-                                                            vt->width()
-                                                            );
-                        ds->set_envelope(m_req.get_buffered_extent());
-                        lyr.set_datasource(ds);
-                        map.add_layer(lyr);
-                    }
-                    renderer_type ren(backend,
-                                      map,
-                                      m_req,
-                                      scale_factor,
-                                      offset_x,
-                                      offset_y,
-                                      area_threshold);
-                    ren.apply(scale_denominator);
+                    vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+                    mapnik::layer lyr(layer.name(),merc_srs);
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
+                                                    mapnik::vector_tile_impl::tile_datasource>(
+                                                        layer,
+                                                        vt->x_,
+                                                        vt->y_,
+                                                        vt->z_,
+                                                        vt->width()
+                                                        );
+                    ds->set_envelope(m_req.get_buffered_extent());
+                    lyr.set_datasource(ds);
+                    map.add_layer(lyr);
                 }
-            }
-            else // tile is not pre-parsed so parse into new object to avoid needing to mutate input
-            {
-                std::size_t bytes = vt->buffer_.size();
-                if (bytes > 1) // throw instead?
-                {
-                    vector_tile::Tile new_tiledata2;
-                    if (new_tiledata2.ParseFromArray(vt->buffer_.data(), bytes))
-                    {
-                        unsigned num_layers = new_tiledata2.layers_size();
-                        if (num_layers > 0)
-                        {
-                            for (int i=0; i < new_tiledata2.layers_size(); ++i)
-                            {
-                                vector_tile::Tile_Layer const& layer = new_tiledata2.layers(i);
-                                mapnik::layer lyr(layer.name(),merc_srs);
-                                std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                                                mapnik::vector_tile_impl::tile_datasource>(
-                                                                    layer,
-                                                                    vt->x_,
-                                                                    vt->y_,
-                                                                    vt->z_,
-                                                                    vt->width()
-                                                                    );
-                                ds->set_envelope(m_req.get_buffered_extent());
-                                lyr.set_datasource(ds);
-                                map.add_layer(lyr);
-                            }
-                            renderer_type ren(backend,
-                                              map,
-                                              m_req,
-                                              scale_factor,
-                                              offset_x,
-                                              offset_y,
-                                              area_threshold);
-                            ren.apply(scale_denominator);
-                        }
-                    }
-                    else
-                    {
-                        // throw here?
-                    }
-                }
+                renderer_type ren(backend,
+                                  map,
+                                  m_req,
+                                  scale_factor,
+                                  offset_x,
+                                  offset_y,
+                                  area_threshold);
+                ren.apply(scale_denominator);
             }
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
@@ -559,7 +479,6 @@ void _composite(VectorTile* target_vt,
             if (!new_message.empty())
             {
                 target_vt->buffer_.append(new_message.data(),new_message.size());
-                target_vt->status_ = VectorTile::LAZY_MERGE;
             }
         }
     }
@@ -938,7 +857,7 @@ NAN_METHOD(VectorTile::names)
     NanScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     int raw_size = d->buffer_.size();
-    if (raw_size > 0 && d->byte_size_ <= raw_size)
+    if (raw_size > 0)
     {
         try
         {
@@ -956,17 +875,8 @@ NAN_METHOD(VectorTile::names)
             NanThrowError(ex.what());
             NanReturnUndefined();
         }
-    } else {
-        vector_tile::Tile const& tiledata = d->get_tile();
-        Local<Array> arr = NanNew<Array>(tiledata.layers_size());
-        for (int i=0; i < tiledata.layers_size(); ++i)
-        {
-            vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-            arr->Set(i, NanNew(layer.name().c_str()));
-        }
-        NanReturnValue(arr);
     }
-    NanReturnUndefined();
+    NanReturnValue(NanNew<Array>(0));
 }
 
 bool VectorTile::lazy_empty()
@@ -1011,7 +921,7 @@ NAN_METHOD(VectorTile::empty)
     NanScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     int raw_size = d->buffer_.size();
-    if (raw_size > 0 && d->byte_size_ <= raw_size)
+    if (raw_size > 0)
     {
         try
         {
@@ -1021,20 +931,6 @@ NAN_METHOD(VectorTile::empty)
         {
             NanThrowError(ex.what());
             NanReturnUndefined();
-        }
-    } else {
-        vector_tile::Tile const& tiledata = d->get_tile();
-        if (tiledata.layers_size() == 0) {
-            NanReturnValue(NanNew<Boolean>(true));
-        } else {
-            for (int i=0; i < tiledata.layers_size(); ++i)
-            {
-                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                if (layer.features_size()) {
-                    NanReturnValue(NanNew<Boolean>(false));
-                    break;
-                }
-            }
         }
     }
     NanReturnValue(NanNew<Boolean>(true));
@@ -1240,7 +1136,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         throw std::runtime_error("could not reproject lon/lat to mercator");
         /* LCOV_EXCL_END */
     }
-    vector_tile::Tile const& tiledata = d->get_tile();
+    vector_tile::Tile tiledata = detail::get_tile(d->buffer_);
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
@@ -1480,7 +1376,7 @@ NAN_METHOD(VectorTile::queryMany)
 }
 
 queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
-    vector_tile::Tile const& tiledata = d->get_tile();
+    vector_tile::Tile tiledata = detail::get_tile(d->buffer_);
     int layer_idx = -1;
     for (int j=0; j < tiledata.layers_size(); ++j)
     {
@@ -1688,89 +1584,94 @@ NAN_METHOD(VectorTile::toJSON)
 {
     NanScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    vector_tile::Tile const& tiledata = d->get_tile();
-    Local<Array> arr = NanNew<Array>(tiledata.layers_size());
-    for (int i=0; i < tiledata.layers_size(); ++i)
-    {
-        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        Local<Object> layer_obj = NanNew<Object>();
-        layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
-        layer_obj->Set(NanNew("extent"), NanNew<Integer>(layer.extent()));
-        layer_obj->Set(NanNew("version"), NanNew<Integer>(layer.version()));
-
-        Local<Array> f_arr = NanNew<Array>(layer.features_size());
-        for (int j=0; j < layer.features_size(); ++j)
+    try {
+        vector_tile::Tile tiledata = detail::get_tile(d->buffer_);
+        Local<Array> arr = NanNew<Array>(tiledata.layers_size());
+        for (int i=0; i < tiledata.layers_size(); ++i)
         {
-            Local<Object> feature_obj = NanNew<Object>();
-            vector_tile::Tile_Feature const& f = layer.features(j);
-            if (f.has_id())
-            {
-                feature_obj->Set(NanNew("id"),NanNew<Number>(f.id()));
-            }
-            if (f.has_raster())
-            {
-                std::string const& raster = f.raster();
-                feature_obj->Set(NanNew("raster"),NanNewBufferHandle((char*)raster.data(),raster.size()));
-            }
-            feature_obj->Set(NanNew("type"),NanNew<Integer>(f.type()));
-            Local<Array> g_arr = NanNew<Array>();
-            for (int k = 0; k < f.geometry_size();++k)
-            {
-                g_arr->Set(k,NanNew<Number>(f.geometry(k)));
-            }
-            feature_obj->Set(NanNew("geometry"),g_arr);
-            Local<Object> att_obj = NanNew<Object>();
-            for (int m = 0; m < f.tags_size(); m += 2)
-            {
-                std::size_t key_name = f.tags(m);
-                std::size_t key_value = f.tags(m + 1);
-                if (key_name < static_cast<std::size_t>(layer.keys_size())
-                    && key_value < static_cast<std::size_t>(layer.values_size()))
-                {
-                    std::string const& name = layer.keys(key_name);
-                    vector_tile::Tile_Value const& value = layer.values(key_value);
-                    if (value.has_string_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew(value.string_value().c_str()));
-                    }
-                    else if (value.has_int_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.int_value()));
-                    }
-                    else if (value.has_double_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.double_value()));
-                    }
-                    else if (value.has_float_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.float_value()));
-                    }
-                    else if (value.has_bool_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew<Boolean>(value.bool_value()));
-                    }
-                    else if (value.has_sint_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.sint_value()));
-                    }
-                    else if (value.has_uint_value())
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.uint_value()));
-                    }
-                    else
-                    {
-                        att_obj->Set(NanNew(name.c_str()), NanUndefined());
-                    }
-                }
-                feature_obj->Set(NanNew("properties"),att_obj);
-            }
+            vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+            Local<Object> layer_obj = NanNew<Object>();
+            layer_obj->Set(NanNew("name"), NanNew(layer.name().c_str()));
+            layer_obj->Set(NanNew("extent"), NanNew<Integer>(layer.extent()));
+            layer_obj->Set(NanNew("version"), NanNew<Integer>(layer.version()));
 
-            f_arr->Set(j,feature_obj);
+            Local<Array> f_arr = NanNew<Array>(layer.features_size());
+            for (int j=0; j < layer.features_size(); ++j)
+            {
+                Local<Object> feature_obj = NanNew<Object>();
+                vector_tile::Tile_Feature const& f = layer.features(j);
+                if (f.has_id())
+                {
+                    feature_obj->Set(NanNew("id"),NanNew<Number>(f.id()));
+                }
+                if (f.has_raster())
+                {
+                    std::string const& raster = f.raster();
+                    feature_obj->Set(NanNew("raster"),NanNewBufferHandle((char*)raster.data(),raster.size()));
+                }
+                feature_obj->Set(NanNew("type"),NanNew<Integer>(f.type()));
+                Local<Array> g_arr = NanNew<Array>();
+                for (int k = 0; k < f.geometry_size();++k)
+                {
+                    g_arr->Set(k,NanNew<Number>(f.geometry(k)));
+                }
+                feature_obj->Set(NanNew("geometry"),g_arr);
+                Local<Object> att_obj = NanNew<Object>();
+                for (int m = 0; m < f.tags_size(); m += 2)
+                {
+                    std::size_t key_name = f.tags(m);
+                    std::size_t key_value = f.tags(m + 1);
+                    if (key_name < static_cast<std::size_t>(layer.keys_size())
+                        && key_value < static_cast<std::size_t>(layer.values_size()))
+                    {
+                        std::string const& name = layer.keys(key_name);
+                        vector_tile::Tile_Value const& value = layer.values(key_value);
+                        if (value.has_string_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew(value.string_value().c_str()));
+                        }
+                        else if (value.has_int_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.int_value()));
+                        }
+                        else if (value.has_double_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.double_value()));
+                        }
+                        else if (value.has_float_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.float_value()));
+                        }
+                        else if (value.has_bool_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew<Boolean>(value.bool_value()));
+                        }
+                        else if (value.has_sint_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.sint_value()));
+                        }
+                        else if (value.has_uint_value())
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.uint_value()));
+                        }
+                        else
+                        {
+                            att_obj->Set(NanNew(name.c_str()), NanUndefined());
+                        }
+                    }
+                    feature_obj->Set(NanNew("properties"),att_obj);
+                }
+
+                f_arr->Set(j,feature_obj);
+            }
+            layer_obj->Set(NanNew("features"), f_arr);
+            arr->Set(i, layer_obj);
         }
-        layer_obj->Set(NanNew("features"), f_arr);
-        arr->Set(i, layer_obj);
+        NanReturnValue(arr);
+    } catch (std::exception const& ex) {
+        NanThrowError(ex.what());
+        NanReturnUndefined();        
     }
-    NanReturnValue(arr);
 }
 
 static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
@@ -1922,7 +1823,7 @@ void write_geojson_to_string(std::string & result,
                              int layer_idx,
                              VectorTile * v)
 {
-    vector_tile::Tile const& tiledata = v->get_tile();
+    vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     if (array)
     {
         unsigned layer_num = tiledata.layers_size();
@@ -1990,7 +1891,6 @@ Local<Value> VectorTile::_toGeoJSONSync(_NAN_METHOD_ARGS) {
     }
 
     VectorTile* v = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    vector_tile::Tile const& tiledata = v->get_tile();
     int layer_idx = -1;
     bool all_array = false;
     bool all_flattened = false;
@@ -1998,6 +1898,7 @@ Local<Value> VectorTile::_toGeoJSONSync(_NAN_METHOD_ARGS) {
     std::string result;
     try
     {
+        vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
         handle_to_geojson_args(layer_id,
                                tiledata,
                                all_array,
@@ -2054,7 +1955,6 @@ NAN_METHOD(VectorTile::toGeoJSON)
     closure->all_flattened = false;
 
     std::string error_msg;
-    vector_tile::Tile const& tiledata = closure->v->get_tile();
 
     Local<Value> layer_id = args[0];
     if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
@@ -2063,17 +1963,28 @@ NAN_METHOD(VectorTile::toGeoJSON)
         NanReturnUndefined();
     }
 
-    handle_to_geojson_args(layer_id,
-                           tiledata,
-                           closure->all_array,
-                           closure->all_flattened,
-                           error_msg,
-                           closure->layer_idx);
-    if (!error_msg.empty())
+    try
+    {
+        vector_tile::Tile tiledata = detail::get_tile(closure->v->buffer_);
+
+        handle_to_geojson_args(layer_id,
+                               tiledata,
+                               closure->all_array,
+                               closure->all_flattened,
+                               error_msg,
+                               closure->layer_idx);
+        if (!error_msg.empty())
+        {
+            delete closure;
+            NanThrowTypeError(error_msg.c_str());
+            NanReturnUndefined();
+        }
+    }
+    catch (std::exception const& ex)
     {
         delete closure;
-        NanThrowTypeError(error_msg.c_str());
-        NanReturnUndefined();
+        NanThrowTypeError(ex.what());
+        NanReturnUndefined();  
     }
     Local<Value> callback = args[args.Length()-1];
     NanAssignPersistent(closure->cb, callback.As<Function>());
@@ -2274,7 +2185,8 @@ NAN_METHOD(VectorTile::addGeoJSON)
     {
         typedef mapnik::vector_tile_impl::backend_pbf backend_type;
         typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-        backend_type backend(d->get_tile_nonconst(),path_multiplier);
+        vector_tile::Tile tiledata;
+        backend_type backend(tiledata,path_multiplier);
         mapnik::Map map(d->width_,d->height_,"+init=epsg:3857");
         mapnik::vector_tile_impl::spherical_mercator merc(d->width_);
         double minx,miny,maxx,maxy;
@@ -2297,8 +2209,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           area_threshold);
         ren.set_simplify_distance(simplify_distance);
         ren.apply();
-        d->painted(ren.painted());
-        d->cache_bytesize();
+        detail::add_tile(d->buffer_,tiledata);
         NanReturnValue(NanTrue());
     }
     catch (std::exception const& ex)
@@ -2333,7 +2244,7 @@ NAN_METHOD(VectorTile::addImage)
         NanReturnUndefined();
     }
     // how to ensure buffer width/height?
-    vector_tile::Tile & tiledata = d->get_tile_nonconst();
+    vector_tile::Tile tiledata;
     vector_tile::Tile_Layer * new_layer = tiledata.add_layers();
     new_layer->set_name(layer_name);
     new_layer->set_version(1);
@@ -2343,9 +2254,7 @@ NAN_METHOD(VectorTile::addImage)
     vector_tile::Tile_Feature * new_feature = new_layer->add_features();
     new_feature->set_raster(std::string(node::Buffer::Data(obj),buffer_size));
     // report that we have data
-    d->painted(true);
-    // cache modified size
-    d->cache_bytesize();
+    detail::add_tile(d->buffer_,tiledata);
     NanReturnUndefined();
 }
 
@@ -2380,7 +2289,6 @@ NAN_METHOD(VectorTile::addData)
         NanReturnUndefined();
     }
     d->buffer_.append(node::Buffer::Data(obj),buffer_size);
-    d->status_ = VectorTile::LAZY_MERGE;
     NanReturnUndefined();
 }
 
@@ -2410,7 +2318,6 @@ Local<Value> VectorTile::_setDataSync(_NAN_METHOD_ARGS)
         return NanEscapeScope(NanUndefined());
     }
     d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
-    d->status_ = VectorTile::LAZY_SET;
     return NanEscapeScope(NanUndefined());
 }
 
@@ -2482,7 +2389,6 @@ void VectorTile::EIO_SetData(uv_work_t* req)
     try
     {
         closure->d->buffer_ = std::string(closure->data,closure->dataLength);
-        closure->d->status_ = VectorTile::LAZY_SET;
     }
     catch (std::exception const& ex)
     {
@@ -2528,7 +2434,9 @@ NAN_METHOD(VectorTile::getData)
     try {
         // shortcut: return raw data and avoid trip through proto object
         std::size_t raw_size = d->buffer_.size();
-        if (raw_size > 0 && (d->byte_size_ < 0 || static_cast<std::size_t>(d->byte_size_) <= raw_size)) {
+        if (raw_size <= 0) {
+            NanReturnValue(NanNewBufferHandle(0));
+        } else {
             if (raw_size >= node::Buffer::kMaxLength) {
                 std::ostringstream s;
                 s << "Data is too large to convert to a node::Buffer ";
@@ -2536,31 +2444,6 @@ NAN_METHOD(VectorTile::getData)
                 throw std::runtime_error(s.str());
             }
             NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
-        } else {
-            if (d->byte_size_ <= 0) {
-                NanReturnValue(NanNewBufferHandle(0));
-            } else {
-                // NOTE: tiledata.ByteSize() must be called
-                // after each modification of tiledata otherwise the
-                // SerializeWithCachedSizesToArray will throw:
-                // Error: CHECK failed: !coded_out.HadError()
-                if (static_cast<std::size_t>(d->byte_size_) >= node::Buffer::kMaxLength) {
-                    std::ostringstream s;
-                    s << "Data is too large to convert to a node::Buffer ";
-                    s << "(" << d->byte_size_ << " cached bytes >= node::Buffer::kMaxLength)";
-                    throw std::runtime_error(s.str());
-                }
-                Local<Object> retbuf = NanNewBufferHandle(d->byte_size_);
-                // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
-                // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
-                google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
-                vector_tile::Tile const& tiledata = d->get_tile();
-                google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
-                if (end - start != d->byte_size_) {
-                    throw std::runtime_error("serialization failed, possible race condition");
-                }
-                NanReturnValue(retbuf);
-            }
         }
     } catch (std::exception const& ex) {
         NanThrowError(ex.what());
@@ -2989,7 +2872,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
-        vector_tile::Tile const& tiledata = closure->d->get_tile();
+        vector_tile::Tile tiledata = detail::get_tile(closure->d->buffer_);
 #if defined(GRID_RENDERER)
         // render grid for layer
         if (closure->surface.is<Grid *>())
@@ -3282,7 +3165,7 @@ Local<Value> VectorTile::_isSolidSync(_NAN_METHOD_ARGS)
     try
     {
         std::string key;
-        bool is_solid = mapnik::vector_tile_impl::is_solid_extent(d->get_tile(), key);
+        bool is_solid = mapnik::vector_tile_impl::is_solid_extent(detail::get_tile(d->buffer_), key);
         if (is_solid)
         {
             return NanEscapeScope(NanNew(key.c_str()));
@@ -3348,7 +3231,7 @@ void VectorTile::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
     try {
-        closure->result = mapnik::vector_tile_impl::is_solid_extent(closure->d->get_tile(),closure->key);
+        closure->result = mapnik::vector_tile_impl::is_solid_extent(detail::get_tile(closure->d->buffer_),closure->key);
     }
     catch (std::exception const& ex)
     {

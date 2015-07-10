@@ -5,7 +5,6 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
-#include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
 #include <vector>
@@ -37,11 +36,6 @@ struct queryMany_result {
 
 class VectorTile: public node::ObjectWrap {
 public:
-    enum parsing_status {
-        LAZY_DONE = 1,
-        LAZY_SET = 2,
-        LAZY_MERGE = 3
-    };
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
@@ -105,28 +99,13 @@ public:
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
 
     void clear() {
-        tiledata_.Clear();
         buffer_.clear();
-        painted(false);
-        byte_size_ = 0;
-    }
-    vector_tile::Tile & get_tile_nonconst() {
-        return tiledata_;
     }
     std::vector<std::string> lazy_names();
     bool lazy_empty();
     void parse_proto();
-    vector_tile::Tile const& get_tile() {
-        return tiledata_;
-    }
-    void cache_bytesize() {
-        byte_size_ = tiledata_.ByteSize();
-    }
-    void painted(bool painted) {
-        painted_ = painted;
-    }
     bool painted() const {
-        return painted_;
+        return !buffer_.empty();
     }
     unsigned width() const {
         return width_;
@@ -134,23 +113,16 @@ public:
     unsigned height() const {
         return height_;
     }
-    int byte_size() {
-        return byte_size_;
-    }
     void _ref() { Ref(); }
     void _unref() { Unref(); }
     int z_;
     int x_;
     int y_;
     std::string buffer_;
-    parsing_status status_;
 private:
     ~VectorTile();
-    vector_tile::Tile tiledata_;
     unsigned width_;
     unsigned height_;
-    bool painted_;
-    int byte_size_;
 };
 
 #endif // __NODE_MAPNIK_VECTOR_TILE_H__
