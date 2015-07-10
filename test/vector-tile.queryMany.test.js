@@ -262,8 +262,7 @@ describe('mapnik.VectorTile queryMany (distance <= tolerance)', function() {
         assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
         done();
     });
-    // why does this fail (?)
-    it.skip('Polygon - no features', function(done) {
+    it('Polygon - no features', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify({
           "type": "FeatureCollection",
@@ -271,7 +270,7 @@ describe('mapnik.VectorTile queryMany (distance <= tolerance)', function() {
             "type": "Feature",
             "geometry": {
               "type": "Polygon",
-              "coordinates": [ [-180,85], [180,-85], [-180,-85], [-180,85] ]
+              "coordinates": [ [ [-180,85], [180,-85], [-180,-85], [-180,85] ] ]
             },
             "properties": { "name": "A" }
           }]
