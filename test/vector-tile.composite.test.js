@@ -343,7 +343,7 @@ describe('mapnik.VectorTile.composite', function() {
         });
     });
 
-    it.skip('should contain two raster layers', function(done) {
+    it('should contain two raster layers', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(0,0,0);
         var im = new mapnik.Image(vt.width(),vt.height());
@@ -358,7 +358,7 @@ describe('mapnik.VectorTile.composite', function() {
         done();
     });
 
-    it.skip('should not contain non-overlapping data', function(done) {
+    it('should not contain non-overlapping data', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(1,0,0);
         var im = new mapnik.Image(vt.width(),vt.height());
