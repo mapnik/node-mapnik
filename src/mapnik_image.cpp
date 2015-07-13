@@ -27,7 +27,6 @@
 #include <ostream>                      // for operator<<, basic_ostream
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>
-#include <iostream>
 
 Persistent<FunctionTemplate> Image::constructor;
 
