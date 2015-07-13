@@ -1291,7 +1291,7 @@ describe('mapnik.Image ', function() {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
-            assert.equal(0, result.compare(im2, {threshold:8}));
+            assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
@@ -1306,7 +1306,7 @@ describe('mapnik.Image ', function() {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
-            assert.equal(0, result.compare(im2, {threshold:8}));
+            assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
@@ -1321,7 +1321,7 @@ describe('mapnik.Image ', function() {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
-            assert.equal(0, result.compare(im2, {threshold:8}));
+            assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
@@ -1336,7 +1336,7 @@ describe('mapnik.Image ', function() {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
-            assert.equal(0, result.compare(im2, {threshold:8}));
+            assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
@@ -1351,7 +1351,7 @@ describe('mapnik.Image ', function() {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
-            assert.equal(0, result.compare(im2, {threshold:8}));
+            assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
@@ -1366,7 +1366,7 @@ describe('mapnik.Image ', function() {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
-            assert.equal(0, result.compare(im2, {threshold:8}));
+            assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
