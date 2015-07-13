@@ -878,7 +878,6 @@ describe('mapnik.VectorTile ', function() {
 
     });
 
-
     it('should render a vector_tile of the whole world', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
@@ -888,7 +887,31 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
-            fs.writeFileSync('./test/data/vector_tile/tile0.vector.pbf', vtile.getData())
+            var expected = './test/data/vector_tile/tile0.vector.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected).toString('hex');
+            assert.equal(expected_data, vtile.getData().toString('hex'));
+            done();
+        });
+    });
+
+    it('should render a vector_tile of the whole world - area threshold applied', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        map.render(vtile, {variables:{pizza:'pie'}, area_threshold:0.8}, function(err, vtile) {
+            if (err) throw err;
+            assert.equal(vtile.isSolid(), false);
+            var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected).toString('hex');
+            assert.equal(expected_data, vtile.getData().toString('hex'));
             done();
         });
     });
@@ -1073,13 +1096,7 @@ describe('mapnik.VectorTile ', function() {
                 if (diff > 0) {
                     vtile_image.save(actual, 'jpeg80');
                 }
-                if (process.platform === 'win32') {
-                    // TODO - JPEG colors differ slightly on windows
-                    // version difference perhaps?
-                    assert.ok(diff < 3000,"jpeg raster diff "+diff+" not less that 3000");
-                } else {
-                    assert.equal(0,diff);
-                }
+                assert.equal(0,diff);
                 done();
             });
         });
@@ -1102,18 +1119,13 @@ describe('mapnik.VectorTile ', function() {
         map.loadSync('./test/data/vector_tile/raster_style.xml');
         vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
             if (err) throw err;
-            //var actual = './test/data/vector_tile/tile-raster2.actual.png';
+            var actual = './test/data/vector_tile/tile-raster2.actual.png';
+            vtile_image.save(actual, 'png32');
             var expected = './test/data/vector_tile/tile-raster2.expected.png';
             if (!existsSync(expected) || process.env.UPDATE) {
                 vtile_image.save(expected, 'png32');
             }
-            //vtile_image.save(actual, 'png32');
-            // TODO: NON-visual differences on windows - why?
-            if (process.platform === 'win32') {
-                assert.ok(vtile_image.compare(new mapnik.Image.open(expected)) < 52);
-            } else {
-                assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            }
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
     });
@@ -1138,4 +1150,42 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(json_obj, json_obj2);
         done();
     });
+
+    it('should be able to render data->vtile and vtile->image with roughtly the same results', function(done) {
+        var x=3;
+        var y=2;
+        var z=2;
+        //var extent = [10018754.171394622,-10018754.17139462,20037508.342789244,9.313225746154785e-10];
+        var extent = mercator.bbox(x, y, z, false, '900913');
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/map.xml');
+        map.extent = extent;
+        // render a png from the map
+        var expected_1 = './test/data/vector_tile/nz-1.png';
+        var expected_2 = './test/data/vector_tile/nz-1b.png';
+        var actual_1 = './test/data/vector_tile/nz-1-actual.png';
+        var actual_2 = './test/data/vector_tile/nz-1b-actual.png';
+        map.render(new mapnik.Image(256,256),{},function(err,im) {
+            if (err) throw err;
+            im.save(actual_1, 'png32');
+            if (!existsSync(expected_2) || process.env.UPDATE) {
+                im.save(expected_1, 'png32');
+            }
+            assert.equal(0,im.compare(new mapnik.Image.open(expected_1)));
+            // render a vtile
+            map.render(new mapnik.VectorTile(z,x,y),{},function(err,vtile) {
+                if (err) throw err;
+                vtile.render(map,new mapnik.Image(256,256),{},function(err, vtile_image) {
+                    if (err) throw err;
+                    vtile_image.save(actual_2, 'png32');
+                    if (!existsSync(expected_2) || process.env.UPDATE) {
+                        vtile_image.save(expected_2, 'png32');
+                    }
+                    assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected_2)));
+                    done();
+                });
+            });
+        });
+    });
+
 });

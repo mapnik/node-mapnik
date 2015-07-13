@@ -5,6 +5,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
@@ -49,7 +50,6 @@ public:
 private:
     ~Grid();
     grid_ptr this_;
-    int estimated_size_;
 };
 
 #endif

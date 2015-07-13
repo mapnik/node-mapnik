@@ -218,9 +218,6 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSONSync", toGeoJSONSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addGeoJSON", addGeoJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addImage", addImage);
-#ifdef PROTOBUF_FULL
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
-#endif
 
     // common to mapnik.Image
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
@@ -926,16 +923,6 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
-
-#ifdef PROTOBUF_FULL
-NAN_METHOD(VectorTile::toString)
-{
-    NanScope();
-    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    vector_tile::Tile const& tiledata = d->get_tile();
-    NanReturnValue(NanNew(tiledata.DebugString().c_str()));
-}
-#endif
 
 
 /**
@@ -2932,6 +2919,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             mapnik::projection const& map_proj,
                                             std::vector<mapnik::layer> const& layers,
                                             double scale_denom,
+                                            std::string const& map_srs,
                                             vector_tile::Tile const& tiledata,
                                             vector_tile_render_baton_t *closure)
 {
@@ -2949,6 +2937,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                 if (lyr.name() == layer.name())
                 {
                     mapnik::layer lyr_copy(lyr);
+                    lyr_copy.set_srs(map_srs);
                     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
@@ -3050,6 +3039,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     }
 
                     mapnik::layer lyr_copy(lyr);
+                    lyr_copy.set_srs(map_in.srs());
                     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
@@ -3095,7 +3085,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                                 closure->variables,
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -3111,7 +3101,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                             closure->variables,
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -3131,7 +3121,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                         closure->variables,
                                                         im_data,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
                 ren.end_map_processing(map_in);
             }
             else

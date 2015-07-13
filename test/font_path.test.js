@@ -15,8 +15,7 @@ describe('mapnik fonts ', function() {
         // process.env.MAPNIK_FONT_PATH takes effect
         delete require.cache[require.resolve('../')];
         var mapnik = require('../');
-        if (process.platform !== "win32") {
-            assert.ok(mapnik.fonts().indexOf('DejaVu Sans Mono Bold Oblique') >= 0);
-        }
+
+        assert.ok(mapnik.fonts().indexOf('DejaVu Sans Mono Bold Oblique') >= 0);
     });
 });

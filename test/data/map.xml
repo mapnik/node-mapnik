@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Map srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over" background-color="steelblue">
+
+    <Style name="nz">
+        <Rule>
+            <PolygonSymbolizer fill="white" />
+            <LineSymbolizer stroke="green" />
+            <MarkersSymbolizer width="10" opacity=".7" fill="white" allow-overlap="true" ignore-placement="true"/>
+            <DebugSymbolizer />
+        </Rule>
+    </Style>
+
+    <Style name="world">
+        <Rule>
+            <PolygonSymbolizer fill="darkorange" />
+            <LineSymbolizer stroke="purple" />
+            <MarkersSymbolizer width="5" opacity=".7" fill="yellow" allow-overlap="true" ignore-placement="true"/>
+            <DebugSymbolizer />
+        </Rule>
+    </Style>
+
+    <Layer name="world" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over">
+        <StyleName>world</StyleName>
+        <Datasource>
+            <Parameter name="file">./world_merc.shp</Parameter>
+            <Parameter name="encoding">iso-8859-1</Parameter>
+            <Parameter name="type">shape</Parameter>
+        </Datasource>
+    </Layer>
+
+    <Layer name="nz" srs="+proj=nzmg +lat_0=-41 +lon_0=173 +x_0=2510000 +y_0=6023150 +ellps=intl +units=m +towgs84=59.47,-5.04,187.44,0.47,-0.1,1.024,-4.5993 +no_defs">
+        <StyleName>nz</StyleName>
+        <Datasource>
+            <Parameter name="file">./NZ_Coastline_NZMG.shp</Parameter>
+            <Parameter name="type">shape</Parameter>
+        </Datasource>
+    </Layer>
+
+</Map>

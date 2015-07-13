@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.3.1-svgrasterizer",
+  "version": "3.4.1-svgrasterizer",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -41,7 +41,7 @@
   ],
   "dependencies": {
     "nan": "~1.8.4",
-    "mapnik-vector-tile": "~0.8.3",
+    "mapnik-vector-tile": "~0.8.4",
     "node-pre-gyp": "~0.6.7"
   },
   "bundledDependencies": [
@@ -61,8 +61,8 @@
   },
   "devDependencies": {
     "aws-sdk": "2.0.12",
-    "dev-documentation": "^1.1.3",
-    "documentation": "^1.3.2",
+    "dev-documentation": "^2.0.0",
+    "documentation": "^2.0.0",
     "jshint": "^2.5.10",
     "mocha": "2.x",
     "sphericalmercator": "~1.0.2",

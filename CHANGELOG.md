@@ -1,13 +1,45 @@
 # Changelog
 
-## 3.3.1
+## Future
+
+ - Now setting `VRT_SHARED_SOURCE=0` (#437)
+ - Removed usage of `V8::AdjustAmountOfExternalAllocatedMemory` in `mapnik.Image` and `mapnik.Grid` (#136)
+ - Binaries updated to use Mapnik v3.0.0 and mapnik-packaging@049968d24
+
+Notable changes in the Mapnik SDK include:
+
+ - Update gdal 1.11.2->2.0.0
+ - Update freetype 2.5.5->2.6
+ - Update harfbuzz 0.9.40->0.9.41
+
+## 3.4.0
 
  - `mapnik.imageType` is now passed in options to new mapnik.Image
- - Upgrade to mapnik-vector-tile@0.8.3
+ - Upgrade to mapnik-vector-tile@0.8.4
+  - Fixes support for decoding known degenerate polygons (from AGG clipper)
+  - Fixes support for handling data in alternative projections
   - Fixes support for geometry collections
+  - Fixes support for skipping out of range coordinates to avoid aborting polygon clipping
   - Includes fixes to clipper to avoid aborting on out of range coordinates
   - Fixed support for gracefully handling proj4 transformation errors
  - Upgraded to node-pre-gyp@0.6.7
+ - Binaries updated to use Mapnik v3.x (master branch) at g39eab41 and mapnik-packaging@3ab051556e
+
+Notable changes in the Mapnik SDK include:
+
+ - Fixed potential crash when rendering metatiles to webp
+ - Now throws on missing style when loading map in strict mode
+ - Now handling when proj4 returns HUGE_VAL
+ - Fixed crash when jpeg reader is used to open a png
+ - Fixed gamma pollution for dot symbolizer
+ - Purged usage of `boost::ptr_vector` and `boost::unordered_map`
+ - Support for GDAL 2.0
+ - Update boost 1.57.0->1.58.0
+ - Update icu 1.54.1->1.55.1
+ - Update sqlite 3.8.8.2->3.8.10.2
+ - Update png 1.6.16->1.6.17
+ - Update tiff 4.0.4beta->4.0.4
+ - Update jpeg-turbo 1.4.0->1.4.1
 
 ## 3.3.0
  - Ugraded to Mapnik 3.x version with totally new geometry storage

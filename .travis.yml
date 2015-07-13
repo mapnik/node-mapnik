@@ -49,7 +49,7 @@ matrix:
 env:
   global:
    - JOBS: "8"
-   - MAPNIK_GIT: v3.0.0-rc3-158-g34618de
+   - MAPNIK_GIT: v3.0.0
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
 
@@ -87,6 +87,7 @@ before_script:
    fi
 
 script:
+ - if [[ ${COVERAGE} == true ]]; then ./mason_packages/.link/bin/cpp-coveralls --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp > /dev/null; fi;
  - node --expose-gc bench/error/test_vt_abort2.js
  # ugh: always killed by travis
  #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js

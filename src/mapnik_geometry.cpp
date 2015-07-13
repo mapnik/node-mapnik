@@ -172,7 +172,7 @@ struct to_json_baton {
  * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
  * asynchronously.
  *
- * @param {Object?} options. The only supported object is `transform`,
+ * @param {Object} [options={}]. The only supported object is `transform`,
  * which should be a valid {@link mapnik.ProjTransform} object.
  * @param {Function} callback called with (err, result)
  * @memberof mapnik.Geometry

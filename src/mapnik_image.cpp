@@ -127,19 +127,16 @@ Image::Image(unsigned int width, unsigned int height, mapnik::image_dtype type, 
     node::ObjectWrap(),
     this_(std::make_shared<mapnik::image_any>(width,height,type,initialized,premultiplied,painted))
 {
-    NanAdjustExternalMemory(this_->size());
 }
 
 Image::Image(image_ptr _this) :
     node::ObjectWrap(),
     this_(_this)
 {
-    NanAdjustExternalMemory(this_->size());
 }
 
 Image::~Image()
 {
-    NanAdjustExternalMemory(-this_->size());
 }
 
 NAN_METHOD(Image::New)
