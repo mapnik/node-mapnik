@@ -1425,7 +1425,7 @@ typedef struct {
 } resize_image_baton_t;
 
 /**
- * Create a copy this this image that is resized
+ * Create a copy this image that is resized
  *
  * @name resize
  * @param {number} width
