@@ -13,6 +13,7 @@
 #include "mapnik_vector_tile.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_datasource.hpp"
+#include "vector_tile_datasource_pbf.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
 #include "object_to_container.hpp"
@@ -435,26 +436,27 @@ void _composite(VectorTile* target_vt,
             // create map
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
-            vector_tile::Tile tiledata = detail::get_tile(vt->buffer_);
-            unsigned num_layers = tiledata.layers_size();
-            if (num_layers > 0)
-            {
-                for (int i=0; i < tiledata.layers_size(); ++i)
-                {
-                    vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                    mapnik::layer lyr(layer.name(),merc_srs);
-                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                                    mapnik::vector_tile_impl::tile_datasource>(
-                                                        layer,
-                                                        vt->x_,
-                                                        vt->y_,
-                                                        vt->z_,
-                                                        vt->width()
-                                                        );
+            mapbox::util::pbf message(vt->buffer_.data(),vt->buffer_.size());
+            while (message.next()) {
+                if (message.tag() == 3) {
+                    mapbox::util::pbf layermsg = message.get_message();
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                layermsg,
+                                vt->x_,
+                                vt->y_,
+                                vt->z_,
+                                vt->width()
+                                );
+                    mapnik::layer lyr(ds->get_name(),merc_srs);
                     ds->set_envelope(m_req.get_buffered_extent());
                     lyr.set_datasource(ds);
                     map.add_layer(lyr);
+                } else {
+                    message.skip();
                 }
+            }
+            if (!map.layers().empty())
+            {
                 renderer_type ren(backend,
                                   map,
                                   m_req,
@@ -464,6 +466,7 @@ void _composite(VectorTile* target_vt,
                                   area_threshold);
                 ren.apply(scale_denominator);
             }
+
             std::string new_message;
             if (!new_tiledata.SerializeToString(&new_message))
             {
