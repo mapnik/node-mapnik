@@ -169,21 +169,21 @@ describe('mapnik.Image ', function() {
 
     it('should support premultiply and demultiply', function(done) {
         var im = new mapnik.Image(5,5);
-        assert.equal(im.premultiplied(), false);
+        assert.equal(im.premultiplied, false);
         im.premultiplySync();
-        assert.equal(im.premultiplied(), true);
+        assert.equal(im.premultiplied, true);
         im.demultiplySync();
-        assert.equal(im.premultiplied(), false);
+        assert.equal(im.premultiplied, false);
         assert.throws(function() { im.premultiply(null) });
         im.premultiply();
-        assert.equal(im.premultiplied(), true);
+        assert.equal(im.premultiplied, true);
         assert.throws(function() { im.demultiply(null) });
         im.demultiply();
-        assert.equal(im.premultiplied(), false);
+        assert.equal(im.premultiplied, false);
         im.premultiply(function(err, im_res) {
-            assert.equal(im_res.premultiplied(), true);
+            assert.equal(im_res.premultiplied, true);
             im.demultiply(function (err, im_res2) {
-                assert.equal(im_res.premultiplied(), false);
+                assert.equal(im_res.premultiplied, false);
                 done();
             });
         });
@@ -461,6 +461,16 @@ describe('mapnik.Image ', function() {
         assert.equal(im.offset, 1.1);
 
     });
+    
+    it('should support premultiplied', function() {
+        var im = new mapnik.Image(4, 4);
+        assert.equal(im.premultiplied, false);
+        assert.throws(function() { im.premultiplied = null });
+        assert.throws(function() { im.premultiplied = 0 });
+        im.premultiplied = true;
+        assert.equal(im.scaling, true);
+    });
+
 
     it('should fail to copy a null image', function(done) {
         var im = new mapnik.Image(4,4,{type: mapnik.imageType.null});
@@ -853,6 +863,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - nearest neighbor', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-near.png';
@@ -867,6 +878,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - nearest neighbor', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.near}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-near.png';
@@ -881,6 +893,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image up - bilinear', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.bilinear}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-bilinear.png';
@@ -895,6 +908,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - bilinear', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.bilinear}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-bilinear.png';
@@ -909,6 +923,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image up - bicubic', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.bicubic}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-bicubic.png';
@@ -923,6 +938,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - bicubic', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.bicubic}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-bicubic.png';
@@ -937,6 +953,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image up - spline16', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.spline16}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-spline16.png';
@@ -951,6 +968,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - spline16', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.spline16}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-spline16.png';
@@ -965,6 +983,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - spline36', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.spline36}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-spline36.png';
@@ -979,6 +998,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - spline36', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.spline36}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-spline36.png';
@@ -993,6 +1013,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - hanning', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.hanning}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-hanning.png';
@@ -1007,6 +1028,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - hanning', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.hanning}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-hanning.png';
@@ -1021,6 +1043,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - hamming', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.hamming}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-hamming.png';
@@ -1035,6 +1058,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - hamming', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.hamming}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-hamming.png';
@@ -1049,6 +1073,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - hermite', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.hermite}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-hermite.png';
@@ -1063,6 +1088,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - hermite', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.hermite}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-hermite.png';
@@ -1077,6 +1103,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - kaiser', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.kaiser}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-kaiser.png';
@@ -1091,6 +1118,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - kaiser', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.kaiser}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-kaiser.png';
@@ -1105,6 +1133,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - quadric', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.quadric}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-quadric.png';
@@ -1119,6 +1148,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - quadric', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.quadric}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-quadric.png';
@@ -1133,6 +1163,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - catrom', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.catrom}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-catrom.png';
@@ -1147,6 +1178,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - catrom', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.catrom}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-catrom.png';
@@ -1161,6 +1193,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - gaussian', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.gaussian}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-gaussian.png';
@@ -1175,6 +1208,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - gaussian', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.gaussian}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-gaussian.png';
@@ -1189,6 +1223,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - bessel', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.bessel}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-bessel.png';
@@ -1203,6 +1238,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - bessel', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.bessel}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-bessel.png';
@@ -1217,6 +1253,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - mitchell', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.mitchell}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-mitchell.png';
@@ -1231,6 +1268,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - mitchell', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.mitchell}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-mitchell.png';
@@ -1245,6 +1283,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - sinc', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.sinc}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-sinc.png';
@@ -1259,6 +1298,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - sinc', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-sinc.png';
@@ -1273,6 +1313,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - lanczos', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.lanczos}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-lanczos.png';
@@ -1287,6 +1328,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - lanczos', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.lanczos}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-lanczos.png';
@@ -1301,6 +1343,7 @@ describe('mapnik.Image ', function() {
 
     it('should resize image up - blackman', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.blackman}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-blackman.png';
@@ -1315,6 +1358,7 @@ describe('mapnik.Image ', function() {
     
     it('should resize image down - blackman', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.blackman}, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-blackman.png';

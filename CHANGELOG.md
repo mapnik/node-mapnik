@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.5.0
+
+ - Added `mapnik.Image.resize` method that enables images to be resized.
+ - Changed `mapnik.Image.premultiplied` from a method to a property.
+
 ## 3.4.0
 
  - `mapnik.imageType` is now passed in options to new mapnik.Image

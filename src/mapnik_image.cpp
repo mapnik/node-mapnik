@@ -69,7 +69,6 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "fill", fill);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplySync", premultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiply", premultiply);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplied", premultiplied);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiplySync", demultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
@@ -85,6 +84,7 @@ void Image::Initialize(Handle<Object> target) {
     // properties
     ATTR(lcons, "scaling", get_scaling, set_scaling);
     ATTR(lcons, "offset", get_offset, set_offset);
+    ATTR(lcons, "premultiplied", get_premultiplied, set_premultiplied);
 
     // This *must* go after the ATTR setting
     NODE_SET_METHOD(lcons->GetFunction(),
@@ -891,22 +891,6 @@ typedef struct {
 } image_op_baton_t;
 
 /**
- * Determine whether the given image is premultiplied.
- *
- * @name premultiplied
- * @instance
- * @returns {boolean} premultiplied true if the image is premultiplied
- * @memberof mapnik.Image
- */
-NAN_METHOD(Image::premultiplied)
-{
-    NanScope();
-    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    bool premultiplied = im->this_->get_premultiplied();
-    NanReturnValue(NanNew<Boolean>(premultiplied));
-}
-
-/**
  * Premultiply the pixels in this image
  *
  * @name premultiplySync
@@ -1471,7 +1455,7 @@ NAN_METHOD(Image::resize)
     {
         if (args[0]->IsNumber())
         {
-            int width_tmp = args[0]->IntegerValue();
+            auto width_tmp = args[0]->IntegerValue();
             if (width_tmp <= 0)
             {
                 NanThrowTypeError("Width must be a integer greater then zero");
@@ -1486,7 +1470,7 @@ NAN_METHOD(Image::resize)
         }
         if (args[1]->IsNumber())
         {
-            int height_tmp = args[1]->IntegerValue();
+            auto height_tmp = args[1]->IntegerValue();
             if (height_tmp <= 0)
             {
                 NanThrowTypeError("Height must be a integer greater then zero");
@@ -1577,10 +1561,25 @@ struct resize_visitor
         image_ratio_x_(image_ratio_x),
         image_ratio_y_(image_ratio_y) {}
 
+    void operator()(mapnik::image_rgba8 & im2) const
+    {
+        if (!im1_.get_premultiplied())
+        {
+            throw std::runtime_error("RGBA8 images must be premultiplied prior to using resize");
+        }
+        mapnik::scale_image_agg(im2, 
+                                mapnik::util::get<mapnik::image_rgba8>(im1_),
+                                scaling_method_,
+                                image_ratio_x_,
+                                image_ratio_y_,
+                                0,
+                                0,
+                                filter_factor_);
+    }
+
     template <typename T>
     void operator()(T & im2) const
     {
-        bool demultiply = mapnik::premultiply_alpha(im2);
         mapnik::scale_image_agg(im2, 
                                 mapnik::util::get<T>(im1_),
                                 scaling_method_,
@@ -1589,10 +1588,6 @@ struct resize_visitor
                                 0,
                                 0,
                                 filter_factor_);
-        if (demultiply)
-        {
-            mapnik::demultiply_alpha(im2);
-        }
     }
     
     void operator()(mapnik::image_null &) const
@@ -2725,6 +2720,13 @@ NAN_GETTER(Image::get_offset)
     NanReturnValue(NanNew<Number>(im->this_->get_offset()));
 }
 
+NAN_GETTER(Image::get_premultiplied)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    NanReturnValue(NanNew<Boolean>(im->this_->get_premultiplied()));
+}
+
 NAN_SETTER(Image::set_scaling)
 {
     NanScope();
@@ -2757,5 +2759,20 @@ NAN_SETTER(Image::set_offset)
     {
         double val = value->NumberValue();
         im->this_->set_offset(val);
+    }
+}
+
+NAN_SETTER(Image::set_premultiplied)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    if (!value->IsBoolean())
+    {
+        NanThrowError("Must provide a boolean");
+    } 
+    else 
+    {
+        bool val = value->BooleanValue();
+        mapnik::set_premultiplied_alpha(*(im->this_), val);
     }
 }
