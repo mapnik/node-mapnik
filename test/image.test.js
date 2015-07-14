@@ -1267,15 +1267,27 @@ describe('mapnik.Image ', function() {
     });
     
     it('should resize image down - mitchell', function(done) {
+        console.log('-------------------==================------------mitchell');
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.mitchell}, function(err, result) {
+            console.log('err:', err);
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-mitchell.png';
+            console.log('expected exists: ', fs.existsSync(expected));
+            console.log('process.env.UPDATE: ', process.env.UPDATE);
             if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                console.log('saving result as expected')
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
+            console.log('threshold  8: ', result.compare(im2, {threshold:8}));
+            console.log('threshold 10: ', result.compare(im2, {threshold:10}));
+            console.log('threshold 12: ', result.compare(im2, {threshold:12}));
+            console.log('threshold 14: ', result.compare(im2, {threshold:14}));
+            console.log('threshold 16: ', result.compare(im2, {threshold:16}));
+            console.log('threshold 18: ', result.compare(im2, {threshold:18}));
+            console.log('threshold 20: ', result.compare(im2, {threshold:20}));
             assert.equal(0, result.compare(im2, {threshold:8}));
             done();
         });
