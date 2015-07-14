@@ -91,6 +91,22 @@ inline vector_tile::Tile get_tile(std::string const& buffer)
     return tile;
 }
 
+bool pbf_has_layer(mapbox::util::pbf const& layer_msg, std::string const& layer_name)
+{
+    mapbox::util::pbf lay(layer_msg);
+    while (lay.next()) {
+        if (lay.tag() == 1) {
+            if (lay.get_string() == layer_name) {
+                return true;
+                break;
+            }
+        } else {
+            lay.skip();
+        }
+    }
+    return false;
+}
+
 bool lazy_empty(std::string const& buffer)
 {
     std::size_t bytes = buffer.size();
@@ -1124,6 +1140,12 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         throw std::runtime_error("Can not query a vector tile with width or height of zero");
     }
     std::vector<query_result> arr;
+    std::size_t bytes = d->buffer_.size();
+    if (bytes <= 0)
+    {
+        return arr;
+    }
+
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
@@ -1142,77 +1164,76 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
-        int layer_idx = -1;
-        for (int j=0; j < tiledata.layers_size(); ++j)
-        {
-            vector_tile::Tile_Layer const& layer = tiledata.layers(j);
-            if (layer_name == layer.name())
-            {
-                layer_idx = j;
-                break;
-            }
-        }
-        if (layer_idx > -1)
-        {
-            vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                        mapnik::vector_tile_impl::tile_datasource>(
-                                            layer,
-                                            d->x_,
-                                            d->y_,
-                                            d->z_,
-                                            d->width()
-                                            );
-            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-            if (fs)
-            {
-                mapnik::feature_ptr feature;
-                while ((feature = fs->next()))
+        mapbox::util::pbf item(d->buffer_.data(),bytes);
+        while (item.next()) {
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
+                if (detail::pbf_has_layer(layermsg,layer_name))
                 {
-                    auto const& geom = feature->get_geometry();
-                    double distance = path_to_point_distance(geom,x,y);
-                    if (distance >= 0 && distance <= tolerance)
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                                    layermsg,
+                                                    d->x_,
+                                                    d->y_,
+                                                    d->z_,
+                                                    d->width()
+                                                    );
+                    mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+                    if (fs)
                     {
-                        query_result res;
-                        res.distance = distance;
-                        res.layer = layer.name();
-                        res.feature = feature;
-                        arr.push_back(std::move(res));
+                        mapnik::feature_ptr feature;
+                        while ((feature = fs->next()))
+                        {
+                            auto const& geom = feature->get_geometry();
+                            double distance = path_to_point_distance(geom,x,y);
+                            if (distance >= 0 && distance <= tolerance)
+                            {
+                                query_result res;
+                                res.distance = distance;
+                                res.layer = layer_name;
+                                res.feature = feature;
+                                arr.push_back(std::move(res));
+                            }
+                        }
                     }
                 }
+            } else {
+                item.skip();
             }
         }
     }
     else
     {
-        for (int i=0; i < tiledata.layers_size(); ++i)
-        {
-            vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                        mapnik::vector_tile_impl::tile_datasource>(
-                                            layer,
-                                            d->x_,
-                                            d->y_,
-                                            d->z_,
-                                            d->width()
-                                            );
-            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-            if (fs)
-            {
-                mapnik::feature_ptr feature;
-                while ((feature = fs->next()))
+        mapbox::util::pbf item(d->buffer_.data(),bytes);
+        while (item.next()) {
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
+                auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                                layermsg,
+                                                d->x_,
+                                                d->y_,
+                                                d->z_,
+                                                d->width()
+                                                );
+                mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+                if (fs)
                 {
-                    auto const& geom = feature->get_geometry();
-                    double distance = path_to_point_distance(geom,x,y);
-                    if (distance >= 0 && distance <= tolerance)
+                    mapnik::feature_ptr feature;
+                    while ((feature = fs->next()))
                     {
-                        query_result res;
-                        res.distance = distance;
-                        res.layer = layer.name();
-                        res.feature = feature;
-                        arr.push_back(std::move(res));
+                        auto const& geom = feature->get_geometry();
+                        double distance = path_to_point_distance(geom,x,y);
+                        if (distance >= 0 && distance <= tolerance)
+                        {
+                            query_result res;
+                            res.distance = distance;
+                            res.layer = ds->get_name();
+                            res.feature = feature;
+                            arr.push_back(std::move(res));
+                        }
                     }
                 }
+            } else {
+                item.skip();
             }
         }
     }
