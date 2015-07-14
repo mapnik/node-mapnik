@@ -1248,12 +1248,13 @@ bool VectorTile::_querySort(query_result const& a, query_result const& b) {
 Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
     Local<Array> arr = NanNew<Array>();
-    for (std::size_t i = 0; i < result.size(); ++i) {
-        Handle<Value> feat = Feature::NewInstance(result[i].feature);
+    std::size_t i = 0;
+    for (auto const& item : result) {
+        Handle<Value> feat = Feature::NewInstance(item.feature);
         Local<Object> feat_obj = feat->ToObject();
-        feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
-        feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
-        arr->Set(i,feat);
+        feat_obj->Set(NanNew("layer"),NanNew(item.layer.c_str()));
+        feat_obj->Set(NanNew("distance"),NanNew<Number>(item.distance));
+        arr->Set(i++,feat);
     }
     return arr;
 }
@@ -1512,9 +1513,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     }
 
     // Sort each group of hits by distance.
-    typedef std::map<unsigned,std::vector<query_hit> >::iterator hits_it_type;
-    for (hits_it_type it = hits.begin(); it != hits.end(); it++) {
-        std::sort(it->second.begin(), it->second.end(), _queryManySort);
+    for (auto & hit : hits) {
+        std::sort(hit.second.begin(), hit.second.end(), _queryManySort);
     }
 
     queryMany_result result;
@@ -1529,31 +1529,30 @@ bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
 
 Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     Local<Object> results = NanNew<Object>();
-    Local<Array> features = NanNew<Array>();
-    Local<Array> hits = NanNew<Array>();
+    Local<Array> features = NanNew<Array>(result.features.size());
+    Local<Array> hits = NanNew<Array>(result.hits.size());
     results->Set(NanNew("hits"), hits);
     results->Set(NanNew("features"), features);
 
     // result.features => features
-    typedef std::map<unsigned,query_result>::const_iterator features_it_type;
-    for (features_it_type it = result.features.begin(); it != result.features.end(); it++) {
-        Handle<Value> feat = Feature::NewInstance(it->second.feature);
+    for (auto const& item : result.features) {
+        Handle<Value> feat = Feature::NewInstance(item.second.feature);
         Local<Object> feat_obj = feat->ToObject();
-        feat_obj->Set(NanNew("layer"),NanNew(it->second.layer.c_str()));
-        features->Set(it->first, feat_obj);
+        feat_obj->Set(NanNew("layer"),NanNew(item.second.layer.c_str()));
+        features->Set(item.first, feat_obj);
     }
 
     // result.hits => hits
-    typedef std::map<unsigned,std::vector<query_hit> >::const_iterator results_it_type;
-    for (results_it_type it = result.hits.begin(); it != result.hits.end(); it++) {
-        Local<Array> point_hits = NanNew<Array>();
-        for (std::size_t i = 0; i < it->second.size(); ++i) {
+    for (auto const& hit : result.hits) {
+        Local<Array> point_hits = NanNew<Array>(hit.second.size());
+        std::size_t i = 0;
+        for (auto const& h : hit.second) {
             Local<Object> hit_obj = NanNew<Object>();
-            hit_obj->Set(NanNew("distance"), NanNew<Number>(it->second[i].distance));
-            hit_obj->Set(NanNew("feature_id"), NanNew<Number>(it->second[i].feature_id));
-            point_hits->Set(i, hit_obj);
+            hit_obj->Set(NanNew("distance"), NanNew<Number>(h.distance));
+            hit_obj->Set(NanNew("feature_id"), NanNew<Number>(h.feature_id));
+            point_hits->Set(i++, hit_obj);
         }
-        hits->Set(it->first, point_hits);
+        hits->Set(hit.first, point_hits);
     }
 
     return results;
