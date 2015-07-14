@@ -1160,7 +1160,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         throw std::runtime_error("could not reproject lon/lat to mercator");
         /* LCOV_EXCL_END */
     }
-    vector_tile::Tile tiledata = detail::get_tile(d->buffer_);
+
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
