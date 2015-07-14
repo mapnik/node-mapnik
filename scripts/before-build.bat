@@ -6,6 +6,9 @@ SET PROJ_LIB=%MAPNIK_SDK%\share\proj
 SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
 SET ICU_DATA=%MAPNIK_SDK%\share\icu
 
+reg import enable-local-dumps.reg
+IF %ERRORLEVEL% NEQ 0 ECHO could not enbale local dumps && GOTO ERROR
+
 GOTO DONE
 
 CALL node_modules\.bin\node-pre-gyp reveal module --silent > module.txt

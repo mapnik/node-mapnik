@@ -77,3 +77,6 @@ install:
 build: off
 test: off
 deploy: off
+
+on_failure:
+  - IF EXIST %LOCALAPPDATA%\CrashDumps ECHO CrashDumps found && dir %LOCALAPPDATA%\CrashDumps
