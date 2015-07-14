@@ -50,7 +50,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should encode with a pallete', function(done) {
         var im = new mapnik.Image(256, 256);
         var pal = new mapnik.Palette('\xff\x09\x93\xFF\x01\x02\x03\x04');
@@ -229,9 +229,9 @@ describe('mapnik.Image ', function() {
         s += '</Style>';
         s += '</Map>';
         m3.fromStringSync(s);
-        
-        assert.throws(function() { mapnik.MemoryDatasource({extent: '-180,-90,180,90'}); }); 
-        assert.throws(function() { new mapnik.MemoryDatasource(); }); 
+
+        assert.throws(function() { mapnik.MemoryDatasource({extent: '-180,-90,180,90'}); });
+        assert.throws(function() { new mapnik.MemoryDatasource(); });
         assert.throws(function() { new mapnik.MemoryDatasource(null); });
         var params = {
             extent:'-180,-90,180,90',
@@ -324,7 +324,7 @@ describe('mapnik.Image ', function() {
         assert.equal(pixel.b, 255);
         assert.equal(pixel.a, 255);
     });
-    
+
     it('should handle setting and getting of a null image ', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.null});
         assert.throws(function() { gray.setPixel(0,0,-1); });
@@ -334,8 +334,8 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), undefined);
         assert.equal(gray.getPixel(2,0), undefined);
     });
-    
-    
+
+
     it('should support setting and getting gray8 pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray8});
         gray.setPixel(0,0,-1);
@@ -345,7 +345,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray8s pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray8s});
         gray.setPixel(0,0,-1);
@@ -355,7 +355,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray16 pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray16});
         gray.setPixel(0,0,-1);
@@ -365,7 +365,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray16s pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray16s});
         gray.setPixel(0,0,-1);
@@ -375,7 +375,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray32 pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray32});
         gray.setPixel(0,0,-1);
@@ -385,7 +385,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray32s pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray32s});
         gray.setPixel(0,0,-1);
@@ -395,7 +395,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray32f pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray32f});
         gray.setPixel(0,0,-1.9);
@@ -405,7 +405,7 @@ describe('mapnik.Image ', function() {
         assert(Math.abs(gray.getPixel(1,0) - 0.8) < 1e-7);
         assert(Math.abs(gray.getPixel(2,0) - 1.2) < 1e-7);
     });
-    
+
     it('should support setting and getting gray64 pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray64});
         gray.setPixel(0,0,-1);
@@ -415,7 +415,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray64s pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray64s});
         gray.setPixel(0,0,-1);
@@ -425,7 +425,7 @@ describe('mapnik.Image ', function() {
         assert.equal(gray.getPixel(1,0), 0);
         assert.equal(gray.getPixel(2,0), 1);
     });
-    
+
     it('should support setting and getting gray64f pixel', function() {
         var gray = new mapnik.Image(256, 256, {type: mapnik.imageType.gray64f});
         gray.setPixel(0,0,-1);
@@ -461,7 +461,7 @@ describe('mapnik.Image ', function() {
         assert.equal(im.offset, 1.1);
 
     });
-    
+
     it('should support premultiplied', function() {
         var im = new mapnik.Image(4, 4);
         assert.equal(im.premultiplied, false);
@@ -488,7 +488,7 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im3.copy({}, null); });
         assert.throws(function() { var im2 = im3.copy({scaling:null}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.copy({offset:null}, function(err, result) {}); });
-        im.copy(function(err, im2) { 
+        im.copy(function(err, im2) {
             assert.throws(function() { if (err) throw err; });
             done();
         });
@@ -704,9 +704,9 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { im.fill(null, function(err, result) {}); });
         assert.throws(function() { im.fill({}, function(err, result) {}); });
         assert.throws(function() { im.fill(1, null); });
-        im.fill(new mapnik.Color('blue'), function(err, result) { 
+        im.fill(new mapnik.Color('blue'), function(err, result) {
             assert.throws(function() { if (err) throw err; });
-            done(); 
+            done();
         });
     });
 
@@ -730,7 +730,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('fill async works - int', function(done) {
         var im = new mapnik.Image(5,5);
         im.fill(-1, function(err, im_res) {
@@ -739,7 +739,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('fill async works - uint', function(done) {
         var im = new mapnik.Image(5,5);
         im.fill(1, function(err, im_res) {
@@ -768,7 +768,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('clear sync', function() {
         var im = new mapnik.Image(5,5);
         im.fillSync(1);
@@ -809,7 +809,7 @@ describe('mapnik.Image ', function() {
             });
         });
     }
-    
+
     it('should fail to resize image with bad input', function(done) {
         var im = new mapnik.Image(4,4,{type: mapnik.imageType.null});
         var im3 = new mapnik.Image(4,4,{type: mapnik.imageType.gray8});
@@ -829,7 +829,7 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im3.resize(99,99,{scaling_method:null}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{scaling_method:999}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{filter_factor:null}, function(err, result) {}); });
-        im.resize(99,99,function(err, im2) { 
+        im.resize(99,99,function(err, im2) {
             assert.throws(function() { if (err) throw err; });
             done();
         });
@@ -838,7 +838,7 @@ describe('mapnik.Image ', function() {
     it('should fail because image is size of zero when trying to resize', function(done) {
         var im = new mapnik.Image(0,0,{type: mapnik.imageType.gray8});
         assert.throws(function() { var im2 = im.resizeSync(4,4); });
-        im.resize(4,4,function(err, im2) { 
+        im.resize(4,4,function(err, im2) {
             assert.throws(function() { if (err) throw err; });
             done();
         });
@@ -875,7 +875,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - nearest neighbor', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -890,7 +890,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image up - bilinear', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -905,7 +905,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - bilinear', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -920,7 +920,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image up - bicubic', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -935,7 +935,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - bicubic', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -950,7 +950,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image up - spline16', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -965,7 +965,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - spline16', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -995,7 +995,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - spline36', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1025,7 +1025,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - hanning', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1055,7 +1055,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - hamming', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1085,7 +1085,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - hermite', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1115,7 +1115,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - kaiser', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1145,7 +1145,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - quadric', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1175,7 +1175,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - catrom', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1205,7 +1205,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - gaussian', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1235,7 +1235,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - bessel', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1265,13 +1265,13 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - mitchell', function(done) {
-        console.log('-------------------==================------------mitchell');
+        console.log('==================\==================\n entering should resize image down - mitchell');
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
         im.resize(50,50, {scaling_method:mapnik.imageScaling.mitchell}, function(err, result) {
-            console.log('err:', err);
+            console.log('err: ', err);
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-50x50-mitchell.png';
             console.log('expected exists: ', fs.existsSync(expected));
@@ -1294,20 +1294,30 @@ describe('mapnik.Image ', function() {
     });
 
     it('should resize image up - sinc', function(done) {
+        console.log('==================\==================\n should resize image up - sinc');
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
         im.resize(100,100, {scaling_method:mapnik.imageScaling.sinc}, function(err, result) {
+            console.log('err: ', err);
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-sinc.png';
+            console.log('expected exists: ', fs.existsSync(expected));
             if (!fs.existsSync(expected) || process.env.UPDATE ) {
                 result.save(expected, 'png');
             }
             var im2 = new mapnik.Image.open(expected);
+            console.log('threshold  8: ', result.compare(im2, {threshold:8}));
+            console.log('threshold 10: ', result.compare(im2, {threshold:10}));
+            console.log('threshold 12: ', result.compare(im2, {threshold:12}));
+            console.log('threshold 14: ', result.compare(im2, {threshold:14}));
+            console.log('threshold 16: ', result.compare(im2, {threshold:16}));
+            console.log('threshold 18: ', result.compare(im2, {threshold:18}));
+            console.log('threshold 20: ', result.compare(im2, {threshold:20}));
             assert.equal(0, result.compare(im2, {threshold:16}));
             done();
         });
     });
-    
+
     it('should resize image down - sinc', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1337,7 +1347,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - lanczos', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
@@ -1367,7 +1377,7 @@ describe('mapnik.Image ', function() {
             done();
         });
     });
-    
+
     it('should resize image down - blackman', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
