@@ -49,7 +49,7 @@ public:
     static bool _querySort(query_result const& a, query_result const& b);
     static Local<Array> _queryResultToV8(std::vector<query_result> const& result);
     static NAN_METHOD(queryMany);
-    static queryMany_result _queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
+    static void _queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
     static bool _queryManySort(query_hit const& a, query_hit const& b);
     static Local<Object> _queryManyResultToV8(queryMany_result const& result);
     static void EIO_QueryMany(uv_work_t* req);

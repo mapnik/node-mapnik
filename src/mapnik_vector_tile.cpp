@@ -1372,8 +1372,9 @@ NAN_METHOD(VectorTile::queryMany)
 
     // If last argument is not a function go with sync call.
     if (!args[args.Length()-1]->IsFunction()) {
-        try  {
-            queryMany_result result = _queryMany(d, query, tolerance, layer_name, fields);
+        try {
+            queryMany_result result;
+            _queryMany(result, d, query, tolerance, layer_name, fields);
             Local<Object> result_obj = _queryManyResultToV8(result);
             NanReturnValue(result_obj);
         }
@@ -1399,7 +1400,7 @@ NAN_METHOD(VectorTile::queryMany)
     }
 }
 
-queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
+void VectorTile::_queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
     vector_tile::Tile tiledata = detail::get_tile(d->buffer_);
     int layer_idx = -1;
     for (int j=0; j < tiledata.layers_size(); ++j)
@@ -1517,10 +1518,8 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
         std::sort(hit.second.begin(), hit.second.end(), _queryManySort);
     }
 
-    queryMany_result result;
-    result.hits = hits;
-    result.features = features;
-    return result;
+    result.hits = std::move(hits);
+    result.features = std::move(features);
 }
 
 bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
@@ -1563,7 +1562,7 @@ void VectorTile::EIO_QueryMany(uv_work_t* req)
     vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
     try
     {
-        closure->result = _queryMany(closure->d, closure->query, closure->tolerance, closure->layer_name, closure->fields);
+        _queryMany(closure->result, closure->d, closure->query, closure->tolerance, closure->layer_name, closure->fields);
     }
     catch (std::exception const& ex)
     {
