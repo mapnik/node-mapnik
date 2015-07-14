@@ -6,6 +6,8 @@ SET PROJ_LIB=%MAPNIK_SDK%\share\proj
 SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
 SET ICU_DATA=%MAPNIK_SDK%\share\icu
 
+GOTO DONE
+
 CALL node_modules\.bin\node-pre-gyp reveal module --silent > module.txt
 IF %ERRORLEVEL% NEQ 0 ECHO could not reveal module && GOTO ERROR
 CALL SET /p MODULE=<module.txt
