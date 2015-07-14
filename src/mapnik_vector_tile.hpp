@@ -101,8 +101,6 @@ public:
     void clear() {
         buffer_.clear();
     }
-    std::vector<std::string> lazy_names();
-    bool lazy_empty();
     void parse_proto();
     bool painted() const {
         return !buffer_.empty();

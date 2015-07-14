@@ -91,6 +91,57 @@ inline vector_tile::Tile get_tile(std::string const& buffer)
     return tile;
 }
 
+bool lazy_empty(std::string const& buffer)
+{
+    std::size_t bytes = buffer.size();
+    if (bytes > 0)
+    {
+        mapbox::util::pbf item(buffer.data(),bytes);
+        while (item.next()) {
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
+                while (layermsg.next()) {
+                    if (layermsg.tag() == 2) {
+                        // we hit a feature, assume we've got data
+                        return false;
+                    } else {
+                        layermsg.skip();
+                    }
+                }
+            }
+            else
+            {
+                item.skip();
+            }
+        }
+    }
+    return true;
+}
+
+std::vector<std::string> lazy_names(std::string const& buffer)
+{
+    std::vector<std::string> names;
+    std::size_t bytes = buffer.size();
+    if (bytes > 0)
+    {
+        mapbox::util::pbf item(buffer.data(),bytes);
+        while (item.next()) {
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
+                while (layermsg.next()) {
+                    if (layermsg.tag() == 1) {
+                        names.emplace_back(layermsg.get_string());
+                    } else {
+                        layermsg.skip();
+                    }
+                }
+            } else {
+                item.skip();
+            }
+        }
+    }
+    return names;
+}
 
 struct p2p_distance
 {
@@ -340,30 +391,6 @@ NAN_METHOD(VectorTile::New)
     NanReturnUndefined();
 }
 
-std::vector<std::string> VectorTile::lazy_names()
-{
-    std::vector<std::string> names;
-    std::size_t bytes = buffer_.size();
-    if (bytes > 0)
-    {
-        mapbox::util::pbf item(buffer_.data(),bytes);
-        while (item.next()) {
-            if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
-                while (layermsg.next()) {
-                    if (layermsg.tag() == 1) {
-                        names.emplace_back(layermsg.get_string());
-                    } else {
-                        layermsg.skip();
-                    }
-                }
-            } else {
-                item.skip();
-            }
-        }
-    }
-    return names;
-}
 
 void VectorTile::parse_proto()
 {
@@ -864,7 +891,7 @@ NAN_METHOD(VectorTile::names)
     {
         try
         {
-            std::vector<std::string> names = d->lazy_names();
+            std::vector<std::string> names = detail::lazy_names(d->buffer_);
             Local<Array> arr = NanNew<Array>(names.size());
             unsigned idx = 0;
             for (std::string const& name : names)
@@ -881,34 +908,6 @@ NAN_METHOD(VectorTile::names)
     }
     NanReturnValue(NanNew<Array>(0));
 }
-
-bool VectorTile::lazy_empty()
-{
-    std::size_t bytes = buffer_.size();
-    if (bytes > 0)
-    {
-        mapbox::util::pbf item(buffer_.data(),bytes);
-        while (item.next()) {
-            if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
-                while (layermsg.next()) {
-                    if (layermsg.tag() == 2) {
-                        // we hit a feature, assume we've got data
-                        return false;
-                    } else {
-                        layermsg.skip();
-                    }
-                }
-            }
-            else
-            {
-                item.skip();
-            }
-        }
-    }
-    return true;
-}
-
 
 /**
  * Return whether this vector tile is empty - whether it has no
@@ -928,7 +927,7 @@ NAN_METHOD(VectorTile::empty)
     {
         try
         {
-            NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+            NanReturnValue(NanNew<Boolean>(detail::lazy_empty(d->buffer_)));
         }
         catch (std::exception const& ex)
         {
