@@ -85,6 +85,21 @@ This means your Linux distributions libstdc++ library is too old (for example yo
     sudo apt-get update -q
     sudo apt-get install -y libstdc++6
 
+To upgrade libstdc++ on travis (without sudo) you can do:
+
+```yaml
+language: cpp
+
+sudo: false
+
+addons:
+  apt:
+    sources:
+     - ubuntu-toolchain-r-test
+    packages:
+     - libstdc++6 # upgrade libstdc++ on linux to support C++11
+```
+
 
 ## Installing
 

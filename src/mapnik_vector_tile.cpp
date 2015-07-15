@@ -218,9 +218,6 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSONSync", toGeoJSONSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addGeoJSON", addGeoJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addImage", addImage);
-#ifdef PROTOBUF_FULL
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
-#endif
 
     // common to mapnik.Image
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
@@ -926,16 +923,6 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
-
-#ifdef PROTOBUF_FULL
-NAN_METHOD(VectorTile::toString)
-{
-    NanScope();
-    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    vector_tile::Tile const& tiledata = d->get_tile();
-    NanReturnValue(NanNew(tiledata.DebugString().c_str()));
-}
-#endif
 
 
 /**

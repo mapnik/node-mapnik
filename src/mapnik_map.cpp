@@ -1860,7 +1860,7 @@ NAN_METHOD(Map::render)
                     NanThrowTypeError("option 'area_threshold' must be an number");
                     NanReturnUndefined();
                 }
-                closure->area_threshold = param_val->IntegerValue();
+                closure->area_threshold = param_val->NumberValue();
             }
 
             if (options->Has(NanNew("path_multiplier"))) {

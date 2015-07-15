@@ -54,7 +54,7 @@ try {
     console.log("getData did not throw and instead returned buffer length of " + buf_len);
 } catch (err) {
     assert.ok(err.message.indexOf('Data is too large') > -1);
-    console.log('Test success!');
+    console.log('Test success! (ran ' + stats.count + ' iterations)');
     if (collect_memstats) {
         console.log("max mem: " + bytes(stats.max_rss) + '/' + stats.max_rss);
         console.log("max heap: " + bytes(stats.max_heap));

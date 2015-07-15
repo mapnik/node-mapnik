@@ -68,9 +68,6 @@ public:
     static void after_to_geojson(uv_work_t* req);
     static NAN_METHOD(addGeoJSON);
     static NAN_METHOD(addImage);
-#ifdef PROTOBUF_FULL
-    static NAN_METHOD(toString);
-#endif
     static void EIO_RenderTile(uv_work_t* req);
     static void EIO_AfterRenderTile(uv_work_t* req);
     static NAN_METHOD(setData);

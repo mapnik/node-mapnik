@@ -878,7 +878,6 @@ describe('mapnik.VectorTile ', function() {
 
     });
 
-
     it('should render a vector_tile of the whole world', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
@@ -888,7 +887,31 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
-            fs.writeFileSync('./test/data/vector_tile/tile0.vector.pbf', vtile.getData())
+            var expected = './test/data/vector_tile/tile0.vector.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected).toString('hex');
+            assert.equal(expected_data, vtile.getData().toString('hex'));
+            done();
+        });
+    });
+
+    it('should render a vector_tile of the whole world - area threshold applied', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        map.render(vtile, {variables:{pizza:'pie'}, area_threshold:0.8}, function(err, vtile) {
+            if (err) throw err;
+            assert.equal(vtile.isSolid(), false);
+            var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected).toString('hex');
+            assert.equal(expected_data, vtile.getData().toString('hex'));
             done();
         });
     });
