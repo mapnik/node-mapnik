@@ -1558,7 +1558,8 @@ struct resize_visitor
         im1_(im1),
         scaling_method_(scaling_method),
         image_ratio_x_(image_ratio_x),
-        image_ratio_y_(image_ratio_y) {}
+        image_ratio_y_(image_ratio_y),
+        filter_factor_(filter_factor) {}
 
     void operator()(mapnik::image_rgba8 & im2) const
     {
