@@ -91,17 +91,33 @@ inline vector_tile::Tile get_tile(std::string const& buffer)
     return tile;
 }
 
-bool pbf_has_layer(mapbox::util::pbf const& layer_msg, std::string const& layer_name)
+bool pbf_layer_match(mapbox::util::pbf const& layer_msg, std::string const& layer_name)
 {
     mapbox::util::pbf lay(layer_msg);
     while (lay.next()) {
         if (lay.tag() == 1) {
             if (lay.get_string() == layer_name) {
                 return true;
-                break;
             }
         } else {
             lay.skip();
+        }
+    }
+    return false;
+}
+
+bool pbf_get_layer(std::string const& tile_buffer,
+                   std::string const& layer_name,
+                   mapbox::util::pbf & layer_msg)
+{
+    mapbox::util::pbf item(tile_buffer.data(),tile_buffer.size());
+    while (item.next()) {
+        if (item.tag() == 3) {
+            layer_msg = item.get_message();
+            if (pbf_layer_match(layer_msg,layer_name))
+            {
+                return true;
+            }
         }
     }
     return false;
@@ -115,13 +131,13 @@ bool lazy_empty(std::string const& buffer)
         mapbox::util::pbf item(buffer.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
-                while (layermsg.next()) {
-                    if (layermsg.tag() == 2) {
+                mapbox::util::pbf layer_msg = item.get_message();
+                while (layer_msg.next()) {
+                    if (layer_msg.tag() == 2) {
                         // we hit a feature, assume we've got data
                         return false;
                     } else {
-                        layermsg.skip();
+                        layer_msg.skip();
                     }
                 }
             }
@@ -143,12 +159,12 @@ std::vector<std::string> lazy_names(std::string const& buffer)
         mapbox::util::pbf item(buffer.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
-                while (layermsg.next()) {
-                    if (layermsg.tag() == 1) {
-                        names.emplace_back(layermsg.get_string());
+                mapbox::util::pbf layer_msg = item.get_message();
+                while (layer_msg.next()) {
+                    if (layer_msg.tag() == 1) {
+                        names.emplace_back(layer_msg.get_string());
                     } else {
-                        layermsg.skip();
+                        layer_msg.skip();
                     }
                 }
             } else {
@@ -482,9 +498,9 @@ void _composite(VectorTile* target_vt,
             mapbox::util::pbf message(vt->buffer_.data(),vt->buffer_.size());
             while (message.next()) {
                 if (message.tag() == 3) {
-                    mapbox::util::pbf layermsg = message.get_message();
+                    mapbox::util::pbf layer_msg = message.get_message();
                     auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                layermsg,
+                                layer_msg,
                                 vt->x_,
                                 vt->y_,
                                 vt->z_,
@@ -1164,40 +1180,33 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
-        mapbox::util::pbf item(d->buffer_.data(),bytes);
-        while (item.next()) {
-            if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
-                if (detail::pbf_has_layer(layermsg,layer_name))
+        mapbox::util::pbf layer_msg;
+        if (detail::pbf_get_layer(d->buffer_,layer_name,layer_msg))
+        {
+            auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                            layer_msg,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+            if (fs)
+            {
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
                 {
-                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                                    layermsg,
-                                                    d->x_,
-                                                    d->y_,
-                                                    d->z_,
-                                                    d->width()
-                                                    );
-                    mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-                    if (fs)
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,x,y);
+                    if (distance >= 0 && distance <= tolerance)
                     {
-                        mapnik::feature_ptr feature;
-                        while ((feature = fs->next()))
-                        {
-                            auto const& geom = feature->get_geometry();
-                            double distance = path_to_point_distance(geom,x,y);
-                            if (distance >= 0 && distance <= tolerance)
-                            {
-                                query_result res;
-                                res.distance = distance;
-                                res.layer = layer_name;
-                                res.feature = feature;
-                                arr.push_back(std::move(res));
-                            }
-                        }
+                        query_result res;
+                        res.distance = distance;
+                        res.layer = layer_name;
+                        res.feature = feature;
+                        arr.push_back(std::move(res));
                     }
                 }
-            } else {
-                item.skip();
             }
         }
     }
@@ -1206,9 +1215,9 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         mapbox::util::pbf item(d->buffer_.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
+                mapbox::util::pbf layer_msg = item.get_message();
                 auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                                layermsg,
+                                                layer_msg,
                                                 d->x_,
                                                 d->y_,
                                                 d->z_,
@@ -1400,120 +1409,115 @@ NAN_METHOD(VectorTile::queryMany)
     }
 }
 
-void VectorTile::_queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields) {
-    mapbox::util::pbf item(d->buffer_.data(),d->buffer_.size());
-    while (item.next()) {
-        if (item.tag() == 3) {
-            mapbox::util::pbf layermsg = item.get_message();
-            if (detail::pbf_has_layer(layermsg,layer_name))
+void VectorTile::_queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields)
+{
+    mapbox::util::pbf layer_msg;
+    if (detail::pbf_get_layer(d->buffer_,layer_name,layer_msg))
+    {
+        std::map<unsigned,query_result> features;
+        std::map<unsigned,std::vector<query_hit> > hits;
+
+        // Reproject query => mercator points
+        mapnik::box2d<double> bbox;
+        mapnik::projection wgs84("+init=epsg:4326",true);
+        mapnik::projection merc("+init=epsg:3857",true);
+        mapnik::proj_transform tr(wgs84,merc);
+        std::vector<mapnik::coord2d> points;
+        points.reserve(query.size());
+        for (std::size_t p = 0; p < query.size(); ++p) {
+            double x = query[p].lon;
+            double y = query[p].lat;
+            double z = 0;
+            if (!tr.forward(x,y,z))
             {
+                /* LCOV_EXCL_START */
+                throw std::runtime_error("could not reproject lon/lat to mercator");
+                /* LCOV_EXCL_END */
+            }
+            mapnik::coord2d pt(x,y);
+            bbox.expand_to_include(pt);
+            points.emplace_back(std::move(pt));
+        }
+        bbox.pad(tolerance);
 
-                std::map<unsigned,query_result> features;
-                std::map<unsigned,std::vector<query_hit> > hits;
-
-                // Reproject query => mercator points
-                mapnik::box2d<double> bbox;
-                mapnik::projection wgs84("+init=epsg:4326",true);
-                mapnik::projection merc("+init=epsg:3857",true);
-                mapnik::proj_transform tr(wgs84,merc);
-                std::vector<mapnik::coord2d> points;
-                points.reserve(query.size());
-                for (std::size_t p = 0; p < query.size(); ++p) {
-                    double x = query[p].lon;
-                    double y = query[p].lat;
-                    double z = 0;
-                    if (!tr.forward(x,y,z))
-                    {
-                        /* LCOV_EXCL_START */
-                        throw std::runtime_error("could not reproject lon/lat to mercator");
-                        /* LCOV_EXCL_END */
-                    }
-                    mapnik::coord2d pt(x,y);
-                    bbox.expand_to_include(pt);
-                    points.emplace_back(std::move(pt));
-                }
-                bbox.pad(tolerance);
-
-                std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
-                                            mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                                layermsg,
-                                                d->x_,
-                                                d->y_,
-                                                d->z_,
-                                                d->width()
-                                                );
-                mapnik::query q(bbox);
-                if (fields.empty())
-                {
-                    // request all data attributes
-                    auto fields = ds->get_descriptor().get_descriptors();
-                    for (auto const& field : fields)
-                    {
-                        q.add_property_name(field.get_name());
-                    }
-                }
-                else
-                {
-                    for (std::string const& name : fields)
-                    {
-                        q.add_property_name(name);
-                    }
-                }
-                mapnik::featureset_ptr fs = ds->features(q);
-
-                if (fs)
-                {
-                    mapnik::feature_ptr feature;
-                    unsigned idx = 0;
-                    while ((feature = fs->next()))
-                    {
-                        unsigned has_hit = 0;
-                        for (std::size_t p = 0; p < points.size(); ++p) {
-                            mapnik::coord2d const& pt = points[p];
-                            auto const& geom = feature->get_geometry();
-                            double distance = path_to_point_distance(geom,pt.x,pt.y);
-                            if (distance >= 0 && distance <= tolerance)
-                            {
-                                has_hit = 1;
-                                query_result res;
-                                res.feature = feature;
-                                res.distance = 0;
-                                res.layer = ds->get_name();
-
-                                query_hit hit;
-                                hit.distance = distance;
-                                hit.feature_id = idx;
-
-                                features.insert(std::make_pair(idx, res));
-
-                                std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
-                                hits_it = hits.find(p);
-                                if (hits_it == hits.end()) {
-                                    std::vector<query_hit> pointHits;
-                                    pointHits.reserve(1);
-                                    pointHits.push_back(std::move(hit));
-                                    hits.insert(std::make_pair(p, pointHits));
-                                } else {
-                                    hits_it->second.push_back(std::move(hit));
-                                }
-                            }
-                        }
-                        if (has_hit > 0) {
-                            idx++;
-                        }
-                    }
-                }
-
-                // Sort each group of hits by distance.
-                for (auto & hit : hits) {
-                    std::sort(hit.second.begin(), hit.second.end(), _queryManySort);
-                }
-
-                result.hits = std::move(hits);
-                result.features = std::move(features);
-                return;
+        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_msg,
+                                        d->x_,
+                                        d->y_,
+                                        d->z_,
+                                        d->width()
+                                        );
+        mapnik::query q(bbox);
+        if (fields.empty())
+        {
+            // request all data attributes
+            auto fields2 = ds->get_descriptor().get_descriptors();
+            for (auto const& field : fields2)
+            {
+                q.add_property_name(field.get_name());
             }
         }
+        else
+        {
+            for (std::string const& name : fields)
+            {
+                q.add_property_name(name);
+            }
+        }
+        mapnik::featureset_ptr fs = ds->features(q);
+
+        if (fs)
+        {
+            mapnik::feature_ptr feature;
+            unsigned idx = 0;
+            while ((feature = fs->next()))
+            {
+                unsigned has_hit = 0;
+                for (std::size_t p = 0; p < points.size(); ++p) {
+                    mapnik::coord2d const& pt = points[p];
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,pt.x,pt.y);
+                    if (distance >= 0 && distance <= tolerance)
+                    {
+                        has_hit = 1;
+                        query_result res;
+                        res.feature = feature;
+                        res.distance = 0;
+                        res.layer = ds->get_name();
+
+                        query_hit hit;
+                        hit.distance = distance;
+                        hit.feature_id = idx;
+
+                        features.insert(std::make_pair(idx, res));
+
+                        std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
+                        hits_it = hits.find(p);
+                        if (hits_it == hits.end()) {
+                            std::vector<query_hit> pointHits;
+                            pointHits.reserve(1);
+                            pointHits.push_back(std::move(hit));
+                            hits.insert(std::make_pair(p, pointHits));
+                        } else {
+                            hits_it->second.push_back(std::move(hit));
+                        }
+                    }
+                }
+                if (has_hit > 0) {
+                    idx++;
+                }
+            }
+        }
+
+        // Sort each group of hits by distance.
+        for (auto & hit : hits) {
+            std::sort(hit.second.begin(), hit.second.end(), _queryManySort);
+        }
+
+        result.hits = std::move(hits);
+        result.features = std::move(features);
+        return;
     }
     throw std::runtime_error("Could not find layer in vector tile");
 }
@@ -2820,27 +2824,62 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             std::vector<mapnik::layer> const& layers,
                                             double scale_denom,
                                             std::string const& map_srs,
-                                            vector_tile::Tile const& tiledata,
                                             vector_tile_render_baton_t *closure)
 {
+    // get pbf layers into structure ready to query and render
+    using layer_list_type = std::vector<mapbox::util::pbf>;
+    std::map<std::string,layer_list_type> pbf_layers;
+    mapbox::util::pbf item(closure->d->buffer_.data(),closure->d->buffer_.size());
+    while (item.next()) {
+        if (item.tag() == 3) {
+            mapbox::util::pbf layer_msg = item.get_message();
+            // make a copy to ensure that the `get_string()` does not mutate the internal
+            // pointers of the `layer_og` stored in the map
+            // good thing copies are cheap
+            mapbox::util::pbf layer_og(layer_msg);
+            std::string layer_name;
+            while (layer_msg.next()) {
+                if (layer_msg.tag() == 1) {
+                    layer_name = layer_msg.get_string();
+                } else {
+                    layer_msg.skip();
+                }
+            }
+            if (!layer_name.empty())
+            {
+                // we accept dupes currently, even though this
+                // is of dubious value (tested by `should render by underzooming or mosaicing` in node-mapnik)
+                auto itr = pbf_layers.find(layer_name);
+                if (itr == pbf_layers.end())
+                {
+                    pbf_layers.emplace(layer_name,layer_list_type{std::move(layer_og)});
+                }
+                else
+                {
+                    itr->second.push_back(std::move(layer_og));
+                }
+            }
+        } else {
+            item.skip();
+        }
+    }
     // loop over layers in map and match by name
     // with layers in the vector tile
-    unsigned layers_size = layers.size();
-    for (unsigned i=0; i < layers_size; ++i)
+    for (auto const& lyr : layers)
     {
-        mapnik::layer const& lyr = layers[i];
         if (lyr.visible(scale_denom))
         {
-            for (int j=0; j < tiledata.layers_size(); ++j)
+            auto itr = pbf_layers.find(lyr.name());
+            if (itr != pbf_layers.end())
             {
-                vector_tile::Tile_Layer const& layer = tiledata.layers(j);
-                if (lyr.name() == layer.name())
+                for (auto const& pb : itr->second)
                 {
                     mapnik::layer lyr_copy(lyr);
                     lyr_copy.set_srs(map_srs);
-                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                                    mapnik::vector_tile_impl::tile_datasource>(
-                                                        layer,
+                    mapbox::util::pbf layer_og(pb);
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                                        layer_og,
                                                         closure->d->x_,
                                                         closure->d->y_,
                                                         closure->d->z_,
@@ -2889,7 +2928,6 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         }
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
-        vector_tile::Tile tiledata = detail::get_tile(closure->d->buffer_);
 #if defined(GRID_RENDERER)
         // render grid for layer
         if (closure->surface.is<Grid *>())
@@ -2905,24 +2943,9 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             mapnik::layer const& lyr = layers[closure->layer_idx];
             if (lyr.visible(scale_denom))
             {
-                int layer_idx = -1;
-                for (int j=0; j < tiledata.layers_size(); ++j)
+                mapbox::util::pbf layer_msg;
+                if (detail::pbf_get_layer(closure->d->buffer_,lyr.name(),layer_msg))
                 {
-                    vector_tile::Tile_Layer const& layer = tiledata.layers(j);
-                    if (lyr.name() == layer.name())
-                    {
-                        layer_idx = j;
-                        break;
-                    }
-                }
-                if (layer_idx > -1)
-                {
-                    vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-                    if (layer.features_size() <= 0)
-                    {
-                        return;
-                    }
-
                     // copy field names
                     std::set<std::string> attributes = g->get()->get_fields();
                     // todo - make this a static constant
@@ -2940,9 +2963,9 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 
                     mapnik::layer lyr_copy(lyr);
                     lyr_copy.set_srs(map_in.srs());
-                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                                    mapnik::vector_tile_impl::tile_datasource>(
-                                                        layer,
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                                        layer_msg,
                                                         closure->d->x_,
                                                         closure->d->y_,
                                                         closure->d->z_,
@@ -2985,7 +3008,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                                 closure->variables,
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -3001,7 +3024,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                             closure->variables,
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -3021,7 +3044,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                                                         closure->variables,
                                                         im_data,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),closure);
                 ren.end_map_processing(map_in);
             }
             else
