@@ -27,7 +27,6 @@
 #include <ostream>                      // for operator<<, basic_ostream
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>
-#include <iostream>
 
 Persistent<FunctionTemplate> Image::constructor;
 
@@ -1425,7 +1424,7 @@ typedef struct {
 } resize_image_baton_t;
 
 /**
- * Create a copy this this image that is resized
+ * Create a copy this image that is resized
  *
  * @name resize
  * @param {number} width
@@ -1559,7 +1558,8 @@ struct resize_visitor
         im1_(im1),
         scaling_method_(scaling_method),
         image_ratio_x_(image_ratio_x),
-        image_ratio_y_(image_ratio_y) {}
+        image_ratio_y_(image_ratio_y),
+        filter_factor_(filter_factor) {}
 
     void operator()(mapnik::image_rgba8 & im2) const
     {
