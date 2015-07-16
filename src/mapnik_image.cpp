@@ -1684,7 +1684,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
         {
             Local<Value> scale_opt = options->Get(NanNew("scale"));
             if (!scale_opt->IsNumber()) {
-                NanThrowTypeError("'scale' must be an number");
+                NanThrowTypeError("'scale' must be a number");
                 return NanEscapeScope(NanUndefined());
             }
             scale = scale_opt->NumberValue();

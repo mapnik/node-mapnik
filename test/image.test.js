@@ -17,6 +17,9 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { new mapnik.Image(256,256,{premultiplied:'asdf'}); });
         assert.throws(function() { new mapnik.Image(256,256,{initialize:null}); });
         assert.throws(function() { new mapnik.Image(256,256,{painted:null}); });
+        assert.throws(function() {
+          new mapnik.Image(256,256, {type:'foo'});
+        }, /'type' option must be a valid 'mapnik.imageType'/);
         assert.throws(function() { new mapnik.Image('foo'); });
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
     });

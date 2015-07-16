@@ -1857,7 +1857,7 @@ NAN_METHOD(Map::render)
                 Local<Value> param_val = options->Get(NanNew("area_threshold"));
                 if (!param_val->IsNumber()) {
                     delete closure;
-                    NanThrowTypeError("option 'area_threshold' must be an number");
+                    NanThrowTypeError("option 'area_threshold' must be a number");
                     NanReturnUndefined();
                 }
                 closure->area_threshold = param_val->NumberValue();
