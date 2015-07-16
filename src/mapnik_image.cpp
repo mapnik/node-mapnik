@@ -1592,7 +1592,10 @@ struct resize_visitor
     
     void operator()(mapnik::image_null &) const
     {
+        // Should be caught earlier so no test coverage should reach here.
+        /* LCOV_EXCL_START */
         throw std::runtime_error("Can not resize null images");
+        /* LCOV_EXCL_END */
     }
     
     void operator()(mapnik::image_gray8s &) const

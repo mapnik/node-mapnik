@@ -820,7 +820,13 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im3.resize(99, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99, null, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(null,99,function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(-1,99,function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,-1,function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resizeSync(99); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,null); });
+        assert.throws(function() { var im2 = im3.resizeSync(null,99); });
+        assert.throws(function() { var im2 = im3.resizeSync(-1,99); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,-1); });
         assert.throws(function() { var im2 = im3.resize(99,99, null); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{scaling_method:null}); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{filter_factor:null}); });
@@ -859,6 +865,44 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im.resizeSync(4,4); });
         var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64f});
         assert.throws(function() { var im2 = im.resizeSync(4,4); });
+    });
+    
+    it('should fail to resize resize - not premultiplied rgba8', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
+    it('should resize image up grayscale - nearest neighbor', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.tif');
+        im.premultiplied = true;
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-near.tif';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'tif');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down grayscale - nearest neighbor', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.tif');
+        im.premultiplied = true;
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.near}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-near.tif';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'tif');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
     });
 
     it('should resize image up - nearest neighbor', function(done) {
@@ -1371,10 +1415,10 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('resize should yield the same results as rendered image', function(done) {
+    it('resize async should yield the same results as rendered image', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiplied = true;
-        im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc}, function(err, result) {
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.5}, function(err, result) {
             if (err) throw err;
             var map = new mapnik.Map(50,50);
             map.load('test/data/sat_map.xml', function(err, map) {
@@ -1390,4 +1434,22 @@ describe('mapnik.Image ', function() {
         });
 
     });
+
+    it('resize sync should yield the same results as rendered image', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiplied = true;
+        var result = im.resizeSync(50, 50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.5});
+        var map = new mapnik.Map(50,50);
+        map.load('test/data/sat_map.xml', function(err, map) {
+            if (err) throw err;
+            map.zoomAll();
+            var im2 = new mapnik.Image(50,50);
+            map.render(im2, function(err, im2) {
+                if (err) throw err;
+                assert.equal(0, result.compare(im2, {threshold:0}));
+                done();
+            });
+        });
+    });
+
 });
