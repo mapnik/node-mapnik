@@ -28,13 +28,15 @@ describe('mapnik.compositeOp', function() {
 
     it('should fail with bad parameters', function(done) {
         var im1 = mapnik.Image.open('test/support/a.png');
-        im1.premultiplied = true;
+        im1.premultiply();
+        assert.equal(im1.premultiplied(), true);
         var im2 = mapnik.Image.open('test/support/b.png');
-        im2.premultiplied = true;
+        im2.premultiply();
+        assert.equal(im2.premultiplied(), true);
         var im3 = new mapnik.Image(5,5,{type:mapnik.imageType.null});
         var im4 = mapnik.Image.open('test/support/a.png');
+        assert.equal(im4.premultiplied(), false);
         var im5 = mapnik.Image.open('test/data/images/sat_image.tif');
-        im5.premultiplied = true;
         assert.throws(function() { im2.composite(); });
         assert.throws(function() { im2.composite(null); });
         assert.throws(function() { im2.composite({}); });

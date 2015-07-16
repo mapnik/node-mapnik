@@ -69,6 +69,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "fill", fill);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplySync", premultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "premultiply", premultiply);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "premultiplied", premultiplied);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiplySync", demultiplySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "demultiply", demultiply);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
@@ -84,7 +85,6 @@ void Image::Initialize(Handle<Object> target) {
     // properties
     ATTR(lcons, "scaling", get_scaling, set_scaling);
     ATTR(lcons, "offset", get_offset, set_offset);
-    ATTR(lcons, "premultiplied", get_premultiplied, set_premultiplied);
 
     // This *must* go after the ATTR setting
     NODE_SET_METHOD(lcons->GetFunction(),
@@ -905,6 +905,22 @@ typedef struct {
     Image* im;
     Persistent<Function> cb;
 } image_op_baton_t;
+
+/**
+ * Determine whether the given image is premultiplied.
+ *
+ * @name premultiplied
+ * @instance
+ * @returns {boolean} premultiplied true if the image is premultiplied
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::premultiplied)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    bool premultiplied = im->this_->get_premultiplied();
+    NanReturnValue(NanNew<Boolean>(premultiplied));
+}
 
 /**
  * Premultiply the pixels in this image
@@ -1958,6 +1974,10 @@ Local<Value> Image::_openSync(_NAN_METHOD_ARGS)
             if (reader.get())
             {
                 std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(), reader->height()));
+                if (!reader->has_alpha())
+                {
+                    mapnik::set_premultiplied_alpha(*image_ptr, true);
+                }
                 Image* im = new Image(image_ptr);
                 Handle<Value> ext = NanNew<External>(im);
                 Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
@@ -2046,6 +2066,10 @@ void Image::EIO_Open(uv_work_t* req)
             if (reader.get())
             {
                 closure->im = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
+                if (!reader->has_alpha())
+                {
+                    mapnik::set_premultiplied_alpha(*(closure->im), true);
+                }
             }
             else
             {
@@ -2751,13 +2775,6 @@ NAN_GETTER(Image::get_offset)
     NanReturnValue(NanNew<Number>(im->this_->get_offset()));
 }
 
-NAN_GETTER(Image::get_premultiplied)
-{
-    NanScope();
-    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    NanReturnValue(NanNew<Boolean>(im->this_->get_premultiplied()));
-}
-
 NAN_SETTER(Image::set_scaling)
 {
     NanScope();
@@ -2790,20 +2807,5 @@ NAN_SETTER(Image::set_offset)
     {
         double val = value->NumberValue();
         im->this_->set_offset(val);
-    }
-}
-
-NAN_SETTER(Image::set_premultiplied)
-{
-    NanScope();
-    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    if (!value->IsBoolean())
-    {
-        NanThrowError("Must provide a boolean");
-    } 
-    else 
-    {
-        bool val = value->BooleanValue();
-        mapnik::set_premultiplied_alpha(*(im->this_), val);
     }
 }
