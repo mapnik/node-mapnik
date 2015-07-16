@@ -53,6 +53,7 @@ void Image::Initialize(Handle<Object> target) {
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(NanNew("Image"));
 
+    NODE_SET_PROTOTYPE_METHOD(lcons, "getType", getType);
     NODE_SET_PROTOTYPE_METHOD(lcons, "getPixel", getPixel);
     NODE_SET_PROTOTYPE_METHOD(lcons, "setPixel", setPixel);
     NODE_SET_PROTOTYPE_METHOD(lcons, "encodeSync", encodeSync);
@@ -236,6 +237,22 @@ NAN_METHOD(Image::New)
         NanReturnUndefined();
     }
     NanReturnUndefined();
+}
+
+/**
+ * Determine the image type
+ *
+ * @name getType
+ * @instance
+ * @returns {number} Number of the image type
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::getType)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    unsigned type = im->this_->get_dtype();
+    NanReturnValue(NanNew<Number>(type));
 }
 
 struct visitor_get_pixel
@@ -1279,8 +1296,12 @@ void Image::EIO_AfterCopy(uv_work_t* req)
     }
     else if (!closure->im2)
     {
+        // Not quite sure if this is even required or ever can be reached, but leaving it
+        // and simply removing it from coverage tests.
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError("could not render to image") };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
@@ -2591,11 +2612,17 @@ NAN_METHOD(Image::composite)
         if (options->Has(NanNew("comp_op")))
         {
             Local<Value> opt = options->Get(NanNew("comp_op"));
-            if (!opt->IsNumber()) {
+            if (!opt->IsNumber())
+            {
                 NanThrowTypeError("comp_op must be a mapnik.compositeOp value");
                 NanReturnUndefined();
             }
             mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
+            if (mode > mapnik::composite_mode_e::divide || mode < 0)
+            {
+                NanThrowTypeError("Invalid comp_op value");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("opacity")))
@@ -2695,7 +2722,8 @@ void Image::EIO_AfterComposite(uv_work_t* req)
 
     composite_image_baton_t *closure = static_cast<composite_image_baton_t *>(req->data);
 
-    if (closure->error) {
+    if (closure->error) 
+    {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {

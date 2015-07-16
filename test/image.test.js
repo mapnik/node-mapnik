@@ -5,6 +5,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 describe('mapnik.Image ', function() {
+
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.Image(1, 1); }); // jshint ignore:line
@@ -17,6 +18,8 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { new mapnik.Image(256,256,{premultiplied:'asdf'}); });
         assert.throws(function() { new mapnik.Image(256,256,{initialize:null}); });
         assert.throws(function() { new mapnik.Image(256,256,{painted:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,{type:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,{type:999}); });
         assert.throws(function() { new mapnik.Image('foo'); });
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
     });
@@ -30,9 +33,10 @@ describe('mapnik.Image ', function() {
         };
         var im1 = new mapnik.Image(256,256,options);
         assert.ok(im1);
+        // Check that it is the same image type, also tests getType
+        assert.equal(im1.getType(), mapnik.imageType.gray8);
     });
-
-
+    
     it('should throw with invalid encoding', function(done) {
         var im = new mapnik.Image(256, 256);
         assert.throws(function() { im.encodeSync('foo'); });

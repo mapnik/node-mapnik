@@ -28,22 +28,39 @@ describe('mapnik.compositeOp', function() {
 
     it('should fail with bad parameters', function(done) {
         var im1 = mapnik.Image.open('test/support/a.png');
+        im1.premultiplied = true;
         var im2 = mapnik.Image.open('test/support/b.png');
+        im2.premultiplied = true;
         var im3 = new mapnik.Image(5,5,{type:mapnik.imageType.null});
+        var im4 = mapnik.Image.open('test/support/a.png');
+        var im5 = mapnik.Image.open('test/data/images/sat_image.tif');
+        im5.premultiplied = true;
         assert.throws(function() { im2.composite(); });
         assert.throws(function() { im2.composite(null); });
         assert.throws(function() { im2.composite({}); });
         assert.throws(function() { im2.composite(im1, null); });
         assert.throws(function() { im2.composite(im1, null, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {comp_op:null}, function(err, im_out) {}); });
+        assert.throws(function() { im2.composite(im1, {comp_op:999}, function(err, im_out) {}); });
+        assert.throws(function() { im2.composite(im1, {comp_op:-9}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {opacity:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {opacity:1000}, function(err, im_out) {}); });
+        assert.throws(function() { im2.composite(im1, {opacity:-1000}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {dx:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {dy:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {image_filters:null}, function(err, im_out) {}); });
         assert.throws(function() { im2.composite(im1, {image_filters:'foo'}, function(err, im_out) {}); });
-        assert.throws(function() { im3.composite(im1, {}, function(err, im_out) {}); });
-        done();
+        // Fails because im3 is null - will not be premultiplied ever.
+        assert.throws(function() { im3.composite(im2, {}, function(err, im_out) {}); });
+        // Fails due to not being premultiplied
+        assert.throws(function() { im2.composite(im4, {}, function(err, im_out) {}); });
+        // Fails due to not being premultiplied
+        assert.throws(function() { im4.composite(im2, {}, function(err, im_out) {}); });
+        // Fails because gray8 images are not supported
+        im5.composite(im5, {}, function(err, im_out) { 
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });    
     });
 });
 

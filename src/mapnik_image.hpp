@@ -24,6 +24,7 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
+    static NAN_METHOD(getType);
     static NAN_METHOD(getPixel);
     static NAN_METHOD(setPixel);
     static NAN_METHOD(encodeSync);
