@@ -2,6 +2,8 @@
 
 ## Future
 
+ - Added `mapnik.Image.resize` method that enables images to be resized.
+ - Changed `mapnik.Image.premultiplied` from a method to a property.
  - Now setting `VRT_SHARED_SOURCE=0` (#437)
  - Removed usage of `V8::AdjustAmountOfExternalAllocatedMemory` in `mapnik.Image` and `mapnik.Grid` (#136)
  - Binaries updated to use Mapnik v3.0.0 and mapnik-packaging@049968d24

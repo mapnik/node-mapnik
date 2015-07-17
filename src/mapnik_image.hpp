@@ -24,6 +24,7 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
+    static NAN_METHOD(getType);
     static NAN_METHOD(getPixel);
     static NAN_METHOD(setPixel);
     static NAN_METHOD(encodeSync);
@@ -81,6 +82,11 @@ public:
     static void EIO_AfterCopy(uv_work_t* req);
     static Local<Value> _copySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(copySync);
+    static NAN_METHOD(resize);
+    static void EIO_Resize(uv_work_t* req);
+    static void EIO_AfterResize(uv_work_t* req);
+    static Local<Value> _resizeSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(resizeSync);
     
     static NAN_GETTER(get_scaling);
     static NAN_SETTER(set_scaling);
