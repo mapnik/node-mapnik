@@ -87,6 +87,13 @@ describe('mapnik.Feature ', function() {
         assert.ok(attr.null_val === null);
         assert.equal(attr.feat_id,1);
         assert.equal(attr.name,'name');
+        var describe_expected = { 
+            type: 'vector',
+            encoding: 'utf-8',
+            fields: {},
+            geometry_type: 'collection' 
+        };
+        assert.deepEqual(describe_expected, ds.describe());
     });
 
     it('should output the same geojson that it read', function () {
@@ -144,6 +151,25 @@ describe('mapnik.Feature ', function() {
                 done();
             });
         });
+    });
+
+    // Skipping until issue https://github.com/mapnik/mapnik/issues/2985 is resolved.
+    it.skip('should be able to get a featureset from Memory datasource', function() {
+        var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        var fs0 = mem_datasource.featureset();
+        assert.equal(undefined, fs0.next());
+        mem_datasource.add({ 'x': 0, 'y': 0 });
+        var fs1 = mem_datasource.featureset();
+        assert.equal('{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[0,0]},"properties":{}}',
+                         fs1.next().toJSON());
+        assert.equal(undefined, fs1.next());
+        mem_datasource.add({ 'x': 1, 'y': 1 });
+        var fs2 = mem_datasource.featureset();
+        assert.equal('{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[0,0]},"properties":{}}',
+                         fs2.next().toJSON());
+        assert.equal('{"type":"Feature","id":2,"geometry":{"type":"Point","coordinates":[1,1]},"properties":{}}',
+                         fs2.next().toJSON());
+        assert.equal(undefined, fs2.next());
     });
 
     it('should be able to reproject geojson feature', function (done) {

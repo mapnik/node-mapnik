@@ -159,6 +159,31 @@ describe('mapnik.Datasource', function() {
 
         assert.deepEqual(ds.fields(), expected.fields);
     });
+    
+    it('test invalid use of memory datasource', function() {
+        var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        assert.throws(function() { ds.add(); });
+        assert.throws(function() { ds.add(null); });
+        assert.throws(function() { ds.add({}, null); });
+        assert.throws(function() { ds.add({'wkt': '1234'}); });
+        assert.equal(false, ds.add({}));
+    });
+
+    it('test valid use of memory datasource', function() {
+        var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        assert.equal(true, ds.add({ 'x': 0, 'y': 0 }));
+        assert.equal(true, ds.add({ 'x': 0.23432, 'y': 0.234234 }));
+        assert.equal(true, ds.add({ 'x': 1, 'y': 1 , 'properties': {'a':'b', 'c':1, 'd':0.23 }}));
+        var expected_describe = { 
+            type: 'vector',
+            encoding: 'utf-8',
+            fields: {},
+            geometry_type: 'collection' 
+        };
+        assert.deepEqual(expected_describe, ds.describe());
+        // Currently descriptors can not be added to memory datasource so will always be empty object
+        assert.deepEqual({},ds.fields());
+    });
 
 
 });
