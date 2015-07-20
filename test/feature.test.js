@@ -20,6 +20,7 @@ function deepEqualTrunc(json1,json2) {
 }
 
 describe('mapnik.Feature ', function() {
+    
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.Feature(); });
@@ -27,6 +28,11 @@ describe('mapnik.Feature ', function() {
         assert.throws(function() { new mapnik.Feature(); });
         assert.throws(function() { new mapnik.Feature(1, 4, 5); });
         assert.throws(function() { new mapnik.Feature('foo'); });
+    });
+
+    it('should not be able to construct a Featureset', function() {
+        assert.throws(function() { mapnik.Featureset(); });
+        assert.throws(function() { new mapnik.Featureset(); });
     });
 
     it('should construct a feature properly', function() {
