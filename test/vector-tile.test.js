@@ -859,6 +859,8 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {image_format:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {area_threshold:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {path_multiplier:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {simplify_algorithm:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {simplify_distance:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {variables:null}, function(err, vtile) {}); });
         map.render(vtile, {}, function(err, vtile) {
             assert.throws(function() { if (err) throw err; });
@@ -907,6 +909,25 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected).toString('hex');
+            assert.equal(expected_data, vtile.getData().toString('hex'));
+            done();
+        });
+    });
+
+    it('should render a vector_tile of the whole world - simplify_distance applied', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        map.render(vtile, {variables:{pizza:'pie'}, simplify_distance:4}, function(err, vtile) {
+            if (err) throw err;
+            assert.equal(vtile.isSolid(), false);
+            var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }

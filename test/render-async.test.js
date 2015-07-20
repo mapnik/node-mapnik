@@ -6,6 +6,7 @@ var exists = require('fs').existsSync || require('path').existsSync;
 var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 describe('mapnik async rendering', function() {
     it('should render to a file', function(done) {
@@ -118,6 +119,42 @@ describe('mapnik async rendering', function() {
             map.zoomAll();
             var im = new mapnik.Image(map.width, map.height);
             map.render(im, {variables: {pizza:'pie'}}, function(err, im) {
+                im.encode('png', {variables: {pizza:'pie'}}, function(err,buffer) {
+                    assert.ok(buffer);
+                    var string = im.toString();
+                    assert.ok(string);
+                    done();
+                });
+            });
+        });
+    });
+    
+    it('should render to an image', function(done) {
+        var map = new mapnik.Map(256, 256);
+        map.load('./test/stylesheet.xml', function(err,map) {
+            if (err) throw err;
+            map.zoomAll();
+            var im = new mapnik.Image(map.width, map.height);
+            map.render(im, {variables: {pizza:'pie'}}, function(err, im) {
+                im.encode('png', {variables: {pizza:'pie'}}, function(err,buffer) {
+                    assert.ok(buffer);
+                    var string = im.toString();
+                    assert.ok(string);
+                    done();
+                });
+            });
+        });
+    });
+    
+    it('should render to an image - raster', function(done) {
+        var map = new mapnik.Map(100, 100);
+        map.load('./test/raster.xml', function(err,map) {
+            if (err) throw err;
+            map.zoomAll();
+            var im = new mapnik.Image(map.width, map.height);
+            var im2 = new mapnik.Image.open('./test/data/images/sat_image-expected-100x100-near.png');
+            map.render(im, {variables: {pizza:'pie'}}, function(err, im) {
+                assert.equal(0, im.compare(im2));
                 im.encode('png', {variables: {pizza:'pie'}}, function(err,buffer) {
                     assert.ok(buffer);
                     var string = im.toString();
