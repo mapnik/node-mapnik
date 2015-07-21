@@ -44,7 +44,7 @@ describe('mapnik.GridView ', function() {
     });
 
     it('should support fields method', function() {
-        assert.deepEqual([], grid.fields());
+        assert.deepEqual([], view.fields());
     });
     
     it('isSolid should fail with bad input', function(done) {
@@ -104,7 +104,7 @@ describe('mapnik.GridView ', function() {
         var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
         map.render(grid, options, function(err, grid) {
             var view = grid.view(0, 0, 256, 256);
-            assert.deepEqual(options['fields'], grid.fields());
+            assert.deepEqual(options['fields'], view.fields());
             assert.equal(view.isSolidSync(), false);
             // hit alaska (USA is id 207)
             assert.equal(view.getPixel(25, 100), 207);
