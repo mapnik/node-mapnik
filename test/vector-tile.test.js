@@ -888,6 +888,8 @@ describe('mapnik.VectorTile ', function() {
 
         map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
+            // This next tests that multipart layers work in toGeoJSON
+            assert.equal(489203, vtile.toGeoJSON(0).length);
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0.vector.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {

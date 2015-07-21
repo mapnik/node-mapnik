@@ -70,7 +70,10 @@ struct p2p_distance
 
     double operator() (mapnik::geometry::geometry_empty const& ) const
     {
+        // There is no current way that a geometry empty could be returned from a vector tile.
+        /* LCOV_EXCL_START */
         return -1;
+        /* LCOV_EXCL_END */
     }
 
     double operator() (mapnik::geometry::point<double> const& geom) const
@@ -161,6 +164,8 @@ struct p2p_distance
     }
     double operator() (mapnik::geometry::geometry_collection<double> const& collection) const
     {
+        // There is no current way that a geometry collection could be returned from a vector tile.
+        /* LCOV_EXCL_START */
         double distance = -1;
         for (auto const& geom: collection)
         {
@@ -168,6 +173,7 @@ struct p2p_distance
             if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
         return distance;
+        /* LCOV_EXCL_END */
     }
 
     double x_;
@@ -1741,6 +1747,9 @@ NAN_METHOD(VectorTile::toJSON)
                     {
                         att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.double_value()));
                     }
+                    // The following lines are not currently supported by mapnik-vector-tiles
+                    // therefore these lines are not currently testable.
+                    /* LCOV_EXCL_START */
                     else if (value.has_float_value())
                     {
                         att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.float_value()));
@@ -1761,6 +1770,7 @@ NAN_METHOD(VectorTile::toJSON)
                     {
                         att_obj->Set(NanNew(name.c_str()), NanUndefined());
                     }
+                    /* LCOV_EXCL_END */
                 }
                 feature_obj->Set(NanNew("properties"),att_obj);
             }
