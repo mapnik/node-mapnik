@@ -4,6 +4,7 @@ var mapnik = require('../');
 var assert = require('assert');
 
 describe('mapnik.CairoSurface ', function() {
+    
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.CairoSurface(1, 1); });
@@ -13,6 +14,7 @@ describe('mapnik.CairoSurface ', function() {
         assert.throws(function() { new mapnik.CairoSurface(1); });
         assert.throws(function() { new mapnik.CairoSurface('foo'); });
         assert.throws(function() { new mapnik.CairoSurface('a', 'b', 'c'); });
+        assert.throws(function() { new mapnik.CairoSurface(1, 'b', 'c'); });
     });
 
     it('should be initialized properly', function() {
