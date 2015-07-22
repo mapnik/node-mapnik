@@ -80,6 +80,7 @@ describe('mapnik.VectorTile ', function() {
           ]
         };
         var geo_str = JSON.stringify(geojson);
+        assert.throws(function() { vtile.addGeoJSON('asdf', 'layer-a'); });
         assert.throws(function() { vtile.addGeoJSON(); });
         assert.throws(function() { vtile.addGeoJSON(geo_str); });
         assert.throws(function() { vtile.addGeoJSON(1, "layer"); });
@@ -331,6 +332,13 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(out.features[1].properties.name,'geojson data2');
         // not passing callback trigger sync method
         assert.equal(vtile.toGeoJSON('__all__'),json_out);
+        // Test that we can pull back the different layers by name
+        var json_one = vtile.toGeoJSON('layer-name');
+        var json_two = vtile.toGeoJSON('layer-name2');
+        assert(json_one.length > 0);
+        assert(json_two.length > 0);
+        // Test for an invalid name throws
+        assert.throws(function() { vtile.toGeoJSON('foo'); });
         // test array containing each geojson
         var json_array = vtile.toGeoJSONSync('__array__');
         var out2 = JSON.parse(json_array);
@@ -348,6 +356,55 @@ describe('mapnik.VectorTile ', function() {
                 done();
             });
         });
+    });
+
+    it('toGeoJSON should fail with invalid useage', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.throws(function() { vtile.toGeoJSONSync(); });
+        assert.throws(function() { vtile.toGeoJSONSync(0); });
+        assert.throws(function() { vtile.toGeoJSONSync(-1); });
+        assert.throws(function() { vtile.toGeoJSONSync('foo'); });
+        assert.throws(function() { vtile.toGeoJSONSync(null); });
+        assert.throws(function() { vtile.toGeoJSON(); });
+        assert.throws(function() { vtile.toGeoJSON(0, function(err, jstr) {}) });
+        assert.throws(function() { vtile.toGeoJSON(-1, function(err, jstr) {}) });
+        assert.throws(function() { vtile.toGeoJSON('foo', function(err, jstr) {}) });
+        assert.throws(function() { vtile.toGeoJSON(null, function(err, jstr) {}) });
+        
+        // Error message change after adding a feature.
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        
+        // Test failures again
+        assert.throws(function() { vtile.toGeoJSONSync(); });
+        assert.throws(function() { vtile.toGeoJSONSync(1); });
+        assert.throws(function() { vtile.toGeoJSONSync(-1); });
+        assert.throws(function() { vtile.toGeoJSONSync('foo'); });
+        assert.throws(function() { vtile.toGeoJSONSync(null); });
+        assert.throws(function() { vtile.toGeoJSON(); });
+        assert.throws(function() { vtile.toGeoJSON(1, function(err, jstr) {}) });
+        assert.throws(function() { vtile.toGeoJSON(-1, function(err, jstr) {}) });
+        assert.throws(function() { vtile.toGeoJSON('foo', function(err, jstr) {}) });
+        assert.throws(function() { vtile.toGeoJSON(null, function(err, jstr) {}) });
+        
+        done();
     });
 
     it('should throw with invalid usage', function() {
@@ -398,7 +455,7 @@ describe('mapnik.VectorTile ', function() {
         vtile.setData(data);
         // empty is valid to use before parse() (and after)
         assert.equal(vtile.empty(), false);
-        vtile.parse();
+        vtile.parseSync();
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), "world");
         assert.equal(vtile.empty(), false);
@@ -424,6 +481,7 @@ describe('mapnik.VectorTile ', function() {
         vtile.setData(new Buffer('foo'),function(err) {
             if (err) throw err;
             assert.throws(function() { vtile.empty(); });
+            assert.throws(function() { vtile.parse(null); });
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
                 done();
@@ -531,16 +589,22 @@ describe('mapnik.VectorTile ', function() {
         });
     });
     
+    it('should fail to do clear', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.throws(function() { vtile.clear(null); });
+    });
+
     it('should fail to parse', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addData(new Buffer('foo'));
-        vtile.clear();
+        vtile.clearSync();
         assert.throws(function() { vtile.parse(); });
     });
 
     it('should be able to setData/parse (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.isSolid(null); });
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data, function(err) {
             if (err) throw err;
@@ -552,7 +616,7 @@ describe('mapnik.VectorTile ', function() {
                 assert.deepEqual(vtile.names(), ["world"]);
                 assert.equal(vtile.empty(), false);
                 assert.equal(vtile.painted(), true);
-                assert.equal(vtile.isSolid(), "world");
+                assert.equal(vtile.isSolidSync(), "world");
                 vtile.isSolid(function(err, solid, key) {
                     if (err) throw err;
                     assert.equal(solid, true);
@@ -816,6 +880,51 @@ describe('mapnik.VectorTile ', function() {
         });
     });
     
+    it('should fail to render due to bad arguments passed', function(done) {
+        var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
+        var vtile = new mapnik.VectorTile(5,28,12);
+        vtile.setData(data);
+        vtile.parse();
+        var im = new mapnik.Image(256,256);
+        var im_g = new mapnik.Image(256,256,{ type: mapnik.imageType.gray8 });
+        var im_c = new mapnik.CairoSurface('SVG',256, 256);
+        var map = new mapnik.Map(vtile.width(),vtile.height());
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        assert.throws(function() { vtile.render(); });
+        assert.throws(function() { vtile.render({}); });
+        assert.throws(function() { vtile.render(map); });
+        assert.throws(function() { vtile.render(map, {}); });
+        assert.throws(function() { vtile.render(map, im); });
+        assert.throws(function() { vtile.render(map, im, null, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {y:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {z:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {buffer_size:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {scale:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {scale_denominator:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {variables:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im_c, {renderer:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im_c, {renderer:'foo'}, function(e,i) {}); });
+        if (mapnik.supports.grid) 
+        {
+            var grid = new mapnik.Grid(256, 256);
+            var map2 = new mapnik.Map(vtile.width(),vtile.height());
+            assert.throws(function() { vtile.render(map, grid, {}, function(e,i) {}); });
+            assert.throws(function() { vtile.render(map, grid, function(e,i) {}); });
+            assert.throws(function() { vtile.render(map, grid, {layer:null}, function(e,i) {}); });
+            assert.throws(function() { vtile.render(map, grid, {layer:1}, function(e,i) {}); });
+            assert.throws(function() { vtile.render(map2, grid, {layer:0}, function(e,i) {}); });
+            assert.throws(function() { vtile.render(map, grid, {layer:'world-false'}, function(e,i) {}); });
+            assert.throws(function() { vtile.render(map, grid, {layer:'world', fields:null}, function(e,i) {}); });
+        }
+        assert.throws(function() { vtile.render(function(e,i) {}); });
+        vtile.render(map, im_g, function(err,output) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
     it('should render expected results', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
@@ -1068,6 +1177,35 @@ describe('mapnik.VectorTile ', function() {
       it.skip('should read back the vector tile and render a grid with it', function() { });
     }
 
+    if (mapnik.supports.grid) {
+        it('should read back the vector tile and render a grid with it - layer name and fields', function(done) {
+            var vtile = new mapnik.VectorTile(0, 0, 0);
+            vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
+            vtile.parse();
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/stylesheet.xml');
+            map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+            assert.equal(vtile.isSolid(), false);
+            
+            vtile.render(map, new mapnik.Grid(256, 256, {key:'AREA'}), {layer:'world', fields:['NAME','REGION','NOTREAL', '__id__']}, function(err, vtile_image) {
+                if (err) throw err;
+                var utf = vtile_image.encodeSync();
+                var expected_file = './test/data/vector_tile/tile0-fields.expected.grid.json';
+                var actual_file = './test/data/vector_tile/tile0-fields.actual.grid.json';
+                if (!existsSync(expected_file) || process.env.UPDATE) {
+                    fs.writeFileSync(expected_file,JSON.stringify(utf,null,1));
+                }
+                fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
+                var expected = JSON.parse(fs.readFileSync(expected_file));
+                assert.deepEqual(utf,expected);
+                done();
+            });
+        });
+    } else {
+      it.skip('should read back the vector tile and render a grid with it - layer name and fields', function() { });
+    }
+
     it('should read back the vector tile and render an image with markers', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
@@ -1123,6 +1261,18 @@ describe('mapnik.VectorTile ', function() {
                 done();
             });
         });
+    });
+
+    it('should fail to addImage due to bad input', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0);
+        assert.throws(function() { vtile.addImage(); });
+        assert.throws(function() { vtile.addImage(null); });
+        assert.throws(function() { vtile.addImage('asdf'); });
+        assert.throws(function() { vtile.addImage({}); });
+        assert.throws(function() { vtile.addImage(new Buffer(4)); });
+        assert.throws(function() { vtile.addImage({}, 'asdf'); });
+        assert.throws(function() { vtile.addImage(new Buffer(0), 'layer'); });
+        done();
     });
 
     it('should be able to push an image tile directly into a vector tile layer without decoding', function(done) {

@@ -1922,7 +1922,10 @@ void handle_to_geojson_args(Local<Value> const& layer_id,
             error_msg = s.str();
         }
     } else {
+        // This should never be reached as args should have been caught earlier
+        // LCOV_EXCL_START
         error_msg = "layer id must be a string or index number";
+        // LCOV_EXCL_END
     }
 }
 
@@ -2023,8 +2026,12 @@ Local<Value> VectorTile::_toGeoJSONSync(_NAN_METHOD_ARGS) {
     }
     catch (std::exception const& ex)
     {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
     }
     return NanEscapeScope(NanNew(result));
 }
@@ -2097,7 +2104,11 @@ void VectorTile::to_geojson(uv_work_t* req)
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
     try
     {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
         write_geojson_to_string(closure->result,closure->all_array,closure->all_flattened,closure->layer_idx,closure->v);
+        // LCOV_EXCL_END
     }
     catch (std::exception const& ex)
     {
@@ -2112,8 +2123,12 @@ void VectorTile::after_to_geojson(uv_work_t* req)
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
     if (closure->error)
     {
+        // Because there are no known ways to trigger the exception path in to_geojson
+        // there is no easy way to test this path currently
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->result.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
@@ -2496,8 +2511,12 @@ void VectorTile::EIO_SetData(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // This code is pointless as there is no known way for a buffer to create an invalid string here
+        // if there was this would be a bug in node.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -2508,8 +2527,11 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
 
     if (closure->error) {
+        // See note about exception in EIO_SetData
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
@@ -2540,10 +2562,14 @@ NAN_METHOD(VectorTile::getData)
         std::size_t raw_size = d->buffer_.size();
         if (raw_size > 0 && (d->byte_size_ < 0 || static_cast<std::size_t>(d->byte_size_) <= raw_size)) {
             if (raw_size >= node::Buffer::kMaxLength) {
+                // This is a valid test path, but I am excluding it from test coverage due to the
+                // requirement of loading a very large object in memory in order to test it.
+                // LCOV_EXCL_START
                 std::ostringstream s;
                 s << "Data is too large to convert to a node::Buffer ";
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                 throw std::runtime_error(s.str());
+                // LCOV_EXCL_END
             }
             NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         } else {
@@ -2555,10 +2581,14 @@ NAN_METHOD(VectorTile::getData)
                 // SerializeWithCachedSizesToArray will throw:
                 // Error: CHECK failed: !coded_out.HadError()
                 if (static_cast<std::size_t>(d->byte_size_) >= node::Buffer::kMaxLength) {
+                    // This is a valid test path, but I am excluding it from test coverage due to the
+                    // requirement of loading a very large object in memory in order to test it.
+                    // LCOV_EXCL_START
                     std::ostringstream s;
                     s << "Data is too large to convert to a node::Buffer ";
                     s << "(" << d->byte_size_ << " cached bytes >= node::Buffer::kMaxLength)";
                     throw std::runtime_error(s.str());
+                    // LCOV_EXCL_END
                 }
                 Local<Object> retbuf = NanNewBufferHandle(d->byte_size_);
                 // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
@@ -2567,14 +2597,26 @@ NAN_METHOD(VectorTile::getData)
                 vector_tile::Tile const& tiledata = d->get_tile();
                 google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
                 if (end - start != d->byte_size_) {
+                    // Attempted to make a repeatable test to cause this to fail, have not been able to do so
+                    // and feel that it will be difficult to make such a test case so removing from test
+                    // coverage
+                    // LCOV_EXCL_START
                     throw std::runtime_error("serialization failed, possible race condition");
+                    // LCOV_EXCL_END
                 }
                 NanReturnValue(retbuf);
             }
         }
-    } catch (std::exception const& ex) {
+    } 
+    catch (std::exception const& ex) 
+    {
+        // As all exception throwing paths are not easily testable or no way can be
+        // found to test with repeatability this exception path is not included
+        // in test coverage.
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         NanReturnUndefined();
+        // LCOV_EXCL_END
     }
     NanReturnUndefined();
 }
@@ -2591,7 +2633,10 @@ struct deref_visitor
     template <typename SurfaceType>
     void operator() (SurfaceType * surface)
     {
-        surface->_unref();
+        if (surface != nullptr)
+        {
+            surface->_unref();
+        }
     }
 };
 
@@ -2694,10 +2739,6 @@ NAN_METHOD(VectorTile::render)
         NanReturnUndefined();
     }
     Local<Object> im_obj = args[1]->ToObject();
-    if (im_obj->IsNull() || im_obj->IsUndefined()) {
-        NanThrowTypeError("a renderable mapnik object is expected as second arg");
-        NanReturnUndefined();
-    }
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
@@ -2721,18 +2762,33 @@ NAN_METHOD(VectorTile::render)
         options = args[2]->ToObject();
         if (options->Has(NanNew("z")))
         {
+            Local<Value> bind_opt = options->Get(NanNew("z"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'z' must be a number");
+                NanReturnUndefined();
+            }
+            closure->z = bind_opt->IntegerValue();
             closure->zxy_override = true;
-            closure->z = options->Get(NanNew("z"))->IntegerValue();
         }
         if (options->Has(NanNew("x")))
         {
+            Local<Value> bind_opt = options->Get(NanNew("x"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'x' must be a number");
+                NanReturnUndefined();
+            }
+            closure->x = bind_opt->IntegerValue();
             closure->zxy_override = true;
-            closure->x = options->Get(NanNew("x"))->IntegerValue();
         }
         if (options->Has(NanNew("y")))
         {
+            Local<Value> bind_opt = options->Get(NanNew("y"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'y' must be a number");
+                NanReturnUndefined();
+            }
+            closure->y = bind_opt->IntegerValue();
             closure->zxy_override = true;
-            closure->y = options->Get(NanNew("y"))->IntegerValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -3030,11 +3086,15 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
                     if (layer.features_size() <= 0)
                     {
+                        // Not certain how to test this as it is an empty layer. 
+                        // LCOV_EXCL_START
                         return;
+                        // LCOV_EXCL_END
                     }
 
                     // copy field names
                     std::set<std::string> attributes = g->get()->get_fields();
+                    
                     // todo - make this a static constant
                     std::string known_id_key = "__id__";
                     if (attributes.find(known_id_key) != attributes.end())
@@ -3247,8 +3307,11 @@ void VectorTile::EIO_Clear(uv_work_t* req)
     }
     catch(std::exception const& ex)
     {
+        // No reason this should ever throw an exception, not currently testable.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -3258,8 +3321,11 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
     clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
     if (closure->error)
     {
+        // No reason this should ever throw an exception, not currently testable.
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
@@ -3304,8 +3370,12 @@ Local<Value> VectorTile::_isSolidSync(_NAN_METHOD_ARGS)
     }
     catch (std::exception const& ex)
     {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile. 
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
     }
     return NanEscapeScope(NanUndefined());
 }
@@ -3357,13 +3427,18 @@ NAN_METHOD(VectorTile::isSolid)
 void VectorTile::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
-    try {
+    try 
+    {
         closure->result = mapnik::vector_tile_impl::is_solid_extent(closure->d->get_tile(),closure->key);
     }
     catch (std::exception const& ex)
     {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile. 
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -3371,9 +3446,14 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
 {
     NanScope();
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
-    if (closure->error) {
+    if (closure->error) 
+    {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile. 
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
