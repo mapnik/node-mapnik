@@ -573,6 +573,7 @@ describe('mapnik.VectorTile query point & line', function() {
 
     it('point on mid line', function(done) {
         // ----o---- <= query on line
+        //mapnik returns two features with identical distances
 
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify({
@@ -590,8 +591,8 @@ describe('mapnik.VectorTile query point & line', function() {
                 "geometry": {
                     "type": "LineString",
                     "coordinates": [
-                        [ -20, 0 ],
-                        [ 20, 0 ]
+                        [ -100, 0 ],
+                        [ 100, 0 ]
                     ]
                 }
         }]}),'data');
@@ -599,8 +600,9 @@ describe('mapnik.VectorTile query point & line', function() {
         //query on point
         var data = vtile.query(0,0, { tolerance: 1 });
         assert.equal(data.length, 2);
-        assert.equal(data[0].attributes().name, 'line')
-        assert.equal(data[1].attributes().name, 'point');
+        assert.equal(data[0].distance, data[1].distance);
+        assert.equal(data[0].attributes().name, 'point')
+        assert.equal(data[1].attributes().name, 'line');
         done();
     });
 
@@ -615,7 +617,7 @@ describe('mapnik.VectorTile query point & line', function() {
                 "properties": { "name": "point" },
                 "geometry": {
                     "type": "Point",
-                    "coordinates": [ 20, 0 ]
+                    "coordinates": [ 100, 0 ]
                 }
             },{
                 "type": "Feature",
@@ -623,14 +625,14 @@ describe('mapnik.VectorTile query point & line', function() {
                 "geometry": {
                     "type": "LineString",
                     "coordinates": [
-                        [ -20, 0 ],
-                        [ 20, 0 ]
+                        [ -100, 0 ],
+                        [ 100, 0 ]
                     ]
                 }
         }]}),'data');
 
         //query on point
-        var data = vtile.query(20,0, { tolerance: 10000 });
+        var data = vtile.query(100,0, { tolerance: 10000 });
         assert.equal(data.length, 2);
         assert.equal(data[0].attributes().name, 'line')
         assert.equal(data[1].attributes().name, 'point')
