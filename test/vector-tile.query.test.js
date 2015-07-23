@@ -498,6 +498,58 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
     });
 });
 
+describe('mapnik.VectorTile triangle query', function() {
+    it('triangle corner', function(done) {
+
+        // o-----x <-- query
+        // |\    |     the distance in this case is millions of miles
+        // | \   |     (24364904ish)
+        // |  \  |
+        // |   \ |
+        // |    \|
+        // +-----o
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": { "type": "LineString", "coordinates": [ [-180,85],[180,-85] ] },
+                    "properties": { "_text": "A" }
+                }
+            ]
+        }),"data");
+        vtile.query(170, 80, {}, function(err, data) {
+            assert.ifError(err);
+            assert.equal(data, false);
+            done()
+        })
+    })
+});
+
+
+describe('mapnik.VectorTile equidistance', function() {
+    it('two features', function(done) {
+
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": { "type": "LineString", "coordinates": [ [-180,85],[180,-85] ] },
+                    "properties": { "_text": "A" }
+                }
+            ]
+        }),"data");
+        vtile.query(170, 80, {}, function(err, data) {
+            assert.ifError(err);
+            assert.equal(data, false);
+            done()
+        })
+    })
+});
+
 describe('mapnik.VectorTile query point & line', function() {
     it('line point', function(done) {
         var vtile = new mapnik.VectorTile(12,1294,1468);
@@ -523,7 +575,9 @@ describe('mapnik.VectorTile query point & line', function() {
                 }
         }]}),'data');
         vtile.query(-66.19295954704285, 45.32757192213404, { tolerance: 10000 }, function(err, data) {
-            console.log(data);
+            assert.equal(data.length, 2);
+            assert.equal(data[0].attributes().name, 'point')
+            assert.equal(data[1].attributes().name, 'line')
             done();
         });
     });
