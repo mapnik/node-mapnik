@@ -527,32 +527,11 @@ describe('mapnik.VectorTile triangle query', function() {
     })
 });
 
-
-describe('mapnik.VectorTile equidistance', function() {
-    it('two features', function(done) {
-
-        var vtile = new mapnik.VectorTile(0,0,0);
-        vtile.addGeoJSON(JSON.stringify({
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "geometry": { "type": "LineString", "coordinates": [ [-180,85],[180,-85] ] },
-                    "properties": { "_text": "A" }
-                }
-            ]
-        }),"data");
-        vtile.query(170, 80, {}, function(err, data) {
-            assert.ifError(err);
-            assert.equal(data, false);
-            done()
-        })
-    })
-});
-
 describe('mapnik.VectorTile query point & line', function() {
-    it('line point', function(done) {
-        var vtile = new mapnik.VectorTile(12,1294,1468);
+    it('point near line', function(done) {
+        // --------
+        //    o
+        var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
             "features": [{
@@ -560,7 +539,7 @@ describe('mapnik.VectorTile query point & line', function() {
                 "properties": { "name": "point" },
                 "geometry": {
                     "type": "Point",
-                    "coordinates": [ -66.19295954704285, 45.32757192213404 ]
+                    "coordinates": [ 0, 0 ]
                 }
             },{
                 "type": "Feature",
@@ -568,17 +547,93 @@ describe('mapnik.VectorTile query point & line', function() {
                 "geometry": {
                     "type": "LineString",
                     "coordinates": [
-                        [ -66.1936193704605, 45.32768695178765 ],
-                        [ -66.19305342435837, 45.32779820975496 ],
-                        [ -66.19213342666626, 45.3278132955642 ]
+                        [ -20, 10 ],
+                        [ 20, 10 ]
                     ]
                 }
         }]}),'data');
-        vtile.query(-66.19295954704285, 45.32757192213404, { tolerance: 10000 }, function(err, data) {
-            assert.equal(data.length, 2);
-            assert.equal(data[0].attributes().name, 'point')
-            assert.equal(data[1].attributes().name, 'line')
-            done();
-        });
+
+        //query on point
+        var data = vtile.query(0,0, { tolerance: 1000000 });
+        assert.equal(data.length, 1);
+        assert.equal(data[0].attributes().name, 'point')
+
+        //query on line
+        var data = vtile.query(0,10, { tolerance: 1000000 });
+        assert.equal(data.length, 1);
+        assert.equal(data[0].attributes().name, 'line')
+
+        //query between
+        var data = vtile.query(0,5, { tolerance: 1000000 });
+        assert.equal(data.length, 2);
+        assert.equal(data[0].attributes().name, 'point')
+        assert.equal(data[1].attributes().name, 'line')
+        done();
+    });
+
+    it('point on mid line', function(done) {
+        // ----o---- <= query on line
+
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": { "name": "point" },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0, 0 ]
+                }
+            },{
+                "type": "Feature",
+                "properties": { "name": "line" },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [ -20, 0 ],
+                        [ 20, 0 ]
+                    ]
+                }
+        }]}),'data');
+
+        //query on point
+        var data = vtile.query(0,0, { tolerance: 1 });
+        assert.equal(data.length, 2);
+        assert.equal(data[0].attributes().name, 'line')
+        assert.equal(data[1].attributes().name, 'point');
+        done();
+    });
+
+    it('point on end line', function(done) {
+        // --------o <= query on line
+
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": { "name": "point" },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 20, 0 ]
+                }
+            },{
+                "type": "Feature",
+                "properties": { "name": "line" },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [ -20, 0 ],
+                        [ 20, 0 ]
+                    ]
+                }
+        }]}),'data');
+
+        //query on point
+        var data = vtile.query(20,0, { tolerance: 10000 });
+        assert.equal(data.length, 2);
+        assert.equal(data[0].attributes().name, 'line')
+        assert.equal(data[1].attributes().name, 'point')
+        done();
     });
 });
