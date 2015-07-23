@@ -498,3 +498,37 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
     });
 });
 
+describe('mapnik.VectorTile query point & line', function() {
+    it('line point', function(done) {
+        var vtile = new mapnik.VectorTile(12,750,1372);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": { "name": "point" },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ -66.19295954704285, 45.32757192213404 ]
+                }
+            },{
+                "type": "Feature",
+                "properties": { "name": "line" },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [ -66.1936193704605, 45.32768695178765 ],
+                        [ -66.19305342435837, 45.32779820975496 ],
+                        [ -66.19213342666626, 45.3278132955642 ]
+                    ]
+                }
+        }]}),'data');
+        vtile.toGeoJSON('data',function(err, data) {
+            console.log(data);
+            done()
+        });
+        //vtile.query(-66.19295954704285, 45.32757192213404, { tolerance: 10000 }, function(err, data) {
+        //    console.log(data);
+        //    done();
+        //});
+    });
+});
