@@ -500,7 +500,7 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
 
 describe('mapnik.VectorTile query point & line', function() {
     it('line point', function(done) {
-        var vtile = new mapnik.VectorTile(12,750,1372);
+        var vtile = new mapnik.VectorTile(12,1294,1468);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
             "features": [{
@@ -522,13 +522,9 @@ describe('mapnik.VectorTile query point & line', function() {
                     ]
                 }
         }]}),'data');
-        vtile.toGeoJSON('data',function(err, data) {
+        vtile.query(-66.19295954704285, 45.32757192213404, { tolerance: 10000 }, function(err, data) {
             console.log(data);
-            done()
+            done();
         });
-        //vtile.query(-66.19295954704285, 45.32757192213404, { tolerance: 10000 }, function(err, data) {
-        //    console.log(data);
-        //    done();
-        //});
     });
 });
