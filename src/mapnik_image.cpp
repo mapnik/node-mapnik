@@ -196,7 +196,7 @@ NAN_METHOD(Image::New)
                     }
                     else
                     {
-                        NanThrowTypeError("premulitplied option must be a boolean");
+                        NanThrowTypeError("premultiplied option must be a boolean");
                         NanReturnUndefined();
                     }
                 }
