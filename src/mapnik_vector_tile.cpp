@@ -2257,6 +2257,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     double area_threshold = 0.1;
     double simplify_distance = 0.0;
     unsigned path_multiplier = 16;
+    int buffer_size = 8;
 
     if (args.Length() > 2) {
         // options object
@@ -2293,6 +2294,15 @@ NAN_METHOD(VectorTile::addGeoJSON)
             }
             simplify_distance = param_val->NumberValue();
         }
+        
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+            buffer_size = bind_opt->IntegerValue();
+        }
     }
 
     try
@@ -2306,7 +2316,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
         map.zoom_to_box(mapnik::box2d<double>(minx,miny,maxx,maxy));
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(8);
+        m_req.set_buffer_size(buffer_size);
         mapnik::parameters p;
         p["type"]="geojson";
         p["inline"]=geojson_string;
