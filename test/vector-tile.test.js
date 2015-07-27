@@ -956,6 +956,40 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+
+    it('should render expected results - with objectional arguments', function(done) {
+        var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
+        var vtile = new mapnik.VectorTile(5,28,12);
+        vtile.setData(data);
+        vtile.parse();
+        assert.equal(vtile.getData().length,544);
+        assert.equal(vtile.painted(), true);
+        assert.equal(vtile.isSolid(), false);
+        assert.equal(vtile.empty(), false);
+        var map = new mapnik.Map(vtile.width(),vtile.height());
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+        vtile.render(map, 
+                     new mapnik.Image(256,256), 
+                     {scale:1.2, scale_denominator:1.5, variables:{pizza:'pie'}}, 
+                     function(err,image) {
+            if (err) throw err;
+            var expected = './test/data/vector_tile/tile3.expected.png';
+            var actual = './test/data/vector_tile/tile3.actual.png';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                image.save(expected, 'png32');
+            }
+            image.save(actual, 'png32');
+            var e = fs.readFileSync(expected);
+            var a = fs.readFileSync(actual);
+            if (mapnik.versions.mapnik_number >= 300000) {
+                assert.ok(Math.abs(e.length - a.length) < 100);
+            } else {
+                assert.equal(e.length,a.length);
+            }
+            done();
+        });
+    });
     
     it('should fail to render due to bad parameters', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
