@@ -18,33 +18,33 @@ matrix:
      # Coverage
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43
+       env: NODE_VERSION="1.8.4" COVERAGE=true # node abi 43
      # Linux
      - os: linux
        compiler: clang
-       env: NODE_VERSION="2.0.0" # node abi 44
+       env: NODE_VERSION="2.4.0" # node abi 44
      - os: linux
        compiler: clang
-       env: NODE_VERSION="1.2.0" # node abi 43
+       env: NODE_VERSION="1.8.4" # node abi 43
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.12.2" # node abi 14
+       env: NODE_VERSION="0.12.7" # node abi 14
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.10.38" # node abi 11
+       env: NODE_VERSION="0.10.40" # node abi 11
      # OS X
      - os: osx
        compiler: clang
-       env: NODE_VERSION="2.0.0" # node abi 44
+       env: NODE_VERSION="2.4.0" # node abi 44
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.2.0" # node abi 43
+       env: NODE_VERSION="1.8.4" # node abi 43
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.12.2" # node abi 14
+       env: NODE_VERSION="0.12.7" # node abi 14
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.10.38" # node abi 11
+       env: NODE_VERSION="0.10.40" # node abi 11
 
 env:
   global:
