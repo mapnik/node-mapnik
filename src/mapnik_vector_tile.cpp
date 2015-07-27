@@ -2104,16 +2104,16 @@ void VectorTile::to_geojson(uv_work_t* req)
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
     try
     {
-        // There are currently no known ways to trigger this exception in testing. If it was
-        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
-        // LCOV_EXCL_START
         write_geojson_to_string(closure->result,closure->all_array,closure->all_flattened,closure->layer_idx,closure->v);
-        // LCOV_EXCL_END
     }
     catch (std::exception const& ex)
     {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->result = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
