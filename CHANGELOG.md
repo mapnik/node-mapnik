@@ -8,7 +8,7 @@
  - Now setting `VRT_SHARED_SOURCE=0` (#437)
  - Removed usage of `V8::AdjustAmountOfExternalAllocatedMemory` in `mapnik.Image` and `mapnik.Grid` (#136)
  - Binaries updated to use Mapnik v3.0.0 and mapnik-packaging@049968d24
- - Upgraded to node-pre-gyp@0.6.8
+ - Upgraded to node-pre-gyp@0.6.9
  - Upgrade to mapnik-vector-tile@0.8.5
    - Updated vector tile clipping so that it throws out polygons outside bbox of tile
 
