@@ -89,6 +89,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {area_threshold:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {path_multiplier:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:null}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {buffer_size:null}); });
     });
 
     it('should be able to create a vector tile from geojson', function(done) {
@@ -111,7 +112,7 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {buffer_size:8});
         assert.equal(vtile.getData().length,58);
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
