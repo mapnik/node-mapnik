@@ -898,6 +898,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.render(map, {}); });
         assert.throws(function() { vtile.render(map, im); });
         assert.throws(function() { vtile.render(map, im, null, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, {}, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, im, {x:null}, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, im, {y:null}, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, im, {z:null}, function(e,i) {}); });

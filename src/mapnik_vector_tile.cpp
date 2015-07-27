@@ -230,7 +230,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
     NODE_SET_PROTOTYPE_METHOD(lcons, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clearSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "empty", empty);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
@@ -2899,11 +2899,6 @@ NAN_METHOD(VectorTile::render)
             std::vector<mapnik::layer> const& layers = m->get()->layers();
 
             Local<Value> layer_id = options->Get(NanNew("layer"));
-            if (! (layer_id->IsString() || layer_id->IsNumber()) )
-            {
-                NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                NanReturnUndefined();
-            }
 
             if (layer_id->IsString()) {
                 bool found = false;
@@ -2947,7 +2942,7 @@ NAN_METHOD(VectorTile::render)
             }
             else
             {
-                NanThrowTypeError("layer id must be a string or index number");
+                NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
                 NanReturnUndefined();
             }
         }
