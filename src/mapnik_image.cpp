@@ -2659,61 +2659,6 @@ void Image::EIO_AfterSave(uv_work_t* req)
     delete closure;
 }
 
-/**
- * Encode this image and save it to disk as a file.
- *
- * @name save
- * @param {string} filename
- * @param {string} [format=png]
- * @instance
- * @memberof mapnik.Image
- * @example
- * myImage.save('foo.png');
- */
-/*NAN_METHOD(Image::save)
-{
-    NanScope();
-
-    if (args.Length() == 0 || !args[0]->IsString()){
-        NanThrowTypeError("filename required");
-        NanReturnUndefined();
-    }
-
-    std::string filename = TOSTR(args[0]);
-
-    std::string format("");
-
-    if (args.Length() >= 2) {
-        if (!args[1]->IsString()) {
-            NanThrowTypeError("both 'filename' and 'format' arguments must be strings");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[1]);
-    }
-    else
-    {
-        format = mapnik::guess_type(filename);
-        if (format == "<unknown>") {
-            std::ostringstream s("");
-            s << "unknown output extension for: " << filename << "\n";
-            NanThrowError(s.str().c_str());
-            NanReturnUndefined();
-        }
-    }
-
-    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
-    try
-    {
-        mapnik::save_to_file(*(im->this_),filename, format);
-    }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-    NanReturnUndefined();
-}*/
-
 typedef struct {
     uv_work_t request;
     Image* im1;
