@@ -6,19 +6,19 @@ environment:
     secure: 1amwJJw9fu0j6dXnc5KsAQbSYf7Cjw/dapT6OZWABa6nc52grkKeLQ+DGaOfQz8i
   matrix:
     # custom visual studio 2014 builds
-    - nodejs_version: 0.10.36
-      platform: x64
-      msvs_toolset: 14
-      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-    - nodejs_version: 0.10.36
-      platform: x86
-      msvs_toolset: 14
-      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-    - nodejs_version: 0.12.0
-      platform: x86
-      msvs_toolset: 14
-      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-    - nodejs_version: 0.12.0
+#    - nodejs_version: 0.10.36
+#      platform: x64
+#      msvs_toolset: 14
+#      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+#    - nodejs_version: 0.10.36
+#      platform: x86
+#      msvs_toolset: 14
+#      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+#    - nodejs_version: 0.12.2
+#      platform: x86
+#      msvs_toolset: 14
+#      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    - nodejs_version: 0.12.2
       platform: x64
       msvs_toolset: 14
       TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
@@ -28,49 +28,7 @@ os: Visual Studio 2015
 shallow_clone: true
 
 install:
-  - scripts\remove_node.bat
-  # add local node to path (since we install it below)
-  - SET PATH=%CD%;%PATH%;
-  # call VS Command Prompt AFTER DOWNLOADS (require lowercase platform)
-  # VS command prompt will override %PLATFORM% to upper case!!!
-  # %PLATFORM% will go from x64 to X64
-  - SET PATH=C:\Program Files (x86)\MSBuild\%msvs_toolset%.0\bin;%PATH%
-  - SET PATH=C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\bin;%PATH%
-  # use 64 bit python if platform is 64 bit
-  - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
-  - SET PATH=C:\Program Files\7-Zip;%PATH%
-  - SET ARCHPATH=
-  - if %platform% == x64 (SET ARCHPATH=x64/)
-  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v$env:MAPNIK_GIT-$env:Platform-$env:msvs_toolset.0.7z"
-  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v$env:MAPNIK_GIT-$env:Platform.7z-$env:msvs_toolset.0 -FileName mapnik-sdk.7z
-  - ps: Write-Output "extracting mapnik sdk"
-  - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
-  # install node version per visual studio toolset
-  - ps: Write-Output "fetching https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/${env:ARCHPATH}node.exe"
-  - ps: Start-FileDownload "https://mapbox.s3.amazonaws.com/node-cpp11/v$env:nodejs_version/${env:ARCHPATH}node.exe"
-  # clear out node-gyp header cache
-  - if "%msvs_toolset%" == "14" rd /s /q %USERPROFILE%\.node-gyp
-  # add local node-pre-gyp dir to path
-  - SET PATH=node_modules\.bin;%PATH%
-  # call VS Command Prompt AFTER DOWNLOADS, will override %PLATFORM% to upper case!!!
-  - if %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
-  - if %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64_x86
-  - node -v
-  - node -e "console.log(process.arch,process.execPath)"
-  - SET MAPNIK_SDK=%CD%\mapnik-sdk
-  - CALL scripts\before-build.bat
-  - npm install --build-from-source --msvs_version=2013 %BUILD_ARGS% --loglevel=http
-  - call node_modules\.bin\node-pre-gyp reveal module_path --silent > binding_path.txt
-  - SET /p NODEMAPNIK_BINDING_DIR=<binding_path.txt
-  - del binding_path.txt
-  - ps: scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
-  - powershell scripts\show_module_runtime.ps1 %CD%
-  - ps: scripts\build_against_sdk_03-write-mapnik.settings.ps1
-  - npm test
-  - node-pre-gyp package testpackage %BUILD_ARGS%
-  - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
-  - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS%
-  - if not "%CM%" == "%CM:[republish binary]=%" node-pre-gyp --msvs_version=2013 unpublish publish %BUILD_ARGS%
+  - scripts\build-appveyor.bat
 
 build: off
 test: off
