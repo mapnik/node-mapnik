@@ -40,8 +40,8 @@
     }
   ],
   "dependencies": {
-    "nan": "~1.8.4",
     "mapnik-vector-tile": "~0.8.5",
+    "nan": "~1.8.4",
     "node-pre-gyp": "~0.6.9"
   },
   "bundledDependencies": [
@@ -66,7 +66,8 @@
     "jshint": "^2.5.10",
     "mocha": "2.x",
     "sphericalmercator": "~1.0.2",
-    "bytes":"~2.1.0"
+    "node-gyp": "^2.0.2",
+    "bytes": "~2.1.0"
   },
   "jshintConfig": {
     "node": true,
