@@ -83,9 +83,9 @@ NAN_METHOD(Palette::ToString)
     palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.Holder())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
-    unsigned length = colors.size();
+    std::size_t length = colors.size();
     const std::vector<unsigned>& alpha = p->alphaTable();
-    unsigned alphaLength = alpha.size();
+    std::size_t alphaLength = alpha.size();
 
     std::ostringstream str("");
     str << "[Palette " << length;
@@ -94,7 +94,7 @@ NAN_METHOD(Palette::ToString)
 
     str << std::hex << std::setfill('0');
 
-    for (unsigned i = 0; i < length; i++) {
+    for (std::size_t i = 0; i < length; i++) {
         str << " #";
         str << std::setw(2) << (unsigned)colors[i].r;
         str << std::setw(2) << (unsigned)colors[i].g;
@@ -113,12 +113,12 @@ NAN_METHOD(Palette::ToBuffer)
     palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.Holder())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
-    unsigned length = colors.size();
+    std::size_t length = colors.size();
     const std::vector<unsigned>& alpha = p->alphaTable();
-    unsigned alphaLength = alpha.size();
+    std::size_t alphaLength = alpha.size();
 
     char palette[256 * 4];
-    for (unsigned i = 0, pos = 0; i < length; i++) {
+    for (std::size_t i = 0, pos = 0; i < length; i++) {
         palette[pos++] = colors[i].r;
         palette[pos++] = colors[i].g;
         palette[pos++] = colors[i].b;

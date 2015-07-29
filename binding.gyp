@@ -49,6 +49,10 @@
       "sources": [
         "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
       ],
+      "msvs_disabled_warnings": [
+        4267,
+        4018
+      ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/'
       ],
@@ -126,6 +130,9 @@
         "src/mapnik_cairo_surface.cpp",
         "src/mapnik_vector_tile.cpp",
         "deps/clipper/clipper.cpp"
+      ],
+      "msvs_disabled_warnings": [
+        4267
       ],
       'include_dirs': [
         './deps/clipper/',
