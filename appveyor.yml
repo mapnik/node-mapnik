@@ -30,7 +30,7 @@ shallow_clone: true
 install:
 #try to workaround https://github.com/mapnik/node-mapnik/issues/487
 #http://www.appveyor.com/docs/lang/nodejs-iojs
-  - ps: Install-Product node $env:nodejs_version $env:platform
+#  - ps: Install-Product node $env:nodejs_version $env:platform
   - scripts\build-appveyor.bat
 
 build: off
