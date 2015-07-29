@@ -2594,7 +2594,7 @@ NAN_METHOD(Image::save)
     std::string filename = TOSTR(args[0]);
     std::string format("");
 
-    if (args.Length() >= 2) {
+    if (args.Length() >= 3) {
         if (!args[1]->IsString()) {
             NanThrowTypeError("both 'filename' and 'format' arguments must be strings");
             NanReturnUndefined();
