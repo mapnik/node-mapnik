@@ -17,6 +17,14 @@
     <Parameter name="unicode"><![CDATA[iván]]></Parameter>
     <Parameter name="integer"><![CDATA[10]]></Parameter>
     <Parameter name="decimal"><![CDATA[.999]]></Parameter>
+    <Parameter name="integer_zero"><![CDATA[0]]></Parameter>
+    <Parameter name="integer_one"><![CDATA[1]]></Parameter>
+    <Parameter name="boolean_yes"><![CDATA[yes]]></Parameter>
+    <Parameter name="boolean_no"><![CDATA[no]]></Parameter>
+    <Parameter name="boolean_true"><![CDATA[true]]></Parameter>
+    <Parameter name="boolean_false"><![CDATA[false]]></Parameter>
+    <Parameter name="boolean_on"><![CDATA[on]]></Parameter>
+    <Parameter name="boolean_off"><![CDATA[off]]></Parameter>
   </Parameters>
 
 </Map>

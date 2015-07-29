@@ -1,8 +1,11 @@
 {
   'includes': [ 'common.gypi' ],
+  'variables': {
+    'coverage': 'false'
+  },
   'targets': [
     {
-      'target_name': 'action_before_build',
+      'target_name': 'make_vector_tile',
       'hard_dependency': 1,
       'type': 'none',
       'actions': [
@@ -39,10 +42,69 @@
       ]
     },
     {
+      "target_name": "vector_tile",
+      'dependencies': [ 'make_vector_tile' ],
+      'hard_dependency': 1,
+      "type": "static_library",
+      "sources": [
+        "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
+      ],
+      'include_dirs': [
+        '<(SHARED_INTERMEDIATE_DIR)/'
+      ],
+      'cflags_cc' : [
+          '-D_THREAD_SAFE',
+          '<!@(mapnik-config --cflags)', # assume protobuf headers are here
+          '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
+      ],
+      'xcode_settings': {
+        'OTHER_CPLUSPLUSFLAGS':[
+            '-D_THREAD_SAFE',
+            '<!@(mapnik-config --cflags)', # assume protobuf headers are here
+            '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
+        ],
+        'GCC_ENABLE_CPP_RTTI': 'YES',
+        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+        'MACOSX_DEPLOYMENT_TARGET':'10.8',
+        'CLANG_CXX_LIBRARY': 'libc++',
+        'CLANG_CXX_LANGUAGE_STANDARD':'c++11',
+        'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
+      },
+      'direct_dependent_settings': {
+        'include_dirs': [
+          '<(SHARED_INTERMEDIATE_DIR)/'
+        ],
+        'cflags_cc' : [
+            '-D_THREAD_SAFE'
+        ],
+        'xcode_settings': {
+          'OTHER_CPLUSPLUSFLAGS':[
+             '-D_THREAD_SAFE',
+          ],
+        },
+      },
+      'conditions': [
+        ['OS=="win"',
+          {
+            'include_dirs':[
+              '<!@(mapnik-config --includes)'
+            ],
+            'libraries': [
+              'libprotobuf-lite.lib'
+            ]
+          },
+          {
+            'libraries':[
+              '-lprotobuf-lite'
+            ],
+          }
+        ]
+      ]
+    },
+    {
       'target_name': '<(module_name)',
-      'dependencies': [ 'action_before_build' ],
+      'dependencies': [ 'vector_tile', 'make_vector_tile' ],
       'sources': [
-        "src/json_proj_transform_grammar.cpp",
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
         "src/blend.cpp",
@@ -63,15 +125,33 @@
         "src/mapnik_expression.cpp",
         "src/mapnik_cairo_surface.cpp",
         "src/mapnik_vector_tile.cpp",
-        "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
+        "deps/clipper/clipper.cpp"
       ],
       'include_dirs': [
+        './deps/clipper/',
         './node_modules/mapnik-vector-tile/src/',
-        '<(SHARED_INTERMEDIATE_DIR)/',
         './src',
         "<!(node -e \"require('nan')\")"
       ],
+      'defines': [
+          'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
+          'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
+          'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
+          'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
+          'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
+      ],
       'conditions': [
+        ["coverage == 'true'", {
+            "cflags_cc": ["--coverage"],
+            "xcode_settings": {
+                "OTHER_CPLUSPLUSFLAGS":[
+                    "--coverage"
+                ],
+                'OTHER_LDFLAGS':[
+                    '--coverage'
+                ]
+            }
+        }],
         ['OS=="win"',
           {
             'include_dirs':[
@@ -89,10 +169,6 @@
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
               'VCLinkerTool': {
-                'AdditionalOptions': [
-                    # https://github.com/mapnik/node-mapnik/issues/74
-                  '/FORCE:MULTIPLE'
-                ],
                 'AdditionalLibraryDirectories': [
                   '<!@(mapnik-config --ldflags)'
                 ],
@@ -113,7 +189,7 @@
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                '<!@(mapnik-config --cflags)'
+                '<!@(mapnik-config --cflags)',
               ],
               'OTHER_CFLAGS':[
                 '<!@(mapnik-config --cflags)'

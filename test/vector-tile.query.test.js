@@ -1,7 +1,11 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
 describe('mapnik.VectorTile query polygon', function() {
     var vtile;
@@ -12,6 +16,25 @@ describe('mapnik.VectorTile query polygon', function() {
         vtile.parse();
         done();
     });
+
+    it('query fails due to bad parameters', function() {
+        assert.throws(function() { vtile.query(); });
+        assert.throws(function() { vtile.query(1); });
+        assert.throws(function() { vtile.query(1,'2'); });
+        assert.throws(function() { vtile.query(1,2,null); });
+        assert.throws(function() { vtile.query(1,2,{tolerance:null}); });
+        assert.throws(function() { vtile.query(1,2,{layer:null}); });
+    });
+
+    it('should not be able to query on a vector tile with width or height of zero', function(done) {
+        var vtile2 = new mapnik.VectorTile(5,28,12,{width:0, height:0});
+        assert.throws(function() { vtile2.query(1,2); });
+        vtile2.query(1,2, function(err, results) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
     it('query polygon', function(done) {
         check(vtile.query(139.6142578125,37.17782559332976,{tolerance:0}));
         vtile.query(139.6142578125,37.17782559332976,{tolerance:0}, function(err, features) {
@@ -27,6 +50,7 @@ describe('mapnik.VectorTile query polygon', function() {
             assert.equal(features[0].layer,'world');
         }
     });
+
     it('query polygon + tolerance (noop)', function(done) {
         // tolerance only applies to points and lines currently in mapnik::hit_test
         check(vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000}));
@@ -104,7 +128,6 @@ describe('mapnik.VectorTile query polygon (clipped)', function() {
 describe('mapnik.VectorTile query point', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -177,10 +200,10 @@ describe('mapnik.VectorTile query point', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[1,2]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['A','B']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[2000,196000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[1,2]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['A','B']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[2000,196000]);
         }
     });
     it('query point + tolerance (B,A)', function(done) {
@@ -192,10 +215,10 @@ describe('mapnik.VectorTile query point', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[2,1]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['B','A']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[6000,203000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[2,1]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['B','A']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[6000,203000]);
         }
     });
 });
@@ -203,7 +226,6 @@ describe('mapnik.VectorTile query point', function() {
 describe('mapnik.VectorTile query line', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -270,8 +292,8 @@ describe('mapnik.VectorTile query line', function() {
         }
     });
     it('query line (A pt 4)', function(done) {
-        check(vtile.query(20.1,20.1,{tolerance:1}));
-        vtile.query(20.1,20.1,{tolerance:1}, function(err, features) {
+        check(vtile.query(20.1,20.1,{tolerance:1000}));
+        vtile.query(20.1,20.1,{tolerance:1000}, function(err, features) {
             assert.ifError(err);
             check(features);
             done();
@@ -293,10 +315,10 @@ describe('mapnik.VectorTile query line', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[1,2]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['A','B']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[0,6593000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[1,2]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['A','B']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[0,6593000]);
         }
     });
     it('query line + tolerance (B,A)', function(done) {
@@ -308,10 +330,10 @@ describe('mapnik.VectorTile query line', function() {
         });
         function check(features) {
             assert.equal(features.length,2);
-            assert.deepEqual(features.map(function(f) { return f.id() }),[2,1]);
-            assert.deepEqual(features.map(function(f) { return f.layer }),['layer-name','layer-name']);
-            assert.deepEqual(features.map(function(f) { return f.attributes().name }),['B','A']);
-            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000 }),[1000,3396000]);
+            assert.deepEqual(features.map(function(f) { return f.id(); }),[2,1]);
+            assert.deepEqual(features.map(function(f) { return f.layer; }),['layer-name','layer-name']);
+            assert.deepEqual(features.map(function(f) { return f.attributes().name; }),['B','A']);
+            assert.deepEqual(features.map(function(f) { return Math.round(f.distance/1000) * 1000; }),[1000,3396000]);
         }
     });
 });
@@ -319,7 +341,6 @@ describe('mapnik.VectorTile query line', function() {
 describe('mapnik.VectorTile query multiline', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -352,8 +373,8 @@ describe('mapnik.VectorTile query multiline', function() {
         done();
     });
     it('query multiline (pt @ 1,1)', function(done) {
-        check(vtile.query(1,1,{tolerance:1}));
-        vtile.query(1,1,{tolerance:1},function(err, features) {
+        check(vtile.query(1,1,{tolerance:100}));
+        vtile.query(1,1,{tolerance:100},function(err, features) {
             assert.ifError(err);
             check(features);
             done();
@@ -384,7 +405,6 @@ describe('mapnik.VectorTile query multiline', function() {
 describe('mapnik.VectorTile query multipoint', function() {
     var vtile;
     before(function(done) {
-        mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
         vtile = new mapnik.VectorTile(0,0,0);
         var coords = [
           [0.1,0.1],
@@ -412,8 +432,8 @@ describe('mapnik.VectorTile query multipoint', function() {
     });
 
     it('query multipoint (pt @ 0.1,0.1)', function(done) {
-        check(vtile.query(0.1,0.1,{tolerance:100}));
-        vtile.query(0.1,0.1,{tolerance:100},function(err, features) {
+        check(vtile.query(0.1,0.1,{tolerance:2000}));
+        vtile.query(0.1,0.1,{tolerance:2000},function(err, features) {
             assert.ifError(err);
             check(features);
             done();
@@ -426,3 +446,55 @@ describe('mapnik.VectorTile query multipoint', function() {
         }
     });
 });
+
+describe('mapnik.VectorTile query (distance <= tolerance)', function() {
+    it('LineString - no features', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [ [-180,85], [180,-85] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        assert.equal(vtile.query(175,80,{tolerance:1}).length,0);
+        done();
+    });
+    it('MultiPoint - no features', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "MultiPoint",
+              "coordinates": [ [-180,85], [180,-85] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        assert.equal(vtile.query(175,80,{tolerance:1}).length,0);
+        done();
+    });
+    it('Polygon - no features', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [ [-180,85], [180,-85], [-180,-85], [-180,85] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        assert.equal(vtile.query(175,80,{tolerance:1}).length,0);
+        done();
+    });
+});
+

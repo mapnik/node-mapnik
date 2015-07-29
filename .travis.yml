@@ -1,64 +1,93 @@
 language: cpp
 
-# opt-in to xcode6: http://blog.travis-ci.com/2014-11-03-xcode-61-beta/
-osx_image: xcode61
+sudo: false
 
-os:
-  - linux
-  - osx
+git:
+  depth: 10
 
-compiler:
- - clang
- - gcc
+addons:
+  apt:
+    sources:
+     - ubuntu-toolchain-r-test
+     - llvm-toolchain-precise-3.5
+    packages:
+     - clang-3.5
 
 matrix:
-  exclude:
+  include:
+     # Coverage
      - os: osx
-       compiler: gcc
+       compiler: clang
+       env: NODE_VERSION="1.8.4" COVERAGE=true # node abi 43
+     # Linux
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="2.4.0" # node abi 44
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="1.8.4" # node abi 43
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="0.12.7" # node abi 14
+     - os: linux
+       compiler: clang
+       env: NODE_VERSION="0.10.40" # node abi 11
+     # OS X
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="2.4.0" # node abi 44
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="1.8.4" # node abi 43
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="0.12.7" # node abi 14
+     - os: osx
+       compiler: clang
+       env: NODE_VERSION="0.10.40" # node abi 11
 
 env:
-  matrix:
-   - NODE_NVM_VERSION="0.11.14" JOBS=8
-   - NODE_NVM_VERSION="0.10.33" JOBS=8
   global:
+   - JOBS: "8"
+   - MAPNIK_GIT: v3.0.1
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
 
-
 before_install:
- - platform=$(uname -s | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/")
- # upgrade libstdc++ to support C++11
- - if [[ ${platform} == 'linux' ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;sudo apt-get update -y;sudo apt-get install -y libstdc++6; fi;
- - if [[ ${platform} == 'darwin' ]]; then xcrun --sdk macosx --show-sdk-version; fi;
- # check if tag exists and matches package.json
  - scripts/validate_tag.sh
- - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
- # put node-pre-gyp on path
+ - export COVERAGE=${COVERAGE:-false}
+ - if [[ $(uname -s) == 'Linux' ]]; then
+     export CXX="clang++-3.5";
+     export CC="clang-3.5";
+     export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python2.7/site-packages;
+   else
+     export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages;
+   fi;
+ - source ./scripts/install_node.sh ${NODE_VERSION}
  - export PATH=./node_modules/.bin/:$PATH
- # here we set up the node version on the fly based on the matrix value.
- # This is done manually so that it is easy to flip the 'language' to
- # objective-c in another branch (to run the same travis.yml on OS X)
- - git clone https://github.com/creationix/nvm.git ../.nvm
- - source ../.nvm/nvm.sh
- - nvm install $NODE_NVM_VERSION
- - nvm use $NODE_NVM_VERSION
- - node --version
- - npm --version
- - PUBLISH_BINARY=false
- - REPUBLISH_BINARY=false
 
 install:
- - if test "${COMMIT_MESSAGE#*'[test binary]'}" != "$COMMIT_MESSAGE"; then npm install --fallback-to-build=false; else ./scripts/build_against_sdk.sh && rm -rf sdk; fi;
- - if [[ ${platform} == 'linux' ]]; then $(which node) ./node_modules/.bin/_mocha --check-leaks --no-exit --no-timeouts --throw-deprecation || dmesg -x; else npm test; fi
+ - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+ - if [[ ${COVERAGE} == true ]]; then
+     PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
+     ./scripts/build_against_sdk.sh --coverage=true;
+   else
+     ./scripts/build_against_sdk.sh;
+   fi
+ - node-pre-gyp package testpackage
+ - npm test
 
 before_script:
- - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
- - if test "${COMMIT_MESSAGE#*'[republish binary]'}" != "$COMMIT_MESSAGE"; then REPUBLISH_BINARY=true; fi;
+ - if [[ ${CXX} =~ "clang" ]] && [[ ${COVERAGE} == false ]]; then
+      if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]]; then
+        node-pre-gyp publish;
+      elif [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]]; then
+        node-pre-gyp unpublish publish;
+      fi
+   fi
 
 script:
- - node-pre-gyp package testpackage
- - if [[ ${PUBLISH_BINARY} == true ]]; then node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
- - if [[ ${REPUBLISH_BINARY} == true ]]; then node-pre-gyp unpublish && node-pre-gyp publish; node-pre-gyp info; rm -rf {build,lib/binding}; node-pre-gyp install; npm test; fi
-
-#after_script:
-# - if [[ ${PUBLISH_BINARY} == false ]] && [[ "${platform}" == 'linux' ]]; then ./scripts/ubuntu_ppa_tests.sh; fi;
+ - if [[ ${COVERAGE} == true ]]; then ./mason_packages/.link/bin/cpp-coveralls --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp > /dev/null; fi;
+ - node --expose-gc bench/error/test_vt_abort2.js
+ # ugh: always killed by travis
+ #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js

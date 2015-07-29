@@ -1,8 +1,8 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
-var fs = require('fs');
 var path = require('path');
-var helper = require('./support/helper');
 var exists = require('fs').existsSync || require('path').existsSync;
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
@@ -17,8 +17,8 @@ describe('mapnik rendering ', function() {
             assert.ok(image);
             assert.ok(!err);
             var buffer = im.encodeSync('png');
+            assert.ok(buffer);
             done();
-            //assert.equal(helper.md5(buffer), 'ef33223235b26c782736c88933b35331');
         });
     });
 
@@ -78,7 +78,7 @@ describe('mapnik rendering ', function() {
         map.loadSync('./test/stylesheet.xml');
         map.zoomAll();
         try {
-            map.renderFile(filename, null, function(error) { });
+            map.renderFile(filename, null, function(error) {  assert.ok(error); });
         } catch (ex) {
             assert.ok(ex);
             done();

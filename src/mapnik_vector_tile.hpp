@@ -3,6 +3,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
@@ -67,9 +68,6 @@ public:
     static void after_to_geojson(uv_work_t* req);
     static NAN_METHOD(addGeoJSON);
     static NAN_METHOD(addImage);
-#ifdef PROTOBUF_FULL
-    static NAN_METHOD(toString);
-#endif
     static void EIO_RenderTile(uv_work_t* req);
     static void EIO_AfterRenderTile(uv_work_t* req);
     static NAN_METHOD(setData);
@@ -84,6 +82,10 @@ public:
     static Local<Value> _parseSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(addData);
     static NAN_METHOD(composite);
+    static NAN_METHOD(compositeSync);
+    static Local<Value> _compositeSync(_NAN_METHOD_ARGS);
+    static void EIO_Composite(uv_work_t* req);
+    static void EIO_AfterComposite(uv_work_t* req);
     // methods common to mapnik.Image
     static NAN_METHOD(width);
     static NAN_METHOD(height);
@@ -131,6 +133,9 @@ public:
     }
     unsigned height() const {
         return height_;
+    }
+    int byte_size() {
+        return byte_size_;
     }
     void _ref() { Ref(); }
     void _unref() { Unref(); }

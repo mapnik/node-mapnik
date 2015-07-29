@@ -1,8 +1,6 @@
 #ifndef __NODE_MAPNIK_GRID_UTILS_H__
 #define __NODE_MAPNIK_GRID_UTILS_H__
 
-#include "mapnik3x_compatibility.hpp"
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>           // for feature_impl, etc
@@ -44,7 +42,7 @@ static void grid2utf(T const& grid_type,
     {
         uint16_t idx = 0;
         grid_line_type line(new uint16_t[array_size]);
-        typename T::value_type const* row = grid_type.getRow(y);
+        typename T::value_type const* row = grid_type.get_row(y);
         for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
         {
             // todo - this lookup is expensive
@@ -96,7 +94,7 @@ static void write_features(T const& grid_type,
     {
         return;
     }
-    std::set<std::string> const& attributes = grid_type.property_names();
+    std::set<std::string> const& attributes = grid_type.get_fields();
     typename T::feature_type::const_iterator feat_end = g_features.end();
     for (std::string const& key_item : key_order)
     {
@@ -118,14 +116,14 @@ static void write_features(T const& grid_type,
         {
             if (attr == "__id__")
             {
-                feat->Set(NanNew(attr.c_str()), NanNew<Integer>(feature->id()));
+                feat->Set(NanNew(attr.c_str()), NanNew<Number>(feature->id()));
             }
             else if (feature->has_key(attr))
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
                 feat->Set(NanNew(attr.c_str()),
-                    MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),
+                    mapnik::util::apply_visitor(node_mapnik::value_converter(),
                     attr_val));
             }
         }

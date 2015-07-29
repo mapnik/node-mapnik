@@ -2,16 +2,26 @@
 #include "mapnik_geometry.hpp"
 #include "mapnik_projection.hpp"
 
+#include <mapnik/datasource.hpp>
+#include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
-#include "proj_transform_adapter.hpp"
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Geometry::constructor;
 
+/**
+ * Geometry: a representation of geographical features in terms of
+ * shape alone. This class provides many useful functions for conversion
+ * to and from formats.
+ *
+ * You'll never create a mapnik.Geometry instance manually: it is always
+ * part of a {@link mapnik.Feature} instance, which is often a part of
+ * a {@link mapnik.Featureset} instance.
+ *
+ * @name mapnik.Geometry
+ * @class
+ */
 void Geometry::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -26,17 +36,17 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSON", toJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Point",MAPNIK_POINT)
+                                "Point",mapnik::datasource_geometry_t::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "LineString",MAPNIK_LINESTRING)
+                                "LineString",mapnik::datasource_geometry_t::LineString)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Polygon",MAPNIK_POLYGON)
+                                "Polygon",mapnik::datasource_geometry_t::Polygon)
     target->Set(NanNew("Geometry"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
 
 Geometry::Geometry(mapnik::feature_ptr f) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     feat_(f) {}
 
 Geometry::~Geometry()
@@ -62,7 +72,7 @@ NAN_METHOD(Geometry::New)
     NanReturnValue(args.This());
 }
 
-Handle<Value> Geometry::New(mapnik::feature_ptr f) {
+Handle<Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     NanEscapableScope();
     Geometry* g = new Geometry(f);
     Handle<Value> ext = NanNew<External>(g);
@@ -70,10 +80,29 @@ Handle<Value> Geometry::New(mapnik::feature_ptr f) {
     return NanEscapeScope(obj);
 }
 
+/**
+ * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
+ * synchronously.
+ *
+ * @returns {string} GeoJSON, string-encoded representation of this geometry.
+ * @memberof mapnik.Geometry
+ * @instance
+ * @name toJSONSync
+ */
 NAN_METHOD(Geometry::toJSONSync)
 {
     NanScope();
     NanReturnValue(_toJSONSync(args));
+}
+
+bool to_geojson_projected(std::string & json,
+                          mapnik::geometry::geometry<double> const& geom,
+                          mapnik::proj_transform const& prj_trans)
+{
+    unsigned int n_err = 0;
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
+    if (n_err > 0) return false;
+    return mapnik::util::to_geojson(json,projected_geom);
 }
 
 Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
@@ -82,10 +111,14 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
     std::string json;
     if (args.Length() < 1)
     {
-        if (!mapnik::util::to_geojson(json,g->feat_->paths()))
+        if (!mapnik::util::to_geojson(json,g->feat_->get_geometry()))
         {
+            // Fairly certain this situation can never be reached but
+            // leaving it none the less
+            /* LCOV_EXCL_START */
             NanThrowError("Failed to generate GeoJSON");
             return NanEscapeScope(NanUndefined());
+            /* LCOV_EXCL_END */
         }
     }
     else
@@ -110,18 +143,15 @@ Local<Value> Geometry::_toJSONSync(_NAN_METHOD_ARGS) {
             }
             ProjTransform* tr = node::ObjectWrap::Unwrap<ProjTransform>(obj);
             mapnik::proj_transform const& prj_trans = *tr->get();
-            node_mapnik::proj_transform_container projected_paths;
-            for (auto & geom : g->feat_->paths())
+            mapnik::geometry::geometry<double> const& geom = g->feat_->get_geometry();
+            if (!to_geojson_projected(json,geom,prj_trans))
             {
-                projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
-            }
-            using sink_type = std::back_insert_iterator<std::string>;
-            static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
-            sink_type sink(json);
-            if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
-            {
+                // Fairly certain this situation can never be reached but
+                // leaving it none the less
+                /* LCOV_EXCL_START */
                 NanThrowError("Failed to generate GeoJSON");
                 return NanEscapeScope(NanUndefined());
+                /* LCOV_EXCL_END */
             }
         }
     }
@@ -137,6 +167,18 @@ struct to_json_baton {
     Persistent<Function> cb;
 };
 
+
+/**
+ * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
+ * asynchronously.
+ *
+ * @param {Object} [options={}]. The only supported object is `transform`,
+ * which should be a valid {@link mapnik.ProjTransform} object.
+ * @param {Function} callback called with (err, result)
+ * @memberof mapnik.Geometry
+ * @instance
+ * @name toJSON
+ */
 NAN_METHOD(Geometry::toJSON)
 {
     NanScope();
@@ -188,33 +230,38 @@ void Geometry::to_json(uv_work_t* req)
         if (closure->tr)
         {
             mapnik::proj_transform const& prj_trans = *closure->tr->get();
-            node_mapnik::proj_transform_container projected_paths;
-            for (auto & geom : closure->g->feat_->paths())
+            mapnik::geometry::geometry<double> const& geom = closure->g->feat_->get_geometry();
+            if (!to_geojson_projected(closure->result,geom,prj_trans))
             {
-                projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
-            }
-            using sink_type = std::back_insert_iterator<std::string>;
-            static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
-            sink_type sink(closure->result);
-            if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
-            {
+                // Fairly certain this situation can never be reached but
+                // leaving it none the less
+                // LCOV_EXCL_START
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
+                // LCOV_EXCL_END
             }
         }
         else
         {
-            if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->paths()))
+            if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->get_geometry()))
             {
+                // Fairly certain this situation can never be reached but
+                // leaving it none the less
+                /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
+                /* LCOV_EXCL_END */
             }
         }
     }
     catch (std::exception const& ex)
     {
+        // Fairly certain this situation can never be reached but
+        // leaving it none the less
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->result = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -224,8 +271,12 @@ void Geometry::after_to_json(uv_work_t* req)
     to_json_baton *closure = static_cast<to_json_baton *>(req->data);
     if (closure->error)
     {
+        // Fairly certain this situation can never be reached but
+        // leaving it none the less
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->result.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
@@ -240,6 +291,14 @@ void Geometry::after_to_json(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Get the geometry's extent
+ *
+ * @name extent
+ * @memberof mapnik.Geometry
+ * @instance
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
+ */
 NAN_METHOD(Geometry::extent)
 {
     NanScope();
@@ -253,24 +312,48 @@ NAN_METHOD(Geometry::extent)
     NanReturnValue(a);
 }
 
+/**
+ * Get the geometry's representation as [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text)
+ *
+ * @name toWKT
+ * @memberof mapnik.Geometry
+ * @instance
+ * @returns {string} wkt representation of this geometry
+ */
 NAN_METHOD(Geometry::toWKT)
 {
     NanScope();
     std::string wkt;
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
-    if (!mapnik::util::to_wkt(wkt, g->feat_->paths()))
+    if (!mapnik::util::to_wkt(wkt, g->feat_->get_geometry()))
     {
+        // Fairly certain this situation can never be reached but
+        // leaving it none the less
+        /* LCOV_EXCL_START */
         NanThrowError("Failed to generate WKT");
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
     NanReturnValue(NanNew(wkt.c_str()));
 }
 
+/**
+ * Get the geometry's representation as Well-Known Binary
+ *
+ * @name toWKB
+ * @memberof mapnik.Geometry
+ * @instance
+ * @returns {string} wkb representation of this geometry
+ */
 NAN_METHOD(Geometry::toWKB)
 {
     NanScope();
-    std::string wkt;
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
-    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->paths(), mapnik::util::wkbNDR);
+    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);
+    if (!wkb)
+    {
+        NanThrowError("Failed to generate WKB - geometry likely null");
+        NanReturnUndefined();
+    }
     NanReturnValue(NanNewBufferHandle(wkb->buffer(), wkb->size()));
 }

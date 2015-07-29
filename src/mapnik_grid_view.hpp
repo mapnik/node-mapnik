@@ -1,30 +1,33 @@
 #ifndef __NODE_MAPNIK_GRID_VIEW_H__
 #define __NODE_MAPNIK_GRID_VIEW_H__
 
+#if defined(GRID_RENDERER)
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
 #include <mapnik/grid/grid_view.hpp>
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 class Grid;
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::grid_view> grid_view_ptr;
+typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
 class GridView: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(Grid * JSGrid,
+    static Handle<Value> NewInstance(Grid * JSGrid,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);
     static NAN_METHOD(encode);
+    static NAN_METHOD(fields);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
@@ -44,5 +47,7 @@ private:
     grid_view_ptr this_;
     Grid * JSGrid_;
 };
+
+#endif
 
 #endif

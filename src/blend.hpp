@@ -3,6 +3,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
@@ -10,13 +11,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "mapnik_palette.hpp"
-#include "reader.hpp"
 #include "tint.hpp"
-
-#include "mapnik3x_compatibility.hpp"
-// boost
-#include MAPNIK_SHARED_INCLUDE
 
 namespace node_mapnik {
 
@@ -28,17 +25,19 @@ struct BImage {
         y(0),
         width(0),
         height(0),
-        tint() {}
+        tint(),
+        im_ptr(nullptr) {}
     v8::Persistent<v8::Object> buffer;
-    unsigned char *data;
+    const char * data;
     size_t dataLength;
-    int x, y;
+    int x;
+    int y;
     int width, height;
     Tinter tint;
-    MAPNIK_UNIQUE_PTR<ImageReader> reader;
+    std::unique_ptr<mapnik::image_rgba8> im_ptr;
 };
 
-typedef MAPNIK_SHARED_PTR<BImage> ImagePtr;
+typedef std::shared_ptr<BImage> ImagePtr;
 typedef std::vector<ImagePtr> Images;
 
 enum BlendFormat {
@@ -57,8 +56,8 @@ enum EncoderType {
     BLEND_ENCODER_MINIZ
 };
 
-NAN_METHOD(rgb2hsl2);
-NAN_METHOD(hsl2rgb2);
+NAN_METHOD(rgb2hsl);
+NAN_METHOD(hsl2rgb);
 NAN_METHOD(Blend);
 
 struct BlendBaton {
@@ -67,7 +66,6 @@ struct BlendBaton {
     Images images;
 
     std::string message;
-    std::vector<std::string> warnings;
 
     int quality;
     BlendFormat format;

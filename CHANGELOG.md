@@ -1,5 +1,189 @@
 # Changelog
 
+## 3.4.1
+
+ - Added support for `buffer_size` in `addGeoJSON` (#457)
+ - Fixed bug in `render` method of VectorTile where invalid parameters could cause a segfault.
+ - Added `mapnik.Image.resize` method that enables images to be resized.
+ - Now setting `VRT_SHARED_SOURCE=0` (#437)
+ - Removed usage of `V8::AdjustAmountOfExternalAllocatedMemory` in `mapnik.Image` and `mapnik.Grid` (#136)
+ - Upgraded to node-pre-gyp@0.6.9
+ - Upgrade to mapnik-vector-tile@0.8.5
+   - Updated vector tile clipping so that it throws out polygons outside bbox of tile
+ - Binaries updated to use Mapnik v3.0.1 and mapnik-packaging@049968d24
+
+Notable changes in the Mapnik SDK include:
+
+ - Update gdal 1.11.2->2.0.0
+ - Update freetype 2.5.5->2.6
+ - Update harfbuzz 0.9.40->0.9.41
+ - Changed the offset algorithm such that offsets now will always be positive to the left of the direction of the path
+ - Increased performance of text rendering
+ - Fixed text placement performance after #2949 (#2963)
+ - Fixed rendering behavior for text-minimum-path-length which regressed in 3.0.0 (#2990)
+ - Fixed handling of xml:id in SVG parsing (#2989)
+ - Fixed handling of out of range rx and ry in SVG rect (#2991)
+ - Fixed reporting of envelope from mapnik::memory_datasource when new features are added (#2985)
+ - Fixed parsing of GeoJSON when unknown properties encountered at FeatureCollection level (#2983)
+ - Fixed parsing of GeoJSON when properties contained {} (#2964)
+ - Fixed potential hang due to invalid use of line-geometry-transform (6d6cb15)
+ - Moved unmaintained plugins out of core: osm, occi, and rasterlite (#2980)
+
+## 3.4.0
+
+ - `mapnik.imageType` is now passed in options to new mapnik.Image
+ - Upgrade to mapnik-vector-tile@0.8.4
+  - Fixes support for decoding known degenerate polygons (from AGG clipper)
+  - Fixes support for handling data in alternative projections
+  - Fixes support for geometry collections
+  - Fixes support for skipping out of range coordinates to avoid aborting polygon clipping
+  - Includes fixes to clipper to avoid aborting on out of range coordinates
+  - Fixed support for gracefully handling proj4 transformation errors
+ - Upgraded to node-pre-gyp@0.6.7
+ - Binaries updated to use Mapnik v3.x (master branch) at 39eab41 and mapnik-packaging@3ab051556e
+
+Notable changes in the Mapnik SDK include:
+
+ - Fixed potential crash when rendering metatiles to webp
+ - Now throws on missing style when loading map in strict mode
+ - Now handling when proj4 returns HUGE_VAL
+ - Fixed crash when jpeg reader is used to open a png
+ - Fixed gamma pollution for dot symbolizer
+ - Purged usage of `boost::ptr_vector` and `boost::unordered_map`
+ - Support for GDAL 2.0
+ - Update boost 1.57.0->1.58.0
+ - Update icu 1.54.1->1.55.1
+ - Update sqlite 3.8.8.2->3.8.10.2
+ - Update png 1.6.16->1.6.17
+ - Update tiff 4.0.4beta->4.0.4
+ - Update jpeg-turbo 1.4.0->1.4.1
+
+## 3.3.0
+ - Ugraded to Mapnik 3.x version with totally new geometry storage
+ - Upgrade to mapnik-vector-tile@0.8.0
+ - Upgraded to node-pre-gyp@0.6.5
+ - Added an additional parameter to Projection initialization. This prevents the initialization
+   of a proj4 object internally. This will only be useful when reprojecting from epsg:4326 to
+   epsg:3857 and vise versa.
+ - Binaries updated to use Mapnik v3.x (master branch) at 126c777.
+
+## 3.2.0
+ - Added support for a variety of different grayscale images and `mapnik.imageType` list
+   - `mapnik.imageType.null`
+   - `mapnik.imageType.rgba8`
+   - `mapnik.imageType.gray8`
+   - `mapnik.imageType.gray8s`
+   - `mapnik.imageType.gray16`
+   - `mapnik.imageType.gray16s`
+   - `mapnik.imageType.gray32`
+   - `mapnik.imageType.gray32s`
+   - `mapnik.imageType.gray32f`
+   - `mapnik.imageType.gray64`
+   - `mapnik.imageType.gray64s`
+   - `mapnik.imageType.gray64f`
+ - Added the ability to return colors optionally with `getPixel` on `Image` objects
+ - Added new constructors for `Color` object
+ - Added the concept of premultiplied to `Image` and `Color` objects
+ - `Image` objects no longer have a `background` property
+ - Added `fill` and `fillSync` methods to `Image` objects to replace `background` property
+ - Added `imageCopy` to copy an image into a new image type
+ - `Image` `rgba8` objects are not automatically premultiplied prior to using `composite` operation
+ - Added image view support for all new grayscale image types
+ - Modified tolerance option on `query` and `queryMany` to only include features within that tolerance into the vector tile.
+ - Modified the `renderSync` method on the `Map` object to only take an optional parameters object. Format can still be set by passing format as a optional argument. This was done so that it mirrors `renderFileSync`. The default format if none is provide is 'png'
+ - Changed name of method `hsl2rgb2` to `hsl2rgb`
+ - Changed name of method `rgb2hsl2` to `rgb2hsl`
+ - Removed format parameter from `Grid` and `GridView` objects `encode` and `encodeSync` methods as it had no affect.
+ - Added `active`, `queryable`, `clear_label_cache`, `minzoom`, and `maxzoom` property to `Layer` objects
+ - Added `compositeSync` to `VectorTile` object.
+ - Changed `composite` in `VectorTile` to accept a callback
+ - Upgraded to nan@1.7.0 and mapnik-vector-tile@0.7.1
+ - Changed boolean on `Parameters` for `Map` object such that 1 and 0 are no longer boolean but integers.
+ - Binaries updated to use Mapnik v3.x (master branch) at 3270d42b74821ac733db169487b5cd5d5748c1e6 and mapnik-packaging@6638de9b5b
+
+Notable changes in the Mapnik SDK include:
+ - Changes: https://github.com/mapnik/mapnik/compare/30c6cf636c...5a49842952
+ - Mapnik TopoJSON plugin now supports optional `bbox` property on layer
+ - Various improvements to Mapnik pgraster plugin
+ - Mapnik GDAL plugin now keeps datasets open for the lifetime of the datasource (rather than per featureset)
+ - Mapnik GDAL plugin now has optimized nodata handling for RGB images.
+ - Mapnik no longer calls `dlclose` on gdal.input (mapnik/mapnik#2716)
+ - Upgraded Clipper to v6.2.8 / svn r492.
+ - Upgraded libtiff to 4.0.4beta
+ - Upgraded libjpeg-turbo to 1.4.0
+ - Upgraded GDAL to 1.11.2
+ - Upgraded harfbuzz to 0.9.38
+
+## 3.1.6
+
+ - Now supporting IO.js 1.x and Node v0.12.x
+ - Optimized `vtile.addGeoJSON` by switching to Mapnik native GeoJSON plugin internally rather than OGR.
+ - Upgraded to node-pre-gyp@0.6.4
+
+## 3.1.5
+
+ - Security Fix: now throwing error instead of abort when vtile.getData() is called which needs to produce a node::Buffer larger than node::Buffer::kMaxLength (bed994a). However this condition did not previously happen due to integer overflow which is now also fixed (#371)
+ - Now handling C++ exceptions in vt.composite to prevent possible abort (although none could be replicated)
+ - Removed nik2img from binary packages (not useful since it duplicates ./bin/mapnik-render.js)
+ - Added stress test benchmarks that live in ./bench folder of git repo
+ - Added `isSolid` method to `Image` object
+ - When making vector tiles that are larger then 64 MB changed node so that it would no longer through an abort but rather an exception
+ - Added extra meta data for some datasource associated with the use of the `describe` method on datasources 
+
+Notable changes in the Mapnik SDK include:
+ - Changes: https://github.com/mapnik/mapnik/compare/8063fa0...30c6cf636c
+ - `shapeindex` now works properly for point 3d shapes
+ - Improved auto-detection of `geometry_table` from sql subselects for PostGIS plugin
+ - Fixed hextree encoder (will produce non-visible image differences)
+ - Fixed bugs in GeoJSON parser
+ - GroupSymbolizer now supports MarkersSymbolizer and not PointSymbolizer
+
+## 3.1.4
+
+ - Fixed bugs in `VectorTile.toGeoJSON` to ensure properly formatted JSON output.
+ - Cleanup of Javascript code and tests using JSLint.
+ - Added preliminary support for building against Nan v1.5.0 and IO.js v1.0.1 (but still using Nan v1.4.1 for the time being)
+ - Added `mapnik.versions.mapnik_git_describe` to get access to the git details of the Mapnik version node-mapnik was built against.
+ - Fixed `mapnik-inspect.js` script.
+ - Binaries updated to use Mapnik v3.x (master branch) at 8063fa0 and mapnik-packaging@0cc6382
+
+Notable changes in the Mapnik SDK include:
+ - Changes: https://github.com/mapnik/mapnik/compare/1faaf595...8063fa0
+ - Fixed marker properties to not override svg `fill:none` or `stroke:none`, which avoids unintended colorization of svg symbols
+ - Added support for `text-transform:reverse`
+ - Fixed utf8 output in json properties grammar
+ - Upgraded to latest [Mapbox Variant](https://github.com/mapbox/variant)
+ - Upgrade freetype 2.5.4 -> 2.5.5
+ - Upgrade libpng 1.6.15 -> 1.6.16
+ - Upgrade cairo 1.12.16 -> 1.12.18
+ - Still pinned to harfbuzz 7d5e7613ced3dd39d05df83c
+
+## 3.1.3
+
+ - Now vt.composite `buffer-size` defaults to `1` instead of `256` and `tolerance` defaults to `8` instead of `1`.
+ - Improvements to internals of mapnik.blend
+ - Fixed rare error when reading image data with the async `mapnik.Image.fromBytes`
+ - Binaries updated to use Mapnik v3.x (master branch) at 1faaf595 and mapnik-packaging@5a436d45e3513
+
+Notable changes in the Mapnik SDK include:
+
+ - New and experimental `dot` symbolizer.
+ - GeoJSON/TopoJSON plugin now returns correct ids even if rendered twice.
+ - `font-feature-settings` is now respected per text item.
+ - image_data internals were refactored.
+ - Ignore overviews with 0 scale in pgraster (@rafatower)
+ - Fixed support for handling all SQLite columns (@StevenLooman)
+ - Upgrade libpng 1.6.14->1.6.15
+ - Upgrade freetype 2.5.3->2.5.4
+ - Upgrade sqlite 3080701->3080704
+ - Upgrade postgres 9.3.4->9.4.0
+ - Upgrade openssl 1.0.1i->1.0.1j
+ - Upgrade harfbuzz 0.9.35->0.9.37/7d5e7613ced3dd39d05df83ca7e8952cbecd68f6
+
+## 3.1.2
+
+ - Now providing 32 bit windows binaries in addition to 64 bit
+
 ## 3.1.1
 
  - Added `Map.registerFonts()`
@@ -28,7 +212,7 @@ Notable changes in binaries:
 Notable changes in the Mapnik SDK include:
  - GDAL updated to 0334c2bed93f2
  - ICU 53.1 -> 54.1
- - xml2 2.9.1 -> 2.9.1
+ - xml2 2.9.1 -> 2.9.2
  - webp 0.4.0 -> 0.4.2
  - libpng 1.6.13 -> 1.6.14
  - sqlite 3.8.6 -> 3.8.7.1

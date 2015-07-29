@@ -3,26 +3,27 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include <mapnik/image_data.hpp>        // for image_data_32
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
+#include <mapnik/image.hpp>        // for image_rgba8
+#include <mapnik/image_view_any.hpp>
+#include <memory>
 
 class Image;
 namespace mapnik { template <typename T> class image_view; }
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::image_view<mapnik::image_data_32> > image_view_ptr;
+typedef std::shared_ptr<mapnik::image_view_any> image_view_ptr;
 
 class ImageView: public node::ObjectWrap {
 public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(Image * JSImage,
+    static Handle<Value> NewInstance(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);
@@ -43,7 +44,6 @@ public:
     static NAN_METHOD(getPixel);
 
     ImageView(Image * JSImage);
-    inline image_view_ptr get() { return this_; }
 
 private:
     ~ImageView();

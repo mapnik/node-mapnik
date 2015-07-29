@@ -15,44 +15,44 @@
   "                  ###   !!!!!                                   ",
   "                #####!!!!!!!!!                                  ",
   "               ######!!!!!!!!!           $$$  $ $$              ",
-  "              ######!!!!!!!!!      %%    $$     $$              ",
-  "             ###### !!!!!!!!!     %%%            $$             ",
+  "               #####!!!!!!!!!      %%    $$     $$              ",
+  "             ## ### !!!!!!!!!     %%%            $$             ",
   "            # ## ##!!!!!!!!!!      %%              $            ",
   "           #  ##### !!!!!!!!!      %        $    $$$$           ",
   "           #######    !!!!!!!             $$    $$$$$   $$$     ",
   "          ##  ###     !!!!!!!             $    $$$$$$ $ $$      ",
   "          #########   !!!!!!!            $  $ $$$$$$$$$$ $$     ",
-  "   &&&   # #########  !!!!!!!       ''    $ $$$$$$$$$$$$$$$$$   ",
+  "    &&   # #########  !!!!!!!       ''    $ $$$$$$$$$$$$$$$$$   ",
   "   &&&&##############  !!!!!       (($$ $$$$$$$$$$$$$$$$$$$$$$$$",
   "   &&&&########### ### !!!  ))    '(($$$$$$$$$$$$$$$$$$$$$$$$$$$",
   "    &&&##############  !!   ))    ((**$$$$$$$$$$$$$$$$$$$$$$$$$$",
-  "   &&&&#########  ##   !!        '((*$$$$$$$$$$$$$$$$$$$$$$$ $$ ",
-  "   &&&  &#######  ###          + '((,$$$$$$$$$$$$$$$$$$$$$ $$$  ",
+  "   &&&&#########  ##    !        '((*$$$$$$$$$$$$$$$$$$$$$$$ $$ ",
+  "   &&   &#######  ###          + '((,$$$$$$$$$$$$$$$$$$$$$ $$$  ",
   "   &    &#############         +  - .$$$$$$$$$$$$$$$$$$$$   $   ",
-  "&&       ##############       /++01223$$$$$444$$$$$$$$5$$$  $   ",
-  "          &&&&&&&#### #        66617888$$44444449999955$$$      ",
+  " &       ##############       /++01223$$$$$444$$$$$$$$5$$$  $   ",
+  "          &&&&&&##### #        66617888$$44444449999955$$$      ",
   "          &&&&&&&&#&&#          6::;<88$$4=4444599999555$>$     ",
-  "          &&&&&&&&&&           ??  :@AAAB C===55555555DD >      ",
-  "           &&&&&&&&            ?EE: @AAAFGGCHI55555555 J>>      ",
-  "           K&&&&&&             LEEMMMNOPFGGHIIQ5555555 >        ",
-  " &          KKK   R           SEEEMMMNNPPTUIIQQVQQ5555   >      ",
-  "    &        KK KWWX         SYZZE[]M^^PPPU  QQQ_`aab           ",
-  "              KKcd   e       fYYZ[[]^^^ghh   QQ  `ia            ",
-  "                 j kkl       mnoopp]^^^qrr   QQ    a ss       t ",
-  "                  uukkv       wxypz{{^^qr    |   }i} ss         ",
-  "                ~ ~u              |    } }} }}      ",
-  "                                    }}}}}  }    ",
-  "                                             ",
-  "                                            ",
-  "                                             ",
-  "                                                 ",
-  "                                                    ",
-  "                                                          ",
-  "                                                            ",
-  "                                                             ",
-  "                                                             ",
-  "                                                             ",
-  "                                                              ",
+  "          &&&&&&&&&&           ??  :@AAAB C==D55555555EE >      ",
+  "           &&&&&&&&            ?FF  @AAAGHHCIJ55555555 K>>      ",
+  "           L&&&&&&             MFFNNNOPQGHHIJJR5555555 >        ",
+  "            LLL   S           TFFFNNNOOQQ UJJRRVRR5555          ",
+  "    &        LL LWWX         TYZZF[]N^^QQQU  RRR_`aa5           ",
+  "              LLbc   d       eYYZ[[]^^^fgg   RR  `ha            ",
+  "                 i jjk       lmnnoo]^^^pqq    R    a rr         ",
+  "                  ssjjt       uvwoxyy^^pq        zh  {          ",
+  "                | |s}}}}         ~          z zz zz       ",
+  "                  }}}}}}                  zz z   z    ",
+  "                  }}}}}                              ",
+  "                 }}}}                           ",
+  "                    }}                           ",
+  "                    }                             ",
+  "                                                    ",
+  "                                                          ",
+  "                                                            ",
+  "                                                             ",
+  "                                                             ",
+  "                                                             ",
+  "                                                               ",
   "                                                                ",
   "                                                                ",
   "                                                                ",
@@ -101,6 +101,7 @@
   "Turkey",
   "Georgia",
   "Turkmenistan",
+  "Kyrgyzstan",
   "Korea, Democratic People's Republic of",
   "Algeria",
   "Iraq",
@@ -117,7 +118,6 @@
   "India",
   "Bahamas",
   "Western Sahara",
-  "Bahrain",
   "Oman",
   "Nepal",
   "Cuba",
@@ -130,7 +130,6 @@
   "Bangladesh",
   "Burma",
   "Viet Nam",
-  "Macau",
   "Guatemala",
   "Honduras",
   "Guadeloupe",
@@ -148,7 +147,6 @@
   "Ethiopia",
   "Somalia",
   "Philippines",
-  "Marshall Islands",
   "Colombia",
   "Suriname",
   "Liberia",
@@ -156,8 +154,8 @@
   "Ghana",
   "Cameroon",
   "Central African Republic",
-  "Maldives",
   "Indonesia",
+  "Malaysia",
   "Ecuador",
   "Brazil",
   "Sao Tome and Principe",
@@ -165,14 +163,12 @@
   "Democratic Republic of the Congo",
   "Uganda",
   "Kenya",
-  "Kiribati",
   "Peru",
   "United Republic of Tanzania",
   "Papua New Guinea",
   "Bolivia",
   "Angola",
   "Zambia",
-  "Cocos (Keeling) Islands",
   "Australia",
   "Fiji",
   "French Polynesia",
@@ -189,8 +185,7 @@
   "Uruguay",
   "New Zealand",
   "French Southern and Antarctic Lands",
-  "Heard Island and McDonald Islands",
-  "South Georgia South Sandwich Islands"
+  "Heard Island and McDonald Islands"
  ],
  "data": {
   "Greenland": {
@@ -329,6 +324,10 @@
    "FIPS": "TX",
    "__id__": 202
   },
+  "Kyrgyzstan": {
+   "FIPS": "KG",
+   "__id__": 93
+  },
   "Korea, Democratic People's Republic of": {
    "FIPS": "KN",
    "__id__": 94
@@ -393,10 +392,6 @@
    "FIPS": "WI",
    "__id__": 235
   },
-  "Bahrain": {
-   "FIPS": "BA",
-   "__id__": 10
-  },
   "Oman": {
    "FIPS": "MU",
    "__id__": 118
@@ -444,10 +439,6 @@
   "Viet Nam": {
    "FIPS": "VM",
    "__id__": 214
-  },
-  "Macau": {
-   "FIPS": "MC",
-   "__id__": 137
   },
   "Guatemala": {
    "FIPS": "GT",
@@ -517,10 +508,6 @@
    "FIPS": "RP",
    "__id__": 172
   },
-  "Marshall Islands": {
-   "FIPS": "RM",
-   "__id__": 230
-  },
   "Colombia": {
    "FIPS": "CO",
    "__id__": 38
@@ -549,13 +536,13 @@
    "FIPS": "CT",
    "__id__": 40
   },
-  "Maldives": {
-   "FIPS": "MV",
-   "__id__": 119
-  },
   "Indonesia": {
    "FIPS": "ID",
    "__id__": 223
+  },
+  "Malaysia": {
+   "FIPS": "MY",
+   "__id__": 121
   },
   "Ecuador": {
    "FIPS": "EC",
@@ -585,10 +572,6 @@
    "FIPS": "KE",
    "__id__": 92
   },
-  "Kiribati": {
-   "FIPS": "KR",
-   "__id__": 95
-  },
   "Peru": {
    "FIPS": "PE",
    "__id__": 161
@@ -612,10 +595,6 @@
   "Zambia": {
    "FIPS": "ZA",
    "__id__": 221
-  },
-  "Cocos (Keeling) Islands": {
-   "FIPS": "CK",
-   "__id__": 144
   },
   "Australia": {
    "FIPS": "AS",
@@ -684,10 +663,6 @@
   "Heard Island and McDonald Islands": {
    "FIPS": "HM",
    "__id__": 147
-  },
-  "South Georgia South Sandwich Islands": {
-   "FIPS": "SX",
-   "__id__": 243
   }
  }
 }

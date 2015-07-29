@@ -3,6 +3,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
@@ -37,7 +38,13 @@ public:
 #if defined(HAVE_CAIRO)
         if (!closure)
         {
+            // Since the closure here is the passing of the std::stringstream "i_stream" of this
+            // class it is unlikely that this could ever be reached unless something was very wrong
+            // and went out of scope, aka it was improperly programmed. Therefore, it is not possible
+            // to reach this point with standard testing.
+            /* LCOV_EXCL_START */
             return CAIRO_STATUS_WRITE_ERROR;
+            /* LCOV_EXCL_END */
         }
         i_stream* fin = reinterpret_cast<i_stream*>(closure);
         *fin << std::string((const char*)data,(size_t)length);

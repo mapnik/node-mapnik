@@ -1,19 +1,20 @@
 #ifndef __NODE_MAPNIK_GRID_H__
 #define __NODE_MAPNIK_GRID_H__
 
+#if defined(GRID_RENDERER)
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
 #include <mapnik/grid/grid.hpp>
-#include "mapnik3x_compatibility.hpp"
-
-#include MAPNIK_SHARED_INCLUDE
+#include <memory>
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::grid> grid_ptr;
+typedef std::shared_ptr<mapnik::grid> grid_ptr;
 
 class Grid: public node::ObjectWrap {
 public:
@@ -26,6 +27,7 @@ public:
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
+    static NAN_METHOD(addField);
     static NAN_METHOD(fields);
     static NAN_METHOD(view);
     static NAN_METHOD(width);
@@ -37,18 +39,19 @@ public:
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
 
-    static NAN_GETTER(get_prop);
-    static NAN_SETTER(set_prop);
+    static NAN_GETTER(get_key);
+    static NAN_SETTER(set_key);
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
-    Grid(unsigned int width, unsigned int height, std::string const& key, unsigned int resolution);
+    Grid(unsigned int width, unsigned int height, std::string const& key);
     inline grid_ptr get() { return this_; }
 
 private:
     ~Grid();
     grid_ptr this_;
-    int estimated_size_;
 };
+
+#endif
 
 #endif

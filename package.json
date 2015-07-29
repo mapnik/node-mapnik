@@ -1,66 +1,79 @@
 {
-  "name"          : "mapnik",
-  "description"   : "Tile rendering library for node",
-  "url"           : "http://github.com/mapnik/node-mapnik",
-  "homepage"      : "http://mapnik.org",
-  "author"        : "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version"       : "3.1.1",
-  "main"          : "./lib/mapnik.js",
+  "name": "mapnik",
+  "description": "Tile rendering library for node",
+  "url": "http://github.com/mapnik/node-mapnik",
+  "homepage": "http://mapnik.org",
+  "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
+  "version": "3.4.1",
+  "main": "./lib/mapnik.js",
   "binary": {
-      "module_name" : "mapnik",
-      "module_path" : "./lib/binding/{node_abi}-{platform}-{arch}",
-      "host"        : "https://mapbox-node-binary.s3.amazonaws.com",
-      "remote_path" : "./{module_name}/v{version}/",
-      "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
+    "module_name": "mapnik",
+    "module_path": "./lib/binding/{node_abi}-{platform}-{arch}",
+    "host": "https://mapbox-node-binary.s3.amazonaws.com",
+    "remote_path": "./{module_name}/v{version}/",
+    "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
   },
-  "bugs"          : {
-    "email" : "dane@dbsgeo.com",
-    "url"   : "http://github.com/mapnik/node-mapnik/issues"
+  "bugs": {
+    "email": "dane@dbsgeo.com",
+    "url": "http://github.com/mapnik/node-mapnik/issues"
   },
-  "keywords"      : [
-      "map",
-      "graphics",
-      "canvas",
-      "tile",
-      "mapnik",
-      "carto"
+  "keywords": [
+    "map",
+    "graphics",
+    "canvas",
+    "tile",
+    "mapnik",
+    "carto"
   ],
-  "repository"   :  {
-           "type" : "git",
-           "url"  : "git://github.com/mapnik/node-mapnik.git"
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mapnik/node-mapnik.git"
   },
-  "contributors"  : ["Konstantin Käfer"],
-  "licenses"      : [
-      {
-        "type": "BSD",
-        "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
-      }
+  "contributors": [
+    "Konstantin Käfer",
+    "Blake Thompson"
   ],
-  "dependencies"  : {
-      "nan": "~1.4.0",
-      "mapnik-vector-tile": "~0.6.1",
-      "node-pre-gyp": "~0.6.1"
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
+    }
+  ],
+  "dependencies": {
+    "nan": "~1.8.4",
+    "mapnik-vector-tile": "~0.8.5",
+    "node-pre-gyp": "~0.6.9"
   },
   "bundledDependencies": [
-      "mapnik-vector-tile",
-      "node-pre-gyp"
+    "mapnik-vector-tile",
+    "node-pre-gyp"
   ],
-  "bin"           : {
-      "mapnik-inspect.js" : "./bin/mapnik-inspect.js",
-      "mapnik-render.js"  : "./bin/mapnik-render.js"
+  "bin": {
+    "mapnik-inspect.js": "./bin/mapnik-inspect.js",
+    "mapnik-render.js": "./bin/mapnik-render.js",
+    "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
   },
-  "engines": {
-      "node": ">= 0.8.0 < 0.11.0 || >= 0.11.13 < 0.13.0"
-  },
-  "engineStrict": true,
-  "scripts"       : {
-      "prepublish" : "npm ls",
-      "test"    : "mocha -R spec --timeout 50000",
-      "install": "node-pre-gyp install --fallback-to-build"
+  "scripts": {
+    "prepublish": "npm ls",
+    "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
+    "install": "node-pre-gyp install --fallback-to-build",
+    "docs": "documentation src/*.cpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
+    "aws-sdk": "2.0.12",
+    "dev-documentation": "^2.0.0",
+    "documentation": "^2.0.0",
+    "jshint": "^2.5.10",
+    "mocha": "2.x",
     "sphericalmercator": "~1.0.2",
-    "mocha": "1.x",
-    "aws-sdk": "2.0.12"
+    "bytes":"~2.1.0"
+  },
+  "jshintConfig": {
+    "node": true,
+    "globalstrict": true,
+    "undef": true,
+    "unused": true,
+    "noarg": true,
+    "mocha": true
   }
 }

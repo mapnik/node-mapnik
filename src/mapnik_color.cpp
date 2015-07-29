@@ -8,12 +8,24 @@
 // stl
 #include <exception>                    // for exception
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Color::constructor;
 
-
+/**
+ * @name mapnik.Color
+ * @class
+ * @param {string|number} value either an array of [r, g, b, a],
+ * a color keyword, or a CSS color in rgba() form.
+ * @param {number} green
+ * @param {number} blue
+ * @param {number} blue
+ * @param {boolean} premultiplied
+ * @throws {TypeError} if a rgb component is outside of the 0-255 range
+ * @example
+ * var c = new mapnik.Color('green');
+ * var c = new mapnik.Color(0, 128, 0, 255);
+ * // premultiplied
+ * var c = new mapnik.Color(0, 128, 0, 255, true);
+ */
 void Color::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -31,13 +43,14 @@ void Color::Initialize(Handle<Object> target) {
     ATTR(lcons, "g", get_prop, set_prop);
     ATTR(lcons, "b", get_prop, set_prop);
     ATTR(lcons, "a", get_prop, set_prop);
+    ATTR(lcons, "premultiplied", get_premultiplied, set_premultiplied);
 
     target->Set(NanNew("Color"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
 
 Color::Color() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {}
 
 Color::~Color()
@@ -65,26 +78,85 @@ NAN_METHOD(Color::New)
     color_ptr c_p;
     try
     {
-
-        if (args.Length() == 1 && args[0]->IsString()){
-
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(TOSTR(args[0]));
-
-        } else if (args.Length() == 3) {
-
+        if (args.Length() == 1 && 
+            args[0]->IsString())
+        {
+            c_p = std::make_shared<mapnik::color>(TOSTR(args[0]));
+        }
+        else if (args.Length() == 2 && 
+                 args[0]->IsString() &&
+                 args[1]->IsBoolean())
+        {
+            c_p = std::make_shared<mapnik::color>(TOSTR(args[0]),args[1]->BooleanValue());
+        }
+        else if (args.Length() == 3 &&
+                 args[0]->IsNumber() &&
+                 args[1]->IsNumber() &&
+                 args[2]->IsNumber()) 
+        {
             int r = args[0]->IntegerValue();
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b);
-
-        } else if (args.Length() == 4) {
-
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+            {
+                NanThrowTypeError("color value out of range");
+                NanReturnUndefined();
+            }
+            c_p = std::make_shared<mapnik::color>(r,g,b);
+        } 
+        else if (args.Length() == 4 &&
+                 args[0]->IsNumber() &&
+                 args[1]->IsNumber() &&
+                 args[2]->IsNumber() &&
+                 args[3]->IsBoolean()) 
+        {
+            int r = args[0]->IntegerValue();
+            int g = args[1]->IntegerValue();
+            int b = args[2]->IntegerValue();
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+            {
+                NanThrowTypeError("color value out of range");
+                NanReturnUndefined();
+            }
+            c_p = std::make_shared<mapnik::color>(r,g,b,255,args[3]->BooleanValue());
+        } 
+        else if (args.Length() == 4 &&
+                 args[0]->IsNumber() &&
+                 args[1]->IsNumber() &&
+                 args[2]->IsNumber() &&
+                 args[3]->IsNumber()) 
+        {
             int r = args[0]->IntegerValue();
             int g = args[1]->IntegerValue();
             int b = args[2]->IntegerValue();
             int a = args[3]->IntegerValue();
-            c_p = MAPNIK_MAKE_SHARED<mapnik::color>(r,g,b,a);
-        } else {
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
+            {
+                NanThrowTypeError("color value out of range");
+                NanReturnUndefined();
+            }
+            c_p = std::make_shared<mapnik::color>(r,g,b,a);
+        } 
+        else if (args.Length() == 5 &&
+                 args[0]->IsNumber() &&
+                 args[1]->IsNumber() &&
+                 args[2]->IsNumber() &&
+                 args[3]->IsNumber() &&
+                 args[4]->IsBoolean()) 
+        {
+            int r = args[0]->IntegerValue();
+            int g = args[1]->IntegerValue();
+            int b = args[2]->IntegerValue();
+            int a = args[3]->IntegerValue();
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
+            {
+                NanThrowTypeError("color value out of range");
+                NanReturnUndefined();
+            }
+            c_p = std::make_shared<mapnik::color>(r,g,b,a,args[4]->BooleanValue());
+        } 
+        else 
+        {
             NanThrowTypeError("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values");
             NanReturnUndefined();
         }
@@ -97,26 +169,16 @@ NAN_METHOD(Color::New)
         NanReturnUndefined();
     }
 
-    if (c_p)
-    {
-        Color* c = new Color();
-        c->Wrap(args.This());
-        c->this_ = c_p;
-        NanReturnValue(args.This());
-    }
-    else
-    {
-        NanThrowError("unknown exception happened, please file bug");
-        NanReturnUndefined();
-    }
-
-    NanReturnUndefined();
+    Color* c = new Color();
+    c->Wrap(args.This());
+    c->this_ = c_p;
+    NanReturnValue(args.This());
 }
 
-Handle<Value> Color::New(mapnik::color const& color) {
+Handle<Value> Color::NewInstance(mapnik::color const& color) {
     NanEscapableScope();
     Color* c = new Color();
-    c->this_ = MAPNIK_MAKE_SHARED<mapnik::color>(color);
+    c->this_ = std::make_shared<mapnik::color>(color);
     Handle<Value> ext = NanNew<External>(c);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);
@@ -134,9 +196,8 @@ NAN_GETTER(Color::get_prop)
         NanReturnValue(NanNew<Integer>(c->get()->red()));
     else if (a == "g")
         NanReturnValue(NanNew<Integer>(c->get()->green()));
-    else if (a == "b")
+    else //if (a == "b")
         NanReturnValue(NanNew<Integer>(c->get()->blue()));
-    NanReturnUndefined();
 }
 
 NAN_SETTER(Color::set_prop)
@@ -149,17 +210,76 @@ NAN_SETTER(Color::set_prop)
         NanThrowTypeError("color channel value must be an integer");
         return;
     }
+    int val = value->IntegerValue();
+    if (val < 0 || val > 255)
+    {
+        NanThrowTypeError("Value out of range for color channel");
+        return;
+    }
     if (a == "a") {
-        c->get()->set_alpha(value->IntegerValue());
+        c->get()->set_alpha(val);
     } else if (a == "r") {
-        c->get()->set_red(value->IntegerValue());
+        c->get()->set_red(val);
     } else if (a == "g") {
-        c->get()->set_green(value->IntegerValue());
+        c->get()->set_green(val);
     } else if (a == "b") {
-        c->get()->set_blue(value->IntegerValue());
+        c->get()->set_blue(val);
     }
 }
 
+
+/**
+ * Get whether this color is premultiplied
+ *
+ * @name get_premultiplied
+ * @memberof mapnik.Color
+ * @instance
+ * @returns {boolean} premultiplied
+ */
+NAN_GETTER(Color::get_premultiplied)
+{
+    NanScope();
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.Holder());
+    NanReturnValue(NanNew<Boolean>(c->get()->get_premultiplied()));
+    NanReturnUndefined();
+}
+
+/**
+ * Set whether this color should be premultiplied
+ *
+ * @name set_premultiplied
+ * @memberof mapnik.Color
+ * @instance
+ * @param {boolean} premultiplied
+ * @example
+ * var c = new mapnik.Color('green');
+ * c.set_premultiplied(true);
+ * @throws {TypeError} given a non-boolean argument
+ */
+NAN_SETTER(Color::set_premultiplied)
+{
+    NanScope();
+    Color* c = node::ObjectWrap::Unwrap<Color>(args.Holder());
+    if (!value->IsBoolean())
+    {
+        NanThrowTypeError("Value set to premultiplied must be a boolean");
+        return;
+    }
+    c->get()->set_premultiplied(value->BooleanValue());
+}
+
+/**
+ * Get this color's representation as a string
+ *
+ * @name toString
+ * @memberof mapnik.Color
+ * @instance
+ * @returns {string} color as a string
+ * @example
+ * var green = new mapnik.Color('green');
+ * green.toString()
+ * // 'rgb(0,128,0)'
+ */
 NAN_METHOD(Color::toString)
 {
     NanScope();
@@ -168,7 +288,18 @@ NAN_METHOD(Color::toString)
     NanReturnValue(NanNew(c->get()->to_string().c_str()));
 }
 
-
+/**
+ * Get this color represented as a hexademical string
+ *
+ * @name hex
+ * @memberof mapnik.Color
+ * @instance
+ * @returns {string} hex representation
+ * @example
+ * var c = new mapnik.Color('green');
+ * c.hex();
+ * // '#008000'
+ */
 NAN_METHOD(Color::hex)
 {
     NanScope();

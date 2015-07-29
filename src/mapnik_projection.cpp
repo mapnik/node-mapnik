@@ -6,11 +6,23 @@
 #include <mapnik/projection.hpp>
 #include <sstream>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Projection::constructor;
 
+/**
+ * A geographical projection: this class makes it possible to translate between
+ * locations in different projections
+ *
+ * @name mapnik.Projection
+ * @class
+ * @param {string} projection projection as a proj4 definition string
+ * @param {Object} [options={lazy:false}] whether to lazily instantiate the
+ * data backing this projection.
+ * @throws {TypeError} if the projection string or options argument is the wrong type
+ * @throws {Error} the projection could not be initialized - it was not found
+ * in proj4's tables or the string was malformed
+ * @example
+ * var wgs84 = new mapnik.Projection('+init=epsg:4326');
+ */
 void Projection::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -26,9 +38,9 @@ void Projection::Initialize(Handle<Object> target) {
     NanAssignPersistent(constructor, lcons);
 }
 
-Projection::Projection(std::string const& name) :
-    ObjectWrap(),
-    projection_(MAPNIK_MAKE_SHARED<mapnik::projection>(name)) {}
+Projection::Projection(std::string const& name, bool defer_init) :
+    node::ObjectWrap(),
+    projection_(std::make_shared<mapnik::projection>(name, defer_init)) {}
 
 Projection::~Projection()
 {
@@ -60,9 +72,30 @@ NAN_METHOD(Projection::New)
         NanThrowTypeError("please provide a proj4 intialization string");
         NanReturnUndefined();
     }
+    bool lazy = false;
+    if (args.Length() >= 2)
+    {
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("The second parameter provided should be an options object");
+            NanReturnUndefined();
+        }
+        Local<Object> options = args[1].As<Object>();
+        if (options->Has(NanNew("lazy")))
+        {
+            Local<Value> lazy_opt = options->Get(NanNew("lazy"));
+            if (!lazy_opt->IsBoolean())
+            {
+                NanThrowTypeError("'lazy' must be a Boolean");
+                NanReturnUndefined();
+            }
+            lazy = lazy_opt->BooleanValue();
+        }
+    }
+            
     try
     {
-        Projection* p = new Projection(TOSTR(args[0]));
+        Projection* p = new Projection(TOSTR(args[0]), lazy);
         p->Wrap(args.This());
         NanReturnValue(args.This());
     }
@@ -73,6 +106,19 @@ NAN_METHOD(Projection::New)
     }
 }
 
+/**
+ * Project from a position in WGS84 space to a position in this projection.
+ *
+ * @name forward
+ * @memberof mapnik.Projection
+ * @instance
+ * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {Array<number>} projected coordinates
+ * @example
+ * var merc = new mapnik.Projection('+init=epsg:3857');
+ * var long_lat_coords = [-122.33517, 47.63752];
+ * var projected = merc.forward(long_lat_coords);
+ */
 NAN_METHOD(Projection::forward)
 {
     NanScope();
@@ -102,17 +148,20 @@ NAN_METHOD(Projection::forward)
             }
             else if (array_length == 4)
             {
-                double minx = a->Get(0)->NumberValue();
-                double miny = a->Get(1)->NumberValue();
-                double maxx = a->Get(2)->NumberValue();
-                double maxy = a->Get(3)->NumberValue();
-                p->projection_->forward(minx,miny);
-                p->projection_->forward(maxx,maxy);
+                double ulx, uly, urx, ury, lrx, lry, llx, lly;
+                ulx = llx = a->Get(0)->NumberValue();
+                lry = lly = a->Get(1)->NumberValue();
+                lrx = urx = a->Get(2)->NumberValue();
+                uly = ury = a->Get(3)->NumberValue();
+                p->projection_->forward(ulx,uly);
+                p->projection_->forward(urx,ury);
+                p->projection_->forward(lrx,lry);
+                p->projection_->forward(llx,lly);
                 Local<Array> arr = NanNew<Array>(4);
-                arr->Set(0, NanNew(minx));
-                arr->Set(1, NanNew(miny));
-                arr->Set(2, NanNew(maxx));
-                arr->Set(3, NanNew(maxy));
+                arr->Set(0, NanNew(std::min(ulx,llx)));
+                arr->Set(1, NanNew(std::min(lry,lly)));
+                arr->Set(2, NanNew(std::max(urx,lrx)));
+                arr->Set(3, NanNew(std::max(ury,uly)));
                 NanReturnValue(arr);
             }
             else
@@ -127,6 +176,16 @@ NAN_METHOD(Projection::forward)
     }
 }
 
+/**
+ * Unproject from a position in this projection to the same position in WGS84
+ * space.
+ *
+ * @name inverse
+ * @memberof mapnik.Projection
+ * @instance
+ * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {Array<number>} unprojected coordinates
+ */
 NAN_METHOD(Projection::inverse)
 {
     NanScope();
@@ -200,8 +259,8 @@ void ProjTransform::Initialize(Handle<Object> target) {
 
 ProjTransform::ProjTransform(mapnik::projection const& src,
                              mapnik::projection const& dest) :
-    ObjectWrap(),
-    this_(MAPNIK_MAKE_SHARED<mapnik::proj_transform>(src,dest)) {}
+    node::ObjectWrap(),
+    this_(std::make_shared<mapnik::proj_transform>(src,dest)) {}
 
 ProjTransform::~ProjTransform()
 {

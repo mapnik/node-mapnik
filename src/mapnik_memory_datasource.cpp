@@ -1,6 +1,3 @@
-
-#include "mapnik3x_compatibility.hpp"
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/unicode.hpp>
@@ -9,16 +6,12 @@
 #include <mapnik/value_types.hpp>
 
 #include "mapnik_memory_datasource.hpp"
-//#include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
 #include "ds_emitter.hpp"
 
 // stl
 #include <exception>
-
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
@@ -35,13 +28,14 @@ void MemoryDatasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(lcons, "add", add);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
 
     target->Set(NanNew("MemoryDatasource"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
 
 MemoryDatasource::MemoryDatasource() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     datasource_(),
     feature_id_(1),
     tr_("utf8") {}
@@ -88,19 +82,33 @@ NAN_METHOD(MemoryDatasource::New)
     while (i < a_length) {
         Local<Value> name = names->Get(i)->ToString();
         Local<Value> value = options->Get(name);
-        params[TOSTR(name)] = TOSTR(value);
+        if (value->IsUint32() || value->IsInt32())
+        {
+            params[TOSTR(name)] = value->IntegerValue();
+        }
+        else if (value->IsNumber())
+        {
+            params[TOSTR(name)] = value->NumberValue();
+        }
+        else if (value->IsBoolean())
+        {
+            params[TOSTR(name)] = value->BooleanValue();
+        }
+        else
+        {
+            params[TOSTR(name)] = TOSTR(value);
+        }
         i++;
     }
     params["type"] = "memory";
-
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
     d->Wrap(args.This());
-    d->datasource_ = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+    d->datasource_ = std::make_shared<mapnik::memory_datasource>(params);
     NanReturnValue(args.This());
 }
 
-Handle<Value> MemoryDatasource::New(mapnik::datasource_ptr ds_ptr) {
+Handle<Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     NanEscapableScope();
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
@@ -119,8 +127,7 @@ NAN_METHOD(MemoryDatasource::parameters)
         mapnik::parameters::const_iterator end = d->datasource_->params().end();
         for (; it != end; ++it)
         {
-            node_mapnik::params_to_object serializer( ds , it->first);
-            MAPNIK_APPLY_VISITOR( serializer, it->second );
+            node_mapnik::params_to_object(ds, it->first, it->second);
         }
     }
     NanReturnValue(ds);
@@ -131,15 +138,9 @@ NAN_METHOD(MemoryDatasource::describe)
     NanScope();
     MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
     Local<Object> description = NanNew<Object>();
-    if (d->datasource_) {
-        try {
-            node_mapnik::describe_datasource(description,d->datasource_);
-        }
-        catch (std::exception const& ex)
-        {
-            NanThrowError(ex.what());
-            NanReturnUndefined();
-        }
+    if (d->datasource_) 
+    {
+        node_mapnik::describe_datasource(description,d->datasource_);
     }
     NanReturnValue(description);
 }
@@ -151,33 +152,34 @@ NAN_METHOD(MemoryDatasource::featureset)
 
     MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
 
-    try
-    {
-        if (d->datasource_) {
-            mapnik::query q(d->datasource_->envelope());
-            mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
-            std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-            std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-            std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-            while (itr != end)
-            {
-                q.add_property_name(itr->get_name());
-                ++itr;
-            }
-            mapnik::featureset_ptr fs = d->datasource_->features(q);
-            if (fs)
-            {
-                NanReturnValue(Featureset::New(fs));
-            }
+    if (d->datasource_) {
+        mapnik::query q(d->datasource_->envelope());
+        mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
+        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+        while (itr != end)
+        {
+            // There is currently no way in the memory_datasource within mapnik to even
+            // add a descriptor. Therefore it is impossible that this will ever be reached
+            // currently.
+            /* LCOV_EXCL_START */
+            q.add_property_name(itr->get_name());
+            ++itr;
+            /* LCOV_EXCL_END */
+        }
+        mapnik::featureset_ptr fs = d->datasource_->features(q);
+        if (fs)
+        {
+            NanReturnValue(Featureset::NewInstance(fs));
         }
     }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-
+    
+    // Even if there is an empty query, a featureset is still created
+    // therefore it should be impossible to reach this point in the code.
+    /* LCOV_EXCL_START */
     NanReturnUndefined();
+    /* LCOV_EXCL_END */
 }
 
 NAN_METHOD(MemoryDatasource::add)
@@ -207,12 +209,10 @@ NAN_METHOD(MemoryDatasource::add)
         Local<Value> y = obj->Get(NanNew("y"));
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
-            mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
-            pt->move_to(x->NumberValue(),y->NumberValue());
-            mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
+            mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
-            feature->add_geometry(pt);
+            feature->set_geometry(mapnik::geometry::point<double>(x->NumberValue(),y->NumberValue()));
             if (obj->Has(NanNew("properties")))
             {
                 Local<Value> props = obj->Get(NanNew("properties"));
@@ -248,7 +248,19 @@ NAN_METHOD(MemoryDatasource::add)
             }
             mapnik::memory_datasource *cache = dynamic_cast<mapnik::memory_datasource *>(d->datasource_.get());
             cache->push(feature);
+            NanReturnValue(NanTrue());
         }
     }
     NanReturnValue(NanFalse());
+}
+
+NAN_METHOD(MemoryDatasource::fields)
+{
+    NanScope();
+    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
+    Local<Object> fields = NanNew<Object>();
+    if (d->datasource_) {
+        node_mapnik::get_fields(fields,d->datasource_);
+    }
+    NanReturnValue(fields);
 }

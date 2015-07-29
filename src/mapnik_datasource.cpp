@@ -1,6 +1,4 @@
 
-#include "mapnik3x_compatibility.hpp"
-
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
@@ -21,6 +19,13 @@
 
 Persistent<FunctionTemplate> Datasource::constructor;
 
+/**
+ * A Datasource object. This is the connector from Mapnik to any kind
+ * of file, network, or database source of geographical data.
+ *
+ * @name mapnik.Datasource
+ * @class
+ */
 void Datasource::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -34,13 +39,14 @@ void Datasource::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
     NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
     NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
 
     target->Set(NanNew("Datasource"), lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
 
 Datasource::Datasource() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     datasource_() {}
 
 Datasource::~Datasource()
@@ -65,14 +71,12 @@ NAN_METHOD(Datasource::New)
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("raster"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("raster"));
         }
         else
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("vector"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("vector"));
         }
         d->Wrap(args.This());
         NanReturnValue(args.This());
@@ -119,24 +123,26 @@ NAN_METHOD(Datasource::New)
         if (ds->type() == mapnik::datasource::Raster)
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("raster"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("raster"));
         }
         else
         {
             args.This()->Set(NanNew("type"),
-                             NanNew("vector"),
-                             static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete));
+                             NanNew("vector"));
         }
         Datasource* d = new Datasource();
         d->Wrap(args.This());
         d->datasource_ = ds;
         NanReturnValue(args.This());
     }
+    // Not sure this point could ever be reached, because if a ds is created,
+    // even if it is an empty or bad dataset the pointer will still exist
+    /* LCOV_EXCL_START */
     NanReturnUndefined();
+    /* LCOV_EXCL_END */
 }
 
-Handle<Value> Datasource::New(mapnik::datasource_ptr ds_ptr) {
+Handle<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     NanEscapableScope();
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
@@ -154,12 +160,19 @@ NAN_METHOD(Datasource::parameters)
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
     for (; it != end; ++it)
     {
-        node_mapnik::params_to_object serializer( ds , it->first);
-        MAPNIK_APPLY_VISITOR( serializer, it->second );
+        node_mapnik::params_to_object(ds, it->first, it->second);
     }
     NanReturnValue(ds);
 }
 
+/**
+ * Get the Datasource's extent
+ *
+ * @name extent
+ * @memberof mapnik.Datasource
+ * @instance
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ */
 NAN_METHOD(Datasource::extent)
 {
     NanScope();
@@ -171,8 +184,14 @@ NAN_METHOD(Datasource::extent)
     }
     catch (std::exception const& ex)
     {
+        // The only time this could possibly throw is situations
+        // where a plugin dynamically calculated extent such as
+        // postgis plugin. Therefore this makes this difficult
+        // to add to testing. Therefore marking it with exclusion
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
     Local<Array> a = NanNew<Array>(4);
@@ -183,6 +202,15 @@ NAN_METHOD(Datasource::extent)
     NanReturnValue(a);
 }
 
+/**
+ * Describe the datasource's contents and type.
+ *
+ * @name describe
+ * @memberof mapnik.Datasource
+ * @instance
+ * @returns {Object} description: an object with type, fields, encoding,
+ * geometry_type, and proj4 code
+ */
 NAN_METHOD(Datasource::describe)
 {
     NanScope();
@@ -194,8 +222,14 @@ NAN_METHOD(Datasource::describe)
     }
     catch (std::exception const& ex)
     {
+        // The only time this could possibly throw is situations
+        // where a plugin dynamically calculated extent such as
+        // postgis plugin. Therefore this makes this difficult
+        // to add to testing. Therefore marking it with exclusion
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
     NanReturnValue(description);
@@ -226,14 +260,31 @@ NAN_METHOD(Datasource::featureset)
     }
     catch (std::exception const& ex)
     {
+        // The only time this could possibly throw is situations
+        // where a plugin dynamically calculated extent such as
+        // postgis plugin. Therefore this makes this difficult
+        // to add to testing. Therefore marking it with exclusion
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
     if (fs)
     {
-        NanReturnValue(Featureset::New(fs));
+        NanReturnValue(Featureset::NewInstance(fs));
     }
-
+    // This should never be able to be reached
+    /* LCOV_EXCL_START */
     NanReturnUndefined();
+    /* LCOV_EXCL_END */
+}
+
+NAN_METHOD(Datasource::fields)
+{
+    NanScope();
+    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
+    Local<Object> fields = NanNew<Object>();
+    node_mapnik::get_fields(fields,d->datasource_);
+    NanReturnValue(fields);
 }

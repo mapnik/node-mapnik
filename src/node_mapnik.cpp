@@ -1,4 +1,3 @@
-#include "mapnik3x_compatibility.hpp"
 
 // node-mapnik
 #include "mapnik_vector_tile.hpp"
@@ -17,9 +16,11 @@
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
-#include "mapnik_grid.hpp"
 #include "mapnik_cairo_surface.hpp"
+#if defined(GRID_RENDERER)
+#include "mapnik_grid.hpp"
 #include "mapnik_grid_view.hpp"
+#endif
 #include "mapnik_expression.hpp"
 #include "utils.hpp"
 #include "blend.hpp"
@@ -30,6 +31,7 @@
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/mapped_memory_cache.hpp>
 #include <mapnik/image_compositing.hpp>
+#include <mapnik/image_scaling.hpp>
 
 // boost
 #include <boost/version.hpp>
@@ -43,20 +45,6 @@ namespace node_mapnik {
 
 using namespace node;
 using namespace v8;
-
-/**
- * Optional notification that the embedder is idle.
- * V8 uses the notification to reduce memory footprint.
- * This call can be used repeatedly if the embedder remains idle.
- * Returns true if the embedder should stop calling IdleNotification
- * until real work has been done.  This indicates that V8 has done
- * as much cleanup as it will be able to do.
- */
-static NAN_METHOD(gc)
-{
-    NanScope();
-    NanReturnValue(NanNew(V8::IdleNotification()));
-}
 
 static std::string format_version(int version)
 {
@@ -82,6 +70,20 @@ static NAN_METHOD(shutdown)
     NanReturnUndefined();
 }
 
+/**
+ * Mapnik is the core of cartographic design and processing.
+ *
+ * @name mapnik
+ * @class
+ * @property {string} version current version of mapnik
+ * @property {string} module_path path to native mapnik binding
+ * @property {Object} supports indicates which of the following are supported:
+ * grid, svg, cairo, cairo_pdf, cairo_svg, png, jpeg, tiff, webp, proj4, threadsafe
+ * @property {Object} versions diagnostic object with versions of
+ * node, v8, boost, boost_number, mapnik, mapnik_number, mapnik_git_describe, cairo
+ * @example
+ * var mapnik = require('node-mapnik');
+ */
 extern "C" {
 
     static void InitMapnik (Handle<Object> target)
@@ -91,8 +93,8 @@ extern "C" {
 
         // module level functions
         NODE_SET_METHOD(target, "blend",node_mapnik::Blend);
-        NODE_SET_METHOD(target, "rgb2hsl2", rgb2hsl2);
-        NODE_SET_METHOD(target, "hsl2rgb2", hsl2rgb2);
+        NODE_SET_METHOD(target, "rgb2hsl", rgb2hsl);
+        NODE_SET_METHOD(target, "hsl2rgb", hsl2rgb);
         // back compat
         NODE_SET_METHOD(target, "registerFonts", node_mapnik::register_fonts);
         NODE_SET_METHOD(target, "registerDatasource", node_mapnik::register_datasource);
@@ -105,7 +107,6 @@ extern "C" {
         NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
         NODE_SET_METHOD(target, "memoryFonts", node_mapnik::memory_fonts);
         NODE_SET_METHOD(target, "clearCache", clearCache);
-        NODE_SET_METHOD(target, "gc", gc);
         NODE_SET_METHOD(target, "shutdown",shutdown);
 
         // Classes
@@ -120,8 +121,10 @@ extern "C" {
         Projection::Initialize(target);
         ProjTransform::Initialize(target);
         Layer::Initialize(target);
+#if defined(GRID_RENDERER)
         Grid::Initialize(target);
         GridView::Initialize(target);
+#endif
         Datasource::Initialize(target);
         Featureset::Initialize(target);
         Logger::Initialize(target);
@@ -139,6 +142,7 @@ extern "C" {
         versions->Set(NanNew("boost_number"), NanNew(BOOST_VERSION));
         versions->Set(NanNew("mapnik"), NanNew(format_version(MAPNIK_VERSION).c_str()));
         versions->Set(NanNew("mapnik_number"), NanNew(MAPNIK_VERSION));
+        versions->Set(NanNew("mapnik_git_describe"), NanNew(MAPNIK_GIT_REVISION));
 #if defined(HAVE_CAIRO)
         versions->Set(NanNew("cairo"), NanNew(CAIRO_VERSION_STRING));
 #endif
@@ -211,6 +215,52 @@ extern "C" {
 
         target->Set(NanNew("supports"), supports);
 
+
+/**
+ * Image type constants representing color and grayscale encodings.
+ * Composite operation constants
+ *
+ * @property {number} clear
+ * @property {number} src
+ * @property {number} dst
+ * @property {number} src_over
+ * @property {number} dst_over
+ * @property {number} src_in
+ * @property {number} dst_in
+ * @property {number} src_out
+ * @property {number} dst_out
+ * @property {number} src_atop
+ * @property {number} dst_atop
+ * @property {number} xor
+ * @property {number} plus
+ * @property {number} minus
+ * @property {number} multiply
+ * @property {number} screen
+ * @property {number} overlay
+ * @property {number} darken
+ * @property {number} lighten
+ * @property {number} color_dodge
+ * @property {number} color_burn
+ * @property {number} hard_light
+ * @property {number} soft_light
+ * @property {number} difference
+ * @property {number} exclusion
+ * @property {number} contrast
+ * @property {number} invert
+ * @property {number} invert-rgb
+ * @property {number} grain_merge
+ * @property {number} grain_extract
+ * @property {number} hue
+ * @property {number} saturation
+ * @property {number} color
+ * @property {number} linear_dodge
+ * @property {number} linear_burn
+ * @property {number} divide
+ * @name compositeOp
+ * @memberof mapnik
+ * @static
+ * @class
+ */
         Local<Object> composite_ops = NanNew<Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
@@ -249,6 +299,85 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_burn", mapnik::linear_burn)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "divide", mapnik::divide)
         target->Set(NanNew("compositeOp"), composite_ops);
+        
+/**
+ * Image type constants representing color and grayscale encodings.
+ *
+ * @name imageType
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} rgba8
+ * @property {number} gray8
+ * @property {number} gray8s
+ * @property {number} gray16
+ * @property {number} gray16s
+ * @property {number} gray32
+ * @property {number} gray32s
+ * @property {number} gray32f
+ * @property {number} gray64
+ * @property {number} gray64s
+ * @property {number} gray64f
+ */
+        Local<Object> image_types = NanNew<Object>();
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "null", mapnik::image_dtype_null)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "rgba8", mapnik::image_dtype_rgba8)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray8", mapnik::image_dtype_gray8)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray8s", mapnik::image_dtype_gray8s)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray16", mapnik::image_dtype_gray16)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray16s", mapnik::image_dtype_gray16s)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray32", mapnik::image_dtype_gray32)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray32s", mapnik::image_dtype_gray32s)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray32f", mapnik::image_dtype_gray32f)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64", mapnik::image_dtype_gray64)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64s", mapnik::image_dtype_gray64s)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64f", mapnik::image_dtype_gray64f)
+        target->Set(NanNew("imageType"), image_types);
+
+/**
+ * Image scaling type constants representing color and grayscale encodings.
+ *
+ * @name imageScaling
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} near
+ * @property {number} bilinear
+ * @property {number} bicubic
+ * @property {number} spline16
+ * @property {number} spline36
+ * @property {number} hanning
+ * @property {number} hamming
+ * @property {number} hermite
+ * @property {number} kaiser
+ * @property {number} quadric
+ * @property {number} catrom
+ * @property {number} gaussian
+ * @property {number} bessel
+ * @property {number} mitchell
+ * @property {number} sinc
+ * @property {number} lanczos
+ * @property {number} blackman
+ */
+        Local<Object> image_scaling_types = NanNew<Object>();
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "near", mapnik::SCALING_NEAR)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bilinear", mapnik::SCALING_BILINEAR)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bicubic", mapnik::SCALING_BICUBIC)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "spline16", mapnik::SCALING_SPLINE16)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "spline36", mapnik::SCALING_SPLINE36)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hanning", mapnik::SCALING_HANNING)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hamming", mapnik::SCALING_HAMMING)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hermite", mapnik::SCALING_HERMITE)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "kaiser", mapnik::SCALING_KAISER)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "quadric", mapnik::SCALING_QUADRIC)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "catrom", mapnik::SCALING_CATROM)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "gaussian", mapnik::SCALING_GAUSSIAN)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bessel", mapnik::SCALING_BESSEL)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "mitchell", mapnik::SCALING_MITCHELL)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "sinc", mapnik::SCALING_SINC)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "lanczos", mapnik::SCALING_LANCZOS)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "blackman", mapnik::SCALING_BLACKMAN)
+        target->Set(NanNew("imageScaling"), image_scaling_types);
     }
 
 }

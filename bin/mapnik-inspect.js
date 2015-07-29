@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
+"use strict";
+
 var exists = require('fs').existsSync || require('path').existsSync;
+
 var fs = require('fs');
 
 var usage = 'usage:';
-usage += '\n  mapnik-inspect.js <datasource> (.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
+usage += '\n  mapnik-inspect.js <datasource> (.vector.pbf|.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
 usage += '\n  mapnik-inspect.js <stylesheet> (.xml)';
 usage += '\n  mapnik-inspect.js <projection> (.prj)';
 usage += '\n  mapnik-inspect.js <zipfile> (.zip)';
@@ -21,20 +24,23 @@ if (!exists(obj)) {
 }
 
 var mapnik = require('mapnik');
-
-console.log(obj);
+mapnik.register_default_input_plugins();
 
 var meta = function(ds) {
     console.log('Description -->');
     console.log(ds.describe());
     console.log('extent: ' + ds.extent().toString());
-    console.log('First feature --> ');
-    console.log(ds.features().slice(0, 1));
-}
+};
 
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
     meta(opened);
+}
+else if (/.vector.pbf$/.test(obj)) {
+    var vt = new mapnik.VectorTile(0,0,0);
+    vt.setData(fs.readFileSync(obj));
+    vt.parse();
+    console.log(vt.toGeoJSON('__all__'));
 }
 else if ((/.csv$/.test(obj)) ||
          (/.tsv$/.test(obj)) || // google refine output .tsv for tab-separated files
@@ -55,7 +61,7 @@ else if ((/.sqlite$/.test(obj)) ||
 }
 else if ((/.json$/.test(obj)) ||
          (/.geojson$/.test(obj))) {
-    var opened = new mapnik.Datasource({type: 'geojson', file: obj});
+    var opened = new mapnik.Datasource({type: 'geojson', file: obj, cache_features:false});
     meta(opened);
 }
 else if ((/.kml$/.test(obj)) ||

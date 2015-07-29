@@ -1,6 +1,3 @@
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
@@ -12,9 +9,6 @@
 #include <mapnik/attribute.hpp>
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
-
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <exception>                    // for exception
@@ -37,7 +31,7 @@ void Expression::Initialize(Handle<Object> target) {
 }
 
 Expression::Expression() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {}
 
 Expression::~Expression()
@@ -51,15 +45,6 @@ NAN_METHOD(Expression::New)
     {
         NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         NanReturnUndefined();
-    }
-
-    if (args[0]->IsExternal())
-    {
-        Local<External> ext = args[0].As<External>();
-        void* ptr = ext->Value();
-        Expression* e = static_cast<Expression*>(ptr);
-        e->Wrap(args.This());
-        NanReturnValue(args.This());
     }
 
     mapnik::expression_ptr e_ptr;
@@ -78,20 +63,10 @@ NAN_METHOD(Expression::New)
         NanReturnUndefined();
     }
 
-    if (e_ptr)
-    {
-        Expression* e = new Expression();
-        e->Wrap(args.This());
-        e->this_ = e_ptr;
-        NanReturnValue(args.This());
-    }
-    else
-    {
-        NanThrowError("unknown exception happened, please file bug");
-        NanReturnUndefined();
-    }
-
-    NanReturnUndefined();
+    Expression* e = new Expression();
+    e->Wrap(args.This());
+    e->this_ = e_ptr;
+    NanReturnValue(args.This());
 }
 
 NAN_METHOD(Expression::toString)
@@ -112,12 +87,7 @@ NAN_METHOD(Expression::evaluate)
     }
 
     Local<Object> obj = args[0].As<Object>();
-    if (obj->IsNull() || obj->IsUndefined()) {
-        NanThrowTypeError("first argument is invalid, must be a mapnik.Feature not null/undefined");
-        NanReturnUndefined();
-    }
-
-    if (!NanNew(Feature::constructor)->HasInstance(obj)) {
+    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Feature::constructor)->HasInstance(obj)) {
         NanThrowTypeError("first argument is invalid, must be a mapnik.Feature");
         NanReturnUndefined();
     }
@@ -134,7 +104,7 @@ NAN_METHOD(Expression::evaluate)
             NanThrowTypeError("optional second argument must be an options object");
             NanReturnUndefined();
         }
-        options = args[2]->ToObject();
+        options = args[1]->ToObject();
 
         if (options->Has(NanNew("variables")))
         {
@@ -147,6 +117,6 @@ NAN_METHOD(Expression::evaluate)
             object_to_container(vars,bind_opt->ToObject());
         }
     }
-    mapnik::value value_obj = MAPNIK_APPLY_VISITOR(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
-    NanReturnValue(MAPNIK_APPLY_VISITOR(node_mapnik::value_converter(),value_obj));
+    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
+    NanReturnValue(mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj));
 }

@@ -1,3 +1,5 @@
+docs
+bench
 .gitignore
 .npmignore
 .gitmodules
@@ -10,6 +12,7 @@ configure
 Makefile
 scripts
 .travis.yml
+appveyor.yml
 examples
 tools
 vcbuild.bat
@@ -19,3 +22,4 @@ package/src/mapnik_.hpp
 *tgz
 foo
 iwyu.sh
+documentation

@@ -18,7 +18,7 @@ void CairoSurface::Initialize(Handle<Object> target) {
 }
 
 CairoSurface::CairoSurface(std::string const& format, unsigned int width, unsigned int height) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     ss_(),
     width_(width),
     height_(height),
@@ -41,11 +41,14 @@ NAN_METHOD(CairoSurface::New)
 
     if (args[0]->IsExternal())
     {
+        // Currently there is no C++ that executes this call
+        /* LCOV_EXCL_START */
         Local<External> ext = args[0].As<External>();
         void* ptr = ext->Value();
         CairoSurface* im =  static_cast<CairoSurface*>(ptr);
         im->Wrap(args.This());
         NanReturnValue(args.This());
+        /* LCOV_EXCL_END */
     }
 
     if (args.Length() == 3)

@@ -3,20 +3,19 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
-
 // stl
 #include <string>
+#include <memory>
 
 using namespace v8;
 
 namespace mapnik { class Map; }
 
-typedef MAPNIK_SHARED_PTR<mapnik::Map> map_ptr;
+typedef std::shared_ptr<mapnik::Map> map_ptr;
 
 class Map: public node::ObjectWrap {
 public:
@@ -46,8 +45,10 @@ public:
     static NAN_METHOD(render);
     static void EIO_RenderImage(uv_work_t* req);
     static void EIO_AfterRenderImage(uv_work_t* req);
+#if defined(GRID_RENDERER)
     static void EIO_RenderGrid(uv_work_t* req);
     static void EIO_AfterRenderGrid(uv_work_t* req);
+#endif
     static void EIO_RenderVectorTile(uv_work_t* req);
     static void EIO_AfterRenderVectorTile(uv_work_t* req);
 
@@ -85,9 +86,8 @@ public:
     Map(int width, int height, std::string const& srs);
     Map();
 
-    void acquire();
+    bool acquire();
     void release();
-    int active() const;
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
@@ -96,7 +96,7 @@ public:
 private:
     ~Map();
     map_ptr map_;
-    int in_use_;
+    bool in_use_;
 };
 
 #endif

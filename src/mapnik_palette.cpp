@@ -7,9 +7,6 @@
 #include <iomanip>
 #include <sstream>
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 Persistent<FunctionTemplate> Palette::constructor;
 
 void Palette::Initialize(Handle<Object> target) {
@@ -27,8 +24,8 @@ void Palette::Initialize(Handle<Object> target) {
 }
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
-    ObjectWrap(),
-    palette_(MAPNIK_MAKE_SHARED<mapnik::rgba_palette>(palette, type)) {}
+    node::ObjectWrap(),
+    palette_(std::make_shared<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }
@@ -70,14 +67,8 @@ NAN_METHOD(Palette::New) {
     {
 
         Palette* p = new Palette(palette, type);
-        if (!p->palette()->valid()) {
-            delete p;
-            NanThrowTypeError("Invalid palette length");
-            NanReturnUndefined();
-        } else {        
-            p->Wrap(args.This());
-            NanReturnValue(args.This());
-        }
+        p->Wrap(args.This());
+        NanReturnValue(args.This());
     }
     catch (std::exception const& ex)
     {

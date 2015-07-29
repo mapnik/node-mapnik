@@ -1,7 +1,9 @@
 #include "utils.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_image.hpp"
+#if defined(GRID_RENDERER)
 #include "mapnik_grid.hpp"
+#endif
 #include "mapnik_feature.hpp"
 #include "mapnik_cairo_surface.hpp"
 #ifdef SVG_RENDERER
@@ -20,20 +22,21 @@
 #include <mapnik/geom_util.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/request.hpp>
-#include <mapnik/graphics.hpp>
+#include <mapnik/image_any.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/featureset.hpp>
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
+#if defined(GRID_RENDERER)
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
+#endif
 #include <mapnik/box2d.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/util/feature_to_geojson.hpp>
 #include <mapnik/feature_kv_iterator.hpp>
-#include "proj_transform_adapter.hpp"
-#include <mapnik/json/geometry_generator_grammar.hpp>
-
+#include <mapnik/geometry_reprojection.hpp>
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
 #include <cairo.h>
@@ -42,120 +45,162 @@
 #endif // CAIRO_HAS_SVG_SURFACE
 #endif
 
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 #include <set>                          // for set, etc
 #include <sstream>                      // for operator<<, basic_ostream, etc
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
-#include "pbf.hpp"
+#include "pbf_common.hpp"
+#include "pbf_reader.hpp"
 
 // addGeoJSON
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
-
+#include <mapnik/hit_test_filter.hpp>
 #include <google/protobuf/io/coded_stream.h>
 
-template <typename PathType>
-double path_to_point_distance(PathType & path, double x, double y)
+namespace detail {
+
+struct p2p_distance
 {
-    double x0 = 0;
-    double y0 = 0;
-    double distance = -1;
-    path.rewind(0);
-    MAPNIK_GEOM_TYPE geom_type = static_cast<MAPNIK_GEOM_TYPE>(path.type());
-    switch(geom_type)
+    p2p_distance(double x, double y)
+     : x_(x),
+       y_(y) {}
+
+    double operator() (mapnik::geometry::geometry_empty const& ) const
     {
-    case MAPNIK_POINT:
+        // There is no current way that a geometry empty could be returned from a vector tile.
+        /* LCOV_EXCL_START */
+        return -1;
+        /* LCOV_EXCL_END */
+    }
+
+    double operator() (mapnik::geometry::point<double> const& geom) const
     {
-        unsigned command;
-        bool first = true;
-        while (mapnik::SEG_END != (command = path.vertex(&x0, &y0)))
+        return mapnik::distance(geom.x, geom.y, x_, y_);
+    }
+    double operator() (mapnik::geometry::multi_point<double> const& geom) const
+    {
+        double distance = -1;
+        for (auto const& pt : geom)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (first)
-            {
-                distance = mapnik::distance(x, y, x0, y0);
-                first = false;
-                continue;
-            }
-            double d = mapnik::distance(x, y, x0, y0);
-            if (d < distance) distance = d;
+            double dist = operator()(pt);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
         return distance;
-        break;
     }
-    case MAPNIK_POLYGON:
+    double operator() (mapnik::geometry::line_string<double> const& geom) const
     {
-        double x1 = 0;
-        double y1 = 0;
-        bool inside = false;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return distance;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        double distance = -1;
+        std::size_t num_points = geom.num_points();
+        if (num_points > 1)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
+            for (std::size_t i = 1; i < num_points; ++i)
             {
-                x0 = x1;
-                y0 = y1;
+                auto const& pt0 = geom[i-1];
+                auto const& pt1 = geom[i];
+                double dist = mapnik::point_to_segment_distance(x_,y_,pt0.x,pt0.y,pt1.x,pt1.y);
+                if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+            }
+        }
+        return distance;
+    }
+    double operator() (mapnik::geometry::multi_line_string<double> const& geom) const
+    {
+        double distance = -1;
+        for (auto const& line: geom)
+        {
+            double dist = operator()(line);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+        }
+        return distance;
+    }
+    double operator() (mapnik::geometry::polygon<double> const& geom) const
+    {
+        auto const& exterior = geom.exterior_ring;
+        std::size_t num_points = exterior.num_points();
+        if (num_points < 4) return -1;
+        bool inside = false;
+        for (std::size_t i = 1; i < num_points; ++i)
+        {
+            auto const& pt0 = exterior[i-1];
+            auto const& pt1 = exterior[i];
+            // todo - account for tolerance
+            if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
+            {
+                inside = !inside;
+            }
+        }
+        if (!inside) return -1;
+        for (auto const& ring :  geom.interior_rings)
+        {
+            std::size_t num_interior_points = ring.size();
+            if (num_interior_points < 4)
+            {
                 continue;
             }
-            if ((((y1 <= y) && (y < y0)) ||
-                 ((y0 <= y) && (y < y1))) &&
-                (x < (x0 - x1) * (y - y1)/ (y0 - y1) + x1))
+            for (std::size_t j = 1; j < num_interior_points; ++j)
             {
-                inside=!inside;
+                auto const& pt0 = ring[j-1];
+                auto const& pt1 = ring[j];
+                if (mapnik::detail::pip(pt0.x,pt0.y,pt1.x,pt1.y,x_,y_))
+                {
+                    inside=!inside;
+                }
             }
-            x0 = x1;
-            y0 = y1;
         }
         return inside ? 0 : -1;
-        break;
     }
-    case MAPNIK_LINESTRING:
+    double operator() (mapnik::geometry::multi_polygon<double> const& geom) const
     {
-        double x1 = 0;
-        double y1 = 0;
-        bool first = true;
-        unsigned command = path.vertex(&x0, &y0);
-        if (command == mapnik::SEG_END) return distance;
-        while (mapnik::SEG_END != (command = path.vertex(&x1, &y1)))
+        double distance = -1;
+        for (auto const& poly: geom)
         {
-            if (command == mapnik::SEG_CLOSE) continue;
-            if (command == mapnik::SEG_MOVETO)
-            {
-                x0 = x1;
-                y0 = y1;
-                continue;
-            }
-            if (first)
-            {
-                distance = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                first = false;
-            }
-            else
-            {
-                double d = mapnik::point_to_segment_distance(x,y,x0,y0,x1,y1);
-                if (d >= 0 && d < distance) distance = d;
-            }
-            x0 = x1;
-            y0 = y1;
+            double dist = operator()(poly);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
         }
         return distance;
-        break;
     }
-    default:
+    double operator() (mapnik::geometry::geometry_collection<double> const& collection) const
+    {
+        // There is no current way that a geometry collection could be returned from a vector tile.
+        /* LCOV_EXCL_START */
+        double distance = -1;
+        for (auto const& geom: collection)
+        {
+            double dist = mapnik::util::apply_visitor((*this),geom);
+            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+        }
         return distance;
-        break;
+        /* LCOV_EXCL_END */
     }
-    return distance;
+
+    double x_;
+    double y_;
+};
+
+}
+
+double path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
+{
+    return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
 
 Persistent<FunctionTemplate> VectorTile::constructor;
 
+/**
+ * A generator for the [Mapbox Vector Tile](https://www.mapbox.com/developers/vector-tiles/)
+ * specification of compressed and simplified tiled vector data
+ *
+ * @name mapnik.VectorTile
+ * @class
+ * @param {number} z
+ * @param {number} x
+ * @param {number} y
+ * @example
+ * var vtile = new mapnik.VectorTile(9,112,195);
+ */
 void VectorTile::Initialize(Handle<Object> target) {
     NanScope();
 
@@ -170,6 +215,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "parseSync", parseSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addData", addData);
     NODE_SET_PROTOTYPE_METHOD(lcons, "composite", composite);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "compositeSync", compositeSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "query", query);
     NODE_SET_PROTOTYPE_METHOD(lcons, "queryMany", queryMany);
     NODE_SET_PROTOTYPE_METHOD(lcons, "names", names);
@@ -178,16 +224,13 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSONSync", toGeoJSONSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addGeoJSON", addGeoJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addImage", addImage);
-#ifdef PROTOBUF_FULL
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
-#endif
 
     // common to mapnik.Image
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
     NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
     NODE_SET_PROTOTYPE_METHOD(lcons, "painted", painted);
     NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clear);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "clearSync", clearSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "empty", empty);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
@@ -196,7 +239,7 @@ void VectorTile::Initialize(Handle<Object> target) {
 }
 
 VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     z_(z),
     x_(x),
     y_(y),
@@ -208,7 +251,11 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     painted_(false),
     byte_size_(0) {}
 
+// For some reason coverage never seems to be considered here even though
+// I have tested it and it does print
+/* LCOV_EXCL_START */
 VectorTile::~VectorTile() { }
+/* LCOV_EXCL_END */
 
 NAN_METHOD(VectorTile::New)
 {
@@ -279,19 +326,17 @@ std::vector<std::string> VectorTile::lazy_names()
     std::size_t bytes = buffer_.size();
     if (bytes > 0)
     {
-        pbf::message item(buffer_.data(),bytes);
+        mapbox::util::pbf item(buffer_.data(),bytes);
         while (item.next()) {
-            if (item.tag == 3) {
-                uint64_t len = item.varint();
-                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
                 while (layermsg.next()) {
-                    if (layermsg.tag == 1) {
-                        names.emplace_back(layermsg.string());
+                    if (layermsg.tag() == 1) {
+                        names.emplace_back(layermsg.get_string());
                     } else {
                         layermsg.skip();
                     }
                 }
-                item.skipBytes(len);
             } else {
                 item.skip();
             }
@@ -355,10 +400,351 @@ void VectorTile::parse_proto()
     }
 }
 
+void _composite(VectorTile* target_vt,
+                std::vector<VectorTile*> & vtiles,
+                unsigned path_multiplier,
+                int buffer_size,
+                double scale_factor,
+                unsigned offset_x,
+                unsigned offset_y,
+                double area_threshold,
+                double scale_denominator)
+{
+    vector_tile::Tile new_tiledata;
+    std::string merc_srs("+init=epsg:3857");
+    mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
+    if (target_vt->width() <= 0 || target_vt->height() <= 0)
+    {
+        throw std::runtime_error("Vector tile width and height must be great than zero");
+    }
+    for (VectorTile* vt : vtiles)
+    {
+        if (vt->width() <= 0 || vt->height() <= 0)
+        {
+            throw std::runtime_error("Vector tile width and height must be great than zero");
+        }
+        // TODO - handle name clashes
+        if (target_vt->z_ == vt->z_ &&
+            target_vt->x_ == vt->x_ &&
+            target_vt->y_ == vt->y_)
+        {
+            int bytes = static_cast<int>(vt->buffer_.size());
+            if (bytes > 0 && vt->byte_size() <= bytes) {
+                target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
+            else if (vt->byte_size() > 0)
+            {
+                std::string new_message;
+                vector_tile::Tile const& tiledata = vt->get_tile();
+                if (!tiledata.SerializeToString(&new_message))
+                {
+                    /* The only time this could possible be reached it seems is
+                    if there is a protobuf that is attempted to be serialized that is
+                    larger then two GBs, see link below:
+                    https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
+                    */
+                    /* LCOV_EXCL_START */
+                    throw std::runtime_error("could not serialize new data for vt");
+                    /* LCOV_EXCL_END */
+                }
+                if (!new_message.empty())
+                {
+                    target_vt->buffer_.append(new_message.data(),new_message.size());
+                    target_vt->status_ = VectorTile::LAZY_MERGE;
+                }
+            }
+        }
+        else
+        {
+            new_tiledata.Clear();
+            // set up to render to new vtile
+            typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+            typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+            backend_type backend(new_tiledata, path_multiplier);
+
+            // get mercator extent of target tile
+            mapnik::vector_tile_impl::spherical_mercator merc(target_vt->width());
+            double minx,miny,maxx,maxy;
+            merc.xyz(target_vt->x_,target_vt->y_,target_vt->z_,minx,miny,maxx,maxy);
+            mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
+            // create request
+            mapnik::request m_req(target_vt->width(),target_vt->height(),map_extent);
+            m_req.set_buffer_size(buffer_size);
+            // create map
+            mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
+            map.set_maximum_extent(max_extent);
+            // ensure data is in tile object
+            if (vt->status_ == VectorTile::LAZY_DONE) // tile is already parsed, we're good
+            {
+                vector_tile::Tile const& tiledata = vt->get_tile();
+                unsigned num_layers = tiledata.layers_size();
+                if (num_layers > 0)
+                {
+                    for (int i=0; i < tiledata.layers_size(); ++i)
+                    {
+                        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+                        mapnik::layer lyr(layer.name(),merc_srs);
+                        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
+                                                        mapnik::vector_tile_impl::tile_datasource>(
+                                                            layer,
+                                                            vt->x_,
+                                                            vt->y_,
+                                                            vt->z_,
+                                                            vt->width()
+                                                            );
+                        ds->set_envelope(m_req.get_buffered_extent());
+                        lyr.set_datasource(ds);
+                        map.add_layer(lyr);
+                    }
+                    renderer_type ren(backend,
+                                      map,
+                                      m_req,
+                                      scale_factor,
+                                      offset_x,
+                                      offset_y,
+                                      area_threshold);
+                    ren.apply(scale_denominator);
+                }
+            }
+            else // tile is not pre-parsed so parse into new object to avoid needing to mutate input
+            {
+                std::size_t bytes = vt->buffer_.size();
+                if (bytes > 1) // throw instead?
+                {
+                    vector_tile::Tile new_tiledata2;
+                    if (new_tiledata2.ParseFromArray(vt->buffer_.data(), bytes))
+                    {
+                        unsigned num_layers = new_tiledata2.layers_size();
+                        if (num_layers > 0)
+                        {
+                            for (int i=0; i < new_tiledata2.layers_size(); ++i)
+                            {
+                                vector_tile::Tile_Layer const& layer = new_tiledata2.layers(i);
+                                mapnik::layer lyr(layer.name(),merc_srs);
+                                std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
+                                                                mapnik::vector_tile_impl::tile_datasource>(
+                                                                    layer,
+                                                                    vt->x_,
+                                                                    vt->y_,
+                                                                    vt->z_,
+                                                                    vt->width()
+                                                                    );
+                                ds->set_envelope(m_req.get_buffered_extent());
+                                lyr.set_datasource(ds);
+                                map.add_layer(lyr);
+                            }
+                            renderer_type ren(backend,
+                                              map,
+                                              m_req,
+                                              scale_factor,
+                                              offset_x,
+                                              offset_y,
+                                              area_threshold);
+                            ren.apply(scale_denominator);
+                        }
+                    }
+                    else
+                    {
+                        // throw here?
+                    }
+                }
+            }
+            std::string new_message;
+            if (!new_tiledata.SerializeToString(&new_message))
+            {
+                /* The only time this could possible be reached it seems is
+                if there is a protobuf that is attempted to be serialized that is
+                larger then two GBs, see link below:
+                https://github.com/google/protobuf/blob/6ef984af4b0c63c1c33127a12dcfc8e6359f0c9e/src/google/protobuf/message_lite.cc#L293-L300
+                */
+                /* LCOV_EXCL_START */
+                throw std::runtime_error("could not serialize new data for vt");
+                /* LCOV_EXCL_END */
+            }
+            if (!new_message.empty())
+            {
+                target_vt->buffer_.append(new_message.data(),new_message.size());
+                target_vt->status_ = VectorTile::LAZY_MERGE;
+            }
+        }
+    }
+}
+
+/**
+ * Composite an array of vector tiles into one vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name compositeSync
+ * @instance
+ * @param {Array<mapnik.VectorTile>} vector tiles
+ */
+NAN_METHOD(VectorTile::compositeSync)
+{
+    NanScope();
+    NanReturnValue(_compositeSync(args));
+
+}
+
+Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
+    NanEscapableScope();
+    if (args.Length() < 1 || !args[0]->IsArray()) {
+        NanThrowTypeError("must provide an array of VectorTile objects and an optional options object");
+        return NanEscapeScope(NanUndefined());
+    }
+    Local<Array> vtiles = args[0].As<Array>();
+    unsigned num_tiles = vtiles->Length();
+    if (num_tiles < 1) {
+        NanThrowTypeError("must provide an array with at least one VectorTile object and an optional options object");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    // options needed for re-rendering tiles
+    // unclear yet to what extent these need to be user
+    // driven, but we expose here to avoid hardcoding
+    unsigned path_multiplier = 16;
+    int buffer_size = 1;
+    double scale_factor = 1.0;
+    unsigned offset_x = 0;
+    unsigned offset_y = 0;
+    double area_threshold = 0.1;
+    double scale_denominator = 0.0;
+
+    if (args.Length() > 1) {
+        // options object
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("optional second argument must be an options object");
+            return NanEscapeScope(NanUndefined());
+        }
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(NanNew("path_multiplier"))) {
+
+            Local<Value> param_val = options->Get(NanNew("path_multiplier"));
+            if (!param_val->IsNumber())
+            {
+                NanThrowTypeError("option 'path_multiplier' must be an unsigned integer");
+                return NanEscapeScope(NanUndefined());
+            }
+            path_multiplier = param_val->NumberValue();
+        }
+        if (options->Has(NanNew("area_threshold")))
+        {
+            Local<Value> area_thres = options->Get(NanNew("area_threshold"));
+            if (!area_thres->IsNumber())
+            {
+                NanThrowTypeError("area_threshold value must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            area_threshold = area_thres->NumberValue();
+        }
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber())
+            {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            buffer_size = bind_opt->IntegerValue();
+        }
+        if (options->Has(NanNew("scale"))) {
+            Local<Value> bind_opt = options->Get(NanNew("scale"));
+            if (!bind_opt->IsNumber())
+            {
+                NanThrowTypeError("optional arg 'scale' must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            scale_factor = bind_opt->NumberValue();
+        }
+        if (options->Has(NanNew("scale_denominator")))
+        {
+            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+            if (!bind_opt->IsNumber())
+            {
+                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            scale_denominator = bind_opt->NumberValue();
+        }
+        if (options->Has(NanNew("offset_x"))) {
+            Local<Value> bind_opt = options->Get(NanNew("offset_x"));
+            if (!bind_opt->IsNumber())
+            {
+                NanThrowTypeError("optional arg 'offset_x' must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            offset_x = bind_opt->IntegerValue();
+        }
+        if (options->Has(NanNew("offset_y"))) {
+            Local<Value> bind_opt = options->Get(NanNew("offset_y"));
+            if (!bind_opt->IsNumber())
+            {
+                NanThrowTypeError("optional arg 'offset_y' must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            offset_y = bind_opt->IntegerValue();
+        }
+    }
+    VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    std::vector<VectorTile*> vtiles_vec;
+    vtiles_vec.reserve(num_tiles);
+    for (unsigned j=0;j < num_tiles;++j) {
+        Local<Value> val = vtiles->Get(j);
+        if (!val->IsObject()) {
+            NanThrowTypeError("must provide an array of VectorTile objects");
+            return NanEscapeScope(NanUndefined());
+        }
+        Local<Object> tile_obj = val->ToObject();
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj)) {
+            NanThrowTypeError("must provide an array of VectorTile objects");
+            return NanEscapeScope(NanUndefined());
+        }
+        vtiles_vec.push_back(node::ObjectWrap::Unwrap<VectorTile>(tile_obj));
+    }
+    try
+    {
+        _composite(target_vt,
+                   vtiles_vec,
+                   path_multiplier,
+                   buffer_size,
+                   scale_factor,
+                   offset_x,
+                   offset_y,
+                   area_threshold,
+                   scale_denominator);
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowTypeError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
+
+    return NanEscapeScope(NanUndefined());
+}
+
+typedef struct {
+    uv_work_t request;
+    VectorTile* d;
+    unsigned path_multiplier;
+    int buffer_size;
+    double scale_factor;
+    unsigned offset_x;
+    unsigned offset_y;
+    double area_threshold;
+    double scale_denominator;
+    std::vector<VectorTile*> vtiles;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} vector_tile_composite_baton_t;
+
 NAN_METHOD(VectorTile::composite)
 {
     NanScope();
-    if (args.Length() < 1 || !args[0]->IsArray()) {
+    if ((args.Length() < 2) || !args[args.Length()-1]->IsFunction()) {
+        NanReturnValue(_compositeSync(args));
+    }
+    if (!args[0]->IsArray()) {
         NanThrowTypeError("must provide an array of VectorTile objects and an optional options object");
         NanReturnUndefined();
     }
@@ -373,26 +759,24 @@ NAN_METHOD(VectorTile::composite)
     // unclear yet to what extent these need to be user
     // driven, but we expose here to avoid hardcoding
     unsigned path_multiplier = 16;
-    int buffer_size = 256;
+    int buffer_size = 1;
     double scale_factor = 1.0;
     unsigned offset_x = 0;
     unsigned offset_y = 0;
-    unsigned tolerance = 1;
+    double area_threshold = 0.1;
     double scale_denominator = 0.0;
     // not options yet, likely should never be....
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
     std::string merc_srs("+init=epsg:3857");
 
-    Local<Object> options = NanNew<Object>();
-
-    if (args.Length() > 1) {
+    if (args.Length() > 2) {
         // options object
         if (!args[1]->IsObject())
         {
             NanThrowTypeError("optional second argument must be an options object");
             NanReturnUndefined();
         }
-        options = args[1]->ToObject();
+        Local<Object> options = args[1]->ToObject();
         if (options->Has(NanNew("path_multiplier"))) {
 
             Local<Value> param_val = options->Get(NanNew("path_multiplier"));
@@ -403,15 +787,15 @@ NAN_METHOD(VectorTile::composite)
             }
             path_multiplier = param_val->NumberValue();
         }
-        if (options->Has(NanNew("tolerance")))
+        if (options->Has(NanNew("area_threshold")))
         {
-            Local<Value> tol = options->Get(NanNew("tolerance"));
-            if (!tol->IsNumber())
+            Local<Value> area_thres = options->Get(NanNew("area_threshold"));
+            if (!area_thres->IsNumber())
             {
-                NanThrowTypeError("tolerance value must be a number");
+                NanThrowTypeError("area_threshold value must be a number");
                 NanReturnUndefined();
             }
-            tolerance = tol->NumberValue();
+            area_threshold = area_thres->NumberValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -461,167 +845,100 @@ NAN_METHOD(VectorTile::composite)
         }
     }
 
-    VectorTile* target_vt = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    for (unsigned i=0;i < num_tiles;++i) {
-        Local<Value> val = vtiles->Get(i);
-        if (!val->IsObject()) {
+    Local<Value> callback = args[args.Length()-1];
+    vector_tile_composite_baton_t *closure = new vector_tile_composite_baton_t();
+    closure->request.data = closure;
+    closure->offset_x = offset_x;
+    closure->offset_y = offset_y;
+    closure->area_threshold = area_threshold;
+    closure->path_multiplier = path_multiplier;
+    closure->buffer_size = buffer_size;
+    closure->scale_factor = scale_factor;
+    closure->scale_denominator = scale_denominator;
+    closure->d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    closure->error = false;
+    closure->vtiles.reserve(num_tiles);
+    for (unsigned j=0;j < num_tiles;++j) {
+        Local<Value> val = vtiles->Get(j);
+        if (!val->IsObject())
+        {
+            delete closure;
             NanThrowTypeError("must provide an array of VectorTile objects");
             NanReturnUndefined();
         }
         Local<Object> tile_obj = val->ToObject();
-        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj)) {
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !NanNew(VectorTile::constructor)->HasInstance(tile_obj))
+        {
+            delete closure;
             NanThrowTypeError("must provide an array of VectorTile objects");
             NanReturnUndefined();
         }
         VectorTile* vt = node::ObjectWrap::Unwrap<VectorTile>(tile_obj);
-        // TODO - handle name clashes
-        if (target_vt->z_ == vt->z_ &&
-            target_vt->x_ == vt->x_ &&
-            target_vt->y_ == vt->y_)
-        {
-            int bytes = static_cast<int>(vt->buffer_.size());
-            if (bytes > 0 && vt->byte_size_ <= bytes) {
-                target_vt->buffer_.append(vt->buffer_.data(),vt->buffer_.size());
-                target_vt->status_ = VectorTile::LAZY_MERGE;
-            }
-            else if (vt->byte_size_ > 0)
-            {
-                std::string new_message;
-                vector_tile::Tile const& tiledata = vt->get_tile();
-                if (!tiledata.SerializeToString(&new_message))
-                {
-                    NanThrowTypeError("could not serialize new data for vt");
-                    NanReturnUndefined();
-                }
-                if (!new_message.empty())
-                {
-                    target_vt->buffer_.append(new_message.data(),new_message.size());
-                    target_vt->status_ = VectorTile::LAZY_MERGE;
-                }
-            }
-        }
-        else
-        {
-            // set up to render to new vtile
-            typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-            typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-            vector_tile::Tile new_tiledata;
-            backend_type backend(new_tiledata,
-                                    path_multiplier);
-
-            // get mercator extent of target tile
-            mapnik::vector_tile_impl::spherical_mercator merc(target_vt->width());
-            double minx,miny,maxx,maxy;
-            merc.xyz(target_vt->x_,target_vt->y_,target_vt->z_,minx,miny,maxx,maxy);
-            mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
-            // create request
-            mapnik::request m_req(target_vt->width(),target_vt->height(),map_extent);
-            m_req.set_buffer_size(buffer_size);
-            // create map
-            mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
-            map.set_maximum_extent(max_extent);
-            // ensure data is in tile object
-            if (vt->status_ == LAZY_DONE) // tile is already parsed, we're good
-            {
-                vector_tile::Tile const& tiledata = vt->get_tile();
-                unsigned num_layers = tiledata.layers_size();
-                if (num_layers > 0)
-                {
-                    for (int i=0; i < tiledata.layers_size(); ++i)
-                    {
-                        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                        mapnik::layer lyr(layer.name(),merc_srs);
-                        MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                        mapnik::vector_tile_impl::tile_datasource>(
-                                                            layer,
-                                                            vt->x_,
-                                                            vt->y_,
-                                                            vt->z_,
-                                                            vt->width()
-                                                            );
-                        ds->set_envelope(m_req.get_buffered_extent());
-                        lyr.set_datasource(ds);
-                        map.MAPNIK_ADD_LAYER(lyr);
-                    }
-                    renderer_type ren(backend,
-                                      map,
-                                      m_req,
-                                      scale_factor,
-                                      offset_x,
-                                      offset_y,
-                                      tolerance);
-                    ren.apply(scale_denominator);
-                }
-            }
-            else // tile is not pre-parsed so parse into new object to avoid needing to mutate input
-            {
-                std::size_t bytes = vt->buffer_.size();
-                if (bytes > 1) // throw instead?
-                {
-                    vector_tile::Tile tiledata;
-                    if (tiledata.ParseFromArray(vt->buffer_.data(), bytes))
-                    {
-                        unsigned num_layers = tiledata.layers_size();
-                        if (num_layers > 0)
-                        {
-                            for (int i=0; i < tiledata.layers_size(); ++i)
-                            {
-                                vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                                mapnik::layer lyr(layer.name(),merc_srs);
-                                MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                                                mapnik::vector_tile_impl::tile_datasource>(
-                                                                    layer,
-                                                                    vt->x_,
-                                                                    vt->y_,
-                                                                    vt->z_,
-                                                                    vt->width()
-                                                                    );
-                                ds->set_envelope(m_req.get_buffered_extent());
-                                lyr.set_datasource(ds);
-                                map.MAPNIK_ADD_LAYER(lyr);
-                            }
-                            renderer_type ren(backend,
-                                              map,
-                                              m_req,
-                                              scale_factor,
-                                              offset_x,
-                                              offset_y,
-                                              tolerance);
-                            ren.apply(scale_denominator);
-                        }
-                    }
-                    else
-                    {
-                        // throw here?
-                    }
-                }
-            }
-            std::string new_message;
-            if (!new_tiledata.SerializeToString(&new_message))
-            {
-                NanThrowError("could not serialize new data for vt");
-                NanReturnUndefined();
-            }
-            if (!new_message.empty())
-            {
-                target_vt->buffer_.append(new_message.data(),new_message.size());
-                target_vt->status_ = VectorTile::LAZY_MERGE;
-            }
-        }
+        vt->Ref();
+        closure->vtiles.push_back(vt);
     }
+    closure->d->Ref();
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
     NanReturnUndefined();
 }
 
-#ifdef PROTOBUF_FULL
-NAN_METHOD(VectorTile::toString)
+void VectorTile::EIO_Composite(uv_work_t* req)
+{
+    vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
+    try
+    {
+        _composite(closure->d,
+                   closure->vtiles,
+                   closure->path_multiplier,
+                   closure->buffer_size,
+                   closure->scale_factor,
+                   closure->offset_x,
+                   closure->offset_y,
+                   closure->area_threshold,
+                   closure->scale_denominator);
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterComposite(uv_work_t* req)
 {
     NanScope();
-    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    vector_tile::Tile const& tiledata = d->get_tile();
-    NanReturnValue(NanNew(tiledata.DebugString().c_str()));
-}
-#endif
 
+    vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
+
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->d) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    for (VectorTile* vt : closure->vtiles)
+    {
+        vt->Unref();
+    }
+    closure->d->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+
+/**
+ * Get the names of all of the layers in this vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name names
+ * @instance
+ * @param {Array<string>} layer names
+ */
 NAN_METHOD(VectorTile::names)
 {
     NanScope();
@@ -629,14 +946,22 @@ NAN_METHOD(VectorTile::names)
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
     {
-        std::vector<std::string> names = d->lazy_names();
-        Local<Array> arr = NanNew<Array>(names.size());
-        unsigned idx = 0;
-        for (std::string const& name : names)
+        try
         {
-            arr->Set(idx++,NanNew(name.c_str()));
+            std::vector<std::string> names = d->lazy_names();
+            Local<Array> arr = NanNew<Array>(names.size());
+            unsigned idx = 0;
+            for (std::string const& name : names)
+            {
+                arr->Set(idx++,NanNew(name.c_str()));
+            }
+            NanReturnValue(arr);
         }
-        NanReturnValue(arr);
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
     } else {
         vector_tile::Tile const& tiledata = d->get_tile();
         Local<Array> arr = NanNew<Array>(tiledata.layers_size());
@@ -655,21 +980,21 @@ bool VectorTile::lazy_empty()
     std::size_t bytes = buffer_.size();
     if (bytes > 0)
     {
-        pbf::message item(buffer_.data(),bytes);
+        mapbox::util::pbf item(buffer_.data(),bytes);
         while (item.next()) {
-            if (item.tag == 3) {
-                uint64_t len = item.varint();
-                pbf::message layermsg(item.getData(),static_cast<std::size_t>(len));
+            if (item.tag() == 3) {
+                mapbox::util::pbf layermsg = item.get_message();
                 while (layermsg.next()) {
-                    if (layermsg.tag == 2) {
+                    if (layermsg.tag() == 2) {
                         // we hit a feature, assume we've got data
                         return false;
                     } else {
                         layermsg.skip();
                     }
                 }
-                item.skipBytes(len);
-            } else {
+            }
+            else
+            {
                 item.skip();
             }
         }
@@ -678,6 +1003,15 @@ bool VectorTile::lazy_empty()
 }
 
 
+/**
+ * Return whether this vector tile is empty - whether it has no
+ * layers and no features
+ *
+ * @memberof mapnik.VectorTile
+ * @name empty
+ * @instance
+ * @param {boolean} whether the layer is empty
+ */
 NAN_METHOD(VectorTile::empty)
 {
     NanScope();
@@ -685,7 +1019,15 @@ NAN_METHOD(VectorTile::empty)
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
     {
-        NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+        try
+        {
+            NanReturnValue(NanNew<Boolean>(d->lazy_empty()));
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError(ex.what());
+            NanReturnUndefined();
+        }
     } else {
         vector_tile::Tile const& tiledata = d->get_tile();
         if (tiledata.layers_size() == 0) {
@@ -704,6 +1046,14 @@ NAN_METHOD(VectorTile::empty)
     NanReturnValue(NanNew<Boolean>(true));
 }
 
+/**
+ * Get the vector tile's width
+ *
+ * @memberof mapnik.VectorTile
+ * @name width
+ * @instance
+ * @param {number} width
+ */
 NAN_METHOD(VectorTile::width)
 {
     NanScope();
@@ -711,6 +1061,14 @@ NAN_METHOD(VectorTile::width)
     NanReturnValue(NanNew<Integer>(d->width()));
 }
 
+/**
+ * Get the vector tile's height
+ *
+ * @memberof mapnik.VectorTile
+ * @name height
+ * @instance
+ * @param {number} height
+ */
 NAN_METHOD(VectorTile::height)
 {
     NanScope();
@@ -718,6 +1076,14 @@ NAN_METHOD(VectorTile::height)
     NanReturnValue(NanNew<Integer>(d->height()));
 }
 
+/**
+ * Get whether the vector tile has been painted
+ *
+ * @memberof mapnik.VectorTile
+ * @name painted
+ * @instance
+ * @param {boolean} painted
+ */
 NAN_METHOD(VectorTile::painted)
 {
     NanScope();
@@ -738,6 +1104,18 @@ typedef struct {
     Persistent<Function> cb;
 } vector_tile_query_baton_t;
 
+/**
+ * Query a vector tile by longitude and latitude
+ *
+ * @memberof mapnik.VectorTile
+ * @name query
+ * @instance
+ * @param {number} longitude
+ * @param {number} latitude
+ * @param {Object} [options={tolerance:0}] tolerance: allow results that
+ * are not exactly on this longitude, latitude position.
+ * @param {Function} callback
+ */
 NAN_METHOD(VectorTile::query)
 {
     NanScope();
@@ -847,7 +1225,12 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     delete closure;
 }
 
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name) {
+std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name)
+{
+    if (d->width() <= 0 || d->height() <= 0)
+    {
+        throw std::runtime_error("Can not query a vector tile with width or height of zero");
+    }
     std::vector<query_result> arr;
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
@@ -857,7 +1240,11 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     double z = 0;
     if (!tr.forward(x,y,z))
     {
+        // THIS CAN NEVER BE REACHED CURRENTLY
+        // internally lonlat2merc in mapnik can never return false.
+        /* LCOV_EXCL_START */
         throw std::runtime_error("could not reproject lon/lat to mercator");
+        /* LCOV_EXCL_END */
     }
     vector_tile::Tile const& tiledata = d->get_tile();
     mapnik::coord2d pt(x,y);
@@ -876,7 +1263,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         if (layer_idx > -1)
         {
             vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
                                             layer,
                                             d->x_,
@@ -890,23 +1277,9 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
-                    double distance = -1;
-                    for (mapnik::geometry_type const& geom : feature->paths())
-                    {
-                        double d = path_to_point_distance(geom,x,y);
-                        if (d >= 0)
-                        {
-                            if (distance >= 0)
-                            {
-                                if (d < distance) distance = d;
-                            }
-                            else
-                            {
-                                distance = d;
-                            }
-                        }
-                    }
-                    if (distance >= 0)
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,x,y);
+                    if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
                         res.distance = distance;
@@ -923,7 +1296,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         for (int i=0; i < tiledata.layers_size(); ++i)
         {
             vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-            MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+            std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
                                             layer,
                                             d->x_,
@@ -937,23 +1310,9 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
-                    double distance = -1;
-                    for (mapnik::geometry_type const& geom : feature->paths())
-                    {
-                        double d = path_to_point_distance(geom,x,y);
-                        if (d >= 0)
-                        {
-                            if (distance >= 0)
-                            {
-                                if (d < distance) distance = d;
-                            }
-                            else
-                            {
-                                distance = d;
-                            }
-                        }
-                    }
-                    if (distance >= 0)
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,x,y);
+                    if (distance >= 0 && distance <= tolerance)
                     {
                         query_result res;
                         res.distance = distance;
@@ -977,7 +1336,7 @@ Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& resul
 {
     Local<Array> arr = NanNew<Array>();
     for (std::size_t i = 0; i < result.size(); ++i) {
-        Handle<Value> feat = Feature::New(result[i].feature);
+        Handle<Value> feat = Feature::NewInstance(result[i].feature);
         Local<Object> feat_obj = feat->ToObject();
         feat_obj->Set(NanNew("layer"),NanNew(result[i].layer.c_str()));
         feat_obj->Set(NanNew("distance"),NanNew<Number>(result[i].distance));
@@ -1159,7 +1518,9 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
         double z = 0;
         if (!tr.forward(x,y,z))
         {
+            /* LCOV_EXCL_START */
             throw std::runtime_error("could not reproject lon/lat to mercator");
+            /* LCOV_EXCL_END */
         }
         mapnik::coord2d pt(x,y);
         bbox.expand_to_include(pt);
@@ -1168,7 +1529,7 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
     bbox.pad(tolerance);
 
     vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
-    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                 mapnik::vector_tile_impl::tile_datasource>(
                                     layer,
                                     d->x_,
@@ -1203,23 +1564,9 @@ queryMany_result VectorTile::_queryMany(VectorTile* d, std::vector<query_lonlat>
             unsigned has_hit = 0;
             for (std::size_t p = 0; p < points.size(); ++p) {
                 mapnik::coord2d const& pt = points[p];
-                double distance = -1;
-                for (mapnik::geometry_type const& geom : feature->paths())
-                {
-                    double d = path_to_point_distance(geom,pt.x,pt.y);
-                    if (d >= 0)
-                    {
-                        if (distance >= 0)
-                        {
-                            if (d < distance) distance = d;
-                        }
-                        else
-                        {
-                            distance = d;
-                        }
-                    }
-                }
-                if (distance >= 0)
+                auto const& geom = feature->get_geometry();
+                double distance = path_to_point_distance(geom,pt.x,pt.y);
+                if (distance >= 0 && distance <= tolerance)
                 {
                     has_hit = 1;
                     query_result res;
@@ -1277,7 +1624,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     // result.features => features
     typedef std::map<unsigned,query_result>::const_iterator features_it_type;
     for (features_it_type it = result.features.begin(); it != result.features.end(); it++) {
-        Handle<Value> feat = Feature::New(it->second.feature);
+        Handle<Value> feat = Feature::NewInstance(it->second.feature);
         Local<Object> feat_obj = feat->ToObject();
         feat_obj->Set(NanNew("layer"),NanNew(it->second.layer.c_str()));
         features->Set(it->first, feat_obj);
@@ -1334,6 +1681,15 @@ void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Get a JSON representation of this tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name toJSON
+ * @instance
+ * @returns {Object} json representation of this tile with name, extent,
+ * and version properties
+ */
 NAN_METHOD(VectorTile::toJSON)
 {
     NanScope();
@@ -1391,6 +1747,9 @@ NAN_METHOD(VectorTile::toJSON)
                     {
                         att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.double_value()));
                     }
+                    // The following lines are not currently supported by mapnik-vector-tiles
+                    // therefore these lines are not currently testable.
+                    /* LCOV_EXCL_START */
                     else if (value.has_float_value())
                     {
                         att_obj->Set(NanNew(name.c_str()), NanNew<Number>(value.float_value()));
@@ -1411,6 +1770,7 @@ NAN_METHOD(VectorTile::toJSON)
                     {
                         att_obj->Set(NanNew(name.c_str()), NanUndefined());
                     }
+                    /* LCOV_EXCL_END */
                 }
                 feature_obj->Set(NanNew("properties"),att_obj);
             }
@@ -1423,7 +1783,7 @@ NAN_METHOD(VectorTile::toJSON)
     NanReturnValue(arr);
 }
 
-static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
+static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
                              std::string & result,
                              unsigned x,
                              unsigned y,
@@ -1434,8 +1794,7 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
                                                  x,
                                                  y,
                                                  z,
-                                                 width,
-                                                 true);
+                                                 width);
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
@@ -1446,60 +1805,45 @@ static void layer_to_geojson(vector_tile::Tile_Layer const& layer,
         q.add_property_name(item.get_name());
     }
     mapnik::featureset_ptr fs = ds.features(q);
-    using sink_type = std::back_insert_iterator<std::string>;
-    static const mapnik::json::multi_geometry_generator_grammar<sink_type,node_mapnik::proj_transform_container> proj_grammar;
+    bool first = true;
     if (fs)
     {
         mapnik::feature_ptr feature;
-        bool first = true;
         while ((feature = fs->next()))
         {
-            if (first) first = false;
-            else result += ",";
-            result += "{\"type\":\"Feature\",\"properties\":{";
-            bool first_prop = true;
-            for (auto const& attr : *feature)
+            if (first)
             {
-                if (first_prop) first_prop = false;
-                else result += ",";
-                auto const& val = std::get<1>(attr);
-                if (val.is<mapnik::value_unicode_string>())
-                {
-                    result += "\"" + std::get<0>(attr) + "\":\"" + val.to_string() + "\"";
-                }
-                else
-                {
-                    result += "\"" + std::get<0>(attr) + "\":" + val.to_string();
-                }
-            }
-            result += "},\"geometry\":";
-            if (feature->paths().empty())
-            {
-                result += "null";
+                first = false;
             }
             else
             {
-                std::string geometry;
-                sink_type sink(geometry);
-                node_mapnik::proj_transform_container projected_paths;
-                for (auto & geom : feature->paths())
-                {
-                    projected_paths.push_back(new node_mapnik::proj_transform_path_type(geom,prj_trans));
-                }
-                if (!boost::spirit::karma::generate(sink, proj_grammar, projected_paths))
-                {
-                    std::clog << "Failed to generate GeoJSON";
-                }
-                else
-                {
-                    result += geometry;
-                }
+                result += "\n,";
             }
-            result += "}";
+            std::string feature_str;
+            mapnik::feature_impl feature_new(feature->context(),feature->id());
+            feature_new.set_data(feature->get_data());
+            unsigned int n_err = 0;
+            feature_new.set_geometry(mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
+            {
+                // LCOV_EXCL_START
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
+                // LCOV_EXCL_END
+            }
+            result += feature_str;
         }
     }
+    return !first;
 }
 
+/**
+ * Get a [GeoJSON](http://geojson.org/) representation of this tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name toGeoJSONSync
+ * @instance
+ * @returns {string} stringified GeoJSON of all the features in this tile.
+ */
 NAN_METHOD(VectorTile::toGeoJSONSync)
 {
     NanScope();
@@ -1578,18 +1922,21 @@ void handle_to_geojson_args(Local<Value> const& layer_id,
             error_msg = s.str();
         }
     } else {
+        // This should never be reached as args should have been caught earlier
+        // LCOV_EXCL_START
         error_msg = "layer id must be a string or index number";
+        // LCOV_EXCL_END
     }
 }
 
 void write_geojson_to_string(std::string & result,
-                             bool all_array,
-                             bool all_flattened,
+                             bool array,
+                             bool all,
                              int layer_idx,
                              VectorTile * v)
 {
     vector_tile::Tile const& tiledata = v->get_tile();
-    if (all_array)
+    if (array)
     {
         unsigned layer_num = tiledata.layers_size();
         result += "[";
@@ -1601,21 +1948,34 @@ void write_geojson_to_string(std::string & result,
             else result += ",";
             result += "{\"type\":\"FeatureCollection\",";
             result += "\"name\":\"" + layer.name() + "\",\"features\":[";
-            layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
+            std::string features;
+            bool hit = layer_to_geojson(layer,features,v->x_,v->y_,v->z_,v->width());
+            if (hit)
+            {
+                result += features;
+            }
             result += "]}";
         }
         result += "]";
     }
     else
     {
-        if (all_flattened)
+        if (all)
         {
             result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            bool first = true;
             unsigned layer_num = tiledata.layers_size();
             for (unsigned i=0;i<layer_num;++i)
             {
                 vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-                layer_to_geojson(layer,result,v->x_,v->y_,v->z_,v->width());
+                std::string features;
+                bool hit = layer_to_geojson(layer,features,v->x_,v->y_,v->z_,v->width());
+                if (hit)
+                {
+                    if (first) first = false;
+                    else result += ",";
+                    result += features;
+                }
             }
             result += "]}";
         }
@@ -1666,8 +2026,12 @@ Local<Value> VectorTile::_toGeoJSONSync(_NAN_METHOD_ARGS) {
     }
     catch (std::exception const& ex)
     {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
     }
     return NanEscapeScope(NanNew(result));
 }
@@ -1683,6 +2047,15 @@ struct to_geojson_baton {
     Persistent<Function> cb;
 };
 
+/**
+ * Get a [GeoJSON](http://geojson.org/) representation of this tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name toGeoJSON
+ * @instance
+ * @param {Function} callback
+ * @returns {string} stringified GeoJSON of all the features in this tile.
+ */
 NAN_METHOD(VectorTile::toGeoJSON)
 {
     NanScope();
@@ -1735,8 +2108,12 @@ void VectorTile::to_geojson(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->result = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -1746,8 +2123,12 @@ void VectorTile::after_to_geojson(uv_work_t* req)
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
     if (closure->error)
     {
+        // Because there are no known ways to trigger the exception path in to_geojson
+        // there is no easy way to test this path currently
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->result.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
@@ -1848,10 +2229,19 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Add features to this tile from a GeoJSON string
+ *
+ * @memberof mapnik.VectorTile
+ * @name addGeoJSON
+ * @instance
+ * @param {string} geojson as a string
+ * @param {string} name of the layer to be added
+ */
 NAN_METHOD(VectorTile::addGeoJSON)
 {
     NanScope();
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     if (args.Length() < 1 || !args[0]->IsString()) {
         NanThrowError("first argument must be a GeoJSON string");
         NanReturnUndefined();
@@ -1864,8 +2254,10 @@ NAN_METHOD(VectorTile::addGeoJSON)
     std::string geojson_name = TOSTR(args[1]);
 
     Local<Object> options = NanNew<Object>();
-    unsigned tolerance = 1;
+    double area_threshold = 0.1;
+    double simplify_distance = 0.0;
     unsigned path_multiplier = 16;
+    int buffer_size = 8;
 
     if (args.Length() > 2) {
         // options object
@@ -1876,13 +2268,13 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
         options = args[2]->ToObject();
 
-        if (options->Has(NanNew("tolerance"))) {
-            Local<Value> param_val = options->Get(NanNew("tolerance"));
+        if (options->Has(NanNew("area_threshold"))) {
+            Local<Value> param_val = options->Get(NanNew("area_threshold"));
             if (!param_val->IsNumber()) {
-                NanThrowError("option 'tolerance' must be an unsigned integer");
+                NanThrowError("option 'area_threshold' must be a number");
                 NanReturnUndefined();
             }
-            tolerance = param_val->IntegerValue();
+            area_threshold = param_val->IntegerValue();
         }
 
         if (options->Has(NanNew("path_multiplier"))) {
@@ -1892,6 +2284,24 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 NanReturnUndefined();
             }
             path_multiplier = param_val->NumberValue();
+        }
+
+        if (options->Has(NanNew("simplify_distance"))) {
+            Local<Value> param_val = options->Get(NanNew("simplify_distance"));
+            if (!param_val->IsNumber()) {
+                NanThrowTypeError("option 'simplify_distance' must be an floating point number");
+                NanReturnUndefined();
+            }
+            simplify_distance = param_val->NumberValue();
+        }
+        
+        if (options->Has(NanNew("buffer_size"))) {
+            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                NanReturnUndefined();
+            }
+            buffer_size = bind_opt->IntegerValue();
         }
     }
 
@@ -1906,22 +2316,21 @@ NAN_METHOD(VectorTile::addGeoJSON)
         merc.xyz(d->x_,d->y_,d->z_,minx,miny,maxx,maxy);
         map.zoom_to_box(mapnik::box2d<double>(minx,miny,maxx,maxy));
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(8);
+        m_req.set_buffer_size(buffer_size);
         mapnik::parameters p;
-        // TODO - use mapnik core GeoJSON parser
-        p["type"]="ogr";
-        p["file"]=geojson_string;
-        p["layer_by_index"]="0";
+        p["type"]="geojson";
+        p["inline"]=geojson_string;
         mapnik::layer lyr(geojson_name,"+init=epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
-        map.MAPNIK_ADD_LAYER(lyr);
+        map.add_layer(lyr);
         renderer_type ren(backend,
                           map,
                           m_req,
                           1,
                           0,
                           0,
-                          tolerance);
+                          area_threshold);
+        ren.set_simplify_distance(simplify_distance);
         ren.apply();
         d->painted(ren.painted());
         d->cache_bytesize();
@@ -1937,7 +2346,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 NAN_METHOD(VectorTile::addImage)
 {
     NanScope();
-    VectorTile* d = ObjectWrap::Unwrap<VectorTile>(args.This());
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.This());
     if (args.Length() < 1 || !args[0]->IsObject()) {
         NanThrowError("first argument must be a Buffer representing encoded image data");
         NanReturnUndefined();
@@ -1975,6 +2384,15 @@ NAN_METHOD(VectorTile::addImage)
     NanReturnUndefined();
 }
 
+/**
+ * Add raw data to this tile as a Buffer
+ *
+ * @memberof mapnik.VectorTile
+ * @name addData
+ * @instance
+ * @param {Buffer} raw data
+ * @param {string} name of the layer to be added
+ */
 NAN_METHOD(VectorTile::addData)
 {
     NanScope();
@@ -2034,13 +2452,24 @@ Local<Value> VectorTile::_setDataSync(_NAN_METHOD_ARGS)
 typedef struct {
     uv_work_t request;
     VectorTile* d;
-    char *data;
+    const char *data;
     size_t dataLength;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
+    Persistent<Object> buffer;
 } vector_tile_setdata_baton_t;
 
+
+/**
+ * Replace the data in this vector tile with new raw data
+ *
+ * @memberof mapnik.VectorTile
+ * @name setData
+ * @instance
+ * @param {Buffer} raw data
+ * @param {string} name of the layer to be added
+ */
 NAN_METHOD(VectorTile::setData)
 {
     NanScope();
@@ -2071,10 +2500,11 @@ NAN_METHOD(VectorTile::setData)
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
     closure->d = d;
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
+    NanAssignPersistent(closure->buffer, obj.As<Object>());
+    closure->data = node::Buffer::Data(obj);
+    closure->dataLength = node::Buffer::Length(obj);
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
     d->Ref();
     NanReturnUndefined();
@@ -2091,8 +2521,12 @@ void VectorTile::EIO_SetData(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // This code is pointless as there is no known way for a buffer to create an invalid string here
+        // if there was this would be a bug in node.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -2103,8 +2537,11 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
 
     if (closure->error) {
+        // See note about exception in EIO_SetData
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
@@ -2114,18 +2551,36 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 
     closure->d->Unref();
     NanDisposePersistent(closure->cb);
+    NanDisposePersistent(closure->buffer);
     delete closure;
 }
 
+/**
+ * Get the data in this vector tile as a buffer
+ *
+ * @memberof mapnik.VectorTile
+ * @name getData
+ * @instance
+ * @returns {Buffer} raw data
+ */
 NAN_METHOD(VectorTile::getData)
 {
     NanScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     try {
         // shortcut: return raw data and avoid trip through proto object
-        // TODO  - safe for null string?
-        int raw_size = static_cast<int>(d->buffer_.size());
-        if (raw_size > 0 && d->byte_size_ <= raw_size) {
+        std::size_t raw_size = d->buffer_.size();
+        if (raw_size > 0 && (d->byte_size_ < 0 || static_cast<std::size_t>(d->byte_size_) <= raw_size)) {
+            if (raw_size >= node::Buffer::kMaxLength) {
+                // This is a valid test path, but I am excluding it from test coverage due to the
+                // requirement of loading a very large object in memory in order to test it.
+                // LCOV_EXCL_START
+                std::ostringstream s;
+                s << "Data is too large to convert to a node::Buffer ";
+                s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
+                throw std::runtime_error(s.str());
+                // LCOV_EXCL_END
+            }
             NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         } else {
             if (d->byte_size_ <= 0) {
@@ -2135,71 +2590,144 @@ NAN_METHOD(VectorTile::getData)
                 // after each modification of tiledata otherwise the
                 // SerializeWithCachedSizesToArray will throw:
                 // Error: CHECK failed: !coded_out.HadError()
-                vector_tile::Tile const& tiledata = d->get_tile();
+                if (static_cast<std::size_t>(d->byte_size_) >= node::Buffer::kMaxLength) {
+                    // This is a valid test path, but I am excluding it from test coverage due to the
+                    // requirement of loading a very large object in memory in order to test it.
+                    // LCOV_EXCL_START
+                    std::ostringstream s;
+                    s << "Data is too large to convert to a node::Buffer ";
+                    s << "(" << d->byte_size_ << " cached bytes >= node::Buffer::kMaxLength)";
+                    throw std::runtime_error(s.str());
+                    // LCOV_EXCL_END
+                }
                 Local<Object> retbuf = NanNewBufferHandle(d->byte_size_);
                 // TODO - consider wrapping in fastbuffer: https://gist.github.com/drewish/2732711
                 // http://www.samcday.com.au/blog/2011/03/03/creating-a-proper-buffer-in-a-node-c-addon/
                 google::protobuf::uint8* start = reinterpret_cast<google::protobuf::uint8*>(node::Buffer::Data(retbuf));
+                vector_tile::Tile const& tiledata = d->get_tile();
                 google::protobuf::uint8* end = tiledata.SerializeWithCachedSizesToArray(start);
                 if (end - start != d->byte_size_) {
-                    NanThrowError("serialization failed, possible race condition");
-                    NanReturnUndefined();
+                    // Attempted to make a repeatable test to cause this to fail, have not been able to do so
+                    // and feel that it will be difficult to make such a test case so removing from test
+                    // coverage
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("serialization failed, possible race condition");
+                    // LCOV_EXCL_END
                 }
                 NanReturnValue(retbuf);
             }
         }
-    } catch (std::exception const& ex) {
+    } 
+    catch (std::exception const& ex) 
+    {
+        // As all exception throwing paths are not easily testable or no way can be
+        // found to test with repeatability this exception path is not included
+        // in test coverage.
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         NanReturnUndefined();
+        // LCOV_EXCL_END
     }
     NanReturnUndefined();
 }
+
+using surface_type = mapnik::util::variant<Image *
+  , CairoSurface *
+#if defined(GRID_RENDERER)
+  , Grid *
+#endif
+  >;
+
+struct deref_visitor
+{
+    template <typename SurfaceType>
+    void operator() (SurfaceType * surface)
+    {
+        if (surface != nullptr)
+        {
+            surface->_unref();
+        }
+    }
+};
 
 struct vector_tile_render_baton_t {
     uv_work_t request;
     Map* m;
     VectorTile * d;
-    Image * im;
-    CairoSurface * c;
-    Grid * g;
+    surface_type surface;
+    mapnik::attributes variables;
+    std::string error_name;
+    Persistent<Function> cb;
+    std::string result;
     std::size_t layer_idx;
     int z;
     int x;
     int y;
     unsigned width;
     unsigned height;
-    bool zxy_override;
-    bool error;
     int buffer_size;
     double scale_factor;
     double scale_denominator;
-    mapnik::attributes variables;
-    std::string error_name;
-    Persistent<Function> cb;
-    std::string result;
     bool use_cairo;
+    bool zxy_override;
+    bool error;
     vector_tile_render_baton_t() :
         request(),
-        m(NULL),
-        d(NULL),
-        im(NULL),
-        c(NULL),
-        g(NULL),
+        m(nullptr),
+        d(nullptr),
+        surface(nullptr),
+        variables(),
+        error_name(),
+        cb(),
+        result(),
         layer_idx(0),
         z(0),
         x(0),
         y(0),
         width(0),
         height(0),
-        zxy_override(false),
-        error(false),
         buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
-        variables(),
-        use_cairo(true) {}
+        use_cairo(true),
+        zxy_override(false),
+        error(false)
+        {}
+    ~vector_tile_render_baton_t() {
+        mapnik::util::apply_visitor(deref_visitor(),surface);
+    }
 };
 
+struct baton_guard
+{
+    baton_guard(vector_tile_render_baton_t * baton) :
+      baton_(baton),
+      released_(false) {}
+
+    ~baton_guard()
+    {
+        if (!released_) delete baton_;
+    }
+
+    void release()
+    {
+        released_ = true;
+    }
+
+    vector_tile_render_baton_t * baton_;
+    bool released_;
+};
+
+/**
+ * Render this vector tile to a surface, like a {@link mapnik.Image}
+ *
+ * @memberof mapnik.VectorTile
+ * @name getData
+ * @instance
+ * @param {mapnik.Map} map object
+ * @param {mapnik.Image} renderable surface
+ * @param {Function} callback
+ */
 NAN_METHOD(VectorTile::render)
 {
     NanScope();
@@ -2221,10 +2749,6 @@ NAN_METHOD(VectorTile::render)
         NanReturnUndefined();
     }
     Local<Object> im_obj = args[1]->ToObject();
-    if (im_obj->IsNull() || im_obj->IsUndefined()) {
-        NanThrowTypeError("a renderable mapnik object is expected as second arg");
-        NanReturnUndefined();
-    }
 
     // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
@@ -2235,36 +2759,50 @@ NAN_METHOD(VectorTile::render)
     }
 
     vector_tile_render_baton_t *closure = new vector_tile_render_baton_t();
+    baton_guard guard(closure);
     Local<Object> options = NanNew<Object>();
 
     if (args.Length() > 2)
     {
         if (!args[2]->IsObject())
         {
-            delete closure;
             NanThrowTypeError("optional third argument must be an options object");
             NanReturnUndefined();
         }
         options = args[2]->ToObject();
         if (options->Has(NanNew("z")))
         {
+            Local<Value> bind_opt = options->Get(NanNew("z"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'z' must be a number");
+                NanReturnUndefined();
+            }
+            closure->z = bind_opt->IntegerValue();
             closure->zxy_override = true;
-            closure->z = options->Get(NanNew("z"))->IntegerValue();
         }
         if (options->Has(NanNew("x")))
         {
+            Local<Value> bind_opt = options->Get(NanNew("x"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'x' must be a number");
+                NanReturnUndefined();
+            }
+            closure->x = bind_opt->IntegerValue();
             closure->zxy_override = true;
-            closure->x = options->Get(NanNew("x"))->IntegerValue();
         }
         if (options->Has(NanNew("y")))
         {
+            Local<Value> bind_opt = options->Get(NanNew("y"));
+            if (!bind_opt->IsNumber()) {
+                NanThrowTypeError("optional arg 'y' must be a number");
+                NanReturnUndefined();
+            }
+            closure->y = bind_opt->IntegerValue();
             closure->zxy_override = true;
-            closure->y = options->Get(NanNew("y"))->IntegerValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
             if (!bind_opt->IsNumber()) {
-                delete closure;
                 NanThrowTypeError("optional arg 'buffer_size' must be a number");
                 NanReturnUndefined();
             }
@@ -2274,7 +2812,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> bind_opt = options->Get(NanNew("scale"));
             if (!bind_opt->IsNumber())
             {
-                delete closure;
                 NanThrowTypeError("optional arg 'scale' must be a number");
                 NanReturnUndefined();
             }
@@ -2285,7 +2822,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
             if (!bind_opt->IsNumber())
             {
-                delete closure;
                 NanThrowTypeError("optional arg 'scale_denominator' must be a number");
                 NanReturnUndefined();
             }
@@ -2296,7 +2832,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> bind_opt = options->Get(NanNew("variables"));
             if (!bind_opt->IsObject())
             {
-                delete closure;
                 NanThrowTypeError("optional arg 'variables' must be an object");
                 NanReturnUndefined();
             }
@@ -2308,24 +2843,23 @@ NAN_METHOD(VectorTile::render)
     if (NanNew(Image::constructor)->HasInstance(im_obj))
     {
         Image *im = node::ObjectWrap::Unwrap<Image>(im_obj);
-        closure->im = im;
+        im->_ref();
         closure->width = im->get()->width();
         closure->height = im->get()->height();
-        closure->im->_ref();
+        closure->surface = im;
     }
     else if (NanNew(CairoSurface::constructor)->HasInstance(im_obj))
     {
         CairoSurface *c = node::ObjectWrap::Unwrap<CairoSurface>(im_obj);
-        closure->c = c;
+        c->_ref();
         closure->width = c->width();
         closure->height = c->height();
-        closure->c->_ref();
+        closure->surface = c;
         if (options->Has(NanNew("renderer")))
         {
             Local<Value> renderer = options->Get(NanNew("renderer"));
             if (!renderer->IsString() )
             {
-                delete closure;
                 NanThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
                 NanReturnUndefined();
             }
@@ -2340,38 +2874,31 @@ NAN_METHOD(VectorTile::render)
             }
             else
             {
-                delete closure;
                 NanThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
                 NanReturnUndefined();
             }
         }
     }
+#if defined(GRID_RENDERER)
     else if (NanNew(Grid::constructor)->HasInstance(im_obj))
     {
         Grid *g = node::ObjectWrap::Unwrap<Grid>(im_obj);
-        closure->g = g;
+        g->_ref();
         closure->width = g->get()->width();
         closure->height = g->get()->height();
-        closure->g->_ref();
+        closure->surface = g;
 
         std::size_t layer_idx = 0;
 
         // grid requires special options for now
         if (!options->Has(NanNew("layer")))
         {
-            delete closure;
             NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
             NanReturnUndefined();
         } else {
             std::vector<mapnik::layer> const& layers = m->get()->layers();
 
             Local<Value> layer_id = options->Get(NanNew("layer"));
-            if (! (layer_id->IsString() || layer_id->IsNumber()) )
-            {
-                delete closure;
-                NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                NanReturnUndefined();
-            }
 
             if (layer_id->IsString()) {
                 bool found = false;
@@ -2391,7 +2918,6 @@ NAN_METHOD(VectorTile::render)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    delete closure;
                     NanThrowTypeError(s.str().c_str());
                     NanReturnUndefined();
                 }
@@ -2410,13 +2936,13 @@ NAN_METHOD(VectorTile::render)
                     {
                         s << "no layers found in map";
                     }
-                    delete closure;
                     NanThrowTypeError(s.str().c_str());
                     NanReturnUndefined();
                 }
-            } else {
-                delete closure;
-                NanThrowTypeError("layer id must be a string or index number");
+            }
+            else
+            {
+                NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
                 NanReturnUndefined();
             }
         }
@@ -2425,7 +2951,6 @@ NAN_METHOD(VectorTile::render)
             Local<Value> param_val = options->Get(NanNew("fields"));
             if (!param_val->IsArray())
             {
-                delete closure;
                 NanThrowTypeError("option 'fields' must be an array of strings");
                 NanReturnUndefined();
             }
@@ -2435,16 +2960,16 @@ NAN_METHOD(VectorTile::render)
             while (i < num_fields) {
                 Local<Value> name = a->Get(i);
                 if (name->IsString()){
-                    g->get()->add_property_name(TOSTR(name));
+                    g->get()->add_field(TOSTR(name));
                 }
                 ++i;
             }
         }
         closure->layer_idx = layer_idx;
     }
+#endif
     else
     {
-        delete closure;
         NanThrowTypeError("renderable mapnik object expected as second arg");
         NanReturnUndefined();
     }
@@ -2456,6 +2981,7 @@ NAN_METHOD(VectorTile::render)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, (uv_after_work_cb)EIO_AfterRenderTile);
     m->_ref();
     d->Ref();
+    guard.release();
     NanReturnUndefined();
 }
 
@@ -2464,6 +2990,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             mapnik::projection const& map_proj,
                                             std::vector<mapnik::layer> const& layers,
                                             double scale_denom,
+                                            std::string const& map_srs,
                                             vector_tile::Tile const& tiledata,
                                             vector_tile_render_baton_t *closure)
 {
@@ -2481,7 +3008,8 @@ template <typename Renderer> void process_layers(Renderer & ren,
                 if (lyr.name() == layer.name())
                 {
                     mapnik::layer lyr_copy(lyr);
-                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                    lyr_copy.set_srs(map_srs);
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,
@@ -2507,6 +3035,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
         }
     }
 }
+
 void VectorTile::EIO_RenderTile(uv_work_t* req)
 {
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
@@ -2532,13 +3061,15 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
         scale_denom *= closure->scale_factor;
         std::vector<mapnik::layer> const& layers = map_in.layers();
         vector_tile::Tile const& tiledata = closure->d->get_tile();
+#if defined(GRID_RENDERER)
         // render grid for layer
-        if (closure->g)
+        if (closure->surface.is<Grid *>())
         {
+            Grid * g = mapnik::util::get<Grid *>(closure->surface);
             mapnik::grid_renderer<mapnik::grid> ren(map_in,
                                                     m_req,
                                                     closure->variables,
-                                                    *closure->g->get(),
+                                                    *(g->get()),
                                                     closure->scale_factor);
             ren.start_map_processing(map_in);
 
@@ -2560,18 +3091,22 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     vector_tile::Tile_Layer const& layer = tiledata.layers(layer_idx);
                     if (layer.features_size() <= 0)
                     {
+                        // Not certain how to test this as it is an empty layer. 
+                        // LCOV_EXCL_START
                         return;
+                        // LCOV_EXCL_END
                     }
 
-                    // copy property names
-                    std::set<std::string> attributes = closure->g->get()->property_names();
+                    // copy field names
+                    std::set<std::string> attributes = g->get()->get_fields();
+                    
                     // todo - make this a static constant
                     std::string known_id_key = "__id__";
                     if (attributes.find(known_id_key) != attributes.end())
                     {
                         attributes.erase(known_id_key);
                     }
-                    std::string join_field = closure->g->get()->get_key();
+                    std::string join_field = g->get()->get_key();
                     if (known_id_key != join_field &&
                         attributes.find(join_field) == attributes.end())
                     {
@@ -2579,7 +3114,8 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                     }
 
                     mapnik::layer lyr_copy(lyr);
-                    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                    lyr_copy.set_srs(map_in.srs());
+                    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource>(
                                                         layer,
                                                         closure->d->x_,
@@ -2603,25 +3139,28 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
                 ren.end_map_processing(map_in);
             }
         }
-        else if (closure->c)
+        else
+#endif
+        if (closure->surface.is<CairoSurface *>())
         {
+            CairoSurface * c = mapnik::util::get<CairoSurface *>(closure->surface);
             if (closure->use_cairo)
             {
 #if defined(HAVE_CAIRO)
                 mapnik::cairo_surface_ptr surface;
                 // TODO - support any surface type
                 surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
-                                                       (cairo_write_func_t)closure->c->write_callback,
-                                                       (void*)(&closure->c->ss_),
-                                                       static_cast<double>(closure->c->width()),
-                                                       static_cast<double>(closure->c->height())
+                                                       (cairo_write_func_t)c->write_callback,
+                                                       (void*)(&c->ss_),
+                                                       static_cast<double>(c->width()),
+                                                       static_cast<double>(c->height())
                                                     ),mapnik::cairo_surface_closer());
-                mapnik::cairo_ptr c_context = (mapnik::create_context(surface));
+                mapnik::cairo_ptr c_context = mapnik::create_context(surface);
                 mapnik::cairo_renderer<mapnik::cairo_ptr> ren(map_in,m_req,
                                                                 closure->variables,
                                                                 c_context,closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -2632,12 +3171,12 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             {
 #if defined(SVG_RENDERER)
                 typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
-                std::ostream_iterator<char> output_stream_iterator(closure->c->ss_);
+                std::ostream_iterator<char> output_stream_iterator(c->ss_);
                 svg_ren ren(map_in, m_req,
                             closure->variables,
                             output_stream_iterator, closure->scale_factor);
                 ren.start_map_processing(map_in);
-                process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
                 ren.end_map_processing(map_in);
 #else
                 closure->error = true;
@@ -2646,14 +3185,24 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             }
         }
         // render all layers with agg
-        else
+        else if (closure->surface.is<Image *>())
         {
-            mapnik::agg_renderer<mapnik::image_32> ren(map_in,m_req,
-                                                    closure->variables,
-                                                    *closure->im->get(),closure->scale_factor);
-            ren.start_map_processing(map_in);
-            process_layers(ren,m_req,map_proj,layers,scale_denom,tiledata,closure);
-            ren.end_map_processing(map_in);
+            Image * js_image = mapnik::util::get<Image *>(closure->surface);
+            mapnik::image_any & im = *(js_image->get());
+            if (im.is<mapnik::image_rgba8>())
+            {
+                mapnik::image_rgba8 & im_data = mapnik::util::get<mapnik::image_rgba8>(im);
+                mapnik::agg_renderer<mapnik::image_rgba8> ren(map_in,m_req,
+                                                        closure->variables,
+                                                        im_data,closure->scale_factor);
+                ren.start_map_processing(map_in);
+                process_layers(ren,m_req,map_proj,layers,scale_denom,map_in.srs(),tiledata,closure);
+                ren.end_map_processing(map_in);
+            }
+            else
+            {
+                throw std::runtime_error("This image type is not currently supported for rendering.");
+            }
         }
     }
     catch (std::exception const& ex)
@@ -2675,26 +3224,26 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     }
     else
     {
-        if (closure->im)
+        if (closure->surface.is<Image *>())
         {
-            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
+            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<Image *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
-        else if (closure->g)
+#if defined(GRID_RENDERER)
+        else if (closure->surface.is<Grid *>())
         {
-            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->g) };
+            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<Grid *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
-        else if (closure->c)
+#endif
+        else if (closure->surface.is<CairoSurface *>())
         {
-            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->c) };
+            Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(mapnik::util::get<CairoSurface *>(closure->surface)) };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
         }
     }
 
     closure->m->_unref();
-    if (closure->im) closure->im->_unref();
-    if (closure->g) closure->g->_unref();
     closure->d->Unref();
     NanDisposePersistent(closure->cb);
     delete closure;
@@ -2722,6 +3271,14 @@ typedef struct {
     Persistent<Function> cb;
 } clear_vector_tile_baton_t;
 
+/**
+ * Remove all data from this vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name clear
+ * @instance
+ * @param {Function} callback
+ */
 NAN_METHOD(VectorTile::clear)
 {
     NanScope();
@@ -2755,8 +3312,11 @@ void VectorTile::EIO_Clear(uv_work_t* req)
     }
     catch(std::exception const& ex)
     {
+        // No reason this should ever throw an exception, not currently testable.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -2766,8 +3326,11 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
     clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
     if (closure->error)
     {
+        // No reason this should ever throw an exception, not currently testable.
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {
@@ -2779,6 +3342,14 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Test whether this tile is solid - whether it has features
+ *
+ * @memberof mapnik.VectorTile
+ * @name isSolidSync
+ * @instance
+ * @returns {boolean} whether the tile is solid
+ */
 NAN_METHOD(VectorTile::isSolidSync)
 {
     NanScope();
@@ -2804,8 +3375,12 @@ Local<Value> VectorTile::_isSolidSync(_NAN_METHOD_ARGS)
     }
     catch (std::exception const& ex)
     {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile. 
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
     }
     return NanEscapeScope(NanUndefined());
 }
@@ -2820,6 +3395,14 @@ typedef struct {
     bool result;
 } is_solid_vector_tile_baton_t;
 
+/**
+ * Test whether this tile is solid - whether it has features
+ *
+ * @memberof mapnik.VectorTile
+ * @name isSolid
+ * @instance
+ * @param {Function} callback
+ */
 NAN_METHOD(VectorTile::isSolid)
 {
     NanScope();
@@ -2849,13 +3432,18 @@ NAN_METHOD(VectorTile::isSolid)
 void VectorTile::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
-    try {
+    try 
+    {
         closure->result = mapnik::vector_tile_impl::is_solid_extent(closure->d->get_tile(),closure->key);
     }
     catch (std::exception const& ex)
     {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile. 
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -2863,9 +3451,14 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
 {
     NanScope();
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
-    if (closure->error) {
+    if (closure->error) 
+    {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile. 
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else
     {

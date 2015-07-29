@@ -1,12 +1,10 @@
-
-//#include "mapnik3x_compatibility.hpp"
-//#include MAPNIK_VARIANT_INCLUDE
-
 #include "mapnik_map.hpp"
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
 #include "mapnik_featureset.hpp"        // for Featureset
+#if defined(GRID_RENDERER)
 #include "mapnik_grid.hpp"              // for Grid, Grid::constructor
+#endif
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
@@ -21,10 +19,11 @@
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/attribute.hpp>        // for attributes
 #include <mapnik/featureset.hpp>        // for featureset_ptr
-#include <mapnik/graphics.hpp>          // for image_32
+#if defined(GRID_RENDERER)
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
-#include <mapnik/image_data.hpp>        // for image_data_32
+#endif
+#include <mapnik/image.hpp>             // for image_rgba8
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
@@ -33,6 +32,9 @@
 #include <mapnik/save_map.hpp>          // for save_map, etc
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/request.hpp>
+#if defined(HAVE_CAIRO)
+#include <mapnik/cairo_io.hpp>
+#endif
 
 // stl
 #include <exception>                    // for exception
@@ -43,10 +45,21 @@
 
 // boost
 #include <boost/optional/optional.hpp>  // for optional
-#include "mapnik3x_compatibility.hpp"
 
 Persistent<FunctionTemplate> Map::constructor;
 
+/**
+ * A map in mapnik is an object that combined data sources and styles in
+ * a way that lets you produce styled cartographic output.
+ *
+ * @name mapnik.Map
+ * @class
+ * @param {number} width
+ * @param {number} width
+ * @param {string} projection as a proj4 code
+ * @example
+ * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
+ */
 void Map::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -124,32 +137,33 @@ void Map::Initialize(Handle<Object> target) {
 }
 
 Map::Map(int width, int height) :
-    ObjectWrap(),
-    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height)),
-    in_use_(0) {}
+    node::ObjectWrap(),
+    map_(std::make_shared<mapnik::Map>(width,height)),
+    in_use_(false) {}
 
 Map::Map(int width, int height, std::string const& srs) :
-    ObjectWrap(),
-    map_(MAPNIK_MAKE_SHARED<mapnik::Map>(width,height,srs)),
-    in_use_(0) {}
+    node::ObjectWrap(),
+    map_(std::make_shared<mapnik::Map>(width,height,srs)),
+    in_use_(false) {}
 
 Map::Map() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     map_(),
-    in_use_(0) {}
+    in_use_(false) {}
 
 Map::~Map() { }
 
-void Map::acquire() {
-    ++in_use_;
+bool Map::acquire() {
+    if (in_use_)
+    {
+        return false;
+    }
+    in_use_ = true;
+    return true;
 }
 
 void Map::release() {
-    --in_use_;
-}
-
-int Map::active() const {
-    return in_use_;
+    in_use_ = false;
 }
 
 NAN_METHOD(Map::New)
@@ -223,8 +237,6 @@ NAN_GETTER(Map::get_prop)
     }
     else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
-        if (!e)
-            NanReturnUndefined();
         Local<Array> arr = NanNew<Array>(4);
         arr->Set(0, NanNew<Number>(e->minx()));
         arr->Set(1, NanNew<Number>(e->miny()));
@@ -256,23 +268,22 @@ NAN_GETTER(Map::get_prop)
     else if (a == "background") {
         boost::optional<mapnik::color> c = m->map_->background();
         if (c)
-            NanReturnValue(Color::New(*c));
+            NanReturnValue(Color::NewInstance(*c));
         else
             NanReturnUndefined();
     }
-    else if (a == "parameters") {
+    else //if (a == "parameters") 
+    {
         Local<Object> ds = NanNew<Object>();
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
         for (; it != end; ++it)
         {
-            node_mapnik::params_to_object serializer( ds , it->first);
-            MAPNIK_APPLY_VISITOR( serializer, it->second );
+            node_mapnik::params_to_object(ds, it->first, it->second);
         }
         NanReturnValue(ds);
     }
-    NanReturnUndefined();
 }
 
 NAN_SETTER(Map::set_prop)
@@ -309,7 +320,7 @@ NAN_SETTER(Map::set_prop)
             return;
         } else {
             int val = value->IntegerValue();
-            if (val < mapnik::Map::aspect_fix_mode_MAX) {
+            if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0) {
                 m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
             } else {
                 NanThrowError("'aspect_fix_mode' value is invalid");
@@ -371,11 +382,6 @@ NAN_SETTER(Map::set_prop)
         }
 
         Local<Object> obj = value->ToObject();
-        if (obj->IsNull() || obj->IsUndefined()) {
-            NanThrowTypeError("object expected for map.parameters, cannot be null/undefined");
-            return;
-        }
-
         mapnik::parameters params;
         Local<Array> names = obj->GetPropertyNames();
         unsigned int i = 0;
@@ -394,6 +400,8 @@ NAN_SETTER(Map::set_prop)
                     double dub_val = a_value->NumberValue();
                     params[TOSTR(name)] = dub_val;
                 }
+            } else if (a_value->IsBoolean()) {
+                params[TOSTR(name)] = static_cast<mapnik::value_bool>(a_value->BooleanValue());
             }
             i++;
         }
@@ -426,45 +434,44 @@ NAN_METHOD(Map::registerFonts)
 {
     NanScope();
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    try
+    if (args.Length() == 0 || !args[0]->IsString())
     {
-        if (args.Length() == 0 || !args[0]->IsString())
-        {
-            NanThrowTypeError("first argument must be a path to a directory of fonts");
-            NanReturnUndefined();
-        }
-
-        bool recurse = false;
-
-        if (args.Length() >= 2)
-        {
-            if (!args[1]->IsObject())
-            {
-                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
-                NanReturnUndefined();
-            }
-            Local<Object> options = args[1].As<Object>();
-            if (options->Has(NanNew("recurse")))
-            {
-                Local<Value> recurse_opt = options->Get(NanNew("recurse"));
-                if (!recurse_opt->IsBoolean())
-                {
-                    NanThrowTypeError("'recurse' must be a Boolean");
-                    NanReturnUndefined();
-                }
-                recurse = recurse_opt->BooleanValue();
-            }
-        }
-        std::string path = TOSTR(args[0]);
-        NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
-    }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
+        NanThrowTypeError("first argument must be a path to a directory of fonts");
         NanReturnUndefined();
     }
+
+    bool recurse = false;
+
+    if (args.Length() >= 2)
+    {
+        if (!args[1]->IsObject())
+        {
+            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
+            NanReturnUndefined();
+        }
+        Local<Object> options = args[1].As<Object>();
+        if (options->Has(NanNew("recurse")))
+        {
+            Local<Value> recurse_opt = options->Get(NanNew("recurse"));
+            if (!recurse_opt->IsBoolean())
+            {
+                NanThrowTypeError("'recurse' must be a Boolean");
+                NanReturnUndefined();
+            }
+            recurse = recurse_opt->BooleanValue();
+        }
+    }
+    std::string path = TOSTR(args[0]);
+    NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
 }
 
+/**
+ * Get all of the fonts currently registered as part of this map
+ * @memberof mapnik.Map
+ * @instance
+ * @name font
+ * @returns {Array<string>} fonts
+ */
 NAN_METHOD(Map::fonts)
 {
     NanScope();
@@ -479,6 +486,14 @@ NAN_METHOD(Map::fonts)
     NanReturnValue(a);
 }
 
+/**
+ * Get all of the fonts currently registered as part of this map, as a mapping
+ * from font to font file
+ * @memberof mapnik.Map
+ * @instance
+ * @name fontFiles
+ * @returns {Object} fonts
+ */
 NAN_METHOD(Map::fontFiles)
 {
     NanScope();
@@ -492,6 +507,13 @@ NAN_METHOD(Map::fontFiles)
     NanReturnValue(obj);
 }
 
+/**
+ * Get the currently-registered font directory, if any
+ * @memberof mapnik.Map
+ * @instance
+ * @name fontDirectory
+ * @returns {string|undefined} fonts
+ */
 NAN_METHOD(Map::fontDirectory)
 {
     NanScope();
@@ -504,6 +526,14 @@ NAN_METHOD(Map::fontDirectory)
     NanReturnUndefined();
 }
 
+/**
+ * Get the map's scale factor. This is the ratio between pixels and geographical
+ * units like meters.
+ * @memberof mapnik.Map
+ * @instance
+ * @name scale
+ * @returns {number} scale
+ */
 NAN_METHOD(Map::scale)
 {
     NanScope();
@@ -511,6 +541,14 @@ NAN_METHOD(Map::scale)
     NanReturnValue(NanNew<Number>(m->map_->scale()));
 }
 
+/**
+ * Get the map's scale denominator.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name scaleDenominator
+ * @returns {number} scale denominator
+ */
 NAN_METHOD(Map::scaleDenominator)
 {
     NanScope();
@@ -621,7 +659,7 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                 if (layer_idx < 0) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid"
-                      << " must be a positive integer";
+                      << " must be a positive integer, ";
                     if (layer_num > 0)
                     {
                         s << "only '" << layer_num << "' layers exist in map";
@@ -646,9 +684,6 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                     NanThrowTypeError(s.str().c_str());
                     return NanUndefined();
                 }
-            } else {
-                NanThrowTypeError("layer id must be a string or index number");
-                return NanUndefined();
             }
         }
     }
@@ -752,7 +787,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
             {
                 Local<Object> obj = NanNew<Object>();
                 obj->Set(NanNew("layer"), NanNew(it->first.c_str()));
-                obj->Set(NanNew("featureset"), Featureset::New(it->second));
+                obj->Set(NanNew("featureset"), Featureset::NewInstance(it->second));
                 a->Set(idx, obj);
                 ++idx;
             }
@@ -772,6 +807,14 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Get all of the currently-added layers in this map
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name layers
+ * @returns {Array<mapnik.Layer>} layers
+ */
 NAN_METHOD(Map::layers)
 {
     NanScope();
@@ -780,11 +823,19 @@ NAN_METHOD(Map::layers)
     Local<Array> a = NanNew<Array>(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
     {
-        a->Set(i, Layer::New(layers[i]));
+        a->Set(i, Layer::NewInstance(layers[i]));
     }
     NanReturnValue(a);
 }
 
+/**
+ * Add a new layer to this map
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name add_layer
+ * @param {mapnik.Layer} new layer
+ */
 NAN_METHOD(Map::add_layer) {
     NanScope();
 
@@ -800,10 +851,20 @@ NAN_METHOD(Map::add_layer) {
     }
     Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    m->map_->MAPNIK_ADD_LAYER(*l->get());
+    m->map_->add_layer(*l->get());
     NanReturnUndefined();
 }
 
+/**
+ * Get a layer out of this map, given a name or index
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name get_layer
+ * @param {string|number} layer name or index
+ * @returns {mapnik.Layer} the layer
+ * @throws {Error} if index is incorrect or layer is not found
+ */
 NAN_METHOD(Map::get_layer)
 {
     NanScope();
@@ -823,7 +884,7 @@ NAN_METHOD(Map::get_layer)
 
         if (index < layers.size())
         {
-            NanReturnValue(Layer::New(layers[index]));
+            NanReturnValue(Layer::NewInstance(layers[index]));
         }
         else
         {
@@ -841,7 +902,7 @@ NAN_METHOD(Map::get_layer)
             if (lyr.name() == layer_name)
             {
                 found = true;
-                NanReturnValue(Layer::New(layers[idx]));
+                NanReturnValue(Layer::NewInstance(layers[idx]));
             }
             ++idx;
         }
@@ -854,15 +915,17 @@ NAN_METHOD(Map::get_layer)
         }
 
     }
-    else
-    {
-        NanThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
-        NanReturnUndefined();
-    }
-
+    NanThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
     NanReturnUndefined();
 }
 
+/**
+ * Remove all layers and styles from this map
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name clear
+ */
 NAN_METHOD(Map::clear)
 {
     NanScope();
@@ -871,6 +934,15 @@ NAN_METHOD(Map::clear)
     NanReturnUndefined();
 }
 
+/**
+ * Give this map new dimensions
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name resize
+ * @param {number} width
+ * @param {number} height
+ */
 NAN_METHOD(Map::resize)
 {
     NanScope();
@@ -903,6 +975,17 @@ typedef struct {
 } load_xml_baton_t;
 
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name load
+ * @param {string} stylesheet path
+ * @param {Object} [options={}]
+ * @param {Function} callback
+ */
 NAN_METHOD(Map::load)
 {
     NanScope();
@@ -1007,6 +1090,18 @@ void Map::EIO_AfterLoad(uv_work_t* req)
 }
 
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name loadSync
+ * @param {string} stylesheet path
+ * @param {Object} [options={}]
+ * @example
+ * map.loadSync('./style.xml');
+ */
 NAN_METHOD(Map::loadSync)
 {
     NanScope();
@@ -1074,6 +1169,19 @@ NAN_METHOD(Map::loadSync)
     NanReturnUndefined();
 }
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet given as a string.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name fromStringSync
+ * @param {string} stylesheet contents
+ * @param {Object} [options={}]
+ * @example
+ * var fs = require('fs');
+ * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));
+ */
 NAN_METHOD(Map::fromStringSync)
 {
     NanScope();
@@ -1140,6 +1248,22 @@ NAN_METHOD(Map::fromStringSync)
     NanReturnUndefined();
 }
 
+/**
+ * Load styles, layers, and other information for this map from a Mapnik
+ * XML stylesheet given as a string.
+ *
+ * @memberof mapnik.Map
+ * @instance
+ * @name fromStringSync
+ * @param {string} stylesheet contents
+ * @param {Object} [options={}]
+ * @param {Function} callback
+ * @example
+ * var fs = require('fs');
+ * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {
+ *   // details loaded
+ * });
+ */
 NAN_METHOD(Map::fromString)
 {
     NanScope();
@@ -1251,12 +1375,21 @@ void Map::EIO_AfterFromString(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Clone this map object, returning a value which can be changed
+ * without mutating the original
+ *
+ * @instance
+ * @name clone
+ * @memberof mapnik.Map
+ * @returns {mapnik.Map} clone
+ */
 NAN_METHOD(Map::clone)
 {
     NanScope();
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
     Map* m2 = new Map();
-    m2->map_ = MAPNIK_MAKE_SHARED<mapnik::Map>(*m->map_);
+    m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
     Handle<Value> ext = NanNew<External>(m2);
     NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
 }
@@ -1330,12 +1463,23 @@ NAN_METHOD(Map::zoomToBox)
     {
         NanThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
         NanReturnUndefined();
-    } else {
+    } 
+    else if (args[0]->IsNumber() && 
+               args[1]->IsNumber() &&
+               args[2]->IsNumber() &&
+               args[3]->IsNumber())
+    {
         minx = args[0]->NumberValue();
         miny = args[1]->NumberValue();
         maxx = args[2]->NumberValue();
         maxy = args[3]->NumberValue();
     }
+    else
+    {
+        NanThrowError("If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers");
+        NanReturnUndefined();
+    }
+
     mapnik::box2d<double> box(minx,miny,maxx,maxy);
     m->map_->zoom_to_box(box);
     NanReturnUndefined();
@@ -1365,6 +1509,7 @@ struct image_baton_t {
       error_name() {}
 };
 
+#if defined(GRID_RENDERER)
 struct grid_baton_t {
     uv_work_t request;
     Map *m;
@@ -1390,12 +1535,13 @@ struct grid_baton_t {
       error(false),
       error_name() {}
 };
+#endif
 
 struct vector_tile_baton_t {
     uv_work_t request;
     Map *m;
     VectorTile *d;
-    unsigned tolerance;
+    double area_threshold;
     unsigned path_multiplier;
     int buffer_size;
     double scale_factor;
@@ -1405,12 +1551,14 @@ struct vector_tile_baton_t {
     unsigned offset_y;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
+    double simplify_distance;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
     vector_tile_baton_t() :
-        tolerance(1),
+        area_threshold(0.1),
         path_multiplier(16),
+        buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
         variables(),
@@ -1418,6 +1566,7 @@ struct vector_tile_baton_t {
         offset_y(0),
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
+        simplify_distance(0.0),
         error(false) {}
 };
 
@@ -1445,317 +1594,352 @@ NAN_METHOD(Map::render)
 
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
 
-    if (m->active() != 0) {
-        std::ostringstream s;
-        s << "render: this map appears to be in use by "
-          << m->active()
-          << " other thread(s) which is not allowed."
-          << " You need to use a map pool to avoid sharing map objects between concurrent rendering";
-        std::clog << s.str() << "\n";
-    }
+    try
+    {
+        // parse options
 
-    // parse options
+        // defaults
+        int buffer_size = 0;
+        double scale_factor = 1.0;
+        double scale_denominator = 0.0;
+        unsigned offset_x = 0;
+        unsigned offset_y = 0;
 
-    // defaults
-    int buffer_size = 0;
-    double scale_factor = 1.0;
-    double scale_denominator = 0.0;
-    unsigned offset_x = 0;
-    unsigned offset_y = 0;
+        Local<Object> options = NanNew<Object>();
 
-    Local<Object> options = NanNew<Object>();
+        if (args.Length() > 2) {
 
-    if (args.Length() > 2) {
-
-        // options object
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("optional second argument must be an options object");
-            NanReturnUndefined();
-        }
-
-        options = args[1]->ToObject();
-
-        if (options->Has(NanNew("buffer_size"))) {
-            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
-            if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'buffer_size' must be a number");
+            // options object
+            if (!args[1]->IsObject()) {
+                NanThrowTypeError("optional second argument must be an options object");
                 NanReturnUndefined();
             }
 
-            buffer_size = bind_opt->IntegerValue();
-        }
+            options = args[1]->ToObject();
 
-        if (options->Has(NanNew("scale"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale"));
-            if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale' must be a number");
-                NanReturnUndefined();
+            if (options->Has(NanNew("buffer_size"))) {
+                Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+                if (!bind_opt->IsNumber()) {
+                    NanThrowTypeError("optional arg 'buffer_size' must be a number");
+                    NanReturnUndefined();
+                }
+
+                buffer_size = bind_opt->IntegerValue();
             }
 
-            scale_factor = bind_opt->NumberValue();
-        }
+            if (options->Has(NanNew("scale"))) {
+                Local<Value> bind_opt = options->Get(NanNew("scale"));
+                if (!bind_opt->IsNumber()) {
+                    NanThrowTypeError("optional arg 'scale' must be a number");
+                    NanReturnUndefined();
+                }
 
-        if (options->Has(NanNew("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
-            if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
-                NanReturnUndefined();
+                scale_factor = bind_opt->NumberValue();
             }
 
-            scale_denominator = bind_opt->NumberValue();
-        }
+            if (options->Has(NanNew("scale_denominator"))) {
+                Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+                if (!bind_opt->IsNumber()) {
+                    NanThrowTypeError("optional arg 'scale_denominator' must be a number");
+                    NanReturnUndefined();
+                }
 
-        if (options->Has(NanNew("offset_x"))) {
-            Local<Value> bind_opt = options->Get(NanNew("offset_x"));
-            if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'offset_x' must be a number");
-                NanReturnUndefined();
+                scale_denominator = bind_opt->NumberValue();
             }
 
-            offset_x = bind_opt->IntegerValue();
-        }
+            if (options->Has(NanNew("offset_x"))) {
+                Local<Value> bind_opt = options->Get(NanNew("offset_x"));
+                if (!bind_opt->IsNumber()) {
+                    NanThrowTypeError("optional arg 'offset_x' must be a number");
+                    NanReturnUndefined();
+                }
 
-        if (options->Has(NanNew("offset_y"))) {
-            Local<Value> bind_opt = options->Get(NanNew("offset_y"));
-            if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'offset_y' must be a number");
-                NanReturnUndefined();
+                offset_x = bind_opt->IntegerValue();
             }
 
-            offset_y = bind_opt->IntegerValue();
+            if (options->Has(NanNew("offset_y"))) {
+                Local<Value> bind_opt = options->Get(NanNew("offset_y"));
+                if (!bind_opt->IsNumber()) {
+                    NanThrowTypeError("optional arg 'offset_y' must be a number");
+                    NanReturnUndefined();
+                }
+
+                offset_y = bind_opt->IntegerValue();
+            }
         }
-    }
 
-    Local<Object> obj = args[0]->ToObject();
-    if (obj->IsNull() || obj->IsUndefined()) {
-        NanThrowTypeError("first argument is invalid, must be a renderable mapnik object, not null/undefined");
-        NanReturnUndefined();
-    }
+        Local<Object> obj = args[0]->ToObject();
 
-    if (NanNew(Image::constructor)->HasInstance(obj)) {
+        if (NanNew(Image::constructor)->HasInstance(obj)) {
 
-        image_baton_t *closure = new image_baton_t();
-        closure->request.data = closure;
-        closure->m = m;
-        closure->im = node::ObjectWrap::Unwrap<Image>(obj);
-        closure->im->_ref();
-        closure->buffer_size = buffer_size;
-        closure->scale_factor = scale_factor;
-        closure->scale_denominator = scale_denominator;
-        closure->offset_x = offset_x;
-        closure->offset_y = offset_y;
-        closure->error = false;
+            image_baton_t *closure = new image_baton_t();
+            closure->request.data = closure;
+            closure->m = m;
+            closure->im = node::ObjectWrap::Unwrap<Image>(obj);
+            closure->im->_ref();
+            closure->buffer_size = buffer_size;
+            closure->scale_factor = scale_factor;
+            closure->scale_denominator = scale_denominator;
+            closure->offset_x = offset_x;
+            closure->offset_y = offset_y;
+            closure->error = false;
 
-        if (options->Has(NanNew("variables")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("variables"));
-            if (!bind_opt->IsObject())
+            if (options->Has(NanNew("variables")))
+            {
+                Local<Value> bind_opt = options->Get(NanNew("variables"));
+                if (!bind_opt->IsObject())
+                {
+                    delete closure;
+                    NanThrowTypeError("optional arg 'variables' must be an object");
+                    NanReturnUndefined();
+                }
+                object_to_container(closure->variables,bind_opt->ToObject());
+            }
+            if (!m->acquire())
             {
                 delete closure;
-                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 NanReturnUndefined();
             }
-            object_to_container(closure->variables,bind_opt->ToObject());
+            NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
+            uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
+
         }
+#if defined(GRID_RENDERER)
+        else if (NanNew(Grid::constructor)->HasInstance(obj)) {
 
-        NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
+            Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
 
-    } else if (NanNew(Grid::constructor)->HasInstance(obj)) {
+            std::size_t layer_idx = 0;
 
-        Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
-
-        std::size_t layer_idx = 0;
-
-        // grid requires special options for now
-        if (!options->Has(NanNew("layer"))) {
-            NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-            NanReturnUndefined();
-        } else {
-
-            std::vector<mapnik::layer> const& layers = m->map_->layers();
-
-            Local<Value> layer_id = options->Get(NanNew("layer"));
-            if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+            // grid requires special options for now
+            if (!options->Has(NanNew("layer"))) {
                 NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
                 NanReturnUndefined();
-            }
-
-            if (layer_id->IsString()) {
-                bool found = false;
-                unsigned int idx(0);
-                std::string const & layer_name = TOSTR(layer_id);
-                for (mapnik::layer const& lyr : layers)
-                {
-                    if (lyr.name() == layer_name)
-                    {
-                        found = true;
-                        layer_idx = idx;
-                        break;
-                    }
-                    ++idx;
-                }
-                if (!found)
-                {
-                    std::ostringstream s;
-                    s << "Layer name '" << layer_name << "' not found";
-                    NanThrowTypeError(s.str().c_str());
-                    NanReturnUndefined();
-                }
-            } else if (layer_id->IsNumber()) {
-                layer_idx = layer_id->IntegerValue();
-                std::size_t layer_num = layers.size();
-
-                if (layer_idx >= layer_num) {
-                    std::ostringstream s;
-                    s << "Zero-based layer index '" << layer_idx << "' not valid, ";
-                    if (layer_num > 0)
-                    {
-                        s << "only '" << layer_num << "' layers exist in map";
-                    }
-                    else
-                    {
-                        s << "no layers found in map";
-                    }
-                    NanThrowTypeError(s.str().c_str());
-                    NanReturnUndefined();
-                }
             } else {
-                NanThrowTypeError("layer id must be a string or index number");
-                NanReturnUndefined();
-            }
-        }
 
-        if (options->Has(NanNew("fields"))) {
+                std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-            Local<Value> param_val = options->Get(NanNew("fields"));
-            if (!param_val->IsArray()) {
-                NanThrowTypeError("option 'fields' must be an array of strings");
-                NanReturnUndefined();
-            }
-            Local<Array> a = Local<Array>::Cast(param_val);
-            unsigned int i = 0;
-            unsigned int num_fields = a->Length();
-            while (i < num_fields) {
-                Local<Value> name = a->Get(i);
-                if (name->IsString()){
-                    g->get()->add_property_name(TOSTR(name));
+                Local<Value> layer_id = options->Get(NanNew("layer"));
+                if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+                    NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
+                    NanReturnUndefined();
                 }
-                i++;
+
+                if (layer_id->IsString()) {
+                    bool found = false;
+                    unsigned int idx(0);
+                    std::string const & layer_name = TOSTR(layer_id);
+                    for (mapnik::layer const& lyr : layers)
+                    {
+                        if (lyr.name() == layer_name)
+                        {
+                            found = true;
+                            layer_idx = idx;
+                            break;
+                        }
+                        ++idx;
+                    }
+                    if (!found)
+                    {
+                        std::ostringstream s;
+                        s << "Layer name '" << layer_name << "' not found";
+                        NanThrowTypeError(s.str().c_str());
+                        NanReturnUndefined();
+                    }
+                } else { // IS NUMBER
+                    layer_idx = layer_id->IntegerValue();
+                    std::size_t layer_num = layers.size();
+
+                    if (layer_idx >= layer_num) {
+                        std::ostringstream s;
+                        s << "Zero-based layer index '" << layer_idx << "' not valid, ";
+                        if (layer_num > 0)
+                        {
+                            s << "only '" << layer_num << "' layers exist in map";
+                        }
+                        else
+                        {
+                            s << "no layers found in map";
+                        }
+                        NanThrowTypeError(s.str().c_str());
+                        NanReturnUndefined();
+                    }
+                }
             }
-        }
 
-        grid_baton_t *closure = new grid_baton_t();
+            if (options->Has(NanNew("fields"))) {
 
-        if (options->Has(NanNew("variables")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("variables"));
-            if (!bind_opt->IsObject())
+                Local<Value> param_val = options->Get(NanNew("fields"));
+                if (!param_val->IsArray()) {
+                    NanThrowTypeError("option 'fields' must be an array of strings");
+                    NanReturnUndefined();
+                }
+                Local<Array> a = Local<Array>::Cast(param_val);
+                unsigned int i = 0;
+                unsigned int num_fields = a->Length();
+                while (i < num_fields) {
+                    Local<Value> name = a->Get(i);
+                    if (name->IsString()){
+                        g->get()->add_field(TOSTR(name));
+                    }
+                    i++;
+                }
+            }
+
+            grid_baton_t *closure = new grid_baton_t();
+
+            if (options->Has(NanNew("variables")))
+            {
+                Local<Value> bind_opt = options->Get(NanNew("variables"));
+                if (!bind_opt->IsObject())
+                {
+                    delete closure;
+                    NanThrowTypeError("optional arg 'variables' must be an object");
+                    NanReturnUndefined();
+                }
+                object_to_container(closure->variables,bind_opt->ToObject());
+            }
+
+            closure->request.data = closure;
+            closure->m = m;
+            closure->g = g;
+            closure->g->_ref();
+            closure->layer_idx = layer_idx;
+            closure->buffer_size = buffer_size;
+            closure->scale_factor = scale_factor;
+            closure->scale_denominator = scale_denominator;
+            closure->offset_x = offset_x;
+            closure->offset_y = offset_y;
+            closure->error = false;
+            if (!m->acquire())
             {
                 delete closure;
-                NanThrowTypeError("optional arg 'variables' must be an object");
+                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 NanReturnUndefined();
             }
-            object_to_container(closure->variables,bind_opt->ToObject());
+            NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
+            uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
         }
+#endif
+        else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
 
-        closure->request.data = closure;
-        closure->m = m;
-        closure->g = g;
-        closure->g->_ref();
-        closure->layer_idx = layer_idx;
-        closure->buffer_size = buffer_size;
-        closure->scale_factor = scale_factor;
-        closure->scale_denominator = scale_denominator;
-        closure->offset_x = offset_x;
-        closure->offset_y = offset_y;
-        closure->error = false;
-        NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
-    } else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
+            vector_tile_baton_t *closure = new vector_tile_baton_t();
+            VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
 
-        vector_tile_baton_t *closure = new vector_tile_baton_t();
-        VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
-
-        if (options->Has(NanNew("image_scaling"))) {
-            Local<Value> param_val = options->Get(NanNew("image_scaling"));
-            if (!param_val->IsString()) {
-                delete closure;
-                NanThrowTypeError("option 'image_scaling' must be an unsigned integer");
-                NanReturnUndefined();
+            if (options->Has(NanNew("image_scaling"))) {
+                Local<Value> param_val = options->Get(NanNew("image_scaling"));
+                if (!param_val->IsString()) {
+                    delete closure;
+                    NanThrowTypeError("option 'image_scaling' must be a string");
+                    NanReturnUndefined();
+                }
+                std::string image_scaling = TOSTR(param_val);
+                boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+                if (!method) {
+                    delete closure;
+                    NanThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                    NanReturnUndefined();
+                }
+                closure->scaling_method = *method;
             }
-            std::string image_scaling = TOSTR(param_val);
-            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
-            if (!method) {
-                delete closure;
-                NanThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                NanReturnUndefined();
-            }
-            closure->scaling_method = *method;
-        }
 
-        if (options->Has(NanNew("image_format"))) {
-            Local<Value> param_val = options->Get(NanNew("image_format"));
-            if (!param_val->IsString()) {
-                delete closure;
-                NanThrowTypeError("option 'image_format' must be a string");
-                NanReturnUndefined();
+            if (options->Has(NanNew("image_format"))) {
+                Local<Value> param_val = options->Get(NanNew("image_format"));
+                if (!param_val->IsString()) {
+                    delete closure;
+                    NanThrowTypeError("option 'image_format' must be a string");
+                    NanReturnUndefined();
+                }
+                closure->image_format = TOSTR(param_val);
             }
-            closure->image_format = TOSTR(param_val);
-        }
 
-        if (options->Has(NanNew("tolerance"))) {
-            Local<Value> param_val = options->Get(NanNew("tolerance"));
-            if (!param_val->IsNumber()) {
-                delete closure;
-                NanThrowTypeError("option 'tolerance' must be an unsigned integer");
-                NanReturnUndefined();
+            if (options->Has(NanNew("area_threshold"))) {
+                Local<Value> param_val = options->Get(NanNew("area_threshold"));
+                if (!param_val->IsNumber()) {
+                    delete closure;
+                    NanThrowTypeError("option 'area_threshold' must be an number");
+                    NanReturnUndefined();
+                }
+                closure->area_threshold = param_val->NumberValue();
             }
-            closure->tolerance = param_val->IntegerValue();
-        }
 
-        if (options->Has(NanNew("path_multiplier"))) {
-            Local<Value> param_val = options->Get(NanNew("path_multiplier"));
-            if (!param_val->IsNumber()) {
-                delete closure;
-                NanThrowTypeError("option 'path_multiplier' must be an unsigned integer");
-                NanReturnUndefined();
+            if (options->Has(NanNew("path_multiplier"))) {
+                Local<Value> param_val = options->Get(NanNew("path_multiplier"));
+                if (!param_val->IsNumber()) {
+                    delete closure;
+                    NanThrowTypeError("option 'path_multiplier' must be an unsigned integer");
+                    NanReturnUndefined();
+                }
+                closure->path_multiplier = param_val->NumberValue();
             }
-            closure->path_multiplier = param_val->NumberValue();
-        }
 
-        if (options->Has(NanNew("variables")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("variables"));
-            if (!bind_opt->IsObject())
+            if (options->Has(NanNew("simplify_algorithm"))) {
+                Local<Value> param_val = options->Get(NanNew("simplify_algorithm"));
+                if (!param_val->IsString()) {
+                    delete closure;
+                    NanThrowTypeError("option 'simplify_algorithm' must be an string");
+                    NanReturnUndefined();
+                }
+                // TODO
+            }
+
+            if (options->Has(NanNew("simplify_distance"))) {
+                Local<Value> param_val = options->Get(NanNew("simplify_distance"));
+                if (!param_val->IsNumber()) {
+                    delete closure;
+                    NanThrowTypeError("option 'simplify_distance' must be an floating point number");
+                    NanReturnUndefined();
+                }
+                closure->simplify_distance = param_val->NumberValue();
+            }
+
+            if (options->Has(NanNew("variables")))
             {
-                delete closure;
-                NanThrowTypeError("optional arg 'variables' must be an object");
+                Local<Value> bind_opt = options->Get(NanNew("variables"));
+                if (!bind_opt->IsObject())
+                {
+                    delete closure;
+                    NanThrowTypeError("optional arg 'variables' must be an object");
+                    NanReturnUndefined();
+                }
+                object_to_container(closure->variables,bind_opt->ToObject());
+            }
+
+            closure->request.data = closure;
+            closure->m = m;
+            closure->d = vector_tile_obj;
+            closure->d->_ref();
+            closure->buffer_size = buffer_size;
+            closure->scale_factor = scale_factor;
+            closure->scale_denominator = scale_denominator;
+            closure->offset_x = offset_x;
+            closure->offset_y = offset_y;
+            closure->error = false;
+            if (!m->acquire())
+            {
+                    delete closure;
+                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 NanReturnUndefined();
             }
-            object_to_container(closure->variables,bind_opt->ToObject());
+            NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
+            uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
+        } else {
+            NanThrowTypeError("renderable mapnik object expected");
+            NanReturnUndefined();
         }
 
-        closure->request.data = closure;
-        closure->m = m;
-        closure->d = vector_tile_obj;
-        closure->d->_ref();
-        closure->buffer_size = buffer_size;
-        closure->scale_factor = scale_factor;
-        closure->scale_denominator = scale_denominator;
-        closure->offset_x = offset_x;
-        closure->offset_y = offset_y;
-        closure->error = false;
-        NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
-    } else {
-        NanThrowTypeError("renderable mapnik object expected");
+        m->Ref();
         NanReturnUndefined();
     }
-
-    m->acquire();
-    m->Ref();
-    NanReturnUndefined();
+    catch (std::exception const& ex)
+    {
+        // I am not quite sure it is possible to put a test in to cover an exception here
+        /* LCOV_EXCL_START */
+        NanThrowTypeError(ex.what());
+        NanReturnUndefined();
+        /* LCOV_EXCL_END */
+    }
 }
 
 void Map::EIO_RenderVectorTile(uv_work_t* req)
@@ -1776,9 +1960,10 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->scale_factor,
                           closure->offset_x,
                           closure->offset_y,
-                          closure->tolerance,
+                          closure->area_threshold,
                           closure->image_format,
                           closure->scaling_method);
+        ren.set_simplify_distance(closure->simplify_distance);
         ren.apply(closure->scale_denominator);
         closure->d->painted(ren.painted());
         closure->d->cache_bytesize();
@@ -1813,6 +1998,7 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     delete closure;
 }
 
+#if defined(GRID_RENDERER)
 void Map::EIO_RenderGrid(uv_work_t* req)
 {
 
@@ -1823,7 +2009,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
     try
     {
         // copy property names
-        std::set<std::string> attributes = closure->g->get()->property_names();
+        std::set<std::string> attributes = closure->g->get()->get_fields();
 
         // todo - make this a static constant
         std::string known_id_key = "__id__";
@@ -1846,7 +2032,6 @@ void Map::EIO_RenderGrid(uv_work_t* req)
                                                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
         ren.apply(layer,attributes,closure->scale_denominator);
-
     }
     catch (std::exception const& ex)
     {
@@ -1854,7 +2039,6 @@ void Map::EIO_RenderGrid(uv_work_t* req)
         closure->error_name = ex.what();
     }
 }
-
 
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
@@ -1879,6 +2063,46 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+#endif
+
+struct agg_renderer_visitor
+{
+    agg_renderer_visitor(mapnik::Map const& m, 
+                         mapnik::request const& req, 
+                         mapnik::attributes const& vars,
+                         double scale_factor, 
+                         unsigned offset_x, 
+                         unsigned offset_y, 
+                         double scale_denominator)
+        : m_(m),
+          req_(req),
+          vars_(vars),
+          scale_factor_(scale_factor), 
+          offset_x_(offset_x), 
+          offset_y_(offset_y),
+          scale_denominator_(scale_denominator) {}
+
+    void operator() (mapnik::image_rgba8 & pixmap)
+    {
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_,req_,vars_,pixmap,scale_factor_,offset_x_,offset_y_);
+        ren.apply(scale_denominator_);
+    }
+    
+    template <typename T>
+    void operator() (T &)
+    {
+        throw std::runtime_error("This image type is not currently supported for rendering.");
+    }
+
+  private:
+    mapnik::Map const& m_;
+    mapnik::request const& req_;
+    mapnik::attributes const& vars_;
+    double scale_factor_;
+    unsigned offset_x_;
+    unsigned offset_y_;
+    double scale_denominator_;
+};
 
 void Map::EIO_RenderImage(uv_work_t* req)
 {
@@ -1889,14 +2113,14 @@ void Map::EIO_RenderImage(uv_work_t* req)
         mapnik::Map const& map = *closure->m->map_;
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(closure->buffer_size);
-        mapnik::agg_renderer<mapnik::image_32> ren(map,
-                                                   m_req,
-                                                   closure->variables,
-                                                   *closure->im->get(),
-                                                   closure->scale_factor,
-                                                   closure->offset_x,
-                                                   closure->offset_y);
-        ren.apply(closure->scale_denominator);
+        agg_renderer_visitor visit(map, 
+                                   m_req, 
+                                   closure->variables, 
+                                   closure->scale_factor, 
+                                   closure->offset_x,
+                                   closure->offset_y,
+                                   closure->scale_denominator);
+        mapnik::util::apply_visitor(visit, *closure->im->get());
     }
     catch (std::exception const& ex)
     {
@@ -2074,6 +2298,12 @@ NAN_METHOD(Map::renderFile)
         closure->use_cairo = false;
     }
 
+    if (!m->acquire())
+    {
+        delete closure;
+        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        NanReturnUndefined();
+    }
     closure->request.data = closure;
 
     closure->m = m;
@@ -2110,11 +2340,11 @@ void Map::EIO_RenderFile(uv_work_t* req)
         }
         else
         {
-            mapnik::image_32 im(closure->m->map_->width(),closure->m->map_->height());
+            mapnik::image_rgba8 im(closure->m->map_->width(),closure->m->map_->height());
             mapnik::Map const& map = *closure->m->map_;
             mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
             m_req.set_buffer_size(closure->buffer_size);
-            mapnik::agg_renderer<mapnik::image_32> ren(map,
+            mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
                                                    m_req,
                                                    closure->variables,
                                                    im,
@@ -2122,9 +2352,9 @@ void Map::EIO_RenderFile(uv_work_t* req)
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output,*closure->palette);
+                mapnik::save_to_file(im,closure->output,*closure->palette);
             } else {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),closure->output);
+                mapnik::save_to_file(im,closure->output);
             }
         }
     }
@@ -2162,24 +2392,21 @@ NAN_METHOD(Map::renderSync)
 {
     NanScope();
 
-    if (args.Length() < 1 || !args[0]->IsString()) {
-        NanThrowTypeError("argument must be a format string");
-        NanReturnUndefined();
-    }
-
-    std::string format = TOSTR(args[0]);
+    std::string format = "png";
     palette_ptr palette;
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
     int buffer_size = 0;
 
-    if (args.Length() >= 2){
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
+    if (args.Length() >= 1) 
+    {
+        if (!args[0]->IsObject()) 
+        {
+            NanThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
             NanReturnUndefined();
         }
 
-        Local<Object> options = args[1]->ToObject();
+        Local<Object> options = args[0]->ToObject();
         if (options->Has(NanNew("format")))
         {
             Local<Value> format_opt = options->Get(NanNew("format"));
@@ -2236,42 +2463,20 @@ NAN_METHOD(Map::renderSync)
         }
     }
 
-    // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("optional second arg must be an options object");
-            NanReturnUndefined();
-        }
-
-        Local<Object> options = args[1].As<Object>();
-
-        if (options->Has(NanNew("palette")))
-        {
-            Local<Value> bind_opt = options->Get(NanNew("palette"));
-            if (!bind_opt->IsObject()) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
-            }
-
-            Local<Object> obj = bind_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
-            }
-
-            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
-        }
-    }
-
     Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    if (!m->acquire())
+    {
+        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        NanReturnUndefined();
+    }
     std::string s;
     try
     {
-        mapnik::image_32 im(m->map_->width(),m->map_->height());
+        mapnik::image_rgba8 im(m->map_->width(),m->map_->height());
         mapnik::Map const& map = *m->map_;
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(buffer_size);
-        mapnik::agg_renderer<mapnik::image_32> ren(map,
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
                                                    m_req,
                                                    mapnik::attributes(),
                                                    im,
@@ -2288,9 +2493,11 @@ NAN_METHOD(Map::renderSync)
     }
     catch (std::exception const& ex)
     {
+        m->release();
         NanThrowError(ex.what());
         NanReturnUndefined();
     }
+    m->release();
     NanReturnValue(NanNewBufferHandle((char*)s.data(), s.size()));
 }
 
@@ -2389,6 +2596,11 @@ NAN_METHOD(Map::renderFileSync)
             NanReturnUndefined();
         }
     }
+    if (!m->acquire())
+    {
+        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        NanReturnUndefined();
+    }
 
     try
     {
@@ -2400,17 +2612,18 @@ NAN_METHOD(Map::renderFileSync)
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
+            m->release();
             NanThrowError(s.str().c_str());
             NanReturnUndefined();
 #endif
         }
         else
         {
-            mapnik::image_32 im(m->map_->width(),m->map_->height());
+            mapnik::image_rgba8 im(m->map_->width(),m->map_->height());
             mapnik::Map const& map = *m->map_;
             mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
             m_req.set_buffer_size(buffer_size);
-            mapnik::agg_renderer<mapnik::image_32> ren(map,
+            mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
                                                    m_req,
                                                    mapnik::attributes(),
                                                    im,
@@ -2420,17 +2633,19 @@ NAN_METHOD(Map::renderFileSync)
 
             if (palette.get())
             {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output,*palette);
+                mapnik::save_to_file(im,output,*palette);
             }
             else {
-                mapnik::save_to_file<mapnik::image_data_32>(im.data(),output);
+                mapnik::save_to_file(im,output);
             }
         }
     }
     catch (std::exception const& ex)
     {
+        m->release();
         NanThrowError(ex.what());
         NanReturnUndefined();
     }
+    m->release();
     NanReturnUndefined();
 }

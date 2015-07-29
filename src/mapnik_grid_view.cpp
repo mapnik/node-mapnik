@@ -1,3 +1,5 @@
+#if defined(GRID_RENDERER)
+
 // mapnik
 #include <mapnik/grid/grid.hpp>         // for hit_grid<>::lookup_type, etc
 #include <mapnik/grid/grid_view.hpp>    // for grid_view, hit_grid_view, etc
@@ -6,8 +8,6 @@
 #include "mapnik_grid.hpp"
 #include "js_grid_utils.hpp"
 #include "utils.hpp"
-
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // std
 #include <exception>
@@ -24,6 +24,7 @@ void GridView::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(lcons, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "encode", encode);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
     NODE_SET_PROTOTYPE_METHOD(lcons, "height", height);
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolid", isSolid);
@@ -36,7 +37,7 @@ void GridView::Initialize(Handle<Object> target) {
 
 
 GridView::GridView(Grid * JSGrid) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(),
     JSGrid_(JSGrid) {
         JSGrid_->_ref();
@@ -71,7 +72,7 @@ NAN_METHOD(GridView::New)
     NanReturnUndefined();
 }
 
-Handle<Value> GridView::New(Grid * JSGrid,
+Handle<Value> GridView::NewInstance(Grid * JSGrid,
                             unsigned x,
                             unsigned y,
                             unsigned w,
@@ -80,7 +81,7 @@ Handle<Value> GridView::New(Grid * JSGrid,
 {
     NanEscapableScope();
     GridView* gv = new GridView(JSGrid);
-    gv->this_ = MAPNIK_MAKE_SHARED<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
+    gv->this_ = std::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
     Handle<Value> ext = NanNew<External>(gv);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);
@@ -100,6 +101,25 @@ NAN_METHOD(GridView::height)
 
     GridView* g = node::ObjectWrap::Unwrap<GridView>(args.Holder());
     NanReturnValue(NanNew<Integer>(g->get()->height()));
+}
+
+NAN_METHOD(GridView::fields)
+{
+    NanScope();
+
+    GridView* g = node::ObjectWrap::Unwrap<GridView>(args.Holder());
+    std::set<std::string> const& a = g->get()->get_fields();
+    std::set<std::string>::const_iterator itr = a.begin();
+    std::set<std::string>::const_iterator end = a.end();
+    Local<Array> l = NanNew<Array>(a.size());
+    int idx = 0;
+    for (; itr != end; ++itr)
+    {
+        std::string name = *itr;
+        l->Set(idx, NanNew(name.c_str()));
+        ++idx;
+    }
+    NanReturnValue(l);
 }
 
 typedef struct {
@@ -146,11 +166,11 @@ void GridView::EIO_IsSolid(uv_work_t* req)
     grid_view_ptr view = closure->g->get();
     if (view->width() > 0 && view->height() > 0)
     {
-        mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
+        mapnik::grid_view::value_type first_pixel = view->get_row(0)[0];
         closure->pixel = first_pixel;
         for (unsigned y = 0; y < view->height(); ++y)
         {
-            mapnik::grid_view::value_type const * row = view->getRow(y);
+            mapnik::grid_view::value_type const * row = view->get_row(y);
             for (unsigned x = 0; x < view->width(); ++x)
             {
                 if (first_pixel != row[x])
@@ -206,10 +226,10 @@ NAN_METHOD(GridView::isSolidSync)
     grid_view_ptr view = g->get();
     if (view->width() > 0 && view->height() > 0)
     {
-        mapnik::grid_view::value_type first_pixel = view->getRow(0)[0];
+        mapnik::grid_view::value_type first_pixel = view->get_row(0)[0];
         for (unsigned y = 0; y < view->height(); ++y)
         {
-            mapnik::grid_view::value_type const * row = view->getRow(y);
+            mapnik::grid_view::value_type const * row = view->get_row(y);
             for (unsigned x = 0; x < view->width(); ++x)
             {
                 if (first_pixel != row[x])
@@ -252,7 +272,7 @@ NAN_METHOD(GridView::getPixel)
     grid_view_ptr view = g->get();
     if (x < view->width() && y < view->height())
     {
-        mapnik::grid_view::value_type pixel = view->getRow(y)[x];
+        mapnik::grid_view::value_type pixel = view->get_row(y)[x];
         NanReturnValue(NanNew<Number>(pixel));
     }
     NanReturnUndefined();
@@ -265,29 +285,18 @@ NAN_METHOD(GridView::encodeSync)
     GridView* g = node::ObjectWrap::Unwrap<GridView>(args.Holder());
 
     // defaults
-    std::string format("utf");
     unsigned int resolution = 4;
     bool add_features = true;
 
-    // accept custom format
-    if (args.Length() >= 1){
-        if (!args[0]->IsString())
-        {
-            NanThrowTypeError("first arg, 'format' must be a string");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[0]);
-    }
-
     // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
+    if (args.Length() >= 1) {
+        if (!args[0]->IsObject())
         {
-            NanThrowTypeError("optional second arg must be an options object");
+            NanThrowTypeError("optional arg must be an options object");
             NanReturnUndefined();
         }
 
-        Local<Object> options = args[1].As<Object>();
+        Local<Object> options = args[0].As<Object>();
 
         if (options->Has(NanNew("resolution")))
         {
@@ -299,6 +308,12 @@ NAN_METHOD(GridView::encodeSync)
             }
 
             resolution = bind_opt->IntegerValue();
+            
+            if (resolution == 0)
+            {
+                NanThrowTypeError("'resolution' can not be zero");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("features")))
@@ -346,7 +361,7 @@ NAN_METHOD(GridView::encodeSync)
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, NanNew(line.get(),array_size));
+            grid_array->Set(j, NanNew<String>(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);
@@ -356,8 +371,12 @@ NAN_METHOD(GridView::encodeSync)
     }
     catch (std::exception const& ex)
     {
+        // There is no known exception throws in the processing above
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
 }
@@ -365,7 +384,6 @@ NAN_METHOD(GridView::encodeSync)
 typedef struct {
     uv_work_t request;
     GridView* g;
-    std::string format;
     bool error;
     std::string error_name;
     Persistent<Function> cb;
@@ -383,29 +401,18 @@ NAN_METHOD(GridView::encode)
     GridView* g = node::ObjectWrap::Unwrap<GridView>(args.Holder());
 
     // defaults
-    std::string format("utf");
     unsigned int resolution = 4;
     bool add_features = true;
 
-    // accept custom format
-    if (args.Length() >= 1){
-        if (!args[0]->IsString())
-        {
-            NanThrowTypeError("first arg, 'format' must be a string");
-            NanReturnUndefined();
-        }
-        format = TOSTR(args[0]);
-    }
-
     // options hash
-    if (args.Length() >= 2) {
-        if (!args[1]->IsObject())
+    if (args.Length() >= 1) {
+        if (!args[0]->IsObject())
         {
-            NanThrowTypeError("optional second arg must be an options object");
+            NanThrowTypeError("optional arg must be an options object");
             NanReturnUndefined();
         }
 
-        Local<Object> options = args[1].As<Object>();
+        Local<Object> options = args[0].As<Object>();
 
         if (options->Has(NanNew("resolution")))
         {
@@ -417,6 +424,12 @@ NAN_METHOD(GridView::encode)
             }
 
             resolution = bind_opt->IntegerValue();
+
+            if (resolution == 0)
+            {
+                NanThrowTypeError("'resolution' can not be zero");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("features")))
@@ -443,7 +456,6 @@ NAN_METHOD(GridView::encode)
     encode_grid_view_baton_t *closure = new encode_grid_view_baton_t();
     closure->request.data = closure;
     closure->g = g;
-    closure->format = format;
     closure->error = false;
     closure->resolution = resolution;
     closure->add_features = add_features;
@@ -467,8 +479,12 @@ void GridView::EIO_Encode(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // There is no known exception throws in the processing above
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
+        /* LCOV_EXCL_END */
     }
 }
 
@@ -479,8 +495,12 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     encode_grid_view_baton_t *closure = static_cast<encode_grid_view_baton_t *>(req->data);
 
     if (closure->error) {
+        // There is no known ways to throw errors in the processing prior
+        // so simply removing the following from coverage
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
@@ -509,7 +529,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, NanNew(line.get(),array_size));
+            grid_array->Set(j, NanNew<String>(line.get(),array_size));
         }
         json->Set(NanNew("grid"), grid_array);
         json->Set(NanNew("keys"), keys_a);
@@ -523,3 +543,5 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+
+#endif

@@ -3,11 +3,12 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
 #include <mapnik/featureset.hpp>
-#include "mapnik3x_compatibility.hpp"
+#include <memory>
 
 using namespace v8;
 
@@ -18,7 +19,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(mapnik::featureset_ptr fs_ptr);
+    static Handle<Value> NewInstance(mapnik::featureset_ptr fs_ptr);
     static NAN_METHOD(next);
 
     Featureset();

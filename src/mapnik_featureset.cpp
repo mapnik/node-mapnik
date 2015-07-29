@@ -3,6 +3,12 @@
 
 Persistent<FunctionTemplate> Featureset::constructor;
 
+/**
+ * An iterator of {@link mapnik.Feature} objects.
+ *
+ * @name mapnik.Featureset
+ * @class
+ */
 void Featureset::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -18,7 +24,7 @@ void Featureset::Initialize(Handle<Object> target) {
 }
 
 Featureset::Featureset() :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {}
 
 Featureset::~Featureset()
@@ -48,6 +54,15 @@ NAN_METHOD(Featureset::New)
     NanReturnUndefined();
 }
 
+/**
+ * Return the next Feature in this featureset if it exists, or `null` if it
+ * does not.
+ *
+ * @name next
+ * @instance
+ * @memberof mapnik.Featureset
+ * @returns {mapnik.Feature|null} next feature
+ */
 NAN_METHOD(Featureset::next)
 {
     NanScope();
@@ -62,18 +77,25 @@ NAN_METHOD(Featureset::next)
         }
         catch (std::exception const& ex)
         {
+            // It is not immediately obvious how this could cause an exception, a check of featureset plugin 
+            // implementations resulted in no obvious way that an exception could be raised. Therefore, it
+            // is not obvious currently what could raise this exception. However, since a plugin could possibly
+            // be developed outside of mapnik core plugins that could raise here we are probably best still 
+            // wrapping this in a try catch.
+            /* LCOV_EXCL_START */
             NanThrowError(ex.what());
             NanReturnUndefined();
+            /* LCOV_EXCL_END */
         }
 
         if (fp) {
-            NanReturnValue(Feature::New(fp));
+            NanReturnValue(Feature::NewInstance(fp));
         }
     }
     NanReturnUndefined();
 }
 
-Handle<Value> Featureset::New(mapnik::featureset_ptr fs_ptr)
+Handle<Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
 {
     NanEscapableScope();
     Featureset* fs = new Featureset();

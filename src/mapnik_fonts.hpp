@@ -62,15 +62,18 @@ static inline NAN_METHOD(register_fonts)
     }
     catch (std::exception const& ex)
     {
+        // Does not appear that this line can ever be reached, not certain what would ever throw an exception
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 }
 
 static inline NAN_METHOD(available_font_faces)
 {
     NanScope();
-    std::vector<std::string> const& names = mapnik::freetype_engine::face_names();
+    auto const& names = mapnik::freetype_engine::face_names();
     Local<Array> a = NanNew<Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
@@ -95,7 +98,7 @@ static inline NAN_METHOD(memory_fonts)
 static inline NAN_METHOD(available_font_files)
 {
     NanScope();
-    std::map<std::string,std::pair<int,std::string> > const& mapping = mapnik::freetype_engine::get_mapping();
+    auto const& mapping = mapnik::freetype_engine::get_mapping();
     Local<Object> obj = NanNew<Object>();
     for (auto const& kv : mapping)
     {

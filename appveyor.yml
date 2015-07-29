@@ -1,25 +1,27 @@
 environment:
+  MAPNIK_GIT: v3.0.0
   node_pre_gyp_accessKeyId:
-    secure: T1Pel/pv9SVfiVvZW8TLZnvZX6M4HQTiR7LUZnF1tuY=
+    secure: 7DrSVc5eIGtmMcki5H+iRft+Tk3MJTwDBQEUuJHWaQ4=
   node_pre_gyp_secretAccessKey:
-    secure: 8f5eTxMHpuVGHon2wbqrZuq3wzQfEuXMCcOyafBLza0T2VIOoBjbjDbgRbyRIzsT
+    secure: 1amwJJw9fu0j6dXnc5KsAQbSYf7Cjw/dapT6OZWABa6nc52grkKeLQ+DGaOfQz8i
   matrix:
-  - nodejs_version: 0.11.14
-    platform: x86
-    msvs_toolset: 14
-    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-  - nodejs_version: 0.11.14
-    platform: x64
-    msvs_toolset: 14
-    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-#  - nodejs_version: 0.10.33
-#    platform: x86
-#    msvs_toolset: 14
-#    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-#  - nodejs_version: 0.10.33
-#    platform: x64
-#    msvs_toolset: 14
-#    BUILD_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    # custom visual studio 2014 builds
+    - nodejs_version: 0.10.36
+      platform: x64
+      msvs_toolset: 14
+      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    - nodejs_version: 0.10.36
+      platform: x86
+      msvs_toolset: 14
+      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    - nodejs_version: 0.12.0
+      platform: x86
+      msvs_toolset: 14
+      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
+    - nodejs_version: 0.12.0
+      platform: x64
+      msvs_toolset: 14
+      TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
 
 os: Visual Studio 2015 Preview
 
@@ -39,8 +41,8 @@ install:
   - SET PATH=C:\Program Files\7-Zip;%PATH%
   - SET ARCHPATH=
   - if %platform% == x64 (SET ARCHPATH=x64/)
-  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z"
-  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-v3.0.0-rc1-57-g2577a6c.7z -FileName mapnik-sdk.7z
+  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:MAPNIK_GIT.7z"
+  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:msvs_toolset.0-$env:Platform-$env:MAPNIK_GIT.7z -FileName mapnik-sdk.7z
   - ps: Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
   # install node version per visual studio toolset
@@ -65,8 +67,10 @@ install:
   - powershell scripts\show_module_runtime.ps1 %CD%
   - ps: scripts\build_against_sdk_03-write-mapnik.settings.ps1
   - npm test
-  - node-pre-gyp package %BUILD_ARGS%
-  - ps: if($env:APPVEYOR_REPO_COMMIT_MESSAGE.ToLower().Contains('[publish binary]')) { node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS% }
+  - node-pre-gyp package testpackage %BUILD_ARGS%
+  - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
+  - if not "%CM%" == "%CM:[publish binary]=%" node-pre-gyp --msvs_version=2013 publish %BUILD_ARGS%
+  - if not "%CM%" == "%CM:[republish binary]=%" node-pre-gyp --msvs_version=2013 unpublish publish %BUILD_ARGS%
 
 build: off
 test: off

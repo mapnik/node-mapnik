@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
@@ -20,9 +22,11 @@ if (!image) {
 
 var mapnik = require('mapnik');
 
+mapnik.register_default_input_plugins();
+
 function renderMap(stylesheet, image) {
     var map = new mapnik.Map(600, 400);
-    map.loadSync(stylesheet);
+    map.loadSync(stylesheet,{strict:true});
     map.zoomAll();
     map.renderFileSync(image);
     child_process.exec('open ' + image);
@@ -38,7 +42,7 @@ if (path.extname(stylesheet).match(/.mml/i)) {
             if (err) {
                 if (Array.isArray(err)) {
                     err.forEach(function(e) {
-                        carto.writeError(e, options);
+                        carto.writeError(e, {});
                     });
                 }
                 process.exit(1);

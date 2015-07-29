@@ -3,21 +3,20 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
-
 // stl
 #include <string>
+#include <memory>
 
 namespace mapnik { class proj_transform; }
 namespace mapnik { class projection; }
 
 using namespace v8;
 
-typedef MAPNIK_SHARED_PTR<mapnik::projection> proj_ptr;
+typedef std::shared_ptr<mapnik::projection> proj_ptr;
 
 class Projection: public node::ObjectWrap {
 public:
@@ -29,7 +28,7 @@ public:
     static NAN_METHOD(forward);
     static bool HasInstance(Handle<Value> val);
 
-    explicit Projection(std::string const& name);
+    explicit Projection(std::string const& name, bool defer_init);
 
     inline proj_ptr get() { return projection_; }
 
@@ -38,7 +37,7 @@ private:
     proj_ptr projection_;
 };
 
-typedef MAPNIK_SHARED_PTR<mapnik::proj_transform> proj_tr_ptr;
+typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 
 class ProjTransform: public node::ObjectWrap {
 public:

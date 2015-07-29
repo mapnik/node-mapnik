@@ -3,19 +3,18 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
-
 // stl
 #include <string>
+#include <memory>
 
 using namespace v8;
 
 namespace mapnik { class layer; }
-typedef MAPNIK_SHARED_PTR<mapnik::layer> layer_ptr;
+typedef std::shared_ptr<mapnik::layer> layer_ptr;
 
 class Layer: public node::ObjectWrap {
 public:
@@ -23,7 +22,7 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
-    static Handle<Value> New(mapnik::layer const& lay_ref);
+    static Handle<Value> NewInstance(mapnik::layer const& lay_ref);
     static NAN_METHOD(describe);
 
     static NAN_GETTER(get_prop);

@@ -1,41 +1,51 @@
+"use strict";
+
 var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
-var fs = require('fs');
 
 function xmlWithFont(font) {
-    return '\
-    <Map font-directory="./"><Style name="text"><Rule>\
-        <TextSymbolizer size="12" face-name="'+font+'"><![CDATA[[name]]]></TextSymbolizer>\
-    </Rule></Style></Map>';
+    var val = '<Map font-directory="./"><Style name="text"><Rule>';
+    val += '<TextSymbolizer size="12" face-name="' + font + '"><![CDATA[[name]]]></TextSymbolizer>';
+    val += '</Rule></Style></Map>';
+    return val;
 }
 
 describe('map local fonts ', function() {
+
     it('fonts can be registered locally using font-directory in XML', function(done) {
         var map = new mapnik.Map(4, 4);
         map.fromStringSync('<Map font-directory="./data/map-a" />',{strict:true,base:path.resolve(__dirname)});
         assert.equal(map.fonts().indexOf('DejaVu Serif Condensed Bold Italic'),0);
         done();
     });
+
     it('fonts can be registered locally registerFonts', function(done) {
         var map = new mapnik.Map(4, 4);
-        map.registerFonts('./test/data/map-a/', {recurse:false});
+        assert.throws(function() { map.registerFonts(); });
+        assert.throws(function() { map.registerFonts(12); });
+        assert.throws(function() { map.registerFonts('./test/data/map-a/', null); });
+        assert.throws(function() { map.registerFonts('./test/data/map-a/', {recurse:1}); });
+        assert.equal(map.registerFonts('./test/data/DOESNOTEXIST/', {recurse:false}), false);
+        assert.equal(map.registerFonts('./test/data/map-a/', {recurse:false}), true);
         assert.equal(map.fonts().indexOf('DejaVu Serif Condensed Bold Italic'),0);
         done();
     });
-})
+});
 
 describe('font scope', function() {
-    this.timeout(3000);
     var a = 'DejaVu Serif Condensed Bold Italic';
     var b = 'DejaVu Serif Condensed Bold';
+    
     it('fonts are not globally registered', function(done) {
         assert.equal(mapnik.fonts().indexOf(a), -1);
         assert.equal(mapnik.fonts().indexOf(b), -1);
         done();
     });
+
     it('map a has ' + a, function(done) {
         var map = new mapnik.Map(4, 4);
+        assert.equal(map.fontDirectory(), undefined);
         assert.doesNotThrow(function() {
             map.fromStringSync(xmlWithFont(a), {
                 strict:true,
@@ -62,6 +72,7 @@ describe('font scope', function() {
         assert.equal(mapnik.memoryFonts().length,0);
         done();
     });
+    
     it('map b has ' + b, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.doesNotThrow(function() {
@@ -77,6 +88,7 @@ describe('font scope', function() {
         assert.ok(map.fontFiles()[b].indexOf('map-b') > -1);
         done();
     });
+    
     it('map a should not have ' + b, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.throws(function() {
@@ -89,6 +101,7 @@ describe('font scope', function() {
         assert.equal(map.fonts().indexOf(b), -1);
         done();
     });
+    
     it('map b should not have ' + a, function(done) {
         var map = new mapnik.Map(4, 4);
         assert.throws(function() {
@@ -104,7 +117,7 @@ describe('font scope', function() {
 });
 
 describe('mapnik fonts ', function() {
-
+    this.timeout(100000);
     before(function() {
         mapnik.register_system_fonts();
     });

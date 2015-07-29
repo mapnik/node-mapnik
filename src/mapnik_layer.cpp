@@ -1,5 +1,3 @@
-#include "mapnik3x_compatibility.hpp"
-
 #include "mapnik_layer.hpp"
 
 #include "utils.hpp"                    // for TOSTR, ATTR, etc
@@ -9,10 +7,9 @@
 
 // mapnik
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
+#include <mapnik/memory_datasource.hpp> // for memory_datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
-
-#include MAPNIK_MAKE_SHARED_INCLUDE
 
 // stl
 #include <limits>
@@ -32,24 +29,29 @@ void Layer::Initialize(Handle<Object> target) {
 
     // properties
     ATTR(lcons, "name", get_prop, set_prop);
+    ATTR(lcons, "active", get_prop, set_prop);
     ATTR(lcons, "srs", get_prop, set_prop);
     ATTR(lcons, "styles", get_prop, set_prop);
     ATTR(lcons, "datasource", get_prop, set_prop);
+    ATTR(lcons, "minimum_scale_denominator", get_prop, set_prop);
+    ATTR(lcons, "maximum_scale_denominator", get_prop, set_prop);
+    ATTR(lcons, "queryable", get_prop, set_prop);
+    ATTR(lcons, "clear_label_cache", get_prop, set_prop);
 
     target->Set(NanNew("Layer"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
 
 Layer::Layer(std::string const& name):
-    ObjectWrap(),
-    layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name)) {}
+    node::ObjectWrap(),
+    layer_(std::make_shared<mapnik::layer>(name)) {}
 
 Layer::Layer(std::string const& name, std::string const& srs):
-    ObjectWrap(),
-    layer_(MAPNIK_MAKE_SHARED<mapnik::layer>(name,srs)) {}
+    node::ObjectWrap(),
+    layer_(std::make_shared<mapnik::layer>(name,srs)) {}
 
 Layer::Layer():
-    ObjectWrap(),
+    node::ObjectWrap(),
     layer_() {}
 
 
@@ -102,11 +104,11 @@ NAN_METHOD(Layer::New)
     NanReturnValue(args.This());
 }
 
-Handle<Value> Layer::New(mapnik::layer const& lay_ref) {
+Handle<Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     NanEscapableScope();
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
-    l->layer_ = MAPNIK_MAKE_SHARED<mapnik::layer>(lay_ref);
+    l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
     Handle<Value> ext = NanNew<External>(l);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);
@@ -134,10 +136,38 @@ NAN_GETTER(Layer::get_prop)
         mapnik::datasource_ptr ds = l->layer_->datasource();
         if (ds)
         {
-            NanReturnValue(Datasource::New(ds));
+            mapnik::memory_datasource * mem_ptr = dynamic_cast<mapnik::memory_datasource*>(ds.get());
+            if (mem_ptr)
+            {
+                NanReturnValue(MemoryDatasource::NewInstance(ds));
+            }
+            else
+            {
+                NanReturnValue(Datasource::NewInstance(ds));
+            }
         }
+        NanReturnUndefined();
     }
-    NanReturnUndefined();
+    else if (a == "minimum_scale_denominator") 
+    {
+        NanReturnValue(NanNew<Number>(l->layer_->minimum_scale_denominator()));   
+    }
+    else if (a == "maximum_scale_denominator") 
+    {
+        NanReturnValue(NanNew<Number>(l->layer_->maximum_scale_denominator()));   
+    }
+    else if (a == "queryable") 
+    {
+        NanReturnValue(NanNew<Boolean>(l->layer_->queryable()));   
+    }
+    else if (a == "clear_label_cache") 
+    {
+        NanReturnValue(NanNew<Boolean>(l->layer_->clear_label_cache()));   
+    }
+    else // if (a == "active") 
+    {
+        NanReturnValue(NanNew<Boolean>(l->layer_->active()));   
+    }
 }
 
 NAN_SETTER(Layer::set_prop)
@@ -202,10 +232,50 @@ NAN_SETTER(Layer::set_prop)
             }
             else
             {
-                NanThrowTypeError("mapnik.Datasource, mapnik.JSDatasource, or mapnik.MemoryDatasource instance expected");
+                NanThrowTypeError("mapnik.Datasource or mapnik.MemoryDatasource instance expected");
                 return;
             }
         }
+    }
+    else if (a == "minimum_scale_denominator")
+    {
+        if (!value->IsNumber()) {
+            NanThrowTypeError("Must provide a number");
+            return;
+        }
+        l->layer_->set_minimum_scale_denominator(value->NumberValue());
+    }
+    else if (a == "maximum_scale_denominator")
+    {
+        if (!value->IsNumber()) {
+            NanThrowTypeError("Must provide a number");
+            return;
+        }
+        l->layer_->set_maximum_scale_denominator(value->NumberValue());
+    }
+    else if (a == "queryable")
+    {
+        if (!value->IsBoolean()) {
+            NanThrowTypeError("Must provide a boolean");
+            return;
+        }
+        l->layer_->set_queryable(value->BooleanValue());
+    }
+    else if (a == "clear_label_cache")
+    {
+        if (!value->IsBoolean()) {
+            NanThrowTypeError("Must provide a boolean");
+            return;
+        }
+        l->layer_->set_clear_label_cache(value->BooleanValue());
+    }
+    else if (a == "active")
+    {
+        if (!value->IsBoolean()) {
+            NanThrowTypeError("Must provide a boolean");
+            return;
+        }
+        l->layer_->set_active(value->BooleanValue());
     }
 }
 
@@ -217,40 +287,20 @@ NAN_METHOD(Layer::describe)
 
     Local<Object> description = NanNew<Object>();
     mapnik::layer const& layer = *l->layer_;
-    if ( layer.name() != "" )
-    {
-        description->Set(NanNew("name"), NanNew(layer.name().c_str()));
-    }
+        
+    description->Set(NanNew("name"), NanNew(layer.name().c_str()));
 
-    if ( layer.srs() != "" )
-    {
-        description->Set(NanNew("srs"), NanNew(layer.srs().c_str()));
-    }
+    description->Set(NanNew("srs"), NanNew(layer.srs().c_str()));
 
-    if ( !layer.active())
-    {
-        description->Set(NanNew("status"), NanNew<Boolean>(layer.active()));
-    }
+    description->Set(NanNew("active"), NanNew<Boolean>(layer.active()));
 
-    if ( layer.clear_label_cache())
-    {
-        description->Set(NanNew("clear_label_cache"), NanNew<Boolean>(layer.clear_label_cache()));
-    }
+    description->Set(NanNew("clear_label_cache"), NanNew<Boolean>(layer.clear_label_cache()));
 
-    if ( layer.min_zoom() > 0)
-    {
-        description->Set(NanNew("minzoom"), NanNew<Number>(layer.min_zoom()));
-    }
+    description->Set(NanNew("minimum_scale_denominator"), NanNew<Number>(layer.minimum_scale_denominator()));
 
-    if ( layer.max_zoom() != std::numeric_limits<double>::max() )
-    {
-        description->Set(NanNew("maxzoom"), NanNew<Number>(layer.max_zoom()));
-    }
+    description->Set(NanNew("maximum_scale_denominator"), NanNew<Number>(layer.maximum_scale_denominator()));
 
-    if ( layer.queryable())
-    {
-        description->Set(NanNew("queryable"), NanNew<Boolean>(layer.queryable()));
-    }
+    description->Set(NanNew("queryable"), NanNew<Boolean>(layer.queryable()));
 
     std::vector<std::string> const& style_names = layer.styles();
     Local<Array> s = NanNew<Array>(style_names.size());
@@ -270,8 +320,7 @@ NAN_METHOD(Layer::describe)
         mapnik::parameters::const_iterator end = datasource->params().end();
         for (; it != end; ++it)
         {
-            node_mapnik::params_to_object serializer( ds , it->first);
-            MAPNIK_APPLY_VISITOR( serializer, it->second );
+            node_mapnik::params_to_object(ds, it->first, it->second);
         }
     }
 

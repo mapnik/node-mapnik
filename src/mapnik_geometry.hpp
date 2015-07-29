@@ -3,6 +3,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <nan.h>
 #pragma GCC diagnostic pop
 
@@ -16,7 +17,7 @@ public:
     static Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> New(mapnik::feature_ptr f);
+    static Handle<Value> NewInstance(mapnik::feature_ptr f);
     static NAN_METHOD(extent);
     static NAN_METHOD(toWKB);
     static NAN_METHOD(toWKT);

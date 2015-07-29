@@ -2,8 +2,8 @@
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/image_view.hpp>        // for image_view, etc
+#include <mapnik/image_view_any.hpp>    // for image_view_any, etc
 #include <mapnik/image_util.hpp>
-#include <mapnik/graphics.hpp>
 
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
@@ -11,14 +11,26 @@
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
 
-// boost
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
 // std
 #include <exception>
 
 Persistent<FunctionTemplate> ImageView::constructor;
 
+/**
+ * This is usually not initialized directly: you'll use the `mapnik.Image#view`
+ * method to instantiate an instance.
+ *
+ * @name mapnik.ImageView
+ * @class
+ * @param {number} left
+ * @param {number} top
+ * @param {number} width
+ * @param {number} height
+ * @throws {TypeError} if any argument is missing or not numeric
+ * @example
+ * var im = new mapnik.Image(256, 256);
+ * var view = im.view(0, 0, 256, 256);
+ */
 void ImageView::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -42,7 +54,7 @@ void ImageView::Initialize(Handle<Object> target) {
 
 
 ImageView::ImageView(Image * JSImage) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(),
     JSImage_(JSImage) {
         JSImage_->_ref();
@@ -76,7 +88,7 @@ NAN_METHOD(ImageView::New)
     NanReturnUndefined();
 }
 
-Handle<Value> ImageView::New(Image * JSImage ,
+Handle<Value> ImageView::NewInstance(Image * JSImage ,
                              unsigned x,
                              unsigned y,
                              unsigned w,
@@ -85,7 +97,7 @@ Handle<Value> ImageView::New(Image * JSImage ,
 {
     NanEscapableScope();
     ImageView* imv = new ImageView(JSImage);
-    imv->this_ = MAPNIK_MAKE_SHARED<mapnik::image_view<mapnik::image_data_32> >(JSImage->get()->get_view(x,y,w,h));
+    imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
     Handle<Value> ext = NanNew<External>(imv);
     Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
     return NanEscapeScope(obj);
@@ -99,7 +111,6 @@ typedef struct {
     bool error;
     std::string error_name;
     bool result;
-    mapnik::image_view<mapnik::image_data_32>::pixel_type pixel;
 } is_solid_image_view_baton_t;
 
 NAN_METHOD(ImageView::isSolid)
@@ -121,7 +132,6 @@ NAN_METHOD(ImageView::isSolid)
     closure->request.data = closure;
     closure->im = im;
     closure->result = true;
-    closure->pixel = 0;
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
@@ -132,24 +142,9 @@ NAN_METHOD(ImageView::isSolid)
 void ImageView::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    image_view_ptr view = closure->im->get();
-    if (view->width() > 0 && view->height() > 0)
+    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0)
     {
-        typedef mapnik::image_view<mapnik::image_data_32>::pixel_type pixel_type;
-        pixel_type const first_pixel = view->getRow(0)[0];
-        closure->pixel = first_pixel;
-        for (unsigned y = 0; y < view->height(); ++y)
-        {
-            pixel_type const * row = view->getRow(y);
-            for (unsigned x = 0; x < view->width(); ++x)
-            {
-                if (first_pixel != row[x])
-                {
-                    closure->result = false;
-                    return;
-                }
-            }
-        }
+        closure->result = mapnik::is_solid(*(closure->im->this_));
     }
     else
     {
@@ -157,6 +152,104 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
         closure->error_name = "image does not have valid dimensions";
     }
 }
+
+struct visitor_get_pixel_view
+{
+    visitor_get_pixel_view(int x, int y)
+        : x_(x), y_(y) {}
+    
+    Local<Value> operator() (mapnik::image_view_null const& data)
+    {
+        // This should never be reached because the width and height of 0 for a null
+        // image will prevent the visitor from being called.
+        /* LCOV_EXCL_START */
+        NanEscapableScope();
+        return NanEscapeScope(NanUndefined());
+        /* LCOV_EXCL_END */
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray8 const& data)
+    {
+        NanEscapableScope();
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Uint32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray8s const& data)
+    {
+        NanEscapableScope();
+        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Int32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray16 const& data)
+    {
+        NanEscapableScope();
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Uint32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray16s const& data)
+    {
+        NanEscapableScope();
+        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Int32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray32 const& data)
+    {
+        NanEscapableScope();
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Uint32>(val));
+    }
+    
+    Local<Value> operator() (mapnik::image_view_gray32s const& data)
+    {
+        NanEscapableScope();
+        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Int32>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray32f const& data)
+    {
+        NanEscapableScope();
+        double val = mapnik::get_pixel<double>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray64 const& data)
+    {
+        NanEscapableScope();
+        std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray64s const& data)
+    {
+        NanEscapableScope();
+        std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_gray64f const& data)
+    {
+        NanEscapableScope();
+        double val = mapnik::get_pixel<double>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+    Local<Value> operator() (mapnik::image_view_rgba8 const& data)
+    {
+        NanEscapableScope();
+        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        return NanEscapeScope(NanNew<Number>(val));
+    }
+
+  private:
+    int x_;
+    int y_;
+        
+};
 
 void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 {
@@ -172,7 +265,7 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
         {
             Local<Value> argv[3] = { NanNull(),
                                      NanNew(closure->result),
-                                     NanNew<Number>(closure->pixel),
+                                     mapnik::util::apply_visitor(visitor_get_pixel_view(0,0),*(closure->im->this_)),
             };
             NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 3, argv);
         }
@@ -198,24 +291,15 @@ Local<Value> ImageView::_isSolidSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    image_view_ptr view = im->get();
-    if (view->width() > 0 && view->height() > 0)
+    if (im->this_->width() > 0 && im->this_->height() > 0)
     {
-        mapnik::image_view<mapnik::image_data_32>::pixel_type const* first_row = view->getRow(0);
-        mapnik::image_view<mapnik::image_data_32>::pixel_type const first_pixel = first_row[0];
-        for (unsigned y = 0; y < view->height(); ++y)
-        {
-            mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
-            for (unsigned x = 0; x < view->width(); ++x)
-            {
-                if (first_pixel != row[x])
-                {
-                    return NanEscapeScope(NanFalse());
-                }
-            }
-        }
+        return NanEscapeScope(NanNew<Boolean>(mapnik::is_solid(*(im->this_))));
     }
-    return NanEscapeScope(NanTrue());
+    else
+    {
+        NanThrowTypeError("image does not have valid dimensions");
+        return NanEscapeScope(NanUndefined());
+    }
 }
 
 
@@ -225,6 +309,27 @@ NAN_METHOD(ImageView::getPixel)
 
     int x = 0;
     int y = 0;
+    bool get_color = false;
+
+    if (args.Length() >= 3) {
+
+        if (!args[2]->IsObject()) {
+            NanThrowTypeError("optional third argument must be an options object");
+            NanReturnUndefined();
+        }
+
+        Local<Object> options = args[2]->ToObject();
+
+        if (options->Has(NanNew("get_color"))) {
+            Local<Value> bind_opt = options->Get(NanNew("get_color"));
+            if (!bind_opt->IsBoolean()) {
+                NanThrowTypeError("optional arg 'color' must be a boolean");
+                NanReturnUndefined();
+            }
+            get_color = bind_opt->BooleanValue();
+        }
+
+    }
 
     if (args.Length() >= 2) {
         if (!args[0]->IsNumber()) {
@@ -243,17 +348,17 @@ NAN_METHOD(ImageView::getPixel)
     }
 
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    image_view_ptr view = im->get();
-    if (x >= 0 && x < static_cast<int>(view->width())
-        && y >=0 && y < static_cast<int>(view->height()))
+    if (x >= 0 && x < static_cast<int>(im->this_->width())
+        && y >=0 && y < static_cast<int>(im->this_->height()))
     {
-        mapnik::image_view<mapnik::image_data_32>::pixel_type const * row = view->getRow(y);
-        mapnik::image_view<mapnik::image_data_32>::pixel_type const pixel = row[x];
-        unsigned r = pixel & 0xff;
-        unsigned g = (pixel >> 8) & 0xff;
-        unsigned b = (pixel >> 16) & 0xff;
-        unsigned a = (pixel >> 24) & 0xff;
-        NanReturnValue(Color::New(mapnik::color(r,g,b,a)));
+        if (get_color)
+        {
+            mapnik::color val = mapnik::get_pixel<mapnik::color>(*im->this_, x, y);
+            NanReturnValue(Color::NewInstance(val));
+        } else {
+            visitor_get_pixel_view visitor(x, y);
+            NanReturnValue(mapnik::util::apply_visitor(visitor, *im->this_));
+        }
     }
     NanReturnUndefined();
 }
@@ -264,7 +369,7 @@ NAN_METHOD(ImageView::width)
     NanScope();
 
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    NanReturnValue(NanNew<Integer>(im->get()->width()));
+    NanReturnValue(NanNew<Int32>(static_cast<std::int32_t>(im->this_->width())));
 }
 
 NAN_METHOD(ImageView::height)
@@ -272,7 +377,7 @@ NAN_METHOD(ImageView::height)
     NanScope();
 
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
-    NanReturnValue(NanNew<Integer>(im->get()->height()));
+    NanReturnValue(NanNew<Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
 
 
@@ -323,13 +428,12 @@ NAN_METHOD(ImageView::encodeSync)
 
     try {
         std::string s;
-        mapnik::image_view<mapnik::image_data_32> const& image = *(im->this_);
         if (palette.get())
         {
-            s = save_to_string(image, format, *palette);
+            s = save_to_string(*(im->this_), format, *palette);
         }
         else {
-            s = save_to_string(image, format);
+            s = save_to_string(*(im->this_), format);
         }
 
         NanReturnValue(NanNewBufferHandle((char*)s.data(),s.size()));
@@ -422,14 +526,13 @@ void ImageView::EIO_Encode(uv_work_t* req)
     encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
 
     try {
-        mapnik::image_view<mapnik::image_data_32> const& im = *(closure->im->this_);
         if (closure->palette.get())
         {
-            closure->result = save_to_string(im, closure->format, *closure->palette);
+            closure->result = save_to_string(*(closure->im->this_), closure->format, *closure->palette);
         }
         else
         {
-            closure->result = save_to_string(im, closure->format);
+            closure->result = save_to_string(*(closure->im->this_), closure->format);
         }
     }
     catch (std::exception const& ex)
@@ -492,7 +595,7 @@ NAN_METHOD(ImageView::save)
     ImageView* im = node::ObjectWrap::Unwrap<ImageView>(args.Holder());
     try
     {
-        save_to_file(*im->get(),filename);
+        save_to_file(*im->this_,filename);
     }
     catch (std::exception const& ex)
     {

@@ -15,44 +15,44 @@
   "                  ###   !!!!!                                   ",
   "                #####!!!!!!!!!                                  ",
   "               ######!!!!!!!!!           $$$  $ $$              ",
-  "              ######!!!!!!!!!      %%    $$     $$              ",
-  "             ###### !!!!!!!!!     %%%            $$             ",
+  "               #####!!!!!!!!!      %%    $$     $$              ",
+  "             ## ### !!!!!!!!!     %%%            $$             ",
   "            # ## ##!!!!!!!!!!      %%              $            ",
   "           #  ##### !!!!!!!!!      %        $    $$$$           ",
   "           #######    !!!!!!!             $$    $$$$$   $$$     ",
   "          ##  ###     !!!!!!!             $    $$$$$$ $ $$      ",
   "          #########   !!!!!!!            $  $ $$$$$$$$$$ $$     ",
-  "   &&&   # #########  !!!!!!!       ''    $ $$$$$$$$$$$$$$$$$   ",
+  "    &&   # #########  !!!!!!!       ''    $ $$$$$$$$$$$$$$$$$   ",
   "   &&&&##############  !!!!!       (($$ $$$$$$$$$$$$$$$$$$$$$$$$",
   "   &&&&########### ### !!!  ))    '(($$$$$$$$$$$$$$$$$$$$$$$$$$$",
   "    &&&##############  !!   ))    ((**$$$$$$$$$$$$$$$$$$$$$$$$$$",
-  "   &&&&#########  ##   !!        '((*$$$$$$$$$$$$$$$$$$$$$$$ $$ ",
-  "   &&&  &#######  ###          + '((,$$$$$$$$$$$$$$$$$$$$$ $$$  ",
+  "   &&&&#########  ##    !        '((*$$$$$$$$$$$$$$$$$$$$$$$ $$ ",
+  "   &&   &#######  ###          + '((,$$$$$$$$$$$$$$$$$$$$$ $$$  ",
   "   &    &#############         +  - .$$$$$$$$$$$$$$$$$$$$   $   ",
-  "&&       ##############       /++01223$$$$$444$$$$$$$$5$$$  $   ",
-  "          &&&&&&&#### #        66617888$$44444449999955$$$      ",
+  " &       ##############       /++01223$$$$$444$$$$$$$$5$$$  $   ",
+  "          &&&&&&##### #        66617888$$44444449999955$$$      ",
   "          &&&&&&&&#&&#          6::;<88$$4=4444599999555$>$     ",
-  "          &&&&&&&&&&           ??  :@AAAB C===55555555DD >      ",
-  "           &&&&&&&&            ?EE: @AAAFGGCHI55555555 J>>      ",
-  "           K&&&&&&             LEEMMMNOPFGGHIIQ5555555 >        ",
-  " &          KKK   R           SEEEMMMNNPPTUIIQQVQQ5555   >      ",
-  "    &        KK KWWX         SYZZE[]M^^PPPU  QQQ_`aab           ",
-  "              KKcd   e       fYYZ[[]^^^ghh   QQ  `ia            ",
-  "                 j kkl       mnoopp]^^^qrr   QQ    a ss       t ",
-  "                  uukkv       wxypz{{^^qr    |   }i} ss         ",
-  "                ~ ~u              |    } }} }}      ",
-  "                                    }}}}}  }    ",
-  "                                             ",
-  "                                            ",
-  "                                             ",
-  "                                                 ",
-  "                                                    ",
-  "                                                          ",
-  "                                                            ",
-  "                                                             ",
-  "                                                             ",
-  "                                                             ",
-  "                                                              ",
+  "          &&&&&&&&&&           ??  :@AAAB C==D55555555EE >      ",
+  "           &&&&&&&&            ?FF  @AAAGHHCIJ55555555 K>>      ",
+  "           L&&&&&&             MFFNNNOPQGHHIJJR5555555 >        ",
+  "            LLL   S           TFFFNNNOOQQ UJJRRVRR5555          ",
+  "    &        LL LWWX         TYZZF[]N^^QQQU  RRR_`aa5           ",
+  "              LLbc   d       eYYZ[[]^^^fgg   RR  `ha            ",
+  "                 i jjk       lmnnoo]^^^pqq    R    a rr         ",
+  "                  ssjjt       uvwoxyy^^pq        zh  {          ",
+  "                | |s}}}}         ~          z zz zz       ",
+  "                  }}}}}}                  zz z   z    ",
+  "                  }}}}}                              ",
+  "                 }}}}                           ",
+  "                    }}                           ",
+  "                    }                             ",
+  "                                                    ",
+  "                                                          ",
+  "                                                            ",
+  "                                                             ",
+  "                                                             ",
+  "                                                             ",
+  "                                                               ",
   "                                                                ",
   "                                                                ",
   "                                                                ",
@@ -101,6 +101,7 @@
   "200",
   "68",
   "202",
+  "93",
   "94",
   "2",
   "88",
@@ -117,7 +118,6 @@
   "83",
   "13",
   "235",
-  "10",
   "118",
   "155",
   "41",
@@ -130,7 +130,6 @@
   "14",
   "18",
   "214",
-  "137",
   "75",
   "79",
   "224",
@@ -148,7 +147,6 @@
   "56",
   "185",
   "172",
-  "230",
   "38",
   "157",
   "104",
@@ -156,8 +154,8 @@
   "69",
   "35",
   "40",
-  "119",
   "223",
+  "121",
   "49",
   "21",
   "198",
@@ -165,14 +163,12 @@
   "28",
   "204",
   "92",
-  "95",
   "161",
   "203",
   "166",
   "17",
   "6",
   "221",
-  "144",
   "9",
   "61",
   "64",
@@ -189,380 +185,1078 @@
   "209",
   "159",
   "146",
-  "147",
-  "243"
+  "147"
  ],
  "data": {
   "2": {
+   "AREA": 238174,
+   "FIPS": "AG",
+   "ISO2": "DZ",
+   "ISO3": "DZA",
+   "LAT": 28.163,
+   "LON": 2.632,
    "NAME": "Algeria"
   },
   "6": {
+   "AREA": 124670,
+   "FIPS": "AO",
+   "ISO2": "AO",
+   "ISO3": "AGO",
+   "LAT": -12.296,
+   "LON": 17.544,
    "NAME": "Angola"
   },
   "8": {
+   "AREA": 273669,
+   "FIPS": "AR",
+   "ISO2": "AR",
+   "ISO3": "ARG",
+   "LAT": -35.377,
+   "LON": -65.167,
    "NAME": "Argentina"
   },
   "9": {
+   "AREA": 768230,
+   "FIPS": "AS",
+   "ISO2": "AU",
+   "ISO3": "AUS",
+   "LAT": -24.973,
+   "LON": 136.189,
    "NAME": "Australia"
   },
-  "10": {
-   "NAME": "Bahrain"
-  },
   "13": {
+   "AREA": 1001,
+   "FIPS": "BF",
+   "ISO2": "BS",
+   "ISO3": "BHS",
+   "LAT": 24.628,
+   "LON": -78.014,
    "NAME": "Bahamas"
   },
   "14": {
+   "AREA": 13017,
+   "FIPS": "BG",
+   "ISO2": "BD",
+   "ISO3": "BGD",
+   "LAT": 24.218,
+   "LON": 89.941,
    "NAME": "Bangladesh"
   },
   "17": {
+   "AREA": 108438,
+   "FIPS": "BL",
+   "ISO2": "BO",
+   "ISO3": "BOL",
+   "LAT": -16.715,
+   "LON": -64.671,
    "NAME": "Bolivia"
   },
   "18": {
+   "AREA": 65755,
+   "FIPS": "BM",
+   "ISO2": "MM",
+   "ISO3": "MMR",
+   "LAT": 21.718,
+   "LON": 96.041,
    "NAME": "Burma"
   },
   "21": {
+   "AREA": 845942,
+   "FIPS": "BR",
+   "ISO2": "BR",
+   "ISO3": "BRA",
+   "LAT": -10.772,
+   "LON": -53.089,
    "NAME": "Brazil"
   },
   "24": {
+   "AREA": 909351,
+   "FIPS": "CA",
+   "ISO2": "CA",
+   "ISO3": "CAN",
+   "LAT": 59.081,
+   "LON": -109.433,
    "NAME": "Canada"
   },
   "28": {
+   "AREA": 226705,
+   "FIPS": "CG",
+   "ISO2": "CD",
+   "ISO3": "COD",
+   "LAT": -2.876,
+   "LON": 23.654,
    "NAME": "Democratic Republic of the Congo"
   },
   "30": {
+   "AREA": 932743,
+   "FIPS": "CH",
+   "ISO2": "CN",
+   "ISO3": "CHN",
+   "LAT": 33.42,
+   "LON": 106.514,
    "NAME": "China"
   },
   "31": {
+   "AREA": 65209,
+   "FIPS": "AF",
+   "ISO2": "AF",
+   "ISO3": "AFG",
+   "LAT": 33.677,
+   "LON": 65.216,
    "NAME": "Afghanistan"
   },
   "33": {
+   "AREA": 74880,
+   "FIPS": "CI",
+   "ISO2": "CL",
+   "ISO3": "CHL",
+   "LAT": -23.389,
+   "LON": -69.433,
    "NAME": "Chile"
   },
   "35": {
+   "AREA": 46540,
+   "FIPS": "CM",
+   "ISO2": "CM",
+   "ISO3": "CMR",
+   "LAT": 5.133,
+   "LON": 12.277,
    "NAME": "Cameroon"
   },
   "36": {
+   "AREA": 125920,
+   "FIPS": "CD",
+   "ISO2": "TD",
+   "ISO3": "TCD",
+   "LAT": 15.361,
+   "LON": 18.665,
    "NAME": "Chad"
   },
   "38": {
+   "AREA": 103870,
+   "FIPS": "CO",
+   "ISO2": "CO",
+   "ISO3": "COL",
+   "LAT": 3.9,
+   "LON": -73.076,
    "NAME": "Colombia"
   },
   "40": {
+   "AREA": 62298,
+   "FIPS": "CT",
+   "ISO2": "CF",
+   "ISO3": "CAF",
+   "LAT": 6.571,
+   "LON": 20.483,
    "NAME": "Central African Republic"
   },
   "41": {
+   "AREA": 10982,
+   "FIPS": "CU",
+   "ISO2": "CU",
+   "ISO3": "CUB",
+   "LAT": 21.297,
+   "LON": -77.781,
    "NAME": "Cuba"
   },
   "45": {
+   "AREA": 4243,
+   "FIPS": "DA",
+   "ISO2": "DK",
+   "ISO3": "DNK",
+   "LAT": 56.058,
+   "LON": 9.264,
    "NAME": "Denmark"
   },
   "49": {
+   "AREA": 27684,
+   "FIPS": "EC",
+   "ISO2": "EC",
+   "ISO3": "ECU",
+   "LAT": -1.385,
+   "LON": -78.497,
    "NAME": "Ecuador"
   },
   "50": {
+   "AREA": 99545,
+   "FIPS": "EG",
+   "ISO2": "EG",
+   "ISO3": "EGY",
+   "LAT": 26.494,
+   "LON": 29.872,
    "NAME": "Egypt"
   },
   "51": {
+   "AREA": 6889,
+   "FIPS": "EI",
+   "ISO2": "IE",
+   "ISO3": "IRL",
+   "LAT": 53.177,
+   "LON": -8.152,
    "NAME": "Ireland"
   },
   "53": {
+   "AREA": 4239,
+   "FIPS": "EN",
+   "ISO2": "EE",
+   "ISO3": "EST",
+   "LAT": 58.674,
+   "LON": 25.793,
    "NAME": "Estonia"
   },
   "54": {
+   "AREA": 10100,
+   "FIPS": "ER",
+   "ISO2": "ER",
+   "ISO3": "ERI",
+   "LAT": 16.045,
+   "LON": 38.219,
    "NAME": "Eritrea"
   },
   "56": {
+   "AREA": 100000,
+   "FIPS": "ET",
+   "ISO2": "ET",
+   "ISO3": "ETH",
+   "LAT": 8.626,
+   "LON": 39.616,
    "NAME": "Ethiopia"
   },
   "60": {
+   "AREA": 30459,
+   "FIPS": "FI",
+   "ISO2": "FI",
+   "ISO3": "FIN",
+   "LAT": 64.504,
+   "LON": 26.272,
    "NAME": "Finland"
   },
   "61": {
+   "AREA": 1827,
+   "FIPS": "FJ",
+   "ISO2": "FJ",
+   "ISO3": "FJI",
+   "LAT": -17.819,
+   "LON": 177.974,
    "NAME": "Fiji"
   },
   "64": {
+   "AREA": 366,
+   "FIPS": "FP",
+   "ISO2": "PF",
+   "ISO3": "PYF",
+   "LAT": -17.626,
+   "LON": -149.462,
    "NAME": "French Polynesia"
   },
   "65": {
+   "AREA": 55010,
+   "FIPS": "FR",
+   "ISO2": "FR",
+   "ISO3": "FRA",
+   "LAT": 46.565,
+   "LON": 2.55,
    "NAME": "France"
   },
   "67": {
+   "AREA": 25767,
+   "FIPS": "GB",
+   "ISO2": "GA",
+   "ISO3": "GAB",
+   "LAT": -0.591,
+   "LON": 11.797,
    "NAME": "Gabon"
   },
   "68": {
+   "AREA": 6949,
+   "FIPS": "GG",
+   "ISO2": "GE",
+   "ISO3": "GEO",
+   "LAT": 42.176,
+   "LON": 43.518,
    "NAME": "Georgia"
   },
   "69": {
+   "AREA": 22754,
+   "FIPS": "GH",
+   "ISO2": "GH",
+   "ISO3": "GHA",
+   "LAT": 7.96,
+   "LON": -1.207,
    "NAME": "Ghana"
   },
   "71": {
+   "AREA": 41045,
+   "FIPS": "GL",
+   "ISO2": "GL",
+   "ISO3": "GRL",
+   "LAT": 74.719,
+   "LON": -41.391,
    "NAME": "Greenland"
   },
   "72": {
+   "AREA": 34895,
+   "FIPS": "GM",
+   "ISO2": "DE",
+   "ISO3": "DEU",
+   "LAT": 51.11,
+   "LON": 9.851,
    "NAME": "Germany"
   },
   "74": {
+   "AREA": 12890,
+   "FIPS": "GR",
+   "ISO2": "GR",
+   "ISO3": "GRC",
+   "LAT": 39.666,
+   "LON": 21.766,
    "NAME": "Greece"
   },
   "75": {
+   "AREA": 10843,
+   "FIPS": "GT",
+   "ISO2": "GT",
+   "ISO3": "GTM",
+   "LAT": 15.256,
+   "LON": -90.398,
    "NAME": "Guatemala"
   },
   "76": {
+   "AREA": 24572,
+   "FIPS": "GV",
+   "ISO2": "GN",
+   "ISO3": "GIN",
+   "LAT": 10.439,
+   "LON": -10.942,
    "NAME": "Guinea"
   },
   "79": {
+   "AREA": 11189,
+   "FIPS": "HO",
+   "ISO2": "HN",
+   "ISO3": "HND",
+   "LAT": 14.819,
+   "LON": -86.863,
    "NAME": "Honduras"
   },
   "80": {
+   "AREA": 5592,
+   "FIPS": "HR",
+   "ISO2": "HR",
+   "ISO3": "HRV",
+   "LAT": 45.723,
+   "LON": 16.693,
    "NAME": "Croatia"
   },
   "82": {
+   "AREA": 10025,
+   "FIPS": "IC",
+   "ISO2": "IS",
+   "ISO3": "ISL",
+   "LAT": 64.764,
+   "LON": -18.48,
    "NAME": "Iceland"
   },
   "83": {
+   "AREA": 297319,
+   "FIPS": "IN",
+   "ISO2": "IN",
+   "ISO3": "IND",
+   "LAT": 21,
+   "LON": 78.5,
    "NAME": "India"
   },
   "84": {
+   "AREA": 163620,
+   "FIPS": "IR",
+   "ISO2": "IR",
+   "ISO3": "IRN",
+   "LAT": 32.565,
+   "LON": 54.301,
    "NAME": "Iran (Islamic Republic of)"
   },
   "86": {
+   "AREA": 29411,
+   "FIPS": "IT",
+   "ISO2": "IT",
+   "ISO3": "ITA",
+   "LAT": 42.7,
+   "LON": 12.8,
    "NAME": "Italy"
   },
   "87": {
+   "AREA": 31800,
+   "FIPS": "IV",
+   "ISO2": "CI",
+   "ISO3": "CIV",
+   "LAT": 7.632,
+   "LON": -5.556,
    "NAME": "Cote d'Ivoire"
   },
   "88": {
+   "AREA": 43737,
+   "FIPS": "IZ",
+   "ISO2": "IQ",
+   "ISO3": "IRQ",
+   "LAT": 33.048,
+   "LON": 43.772,
    "NAME": "Iraq"
   },
   "89": {
+   "AREA": 36450,
+   "FIPS": "JA",
+   "ISO2": "JP",
+   "ISO3": "JPN",
+   "LAT": 36.491,
+   "LON": 139.068,
    "NAME": "Japan"
   },
   "92": {
+   "AREA": 56914,
+   "FIPS": "KE",
+   "ISO2": "KE",
+   "ISO3": "KEN",
+   "LAT": 0.53,
+   "LON": 37.858,
    "NAME": "Kenya"
   },
+  "93": {
+   "AREA": 19180,
+   "FIPS": "KG",
+   "ISO2": "KG",
+   "ISO3": "KGZ",
+   "LAT": 41.465,
+   "LON": 74.555,
+   "NAME": "Kyrgyzstan"
+  },
   "94": {
+   "AREA": 12041,
+   "FIPS": "KN",
+   "ISO2": "KP",
+   "ISO3": "PRK",
+   "LAT": 39.778,
+   "LON": 126.451,
    "NAME": "Korea, Democratic People's Republic of"
   },
-  "95": {
-   "NAME": "Kiribati"
-  },
   "96": {
+   "AREA": 9873,
+   "FIPS": "KS",
+   "ISO2": "KR",
+   "ISO3": "KOR",
+   "LAT": 36.504,
+   "LON": 128.103,
    "NAME": "Korea, Republic of"
   },
   "98": {
+   "AREA": 269970,
+   "FIPS": "KZ",
+   "ISO2": "KZ",
+   "ISO3": "KAZ",
+   "LAT": 48.16,
+   "LON": 67.301,
    "NAME": "Kazakhstan"
   },
   "102": {
+   "AREA": 20748,
+   "FIPS": "BO",
+   "ISO2": "BY",
+   "ISO3": "BLR",
+   "LAT": 53.54,
+   "LON": 28.047,
    "NAME": "Belarus"
   },
   "103": {
+   "AREA": 6268,
+   "FIPS": "LH",
+   "ISO2": "LT",
+   "ISO3": "LTU",
+   "LAT": 55.336,
+   "LON": 23.897,
    "NAME": "Lithuania"
   },
   "104": {
+   "AREA": 9632,
+   "FIPS": "LI",
+   "ISO2": "LR",
+   "ISO3": "LBR",
+   "LAT": 6.682,
+   "LON": -9.657,
    "NAME": "Liberia"
   },
   "105": {
+   "AREA": 4808,
+   "FIPS": "LO",
+   "ISO2": "SK",
+   "ISO3": "SVK",
+   "LAT": 48.707,
+   "LON": 19.491,
    "NAME": "Slovakia"
   },
   "107": {
+   "AREA": 175954,
+   "FIPS": "LY",
+   "ISO2": "LY",
+   "ISO3": "LBY",
+   "LAT": 27.044,
+   "LON": 18.023,
    "NAME": "Libyan Arab Jamahiriya"
   },
   "108": {
+   "AREA": 58154,
+   "FIPS": "MA",
+   "ISO2": "MG",
+   "ISO3": "MDG",
+   "LAT": -19.374,
+   "LON": 46.706,
    "NAME": "Madagascar"
   },
   "110": {
+   "AREA": 156650,
+   "FIPS": "MG",
+   "ISO2": "MN",
+   "ISO3": "MNG",
+   "LAT": 46.056,
+   "LON": 102.876,
    "NAME": "Mongolia"
   },
   "113": {
+   "AREA": 122019,
+   "FIPS": "ML",
+   "ISO2": "ML",
+   "ISO3": "MLI",
+   "LAT": 17.35,
+   "LON": -3.524,
    "NAME": "Mali"
   },
   "114": {
+   "AREA": 44630,
+   "FIPS": "MO",
+   "ISO2": "MA",
+   "ISO3": "MAR",
+   "LAT": 32.706,
+   "LON": -5.758,
    "NAME": "Morocco"
   },
   "116": {
+   "AREA": 102522,
+   "FIPS": "MR",
+   "ISO2": "MR",
+   "ISO3": "MRT",
+   "LAT": 20.26,
+   "LON": -10.332,
    "NAME": "Mauritania"
   },
   "118": {
+   "AREA": 30950,
+   "FIPS": "MU",
+   "ISO2": "OM",
+   "ISO3": "OMN",
+   "LAT": 21.656,
+   "LON": 57.407,
    "NAME": "Oman"
   },
-  "119": {
-   "NAME": "Maldives"
-  },
   "120": {
+   "AREA": 190869,
+   "FIPS": "MX",
+   "ISO2": "MX",
+   "ISO3": "MEX",
+   "LAT": 23.951,
+   "LON": -102.535,
    "NAME": "Mexico"
   },
+  "121": {
+   "AREA": 32855,
+   "FIPS": "MY",
+   "ISO2": "MY",
+   "ISO3": "MYS",
+   "LAT": 4.201,
+   "LON": 102.195,
+   "NAME": "Malaysia"
+  },
   "122": {
+   "AREA": 78409,
+   "FIPS": "MZ",
+   "ISO2": "MZ",
+   "ISO3": "MOZ",
+   "LAT": -14.422,
+   "LON": 37.923,
    "NAME": "Mozambique"
   },
   "123": {
+   "AREA": 9408,
+   "FIPS": "MI",
+   "ISO2": "MW",
+   "ISO3": "MWI",
+   "LAT": -13.4,
+   "LON": 33.808,
    "NAME": "Malawi"
   },
   "126": {
+   "AREA": 126670,
+   "FIPS": "NG",
+   "ISO2": "NE",
+   "ISO3": "NER",
+   "LAT": 17.426,
+   "LON": 9.398,
    "NAME": "Niger"
   },
-  "137": {
-   "NAME": "Macau"
-  },
   "139": {
+   "AREA": 0,
+   "FIPS": "",
+   "ISO2": "PS",
+   "ISO3": "PSE",
+   "LAT": 32.037,
+   "LON": 35.278,
    "NAME": "Palestine"
   },
-  "144": {
-   "NAME": "Cocos (Keeling) Islands"
-  },
   "146": {
+   "AREA": 0,
+   "FIPS": "FS",
+   "ISO2": "TF",
+   "ISO3": "ATF",
+   "LAT": -49.302,
+   "LON": 69.117,
    "NAME": "French Southern and Antarctic Lands"
   },
   "147": {
+   "AREA": 0,
+   "FIPS": "HM",
+   "ISO2": "HM",
+   "ISO3": "HMD",
+   "LAT": -53.111,
+   "LON": 73.507,
    "NAME": "Heard Island and McDonald Islands"
   },
   "152": {
+   "AREA": 91077,
+   "FIPS": "NI",
+   "ISO2": "NG",
+   "ISO3": "NGA",
+   "LAT": 9.594,
+   "LON": 8.105,
    "NAME": "Nigeria"
   },
   "153": {
+   "AREA": 3388,
+   "FIPS": "NL",
+   "ISO2": "NL",
+   "ISO3": "NLD",
+   "LAT": 52.077,
+   "LON": 5.389,
    "NAME": "Netherlands"
   },
   "154": {
+   "AREA": 30625,
+   "FIPS": "NO",
+   "ISO2": "NO",
+   "ISO3": "NOR",
+   "LAT": 61.152,
+   "LON": 8.74,
    "NAME": "Norway"
   },
   "155": {
+   "AREA": 14300,
+   "FIPS": "NP",
+   "ISO2": "NP",
+   "ISO3": "NPL",
+   "LAT": 28.253,
+   "LON": 83.939,
    "NAME": "Nepal"
   },
   "157": {
+   "AREA": 15600,
+   "FIPS": "NS",
+   "ISO2": "SR",
+   "ISO3": "SUR",
+   "LAT": 4.127,
+   "LON": -55.912,
    "NAME": "Suriname"
   },
   "158": {
+   "AREA": 12140,
+   "FIPS": "NU",
+   "ISO2": "NI",
+   "ISO3": "NIC",
+   "LAT": 12.84,
+   "LON": -85.034,
    "NAME": "Nicaragua"
   },
   "159": {
+   "AREA": 26799,
+   "FIPS": "NZ",
+   "ISO2": "NZ",
+   "ISO3": "NZL",
+   "LAT": -42.634,
+   "LON": 172.235,
    "NAME": "New Zealand"
   },
   "160": {
+   "AREA": 39730,
+   "FIPS": "PA",
+   "ISO2": "PY",
+   "ISO3": "PRY",
+   "LAT": -23.236,
+   "LON": -58.391,
    "NAME": "Paraguay"
   },
   "161": {
+   "AREA": 128000,
+   "FIPS": "PE",
+   "ISO2": "PE",
+   "ISO3": "PER",
+   "LAT": -9.326,
+   "LON": -75.552,
    "NAME": "Peru"
   },
   "162": {
+   "AREA": 77088,
+   "FIPS": "PK",
+   "ISO2": "PK",
+   "ISO3": "PAK",
+   "LAT": 29.967,
+   "LON": 69.386,
    "NAME": "Pakistan"
   },
   "163": {
+   "AREA": 30629,
+   "FIPS": "PL",
+   "ISO2": "PL",
+   "ISO3": "POL",
+   "LAT": 52.125,
+   "LON": 19.401,
    "NAME": "Poland"
   },
   "166": {
+   "AREA": 45286,
+   "FIPS": "PP",
+   "ISO2": "PG",
+   "ISO3": "PNG",
+   "LAT": -5.949,
+   "LON": 143.459,
    "NAME": "Papua New Guinea"
   },
   "167": {
+   "AREA": 2812,
+   "FIPS": "PU",
+   "ISO2": "GW",
+   "ISO3": "GNB",
+   "LAT": 12.125,
+   "LON": -14.651,
    "NAME": "Guinea-Bissau"
   },
   "172": {
+   "AREA": 29817,
+   "FIPS": "RP",
+   "ISO2": "PH",
+   "ISO3": "PHL",
+   "LAT": 11.118,
+   "LON": 122.466,
    "NAME": "Philippines"
   },
   "175": {
+   "AREA": 214969,
+   "FIPS": "SA",
+   "ISO2": "SA",
+   "ISO3": "SAU",
+   "LAT": 24.023,
+   "LON": 44.585,
    "NAME": "Saudi Arabia"
   },
   "178": {
+   "AREA": 121447,
+   "FIPS": "SF",
+   "ISO2": "ZA",
+   "ISO3": "ZAF",
+   "LAT": -30.558,
+   "LON": 23.121,
    "NAME": "South Africa"
   },
   "180": {
+   "AREA": 56673,
+   "FIPS": "BC",
+   "ISO2": "BW",
+   "ISO3": "BWA",
+   "LAT": -22.182,
+   "LON": 23.815,
    "NAME": "Botswana"
   },
   "181": {
+   "AREA": 19253,
+   "FIPS": "SG",
+   "ISO2": "SN",
+   "ISO3": "SEN",
+   "LAT": 15.013,
+   "LON": -14.881,
    "NAME": "Senegal"
   },
   "185": {
+   "AREA": 62734,
+   "FIPS": "SO",
+   "ISO2": "SO",
+   "ISO3": "SOM",
+   "LAT": 9.774,
+   "LON": 48.316,
    "NAME": "Somalia"
   },
   "186": {
+   "AREA": 49904,
+   "FIPS": "SP",
+   "ISO2": "ES",
+   "ISO3": "ESP",
+   "LAT": 40.227,
+   "LON": -3.649,
    "NAME": "Spain"
   },
   "188": {
+   "AREA": 237600,
+   "FIPS": "SU",
+   "ISO2": "SD",
+   "ISO3": "SDN",
+   "LAT": 13.832,
+   "LON": 30.05,
    "NAME": "Sudan"
   },
   "189": {
+   "AREA": 41033,
+   "FIPS": "SW",
+   "ISO2": "SE",
+   "ISO3": "SWE",
+   "LAT": 62.011,
+   "LON": 15.27,
    "NAME": "Sweden"
   },
   "192": {
+   "AREA": 513,
+   "FIPS": "TD",
+   "ISO2": "TT",
+   "ISO3": "TTO",
+   "LAT": 10.468,
+   "LON": -61.253,
    "NAME": "Trinidad and Tobago"
   },
   "193": {
+   "AREA": 51089,
+   "FIPS": "TH",
+   "ISO2": "TH",
+   "ISO3": "THA",
+   "LAT": 15.7,
+   "LON": 100.844,
    "NAME": "Thailand"
   },
   "198": {
+   "AREA": 96,
+   "FIPS": "TP",
+   "ISO2": "ST",
+   "ISO3": "STP",
+   "LAT": 0.201,
+   "LON": 6.629,
    "NAME": "Sao Tome and Principe"
   },
   "200": {
+   "AREA": 76963,
+   "FIPS": "TU",
+   "ISO2": "TR",
+   "ISO3": "TUR",
+   "LAT": 39.061,
+   "LON": 35.179,
    "NAME": "Turkey"
   },
   "202": {
+   "AREA": 46993,
+   "FIPS": "TX",
+   "ISO2": "TM",
+   "ISO3": "TKM",
+   "LAT": 39.122,
+   "LON": 59.384,
    "NAME": "Turkmenistan"
   },
   "203": {
+   "AREA": 88359,
+   "FIPS": "TZ",
+   "ISO2": "TZ",
+   "ISO3": "TZA",
+   "LAT": -6.27,
+   "LON": 34.823,
    "NAME": "United Republic of Tanzania"
   },
   "204": {
+   "AREA": 19710,
+   "FIPS": "UG",
+   "ISO2": "UG",
+   "ISO3": "UGA",
+   "LAT": 1.28,
+   "LON": 32.386,
    "NAME": "Uganda"
   },
   "205": {
+   "AREA": 24193,
+   "FIPS": "UK",
+   "ISO2": "GB",
+   "ISO3": "GBR",
+   "LAT": 53,
+   "LON": -1.6,
    "NAME": "United Kingdom"
   },
   "206": {
+   "AREA": 57935,
+   "FIPS": "UP",
+   "ISO2": "UA",
+   "ISO3": "UKR",
+   "LAT": 49.016,
+   "LON": 31.388,
    "NAME": "Ukraine"
   },
   "207": {
+   "AREA": 915896,
+   "FIPS": "US",
+   "ISO2": "US",
+   "ISO3": "USA",
+   "LAT": 39.622,
+   "LON": -98.606,
    "NAME": "United States"
   },
   "208": {
+   "AREA": 27360,
+   "FIPS": "UV",
+   "ISO2": "BF",
+   "ISO3": "BFA",
+   "LAT": 12.278,
+   "LON": -1.74,
    "NAME": "Burkina Faso"
   },
   "209": {
+   "AREA": 17502,
+   "FIPS": "UY",
+   "ISO2": "UY",
+   "ISO3": "URY",
+   "LAT": -32.8,
+   "LON": -56.012,
    "NAME": "Uruguay"
   },
   "210": {
+   "AREA": 42540,
+   "FIPS": "UZ",
+   "ISO2": "UZ",
+   "ISO3": "UZB",
+   "LAT": 41.75,
+   "LON": 63.17,
    "NAME": "Uzbekistan"
   },
   "212": {
+   "AREA": 88205,
+   "FIPS": "VE",
+   "ISO2": "VE",
+   "ISO3": "VEN",
+   "LAT": 7.125,
+   "LON": -66.166,
    "NAME": "Venezuela"
   },
   "214": {
+   "AREA": 32549,
+   "FIPS": "VM",
+   "ISO2": "VN",
+   "ISO3": "VNM",
+   "LAT": 21.491,
+   "LON": 105.314,
    "NAME": "Viet Nam"
   },
   "216": {
+   "AREA": 82329,
+   "FIPS": "WA",
+   "ISO2": "NA",
+   "ISO3": "NAM",
+   "LAT": -22.133,
+   "LON": 17.218,
    "NAME": "Namibia"
   },
   "220": {
+   "AREA": 52797,
+   "FIPS": "YM",
+   "ISO2": "YE",
+   "ISO3": "YEM",
+   "LAT": 15.807,
+   "LON": 48.355,
    "NAME": "Yemen"
   },
   "221": {
+   "AREA": 74339,
+   "FIPS": "ZA",
+   "ISO2": "ZM",
+   "ISO3": "ZMB",
+   "LAT": -14.614,
+   "LON": 26.32,
    "NAME": "Zambia"
   },
   "222": {
+   "AREA": 38685,
+   "FIPS": "ZI",
+   "ISO2": "ZW",
+   "ISO3": "ZWE",
+   "LAT": -19,
+   "LON": 29.872,
    "NAME": "Zimbabwe"
   },
   "223": {
+   "AREA": 181157,
+   "FIPS": "ID",
+   "ISO2": "ID",
+   "ISO3": "IDN",
+   "LAT": -0.976,
+   "LON": 114.252,
    "NAME": "Indonesia"
   },
   "224": {
+   "AREA": 169,
+   "FIPS": "GP",
+   "ISO2": "GP",
+   "ISO3": "GLP",
+   "LAT": 16.286,
+   "LON": -61.441,
    "NAME": "Guadeloupe"
   },
-  "230": {
-   "NAME": "Marshall Islands"
-  },
   "234": {
+   "AREA": 0,
+   "FIPS": "TK",
+   "ISO2": "TC",
+   "ISO3": "TCA",
+   "LAT": 21.902,
+   "LON": -71.95,
    "NAME": "Turks and Caicos Islands"
   },
   "235": {
+   "AREA": 0,
+   "FIPS": "WI",
+   "ISO2": "EH",
+   "ISO3": "ESH",
+   "LAT": 24.554,
+   "LON": -13.706,
    "NAME": "Western Sahara"
   },
   "236": {
+   "AREA": 0,
+   "FIPS": "RB",
+   "ISO2": "RS",
+   "ISO3": "SRB",
+   "LAT": 44.032,
+   "LON": 20.806,
    "NAME": "Serbia"
   },
   "238": {
+   "AREA": 0,
+   "FIPS": "SV",
+   "ISO2": "SJ",
+   "ISO3": "SJM",
+   "LAT": 78.83,
+   "LON": 18.374,
    "NAME": "Svalbard"
   },
-  "243": {
-   "NAME": "South Georgia South Sandwich Islands"
-  },
   "245": {
+   "AREA": 1638094,
+   "FIPS": "RS",
+   "ISO2": "RU",
+   "ISO3": "RUS",
+   "LAT": 61.988,
+   "LON": 96.689,
    "NAME": "Russia"
   }
  }

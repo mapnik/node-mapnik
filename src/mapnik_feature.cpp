@@ -1,8 +1,4 @@
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
-
 #include "utils.hpp"
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
@@ -13,13 +9,18 @@
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/json/feature_parser.hpp>
 #include <mapnik/value_types.hpp>
-
-#include MAPNIK_MAKE_SHARED_INCLUDE
-
-#include <mapnik/json/feature_generator_grammar.hpp>
+#include <mapnik/util/feature_to_geojson.hpp>
 
 Persistent<FunctionTemplate> Feature::constructor;
 
+/**
+ * A single geographic feature, with geometry and properties. This is
+ * typically derived from data by a datasource, but can be manually
+ * created.
+ *
+ * @name mapnik.Feature
+ * @class
+ */
 void Feature::Initialize(Handle<Object> target) {
 
     NanScope();
@@ -43,14 +44,14 @@ void Feature::Initialize(Handle<Object> target) {
 }
 
 Feature::Feature(mapnik::feature_ptr f) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_(f) {}
 
 Feature::Feature(int id) :
-    ObjectWrap(),
+    node::ObjectWrap(),
     this_() {
     // TODO - accept/require context object to reused
-    ctx_ = MAPNIK_MAKE_SHARED<mapnik::context_type>();
+    ctx_ = std::make_shared<mapnik::context_type>();
     this_ = mapnik::feature_factory::create(ctx_,id);
 }
 
@@ -89,6 +90,14 @@ NAN_METHOD(Feature::New)
     NanReturnValue(args.This());
 }
 
+/**
+ * @memberof mapnik.Feature
+ * @static
+ * @name fromJSON
+ * @param {string} geojson string
+ *
+ * Create a feature from a GeoJSON representation.
+ */
 NAN_METHOD(Feature::fromJSON)
 {
     NanScope();
@@ -97,17 +106,26 @@ NAN_METHOD(Feature::fromJSON)
         NanReturnUndefined();
     }
     std::string json = TOSTR(args[0]);
-    mapnik::feature_ptr f(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
-    if (!mapnik::json::from_geojson(json,*f))
+    try
     {
-        throw std::runtime_error("Failed to parse geojson feature");
+        mapnik::feature_ptr f(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
+        if (!mapnik::json::from_geojson(json,*f))
+        {
+            NanThrowError("Failed to read GeoJSON");
+            NanReturnUndefined();
+        }
+        Feature* feat = new Feature(f);
+        Handle<Value> ext = NanNew<External>(feat);
+        NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
     }
-    Feature* feat = new Feature(f);
-    Handle<Value> ext = NanNew<External>(feat);
-    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        NanReturnUndefined();
+    }
 }
 
-Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
+Handle<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
 {
     NanEscapableScope();
     Feature* f = new Feature(f_ptr);
@@ -116,6 +134,12 @@ Handle<Value> Feature::New(mapnik::feature_ptr f_ptr)
     return NanEscapeScope(obj);
 }
 
+/**
+ * @memberof mapnik.Feature
+ * @name id
+ * @instance
+ * @returns {number} id the feature's internal id
+ */
 NAN_METHOD(Feature::id)
 {
     NanScope();
@@ -123,6 +147,14 @@ NAN_METHOD(Feature::id)
     NanReturnValue(NanNew<Number>(fp->get()->id()));
 }
 
+/**
+ * Get the feature's extent
+ *
+ * @name extent
+ * @memberof mapnik.Feature
+ * @instance
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ */
 NAN_METHOD(Feature::extent)
 {
     NanScope();
@@ -139,6 +171,14 @@ NAN_METHOD(Feature::extent)
     NanReturnValue(a);
 }
 
+/**
+ * Get the feature's attributes as an object.
+ *
+ * @name attributes
+ * @memberof mapnik.Feature
+ * @instance
+ * @returns {Object} attributes
+ */
 NAN_METHOD(Feature::attributes)
 {
     NanScope();
@@ -152,31 +192,48 @@ NAN_METHOD(Feature::attributes)
     mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
-        node_mapnik::params_to_object serializer( feat , MAPNIK_GET<0>(*itr));
-        MAPNIK_APPLY_VISITOR( serializer, MAPNIK_GET<1>(*itr) );
+        feat->Set(NanNew(std::get<0>(*itr).c_str()), 
+                  mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
+        );
     }
     NanReturnValue(feat);
 }
 
+
+/**
+ * Get the feature's attributes as a Mapnik geometry.
+ *
+ * @name geometry
+ * @memberof mapnik.Feature
+ * @instance
+ * @returns {mapnik.Geometry} geometry
+ */
 NAN_METHOD(Feature::geometry)
 {
     NanScope();
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    NanReturnValue(Geometry::New(fp->get()));
+    NanReturnValue(Geometry::NewInstance(fp->get()));
 }
 
+/**
+ * Generate and return a GeoJSON representation of this feature
+ *
+ * @instance
+ * @name toJSON
+ * @memberof mapnik.Feature
+ * @returns {string} geojson Feature object in stringified GeoJSON
+ */
 NAN_METHOD(Feature::toJSON)
 {
     NanScope();
     Feature* fp = node::ObjectWrap::Unwrap<Feature>(args.Holder());
-    typedef std::back_insert_iterator<std::string> sink_type;
-    static const mapnik::json::feature_generator_grammar<sink_type> grammar;
     std::string json;
-    sink_type sink(json);
-    if (!boost::spirit::karma::generate(sink, grammar, *(fp->get())))
+    if (!mapnik::util::to_geojson(json, *(fp->get())))
     {
+        /* LCOV_EXCL_START */
         NanThrowError("Failed to generate GeoJSON");
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
     NanReturnValue(NanNew(json.c_str()));
 }
