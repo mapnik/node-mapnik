@@ -41,8 +41,8 @@ install:
   - SET PATH=C:\Program Files\7-Zip;%PATH%
   - SET ARCHPATH=
   - if %platform% == x64 (SET ARCHPATH=x64/)
-  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:MAPNIK_GIT-$env:Platform-$env:msvs_toolset.0.7z"
-  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-$env:MAPNIK_GIT-$env:Platform.7z-$env:msvs_toolset.0 -FileName mapnik-sdk.7z
+  - ps: Write-Output "fetching mapnik sdk https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v$env:MAPNIK_GIT-$env:Platform-$env:msvs_toolset.0.7z"
+  - ps: Start-FileDownload https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v$env:MAPNIK_GIT-$env:Platform.7z-$env:msvs_toolset.0 -FileName mapnik-sdk.7z
   - ps: Write-Output "extracting mapnik sdk"
   - ps: invoke-expression "& 7z -y x mapnik-sdk.7z | FIND /V `"ing  `""
   # install node version per visual studio toolset
