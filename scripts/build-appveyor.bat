@@ -45,9 +45,12 @@ ECHO activating VS command prompt
 IF /I %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
 IF /I %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" x86
 
+where node
+where npm
+
 node -v
 node -e "console.log(process.arch,process.execPath)"
-npm -v
+CALL npm -v
 
 ECHO installing and updating node-gyp
 CALL npm install -g node-gyp
@@ -56,7 +59,9 @@ CALL npm update -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ::add node-gyp to beginning of path, to be prefered over program files/node/npm
+where node-gyp
 SET PATH=%APPDATA%\npm;%PATH%
+where node-gyp
 
 if EXIST node_modules (ECHO node_modules found) ELSE (ECHO bootstrapping modules && CALL npm install mapnik-vector-tile nan sphericalmercator mocha node-pre-gyp jshint)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
