@@ -47,12 +47,16 @@ IF /I %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %ms
 
 node -v
 node -e "console.log(process.arch,process.execPath)"
+npm -v
 
 ECHO installing and updating node-gyp
 CALL npm install -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm update -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+::add node-gyp to beginning of path, to be prefered over program files/node/npm
+SET PATH=%APPDATA%\npm;%PATH%
 
 if EXIST node_modules (ECHO node_modules found) ELSE (ECHO bootstrapping modules && CALL npm install mapnik-vector-tile nan sphericalmercator mocha node-pre-gyp jshint)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
@@ -70,6 +74,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 FOR /F "tokens=*" %%i in ('CALL node_modules\.bin\node-pre-gyp reveal module_path --silent') DO SET NODEMAPNIK_BINDING_DIR=%%i
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO NODEMAPNIK_BINDING_DIR^: %NODEMAPNIK_BINDING_DIR%
 
 powershell scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
