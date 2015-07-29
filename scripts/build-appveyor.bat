@@ -53,7 +53,7 @@ node -e "console.log(process.arch,process.execPath)"
 CALL npm -v
 
 ECHO installing and updating node-gyp
-CALL npm install -g node-gyp
+CALL npm install node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm update -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
