@@ -3276,7 +3276,7 @@ Local<Value> VectorTile::_isSolidSync(_NAN_METHOD_ARGS)
     try
     {
         std::string key;
-        bool is_solid = mapnik::vector_tile_impl::is_solid_extent(detail::get_tile(d->buffer_), key);
+        bool is_solid = mapnik::vector_tile_impl::is_solid_extent(d->buffer_, key);
         if (is_solid)
         {
             return NanEscapeScope(NanNew(key.c_str()));
@@ -3347,7 +3347,7 @@ void VectorTile::EIO_IsSolid(uv_work_t* req)
     is_solid_vector_tile_baton_t *closure = static_cast<is_solid_vector_tile_baton_t *>(req->data);
     try
     {
-        closure->result = mapnik::vector_tile_impl::is_solid_extent(detail::get_tile(closure->d->buffer_),closure->key);
+        closure->result = mapnik::vector_tile_impl::is_solid_extent(closure->d->buffer_,closure->key);
     }
     catch (std::exception const& ex)
     {
