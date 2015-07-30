@@ -66,12 +66,23 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('should throw with invalid formats', function() {
+    it('should throw with invalid formats and bad input', function(done) {
         var im = new mapnik.Image(256, 256);
         assert.throws(function() { im.save('foo','foo'); });
         assert.throws(function() { im.save(); });
         assert.throws(function() { im.save('file.png', null); });
         assert.throws(function() { im.save('foo'); });
+        assert.throws(function() { im.saveSync(); });
+        assert.throws(function() { im.saveSync('foo','foo'); });
+        assert.throws(function() { im.saveSync('file.png', null); });
+        assert.throws(function() { im.saveSync('foo'); });
+        assert.throws(function() { im.save(function(err) {}); });
+        assert.throws(function() { im.save('file.png', null, function(err) {}); });
+        assert.throws(function() { im.save('foo', function(err) {}); });
+        im.save('foo','foo', function(err) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
     });
 
     it('should throw with invalid binary read from buffer', function(done) {
@@ -140,14 +151,15 @@ describe('mapnik.Image ', function() {
         assert.equal(im.encodeSync("png32").length, im2.encodeSync("png32").length);
         // jpeg
         var tmp_filename2 = './test/tmp/image2'+Math.random()+'.jpeg';
-        im.save(tmp_filename2);
-        var buffer2 = fs.readFileSync(tmp_filename2);
-        var im3 = new mapnik.Image.fromBytesSync(buffer2);
-        assert.ok(im3 instanceof mapnik.Image);
-        assert.equal(im3.width(), 256);
-        assert.equal(im3.height(), 256);
-        assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
-        done();
+        im.save(tmp_filename2, 'jpeg', function(err) {
+            var buffer2 = fs.readFileSync(tmp_filename2);
+            var im3 = new mapnik.Image.fromBytesSync(buffer2);
+            assert.ok(im3 instanceof mapnik.Image);
+            assert.equal(im3.width(), 256);
+            assert.equal(im3.height(), 256);
+            assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
+            done();
+        });
     });
 
     it('should be initialized properly via async constructors', function(done) {

@@ -46,7 +46,11 @@ public:
     static NAN_METHOD(fromBytes);
     static void EIO_FromBytes(uv_work_t* req);
     static void EIO_AfterFromBytes(uv_work_t* req);
+    static Local<Value> _saveSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(saveSync);
     static NAN_METHOD(save);
+    static void EIO_Save(uv_work_t* req);
+    static void EIO_AfterSave(uv_work_t* req);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
     static Local<Value> _fillSync(_NAN_METHOD_ARGS);
