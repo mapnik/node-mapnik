@@ -98,13 +98,6 @@ CALL npm install -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO ERRORLEVEL^: %ERRORLEVEL%
 
-ECHO deleting node_modules && rd /s /q node_modules
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF EXIST node_modules ECHO ERROR could not delete node_modules && SET ERRORLEVEL=1 && GOTO ERROR
-if EXIST node_modules (ECHO node_modules found) ELSE (ECHO bootstrapping modules && CALL npm install mapnik-vector-tile nan sphericalmercator mocha node-pre-gyp jshint)
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-
 SET MAPNIK_SDK=%CD%\mapnik-sdk
 SET PATH=%MAPNIK_SDK%\bin;%MAPNIK_SDK%\lib;%PATH%
 SET PROJ_LIB=%MAPNIK_SDK%\share\proj
