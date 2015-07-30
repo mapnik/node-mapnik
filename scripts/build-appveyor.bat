@@ -126,10 +126,10 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-CALL npm test
+CALL node_modules\.bin\node-pre-gyp package %TOOLSET_ARGS%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-CALL node_modules\.bin\node-pre-gyp package testpackage %TOOLSET_ARGS%
+CALL npm test
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO APPVEYOR_REPO_COMMIT_MESSAGE^: %APPVEYOR_REPO_COMMIT_MESSAGE%
