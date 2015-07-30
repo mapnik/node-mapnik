@@ -49,81 +49,71 @@ static void get_fields(Local<Object> fields, mapnik::datasource_ptr ds)
 static void describe_datasource(Local<Object> description, mapnik::datasource_ptr ds)
 {
     NanScope();
-    try
+    
+    // type
+    if (ds->type() == mapnik::datasource::Raster)
     {
-        // type
-        if (ds->type() == mapnik::datasource::Raster)
-        {
-            description->Set(NanNew("type"), NanNew<String>("raster"));
-        }
-        else
-        {
-            description->Set(NanNew("type"), NanNew<String>("vector"));
-        }
+        description->Set(NanNew("type"), NanNew<String>("raster"));
+    }
+    else
+    {
+        description->Set(NanNew("type"), NanNew<String>("vector"));
+    }
 
-        mapnik::layer_descriptor ld = ds->get_descriptor();
+    mapnik::layer_descriptor ld = ds->get_descriptor();
 
-        // encoding
-        description->Set(NanNew("encoding"), NanNew<String>(ld.get_encoding().c_str()));
+    // encoding
+    description->Set(NanNew("encoding"), NanNew<String>(ld.get_encoding().c_str()));
 
-        // field names and types
-        Local<Object> fields = NanNew<Object>();
-        node_mapnik::get_fields(fields, ds);
-        description->Set(NanNew("fields"), fields);
+    // field names and types
+    Local<Object> fields = NanNew<Object>();
+    node_mapnik::get_fields(fields, ds);
+    description->Set(NanNew("fields"), fields);
 
-        Local<String> js_type = NanNew<String>("unknown");
-        if (ds->type() == mapnik::datasource::Raster)
+    Local<String> js_type = NanNew<String>("unknown");
+    if (ds->type() == mapnik::datasource::Raster)
+    {
+        js_type = NanNew<String>("raster");
+    }
+    else
+    {
+        boost::optional<mapnik::datasource_geometry_t> geom_type = ds->get_geometry_type();
+        if (geom_type)
         {
-            js_type = NanNew<String>("raster");
-        }
-        else
-        {
-            boost::optional<mapnik::datasource_geometry_t> geom_type = ds->get_geometry_type();
-            if (geom_type)
+            mapnik::datasource_geometry_t g_type = *geom_type;
+            switch (g_type)
             {
-                mapnik::datasource_geometry_t g_type = *geom_type;
-                switch (g_type)
-                {
-                case mapnik::datasource_geometry_t::Point:
-                {
-                    js_type = NanNew<String>("point");
-                    break;
-                }
-                case mapnik::datasource_geometry_t::LineString:
-                {
-                    js_type = NanNew<String>("linestring");
-                    break;
-                }
-                case mapnik::datasource_geometry_t::Polygon:
-                {
-                    js_type = NanNew<String>("polygon");
-                    break;
-                }
-                case mapnik::datasource_geometry_t::Collection:
-                {
-                    js_type = NanNew<String>("collection");
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-                }
+            case mapnik::datasource_geometry_t::Point:
+            {
+                js_type = NanNew<String>("point");
+                break;
+            }
+            case mapnik::datasource_geometry_t::LineString:
+            {
+                js_type = NanNew<String>("linestring");
+                break;
+            }
+            case mapnik::datasource_geometry_t::Polygon:
+            {
+                js_type = NanNew<String>("polygon");
+                break;
+            }
+            case mapnik::datasource_geometry_t::Collection:
+            {
+                js_type = NanNew<String>("collection");
+                break;
+            }
+            default:
+            {
+                break;
+            }
             }
         }
-        description->Set(NanNew("geometry_type"), js_type);
-        for (auto const& param : ld.get_extra_parameters()) 
-        {
-            node_mapnik::params_to_object(description,param.first, param.second);
-        }
     }
-    catch (std::exception const& ex)
+    description->Set(NanNew("geometry_type"), js_type);
+    for (auto const& param : ld.get_extra_parameters()) 
     {
-        NanThrowError(ex.what());
-    }
-    catch (...)
-    {
-        NanThrowError("unknown exception happened when calling describe_datasource, please file bug");
+        node_mapnik::params_to_object(description,param.first, param.second);
     }
 }
 

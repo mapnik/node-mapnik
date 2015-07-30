@@ -138,15 +138,9 @@ NAN_METHOD(MemoryDatasource::describe)
     NanScope();
     MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
     Local<Object> description = NanNew<Object>();
-    if (d->datasource_) {
-        try {
-            node_mapnik::describe_datasource(description,d->datasource_);
-        }
-        catch (std::exception const& ex)
-        {
-            NanThrowError(ex.what());
-            NanReturnUndefined();
-        }
+    if (d->datasource_) 
+    {
+        node_mapnik::describe_datasource(description,d->datasource_);
     }
     NanReturnValue(description);
 }
@@ -158,33 +152,34 @@ NAN_METHOD(MemoryDatasource::featureset)
 
     MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
 
-    try
-    {
-        if (d->datasource_) {
-            mapnik::query q(d->datasource_->envelope());
-            mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
-            std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-            std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-            std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-            while (itr != end)
-            {
-                q.add_property_name(itr->get_name());
-                ++itr;
-            }
-            mapnik::featureset_ptr fs = d->datasource_->features(q);
-            if (fs)
-            {
-                NanReturnValue(Featureset::NewInstance(fs));
-            }
+    if (d->datasource_) {
+        mapnik::query q(d->datasource_->envelope());
+        mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
+        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
+        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
+        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
+        while (itr != end)
+        {
+            // There is currently no way in the memory_datasource within mapnik to even
+            // add a descriptor. Therefore it is impossible that this will ever be reached
+            // currently.
+            /* LCOV_EXCL_START */
+            q.add_property_name(itr->get_name());
+            ++itr;
+            /* LCOV_EXCL_END */
+        }
+        mapnik::featureset_ptr fs = d->datasource_->features(q);
+        if (fs)
+        {
+            NanReturnValue(Featureset::NewInstance(fs));
         }
     }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-
+    
+    // Even if there is an empty query, a featureset is still created
+    // therefore it should be impossible to reach this point in the code.
+    /* LCOV_EXCL_START */
     NanReturnUndefined();
+    /* LCOV_EXCL_END */
 }
 
 NAN_METHOD(MemoryDatasource::add)
@@ -265,14 +260,7 @@ NAN_METHOD(MemoryDatasource::fields)
     MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
     Local<Object> fields = NanNew<Object>();
     if (d->datasource_) {
-        try {
-            node_mapnik::get_fields(fields,d->datasource_);
-        }
-        catch (std::exception const& ex)
-        {
-            NanThrowError(ex.what());
-            NanReturnUndefined();
-        }
+        node_mapnik::get_fields(fields,d->datasource_);
     }
     NanReturnValue(fields);
 }

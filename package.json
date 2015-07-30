@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.4.1-svgrasterizer",
+  "version": "3.4.1",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -40,9 +40,9 @@
     }
   ],
   "dependencies": {
+    "mapnik-vector-tile": "~0.8.5",
     "nan": "~1.8.4",
-    "mapnik-vector-tile": "~0.8.4",
-    "node-pre-gyp": "~0.6.7"
+    "node-pre-gyp": "~0.6.9"
   },
   "bundledDependencies": [
     "mapnik-vector-tile",
@@ -66,7 +66,8 @@
     "jshint": "^2.5.10",
     "mocha": "2.x",
     "sphericalmercator": "~1.0.2",
-    "bytes":"~2.1.0"
+    "pangyp": "^2.2.1",
+    "bytes": "~2.1.0"
   },
   "jshintConfig": {
     "node": true,

@@ -348,7 +348,6 @@ NAN_METHOD(Geometry::toWKT)
 NAN_METHOD(Geometry::toWKB)
 {
     NanScope();
-    std::string wkt;
     Geometry* g = node::ObjectWrap::Unwrap<Geometry>(args.Holder());
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);
     if (!wkb)

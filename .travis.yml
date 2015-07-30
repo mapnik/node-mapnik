@@ -18,38 +18,38 @@ matrix:
      # Coverage
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.2.0" COVERAGE=true # node abi 43
+       env: NODE_VERSION="1.8.4" COVERAGE=true # node abi 43
      # Linux
      - os: linux
        compiler: clang
-       env: NODE_VERSION="2.0.0" # node abi 44
+       env: NODE_VERSION="2.4.0" # node abi 44
      - os: linux
        compiler: clang
-       env: NODE_VERSION="1.2.0" # node abi 43
+       env: NODE_VERSION="1.8.4" # node abi 43
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.12.2" # node abi 14
+       env: NODE_VERSION="0.12.7" # node abi 14
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.10.38" # node abi 11
+       env: NODE_VERSION="0.10.40" # node abi 11
      # OS X
      - os: osx
        compiler: clang
-       env: NODE_VERSION="2.0.0" # node abi 44
+       env: NODE_VERSION="2.4.0" # node abi 44
      - os: osx
        compiler: clang
-       env: NODE_VERSION="1.2.0" # node abi 43
+       env: NODE_VERSION="1.8.4" # node abi 43
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.12.2" # node abi 14
+       env: NODE_VERSION="0.12.7" # node abi 14
      - os: osx
        compiler: clang
-       env: NODE_VERSION="0.10.38" # node abi 11
+       env: NODE_VERSION="0.10.40" # node abi 11
 
 env:
   global:
    - JOBS: "8"
-   - MAPNIK_GIT: v3.0.0
+   - MAPNIK_GIT: v3.0.1
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
 

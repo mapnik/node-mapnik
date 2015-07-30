@@ -1,6 +1,7 @@
 #include <mapnik/image.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/image_reader.hpp>
+#include <mapnik/safe_cast.hpp>
 
 #include "zlib.h"
 
@@ -34,13 +35,13 @@ namespace node_mapnik {
 
 static bool hexToUInt32Color(char *hex, unsigned int & value) {
     if (!hex) return false;
-    int len_original = strlen(hex);
+    std::size_t len_original = strlen(hex);
     // Return is the length of the string is less then six
     // otherwise the line after this could go to some other
     // pointer in memory, resulting in strange behaviours.
     if (len_original < 6) return false; 
     if (hex[0] == '#') hex++;
-    int len = strlen(hex);
+    std::size_t len = strlen(hex);
     if (len != 6 && len != 8) return false;
 
     unsigned int color = 0;
@@ -303,7 +304,7 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
 void Work_Blend(uv_work_t* req) {
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
 
-    int total = baton->images.size();
+    std::size_t total = baton->images.size();
     bool alpha = true;
     int size = 0;
 
@@ -427,7 +428,7 @@ void Work_AfterBlend(uv_work_t* req) {
         std::string result = baton->stream.str();
         Local<Value> argv[] = {
             NanNull(),
-            NanNewBufferHandle((char *)result.data(), result.length()),
+            NanNewBufferHandle((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())),
         };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
     } else {

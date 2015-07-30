@@ -5,6 +5,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 describe('mapnik.Image ', function() {
+
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.Image(1, 1); }); // jshint ignore:line
@@ -20,6 +21,8 @@ describe('mapnik.Image ', function() {
         assert.throws(function() {
           new mapnik.Image(256,256, {type:'foo'});
         }, /'type' option must be a valid 'mapnik.imageType'/);
+        assert.throws(function() { new mapnik.Image(256,256,{type:null}); });
+        assert.throws(function() { new mapnik.Image(256,256,{type:999}); });
         assert.throws(function() { new mapnik.Image('foo'); });
         assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
     });
@@ -33,9 +36,10 @@ describe('mapnik.Image ', function() {
         };
         var im1 = new mapnik.Image(256,256,options);
         assert.ok(im1);
+        // Check that it is the same image type, also tests getType
+        assert.equal(im1.getType(), mapnik.imageType.gray8);
     });
-
-
+    
     it('should throw with invalid encoding', function(done) {
         var im = new mapnik.Image(256, 256);
         assert.throws(function() { im.encodeSync('foo'); });
@@ -65,12 +69,23 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('should throw with invalid formats', function() {
+    it('should throw with invalid formats and bad input', function(done) {
         var im = new mapnik.Image(256, 256);
         assert.throws(function() { im.save('foo','foo'); });
         assert.throws(function() { im.save(); });
         assert.throws(function() { im.save('file.png', null); });
         assert.throws(function() { im.save('foo'); });
+        assert.throws(function() { im.saveSync(); });
+        assert.throws(function() { im.saveSync('foo','foo'); });
+        assert.throws(function() { im.saveSync('file.png', null); });
+        assert.throws(function() { im.saveSync('foo'); });
+        assert.throws(function() { im.save(function(err) {}); });
+        assert.throws(function() { im.save('file.png', null, function(err) {}); });
+        assert.throws(function() { im.save('foo', function(err) {}); });
+        im.save('foo','foo', function(err) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
     });
 
     it('should throw with invalid binary read from buffer', function(done) {
@@ -139,14 +154,15 @@ describe('mapnik.Image ', function() {
         assert.equal(im.encodeSync("png32").length, im2.encodeSync("png32").length);
         // jpeg
         var tmp_filename2 = './test/tmp/image2'+Math.random()+'.jpeg';
-        im.save(tmp_filename2);
-        var buffer2 = fs.readFileSync(tmp_filename2);
-        var im3 = new mapnik.Image.fromBytesSync(buffer2);
-        assert.ok(im3 instanceof mapnik.Image);
-        assert.equal(im3.width(), 256);
-        assert.equal(im3.height(), 256);
-        assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
-        done();
+        im.save(tmp_filename2, 'jpeg', function(err) {
+            var buffer2 = fs.readFileSync(tmp_filename2);
+            var im3 = new mapnik.Image.fromBytesSync(buffer2);
+            assert.ok(im3 instanceof mapnik.Image);
+            assert.equal(im3.width(), 256);
+            assert.equal(im3.height(), 256);
+            assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
+            done();
+        });
     });
 
     it('should be initialized properly via async constructors', function(done) {
@@ -802,5 +818,647 @@ describe('mapnik.Image ', function() {
             });
         });
     }
+    
+    it('should fail to resize image with bad input', function(done) {
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.null});
+        var im3 = new mapnik.Image(4,4,{type: mapnik.imageType.gray8});
+        assert.throws(function() { var im2 = im.resize(4,4); });
+        assert.throws(function() { var im2 = im3.resizeSync(); });
+        assert.throws(function() { var im2 = im3.resize(3); });
+        assert.throws(function() { var im2 = im3.resize(3,null); });
+        assert.throws(function() { var im2 = im3.resize(99, function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99, null, function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(null,99,function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(-1,99,function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,-1,function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resizeSync(99); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,null); });
+        assert.throws(function() { var im2 = im3.resizeSync(null,99); });
+        assert.throws(function() { var im2 = im3.resizeSync(-1,99); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,-1); });
+        assert.throws(function() { var im2 = im3.resize(99,99, null); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,99,{scaling_method:null}); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,99,{filter_factor:null}); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,99,{scaling_method:999}); });
+        assert.throws(function() { var im2 = im3.resize(99,99, null,function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,99,{scaling_method:null}, function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,99,{scaling_method:999}, function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,99,{filter_factor:null}, function(err, result) {}); });
+        im.resize(99,99,function(err, im2) { 
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
+    it('should fail because image is size of zero when trying to resize', function(done) {
+        var im = new mapnik.Image(0,0,{type: mapnik.imageType.gray8});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        im.resize(4,4,function(err, im2) { 
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
+    it('should fail on types not currently supported by resize', function() {
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray8s});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray16s});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray32});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray32s});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64s});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+        var im = new mapnik.Image(4,4,{type: mapnik.imageType.gray64f});
+        assert.throws(function() { var im2 = im.resizeSync(4,4); });
+    });
+    
+    it('should fail to resize resize - not premultiplied rgba8', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+
+    it('should resize image up grayscale - nearest neighbor', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.tif');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-near.tif';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'tif');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down grayscale - nearest neighbor', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.tif');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.near}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-near.tif';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'tif');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - nearest neighbor', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-near.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - nearest neighbor', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.near}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-near.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image up - bilinear', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.bilinear}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-bilinear.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - bilinear', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.bilinear}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-bilinear.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image up - bicubic', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.bicubic}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-bicubic.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - bicubic', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.bicubic}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-bicubic.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image up - spline16', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.spline16}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-spline16.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - spline16', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.spline16}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-spline16.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - spline36', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.spline36}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-spline36.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - spline36', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.spline36}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-spline36.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - hanning', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.hanning}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-hanning.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - hanning', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.hanning}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-hanning.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - hamming', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.hamming}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-hamming.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - hamming', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.hamming}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-hamming.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - hermite', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.hermite}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-hermite.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - hermite', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.hermite}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-hermite.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - kaiser', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.kaiser}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-kaiser.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - kaiser', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.kaiser}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-kaiser.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - quadric', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.quadric}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-quadric.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - quadric', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.quadric}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-quadric.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - catrom', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.catrom}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-catrom.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - catrom', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.catrom}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-catrom.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - gaussian', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.gaussian}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-gaussian.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - gaussian', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.gaussian}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-gaussian.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - bessel', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.bessel}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-bessel.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - bessel', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.bessel}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-bessel.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - mitchell', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.mitchell}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-mitchell.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+    
+    it('should resize image down - mitchell', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.mitchell}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-mitchell.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:8}));
+            done();
+        });
+    });
+
+    it('should resize image up - sinc', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.sinc}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-sinc.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:16}));
+            done();
+        });
+    });
+    
+    it('should resize image down - sinc', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-sinc.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:16}));
+            done();
+        });
+    });
+
+    it('should resize image up - lanczos', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.lanczos}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-lanczos.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:16}));
+            done();
+        });
+    });
+    
+    it('should resize image down - lanczos', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.lanczos}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-lanczos.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:16}));
+            done();
+        });
+    });
+
+    it('should resize image up - blackman', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.blackman}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-100x100-blackman.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:16}));
+            done();
+        });
+    });
+    
+    it('should resize image down - blackman', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.blackman}, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-blackman.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2, {threshold:16}));
+            done();
+        });
+    });
+
+    it('resize async should yield the same results as rendered image', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.5}, function(err, result) {
+            if (err) throw err;
+            var map = new mapnik.Map(50,50);
+            map.load('test/data/sat_map.xml', function(err, map) {
+                if (err) throw err;
+                map.zoomAll();
+                var im2 = new mapnik.Image(50,50);
+                map.render(im2, function(err, im2) {
+                    if (err) throw err;
+                    assert.equal(0, result.compare(im2, {threshold:0}));
+                    done();
+                });
+            });
+        });
+
+    });
+    
+    it('resize sync should yield the same results as rendered image', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        im.premultiply();
+        var result = im.resizeSync(50, 50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.5});
+        var map = new mapnik.Map(50,50);
+        map.load('test/data/sat_map.xml', function(err, map) {
+            if (err) throw err;
+            map.zoomAll();
+            var im2 = new mapnik.Image(50,50);
+            map.render(im2, function(err, im2) {
+                if (err) throw err;
+                assert.equal(0, result.compare(im2, {threshold:0}));
+                done();
+            });
+        });
+    });
 
 });

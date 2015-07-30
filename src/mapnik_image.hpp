@@ -24,6 +24,7 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
+    static NAN_METHOD(getType);
     static NAN_METHOD(getPixel);
     static NAN_METHOD(setPixel);
     static NAN_METHOD(encodeSync);
@@ -48,7 +49,11 @@ public:
     static Local<Value> _fromSVGSync(bool fromFile, _NAN_METHOD_ARGS);
     static NAN_METHOD(fromSVGSync);
     static NAN_METHOD(fromSVGBytesSync);
+    static Local<Value> _saveSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(saveSync);
     static NAN_METHOD(save);
+    static void EIO_Save(uv_work_t* req);
+    static void EIO_AfterSave(uv_work_t* req);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
     static Local<Value> _fillSync(_NAN_METHOD_ARGS);
@@ -84,6 +89,11 @@ public:
     static void EIO_AfterCopy(uv_work_t* req);
     static Local<Value> _copySync(_NAN_METHOD_ARGS);
     static NAN_METHOD(copySync);
+    static NAN_METHOD(resize);
+    static void EIO_Resize(uv_work_t* req);
+    static void EIO_AfterResize(uv_work_t* req);
+    static Local<Value> _resizeSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(resizeSync);
     
     static NAN_GETTER(get_scaling);
     static NAN_SETTER(set_scaling);
