@@ -51,8 +51,8 @@
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
-#include "pbf_common.hpp"
-#include "pbf_reader.hpp"
+
+#include <protozero/pbf_reader.hpp>
 
 // addGeoJSON
 #include "vector_tile_processor.hpp"
@@ -91,9 +91,9 @@ inline vector_tile::Tile get_tile(std::string const& buffer)
     return tile;
 }
 
-bool pbf_layer_match(mapbox::util::pbf const& layer_msg, std::string const& layer_name)
+bool pbf_layer_match(protozero::pbf_reader const& layer_msg, std::string const& layer_name)
 {
-    mapbox::util::pbf lay(layer_msg);
+    protozero::pbf_reader lay(layer_msg);
     while (lay.next()) {
         if (lay.tag() == 1) {
             if (lay.get_string() == layer_name) {
@@ -108,9 +108,9 @@ bool pbf_layer_match(mapbox::util::pbf const& layer_msg, std::string const& laye
 
 bool pbf_get_layer(std::string const& tile_buffer,
                    std::string const& layer_name,
-                   mapbox::util::pbf & layer_msg)
+                   protozero::pbf_reader & layer_msg)
 {
-    mapbox::util::pbf item(tile_buffer.data(),tile_buffer.size());
+    protozero::pbf_reader item(tile_buffer.data(),tile_buffer.size());
     while (item.next()) {
         if (item.tag() == 3) {
             layer_msg = item.get_message();
@@ -128,10 +128,10 @@ bool lazy_empty(std::string const& buffer)
     std::size_t bytes = buffer.size();
     if (bytes > 0)
     {
-        mapbox::util::pbf item(buffer.data(),bytes);
+        protozero::pbf_reader item(buffer.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layer_msg = item.get_message();
+                protozero::pbf_reader layer_msg = item.get_message();
                 while (layer_msg.next()) {
                     if (layer_msg.tag() == 2) {
                         // we hit a feature, assume we've got data
@@ -156,10 +156,10 @@ std::vector<std::string> lazy_names(std::string const& buffer)
     std::size_t bytes = buffer.size();
     if (bytes > 0)
     {
-        mapbox::util::pbf item(buffer.data(),bytes);
+        protozero::pbf_reader item(buffer.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layer_msg = item.get_message();
+                protozero::pbf_reader layer_msg = item.get_message();
                 while (layer_msg.next()) {
                     if (layer_msg.tag() == 1) {
                         names.emplace_back(layer_msg.get_string());
@@ -501,10 +501,10 @@ void _composite(VectorTile* target_vt,
             // create map
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
-            mapbox::util::pbf message(vt->buffer_.data(),vt->buffer_.size());
+            protozero::pbf_reader message(vt->buffer_.data(),vt->buffer_.size());
             while (message.next()) {
                 if (message.tag() == 3) {
-                    mapbox::util::pbf layer_msg = message.get_message();
+                    protozero::pbf_reader layer_msg = message.get_message();
                     auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                                 layer_msg,
                                 vt->x_,
@@ -1186,7 +1186,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     mapnik::coord2d pt(x,y);
     if (!layer_name.empty())
     {
-        mapbox::util::pbf layer_msg;
+        protozero::pbf_reader layer_msg;
         if (detail::pbf_get_layer(d->buffer_,layer_name,layer_msg))
         {
             auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
@@ -1218,10 +1218,10 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     }
     else
     {
-        mapbox::util::pbf item(d->buffer_.data(),bytes);
+        protozero::pbf_reader item(d->buffer_.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layer_msg = item.get_message();
+                protozero::pbf_reader layer_msg = item.get_message();
                 auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                                                 layer_msg,
                                                 d->x_,
@@ -1417,7 +1417,7 @@ NAN_METHOD(VectorTile::queryMany)
 
 void VectorTile::_queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields)
 {
-    mapbox::util::pbf layer_msg;
+    protozero::pbf_reader layer_msg;
     if (detail::pbf_get_layer(d->buffer_,layer_name,layer_msg))
     {
         std::map<unsigned,query_result> features;
@@ -2889,16 +2889,16 @@ template <typename Renderer> void process_layers(Renderer & ren,
                                             vector_tile_render_baton_t *closure)
 {
     // get pbf layers into structure ready to query and render
-    using layer_list_type = std::vector<mapbox::util::pbf>;
+    using layer_list_type = std::vector<protozero::pbf_reader>;
     std::map<std::string,layer_list_type> pbf_layers;
-    mapbox::util::pbf item(closure->d->buffer_.data(),closure->d->buffer_.size());
+    protozero::pbf_reader item(closure->d->buffer_.data(),closure->d->buffer_.size());
     while (item.next()) {
         if (item.tag() == 3) {
-            mapbox::util::pbf layer_msg = item.get_message();
+            protozero::pbf_reader layer_msg = item.get_message();
             // make a copy to ensure that the `get_string()` does not mutate the internal
             // pointers of the `layer_og` stored in the map
             // good thing copies are cheap
-            mapbox::util::pbf layer_og(layer_msg);
+            protozero::pbf_reader layer_og(layer_msg);
             std::string layer_name;
             while (layer_msg.next()) {
                 if (layer_msg.tag() == 1) {
@@ -2938,7 +2938,7 @@ template <typename Renderer> void process_layers(Renderer & ren,
                 {
                     mapnik::layer lyr_copy(lyr);
                     lyr_copy.set_srs(map_srs);
-                    mapbox::util::pbf layer_og(pb);
+                    protozero::pbf_reader layer_og(pb);
                     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
                                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
                                                         layer_og,
@@ -3005,7 +3005,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
             mapnik::layer const& lyr = layers[closure->layer_idx];
             if (lyr.visible(scale_denom))
             {
-                mapbox::util::pbf layer_msg;
+                protozero::pbf_reader layer_msg;
                 if (detail::pbf_get_layer(closure->d->buffer_,lyr.name(),layer_msg))
                 {
                     // copy field names
