@@ -127,7 +127,7 @@ powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 CALL npm test
-::IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 CALL node_modules\.bin\node-pre-gyp package testpackage %TOOLSET_ARGS%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
