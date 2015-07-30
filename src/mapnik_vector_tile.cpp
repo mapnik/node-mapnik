@@ -118,6 +118,8 @@ bool pbf_get_layer(std::string const& tile_buffer,
             {
                 return true;
             }
+        } else {
+            item.skip();
         }
     }
     return false;
