@@ -92,18 +92,22 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 IF /I "%NPM_BIN_DIR%"=="%CD%" ECHO ERROR npm bin -g equals local directory && SET ERRORLEVEL=1 && GOTO ERROR
 ECHO ===== where npm puts stuff END ============
 
-
+:: install node-gyp globally to:
+:: 1) ensure node-gyp can find it (probably optional)
+:: 2) ensure we have recent enough node-gyp to understand VS 2015 (needed for node v0.10.x certainly)
 ECHO installing node-gyp
 CALL npm install -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO ERRORLEVEL^: %ERRORLEVEL%
 
+:: get ready to build agains the mapnik SDK
 SET MAPNIK_SDK=%CD%\mapnik-sdk
 SET PATH=%MAPNIK_SDK%\bin;%MAPNIK_SDK%\lib;%PATH%
 SET PROJ_LIB=%MAPNIK_SDK%\share\proj
 SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
 SET ICU_DATA=%MAPNIK_SDK%\share\icu
 
+:: actually install deps + compile node-mapnik
 ECHO building node-mapnik
 CALL npm install --build-from-source --msvs_version=2015 %TOOLSET_ARGS% --loglevel=http
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
