@@ -14,11 +14,26 @@ describe('mapnik.Image SVG', function() {
           new mapnik.Image.fromSVGBytesSync(1);
         }, /must provide a buffer argument/);
         assert.throws(function() {
+          new mapnik.Image.fromSVGBytesSync({});
+        }, /first argument is invalid, must be a Buffer/);
+        assert.throws(function() {
+          new mapnik.Image.fromSVGBytesSync(new Buffer('asdfasdf'));
+        }, /can not parse SVG buffer/);
+        assert.throws(function() {
+          mapnik.Image.fromSVGSync('./test/data/SVG_DOES_NOT_EXIST.svg');
+        }, /can not parse SVG file/);
+        assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', 256);
         }, /optional second arg must be an options object/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', { scale: 'foo' });
         }, /'scale' must be a number/);
+        assert.throws(function() {
+          mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', { scale: -1 });
+        }, /'scale' must be a positive non zero number/);
+        assert.throws(function() {
+          mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.corrupt-svg.svg');
+        }, /image created from svg must have a width and height greater then zero/);
     });
 
     it('#fromSVGSync load from SVG file', function() {
