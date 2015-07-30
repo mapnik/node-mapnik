@@ -1,22 +1,15 @@
 @ECHO OFF
+SETLOCAL
 SET EL=0
 
 ECHO =========== %~f0 ===========
 
-ECHO renaming all node.exe, from path and cwd
-FOR /F "tokens=*" %%i in ('where node') DO ECHO found: %%i && (IF EXIST %%i.bak (ECHO deleting existing %%i.bak && DEL /F "%%i.bak")) && (ECHO renaming && REN "%%i" "%%~nxi.bak")
-::dont goto ERROR, also returns 1, if nothing found
-::IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF  %ERRORLEVEL% NEQ 0 SET ERRORLEVEL=0 && ECHO ---- WARNING^! ERRORLEVEL^: %ERRORLEVEL%
 
 ::use 64 bit python if platform is 64 bit
 IF /I "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
 SET PATH=C:\Program Files\7-Zip;%PATH%
 ::add local node to path (since we install it below)
 SET PATH=%CD%;%PATH%;
-
-::SET PATH=C:\Program Files (x86)\MSBuild\%msvs_toolset%.0\bin;%PATH%
-::SET PATH=C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\bin;%PATH%
 
 SET MAPNIK_SDK_URL=https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v%MAPNIK_GIT%-%platform%-%msvs_toolset%.0.7z
 ECHO fetching mapnik sdk^: %MAPNIK_SDK_URL%
@@ -27,7 +20,10 @@ IF EXIST mapnik-sdk (ECHO already extracted) ELSE (7z -y x mapnik-sdk.7z | %wind
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 
+::replace installed node.exe with Mapbox node.exe
 ::install node version per visual studio toolset
+IF EXIST node.exe ECHO found local node.exe, deleting ... && DEL /F node.exe
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 SET ARCHPATH=
 IF /I %platform% == x64 (SET ARCHPATH=x64/)
 SET NODE_URL=https://mapbox.s3.amazonaws.com/node-cpp11/v%nodejs_version%/%ARCHPATH%node.exe
@@ -35,34 +31,72 @@ ECHO fetching node.exe^: %NODE_URL%
 powershell Invoke-WebRequest "${env:NODE_URL}" -OutFile node.exe
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+ECHO deleting node.exe programfiles x64
+IF EXIST "%ProgramFiles%\nodejs" ^
+    IF EXIST "%ProgramFiles%\nodejs\node.exe" ^
+        ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && ^
+        DEL /F "%ProgramFiles%\nodejs\node.exe"
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO copying node.exe to programfiles x64
+IF EXIST %ProgramFiles%\nodejs ECHO copying to "%ProgramFiles%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles%\nodejs\"
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO deleting node.exe programfiles x86
+IF DEFINED ProgramFiles(x86) IF EXIST "%ProgramFiles(x86)%\nodejs" IF EXIST "%ProgramFiles(x86)%\nodejs\node.exe" ECHO "found %ProgramFiles(x86)%\nodejs\node.exe", deleting... && DEL /F "%ProgramFiles(x86)%\nodejs\node.exe"
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO copying node.exe to programfiles x86
+IF DEFINED ProgramFiles(x86) IF EXIST "%ProgramFiles(x86)%\nodejs" ECHO copying to "%ProgramFiles(x86)%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles(x86)%\nodejs\"
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+
 ECHO clear out node-gyp header cache
 IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFILE%\.node-gyp
-
-::add local node-pre-gyp dir to path
-SET PATH=node_modules\.bin;%PATH%
 
 ECHO activating VS command prompt
 IF /I %platform% == x64 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" amd64
 IF /I %platform% == x86 CALL "C:\Program Files (x86)\Microsoft Visual Studio %msvs_toolset%.0\VC\vcvarsall.bat" x86
 
+ECHO available node.exe:
 where node
+ECHO available npm^:
 where npm
 
-node -v
-node -e "console.log(process.arch,process.execPath)"
-CALL npm -v
-
-ECHO installing and updating node-gyp
-CALL npm install node-gyp
+ECHO node -v && node -v
+ECHO node that gets called && node -e "console.log(process.arch,process.execPath)"
+ECHO npm -v && CALL npm -v
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO ===== where npm puts stuff START ============
+ECHO npm root && CALL npm root
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO npm root -g && CALL npm root -g
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO npm bin && CALL npm bin
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO npm bin -g && CALL npm bin -g
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+SET NPM_BIN_DIR=
+FOR /F "tokens=*" %%i in ('CALL npm bin -g') DO SET NPM_BIN_DIR=%%i
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF /I "%NPM_BIN_DIR%"=="%CD%" ECHO ERROR npm bin -g equals local directory && SET ERRORLEVEL=1 && GOTO ERROR
+ECHO ===== where npm puts stuff END ============
+
+
+ECHO installing node-gyp
+CALL npm install -g node-gyp
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO ERRORLEVEL^: %ERRORLEVEL%
+ECHO updating node-gyp
 CALL npm update -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO ERRORLEVEL^: %ERRORLEVEL%
 
-::add node-gyp to beginning of path, to be prefered over program files/node/npm
-where node-gyp
-SET PATH=%APPDATA%\npm;%PATH%
-where node-gyp
-
+ECHO deleting node_modules && rd /s /q node_modules
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF EXIST node_modules ECHO ERROR could not delete node_modules && SET ERRORLEVEL=1 && GOTO ERROR
 if EXIST node_modules (ECHO node_modules found) ELSE (ECHO bootstrapping modules && CALL npm install mapnik-vector-tile nan sphericalmercator mocha node-pre-gyp jshint)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
@@ -80,6 +114,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 FOR /F "tokens=*" %%i in ('CALL node_modules\.bin\node-pre-gyp reveal module_path --silent') DO SET NODEMAPNIK_BINDING_DIR=%%i
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO NODEMAPNIK_BINDING_DIR^: %NODEMAPNIK_BINDING_DIR%
+IF "%NODEMAPNIK_BINDING_DIR%"=="" ECHO ERROR could not determine binding dir && SET ERRORLEVEL=1 && GOTO ERROR
 
 powershell scripts\build_against_sdk_02-copy-deps-to-bindingdir.ps1
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
@@ -93,14 +128,14 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm test
 ::IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-CALL node-pre-gyp package testpackage %TOOLSET_ARGS%
+CALL node_modules\.bin\node-pre-gyp package testpackage %TOOLSET_ARGS%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO APPVEYOR_REPO_COMMIT_MESSAGE^: %APPVEYOR_REPO_COMMIT_MESSAGE%
 SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
-IF NOT "%CM%" == "%CM:[publish binary]=%" (ECHO publishing... && CALL node-pre-gyp --msvs_version=2015 publish %TOOLSET_ARGS%) ELSE (ECHO not publishing)
+IF NOT "%CM%" == "%CM:[publish binary]=%" (ECHO publishing... && CALL node_modules\.bin\node-pre-gyp --msvs_version=2015 publish %TOOLSET_ARGS%) ELSE (ECHO not publishing)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF NOT "%CM%" == "%CM:[republish binary]=%" (ECHO republishing ... && CALL node-pre-gyp --msvs_version=2015 unpublish publish %TOOLSET_ARGS%) ELSE (ECHO not republishing)
+IF NOT "%CM%" == "%CM:[republish binary]=%" (ECHO republishing ... && CALL node_modules\.bin\node-pre-gyp --msvs_version=2015 unpublish publish %TOOLSET_ARGS%) ELSE (ECHO not republishing)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 
