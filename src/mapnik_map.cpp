@@ -1560,6 +1560,7 @@ struct vector_tile_baton_t {
     vector_tile_baton_t() :
         area_threshold(0.1),
         path_multiplier(16),
+        buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
         variables(),

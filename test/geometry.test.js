@@ -48,7 +48,7 @@ describe('mapnik.Geometry ', function() {
         assert.throws(function() { geom.toJSONSync({transform:{}}); });
         assert.throws(function() { geom.toJSON(null, function(err,json) {}); });
         assert.throws(function() { geom.toJSON({transform:null}, function(err, json) {}); });
-        assert.throws(function() { geom.toJSONSync({transform:{}}, function(err, json) {}); });
+        assert.throws(function() { geom.toJSON({transform:{}}, function(err, json) {}); });
     });
 
     it('should throw from emptry geojson from toWKB', function() {

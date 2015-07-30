@@ -31,6 +31,7 @@
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/mapped_memory_cache.hpp>
 #include <mapnik/image_compositing.hpp>
+#include <mapnik/image_scaling.hpp>
 
 // boost
 #include <boost/version.hpp>
@@ -316,9 +317,9 @@ extern "C" {
  * @property {number} gray32
  * @property {number} gray32s
  * @property {number} gray32f
- * @property {number} gray63
- * @property {number} gray63s
- * @property {number} gray63f
+ * @property {number} gray64
+ * @property {number} gray64s
+ * @property {number} gray64f
  */
         Local<Object> image_types = NanNew<Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "null", mapnik::image_dtype_null)
@@ -334,6 +335,51 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64s", mapnik::image_dtype_gray64s)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64f", mapnik::image_dtype_gray64f)
         target->Set(NanNew("imageType"), image_types);
+
+/**
+ * Image scaling type constants representing color and grayscale encodings.
+ *
+ * @name imageScaling
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} near
+ * @property {number} bilinear
+ * @property {number} bicubic
+ * @property {number} spline16
+ * @property {number} spline36
+ * @property {number} hanning
+ * @property {number} hamming
+ * @property {number} hermite
+ * @property {number} kaiser
+ * @property {number} quadric
+ * @property {number} catrom
+ * @property {number} gaussian
+ * @property {number} bessel
+ * @property {number} mitchell
+ * @property {number} sinc
+ * @property {number} lanczos
+ * @property {number} blackman
+ */
+        Local<Object> image_scaling_types = NanNew<Object>();
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "near", mapnik::SCALING_NEAR)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bilinear", mapnik::SCALING_BILINEAR)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bicubic", mapnik::SCALING_BICUBIC)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "spline16", mapnik::SCALING_SPLINE16)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "spline36", mapnik::SCALING_SPLINE36)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hanning", mapnik::SCALING_HANNING)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hamming", mapnik::SCALING_HAMMING)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hermite", mapnik::SCALING_HERMITE)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "kaiser", mapnik::SCALING_KAISER)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "quadric", mapnik::SCALING_QUADRIC)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "catrom", mapnik::SCALING_CATROM)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "gaussian", mapnik::SCALING_GAUSSIAN)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bessel", mapnik::SCALING_BESSEL)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "mitchell", mapnik::SCALING_MITCHELL)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "sinc", mapnik::SCALING_SINC)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "lanczos", mapnik::SCALING_LANCZOS)
+        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "blackman", mapnik::SCALING_BLACKMAN)
+        target->Set(NanNew("imageScaling"), image_scaling_types);
     }
 
 }

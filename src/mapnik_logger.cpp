@@ -50,7 +50,7 @@ NAN_METHOD(Logger::get_severity){
 NAN_METHOD(Logger::set_severity){
     NanScope();
 
-    if (args.Length() < 1 || !args[0]->IsNumber()) {
+    if (args.Length() != 1 || !args[0]->IsNumber()) {
         NanThrowTypeError("requires a severity level parameter");
         NanReturnUndefined();
     }

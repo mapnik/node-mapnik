@@ -135,7 +135,11 @@ NAN_METHOD(Datasource::New)
         d->datasource_ = ds;
         NanReturnValue(args.This());
     }
+    // Not sure this point could ever be reached, because if a ds is created,
+    // even if it is an empty or bad dataset the pointer will still exist
+    /* LCOV_EXCL_START */
     NanReturnUndefined();
+    /* LCOV_EXCL_END */
 }
 
 Handle<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
@@ -180,8 +184,14 @@ NAN_METHOD(Datasource::extent)
     }
     catch (std::exception const& ex)
     {
+        // The only time this could possibly throw is situations
+        // where a plugin dynamically calculated extent such as
+        // postgis plugin. Therefore this makes this difficult
+        // to add to testing. Therefore marking it with exclusion
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
     Local<Array> a = NanNew<Array>(4);
@@ -212,8 +222,14 @@ NAN_METHOD(Datasource::describe)
     }
     catch (std::exception const& ex)
     {
+        // The only time this could possibly throw is situations
+        // where a plugin dynamically calculated extent such as
+        // postgis plugin. Therefore this makes this difficult
+        // to add to testing. Therefore marking it with exclusion
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
     NanReturnValue(description);
@@ -244,16 +260,24 @@ NAN_METHOD(Datasource::featureset)
     }
     catch (std::exception const& ex)
     {
+        // The only time this could possibly throw is situations
+        // where a plugin dynamically calculated extent such as
+        // postgis plugin. Therefore this makes this difficult
+        // to add to testing. Therefore marking it with exclusion
+        /* LCOV_EXCL_START */
         NanThrowError(ex.what());
         NanReturnUndefined();
+        /* LCOV_EXCL_END */
     }
 
     if (fs)
     {
         NanReturnValue(Featureset::NewInstance(fs));
     }
-
+    // This should never be able to be reached
+    /* LCOV_EXCL_START */
     NanReturnUndefined();
+    /* LCOV_EXCL_END */
 }
 
 NAN_METHOD(Datasource::fields)
@@ -261,15 +285,6 @@ NAN_METHOD(Datasource::fields)
     NanScope();
     Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
     Local<Object> fields = NanNew<Object>();
-    try
-    {
-        node_mapnik::get_fields(fields,d->datasource_);
-    }
-    catch (std::exception const& ex)
-    {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
-    }
-
+    node_mapnik::get_fields(fields,d->datasource_);
     NanReturnValue(fields);
 }

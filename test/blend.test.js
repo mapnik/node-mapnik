@@ -9,6 +9,11 @@ var images = [
     fs.readFileSync('test/blend-fixtures/2.png')
 ];
 
+var images_reversed = [
+    fs.readFileSync('test/blend-fixtures/2.png'),
+    fs.readFileSync('test/blend-fixtures/1.png')
+];
+
 var images_one = [
     fs.readFileSync('test/blend-fixtures/1.png')
 ];
@@ -54,6 +59,17 @@ describe('mapnik.blend', function() {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended png - reverse', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-reverse.png');
+        mapnik.blend(images_reversed, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual-reverse.png')
             assert.equal(0,expected.compare(actual));
             done();
         });
@@ -142,7 +158,7 @@ describe('mapnik.blend', function() {
             done();
         });
     });
-
+    
     it('blended png - single objects failure 2', function(done) {
         var input = [{
                 buffer: fs.readFileSync('test/blend-fixtures/corrupt-1.png'),
@@ -154,6 +170,12 @@ describe('mapnik.blend', function() {
             done();
         });
     });
+    
+    it('should fail reencode no buffers no width and height', function() {
+        var input = [];
+        assert.throws(function () { mapnik.blend(input, {reencode:true}, function(e, r) {}); });
+    });
+
 
     it('blended png empty array', function(done) {
         var input = [];

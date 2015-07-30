@@ -77,8 +77,15 @@ NAN_METHOD(Featureset::next)
         }
         catch (std::exception const& ex)
         {
+            // It is not immediately obvious how this could cause an exception, a check of featureset plugin 
+            // implementations resulted in no obvious way that an exception could be raised. Therefore, it
+            // is not obvious currently what could raise this exception. However, since a plugin could possibly
+            // be developed outside of mapnik core plugins that could raise here we are probably best still 
+            // wrapping this in a try catch.
+            /* LCOV_EXCL_START */
             NanThrowError(ex.what());
             NanReturnUndefined();
+            /* LCOV_EXCL_END */
         }
 
         if (fp) {

@@ -1,17 +1,33 @@
 # Changelog
 
-## Future
+## 3.4.1
 
+ - Added support for `buffer_size` in `addGeoJSON` (#457)
+ - Fixed bug in `render` method of VectorTile where invalid parameters could cause a segfault.
+ - Added `mapnik.Image.resize` method that enables images to be resized.
  - Now setting `VRT_SHARED_SOURCE=0` (#437)
  - Removed usage of `V8::AdjustAmountOfExternalAllocatedMemory` in `mapnik.Image` and `mapnik.Grid` (#136)
- - Binaries updated to use Mapnik v3.0.0 and mapnik-packaging@049968d24
- - Upgraded to node-pre-gyp@0.6.8
+ - Upgraded to node-pre-gyp@0.6.9
+ - Upgrade to mapnik-vector-tile@0.8.5
+   - Updated vector tile clipping so that it throws out polygons outside bbox of tile
+ - Binaries updated to use Mapnik v3.0.1 and mapnik-packaging@049968d24
 
 Notable changes in the Mapnik SDK include:
 
  - Update gdal 1.11.2->2.0.0
  - Update freetype 2.5.5->2.6
  - Update harfbuzz 0.9.40->0.9.41
+ - Changed the offset algorithm such that offsets now will always be positive to the left of the direction of the path
+ - Increased performance of text rendering
+ - Fixed text placement performance after #2949 (#2963)
+ - Fixed rendering behavior for text-minimum-path-length which regressed in 3.0.0 (#2990)
+ - Fixed handling of xml:id in SVG parsing (#2989)
+ - Fixed handling of out of range rx and ry in SVG rect (#2991)
+ - Fixed reporting of envelope from mapnik::memory_datasource when new features are added (#2985)
+ - Fixed parsing of GeoJSON when unknown properties encountered at FeatureCollection level (#2983)
+ - Fixed parsing of GeoJSON when properties contained {} (#2964)
+ - Fixed potential hang due to invalid use of line-geometry-transform (6d6cb15)
+ - Moved unmaintained plugins out of core: osm, occi, and rasterlite (#2980)
 
 ## 3.4.0
 
@@ -24,7 +40,7 @@ Notable changes in the Mapnik SDK include:
   - Includes fixes to clipper to avoid aborting on out of range coordinates
   - Fixed support for gracefully handling proj4 transformation errors
  - Upgraded to node-pre-gyp@0.6.7
- - Binaries updated to use Mapnik v3.x (master branch) at g39eab41 and mapnik-packaging@3ab051556e
+ - Binaries updated to use Mapnik v3.x (master branch) at 39eab41 and mapnik-packaging@3ab051556e
 
 Notable changes in the Mapnik SDK include:
 

@@ -10,6 +10,7 @@
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
 #include <mapnik/image_filter.hpp> // filter_visitor
+#include <mapnik/image_scaling.hpp>
 
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
@@ -52,11 +53,13 @@ void Image::Initialize(Handle<Object> target) {
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(NanNew("Image"));
 
+    NODE_SET_PROTOTYPE_METHOD(lcons, "getType", getType);
     NODE_SET_PROTOTYPE_METHOD(lcons, "getPixel", getPixel);
     NODE_SET_PROTOTYPE_METHOD(lcons, "setPixel", setPixel);
     NODE_SET_PROTOTYPE_METHOD(lcons, "encodeSync", encodeSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "encode", encode);
     NODE_SET_PROTOTYPE_METHOD(lcons, "view", view);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "saveSync", saveSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "save", save);
     NODE_SET_PROTOTYPE_METHOD(lcons, "setGrayScaleToAlpha", setGrayScaleToAlpha);
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
@@ -77,6 +80,8 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "isSolidSync", isSolidSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "copy", copy);
     NODE_SET_PROTOTYPE_METHOD(lcons, "copySync", copySync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "resize", resize);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "resizeSync", resizeSync);
     
     // properties
     ATTR(lcons, "scaling", get_scaling, set_scaling);
@@ -192,7 +197,7 @@ NAN_METHOD(Image::New)
                     }
                     else
                     {
-                        NanThrowTypeError("premulitplied option must be a boolean");
+                        NanThrowTypeError("premultiplied option must be a boolean");
                         NanReturnUndefined();
                     }
                 }
@@ -233,6 +238,22 @@ NAN_METHOD(Image::New)
         NanReturnUndefined();
     }
     NanReturnUndefined();
+}
+
+/**
+ * Determine the image type
+ *
+ * @name getType
+ * @instance
+ * @returns {number} Number of the image type
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::getType)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    unsigned type = im->this_->get_dtype();
+    NanReturnValue(NanNew<Number>(type));
 }
 
 struct visitor_get_pixel
@@ -1156,6 +1177,7 @@ typedef struct {
  * Copy this image data so that changes can be made to a clone of it.
  *
  * @name copy
+ * @param {number} type
  * @param {Object} [options={}]
  * @param {Function} callback
  * @instance
@@ -1291,8 +1313,12 @@ void Image::EIO_AfterCopy(uv_work_t* req)
     }
     else if (!closure->im2)
     {
+        // Not quite sure if this is even required or ever can be reached, but leaving it
+        // and simply removing it from coverage tests.
+        /* LCOV_EXCL_START */
         Local<Value> argv[1] = { NanError("could not render to image") };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        /* LCOV_EXCL_END */
     }
     else
     {
@@ -1311,6 +1337,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
  * Copy this image data so that changes can be made to a clone of it.
  *
  * @name copySync
+ * @param {number} type
  * @param {Object} [options={}]
  * @returns {mapnik.Image} copy
  * @instance
@@ -1421,6 +1448,463 @@ Local<Value> Image::_copySync(_NAN_METHOD_ARGS)
     }
 }
 
+typedef struct {
+    uv_work_t request;
+    Image* im1;
+    std::shared_ptr<mapnik::image_any> im2;
+    mapnik::scaling_method_e scaling_method;
+    std::size_t size_x;
+    std::size_t size_y;
+    double filter_factor;
+    Persistent<Function> cb;
+    bool error;
+    std::string error_name;
+} resize_image_baton_t;
+
+/**
+ * Create a copy this image that is resized
+ *
+ * @name resize
+ * @param {number} width
+ * @param {number} height
+ * @param {Object} [options={}]
+ * @param {Function} callback
+ * @instance
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::resize)
+{
+    NanScope();
+    
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanReturnValue(_resizeSync(args));
+    }
+    Image* im1 = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    std::size_t width = 0;
+    std::size_t height = 0;
+    double filter_factor = 1.0;
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
+    Local<Object> options = NanNew<Object>();
+    
+    if (args.Length() >= 3)
+    {
+        if (args[0]->IsNumber())
+        {
+            auto width_tmp = args[0]->IntegerValue();
+            if (width_tmp <= 0)
+            {
+                NanThrowTypeError("Width must be a integer greater then zero");
+                NanReturnUndefined();
+            }
+            width = static_cast<std::size_t>(width_tmp);
+        }
+        else
+        {
+            NanThrowTypeError("Width must be a number");
+            NanReturnUndefined();
+        }
+        if (args[1]->IsNumber())
+        {
+            auto height_tmp = args[1]->IntegerValue();
+            if (height_tmp <= 0)
+            {
+                NanThrowTypeError("Height must be a integer greater then zero");
+                NanReturnUndefined();
+            }
+            height = static_cast<std::size_t>(height_tmp);
+        }
+        else
+        {
+            NanThrowTypeError("Height must be a number");
+            NanReturnUndefined();
+        }
+    }
+    else
+    {
+        NanThrowTypeError("resize requires a width and height paramter.");
+        NanReturnUndefined();
+    }
+    if (args.Length() >= 4)
+    {
+        if (args[2]->IsObject())
+        {
+            options = args[2]->ToObject();
+        }
+        else
+        {
+            NanThrowTypeError("Expected options object as third argument");
+            NanReturnUndefined();
+        }
+    }
+    
+    if (options->Has(NanNew("scaling_method")))
+    {
+        Local<Value> scaling_val = options->Get(NanNew("scaling_method"));
+        if (scaling_val->IsNumber())
+        {
+            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
+            if (scaling_method > mapnik::SCALING_BLACKMAN)
+            {
+                NanThrowTypeError("Invalid scaling_method");
+                NanReturnUndefined();
+            }
+        }
+        else
+        {
+            NanThrowTypeError("scaling_method argument must be an integer");
+            NanReturnUndefined();
+        }
+    }
+    
+    if (options->Has(NanNew("filter_factor")))
+    {
+        Local<Value> ff_val = options->Get(NanNew("filter_factor"));
+        if (ff_val->IsNumber())
+        {
+            filter_factor = ff_val->NumberValue();
+        }
+        else
+        {
+            NanThrowTypeError("filter_factor argument must be a number");
+            NanReturnUndefined();
+        }
+    }
+    resize_image_baton_t *closure = new resize_image_baton_t();
+    closure->request.data = closure;
+    closure->im1 = im1;
+    closure->scaling_method = scaling_method;
+    closure->size_x = width;
+    closure->size_y = height;
+    closure->filter_factor = filter_factor;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Resize, (uv_after_work_cb)EIO_AfterResize);
+    closure->im1->Ref();
+    NanReturnUndefined();
+}
+
+struct resize_visitor
+{
+
+    resize_visitor(mapnik::image_any const& im1, 
+                   mapnik::scaling_method_e scaling_method,
+                   double image_ratio_x,
+                   double image_ratio_y,
+                   double filter_factor) :
+        im1_(im1),
+        scaling_method_(scaling_method),
+        image_ratio_x_(image_ratio_x),
+        image_ratio_y_(image_ratio_y),
+        filter_factor_(filter_factor) {}
+
+    void operator()(mapnik::image_rgba8 & im2) const
+    {
+        if (!im1_.get_premultiplied())
+        {
+            throw std::runtime_error("RGBA8 images must be premultiplied prior to using resize");
+        }
+        mapnik::scale_image_agg(im2, 
+                                mapnik::util::get<mapnik::image_rgba8>(im1_),
+                                scaling_method_,
+                                image_ratio_x_,
+                                image_ratio_y_,
+                                0,
+                                0,
+                                filter_factor_);
+    }
+
+    template <typename T>
+    void operator()(T & im2) const
+    {
+        mapnik::scale_image_agg(im2, 
+                                mapnik::util::get<T>(im1_),
+                                scaling_method_,
+                                image_ratio_x_,
+                                image_ratio_y_,
+                                0,
+                                0,
+                                filter_factor_);
+    }
+    
+    void operator()(mapnik::image_null &) const
+    {
+        // Should be caught earlier so no test coverage should reach here.
+        /* LCOV_EXCL_START */
+        throw std::runtime_error("Can not resize null images");
+        /* LCOV_EXCL_END */
+    }
+    
+    void operator()(mapnik::image_gray8s &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing signed 8 bit integer rasters");
+    }
+
+    void operator()(mapnik::image_gray16s &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing signed 16 bit integer rasters");
+    }
+    
+    void operator()(mapnik::image_gray32 &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing unsigned 32 bit integer rasters");
+    }
+    
+    void operator()(mapnik::image_gray32s &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing signed 32 bit integer rasters");
+    }
+    
+    void operator()(mapnik::image_gray64 &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing unsigned 64 bit integer rasters");
+    }
+    
+    void operator()(mapnik::image_gray64s &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing signed 64 bit integer rasters");
+    }
+    
+    void operator()(mapnik::image_gray64f &) const
+    {
+        throw std::runtime_error("Mapnik currently does not support resizing 64 bit floating point rasters");
+    }
+
+
+  private:
+    mapnik::image_any const & im1_;
+    mapnik::scaling_method_e scaling_method_;
+    double image_ratio_x_;
+    double image_ratio_y_;
+    double filter_factor_;
+
+};
+
+void Image::EIO_Resize(uv_work_t* req)
+{
+    resize_image_baton_t *closure = static_cast<resize_image_baton_t *>(req->data);
+    if (closure->im1->this_->is<mapnik::image_null>())
+    {
+        closure->error = true;
+        closure->error_name = "Can not resize a null image.";
+        return;
+    }
+    try
+    {
+        double offset = closure->im1->this_->get_offset();
+        double scaling = closure->im1->this_->get_scaling();
+
+        closure->im2 = std::make_shared<mapnik::image_any>(closure->size_x, 
+                                                           closure->size_y, 
+                                                           closure->im1->this_->get_dtype(),
+                                                           false,
+                                                           true,
+                                                           false);
+        closure->im2->set_offset(offset);
+        closure->im2->set_scaling(scaling);
+        int im_width = closure->im1->this_->width();
+        int im_height = closure->im1->this_->height();
+        if (im_width <= 0 || im_height <= 0)
+        {
+            closure->error = true;
+            closure->error_name = "Image width or height is zero or less then zero.";
+            return;
+        }
+        double image_ratio_x = static_cast<double>(closure->size_x) / im_width; 
+        double image_ratio_y = static_cast<double>(closure->size_y) / im_height;
+        resize_visitor visit(*(closure->im1->this_),
+                             closure->scaling_method,
+                             image_ratio_x,
+                             image_ratio_y,
+                             closure->filter_factor);
+        mapnik::util::apply_visitor(visit, *(closure->im2));
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterResize(uv_work_t* req)
+{
+    NanScope();
+    resize_image_baton_t *closure = static_cast<resize_image_baton_t *>(req->data);
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im2);
+        Handle<Value> ext = NanNew<External>(im);
+        Local<Object> image_obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(ObjectWrap::Unwrap<Image>(image_obj)) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    closure->im1->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+/**
+ * Make a resized copy of an image
+ *
+ * @name resizeSync
+ * @param {number} width
+ * @param {number} height
+ * @param {Object} [options={}]
+ * @returns {mapnik.Image} copy
+ * @instance
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::resizeSync)
+{
+    NanScope();
+    NanReturnValue(_resizeSync(args));
+}
+
+Local<Value> Image::_resizeSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    std::size_t width = 0;
+    std::size_t height = 0;
+    double filter_factor = 1.0;
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
+    Local<Object> options = NanNew<Object>();
+    if (args.Length() >= 2)
+    {
+        if (args[0]->IsNumber())
+        {
+            int width_tmp = args[0]->IntegerValue();
+            if (width_tmp <= 0)
+            {
+                NanThrowTypeError("Width parameter must be an integer greater then zero");
+                return NanEscapeScope(NanUndefined());
+            }
+            width = static_cast<std::size_t>(width_tmp);
+        }
+        else
+        {
+            NanThrowTypeError("Width must be a number");
+            return NanEscapeScope(NanUndefined());
+        }
+        if (args[1]->IsNumber())
+        {
+            int height_tmp = args[1]->IntegerValue();
+            if (height_tmp <= 0)
+            {
+                NanThrowTypeError("Height parameter must be an integer greater then zero");
+                return NanEscapeScope(NanUndefined());
+            }
+            height = static_cast<std::size_t>(height_tmp);
+        }
+        else
+        {
+            NanThrowTypeError("Height must be a number");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    else
+    {
+        NanThrowTypeError("Resize requires at least a width and height parameter");
+        return NanEscapeScope(NanUndefined());
+    }    
+    if (args.Length() >= 3)
+    {
+        if (args[2]->IsObject())
+        {
+            options = args[2]->ToObject();
+        }
+        else
+        {
+            NanThrowTypeError("Expected options object as third argument");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    
+    if (options->Has(NanNew("scaling_method")))
+    {
+        Local<Value> scaling_val = options->Get(NanNew("scaling_method"));
+        if (scaling_val->IsNumber())
+        {
+            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
+            if (scaling_method > mapnik::SCALING_BLACKMAN)
+            {
+                NanThrowTypeError("Invalid scaling_method");
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+        else
+        {
+            NanThrowTypeError("scaling_method argument must be a number");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    
+    if (options->Has(NanNew("filter_factor")))
+    {
+        Local<Value> ff_val = options->Get(NanNew("filter_factor"));
+        if (ff_val->IsNumber())
+        {
+            filter_factor = ff_val->NumberValue();
+        }
+        else
+        {
+            NanThrowTypeError("filter_factor argument must be a number");
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+
+    if (im->this_->is<mapnik::image_null>())
+    {
+        NanThrowTypeError("Can not resize a null image");
+        return NanEscapeScope(NanUndefined());
+    }
+    int im_width = im->this_->width();
+    int im_height = im->this_->height();
+    if (im_width <= 0 || im_height <= 0)
+    {
+        NanThrowTypeError("Image width or height is zero or less then zero.");
+        return NanEscapeScope(NanUndefined());
+    }
+    try
+    {
+        double offset = im->this_->get_offset();
+        double scaling = im->this_->get_scaling();
+
+        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(width, 
+                                                           height, 
+                                                           im->this_->get_dtype(),
+                                                           false,
+                                                           true,
+                                                           false);
+        image_ptr->set_offset(offset);
+        image_ptr->set_scaling(scaling);
+        double image_ratio_x = static_cast<double>(width) / im_width; 
+        double image_ratio_y = static_cast<double>(height) / im_height; 
+        resize_visitor visit(*(im->this_),
+                             scaling_method,
+                             image_ratio_x,
+                             image_ratio_y,
+                             filter_factor);
+        mapnik::util::apply_visitor(visit, *image_ptr);
+        Image* new_im = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(new_im);
+        Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+        return NanEscapeScope(obj);
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
+}
+
+
 NAN_METHOD(Image::painted)
 {
     NanScope();
@@ -1491,6 +1975,10 @@ Local<Value> Image::_openSync(_NAN_METHOD_ARGS)
             if (reader.get())
             {
                 std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(), reader->height()));
+                if (!reader->has_alpha())
+                {
+                    mapnik::set_premultiplied_alpha(*image_ptr, true);
+                }
                 Image* im = new Image(image_ptr);
                 Handle<Value> ext = NanNew<External>(im);
                 Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
@@ -1579,6 +2067,10 @@ void Image::EIO_Open(uv_work_t* req)
             if (reader.get())
             {
                 closure->im = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
+                if (!reader->has_alpha())
+                {
+                    mapnik::set_premultiplied_alpha(*(closure->im), true);
+                }
             }
             else
             {
@@ -2008,28 +2500,101 @@ NAN_METHOD(Image::view)
 /**
  * Encode this image and save it to disk as a file.
  *
- * @name save
+ * @name saveSync
  * @param {string} filename
  * @param {string} [format=png]
  * @instance
  * @memberof mapnik.Image
  * @example
- * myImage.save('foo.png');
+ * myImage.saveSync('foo.png');
+ */
+NAN_METHOD(Image::saveSync)
+{
+    NanScope();
+    NanReturnValue(_saveSync(args));
+}
+
+Local<Value> Image::_saveSync(_NAN_METHOD_ARGS) {
+    NanEscapableScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    
+    if (args.Length() == 0 || !args[0]->IsString()){
+        NanThrowTypeError("filename required to save file");
+        return NanEscapeScope(NanUndefined());
+    }
+    
+    std::string filename = TOSTR(args[0]);
+    std::string format("");
+
+    if (args.Length() >= 2) {
+        if (!args[1]->IsString()) {
+            NanThrowTypeError("both 'filename' and 'format' arguments must be strings");
+            return NanEscapeScope(NanUndefined());
+        }
+        format = TOSTR(args[1]);
+    }
+    else
+    {
+        format = mapnik::guess_type(filename);
+        if (format == "<unknown>") {
+            std::ostringstream s("");
+            s << "unknown output extension for: " << filename << "\n";
+            NanThrowError(s.str().c_str());
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+
+    try
+    {
+        mapnik::save_to_file(*(im->this_),filename, format);
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+    }
+    return NanEscapeScope(NanUndefined());
+}
+
+typedef struct {
+    uv_work_t request;
+    Image* im;
+    std::string format;
+    std::string filename;
+    bool error;
+    std::string error_name;
+    Persistent<Function> cb;
+} save_image_baton_t;
+
+/**
+ * Encode this image and save it to disk as a file.
+ *
+ * @name save
+ * @param {string} filename
+ * @param {string} [format=png]
+ * @param {Function} callback
+ * @instance
+ * @memberof mapnik.Image
  */
 NAN_METHOD(Image::save)
 {
     NanScope();
-
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    
     if (args.Length() == 0 || !args[0]->IsString()){
-        NanThrowTypeError("filename required");
+        NanThrowTypeError("filename required to save file");
         NanReturnUndefined();
     }
 
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanReturnValue(_saveSync(args));
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    
     std::string filename = TOSTR(args[0]);
-
     std::string format("");
 
-    if (args.Length() >= 2) {
+    if (args.Length() >= 3) {
         if (!args[1]->IsString()) {
             NanThrowTypeError("both 'filename' and 'format' arguments must be strings");
             NanReturnUndefined();
@@ -2047,17 +2612,51 @@ NAN_METHOD(Image::save)
         }
     }
 
-    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    save_image_baton_t *closure = new save_image_baton_t();
+    closure->request.data = closure;
+    closure->format = format;
+    closure->filename = filename;
+    closure->im = im;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Save, (uv_after_work_cb)EIO_AfterSave);
+    im->Ref();
+    NanReturnUndefined();
+}
+
+void Image::EIO_Save(uv_work_t* req)
+{
+    save_image_baton_t *closure = static_cast<save_image_baton_t *>(req->data);
     try
     {
-        mapnik::save_to_file(*(im->this_),filename, format);
+        mapnik::save_to_file(*(closure->im->this_),
+                             closure->filename, 
+                             closure->format);
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        closure->error = true;
+        closure->error_name = ex.what();
     }
-    NanReturnUndefined();
+}
+
+void Image::EIO_AfterSave(uv_work_t* req)
+{
+    NanScope();
+    save_image_baton_t *closure = static_cast<save_image_baton_t *>(req->data);
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[1] = { NanNull() };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    closure->im->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
 }
 
 typedef struct {
@@ -2145,11 +2744,17 @@ NAN_METHOD(Image::composite)
         if (options->Has(NanNew("comp_op")))
         {
             Local<Value> opt = options->Get(NanNew("comp_op"));
-            if (!opt->IsNumber()) {
+            if (!opt->IsNumber())
+            {
                 NanThrowTypeError("comp_op must be a mapnik.compositeOp value");
                 NanReturnUndefined();
             }
             mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
+            if (mode > mapnik::composite_mode_e::divide || mode < 0)
+            {
+                NanThrowTypeError("Invalid comp_op value");
+                NanReturnUndefined();
+            }
         }
 
         if (options->Has(NanNew("opacity")))
@@ -2249,7 +2854,8 @@ void Image::EIO_AfterComposite(uv_work_t* req)
 
     composite_image_baton_t *closure = static_cast<composite_image_baton_t *>(req->data);
 
-    if (closure->error) {
+    if (closure->error) 
+    {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     } else {

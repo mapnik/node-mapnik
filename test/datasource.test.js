@@ -5,8 +5,10 @@ var assert = require('assert');
 var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 describe('mapnik.Datasource', function() {
+    
     it('should throw with invalid usage', function() {
         assert.throws(function() { mapnik.Datasource('foo'); });
         assert.throws(function() { mapnik.Datasource({ 'foo': 1 }); });
@@ -16,6 +18,7 @@ describe('mapnik.Datasource', function() {
         assert.throws(function() { new mapnik.Datasource('foo'); },
             /Must provide an object, eg \{type: 'shape', file : 'world.shp'\}/);
 
+        assert.throws(function() { new mapnik.Datasource(); });
         assert.throws(function() { new mapnik.Datasource({ 'foo': 1 }); });
 
         assert.throws(function() { new mapnik.Datasource({ 'type': 'foo' }); });
@@ -93,6 +96,7 @@ describe('mapnik.Datasource', function() {
 
         assert.deepEqual(ds.fields(), expected.fields);
     });
+
     it('should validate with known shapefile', function() {
         var options = {
             type: 'shape',
@@ -159,6 +163,47 @@ describe('mapnik.Datasource', function() {
 
         assert.deepEqual(ds.fields(), expected.fields);
     });
+    
+    it('test invalid use of memory datasource', function() {
+        var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        assert.throws(function() { ds.add(); });
+        assert.throws(function() { ds.add(null); });
+        assert.throws(function() { ds.add({}, null); });
+        assert.throws(function() { ds.add({'wkt': '1234'}); });
+        assert.equal(false, ds.add({}));
+    });
 
+    it('test valid use of memory datasource', function() {
+        var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        assert.equal(true, ds.add({ 'x': 0, 'y': 0 }));
+        assert.equal(true, ds.add({ 'x': 0.23432, 'y': 0.234234 }));
+        assert.equal(true, ds.add({ 'x': 1, 'y': 1 , 'properties': {'a':'b', 'c':1, 'd':0.23 }}));
+        var expected_describe = { 
+            type: 'vector',
+            encoding: 'utf-8',
+            fields: {},
+            geometry_type: 'collection' 
+        };
+        assert.deepEqual(expected_describe, ds.describe());
+        // Currently descriptors can not be added to memory datasource so will always be empty object
+        assert.deepEqual({},ds.fields());
+    });
 
+    it('should validate with raster', function() {
+        var options = {
+            type: 'gdal',
+            file: './test/data/images/sat_image.tif'
+        };
+
+        var ds = new mapnik.Datasource(options);
+        assert.ok(ds);
+        assert.deepEqual(ds.parameters(), options);
+
+        // Test that if added to layer, can get datasource back
+        var layer = new mapnik.Layer('foo', '+init=epsg:4326');
+        layer.datasource = ds;
+        var ds2 = layer.datasource;
+        assert.ok(ds2);
+        assert.deepEqual(ds2.parameters(), options);
+    });
 });
