@@ -97,10 +97,6 @@ ECHO installing node-gyp
 CALL npm install -g node-gyp
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO ERRORLEVEL^: %ERRORLEVEL%
-ECHO updating node-gyp
-CALL npm update -g node-gyp
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-ECHO ERRORLEVEL^: %ERRORLEVEL%
 
 ECHO deleting node_modules && rd /s /q node_modules
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
