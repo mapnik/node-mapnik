@@ -2,6 +2,8 @@
 
 ## 3.4.1
 
+ - Installing like `npm install mapnik --toolset=v140` now installs windows binaries built
+   with Visual Studio 2015 (rather than 2014 CTP4)
  - Added support for `buffer_size` in `addGeoJSON` (#457)
  - Fixed bug in `render` method of VectorTile where invalid parameters could cause a segfault.
  - Added `mapnik.Image.resize` method that enables images to be resized.
