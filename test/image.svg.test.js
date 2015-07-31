@@ -18,10 +18,10 @@ describe('mapnik.Image SVG', function() {
         }, /first argument is invalid, must be a Buffer/);
         assert.throws(function() {
           new mapnik.Image.fromSVGBytesSync(new Buffer('asdfasdf'));
-        }, /SVG parse error: Unable to parse 'asdfasdf'/);
+        }, /SVG parse error:\s+Unable to parse 'asdfasdf'/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/SVG_DOES_NOT_EXIST.svg');
-        }, /SVG parse error: Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/);
+        }, /SVG parse error:\s+Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', 256);
         }, /optional second arg must be an options object/);

@@ -2205,12 +2205,13 @@ Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
         {
             if (!p.parse(TOSTR(args[0])))
             {
-                std::string errorMessage("SVG parse error: ");
+                std::ostringstream errorMessage("");
+                errorMessage << "SVG parse error:" << std::endl;
                 auto const& errors = p.error_messages();
                 for (auto error : errors) {
-                    errorMessage += error;
+                    errorMessage <<  error << std::endl;
                 }
-                NanThrowTypeError(errorMessage.c_str());
+                NanThrowTypeError(errorMessage.str().c_str());
                 return NanEscapeScope(NanUndefined());
             }
         }
@@ -2225,12 +2226,13 @@ Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
             std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
             if (!p.parse_from_string(svg_buffer))
             {
-                std::string errorMessage("SVG parse error: ");
+                std::ostringstream errorMessage("");
+                errorMessage << "SVG parse error:" << std::endl;
                 auto const& errors = p.error_messages();
                 for (auto error : errors) {
-                    errorMessage += error;
+                    errorMessage <<  error << std::endl;
                 }
-                NanThrowTypeError(errorMessage.c_str());
+                NanThrowTypeError(errorMessage.str().c_str());
                 return NanEscapeScope(NanUndefined());
             }
         }
