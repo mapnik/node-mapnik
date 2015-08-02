@@ -28,13 +28,7 @@ describe('Convert to GeoJSON', function() {
                 fs.writeFileSync(expected,JSON.stringify(geojson,null,2));
             }
             fs.writeFileSync(actual,JSON.stringify(geojson,null,2));
-            var diff = Math.abs(fs.readFileSync(actual).length-fs.readFileSync(expected).length);
-            if (process.platform === 'win32') {
-                // TODO - figure out why windows is so diff / use better testing method
-                assert.ok(diff < 120000)
-            } else {
-                assert.ok(diff < 3000);
-            }
+            assert.ok(Math.abs(fs.readFileSync(actual).length-fs.readFileSync(expected).length) < 3000);
         }
         done();
     });
