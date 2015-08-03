@@ -124,12 +124,10 @@ Binaries started being provided at node-mapnik >= 1.4.2 for OSX and Linux and at
 
 ### Windows specific
 
-**NOTE:** Windows binaries for the **3.x** series require the Visual C++ Redistributable Packages for **Visual Studio 2014 CTP4**:
+**NOTE:** Windows binaries for the **3.x** series require the Visual C++ Redistributable Packages for **Visual Studio 2015**:
 
-  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2014-CTP4/vcredist_x64.exe>
-  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2014-CTP4/vcredist_x86.exe>
-
-**Attention:** *Installing a more recent vcredist than 2014 CTP4 will remove any other 2014/2015 CTP vcredists in the background and render the provided binaries non functional! This should not happen after a final Version of VS2015 is available.*
+  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2015/vcredist_x64.exe>
+  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2015/vcredist_x86.exe>
 
 See https://github.com/mapnik/node-mapnik/wiki/WindowsBinaries for more details.
 
@@ -152,6 +150,11 @@ Confirm that the `mapnik-config` program is available and on your $PATH.
 Then run:
 
     npm install mapnik --build-from-source
+
+### Windows specific
+
+Windows builds are maintained in https://github.com/mapbox/windows-builds
+
 
 ## Using node-mapnik from your node app
 
