@@ -2649,7 +2649,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
 void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
 {
     NanScope();
-    svg_file_ptr_baton_t *closure = static_cast<svg_file_ptr_baton_t *>(req->data);
+    svg_mem_ptr_baton_t *closure = static_cast<svg_mem_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
@@ -2664,6 +2664,7 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     NanDisposePersistent(closure->cb);
+    NanDisposePersistent(closure->buffer);
     delete closure;
 }
 
