@@ -2413,6 +2413,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             }
             closure->error = true;
             closure->error_name = errorMessage.str();
+            return;
         }
 
         double lox,loy,hix,hiy;
@@ -2434,6 +2435,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
         {
             closure->error = true;
             closure->error_name = "image created from svg must have a width and height greater then zero";
+            return;
         }
 
         mapnik::image_rgba8 im(svg_width, svg_height);
@@ -2588,6 +2590,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             }
             closure->error = true;
             closure->error_name = errorMessage.str();
+            return;
         }
 
         double lox,loy,hix,hiy;
@@ -2609,6 +2612,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         {
             closure->error = true;
             closure->error_name = "image created from svg must have a width and height greater then zero";
+            return;
         }
 
         mapnik::image_rgba8 im(svg_width, svg_height);
