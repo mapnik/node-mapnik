@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.4.2
+
+ - Added `Image.fromSVG`, `Image.fromSVGBytes` and the equivilent Sync functions for each
+ - Binaries updated to use Mapnik v3.0.2 and mapnik-packaging@049968d24
+
+Notable changes in the Mapnik SDK include:
+ 
+ -  Added container to log SVG parsing errors
+ - Reimplemented to use rapidxml for parsing XML (DOM)
+ - Support both xml:id and id attributes ( xml:id takes precedence )
+ - Added parse_id_from_url using boost::spirit
+ - Added error tracking when parsing doubles
+ - Unit tests for svg_parser to improve coverage
+ - Fixed rx/ry validation for rounded_rect
+ - Fixed dimensions parsing
+ - Remove libxml2 dependency
+
 ## 3.4.1
 
  - Installing like `npm install mapnik --toolset=v140` now installs windows binaries built

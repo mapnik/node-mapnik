@@ -12,12 +12,30 @@
 #include <mapnik/image_filter.hpp> // filter_visitor
 #include <mapnik/image_scaling.hpp>
 
+#include <mapnik/marker.hpp>
+#include <mapnik/marker_cache.hpp>
+#include <mapnik/svg/svg_parser.hpp>
+#include <mapnik/svg/svg_storage.hpp>
+#include <mapnik/svg/svg_converter.hpp>
+#include <mapnik/svg/svg_path_adapter.hpp>
+#include <mapnik/svg/svg_path_attributes.hpp>
+#include <mapnik/svg/svg_path_adapter.hpp>
+#include <mapnik/svg/svg_renderer_agg.hpp>
+#include <mapnik/svg/svg_path_attributes.hpp>
+
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
 #include "utils.hpp"
+
+#include "agg_rasterizer_scanline_aa.h"
+#include "agg_basics.h"
+#include "agg_rendering_buffer.h"
+#include "agg_renderer_base.h"
+#include "agg_pixfmt_rgba.h"
+#include "agg_scanline_u.h"
 
 // boost
 #include <boost/optional/optional.hpp>
@@ -100,6 +118,18 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_METHOD(lcons->GetFunction(),
                     "fromBytesSync",
                     Image::fromBytesSync);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromSVG",
+                    Image::fromSVG);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromSVGSync",
+                    Image::fromSVGSync);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromSVGBytes",
+                    Image::fromSVGBytes);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromSVGBytesSync",
+                    Image::fromSVGBytesSync);
     target->Set(NanNew("Image"),lcons->GetFunction());
     NanAssignPersistent(constructor, lcons);
 }
@@ -2109,6 +2139,536 @@ void Image::EIO_AfterOpen(uv_work_t* req)
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+// Read from a Buffer
+NAN_METHOD(Image::fromSVGBytesSync)
+{
+    NanScope();
+    NanReturnValue(_fromSVGSync(false, args));
+}
+
+// Read from a file
+NAN_METHOD(Image::fromSVGSync)
+{
+    NanScope();
+    NanReturnValue(_fromSVGSync(true, args));
+}
+
+Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+
+    if (!fromFile && (args.Length() < 1 || !args[0]->IsObject())) 
+    {
+        NanThrowTypeError("must provide a buffer argument");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    if (fromFile && (args.Length() < 1 || !args[0]->IsString())) 
+    {
+        NanThrowTypeError("must provide a filename argument");
+        return NanEscapeScope(NanUndefined());
+    }
+
+
+    double scale = 1.0;
+    if (args.Length() >= 2) 
+    {
+        if (!args[1]->IsObject()) 
+        {
+            NanThrowTypeError("optional second arg must be an options object");
+            return NanEscapeScope(NanUndefined());
+        }
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(NanNew("scale")))
+        {
+            Local<Value> scale_opt = options->Get(NanNew("scale"));
+            if (!scale_opt->IsNumber()) 
+            {
+                NanThrowTypeError("'scale' must be a number");
+                return NanEscapeScope(NanUndefined());
+            }
+            scale = scale_opt->NumberValue();
+            if (scale <= 0)
+            {
+                NanThrowTypeError("'scale' must be a positive non zero number");
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+    }
+
+    try
+    {
+        using namespace mapnik::svg;
+        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
+        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
+        svg_path_adapter svg_path(stl_storage);
+        svg_converter_type svg(svg_path, marker_path->attributes());
+        svg_parser p(svg);
+        if (fromFile)
+        {
+            if (!p.parse(TOSTR(args[0])))
+            {
+                std::ostringstream errorMessage("");
+                errorMessage << "SVG parse error:" << std::endl;
+                auto const& errors = p.error_messages();
+                for (auto error : errors) {
+                    errorMessage <<  error << std::endl;
+                }
+                NanThrowTypeError(errorMessage.str().c_str());
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+        else
+        {
+            Local<Object> obj = args[0]->ToObject();
+            if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) 
+            {
+                NanThrowTypeError("first argument is invalid, must be a Buffer");
+                return NanEscapeScope(NanUndefined());
+            }
+            std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
+            if (!p.parse_from_string(svg_buffer))
+            {
+                std::ostringstream errorMessage("");
+                errorMessage << "SVG parse error:" << std::endl;
+                auto const& errors = p.error_messages();
+                for (auto error : errors) {
+                    errorMessage <<  error << std::endl;
+                }
+                NanThrowTypeError(errorMessage.str().c_str());
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+
+        double lox,loy,hix,hiy;
+        svg.bounding_rect(&lox, &loy, &hix, &hiy);
+        marker_path->set_bounding_box(lox,loy,hix,hiy);
+        marker_path->set_dimensions(svg.width(),svg.height());
+
+        using pixfmt = agg::pixfmt_rgba32_pre;
+        using renderer_base = agg::renderer_base<pixfmt>;
+        using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+        agg::rasterizer_scanline_aa<> ras_ptr;
+        agg::scanline_u8 sl;
+
+        double opacity = 1;
+        int svg_width = svg.width() * scale;
+        int svg_height = svg.height() * scale;
+        
+        if (svg_width <= 0 || svg_height <= 0)
+        {
+            NanThrowTypeError("image created from svg must have a width and height greater then zero");
+            return NanEscapeScope(NanUndefined());
+        }
+
+        mapnik::image_rgba8 im(svg_width, svg_height);
+        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
+        pixfmt pixf(buf);
+        renderer_base renb(pixf);
+
+        mapnik::box2d<double> const& bbox = marker_path->bounding_box();
+        mapnik::coord<double,2> c = bbox.center();
+        // center the svg marker on '0,0'
+        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+        // Scale the image
+        mtx.scale(scale);
+        // render the marker at the center of the marker box
+        mtx.translate(0.5 * im.width(), 0.5 * im.height());
+
+        mapnik::svg::svg_renderer_agg<mapnik::svg::svg_path_adapter,
+            agg::pod_bvector<mapnik::svg::path_attributes>,
+            renderer_solid,
+            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
+                                                       marker_path->attributes());
+
+        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+
+        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
+        Image *im2 = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(im2);
+        return NanEscapeScope(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    }
+    catch (std::exception const& ex)
+    {
+        // There is currently no known way to make these operations throw an exception, however,
+        // since the underlying agg library does possibly have some operation that might throw
+        // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
+        // LCOV_EXCL_START
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
+    }
+}
+
+typedef struct {
+    uv_work_t request;
+    image_ptr im;
+    std::string filename;
+    bool error;
+    double scale;
+    std::string error_name;
+    Persistent<Function> cb;
+} svg_file_ptr_baton_t;
+
+typedef struct {
+    uv_work_t request;
+    image_ptr im;
+    const char *data;
+    size_t dataLength;
+    bool error;
+    double scale;
+    std::string error_name;
+    Persistent<Object> buffer;
+    Persistent<Function> cb;
+} svg_mem_ptr_baton_t;
+
+/**
+ * Create a new image from an SVG file
+ *
+ * @name fromSVG
+ * @param {String} filename
+ * @param {Function} callback
+ * @static
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::fromSVG)
+{
+    NanScope();
+
+    if (args.Length() == 1) {
+        NanReturnValue(_fromSVGSync(true, args));
+    }
+
+    if (args.Length() < 2 || !args[0]->IsString()) 
+    {
+        NanThrowTypeError("must provide a filename argument");
+        NanReturnUndefined();
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
+
+    double scale = 1.0;
+    if (args.Length() >= 3) 
+    {
+        if (!args[1]->IsObject()) 
+        {
+            NanThrowTypeError("optional second arg must be an options object");
+            NanReturnUndefined();
+        }
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(NanNew("scale")))
+        {
+            Local<Value> scale_opt = options->Get(NanNew("scale"));
+            if (!scale_opt->IsNumber()) 
+            {
+                NanThrowTypeError("'scale' must be a number");
+                NanReturnUndefined();
+            }
+            scale = scale_opt->NumberValue();
+            if (scale <= 0)
+            {
+                NanThrowTypeError("'scale' must be a positive non zero number");
+                NanReturnUndefined();
+            }
+        }
+    }
+
+    svg_file_ptr_baton_t *closure = new svg_file_ptr_baton_t();
+    closure->request.data = closure;
+    closure->filename = TOSTR(args[0]);
+    closure->error = false;
+    closure->scale = scale;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVG, (uv_after_work_cb)EIO_AfterFromSVG);
+    NanReturnUndefined();
+}
+
+void Image::EIO_FromSVG(uv_work_t* req)
+{
+    svg_file_ptr_baton_t *closure = static_cast<svg_file_ptr_baton_t *>(req->data);
+
+    try
+    {
+        using namespace mapnik::svg;
+        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
+        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
+        svg_path_adapter svg_path(stl_storage);
+        svg_converter_type svg(svg_path, marker_path->attributes());
+        svg_parser p(svg);
+        if (!p.parse(closure->filename))
+        {
+            std::ostringstream errorMessage("");
+            errorMessage << "SVG parse error:" << std::endl;
+            auto const& errors = p.error_messages();
+            for (auto error : errors) {
+                errorMessage <<  error << std::endl;
+            }
+            closure->error = true;
+            closure->error_name = errorMessage.str();
+            return;
+        }
+
+        double lox,loy,hix,hiy;
+        svg.bounding_rect(&lox, &loy, &hix, &hiy);
+        marker_path->set_bounding_box(lox,loy,hix,hiy);
+        marker_path->set_dimensions(svg.width(),svg.height());
+
+        using pixfmt = agg::pixfmt_rgba32_pre;
+        using renderer_base = agg::renderer_base<pixfmt>;
+        using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+        agg::rasterizer_scanline_aa<> ras_ptr;
+        agg::scanline_u8 sl;
+
+        double opacity = 1;
+        int svg_width = svg.width() * closure->scale;
+        int svg_height = svg.height() * closure->scale;
+
+        if (svg_width <= 0 || svg_height <= 0)
+        {
+            closure->error = true;
+            closure->error_name = "image created from svg must have a width and height greater then zero";
+            return;
+        }
+
+        mapnik::image_rgba8 im(svg_width, svg_height);
+        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
+        pixfmt pixf(buf);
+        renderer_base renb(pixf);
+
+        mapnik::box2d<double> const& bbox = marker_path->bounding_box();
+        mapnik::coord<double,2> c = bbox.center();
+        // center the svg marker on '0,0'
+        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+        // Scale the image
+        mtx.scale(closure->scale);
+        // render the marker at the center of the marker box
+        mtx.translate(0.5 * im.width(), 0.5 * im.height());
+
+        mapnik::svg::svg_renderer_agg<mapnik::svg::svg_path_adapter,
+            agg::pod_bvector<mapnik::svg::path_attributes>,
+            renderer_solid,
+            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
+                                                       marker_path->attributes());
+
+        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        closure->im = std::make_shared<mapnik::image_any>(im);
+    }
+    catch (std::exception const& ex)
+    {
+        // There is currently no known way to make these operations throw an exception, however,
+        // since the underlying agg library does possibly have some operation that might throw
+        // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
+        // LCOV_EXCL_START
+        closure->error = true;
+        closure->error_name = "Failed to load: " + closure->filename;
+        // LCOV_EXCL_END
+    }
+}
+
+void Image::EIO_AfterFromSVG(uv_work_t* req)
+{
+    NanScope();
+    svg_file_ptr_baton_t *closure = static_cast<svg_file_ptr_baton_t *>(req->data);
+    if (closure->error || !closure->im)
+    {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im);
+        Handle<Value> ext = NanNew<External>(im);
+        Local<Object> image_obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(ObjectWrap::Unwrap<Image>(image_obj)) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+/**
+ * Create a new image from an SVG file
+ *
+ * @name fromSVGBytes
+ * @param {String} filename
+ * @param {Function} callback
+ * @static
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::fromSVGBytes)
+{
+    NanScope();
+
+    if (args.Length() == 1) {
+        NanReturnValue(_fromSVGSync(false, args));
+    }
+
+    if (args.Length() < 2 || !args[0]->IsObject()) {
+        NanThrowError("must provide a buffer argument");
+        NanReturnUndefined();
+    }
+
+    Local<Object> obj = args[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
+        NanThrowTypeError("first argument is invalid, must be a Buffer");
+        NanReturnUndefined();
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
+
+    double scale = 1.0;
+    if (args.Length() >= 3) 
+    {
+        if (!args[1]->IsObject()) 
+        {
+            NanThrowTypeError("optional second arg must be an options object");
+            NanReturnUndefined();
+        }
+        Local<Object> options = args[1]->ToObject();
+        if (options->Has(NanNew("scale")))
+        {
+            Local<Value> scale_opt = options->Get(NanNew("scale"));
+            if (!scale_opt->IsNumber()) 
+            {
+                NanThrowTypeError("'scale' must be a number");
+                NanReturnUndefined();
+            }
+            scale = scale_opt->NumberValue();
+            if (scale <= 0)
+            {
+                NanThrowTypeError("'scale' must be a positive non zero number");
+                NanReturnUndefined();
+            }
+        }
+    }
+
+    svg_mem_ptr_baton_t *closure = new svg_mem_ptr_baton_t();
+    closure->request.data = closure;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    NanAssignPersistent(closure->buffer, obj.As<Object>());
+    closure->data = node::Buffer::Data(obj);
+    closure->scale = scale;
+    closure->dataLength = node::Buffer::Length(obj);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVGBytes, (uv_after_work_cb)EIO_AfterFromSVGBytes);
+    NanReturnUndefined();
+}
+
+void Image::EIO_FromSVGBytes(uv_work_t* req)
+{
+    svg_mem_ptr_baton_t *closure = static_cast<svg_mem_ptr_baton_t *>(req->data);
+
+    try
+    {
+        using namespace mapnik::svg;
+        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
+        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
+        svg_path_adapter svg_path(stl_storage);
+        svg_converter_type svg(svg_path, marker_path->attributes());
+        svg_parser p(svg);
+
+        std::string svg_buffer(closure->data,closure->dataLength);
+        if (!p.parse_from_string(svg_buffer))
+        {
+            std::ostringstream errorMessage("");
+            errorMessage << "SVG parse error:" << std::endl;
+            auto const& errors = p.error_messages();
+            for (auto error : errors) {
+                errorMessage <<  error << std::endl;
+            }
+            closure->error = true;
+            closure->error_name = errorMessage.str();
+            return;
+        }
+
+        double lox,loy,hix,hiy;
+        svg.bounding_rect(&lox, &loy, &hix, &hiy);
+        marker_path->set_bounding_box(lox,loy,hix,hiy);
+        marker_path->set_dimensions(svg.width(),svg.height());
+
+        using pixfmt = agg::pixfmt_rgba32_pre;
+        using renderer_base = agg::renderer_base<pixfmt>;
+        using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+        agg::rasterizer_scanline_aa<> ras_ptr;
+        agg::scanline_u8 sl;
+
+        double opacity = 1;
+        int svg_width = svg.width() * closure->scale;
+        int svg_height = svg.height() * closure->scale;
+        
+        if (svg_width <= 0 || svg_height <= 0)
+        {
+            closure->error = true;
+            closure->error_name = "image created from svg must have a width and height greater then zero";
+            return;
+        }
+
+        mapnik::image_rgba8 im(svg_width, svg_height);
+        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
+        pixfmt pixf(buf);
+        renderer_base renb(pixf);
+
+        mapnik::box2d<double> const& bbox = marker_path->bounding_box();
+        mapnik::coord<double,2> c = bbox.center();
+        // center the svg marker on '0,0'
+        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+        // Scale the image
+        mtx.scale(closure->scale);
+        // render the marker at the center of the marker box
+        mtx.translate(0.5 * im.width(), 0.5 * im.height());
+
+        mapnik::svg::svg_renderer_agg<mapnik::svg::svg_path_adapter,
+            agg::pod_bvector<mapnik::svg::path_attributes>,
+            renderer_solid,
+            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
+                                                       marker_path->attributes());
+
+        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        closure->im = std::make_shared<mapnik::image_any>(im);
+    }
+    catch (std::exception const& ex)
+    {
+        // There is currently no known way to make these operations throw an exception, however,
+        // since the underlying agg library does possibly have some operation that might throw
+        // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
+        // LCOV_EXCL_START
+        closure->error = true;
+        closure->error_name = ex.what();
+        // LCOV_EXCL_END
+    }
+}
+
+void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
+{
+    NanScope();
+    svg_mem_ptr_baton_t *closure = static_cast<svg_mem_ptr_baton_t *>(req->data);
+    if (closure->error || !closure->im)
+    {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        Image* im = new Image(closure->im);
+        Handle<Value> ext = NanNew<External>(im);
+        Local<Object> image_obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
+        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(ObjectWrap::Unwrap<Image>(image_obj)) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    NanDisposePersistent(closure->cb);
+    NanDisposePersistent(closure->buffer);
     delete closure;
 }
 
