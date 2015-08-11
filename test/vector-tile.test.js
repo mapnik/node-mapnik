@@ -202,7 +202,7 @@ describe('mapnik.VectorTile ', function() {
           ]
         };
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
-        assert.equal(vtile.getData().length,61);
+        assert.equal(vtile.getData().length,60);
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
@@ -252,7 +252,7 @@ describe('mapnik.VectorTile ', function() {
           ]
         };
         vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {simplify_distance:1.0});
-        assert.equal(vtile.getData().length,61);
+        assert.equal(vtile.getData().length,60);
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
