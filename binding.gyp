@@ -136,6 +136,7 @@
       ],
       'include_dirs': [
         './deps/clipper/',
+        './deps/',
         './node_modules/mapnik-vector-tile/src/',
         './src',
         "<!(node -e \"require('nan')\")"
