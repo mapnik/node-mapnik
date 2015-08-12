@@ -50,8 +50,7 @@
 #include <string>                       // for string, char_traits, etc
 #include <exception>                    // for exception
 #include <vector>                       // for vector
-#include "pbf_common.hpp"
-#include "pbf_reader.hpp"
+#include "protozero/pbf_reader.hpp"
 
 // addGeoJSON
 #include "vector_tile_processor.hpp"
@@ -326,10 +325,10 @@ std::vector<std::string> VectorTile::lazy_names()
     std::size_t bytes = buffer_.size();
     if (bytes > 0)
     {
-        mapbox::util::pbf item(buffer_.data(),bytes);
+        protozero::pbf_reader item(buffer_.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
+                protozero::pbf_reader layermsg = item.get_message();
                 while (layermsg.next()) {
                     if (layermsg.tag() == 1) {
                         names.emplace_back(layermsg.get_string());
@@ -980,10 +979,10 @@ bool VectorTile::lazy_empty()
     std::size_t bytes = buffer_.size();
     if (bytes > 0)
     {
-        mapbox::util::pbf item(buffer_.data(),bytes);
+        protozero::pbf_reader item(buffer_.data(),bytes);
         while (item.next()) {
             if (item.tag() == 3) {
-                mapbox::util::pbf layermsg = item.get_message();
+                protozero::pbf_reader layermsg = item.get_message();
                 while (layermsg.next()) {
                     if (layermsg.tag() == 2) {
                         // we hit a feature, assume we've got data
