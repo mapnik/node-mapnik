@@ -10,6 +10,7 @@ test/tmp
 test/data/vector_tile/*actual*
 *.7z
 node.exe*
+*.pdb
 mapnik-sdk
 sdk
 foo
