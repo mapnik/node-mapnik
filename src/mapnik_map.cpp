@@ -43,6 +43,8 @@
 #include <ostream>                      // for operator<<, basic_ostream, etc
 #include <sstream>                      // for basic_ostringstream, etc
 
+#include "vector_tile.pb.h"
+
 // boost
 #include <boost/optional/optional.hpp>  // for optional
 
@@ -1949,7 +1951,8 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     {
         typedef mapnik::vector_tile_impl::backend_pbf backend_type;
         typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-        backend_type backend(closure->d->get_tile_nonconst(),
+        vector_tile::Tile tiledata;
+        backend_type backend(tiledata,
                              closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
@@ -1965,9 +1968,17 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->scaling_method);
         ren.set_simplify_distance(closure->simplify_distance);
         ren.apply(closure->scale_denominator);
-        closure->d->painted(ren.painted());
-        closure->d->cache_bytesize();
-
+        std::string new_message;
+        if (!tiledata.SerializeToString(&new_message))
+        {
+            /* LCOV_EXCL_START */
+            throw std::runtime_error("could not serialize new data for vt");
+            /* LCOV_EXCL_END */
+        }
+        if (!new_message.empty())
+        {
+            closure->d->buffer_.append(new_message.data(),new_message.size());
+        }
     }
     catch (std::exception const& ex)
     {
