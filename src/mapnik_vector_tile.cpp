@@ -431,7 +431,6 @@ NAN_METHOD(VectorTile::New)
     NanReturnUndefined();
 }
 
-
 void VectorTile::parse_proto()
 {
     std::size_t bytes = buffer_.size();
