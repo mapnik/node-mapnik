@@ -82,7 +82,6 @@ describe('mapnik.Image SVG', function() {
     it('should err with async invalid buffer', function(done) {
       mapnik.Image.fromSVGBytes(new Buffer('asdfasdf'), function(err, svg) {
         assert.ok(err);
-        console.log(err);
         assert.ok(err.message.match(/SVG parse error:\s+Unable to parse 'asdfasdf'/));
         assert.equal(svg, undefined);
         done();

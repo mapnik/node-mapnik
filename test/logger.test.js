@@ -21,8 +21,10 @@ describe('logger', function() {
     });
 
     it('set_severity should set mapnik.logger', function(done) {
+        var orig_severity = mapnik.Logger.getSeverity();
         mapnik.Logger.setSeverity(mapnik.Logger.NONE);
         assert.equal(mapnik.Logger.getSeverity(), mapnik.Logger.NONE);
+        mapnik.Logger.setSeverity(orig_severity);
         done();
     });
 });
