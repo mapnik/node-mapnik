@@ -14,12 +14,12 @@ using namespace v8;
 
 typedef mapnik::featureset_ptr fs_ptr;
 
-class Featureset: public node::ObjectWrap {
+class Featureset: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> NewInstance(mapnik::featureset_ptr fs_ptr);
+    static Local<Value> NewInstance(mapnik::featureset_ptr fs_ptr);
     static NAN_METHOD(next);
 
     Featureset();

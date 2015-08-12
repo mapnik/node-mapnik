@@ -17,12 +17,12 @@ using namespace v8;
 
 typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
-class GridView: public node::ObjectWrap {
+class GridView: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> NewInstance(Grid * JSGrid,
+    static Local<Value> NewInstance(Grid * JSGrid,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);

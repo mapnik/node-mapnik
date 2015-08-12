@@ -18,9 +18,9 @@ using namespace v8;
 
 typedef std::shared_ptr<mapnik::projection> proj_ptr;
 
-class Projection: public node::ObjectWrap {
+class Projection: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 
@@ -39,9 +39,9 @@ private:
 
 typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 
-class ProjTransform: public node::ObjectWrap {
+class ProjTransform: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
 

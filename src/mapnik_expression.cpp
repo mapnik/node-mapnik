@@ -13,25 +13,25 @@
 // stl
 #include <exception>                    // for exception
 
-Persistent<FunctionTemplate> Expression::constructor;
+Nan::Persistent<FunctionTemplate> Expression::constructor;
 
 void Expression::Initialize(Handle<Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Expression::New);
+    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Expression::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Expression"));
+    lcons->SetClassName(Nan::New("Expression").ToLocalChecked());
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", toString);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "evaluate", evaluate);
+    Nan::SetPrototypeMethod(lcons, "toString", toString);
+    Nan::SetPrototypeMethod(lcons, "evaluate", evaluate);
 
-    target->Set(NanNew("Expression"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Expression").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 Expression::Expression() :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     this_() {}
 
 Expression::~Expression()
@@ -40,83 +40,83 @@ Expression::~Expression()
 
 NAN_METHOD(Expression::New)
 {
-    NanScope();
-    if (!args.IsConstructCall())
+    Nan::HandleScope scope;
+    if (!info.IsConstructCall())
     {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
     mapnik::expression_ptr e_ptr;
     try
     {
-        if (args.Length() == 1 && args[0]->IsString()) {
-            e_ptr = mapnik::parse_expression(TOSTR(args[0]));
+        if (info.Length() == 1 && info[0]->IsString()) {
+            e_ptr = mapnik::parse_expression(TOSTR(info[0]));
         } else {
-            NanThrowTypeError("invalid arguments: accepts a single argument of string type");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("invalid arguments: accepts a single argument of string type");
+            return;
         }
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 
     Expression* e = new Expression();
-    e->Wrap(args.This());
+    e->Wrap(info.This());
     e->this_ = e_ptr;
-    NanReturnValue(args.This());
+    info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(Expression::toString)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
-    NanReturnValue(NanNew(mapnik::to_expression_string(*e->get()).c_str()));
+    Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
+    info.GetReturnValue().Set(Nan::New(mapnik::to_expression_string(*e->get())).ToLocalChecked());
 }
 
 NAN_METHOD(Expression::evaluate)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (args.Length() < 1) {
-        NanThrowError("requires a mapnik.Feature as an argument");
-        NanReturnUndefined();
+    if (info.Length() < 1) {
+        Nan::ThrowError("requires a mapnik.Feature as an argument");
+        return;
     }
 
-    Local<Object> obj = args[0].As<Object>();
-    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Feature::constructor)->HasInstance(obj)) {
-        NanThrowTypeError("first argument is invalid, must be a mapnik.Feature");
-        NanReturnUndefined();
+    Local<Object> obj = info[0].As<Object>();
+    if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Feature::constructor)->HasInstance(obj)) {
+        Nan::ThrowTypeError("first argument is invalid, must be a mapnik.Feature");
+        return;
     }
 
-    Feature* f = node::ObjectWrap::Unwrap<Feature>(obj);
+    Feature* f = Nan::ObjectWrap::Unwrap<Feature>(obj);
 
-    Expression* e = node::ObjectWrap::Unwrap<Expression>(args.Holder());
-    Local<Object> options = NanNew<Object>();
+    Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
+    Local<Object> options = Nan::New<Object>();
     mapnik::attributes vars;
-    if (args.Length() > 1)
+    if (info.Length() > 1)
     {
-        if (!args[1]->IsObject())
+        if (!info[1]->IsObject())
         {
-            NanThrowTypeError("optional second argument must be an options object");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("optional second argument must be an options object");
+            return;
         }
-        options = args[1]->ToObject();
+        options = info[1]->ToObject();
 
-        if (options->Has(NanNew("variables")))
+        if (options->Has(Nan::New("variables").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(NanNew("variables"));
+            Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
             if (!bind_opt->IsObject())
             {
-                NanThrowTypeError("optional arg 'variables' must be an object");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'variables' must be an object");
+                return;
             }
             object_to_container(vars,bind_opt->ToObject());
         }
     }
     mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
-    NanReturnValue(mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj));
+    info.GetReturnValue().Set(mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj));
 }

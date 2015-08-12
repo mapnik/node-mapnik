@@ -35,14 +35,14 @@ struct queryMany_result {
     std::map<unsigned,std::vector<query_hit> > hits;
 };
 
-class VectorTile: public node::ObjectWrap {
+class VectorTile: public Nan::ObjectWrap {
 public:
     enum parsing_status {
         LAZY_DONE = 1,
         LAZY_SET = 2,
         LAZY_MERGE = 3
     };
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);
@@ -61,7 +61,7 @@ public:
     static void EIO_QueryMany(uv_work_t* req);
     static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
-    static Local<Value> _toGeoJSONSync(_NAN_METHOD_ARGS);
+    static Local<Value> _toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(toGeoJSONSync);
     static void to_geojson(uv_work_t* req);
@@ -73,17 +73,17 @@ public:
     static NAN_METHOD(setData);
     static void EIO_SetData(uv_work_t* req);
     static void EIO_AfterSetData(uv_work_t* req);
-    static Local<Value> _setDataSync(_NAN_METHOD_ARGS);
+    static Local<Value> _setDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(setDataSync);
     static NAN_METHOD(parse);
     static void EIO_Parse(uv_work_t* req);
     static void EIO_AfterParse(uv_work_t* req);
     static NAN_METHOD(parseSync);
-    static Local<Value> _parseSync(_NAN_METHOD_ARGS);
+    static Local<Value> _parseSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(addData);
     static NAN_METHOD(composite);
     static NAN_METHOD(compositeSync);
-    static Local<Value> _compositeSync(_NAN_METHOD_ARGS);
+    static Local<Value> _compositeSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
     // methods common to mapnik.Image
@@ -91,7 +91,7 @@ public:
     static NAN_METHOD(height);
     static NAN_METHOD(painted);
     static NAN_METHOD(clearSync);
-    static Local<Value> _clearSync(_NAN_METHOD_ARGS);
+    static Local<Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
@@ -100,7 +100,7 @@ public:
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
     static NAN_METHOD(isSolidSync);
-    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+    static Local<Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
 

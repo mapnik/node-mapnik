@@ -46,7 +46,7 @@
 // boost
 #include <boost/optional/optional.hpp>  // for optional
 
-Persistent<FunctionTemplate> Map::constructor;
+Nan::Persistent<FunctionTemplate> Map::constructor;
 
 /**
  * A map in mapnik is an object that combined data sources and styles in
@@ -62,45 +62,45 @@ Persistent<FunctionTemplate> Map::constructor;
  */
 void Map::Initialize(Handle<Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Map::New);
+    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Map::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Map"));
+    lcons->SetClassName(Nan::New("Map").ToLocalChecked());
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fonts", fonts);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fontFiles", fontFiles);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fontDirectory", fontDirectory);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "loadFonts", loadFonts);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "memoryFonts", memoryFonts);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "registerFonts", registerFonts);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "load", load);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "loadSync", loadSync);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fromStringSync", fromStringSync);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fromString", fromString);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "clone", clone);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "save", save);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "clear", clear);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toXML", to_string);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "resize", resize);
+    Nan::SetPrototypeMethod(lcons, "fonts", fonts);
+    Nan::SetPrototypeMethod(lcons, "fontFiles", fontFiles);
+    Nan::SetPrototypeMethod(lcons, "fontDirectory", fontDirectory);
+    Nan::SetPrototypeMethod(lcons, "loadFonts", loadFonts);
+    Nan::SetPrototypeMethod(lcons, "memoryFonts", memoryFonts);
+    Nan::SetPrototypeMethod(lcons, "registerFonts", registerFonts);
+    Nan::SetPrototypeMethod(lcons, "load", load);
+    Nan::SetPrototypeMethod(lcons, "loadSync", loadSync);
+    Nan::SetPrototypeMethod(lcons, "fromStringSync", fromStringSync);
+    Nan::SetPrototypeMethod(lcons, "fromString", fromString);
+    Nan::SetPrototypeMethod(lcons, "clone", clone);
+    Nan::SetPrototypeMethod(lcons, "save", save);
+    Nan::SetPrototypeMethod(lcons, "clear", clear);
+    Nan::SetPrototypeMethod(lcons, "toXML", to_string);
+    Nan::SetPrototypeMethod(lcons, "resize", resize);
 
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "render", render);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "renderSync", renderSync);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "renderFile", renderFile);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "renderFileSync", renderFileSync);
+    Nan::SetPrototypeMethod(lcons, "render", render);
+    Nan::SetPrototypeMethod(lcons, "renderSync", renderSync);
+    Nan::SetPrototypeMethod(lcons, "renderFile", renderFile);
+    Nan::SetPrototypeMethod(lcons, "renderFileSync", renderFileSync);
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "zoomAll", zoomAll);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "zoomToBox", zoomToBox); //setExtent
-    NODE_SET_PROTOTYPE_METHOD(lcons, "scale", scale);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "scaleDenominator", scaleDenominator);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "queryPoint", queryPoint);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "queryMapPoint", queryMapPoint);
+    Nan::SetPrototypeMethod(lcons, "zoomAll", zoomAll);
+    Nan::SetPrototypeMethod(lcons, "zoomToBox", zoomToBox); //setExtent
+    Nan::SetPrototypeMethod(lcons, "scale", scale);
+    Nan::SetPrototypeMethod(lcons, "scaleDenominator", scaleDenominator);
+    Nan::SetPrototypeMethod(lcons, "queryPoint", queryPoint);
+    Nan::SetPrototypeMethod(lcons, "queryMapPoint", queryMapPoint);
 
     // layer access
-    NODE_SET_PROTOTYPE_METHOD(lcons, "add_layer", add_layer);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "get_layer", get_layer);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "layers", layers);
+    Nan::SetPrototypeMethod(lcons, "add_layer", add_layer);
+    Nan::SetPrototypeMethod(lcons, "get_layer", get_layer);
+    Nan::SetPrototypeMethod(lcons, "layers", layers);
 
     // properties
     ATTR(lcons, "srs", get_prop, set_prop);
@@ -132,22 +132,22 @@ void Map::Initialize(Handle<Object> target) {
                                 "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
                                 "ASPECT_RESPECT",mapnik::Map::RESPECT)
-    target->Set(NanNew("Map"),lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Map").ToLocalChecked(),lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 Map::Map(int width, int height) :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     map_(std::make_shared<mapnik::Map>(width,height)),
     in_use_(false) {}
 
 Map::Map(int width, int height, std::string const& srs) :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     map_(std::make_shared<mapnik::Map>(width,height,srs)),
     in_use_(false) {}
 
 Map::Map() :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     map_(),
     in_use_(false) {}
 
@@ -168,113 +168,116 @@ void Map::release() {
 
 NAN_METHOD(Map::New)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (!args.IsConstructCall())
+    if (!info.IsConstructCall())
     {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
     // accept a reference or v8:External?
-    if (args[0]->IsExternal())
+    if (info[0]->IsExternal())
     {
-        Local<External> ext = args[0].As<External>();
+        Local<External> ext = info[0].As<External>();
         void* ptr = ext->Value();
         Map* m =  static_cast<Map*>(ptr);
-        m->Wrap(args.This());
-        NanReturnValue(args.This());
+        m->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
 
-    if (args.Length() == 2)
+    if (info.Length() == 2)
     {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
+        if (!info[0]->IsNumber() || !info[1]->IsNumber())
         {
-            NanThrowTypeError("'width' and 'height' must be integers");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("'width' and 'height' must be integers");
+            return;
         }
-        Map* m = new Map(args[0]->IntegerValue(),args[1]->IntegerValue());
-        m->Wrap(args.This());
-        NanReturnValue(args.This());
+        Map* m = new Map(info[0]->IntegerValue(),info[1]->IntegerValue());
+        m->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
-    else if (args.Length() == 3)
+    else if (info.Length() == 3)
     {
-        if (!args[0]->IsNumber() || !args[1]->IsNumber())
+        if (!info[0]->IsNumber() || !info[1]->IsNumber())
         {
-            NanThrowTypeError("'width' and 'height' must be integers");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("'width' and 'height' must be integers");
+            return;
         }
-        if (!args[2]->IsString())
+        if (!info[2]->IsString())
         {
-            NanThrowError("'srs' value must be a string");
-            NanReturnUndefined();
+            Nan::ThrowError("'srs' value must be a string");
+            return;
         }
-        Map* m = new Map(args[0]->IntegerValue(), args[1]->IntegerValue(), TOSTR(args[2]));
-        m->Wrap(args.This());
-        NanReturnValue(args.This());
+        Map* m = new Map(info[0]->IntegerValue(), info[1]->IntegerValue(), TOSTR(info[2]));
+        m->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
     else
     {
-        NanThrowError("please provide Map width and height and optional srs");
-        NanReturnUndefined();
+        Nan::ThrowError("please provide Map width and height and optional srs");
+        return;
     }
-    NanReturnUndefined();
+    return;
 }
 
 NAN_GETTER(Map::get_prop)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
     if(a == "extent") {
-        Local<Array> arr = NanNew<Array>(4);
+        Local<Array> arr = Nan::New<Array>(4);
         mapnik::box2d<double> const& e = m->map_->get_current_extent();
-        arr->Set(0, NanNew<Number>(e.minx()));
-        arr->Set(1, NanNew<Number>(e.miny()));
-        arr->Set(2, NanNew<Number>(e.maxx()));
-        arr->Set(3, NanNew<Number>(e.maxy()));
-        NanReturnValue(arr);
+        arr->Set(0, Nan::New<Number>(e.minx()));
+        arr->Set(1, Nan::New<Number>(e.miny()));
+        arr->Set(2, Nan::New<Number>(e.maxx()));
+        arr->Set(3, Nan::New<Number>(e.maxy()));
+        info.GetReturnValue().Set(arr);
     }
     else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
-        Local<Array> arr = NanNew<Array>(4);
-        arr->Set(0, NanNew<Number>(e->minx()));
-        arr->Set(1, NanNew<Number>(e->miny()));
-        arr->Set(2, NanNew<Number>(e->maxx()));
-        arr->Set(3, NanNew<Number>(e->maxy()));
-        NanReturnValue(arr);
+        Local<Array> arr = Nan::New<Array>(4);
+        arr->Set(0, Nan::New<Number>(e->minx()));
+        arr->Set(1, Nan::New<Number>(e->miny()));
+        arr->Set(2, Nan::New<Number>(e->maxx()));
+        arr->Set(3, Nan::New<Number>(e->maxy()));
+        info.GetReturnValue().Set(arr);
     }
     else if(a == "maximumExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
         if (!e)
-            NanReturnUndefined();
-        Local<Array> arr = NanNew<Array>(4);
-        arr->Set(0, NanNew<Number>(e->minx()));
-        arr->Set(1, NanNew<Number>(e->miny()));
-        arr->Set(2, NanNew<Number>(e->maxx()));
-        arr->Set(3, NanNew<Number>(e->maxy()));
-        NanReturnValue(arr);
+            return;
+        Local<Array> arr = Nan::New<Array>(4);
+        arr->Set(0, Nan::New<Number>(e->minx()));
+        arr->Set(1, Nan::New<Number>(e->miny()));
+        arr->Set(2, Nan::New<Number>(e->maxx()));
+        arr->Set(3, Nan::New<Number>(e->maxy()));
+        info.GetReturnValue().Set(arr);
     }
     else if(a == "aspect_fix_mode")
-        NanReturnValue(NanNew<Integer>(m->map_->get_aspect_fix_mode()));
+        info.GetReturnValue().Set(Nan::New<Integer>(m->map_->get_aspect_fix_mode()));
     else if(a == "width")
-        NanReturnValue(NanNew<Integer>(m->map_->width()));
+        info.GetReturnValue().Set(Nan::New<Integer>(m->map_->width()));
     else if(a == "height")
-        NanReturnValue(NanNew<Integer>(m->map_->height()));
+        info.GetReturnValue().Set(Nan::New<Integer>(m->map_->height()));
     else if (a == "srs")
-        NanReturnValue(NanNew(m->map_->srs().c_str()));
+        info.GetReturnValue().Set(Nan::New<String>(m->map_->srs()).ToLocalChecked());
     else if(a == "bufferSize")
-        NanReturnValue(NanNew<Integer>(m->map_->buffer_size()));
+        info.GetReturnValue().Set(Nan::New<Integer>(m->map_->buffer_size()));
     else if (a == "background") {
         boost::optional<mapnik::color> c = m->map_->background();
         if (c)
-            NanReturnValue(Color::NewInstance(*c));
+            info.GetReturnValue().Set(Color::NewInstance(*c));
         else
-            NanReturnUndefined();
+            return;
     }
     else //if (a == "parameters") 
     {
-        Local<Object> ds = NanNew<Object>();
+        Local<Object> ds = Nan::New<Object>();
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
@@ -282,23 +285,23 @@ NAN_GETTER(Map::get_prop)
         {
             node_mapnik::params_to_object(ds, it->first, it->second);
         }
-        NanReturnValue(ds);
+        info.GetReturnValue().Set(ds);
     }
 }
 
 NAN_SETTER(Map::set_prop)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
     if(a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
-            NanThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
+            Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
             return;
         } else {
             Local<Array> arr = value.As<Array>();
             if (arr->Length() != 4) {
-                NanThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
+                Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
                 return;
             } else {
                 double minx = arr->Get(0)->NumberValue();
@@ -316,14 +319,14 @@ NAN_SETTER(Map::set_prop)
     else if (a == "aspect_fix_mode")
     {
         if (!value->IsNumber()) {
-            NanThrowError("'aspect_fix_mode' must be a constant (number)");
+            Nan::ThrowError("'aspect_fix_mode' must be a constant (number)");
             return;
         } else {
             int val = value->IntegerValue();
             if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0) {
                 m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
             } else {
-                NanThrowError("'aspect_fix_mode' value is invalid");
+                Nan::ThrowError("'aspect_fix_mode' value is invalid");
                 return;
             }
         }
@@ -331,7 +334,7 @@ NAN_SETTER(Map::set_prop)
     else if (a == "srs")
     {
         if (!value->IsString()) {
-            NanThrowError("'srs' must be a string");
+            Nan::ThrowError("'srs' must be a string");
             return;
         } else {
             m->map_->set_srs(TOSTR(value));
@@ -339,7 +342,7 @@ NAN_SETTER(Map::set_prop)
     }
     else if (a == "bufferSize") {
         if (!value->IsNumber()) {
-            NanThrowTypeError("Must provide an integer bufferSize");
+            Nan::ThrowTypeError("Must provide an integer bufferSize");
             return;
         } else {
             m->map_->set_buffer_size(value->IntegerValue());
@@ -347,7 +350,7 @@ NAN_SETTER(Map::set_prop)
     }
     else if (a == "width") {
         if (!value->IsNumber()) {
-            NanThrowTypeError("Must provide an integer width");
+            Nan::ThrowTypeError("Must provide an integer width");
             return;
         } else {
             m->map_->set_width(value->IntegerValue());
@@ -355,7 +358,7 @@ NAN_SETTER(Map::set_prop)
     }
     else if (a == "height") {
         if (!value->IsNumber()) {
-            NanThrowTypeError("Must provide an integer height");
+            Nan::ThrowTypeError("Must provide an integer height");
             return;
         } else {
             m->map_->set_height(value->IntegerValue());
@@ -363,21 +366,21 @@ NAN_SETTER(Map::set_prop)
     }
     else if (a == "background") {
         if (!value->IsObject()) {
-            NanThrowTypeError("mapnik.Color expected");
+            Nan::ThrowTypeError("mapnik.Color expected");
             return;
         }
 
         Local<Object> obj = value.As<Object>();
-        if (obj->IsNull() || obj->IsUndefined() || !NanNew(Color::constructor)->HasInstance(obj)) {
-            NanThrowTypeError("mapnik.Color expected");
+        if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) {
+            Nan::ThrowTypeError("mapnik.Color expected");
             return;
         }
-        Color *c = node::ObjectWrap::Unwrap<Color>(obj);
+        Color *c = Nan::ObjectWrap::Unwrap<Color>(obj);
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
         if (!value->IsObject()) {
-            NanThrowTypeError("object expected for map.parameters");
+            Nan::ThrowTypeError("object expected for map.parameters");
             return;
         }
 
@@ -411,58 +414,58 @@ NAN_SETTER(Map::set_prop)
 
 NAN_METHOD(Map::loadFonts)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    NanReturnValue(NanNew<Boolean>(m->map_->load_fonts()));
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    info.GetReturnValue().Set(Nan::New<Boolean>(m->map_->load_fonts()));
 }
 
 NAN_METHOD(Map::memoryFonts)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& font_cache = m->map_->get_font_memory_cache();
-    Local<Array> a = NanNew<Array>(font_cache.size());
+    Local<Array> a = Nan::New<Array>(font_cache.size());
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        a->Set(i++, NanNew(kv.first.c_str()));
+        a->Set(i++, Nan::New(kv.first).ToLocalChecked());
     }
-    NanReturnValue(a);
+    info.GetReturnValue().Set(a);
 }
 
 NAN_METHOD(Map::registerFonts)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    if (args.Length() == 0 || !args[0]->IsString())
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    if (info.Length() == 0 || !info[0]->IsString())
     {
-        NanThrowTypeError("first argument must be a path to a directory of fonts");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("first argument must be a path to a directory of fonts");
+        return;
     }
 
     bool recurse = false;
 
-    if (args.Length() >= 2)
+    if (info.Length() >= 2)
     {
-        if (!args[1]->IsObject())
+        if (!info[1]->IsObject())
         {
-            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
+            return;
         }
-        Local<Object> options = args[1].As<Object>();
-        if (options->Has(NanNew("recurse")))
+        Local<Object> options = info[1].As<Object>();
+        if (options->Has(Nan::New("recurse").ToLocalChecked()))
         {
-            Local<Value> recurse_opt = options->Get(NanNew("recurse"));
+            Local<Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
             if (!recurse_opt->IsBoolean())
             {
-                NanThrowTypeError("'recurse' must be a Boolean");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'recurse' must be a Boolean");
+                return;
             }
             recurse = recurse_opt->BooleanValue();
         }
     }
-    std::string path = TOSTR(args[0]);
-    NanReturnValue(NanNew(m->map_->register_fonts(path,recurse)));
+    std::string path = TOSTR(info[0]);
+    info.GetReturnValue().Set(Nan::New(m->map_->register_fonts(path,recurse)));
 }
 
 /**
@@ -474,16 +477,16 @@ NAN_METHOD(Map::registerFonts)
  */
 NAN_METHOD(Map::fonts)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& mapping = m->map_->get_font_file_mapping();
-    Local<Array> a = NanNew<Array>(mapping.size());
+    Local<Array> a = Nan::New<Array>(mapping.size());
     unsigned i = 0;
     for (auto const& kv : mapping)
     {
-        a->Set(i++, NanNew(kv.first.c_str()));
+        a->Set(i++, Nan::New<String>(kv.first).ToLocalChecked());
     }
-    NanReturnValue(a);
+    info.GetReturnValue().Set(a);
 }
 
 /**
@@ -496,15 +499,15 @@ NAN_METHOD(Map::fonts)
  */
 NAN_METHOD(Map::fontFiles)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& mapping = m->map_->get_font_file_mapping();
-    Local<Object> obj = NanNew<Object>();
+    Local<Object> obj = Nan::New<Object>();
     for (auto const& kv : mapping)
     {
-        obj->Set(NanNew(kv.first.c_str()), NanNew(kv.second.second.c_str()));
+        obj->Set(Nan::New<String>(kv.first).ToLocalChecked(), Nan::New<String>(kv.second.second).ToLocalChecked());
     }
-    NanReturnValue(obj);
+    info.GetReturnValue().Set(obj);
 }
 
 /**
@@ -516,14 +519,14 @@ NAN_METHOD(Map::fontFiles)
  */
 NAN_METHOD(Map::fontDirectory)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     boost::optional<std::string> const& fdir = m->map_->font_directory();
     if (fdir)
     {
-        NanReturnValue(NanNew(fdir->c_str()));
+        info.GetReturnValue().Set(Nan::New<String>(*fdir).ToLocalChecked());
     }
-    NanReturnUndefined();
+    return;
 }
 
 /**
@@ -536,9 +539,9 @@ NAN_METHOD(Map::fontDirectory)
  */
 NAN_METHOD(Map::scale)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    NanReturnValue(NanNew<Number>(m->map_->scale()));
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    info.GetReturnValue().Set(Nan::New<Number>(m->map_->scale()));
 }
 
 /**
@@ -551,9 +554,9 @@ NAN_METHOD(Map::scale)
  */
 NAN_METHOD(Map::scaleDenominator)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    NanReturnValue(NanNew<Number>(m->map_->scale_denominator()));
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    info.GetReturnValue().Set(Nan::New<Number>(m->map_->scale_denominator()));
 }
 
 typedef struct {
@@ -566,67 +569,67 @@ typedef struct {
     double y;
     bool error;
     std::string error_name;
-    Persistent<Function> cb;
+    Nan::Persistent<Function> cb;
 } query_map_baton_t;
 
 
 NAN_METHOD(Map::queryMapPoint)
 {
-    NanScope();
-    abstractQueryPoint(args,false);
-    NanReturnUndefined();
+    Nan::HandleScope scope;
+    abstractQueryPoint(info,false);
+    return;
 }
 
 NAN_METHOD(Map::queryPoint)
 {
-    NanScope();
-    abstractQueryPoint(args,true);
-    NanReturnUndefined();
+    Nan::HandleScope scope;
+    abstractQueryPoint(info,true);
+    return;
 }
 
-Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
+Handle<Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords)
 {
-    NanScope();
-    if (args.Length() < 3)
+    Nan::HandleScope scope;
+    if (info.Length() < 3)
     {
-        NanThrowError("requires at least three arguments, a x,y query and a callback");
-        return NanUndefined();
+        Nan::ThrowError("requires at least three arguments, a x,y query and a callback");
+        return Nan::Undefined();
     }
 
     double x,y;
-    if (!args[0]->IsNumber() || !args[1]->IsNumber())
+    if (!info[0]->IsNumber() || !info[1]->IsNumber())
     {
-        NanThrowTypeError("x,y arguments must be numbers");
-        return NanUndefined();
+        Nan::ThrowTypeError("x,y arguments must be numbers");
+        return Nan::Undefined();
     }
     else
     {
-        x = args[0]->NumberValue();
-        y = args[1]->NumberValue();
+        x = info[0]->NumberValue();
+        y = info[1]->NumberValue();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
-    Local<Object> options = NanNew<Object>();
+    Local<Object> options = Nan::New<Object>();
     int layer_idx = -1;
 
-    if (args.Length() > 3)
+    if (info.Length() > 3)
     {
         // options object
-        if (!args[2]->IsObject()) {
-            NanThrowTypeError("optional third argument must be an options object");
-            return NanUndefined();
+        if (!info[2]->IsObject()) {
+            Nan::ThrowTypeError("optional third argument must be an options object");
+            return Nan::Undefined();
         }
 
-        options = args[2]->ToObject();
+        options = info[2]->ToObject();
 
-        if (options->Has(NanNew("layer")))
+        if (options->Has(Nan::New("layer").ToLocalChecked()))
         {
             std::vector<mapnik::layer> const& layers = m->map_->layers();
-            Local<Value> layer_id = options->Get(NanNew("layer"));
+            Local<Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
             if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
-                NanThrowTypeError("'layer' option required for map query and must be either a layer name(string) or layer index (integer)");
-                return NanUndefined();
+                Nan::ThrowTypeError("'layer' option required for map query and must be either a layer name(string) or layer index (integer)");
+                return Nan::Undefined();
             }
 
             if (layer_id->IsString()) {
@@ -647,8 +650,8 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    NanThrowTypeError(s.str().c_str());
-                    return NanUndefined();
+                    Nan::ThrowTypeError(s.str().c_str());
+                    return Nan::Undefined();
                 }
             }
             else if (layer_id->IsNumber())
@@ -668,8 +671,8 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                     {
                         s << "no layers found in map";
                     }
-                    NanThrowTypeError(s.str().c_str());
-                    return NanUndefined();
+                    Nan::ThrowTypeError(s.str().c_str());
+                    return Nan::Undefined();
                 } else if (layer_idx >= static_cast<int>(layer_num)) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
@@ -681,18 +684,18 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
                     {
                         s << "no layers found in map";
                     }
-                    NanThrowTypeError(s.str().c_str());
-                    return NanUndefined();
+                    Nan::ThrowTypeError(s.str().c_str());
+                    return Nan::Undefined();
                 }
             }
         }
     }
 
     // ensure function callback
-    Local<Value> callback = args[args.Length() - 1];
+    Local<Value> callback = info[info.Length() - 1];
     if (!callback->IsFunction()) {
-        NanThrowTypeError("last argument must be a callback function");
-        return NanUndefined();
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return Nan::Undefined();
     }
 
     query_map_baton_t *closure = new query_map_baton_t();
@@ -703,10 +706,10 @@ Handle<Value> Map::abstractQueryPoint(_NAN_METHOD_ARGS, bool geo_coords)
     closure->layer_idx = static_cast<std::size_t>(layer_idx);
     closure->geo_coords = geo_coords;
     closure->error = false;
-    NanAssignPersistent(closure->cb, callback.As<Function>());
+    closure->cb.Reset(callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMap, (uv_after_work_cb)EIO_AfterQueryMap);
     m->Ref();
-    return NanUndefined();
+    return Nan::Undefined();
 }
 
 void Map::EIO_QueryMap(uv_work_t* req)
@@ -767,43 +770,43 @@ void Map::EIO_QueryMap(uv_work_t* req)
 
 void Map::EIO_AfterQueryMap(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
 
     if (closure->error) {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         std::size_t num_result = closure->featuresets.size();
         if (num_result >= 1)
         {
-            Local<Array> a = NanNew<Array>(num_result);
+            Local<Array> a = Nan::New<Array>(num_result);
             typedef std::map<std::string,mapnik::featureset_ptr> fs_itr;
             fs_itr::const_iterator it = closure->featuresets.begin();
             fs_itr::const_iterator end = closure->featuresets.end();
             unsigned idx = 0;
             for (; it != end; ++it)
             {
-                Local<Object> obj = NanNew<Object>();
-                obj->Set(NanNew("layer"), NanNew(it->first.c_str()));
-                obj->Set(NanNew("featureset"), Featureset::NewInstance(it->second));
+                Local<Object> obj = Nan::New<Object>();
+                obj->Set(Nan::New("layer").ToLocalChecked(), Nan::New<String>(it->first).ToLocalChecked());
+                obj->Set(Nan::New("featureset").ToLocalChecked(), Featureset::NewInstance(it->second));
                 a->Set(idx, obj);
                 ++idx;
             }
             closure->featuresets.clear();
-            Local<Value> argv[2] = { NanNull(), a };
-            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+            Local<Value> argv[2] = { Nan::Null(), a };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
         else
         {
-            Local<Value> argv[2] = { NanNull(), NanUndefined() };
-            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+            Local<Value> argv[2] = { Nan::Null(), Nan::Undefined() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
 
     closure->m->Unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 }
 
@@ -817,15 +820,15 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  */
 NAN_METHOD(Map::layers)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
-    Local<Array> a = NanNew<Array>(layers.size());
+    Local<Array> a = Nan::New<Array>(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
     {
         a->Set(i, Layer::NewInstance(layers[i]));
     }
-    NanReturnValue(a);
+    info.GetReturnValue().Set(a);
 }
 
 /**
@@ -837,22 +840,22 @@ NAN_METHOD(Map::layers)
  * @param {mapnik.Layer} new layer
  */
 NAN_METHOD(Map::add_layer) {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (!args[0]->IsObject()) {
-        NanThrowTypeError("mapnik.Layer expected");
-        NanReturnUndefined();
+    if (!info[0]->IsObject()) {
+        Nan::ThrowTypeError("mapnik.Layer expected");
+        return;
     }
 
-    Local<Object> obj = args[0].As<Object>();
-    if (obj->IsNull() || obj->IsUndefined() || !NanNew(Layer::constructor)->HasInstance(obj)) {
-        NanThrowTypeError("mapnik.Layer expected");
-        NanReturnUndefined();
+    Local<Object> obj = info[0].As<Object>();
+    if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Layer::constructor)->HasInstance(obj)) {
+        Nan::ThrowTypeError("mapnik.Layer expected");
+        return;
     }
-    Layer *l = node::ObjectWrap::Unwrap<Layer>(obj);
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Layer *l = Nan::ObjectWrap::Unwrap<Layer>(obj);
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     m->map_->add_layer(*l->get());
-    NanReturnUndefined();
+    return;
 }
 
 /**
@@ -867,29 +870,29 @@ NAN_METHOD(Map::add_layer) {
  */
 NAN_METHOD(Map::get_layer)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (args.Length() != 1) {
-        NanThrowError("Please provide layer name or index");
-        NanReturnUndefined();
+    if (info.Length() != 1) {
+        Nan::ThrowError("Please provide layer name or index");
+        return;
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-    Local<Value> layer = args[0];
+    Local<Value> layer = info[0];
     if (layer->IsNumber())
     {
-        unsigned int index = args[0]->IntegerValue();
+        unsigned int index = info[0]->IntegerValue();
 
         if (index < layers.size())
         {
-            NanReturnValue(Layer::NewInstance(layers[index]));
+            info.GetReturnValue().Set(Layer::NewInstance(layers[index]));
         }
         else
         {
-            NanThrowTypeError("invalid layer index");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("invalid layer index");
+            return;
         }
     }
     else if (layer->IsString())
@@ -902,7 +905,7 @@ NAN_METHOD(Map::get_layer)
             if (lyr.name() == layer_name)
             {
                 found = true;
-                NanReturnValue(Layer::NewInstance(layers[idx]));
+                info.GetReturnValue().Set(Layer::NewInstance(layers[idx]));
             }
             ++idx;
         }
@@ -910,13 +913,13 @@ NAN_METHOD(Map::get_layer)
         {
             std::ostringstream s;
             s << "Layer name '" << layer_name << "' not found";
-            NanThrowTypeError(s.str().c_str());
-            NanReturnUndefined();
+            Nan::ThrowTypeError(s.str().c_str());
+            return;
         }
 
     }
-    NanThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
+    return;
 }
 
 /**
@@ -928,10 +931,10 @@ NAN_METHOD(Map::get_layer)
  */
 NAN_METHOD(Map::clear)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     m->map_->remove_all();
-    NanReturnUndefined();
+    return;
 }
 
 /**
@@ -945,21 +948,21 @@ NAN_METHOD(Map::clear)
  */
 NAN_METHOD(Map::resize)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (args.Length() != 2) {
-        NanThrowError("Please provide width and height");
-        NanReturnUndefined();
+    if (info.Length() != 2) {
+        Nan::ThrowError("Please provide width and height");
+        return;
     }
 
-    if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
-        NanThrowTypeError("width and height must be integers");
-        NanReturnUndefined();
+    if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
+        Nan::ThrowTypeError("width and height must be integers");
+        return;
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    m->map_->resize(args[0]->IntegerValue(),args[1]->IntegerValue());
-    NanReturnUndefined();
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    m->map_->resize(info[0]->IntegerValue(),info[1]->IntegerValue());
+    return;
 }
 
 
@@ -971,7 +974,7 @@ typedef struct {
     bool strict;
     bool error;
     std::string error_name;
-    Persistent<Function> cb;
+    Nan::Persistent<Function> cb;
 } load_xml_baton_t;
 
 
@@ -988,59 +991,59 @@ typedef struct {
  */
 NAN_METHOD(Map::load)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (args.Length() < 2) {
-        NanThrowError("please provide a stylesheet path, options, and callback");
-        NanReturnUndefined();
+    if (info.Length() < 2) {
+        Nan::ThrowError("please provide a stylesheet path, options, and callback");
+        return;
     }
 
     // ensure stylesheet path is a string
-    Local<Value> stylesheet = args[0];
+    Local<Value> stylesheet = info[0];
     if (!stylesheet->IsString()) {
-        NanThrowTypeError("first argument must be a path to a mapnik stylesheet");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet");
+        return;
     }
 
     // ensure callback is a function
-    Local<Value> callback = args[args.Length()-1];
+    Local<Value> callback = info[info.Length()-1];
     if (!callback->IsFunction()) {
-        NanThrowTypeError("last argument must be a callback function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
     }
 
     // ensure options object
-    if (!args[1]->IsObject()) {
-        NanThrowTypeError("options must be an object, eg {strict: true}");
-        NanReturnUndefined();
+    if (!info[1]->IsObject()) {
+        Nan::ThrowTypeError("options must be an object, eg {strict: true}");
+        return;
     }
 
-    Local<Object> options = args[1].As<Object>();
+    Local<Object> options = info[1].As<Object>();
 
     bool strict = false;
-    Local<String> param = NanNew("strict");
+    Local<String> param = Nan::New("strict").ToLocalChecked();
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
         if (!param_val->IsBoolean()) {
-            NanThrowTypeError("'strict' must be a Boolean");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("'strict' must be a Boolean");
+            return;
         }
         strict = param_val->BooleanValue();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
-    param = NanNew("base");
+    param = Nan::New("base").ToLocalChecked();
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
         if (!param_val->IsString()) {
-            NanThrowTypeError("'base' must be a string representing a filesystem path");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
+            return;
         }
         closure->base_path = TOSTR(param_val);
     }
@@ -1049,10 +1052,10 @@ NAN_METHOD(Map::load)
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
-    NanAssignPersistent(closure->cb, callback.As<Function>());
+    closure->cb.Reset(callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, (uv_after_work_cb)EIO_AfterLoad);
     m->Ref();
-    NanReturnUndefined();
+    return;
 }
 
 void Map::EIO_Load(uv_work_t* req)
@@ -1072,20 +1075,20 @@ void Map::EIO_Load(uv_work_t* req)
 
 void Map::EIO_AfterLoad(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     if (closure->error) {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->m) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        Local<Value> argv[2] = { Nan::Null(), closure->m->handle() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 }
 
@@ -1104,54 +1107,54 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  */
 NAN_METHOD(Map::loadSync)
 {
-    NanScope();
-    if (!args[0]->IsString()) {
-        NanThrowTypeError("first argument must be a path to a mapnik stylesheet");
-        NanReturnUndefined();
+    Nan::HandleScope scope;
+    if (!info[0]->IsString()) {
+        Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet");
+        return;
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    std::string stylesheet = TOSTR(args[0]);
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    std::string stylesheet = TOSTR(info[0]);
     bool strict = false;
     std::string base_path;
 
-    if (args.Length() > 2)
+    if (info.Length() > 2)
     {
 
-        NanThrowError("only accepts two arguments: a path to a mapnik stylesheet and an optional options object");
-        NanReturnUndefined();
+        Nan::ThrowError("only accepts two arguments: a path to a mapnik stylesheet and an optional options object");
+        return;
     }
-    else if (args.Length() == 2)
+    else if (info.Length() == 2)
     {
         // ensure options object
-        if (!args[1]->IsObject())
+        if (!info[1]->IsObject())
         {
-            NanThrowTypeError("options must be an object, eg {strict: true}");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("options must be an object, eg {strict: true}");
+            return;
         }
 
-        Local<Object> options = args[1].As<Object>();
+        Local<Object> options = info[1].As<Object>();
 
-        Local<String> param = NanNew("strict");
+        Local<String> param = Nan::New("strict").ToLocalChecked();
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
             if (!param_val->IsBoolean())
             {
-                NanThrowTypeError("'strict' must be a Boolean");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'strict' must be a Boolean");
+                return;
             }
             strict = param_val->BooleanValue();
         }
 
-        param = NanNew("base");
+        param = Nan::New("base").ToLocalChecked();
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
             if (!param_val->IsString())
             {
-                NanThrowTypeError("'base' must be a string representing a filesystem path");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
+                return;
             }
             base_path = TOSTR(param_val);
         }
@@ -1163,10 +1166,10 @@ NAN_METHOD(Map::loadSync)
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
-    NanReturnUndefined();
+    return;
 }
 
 /**
@@ -1184,15 +1187,15 @@ NAN_METHOD(Map::loadSync)
  */
 NAN_METHOD(Map::fromStringSync)
 {
-    NanScope();
-    if (args.Length() < 1) {
-        NanThrowError("Accepts 2 arguments: stylesheet string and an optional options");
-        NanReturnUndefined();
+    Nan::HandleScope scope;
+    if (info.Length() < 1) {
+        Nan::ThrowError("Accepts 2 arguments: stylesheet string and an optional options");
+        return;
     }
 
-    if (!args[0]->IsString()) {
-        NanThrowTypeError("first argument must be a mapnik stylesheet string");
-        NanReturnUndefined();
+    if (!info[0]->IsString()) {
+        Nan::ThrowTypeError("first argument must be a mapnik stylesheet string");
+        return;
     }
 
 
@@ -1200,41 +1203,41 @@ NAN_METHOD(Map::fromStringSync)
     bool strict = false;
     std::string base_path("");
 
-    if (args.Length() >= 2) {
+    if (info.Length() >= 2) {
         // ensure options object
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
-            NanReturnUndefined();
+        if (!info[1]->IsObject()) {
+            Nan::ThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
+            return;
         }
 
-        Local<Object> options = args[1].As<Object>();
+        Local<Object> options = info[1].As<Object>();
 
-        Local<String> param = NanNew("strict");
+        Local<String> param = Nan::New("strict").ToLocalChecked();
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
             if (!param_val->IsBoolean()) {
-                NanThrowTypeError("'strict' must be a Boolean");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'strict' must be a Boolean");
+                return;
             }
             strict = param_val->BooleanValue();
         }
 
-        param = NanNew("base");
+        param = Nan::New("base").ToLocalChecked();
         if (options->Has(param))
         {
             Local<Value> param_val = options->Get(param);
             if (!param_val->IsString()) {
-                NanThrowTypeError("'base' must be a string representing a filesystem path");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
+                return;
             }
             base_path = TOSTR(param_val);
         }
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
-    std::string stylesheet = TOSTR(args[0]);
+    std::string stylesheet = TOSTR(info[0]);
 
     try
     {
@@ -1242,10 +1245,10 @@ NAN_METHOD(Map::fromStringSync)
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
-    NanReturnUndefined();
+    return;
 }
 
 /**
@@ -1266,65 +1269,65 @@ NAN_METHOD(Map::fromStringSync)
  */
 NAN_METHOD(Map::fromString)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (args.Length() < 2)
+    if (info.Length() < 2)
     {
-        NanThrowError("please provide a stylesheet string, options, and callback");
-        NanReturnUndefined();
+        Nan::ThrowError("please provide a stylesheet string, options, and callback");
+        return;
     }
 
     // ensure stylesheet path is a string
-    Local<Value> stylesheet = args[0];
+    Local<Value> stylesheet = info[0];
     if (!stylesheet->IsString())
     {
-        NanThrowTypeError("first argument must be a path to a mapnik stylesheet string");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet string");
+        return;
     }
 
     // ensure callback is a function
-    Local<Value> callback = args[args.Length()-1];
-    if (!args[args.Length()-1]->IsFunction())
+    Local<Value> callback = info[info.Length()-1];
+    if (!info[info.Length()-1]->IsFunction())
     {
-        NanThrowTypeError("last argument must be a callback function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
     }
 
     // ensure options object
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
+        return;
     }
 
-    Local<Object> options = args[1]->ToObject();
+    Local<Object> options = info[1]->ToObject();
 
     bool strict = false;
-    Local<String> param = NanNew("strict");
+    Local<String> param = Nan::New("strict").ToLocalChecked();
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
         if (!param_val->IsBoolean())
         {
-            NanThrowTypeError("'strict' must be a Boolean");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("'strict' must be a Boolean");
+            return;
         }
         strict = param_val->BooleanValue();
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
-    param = NanNew("base");
+    param = Nan::New("base").ToLocalChecked();
     if (options->Has(param))
     {
         Local<Value> param_val = options->Get(param);
         if (!param_val->IsString())
         {
-            NanThrowTypeError("'base' must be a string representing a filesystem path");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
+            return;
         }
         closure->base_path = TOSTR(param_val);
     }
@@ -1333,10 +1336,10 @@ NAN_METHOD(Map::fromString)
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
-    NanAssignPersistent(closure->cb, callback.As<Function>());
+    closure->cb.Reset(callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, (uv_after_work_cb)EIO_AfterFromString);
     m->Ref();
-    NanReturnUndefined();
+    return;
 }
 
 void Map::EIO_FromString(uv_work_t* req)
@@ -1356,22 +1359,22 @@ void Map::EIO_FromString(uv_work_t* req)
 
 void Map::EIO_AfterFromString(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
 
     TryCatch try_catch;
 
     if (closure->error) {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->m) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        Local<Value> argv[2] = { Nan::Null(), closure->m->handle() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 }
 
@@ -1386,103 +1389,103 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  */
 NAN_METHOD(Map::clone)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
-    Handle<Value> ext = NanNew<External>(m2);
-    NanReturnValue(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    Handle<Value> ext = Nan::New<External>(m2);
+    info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
 NAN_METHOD(Map::save)
 {
-    NanScope();
-    if (args.Length() != 1 || !args[0]->IsString())
+    Nan::HandleScope scope;
+    if (info.Length() != 1 || !info[0]->IsString())
     {
-        NanThrowTypeError("first argument must be a path to map.xml to save");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("first argument must be a path to map.xml to save");
+        return;
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    std::string filename = TOSTR(args[0]);
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    std::string filename = TOSTR(info[0]);
     bool explicit_defaults = false;
     mapnik::save_map(*m->map_,filename,explicit_defaults);
-    NanReturnUndefined();
+    return;
 }
 
 NAN_METHOD(Map::to_string)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
-    NanReturnValue(NanNew(map_string.c_str()));
+    info.GetReturnValue().Set(Nan::New<String>(map_string).ToLocalChecked());
 }
 
 NAN_METHOD(Map::zoomAll)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     try
     {
         m->map_->zoom_all();
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
-    NanReturnUndefined();
+    return;
 }
 
 NAN_METHOD(Map::zoomToBox)
 {
-    NanScope();
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Nan::HandleScope scope;
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
     double minx;
     double miny;
     double maxx;
     double maxy;
 
-    if (args.Length() == 1)
+    if (info.Length() == 1)
     {
-        if (!args[0]->IsArray())
+        if (!info[0]->IsArray())
         {
-            NanThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+            Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
+            return;
         }
-        Local<Array> a = args[0].As<Array>();
+        Local<Array> a = info[0].As<Array>();
         minx = a->Get(0)->NumberValue();
         miny = a->Get(1)->NumberValue();
         maxx = a->Get(2)->NumberValue();
         maxy = a->Get(3)->NumberValue();
 
     }
-    else if (args.Length() != 4)
+    else if (info.Length() != 4)
     {
-        NanThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
-        NanReturnUndefined();
+        Nan::ThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
+        return;
     } 
-    else if (args[0]->IsNumber() && 
-               args[1]->IsNumber() &&
-               args[2]->IsNumber() &&
-               args[3]->IsNumber())
+    else if (info[0]->IsNumber() && 
+               info[1]->IsNumber() &&
+               info[2]->IsNumber() &&
+               info[3]->IsNumber())
     {
-        minx = args[0]->NumberValue();
-        miny = args[1]->NumberValue();
-        maxx = args[2]->NumberValue();
-        maxy = args[3]->NumberValue();
+        minx = info[0]->NumberValue();
+        miny = info[1]->NumberValue();
+        maxx = info[2]->NumberValue();
+        maxy = info[3]->NumberValue();
     }
     else
     {
-        NanThrowError("If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers");
-        NanReturnUndefined();
+        Nan::ThrowError("If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers");
+        return;
     }
 
     mapnik::box2d<double> box(minx,miny,maxx,maxy);
     m->map_->zoom_to_box(box);
-    NanReturnUndefined();
+    return;
 }
 
 struct image_baton_t {
@@ -1497,7 +1500,7 @@ struct image_baton_t {
     unsigned offset_y;
     bool error;
     std::string error_name;
-    Persistent<Function> cb;
+    Nan::Persistent<Function> cb;
     image_baton_t() :
       buffer_size(0),
       scale_factor(1.0),
@@ -1523,7 +1526,7 @@ struct grid_baton_t {
     unsigned offset_y;
     bool error;
     std::string error_name;
-    Persistent<Function> cb;
+    Nan::Persistent<Function> cb;
     grid_baton_t() :
       layer_idx(-1),
       buffer_size(0),
@@ -1554,7 +1557,7 @@ struct vector_tile_baton_t {
     double simplify_distance;
     bool error;
     std::string error_name;
-    Persistent<Function> cb;
+    Nan::Persistent<Function> cb;
     vector_tile_baton_t() :
         area_threshold(0.1),
         path_multiplier(16),
@@ -1572,27 +1575,27 @@ struct vector_tile_baton_t {
 
 NAN_METHOD(Map::render)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     // ensure at least 2 args
-    if (args.Length() < 2) {
-        NanThrowTypeError("requires at least two arguments, a renderable mapnik object, and a callback");
-        NanReturnUndefined();
+    if (info.Length() < 2) {
+        Nan::ThrowTypeError("requires at least two arguments, a renderable mapnik object, and a callback");
+        return;
     }
 
     // ensure renderable object
-    if (!args[0]->IsObject()) {
-        NanThrowTypeError("requires a renderable mapnik object to be passed as first argument");
-        NanReturnUndefined();
+    if (!info[0]->IsObject()) {
+        Nan::ThrowTypeError("requires a renderable mapnik object to be passed as first argument");
+        return;
     }
 
     // ensure function callback
-    if (!args[args.Length()-1]->IsFunction()) {
-        NanThrowTypeError("last argument must be a callback function");
-        NanReturnUndefined();
+    if (!info[info.Length()-1]->IsFunction()) {
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
     try
     {
@@ -1605,77 +1608,77 @@ NAN_METHOD(Map::render)
         unsigned offset_x = 0;
         unsigned offset_y = 0;
 
-        Local<Object> options = NanNew<Object>();
+        Local<Object> options = Nan::New<Object>();
 
-        if (args.Length() > 2) {
+        if (info.Length() > 2) {
 
             // options object
-            if (!args[1]->IsObject()) {
-                NanThrowTypeError("optional second argument must be an options object");
-                NanReturnUndefined();
+            if (!info[1]->IsObject()) {
+                Nan::ThrowTypeError("optional second argument must be an options object");
+                return;
             }
 
-            options = args[1]->ToObject();
+            options = info[1]->ToObject();
 
-            if (options->Has(NanNew("buffer_size"))) {
-                Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+            if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
+                Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
                 if (!bind_opt->IsNumber()) {
-                    NanThrowTypeError("optional arg 'buffer_size' must be a number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
+                    return;
                 }
 
                 buffer_size = bind_opt->IntegerValue();
             }
 
-            if (options->Has(NanNew("scale"))) {
-                Local<Value> bind_opt = options->Get(NanNew("scale"));
+            if (options->Has(Nan::New("scale").ToLocalChecked())) {
+                Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
                 if (!bind_opt->IsNumber()) {
-                    NanThrowTypeError("optional arg 'scale' must be a number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'scale' must be a number");
+                    return;
                 }
 
                 scale_factor = bind_opt->NumberValue();
             }
 
-            if (options->Has(NanNew("scale_denominator"))) {
-                Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+            if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
+                Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
                 if (!bind_opt->IsNumber()) {
-                    NanThrowTypeError("optional arg 'scale_denominator' must be a number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
+                    return;
                 }
 
                 scale_denominator = bind_opt->NumberValue();
             }
 
-            if (options->Has(NanNew("offset_x"))) {
-                Local<Value> bind_opt = options->Get(NanNew("offset_x"));
+            if (options->Has(Nan::New("offset_x").ToLocalChecked())) {
+                Local<Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
                 if (!bind_opt->IsNumber()) {
-                    NanThrowTypeError("optional arg 'offset_x' must be a number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
+                    return;
                 }
 
                 offset_x = bind_opt->IntegerValue();
             }
 
-            if (options->Has(NanNew("offset_y"))) {
-                Local<Value> bind_opt = options->Get(NanNew("offset_y"));
+            if (options->Has(Nan::New("offset_y").ToLocalChecked())) {
+                Local<Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
                 if (!bind_opt->IsNumber()) {
-                    NanThrowTypeError("optional arg 'offset_y' must be a number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
+                    return;
                 }
 
                 offset_y = bind_opt->IntegerValue();
             }
         }
 
-        Local<Object> obj = args[0]->ToObject();
+        Local<Object> obj = info[0]->ToObject();
 
-        if (NanNew(Image::constructor)->HasInstance(obj)) {
+        if (Nan::New(Image::constructor)->HasInstance(obj)) {
 
             image_baton_t *closure = new image_baton_t();
             closure->request.data = closure;
             closure->m = m;
-            closure->im = node::ObjectWrap::Unwrap<Image>(obj);
+            closure->im = Nan::ObjectWrap::Unwrap<Image>(obj);
             closure->im->_ref();
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
@@ -1684,46 +1687,46 @@ NAN_METHOD(Map::render)
             closure->offset_y = offset_y;
             closure->error = false;
 
-            if (options->Has(NanNew("variables")))
+            if (options->Has(Nan::New("variables").ToLocalChecked()))
             {
-                Local<Value> bind_opt = options->Get(NanNew("variables"));
+                Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
                 if (!bind_opt->IsObject())
                 {
                     delete closure;
-                    NanThrowTypeError("optional arg 'variables' must be an object");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'variables' must be an object");
+                    return;
                 }
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
             if (!m->acquire())
             {
                 delete closure;
-                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+                return;
             }
-            NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
+            closure->cb.Reset(info[info.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
 
         }
 #if defined(GRID_RENDERER)
-        else if (NanNew(Grid::constructor)->HasInstance(obj)) {
+        else if (Nan::New(Grid::constructor)->HasInstance(obj)) {
 
-            Grid * g = node::ObjectWrap::Unwrap<Grid>(obj);
+            Grid * g = Nan::ObjectWrap::Unwrap<Grid>(obj);
 
             std::size_t layer_idx = 0;
 
             // grid requires special options for now
-            if (!options->Has(NanNew("layer"))) {
-                NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                NanReturnUndefined();
+            if (!options->Has(Nan::New("layer").ToLocalChecked())) {
+                Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
+                return;
             } else {
 
                 std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-                Local<Value> layer_id = options->Get(NanNew("layer"));
+                Local<Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
                 if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
-                    NanThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
+                    return;
                 }
 
                 if (layer_id->IsString()) {
@@ -1744,8 +1747,8 @@ NAN_METHOD(Map::render)
                     {
                         std::ostringstream s;
                         s << "Layer name '" << layer_name << "' not found";
-                        NanThrowTypeError(s.str().c_str());
-                        NanReturnUndefined();
+                        Nan::ThrowTypeError(s.str().c_str());
+                        return;
                     }
                 } else { // IS NUMBER
                     layer_idx = layer_id->IntegerValue();
@@ -1762,18 +1765,18 @@ NAN_METHOD(Map::render)
                         {
                             s << "no layers found in map";
                         }
-                        NanThrowTypeError(s.str().c_str());
-                        NanReturnUndefined();
+                        Nan::ThrowTypeError(s.str().c_str());
+                        return;
                     }
                 }
             }
 
-            if (options->Has(NanNew("fields"))) {
+            if (options->Has(Nan::New("fields").ToLocalChecked())) {
 
-                Local<Value> param_val = options->Get(NanNew("fields"));
+                Local<Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
                 if (!param_val->IsArray()) {
-                    NanThrowTypeError("option 'fields' must be an array of strings");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'fields' must be an array of strings");
+                    return;
                 }
                 Local<Array> a = Local<Array>::Cast(param_val);
                 unsigned int i = 0;
@@ -1789,14 +1792,14 @@ NAN_METHOD(Map::render)
 
             grid_baton_t *closure = new grid_baton_t();
 
-            if (options->Has(NanNew("variables")))
+            if (options->Has(Nan::New("variables").ToLocalChecked()))
             {
-                Local<Value> bind_opt = options->Get(NanNew("variables"));
+                Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
                 if (!bind_opt->IsObject())
                 {
                     delete closure;
-                    NanThrowTypeError("optional arg 'variables' must be an object");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'variables' must be an object");
+                    return;
                 }
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
@@ -1815,93 +1818,93 @@ NAN_METHOD(Map::render)
             if (!m->acquire())
             {
                 delete closure;
-                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+                return;
             }
-            NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
+            closure->cb.Reset(info[info.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
         }
 #endif
-        else if (NanNew(VectorTile::constructor)->HasInstance(obj)) {
+        else if (Nan::New(VectorTile::constructor)->HasInstance(obj)) {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
-            VectorTile * vector_tile_obj = node::ObjectWrap::Unwrap<VectorTile>(obj);
+            VectorTile * vector_tile_obj = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
 
-            if (options->Has(NanNew("image_scaling"))) {
-                Local<Value> param_val = options->Get(NanNew("image_scaling"));
+            if (options->Has(Nan::New("image_scaling").ToLocalChecked())) {
+                Local<Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
                 if (!param_val->IsString()) {
                     delete closure;
-                    NanThrowTypeError("option 'image_scaling' must be a string");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'image_scaling' must be a string");
+                    return;
                 }
                 std::string image_scaling = TOSTR(param_val);
                 boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
                 if (!method) {
                     delete closure;
-                    NanThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                    return;
                 }
                 closure->scaling_method = *method;
             }
 
-            if (options->Has(NanNew("image_format"))) {
-                Local<Value> param_val = options->Get(NanNew("image_format"));
+            if (options->Has(Nan::New("image_format").ToLocalChecked())) {
+                Local<Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
                 if (!param_val->IsString()) {
                     delete closure;
-                    NanThrowTypeError("option 'image_format' must be a string");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'image_format' must be a string");
+                    return;
                 }
                 closure->image_format = TOSTR(param_val);
             }
 
-            if (options->Has(NanNew("area_threshold"))) {
-                Local<Value> param_val = options->Get(NanNew("area_threshold"));
+            if (options->Has(Nan::New("area_threshold").ToLocalChecked())) {
+                Local<Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
                 if (!param_val->IsNumber()) {
                     delete closure;
-                    NanThrowTypeError("option 'area_threshold' must be a number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'area_threshold' must be a number");
+                    return;
                 }
                 closure->area_threshold = param_val->NumberValue();
             }
 
-            if (options->Has(NanNew("path_multiplier"))) {
-                Local<Value> param_val = options->Get(NanNew("path_multiplier"));
+            if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) {
+                Local<Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
                 if (!param_val->IsNumber()) {
                     delete closure;
-                    NanThrowTypeError("option 'path_multiplier' must be an unsigned integer");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
+                    return;
                 }
                 closure->path_multiplier = param_val->NumberValue();
             }
 
-            if (options->Has(NanNew("simplify_algorithm"))) {
-                Local<Value> param_val = options->Get(NanNew("simplify_algorithm"));
+            if (options->Has(Nan::New("simplify_algorithm").ToLocalChecked())) {
+                Local<Value> param_val = options->Get(Nan::New("simplify_algorithm").ToLocalChecked());
                 if (!param_val->IsString()) {
                     delete closure;
-                    NanThrowTypeError("option 'simplify_algorithm' must be an string");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'simplify_algorithm' must be an string");
+                    return;
                 }
                 // TODO
             }
 
-            if (options->Has(NanNew("simplify_distance"))) {
-                Local<Value> param_val = options->Get(NanNew("simplify_distance"));
+            if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) {
+                Local<Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
                 if (!param_val->IsNumber()) {
                     delete closure;
-                    NanThrowTypeError("option 'simplify_distance' must be an floating point number");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
+                    return;
                 }
                 closure->simplify_distance = param_val->NumberValue();
             }
 
-            if (options->Has(NanNew("variables")))
+            if (options->Has(Nan::New("variables").ToLocalChecked()))
             {
-                Local<Value> bind_opt = options->Get(NanNew("variables"));
+                Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
                 if (!bind_opt->IsObject())
                 {
                     delete closure;
-                    NanThrowTypeError("optional arg 'variables' must be an object");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("optional arg 'variables' must be an object");
+                    return;
                 }
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
@@ -1919,25 +1922,25 @@ NAN_METHOD(Map::render)
             if (!m->acquire())
             {
                     delete closure;
-                NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+                return;
             }
-            NanAssignPersistent(closure->cb, args[args.Length() - 1].As<Function>());
+            closure->cb.Reset(info[info.Length() - 1].As<Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
         } else {
-            NanThrowTypeError("renderable mapnik object expected");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("renderable mapnik object expected");
+            return;
         }
 
         m->Ref();
-        NanReturnUndefined();
+        return;
     }
     catch (std::exception const& ex)
     {
         // I am not quite sure it is possible to put a test in to cover an exception here
         /* LCOV_EXCL_START */
-        NanThrowTypeError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowTypeError(ex.what());
+        return;
         /* LCOV_EXCL_END */
     }
 }
@@ -1978,23 +1981,23 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
 
 void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
 
     closure->m->release();
 
     if (closure->error) {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->d) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        Local<Value> argv[2] = { Nan::Null(), closure->d->handle() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
     closure->d->_unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 }
 
@@ -2042,7 +2045,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
 
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
 
@@ -2051,16 +2054,16 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     if (closure->error) {
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->g) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        Local<Value> argv[2] = { Nan::Null(), closure->g->handle() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
     closure->g->_unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 }
 #endif
@@ -2131,23 +2134,23 @@ void Map::EIO_RenderImage(uv_work_t* req)
 
 void Map::EIO_AfterRenderImage(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
 
     closure->m->release();
 
     if (closure->error) {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { NanNull(), NanObjectWrapHandle(closure->im) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        Local<Value> argv[2] = { Nan::Null(), closure->im->handle() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
     closure->im->_unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 }
 
@@ -2164,16 +2167,16 @@ typedef struct {
     int buffer_size; // TODO - no effect until mapnik::request is used
     bool error;
     std::string error_name;
-    Persistent<Function> cb;
+    Nan::Persistent<Function> cb;
 } render_file_baton_t;
 
 NAN_METHOD(Map::renderFile)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (args.Length() < 1 || !args[0]->IsString()) {
-        NanThrowTypeError("first argument must be a path to a file to save");
-        NanReturnUndefined();
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("first argument must be a path to a file to save");
+        return;
     }
 
     // defaults
@@ -2183,81 +2186,81 @@ NAN_METHOD(Map::renderFile)
     palette_ptr palette;
     int buffer_size = 0;
 
-    Local<Value> callback = args[args.Length()-1];
+    Local<Value> callback = info[info.Length()-1];
 
     if (!callback->IsFunction()) {
-        NanThrowTypeError("last argument must be a callback function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
     }
 
-    Local<Object> options = NanNew<Object>();
+    Local<Object> options = Nan::New<Object>();
 
-    if (!args[1]->IsFunction() && args[1]->IsObject()) {
-        options = args[1]->ToObject();
-        if (options->Has(NanNew("format")))
+    if (!info[1]->IsFunction() && info[1]->IsObject()) {
+        options = info[1]->ToObject();
+        if (options->Has(Nan::New("format").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(NanNew("format"));
+            Local<Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
             if (!format_opt->IsString()) {
-                NanThrowTypeError("'format' must be a String");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'format' must be a String");
+                return;
             }
 
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(NanNew("palette")))
+        if (options->Has(Nan::New("palette").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(NanNew("palette"));
+            Local<Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
-                NanThrowTypeError("'palette' must be an object");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'palette' must be an object");
+                return;
             }
 
             Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
+            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
+                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
+                return;
             }
 
-            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
-        if (options->Has(NanNew("scale"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale"));
+        if (options->Has(Nan::New("scale").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'scale' must be a number");
+                return;
             }
 
             scale_factor = bind_opt->NumberValue();
         }
 
-        if (options->Has(NanNew("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+        if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
+                return;
             }
 
             scale_denominator = bind_opt->NumberValue();
         }
 
-        if (options->Has(NanNew("buffer_size"))) {
-            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'buffer_size' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
+                return;
             }
 
             buffer_size = bind_opt->IntegerValue();
         }
 
-    } else if (!args[1]->IsFunction()) {
-        NanThrowTypeError("optional argument must be an object");
-        NanReturnUndefined();
+    } else if (!info[1]->IsFunction()) {
+        Nan::ThrowTypeError("optional argument must be an object");
+        return;
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    std::string output = TOSTR(args[0]);
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    std::string output = TOSTR(info[0]);
 
     //maybe do this in the async part?
     if (format.empty()) {
@@ -2265,21 +2268,21 @@ NAN_METHOD(Map::renderFile)
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << output << "\n";
-            NanThrowError(s.str().c_str());
-            NanReturnUndefined();
+            Nan::ThrowError(s.str().c_str());
+            return;
         }
     }
 
     render_file_baton_t *closure = new render_file_baton_t();
 
-    if (options->Has(NanNew("variables")))
+    if (options->Has(Nan::New("variables").ToLocalChecked()))
     {
-        Local<Value> bind_opt = options->Get(NanNew("variables"));
+        Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
         if (!bind_opt->IsObject())
         {
             delete closure;
-            NanThrowTypeError("optional arg 'variables' must be an object");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("optional arg 'variables' must be an object");
+            return;
         }
         object_to_container(closure->variables,bind_opt->ToObject());
     }
@@ -2291,8 +2294,8 @@ NAN_METHOD(Map::renderFile)
         delete closure;
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
-        NanThrowError(s.str().c_str());
-        NanReturnUndefined();
+        Nan::ThrowError(s.str().c_str());
+        return;
 #endif
     } else {
         closure->use_cairo = false;
@@ -2301,8 +2304,8 @@ NAN_METHOD(Map::renderFile)
     if (!m->acquire())
     {
         delete closure;
-        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        return;
     }
     closure->request.data = closure;
 
@@ -2311,7 +2314,7 @@ NAN_METHOD(Map::renderFile)
     closure->scale_denominator = scale_denominator;
     closure->buffer_size = buffer_size;
     closure->error = false;
-    NanAssignPersistent(closure->cb, callback.As<Function>());
+    closure->cb.Reset(callback.As<Function>());
 
     closure->format = format;
     closure->palette = palette;
@@ -2320,7 +2323,7 @@ NAN_METHOD(Map::renderFile)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, (uv_after_work_cb)EIO_AfterRenderFile);
     m->Ref();
 
-    NanReturnUndefined();
+    return;
 
 }
 
@@ -2367,22 +2370,22 @@ void Map::EIO_RenderFile(uv_work_t* req)
 
 void Map::EIO_AfterRenderFile(uv_work_t* req)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
 
     closure->m->release();
 
     if (closure->error) {
-        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[1] = { NanNull() };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[1] = { Nan::Null() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->m->Unref();
-    NanDisposePersistent(closure->cb);
+    closure->cb.Reset();
     delete closure;
 
 }
@@ -2390,7 +2393,7 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
 // TODO - add support for grids
 NAN_METHOD(Map::renderSync)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     std::string format = "png";
     palette_ptr palette;
@@ -2398,76 +2401,76 @@ NAN_METHOD(Map::renderSync)
     double scale_denominator = 0.0;
     int buffer_size = 0;
 
-    if (args.Length() >= 1) 
+    if (info.Length() >= 1) 
     {
-        if (!args[0]->IsObject()) 
+        if (!info[0]->IsObject()) 
         {
-            NanThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
+            return;
         }
 
-        Local<Object> options = args[0]->ToObject();
-        if (options->Has(NanNew("format")))
+        Local<Object> options = info[0]->ToObject();
+        if (options->Has(Nan::New("format").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(NanNew("format"));
+            Local<Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
             if (!format_opt->IsString()) {
-                NanThrowTypeError("'format' must be a String");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'format' must be a String");
+                return;
             }
 
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(NanNew("palette")))
+        if (options->Has(Nan::New("palette").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(NanNew("palette"));
+            Local<Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
-                NanThrowTypeError("'palette' must be an object");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'palette' must be an object");
+                return;
             }
 
             Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
+            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
+                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
+                return;
             }
 
-            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
-        if (options->Has(NanNew("scale"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale"));
+        if (options->Has(Nan::New("scale").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'scale' must be a number");
+                return;
             }
 
             scale_factor = bind_opt->NumberValue();
         }
-        if (options->Has(NanNew("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+        if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
+                return;
             }
 
             scale_denominator = bind_opt->NumberValue();
         }
-        if (options->Has(NanNew("buffer_size"))) {
-            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'buffer_size' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
+                return;
             }
 
             buffer_size = bind_opt->IntegerValue();
         }
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     if (!m->acquire())
     {
-        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        return;
     }
     std::string s;
     try
@@ -2494,24 +2497,24 @@ NAN_METHOD(Map::renderSync)
     catch (std::exception const& ex)
     {
         m->release();
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
     m->release();
-    NanReturnValue(NanNewBufferHandle((char*)s.data(), s.size()));
+    info.GetReturnValue().Set(Nan::NewBuffer((char*)s.data(), s.size()).ToLocalChecked());
 }
 
 NAN_METHOD(Map::renderFileSync)
 {
-    NanScope();
-    if (args.Length() < 1 || !args[0]->IsString()) {
-        NanThrowTypeError("first argument must be a path to a file to save");
-        NanReturnUndefined();
+    Nan::HandleScope scope;
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("first argument must be a path to a file to save");
+        return;
     }
 
-    if (args.Length() > 2) {
-        NanThrowError("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}");
-        NanReturnUndefined();
+    if (info.Length() > 2) {
+        Nan::ThrowError("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}");
+        return;
     }
 
     // defaults
@@ -2521,85 +2524,85 @@ NAN_METHOD(Map::renderFileSync)
     std::string format = "png";
     palette_ptr palette;
 
-    if (args.Length() >= 2){
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
-            NanReturnUndefined();
+    if (info.Length() >= 2){
+        if (!info[1]->IsObject()) {
+            Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
+            return;
         }
 
-        Local<Object> options = args[1].As<Object>();
-        if (options->Has(NanNew("format")))
+        Local<Object> options = info[1].As<Object>();
+        if (options->Has(Nan::New("format").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(NanNew("format"));
+            Local<Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
             if (!format_opt->IsString()) {
-                NanThrowTypeError("'format' must be a String");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'format' must be a String");
+                return;
             }
 
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(NanNew("palette")))
+        if (options->Has(Nan::New("palette").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(NanNew("palette"));
+            Local<Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
-                NanThrowTypeError("'palette' must be an object");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'palette' must be an object");
+                return;
             }
 
             Local<Object> obj = format_opt->ToObject();
-            if (obj->IsNull() || obj->IsUndefined() || !NanNew(Palette::constructor)->HasInstance(obj)) {
-                NanThrowTypeError("mapnik.Palette expected as second arg");
-                NanReturnUndefined();
+            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
+                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
+                return;
             }
 
-            palette = node::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
         }
-        if (options->Has(NanNew("scale"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale"));
+        if (options->Has(Nan::New("scale").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'scale' must be a number");
+                return;
             }
 
             scale_factor = bind_opt->NumberValue();
         }
-        if (options->Has(NanNew("scale_denominator"))) {
-            Local<Value> bind_opt = options->Get(NanNew("scale_denominator"));
+        if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'scale_denominator' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
+                return;
             }
 
             scale_denominator = bind_opt->NumberValue();
         }
-        if (options->Has(NanNew("buffer_size"))) {
-            Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
+        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
+            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
-                NanThrowTypeError("optional arg 'buffer_size' must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
+                return;
             }
 
             buffer_size = bind_opt->IntegerValue();
         }
     }
 
-    Map* m = node::ObjectWrap::Unwrap<Map>(args.Holder());
-    std::string output = TOSTR(args[0]);
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    std::string output = TOSTR(info[0]);
 
     if (format.empty()) {
         format = mapnik::guess_type(output);
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << output << "\n";
-            NanThrowError(s.str().c_str());
-            NanReturnUndefined();
+            Nan::ThrowError(s.str().c_str());
+            return;
         }
     }
     if (!m->acquire())
     {
-        NanThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
+        return;
     }
 
     try
@@ -2613,8 +2616,8 @@ NAN_METHOD(Map::renderFileSync)
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
             m->release();
-            NanThrowError(s.str().c_str());
-            NanReturnUndefined();
+            Nan::ThrowError(s.str().c_str());
+            return;
 #endif
         }
         else
@@ -2643,9 +2646,9 @@ NAN_METHOD(Map::renderFileSync)
     catch (std::exception const& ex)
     {
         m->release();
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
     m->release();
-    NanReturnUndefined();
+    return;
 }

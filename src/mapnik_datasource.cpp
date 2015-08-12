@@ -17,7 +17,7 @@
 #include <exception>
 #include <vector>
 
-Persistent<FunctionTemplate> Datasource::constructor;
+Nan::Persistent<FunctionTemplate> Datasource::constructor;
 
 /**
  * A Datasource object. This is the connector from Mapnik to any kind
@@ -28,25 +28,25 @@ Persistent<FunctionTemplate> Datasource::constructor;
  */
 void Datasource::Initialize(Handle<Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Datasource::New);
+    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Datasource::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Datasource"));
+    lcons->SetClassName(Nan::New("Datasource").ToLocalChecked());
 
     // methods
-    NODE_SET_PROTOTYPE_METHOD(lcons, "parameters", parameters);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "extent", extent);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
+    Nan::SetPrototypeMethod(lcons, "parameters", parameters);
+    Nan::SetPrototypeMethod(lcons, "describe", describe);
+    Nan::SetPrototypeMethod(lcons, "featureset", featureset);
+    Nan::SetPrototypeMethod(lcons, "extent", extent);
+    Nan::SetPrototypeMethod(lcons, "fields", fields);
 
-    target->Set(NanNew("Datasource"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Datasource").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 Datasource::Datasource() :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     datasource_() {}
 
 Datasource::~Datasource()
@@ -55,45 +55,46 @@ Datasource::~Datasource()
 
 NAN_METHOD(Datasource::New)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (!args.IsConstructCall())
+    if (!info.IsConstructCall())
     {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
-    if (args[0]->IsExternal())
+    if (info[0]->IsExternal())
     {
-        Local<External> ext = args[0].As<External>();
+        Local<External> ext = info[0].As<External>();
         void* ptr = ext->Value();
         Datasource* d =  static_cast<Datasource*>(ptr);
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
-            args.This()->Set(NanNew("type"),
-                             NanNew("raster"));
+            info.This()->Set(Nan::New("type").ToLocalChecked(),
+                             Nan::New("raster").ToLocalChecked());
         }
         else
         {
-            args.This()->Set(NanNew("type"),
-                             NanNew("vector"));
+            info.This()->Set(Nan::New("type").ToLocalChecked(),
+                             Nan::New("vector").ToLocalChecked());
         }
-        d->Wrap(args.This());
-        NanReturnValue(args.This());
+        d->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
-    if (args.Length() != 1)
+    if (info.Length() != 1)
     {
-        NanThrowTypeError("accepts only one argument, an object of key:value datasource options");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("accepts only one argument, an object of key:value datasource options");
+        return;
     }
 
-    if (!args[0]->IsObject())
+    if (!info[0]->IsObject())
     {
-        NanThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
+        return;
     }
 
-    Local<Object> options = args[0].As<Object>();
+    Local<Object> options = info[0].As<Object>();
 
     mapnik::parameters params;
     Local<Array> names = options->GetPropertyNames();
@@ -114,55 +115,55 @@ NAN_METHOD(Datasource::New)
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 
     if (ds)
     {
         if (ds->type() == mapnik::datasource::Raster)
         {
-            args.This()->Set(NanNew("type"),
-                             NanNew("raster"));
+            info.This()->Set(Nan::New("type").ToLocalChecked(),
+                             Nan::New("raster").ToLocalChecked());
         }
         else
         {
-            args.This()->Set(NanNew("type"),
-                             NanNew("vector"));
+            info.This()->Set(Nan::New("type").ToLocalChecked(),
+                             Nan::New("vector").ToLocalChecked());
         }
         Datasource* d = new Datasource();
-        d->Wrap(args.This());
+        d->Wrap(info.This());
         d->datasource_ = ds;
-        NanReturnValue(args.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
     // Not sure this point could ever be reached, because if a ds is created,
     // even if it is an empty or bad dataset the pointer will still exist
     /* LCOV_EXCL_START */
-    NanReturnUndefined();
+    return;
     /* LCOV_EXCL_END */
 }
 
-Handle<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
-    NanEscapableScope();
+Local<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
+    Nan::EscapableHandleScope scope;
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
-    Handle<Value> ext = NanNew<External>(d);
-    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
-    return NanEscapeScope(obj);
+    Handle<Value> ext = Nan::New<External>(d);
+    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
 NAN_METHOD(Datasource::parameters)
 {
-    NanScope();
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.This());
-    Local<Object> ds = NanNew<Object>();
+    Nan::HandleScope scope;
+    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.This());
+    Local<Object> ds = Nan::New<Object>();
     mapnik::parameters::const_iterator it = d->datasource_->params().begin();
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
     for (; it != end; ++it)
     {
         node_mapnik::params_to_object(ds, it->first, it->second);
     }
-    NanReturnValue(ds);
+    info.GetReturnValue().Set(ds);
 }
 
 /**
@@ -175,8 +176,8 @@ NAN_METHOD(Datasource::parameters)
  */
 NAN_METHOD(Datasource::extent)
 {
-    NanScope();
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
+    Nan::HandleScope scope;
+    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     mapnik::box2d<double> e;
     try
     {
@@ -189,17 +190,17 @@ NAN_METHOD(Datasource::extent)
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
         /* LCOV_EXCL_START */
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
         /* LCOV_EXCL_END */
     }
 
-    Local<Array> a = NanNew<Array>(4);
-    a->Set(0, NanNew<Number>(e.minx()));
-    a->Set(1, NanNew<Number>(e.miny()));
-    a->Set(2, NanNew<Number>(e.maxx()));
-    a->Set(3, NanNew<Number>(e.maxy()));
-    NanReturnValue(a);
+    Local<Array> a = Nan::New<Array>(4);
+    a->Set(0, Nan::New<Number>(e.minx()));
+    a->Set(1, Nan::New<Number>(e.miny()));
+    a->Set(2, Nan::New<Number>(e.maxx()));
+    a->Set(3, Nan::New<Number>(e.maxy()));
+    info.GetReturnValue().Set(a);
 }
 
 /**
@@ -213,9 +214,9 @@ NAN_METHOD(Datasource::extent)
  */
 NAN_METHOD(Datasource::describe)
 {
-    NanScope();
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
-    Local<Object> description = NanNew<Object>();
+    Nan::HandleScope scope;
+    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
+    Local<Object> description = Nan::New<Object>();
     try
     {
         node_mapnik::describe_datasource(description,d->datasource_);
@@ -227,20 +228,20 @@ NAN_METHOD(Datasource::describe)
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
         /* LCOV_EXCL_START */
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
         /* LCOV_EXCL_END */
     }
 
-    NanReturnValue(description);
+    info.GetReturnValue().Set(description);
 }
 
 NAN_METHOD(Datasource::featureset)
 {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Datasource* ds = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
+    Datasource* ds = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
 
     mapnik::featureset_ptr fs;
     try
@@ -265,26 +266,26 @@ NAN_METHOD(Datasource::featureset)
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
         /* LCOV_EXCL_START */
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
         /* LCOV_EXCL_END */
     }
 
     if (fs)
     {
-        NanReturnValue(Featureset::NewInstance(fs));
+        info.GetReturnValue().Set(Featureset::NewInstance(fs));
     }
     // This should never be able to be reached
     /* LCOV_EXCL_START */
-    NanReturnUndefined();
+    return;
     /* LCOV_EXCL_END */
 }
 
 NAN_METHOD(Datasource::fields)
 {
-    NanScope();
-    Datasource* d = node::ObjectWrap::Unwrap<Datasource>(args.Holder());
-    Local<Object> fields = NanNew<Object>();
+    Nan::HandleScope scope;
+    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
+    Local<Object> fields = Nan::New<Object>();
     node_mapnik::get_fields(fields,d->datasource_);
-    NanReturnValue(fields);
+    info.GetReturnValue().Set(fields);
 }

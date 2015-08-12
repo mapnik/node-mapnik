@@ -1,7 +1,7 @@
 #include "mapnik_featureset.hpp"
 #include "mapnik_feature.hpp"
 
-Persistent<FunctionTemplate> Featureset::constructor;
+Nan::Persistent<FunctionTemplate> Featureset::constructor;
 
 /**
  * An iterator of {@link mapnik.Feature} objects.
@@ -11,20 +11,20 @@ Persistent<FunctionTemplate> Featureset::constructor;
  */
 void Featureset::Initialize(Handle<Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Featureset::New);
+    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Featureset::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Featureset"));
+    lcons->SetClassName(Nan::New("Featureset").ToLocalChecked());
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "next", next);
+    Nan::SetPrototypeMethod(lcons, "next", next);
 
-    target->Set(NanNew("Featureset"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Featureset").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 Featureset::Featureset() :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     this_() {}
 
 Featureset::~Featureset()
@@ -33,25 +33,26 @@ Featureset::~Featureset()
 
 NAN_METHOD(Featureset::New)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    if (!args.IsConstructCall())
+    if (!info.IsConstructCall())
     {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
-    if (args[0]->IsExternal())
+    if (info[0]->IsExternal())
     {
-        Local<External> ext = args[0].As<External>();
+        Local<External> ext = info[0].As<External>();
         void* ptr = ext->Value();
         Featureset* fs =  static_cast<Featureset*>(ptr);
-        fs->Wrap(args.This());
-        NanReturnValue(args.This());
+        fs->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
 
-    NanThrowTypeError("Sorry a Featureset cannot currently be created, only accessed via an existing datasource");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("Sorry a Featureset cannot currently be created, only accessed via an existing datasource");
+    return;
 }
 
 /**
@@ -65,9 +66,9 @@ NAN_METHOD(Featureset::New)
  */
 NAN_METHOD(Featureset::next)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
-    Featureset* fs = node::ObjectWrap::Unwrap<Featureset>(args.Holder());
+    Featureset* fs = Nan::ObjectWrap::Unwrap<Featureset>(info.Holder());
 
     if (fs->this_) {
         mapnik::feature_ptr fp;
@@ -83,24 +84,23 @@ NAN_METHOD(Featureset::next)
             // be developed outside of mapnik core plugins that could raise here we are probably best still 
             // wrapping this in a try catch.
             /* LCOV_EXCL_START */
-            NanThrowError(ex.what());
-            NanReturnUndefined();
+            Nan::ThrowError(ex.what());
+            return;
             /* LCOV_EXCL_END */
         }
 
         if (fp) {
-            NanReturnValue(Feature::NewInstance(fp));
+            info.GetReturnValue().Set(Feature::NewInstance(fp));
         }
     }
-    NanReturnUndefined();
+    return;
 }
 
-Handle<Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
+Local<Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
 {
-    NanEscapableScope();
+    Nan::EscapableHandleScope scope;
     Featureset* fs = new Featureset();
     fs->this_ = fs_ptr;
-    Handle<Value> ext = NanNew<External>(fs);
-    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
-    return NanEscapeScope(obj);
+    Handle<Value> ext = Nan::New<External>(fs);
+    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }

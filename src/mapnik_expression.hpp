@@ -14,9 +14,9 @@
 
 using namespace v8;
 
-class Expression: public node::ObjectWrap {
+class Expression: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(toString);

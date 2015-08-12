@@ -60,54 +60,54 @@ static bool hexToUInt32Color(char *hex, unsigned int & value) {
 }
 
 NAN_METHOD(rgb2hsl) {
-    NanScope();
-    if (args.Length() != 3) {
-        NanThrowTypeError("Please pass r,g,b integer values as three arguments");
-        NanReturnUndefined();
+    Nan::HandleScope scope;
+    if (info.Length() != 3) {
+        Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
+        return;
     }
-    if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-        NanThrowTypeError("Please pass r,g,b integer values as three arguments");
-        NanReturnUndefined();
+    if (!info[0]->IsNumber() || !info[1]->IsNumber() || !info[2]->IsNumber()) {
+        Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
+        return;
     }
     unsigned r,g,b;
-    r = args[0]->IntegerValue();
-    g = args[1]->IntegerValue();
-    b = args[2]->IntegerValue();
-    Local<Array> hsl = NanNew<Array>(3);
+    r = info[0]->IntegerValue();
+    g = info[1]->IntegerValue();
+    b = info[2]->IntegerValue();
+    Local<Array> hsl = Nan::New<Array>(3);
     double h,s,l;
     rgb_to_hsl(r,g,b,h,s,l);
-    hsl->Set(0,NanNew<Number>(h));
-    hsl->Set(1,NanNew<Number>(s));
-    hsl->Set(2,NanNew<Number>(l));
-    NanReturnValue(hsl);
+    hsl->Set(0,Nan::New<Number>(h));
+    hsl->Set(1,Nan::New<Number>(s));
+    hsl->Set(2,Nan::New<Number>(l));
+    info.GetReturnValue().Set(hsl);
 }
 
 NAN_METHOD(hsl2rgb) {
-    NanScope();
-    if (args.Length() != 3) {
-        NanThrowTypeError("Please pass hsl fractional values as three arguments");
-        NanReturnUndefined();
+    Nan::HandleScope scope;
+    if (info.Length() != 3) {
+        Nan::ThrowTypeError("Please pass hsl fractional values as three arguments");
+        return;
     }
-    if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-        NanThrowTypeError("Please pass hsl fractional values as three arguments");
-        NanReturnUndefined();
+    if (!info[0]->IsNumber() || !info[1]->IsNumber() || !info[2]->IsNumber()) {
+        Nan::ThrowTypeError("Please pass hsl fractional values as three arguments");
+        return;
     }
     double h,s,l;
-    h = args[0]->NumberValue();
-    s = args[1]->NumberValue();
-    l = args[2]->NumberValue();
-    Local<Array> rgb = NanNew<Array>(3);
+    h = info[0]->NumberValue();
+    s = info[1]->NumberValue();
+    l = info[2]->NumberValue();
+    Local<Array> rgb = Nan::New<Array>(3);
     unsigned r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
-    rgb->Set(0,NanNew<Integer>(r));
-    rgb->Set(1,NanNew<Integer>(g));
-    rgb->Set(2,NanNew<Integer>(b));
-    NanReturnValue(rgb);
+    rgb->Set(0,Nan::New<Integer>(r));
+    rgb->Set(1,Nan::New<Integer>(g));
+    rgb->Set(2,Nan::New<Integer>(b));
+    info.GetReturnValue().Set(rgb);
 }
 
 static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string & msg) {
-    NanScope();
-    Local<Value> hue = tint->Get(NanNew("h"));
+    Nan::HandleScope scope;
+    Local<Value> hue = tint->Get(Nan::New("h").ToLocalChecked());
     if (!hue.IsEmpty() && hue->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(hue);
         if (val_array->Length() != 2) {
@@ -116,7 +116,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.h0 = val_array->Get(0)->NumberValue();
         tinter.h1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> sat = tint->Get(NanNew("s"));
+    Local<Value> sat = tint->Get(Nan::New("s").ToLocalChecked());
     if (!sat.IsEmpty() && sat->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(sat);
         if (val_array->Length() != 2) {
@@ -125,7 +125,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.s0 = val_array->Get(0)->NumberValue();
         tinter.s1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> light = tint->Get(NanNew("l"));
+    Local<Value> light = tint->Get(Nan::New("l").ToLocalChecked());
     if (!light.IsEmpty() && light->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(light);
         if (val_array->Length() != 2) {
@@ -134,7 +134,7 @@ static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string
         tinter.l0 = val_array->Get(0)->NumberValue();
         tinter.l1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> alpha = tint->Get(NanNew("a"));
+    Local<Value> alpha = tint->Get(Nan::New("a").ToLocalChecked());
     if (!alpha.IsEmpty() && alpha->IsArray()) {
         Local<Array> val_array = Local<Array>::Cast(alpha);
         if (val_array->Length() != 2) {
@@ -421,21 +421,21 @@ void Work_Blend(uv_work_t* req) {
 }
 
 void Work_AfterBlend(uv_work_t* req) {
-    NanScope();
+    Nan::HandleScope scope;
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
 
     if (!baton->message.length()) {
         std::string result = baton->stream.str();
         Local<Value> argv[] = {
-            NanNull(),
-            NanNewBufferHandle((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())),
+            Nan::Null(),
+            Nan::NewBuffer((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
         };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
     } else {
         Local<Value> argv[] = {
-            NanError(baton->message.c_str())
+            Nan::Error(baton->message.c_str())
         };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 1, argv);
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 1, argv);
     }
     delete baton;
 }
@@ -462,79 +462,79 @@ void Work_AfterBlend(uv_work_t* req) {
  * });
  */
 NAN_METHOD(Blend) {
-    NanScope();
+    Nan::HandleScope scope;
     std::unique_ptr<BlendBaton> baton(new BlendBaton());
 
     Local<Object> options;
-    if (args.Length() == 0 || !args[0]->IsArray()) {
-        NanThrowTypeError("First argument must be an array of Buffers.");
-        NanReturnUndefined();
-    } else if (args.Length() == 1) {
-        NanThrowTypeError("Second argument must be a function");
-        NanReturnUndefined();
-    } else if (args.Length() == 2) {
+    if (info.Length() == 0 || !info[0]->IsArray()) {
+        Nan::ThrowTypeError("First argument must be an array of Buffers.");
+        return;
+    } else if (info.Length() == 1) {
+        Nan::ThrowTypeError("Second argument must be a function");
+        return;
+    } else if (info.Length() == 2) {
         // No options provided.
-        if (!args[1]->IsFunction()) {
-            NanThrowTypeError("Second argument must be a function.");
-            NanReturnUndefined();
+        if (!info[1]->IsFunction()) {
+            Nan::ThrowTypeError("Second argument must be a function.");
+            return;
         }
-        NanAssignPersistent(baton->callback,args[1].As<Function>());
-    } else if (args.Length() >= 3) {
-        if (!args[1]->IsObject()) {
-            NanThrowTypeError("Second argument must be a an options object.");
-            NanReturnUndefined();
+        baton->callback.Reset(info[1].As<Function>());
+    } else if (info.Length() >= 3) {
+        if (!info[1]->IsObject()) {
+            Nan::ThrowTypeError("Second argument must be a an options object.");
+            return;
         }
-        options = Local<Object>::Cast(args[1]);
+        options = Local<Object>::Cast(info[1]);
 
-        if (!args[2]->IsFunction()) {
-            NanThrowTypeError("Third argument must be a function.");
-            NanReturnUndefined();
+        if (!info[2]->IsFunction()) {
+            Nan::ThrowTypeError("Third argument must be a function.");
+            return;
         }
-        NanAssignPersistent(baton->callback,args[2].As<Function>());
+        baton->callback.Reset(info[2].As<Function>());
     }
 
     // Validate options
     if (!options.IsEmpty()) {
-        baton->quality = options->Get(NanNew("quality"))->Int32Value();
+        baton->quality = options->Get(Nan::New("quality").ToLocalChecked())->Int32Value();
 
-        Local<Value> format_val = options->Get(NanNew("format"));
+        Local<Value> format_val = options->Get(Nan::New("format").ToLocalChecked());
         if (!format_val.IsEmpty() && format_val->IsString()) {
             if (strcmp(*String::Utf8Value(format_val), "jpeg") == 0 ||
                     strcmp(*String::Utf8Value(format_val), "jpg") == 0) {
                 baton->format = BLEND_FORMAT_JPEG;
                 if (baton->quality == 0) baton->quality = 85; // 85 is same default as mapnik core jpeg
                 else if (baton->quality < 0 || baton->quality > 100) {
-                    NanThrowTypeError("JPEG quality is range 0-100.");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("JPEG quality is range 0-100.");
+                    return;
                 }
             } else if (strcmp(*String::Utf8Value(format_val), "png") == 0) {
                 if (baton->quality == 1 || baton->quality > 256) {
-                    NanThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
+                    return;
                 }
             } else if (strcmp(*String::Utf8Value(format_val), "webp") == 0) {
                 baton->format = BLEND_FORMAT_WEBP;
                 if (baton->quality == 0) baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
-                    NanThrowTypeError("WebP quality is range 0-100.");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("WebP quality is range 0-100.");
+                    return;
                 }
             } else {
-                NanThrowTypeError("Invalid output format.");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("Invalid output format.");
+                return;
             }
         }
 
-        baton->reencode = options->Get(NanNew("reencode"))->BooleanValue();
-        baton->width = options->Get(NanNew("width"))->Int32Value();
-        baton->height = options->Get(NanNew("height"))->Int32Value();
+        baton->reencode = options->Get(Nan::New("reencode").ToLocalChecked())->BooleanValue();
+        baton->width = options->Get(Nan::New("width").ToLocalChecked())->Int32Value();
+        baton->height = options->Get(Nan::New("height").ToLocalChecked())->Int32Value();
 
-        Local<Value> matte_val = options->Get(NanNew("matte"));
+        Local<Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
             if (!hexToUInt32Color(*String::Utf8Value(matte_val->ToString()), baton->matte))
             {
-                NanThrowTypeError("Invalid batte provided.");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("Invalid batte provided.");
+                return;
             }
 
             // Make sure we're reencoding in the case of single alpha PNGs
@@ -543,12 +543,12 @@ NAN_METHOD(Blend) {
             }
         }
 
-        Local<Value> palette_val = options->Get(NanNew("palette"));
+        Local<Value> palette_val = options->Get(Nan::New("palette").ToLocalChecked());
         if (!palette_val.IsEmpty() && palette_val->IsObject()) {
-            baton->palette = node::ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
+            baton->palette = Nan::ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
         }
 
-        Local<Value> mode_val = options->Get(NanNew("mode"));
+        Local<Value> mode_val = options->Get(Nan::New("mode").ToLocalChecked());
         if (!mode_val.IsEmpty() && mode_val->IsString()) {
             if (strcmp(*String::Utf8Value(mode_val), "octree") == 0 ||
                 strcmp(*String::Utf8Value(mode_val), "o") == 0) {
@@ -560,7 +560,7 @@ NAN_METHOD(Blend) {
             }
         }
 
-        Local<Value> encoder_val = options->Get(NanNew("encoder"));
+        Local<Value> encoder_val = options->Get(Nan::New("encoder").ToLocalChecked());
         if (!encoder_val.IsEmpty() && encoder_val->IsString()) {
             if (strcmp(*String::Utf8Value(encoder_val), "miniz") == 0) {
                 baton->encoder = BLEND_ENCODER_MINIZ;
@@ -568,16 +568,16 @@ NAN_METHOD(Blend) {
             // default is libpng
         }
 
-        if (options->Has(NanNew("compression"))) {
-            Local<Value> compression_val = options->Get(NanNew("compression"));
+        if (options->Has(Nan::New("compression").ToLocalChecked())) {
+            Local<Value> compression_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!compression_val.IsEmpty() && compression_val->IsNumber())
             {
                 baton->compression = compression_val->Int32Value();
             }
             else
             {
-                NanThrowTypeError("Compression option must be a number");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("Compression option must be a number");
+                return;
             }
         }
 
@@ -595,26 +595,26 @@ NAN_METHOD(Blend) {
             std::ostringstream msg;
             msg << "Compression level must be between "
                 << min_compression << " and " << max_compression;
-            NanThrowTypeError(msg.str().c_str());
-            NanReturnUndefined();
+            Nan::ThrowTypeError(msg.str().c_str());
+            return;
         }
     }
 
-    Local<Array> js_images = Local<Array>::Cast(args[0]);
+    Local<Array> js_images = Local<Array>::Cast(info[0]);
     uint32_t length = js_images->Length();
     if (length < 1 && !baton->reencode) {
-        NanThrowTypeError("First argument must contain at least one Buffer.");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must contain at least one Buffer.");
+        return;
     } else if (length == 1 && !baton->reencode) {
         Local<Value> buffer = js_images->Get(0);
         if (Buffer::HasInstance(buffer)) {
             // Directly pass through buffer if it's the only one.
             Local<Value> argv[] = {
-                NanNull(),
+                Nan::Null(),
                 buffer
             };
-            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(baton->callback), 2, argv);
-            NanReturnUndefined();
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
+            return;
         } else {
             // Check whether the argument is a complex image with offsets etc.
             // In that case, we don't throw but continue going through the blend
@@ -622,43 +622,43 @@ NAN_METHOD(Blend) {
             bool valid = false;
             if (buffer->IsObject()) {
                 Local<Object> props = buffer->ToObject();
-                valid = props->Has(NanNew("buffer")) &&
-                        Buffer::HasInstance(props->Get(NanNew("buffer")));
+                valid = props->Has(Nan::New("buffer").ToLocalChecked()) &&
+                        Buffer::HasInstance(props->Get(Nan::New("buffer").ToLocalChecked()));
             }
             if (!valid) {
-                NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+                return;
             }
         }
     }
 
     if (!(length >= 1 || (baton->width > 0 && baton->height > 0))) {
-        NanThrowTypeError("Without buffers, you have to specify width and height.");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Without buffers, you have to specify width and height.");
+        return;
     }
 
     if (baton->width < 0 || baton->height < 0) {
-        NanThrowTypeError("Image dimensions must be greater than 0.");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Image dimensions must be greater than 0.");
+        return;
     }
 
     for (uint32_t i = 0; i < length; i++) {
         ImagePtr image = std::make_shared<BImage>();
         Local<Value> buffer = js_images->Get(i);
         if (Buffer::HasInstance(buffer)) {
-            NanAssignPersistent(image->buffer,buffer.As<Object>());
+            image->buffer.Reset(buffer.As<Object>());
         } else if (buffer->IsObject()) {
             Local<Object> props = buffer->ToObject();
-            if (props->Has(NanNew("buffer"))) {
-                buffer = props->Get(NanNew("buffer"));
+            if (props->Has(Nan::New("buffer").ToLocalChecked())) {
+                buffer = props->Get(Nan::New("buffer").ToLocalChecked());
                 if (Buffer::HasInstance(buffer)) {
-                    NanAssignPersistent(image->buffer,buffer.As<Object>());
+                    image->buffer.Reset(buffer.As<Object>());
                 }
             }
-            image->x = props->Get(NanNew("x"))->Int32Value();
-            image->y = props->Get(NanNew("y"))->Int32Value();
+            image->x = props->Get(Nan::New("x").ToLocalChecked())->Int32Value();
+            image->y = props->Get(Nan::New("y").ToLocalChecked())->Int32Value();
 
-            Local<Value> tint_val = props->Get(NanNew("tint"));
+            Local<Value> tint_val = props->Get(Nan::New("tint").ToLocalChecked());
             if (!tint_val.IsEmpty() && tint_val->IsObject()) {
                 Local<Object> tint = tint_val->ToObject();
                 if (!tint.IsEmpty()) {
@@ -666,16 +666,16 @@ NAN_METHOD(Blend) {
                     std::string msg;
                     parseTintOps(tint,image->tint,msg);
                     if (!msg.empty()) {
-                        NanThrowTypeError(msg.c_str());
-                        NanReturnUndefined();
+                        Nan::ThrowTypeError(msg.c_str());
+                        return;
                     }
                 }
             }
         }
 
         if (image->buffer.IsEmpty()) {
-            NanThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+            return;
         }
 
         image->data = node::Buffer::Data(buffer);
@@ -685,7 +685,7 @@ NAN_METHOD(Blend) {
 
     uv_queue_work(uv_default_loop(), &(baton.release())->request, Work_Blend, (uv_after_work_cb)Work_AfterBlend);
 
-    NanReturnUndefined();
+    return;
 }
 
 }

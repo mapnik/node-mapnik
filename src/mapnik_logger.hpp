@@ -6,10 +6,10 @@
 //Forward declaration of mapnik logger
 namespace mapnik { class logger; }
 
-class Logger: public node::ObjectWrap {
+class Logger: public Nan::ObjectWrap {
 public:
     // V8 way of...
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
 
     // Initialize function is needed for all addons
     static void Initialize(Handle<Object> target);

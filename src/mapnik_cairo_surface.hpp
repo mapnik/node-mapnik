@@ -19,10 +19,10 @@
 
 using namespace v8;
 
-class CairoSurface: public node::ObjectWrap {
+class CairoSurface: public Nan::ObjectWrap {
 public:
     typedef std::stringstream i_stream;
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);

@@ -14,9 +14,9 @@ using namespace v8;
 
 typedef std::shared_ptr<mapnik::rgba_palette> palette_ptr;
 
-class Palette: public node::ObjectWrap {
+class Palette: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<FunctionTemplate> constructor;
 
     explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
     static void Initialize(Handle<Object> target);
