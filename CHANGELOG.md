@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.3
+
+ - Upgrade to mapnik-vector-tile@0.9.2
+
 ## 3.4.2
 
  - Added `Image.fromSVG`, `Image.fromSVGBytes` and the equivilent Sync functions for each
@@ -7,7 +11,7 @@
 
 Notable changes in the Mapnik SDK include:
  
- -  Added container to log SVG parsing errors
+ - Added container to log SVG parsing errors
  - Reimplemented to use rapidxml for parsing XML (DOM)
  - Support both xml:id and id attributes ( xml:id takes precedence )
  - Added parse_id_from_url using boost::spirit
