@@ -121,6 +121,7 @@ describe('mapnik.Image SVG', function() {
             assert.equal(img.width(), 256);
             assert.equal(img.height(), 256);
             assert.equal(img.encodeSync('png32').length, 17272);
+            assert.equal(img.premultiplied(), false);
             done();
         });
     });
@@ -145,6 +146,7 @@ describe('mapnik.Image SVG', function() {
             assert.equal(img.width(), 100);
             assert.equal(img.height(), 100);
             assert.equal(img.encodeSync("png").length, 1270);
+            assert.equal(img.premultiplied(), false);
             done();
         });
     });
@@ -158,5 +160,7 @@ describe('mapnik.Image SVG', function() {
         assert.equal(img.width(), 50);
         assert.equal(img.height(), 50);
         assert.equal(img.encodeSync("png").length, 616);
+        assert.equal(img.premultiplied(), false);
     });
+
 });

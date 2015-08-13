@@ -2393,7 +2393,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
             return NanEscapeScope(NanUndefined());
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height);
+        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2414,6 +2414,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, _NAN_METHOD_ARGS)
                                                        marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
 
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
         Image *im2 = new Image(image_ptr);
@@ -2567,7 +2568,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height);
+        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2588,6 +2589,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
                                                        marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
         closure->im = std::make_shared<mapnik::image_any>(im);
     }
     catch (std::exception const& ex)
@@ -2744,7 +2746,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height);
+        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2765,6 +2767,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
                                                        marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
         closure->im = std::make_shared<mapnik::image_any>(im);
     }
     catch (std::exception const& ex)
