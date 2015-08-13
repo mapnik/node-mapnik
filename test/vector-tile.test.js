@@ -511,6 +511,30 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should error on bogus gzip data', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var fake_gzip = new Buffer(30);
+        fake_gzip[0] = 0x1F;
+        fake_gzip[1] = 0x8B;
+        assert.throws(function() { vtile.setData(fake_gzip); });
+        vtile.setData(fake_gzip,function(err) {
+            assert.ok(err);
+            done();
+        });
+    });
+
+    it.only('should error on bogus zlib data', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var fake_zlib = new Buffer(30);
+        fake_zlib[0] = 0x78;
+        fake_zlib[1] = 0x9C;
+        assert.throws(function() { vtile.setData(fake_zlib); });
+        vtile.setData(fake_zlib,function(err) {
+            assert.ok(err);
+            done();
+        });
+    });
+
     it('should error out if we pass invalid data to setData - 1', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
