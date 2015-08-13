@@ -55,6 +55,7 @@
 #include <protozero/pbf_reader.hpp>
 
 // addGeoJSON
+#include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include <mapnik/datasource_cache.hpp>
@@ -2374,7 +2375,24 @@ Local<Value> VectorTile::_setDataSync(_NAN_METHOD_ARGS)
         NanThrowError("cannot accept empty buffer as protobuf");
         return NanEscapeScope(NanUndefined());
     }
-    d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
+    const char * data = node::Buffer::Data(obj);
+    if (mapnik::vector_tile_impl::is_gzip_compressed(data,buffer_size) ||
+        mapnik::vector_tile_impl::is_zlib_compressed(data,buffer_size))
+    {
+        try
+        {
+            mapnik::vector_tile_impl::zlib_decompress(data, buffer_size, d->buffer_);
+        }
+        catch (std::exception const& ex)
+        {
+            NanThrowError((std::string("failed decoding compressed data ") + ex.what()).c_str() );
+            return NanEscapeScope(NanUndefined());
+        }
+    }
+    else
+    {
+        d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
+    }
     return NanEscapeScope(NanUndefined());
 }
 
@@ -2445,7 +2463,15 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 
     try
     {
-        closure->d->buffer_ = std::string(closure->data,closure->dataLength);
+        if (mapnik::vector_tile_impl::is_gzip_compressed(closure->data,closure->dataLength) ||
+            mapnik::vector_tile_impl::is_zlib_compressed(closure->data,closure->dataLength))
+        {
+            mapnik::vector_tile_impl::zlib_decompress(closure->data,closure->dataLength, closure->d->buffer_);
+        }
+        else
+        {
+            closure->d->buffer_ = std::string(closure->data,closure->dataLength);
+        }
     }
     catch (std::exception const& ex)
     {

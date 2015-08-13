@@ -449,9 +449,53 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with
-        // a polygon box resulting from clipping a chunk out of 
+        // a polygon box resulting from clipping a chunk out of
         // a larger polygon fully outside the rendered/clipping extent
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setData(data);
+        // empty is valid to use before parse() (and after)
+        assert.equal(vtile.empty(), false);
+        vtile.parseSync();
+        assert.equal(vtile.painted(), true);
+        assert.equal(vtile.isSolid(), "world");
+        assert.equal(vtile.empty(), false);
+        vtile.isSolid(function(err, solid, key) {
+            if (err) throw err;
+            assert.equal(solid, true);
+            assert.equal(key, "world");
+            done();
+        });
+    });
+
+    it('should be able to setData/parse zlib compressed (sync)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        // tile1 represents a "solid" vector tile with one layer
+        // that only encodes a single feature with a single path with
+        // a polygon box resulting from clipping a chunk out of
+        // a larger polygon fully outside the rendered/clipping extent
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        // empty is valid to use before parse() (and after)
+        assert.equal(vtile.empty(), false);
+        vtile.parseSync();
+        assert.equal(vtile.painted(), true);
+        assert.equal(vtile.isSolid(), "world");
+        assert.equal(vtile.empty(), false);
+        vtile.isSolid(function(err, solid, key) {
+            if (err) throw err;
+            assert.equal(solid, true);
+            assert.equal(key, "world");
+            done();
+        });
+    });
+
+    it('should be able to setData/parse gzip compressed (sync)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        // tile1 represents a "solid" vector tile with one layer
+        // that only encodes a single feature with a single path with
+        // a polygon box resulting from clipping a chunk out of
+        // a larger polygon fully outside the rendered/clipping extent
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
         vtile.setData(data);
         // empty is valid to use before parse() (and after)
         assert.equal(vtile.empty(), false);
@@ -604,6 +648,66 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.isSolid(null); });
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setData(data, function(err) {
+            if (err) throw err;
+            // names and empty are valid before parse()
+            assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                assert.deepEqual(vtile.names(), ["world"]);
+                assert.equal(vtile.empty(), false);
+                assert.equal(vtile.painted(), true);
+                assert.equal(vtile.isSolidSync(), "world");
+                vtile.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should be able to setData/parse zlib compressed (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.isSolid(null); });
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data, function(err) {
+            if (err) throw err;
+            // names and empty are valid before parse()
+            assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                assert.deepEqual(vtile.names(), ["world"]);
+                assert.equal(vtile.empty(), false);
+                assert.equal(vtile.painted(), true);
+                assert.equal(vtile.isSolidSync(), "world");
+                vtile.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should be able to setData/parse gzip compressed (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.isSolid(null); });
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
         vtile.setData(data, function(err) {
             if (err) throw err;
             // names and empty are valid before parse()
