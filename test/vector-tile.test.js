@@ -826,6 +826,22 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
+    it('should be able to get and set data (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        vtile.setData(new Buffer(_data,"hex"),function(err) {
+            if (err) throw err;
+            var vtile2 = new mapnik.VectorTile(9,112,195);
+            vtile.getData(function(err,data) {
+                if (err) throw err;
+                vtile2.setData(data);
+                assert.deepEqual(vtile.names(),vtile2.names());
+                assert.deepEqual(vtile.toJSON(),vtile2.toJSON());
+                assert.deepEqual(vtile2.toJSON(),_vtile.toJSON());
+                done();
+            });
+        });
+    });
+
     it('should be able to get virtual datasource and features', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));

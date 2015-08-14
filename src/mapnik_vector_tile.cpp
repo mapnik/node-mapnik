@@ -327,6 +327,7 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "setData", setData);
     NODE_SET_PROTOTYPE_METHOD(lcons, "setDataSync", setDataSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "getData", getData);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "getDataSync", getDataSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "parse", parse);
     NODE_SET_PROTOTYPE_METHOD(lcons, "parseSync", parseSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addData", addData);
@@ -2517,16 +2518,26 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  * @instance
  * @returns {Buffer} raw data
  */
-NAN_METHOD(VectorTile::getData)
+
+NAN_METHOD(VectorTile::getDataSync)
 {
     NanScope();
+    NanReturnValue(_getDataSync(args));
+}
+
+Local<Value> VectorTile::_getDataSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
-    try {
-        // shortcut: return raw data and avoid trip through proto object
+    try
+    {
         std::size_t raw_size = d->buffer_.size();
-        if (raw_size <= 0) {
-            NanReturnValue(NanNewBufferHandle(0));
-        } else {
+        if (raw_size <= 0)
+        {
+            return NanEscapeScope(NanNewBufferHandle(0));
+        }
+        else
+        {
             if (raw_size >= node::Buffer::kMaxLength) {
                 // This is a valid test path, but I am excluding it from test coverage due to the
                 // requirement of loading a very large object in memory in order to test it.
@@ -2537,7 +2548,7 @@ NAN_METHOD(VectorTile::getData)
                 throw std::runtime_error(s.str());
                 // LCOV_EXCL_END
             }
-            NanReturnValue(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
+            return NanEscapeScope(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
         }
     } 
     catch (std::exception const& ex) 
@@ -2547,10 +2558,104 @@ NAN_METHOD(VectorTile::getData)
         // in test coverage.
         // LCOV_EXCL_START
         NanThrowError(ex.what());
-        NanReturnUndefined();
+        return NanEscapeScope(NanUndefined());
         // LCOV_EXCL_END
     }
+    return NanEscapeScope(NanUndefined());
+}
+
+typedef struct {
+    uv_work_t request;
+    VectorTile* d;
+    bool error;
+    std::string data;
+    std::string error_name;
+    Persistent<Function> cb;
+} vector_tile_get_data_baton_t;
+
+
+NAN_METHOD(VectorTile::getData)
+{
+    NanScope();
+    if (args.Length() == 0) {
+        NanReturnValue(_getDataSync(args));
+    }
+
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length()-1];
+    if (!args[args.Length()-1]->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
+
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    vector_tile_get_data_baton_t *closure = new vector_tile_get_data_baton_t();
+    closure->request.data = closure;
+    closure->d = d;
+    closure->error = false;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, get_data, (uv_after_work_cb)after_get_data);
+    d->Ref();
     NanReturnUndefined();
+}
+
+void VectorTile::get_data(uv_work_t* req)
+{
+    vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
+    try
+    {
+        // TODO: nothing to do unless we are compressing
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::after_get_data(uv_work_t* req)
+{
+    NanScope();
+    vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
+    if (closure->error) {
+        Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else if (!closure->data.empty()) // TODO: compressed
+    {
+        Local<Value> argv[1] = { NanNull() };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+    }
+    else
+    {
+        std::size_t raw_size = closure->d->buffer_.size();
+        if (raw_size <= 0)
+        {
+            Local<Value> argv[2] = { NanNull(), NanNewBufferHandle(0) };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        }
+        else if (raw_size >= node::Buffer::kMaxLength)
+        {
+            // This is a valid test path, but I am excluding it from test coverage due to the
+            // requirement of loading a very large object in memory in order to test it.
+            // LCOV_EXCL_START
+            std::ostringstream s;
+            s << "Data is too large to convert to a node::Buffer ";
+            s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
+            Local<Value> argv[1] = { NanError(s.str().c_str()) };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+            // LCOV_EXCL_END
+        }
+        else
+        {
+            Local<Value> argv[2] = { NanNull(), NanNewBufferHandle((char*)closure->d->buffer_.data(),raw_size) };
+            NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+        }
+    }
+
+    closure->d->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
 }
 
 using surface_type = mapnik::util::variant<Image *

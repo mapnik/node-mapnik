@@ -40,6 +40,10 @@ public:
     static void Initialize(Handle<Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);
+    static NAN_METHOD(getDataSync);
+    static Local<Value> _getDataSync(_NAN_METHOD_ARGS);
+    static void get_data(uv_work_t* req);
+    static void after_get_data(uv_work_t* req);
     static NAN_METHOD(render);
     static NAN_METHOD(toJSON);
     static NAN_METHOD(query);
