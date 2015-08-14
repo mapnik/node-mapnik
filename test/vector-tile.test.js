@@ -514,6 +514,7 @@ describe('mapnik.VectorTile ', function() {
     it('should error on bogus gzip data', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var fake_gzip = new Buffer(30);
+        fake_gzip.fill(0);
         fake_gzip[0] = 0x1F;
         fake_gzip[1] = 0x8B;
         assert.throws(function() { vtile.setData(fake_gzip); });
@@ -523,9 +524,10 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it.only('should error on bogus zlib data', function(done) {
+    it('should error on bogus zlib data', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var fake_zlib = new Buffer(30);
+        fake_zlib.fill(0);
         fake_zlib[0] = 0x78;
         fake_zlib[1] = 0x9C;
         assert.throws(function() { vtile.setData(fake_zlib); });
@@ -813,7 +815,7 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it('should be able to get and set data', function(done) {
+    it('should be able to get and set data (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         var vtile2 = new mapnik.VectorTile(9,112,195);
