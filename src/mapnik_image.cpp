@@ -665,7 +665,7 @@ NAN_METHOD(Image::filter)
     if (!args[0]->IsString())
     {
         NanThrowTypeError("A string is expected for filter argument");
-        return NanEscapeScope(NanUndefined());
+        NanReturnUndefined();
     }
     filter_image_baton_t *closure = new filter_image_baton_t();
     closure->filter = TOSTR(args[0]);
