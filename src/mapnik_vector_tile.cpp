@@ -2529,6 +2529,85 @@ Local<Value> VectorTile::_getDataSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+
+    bool compress = false;
+    int level = Z_DEFAULT_COMPRESSION;
+    int strategy = Z_DEFAULT_STRATEGY;
+
+    Local<Object> options = NanNew<Object>();
+
+    if (args.Length() > 0)
+    {
+        if (!args[0]->IsObject())
+        {
+            NanThrowTypeError("first arg must be a options object");
+            return NanEscapeScope(NanUndefined());
+        }
+
+        options = args[0]->ToObject();
+
+        if (options->Has(NanNew("compression")))
+        {
+            Local<Value> param_val = options->Get(NanNew("compression"));
+            if (!param_val->IsString())
+            {
+                NanThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
+                return NanEscapeScope(NanUndefined());
+            }
+            compress = std::string("gzip") == (TOSTR(param_val->ToString()));
+        }
+
+        if (options->Has(NanNew("level")))
+        {
+            Local<Value> param_val = options->Get(NanNew("level"));
+            if (!param_val->IsNumber())
+            {
+                NanThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
+                return NanEscapeScope(NanUndefined());
+            }
+            level = param_val->IntegerValue();
+            if (level < 0 || level > 9)
+            {
+                NanThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+        if (options->Has(NanNew("strategy")))
+        {
+            Local<Value> param_val = options->Get(NanNew("strategy"));
+            if (!param_val->IsString())
+            {
+                NanThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
+                return NanEscapeScope(NanUndefined());
+            }
+            else if (std::string("FILTERED") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_FILTERED;
+            }
+            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_HUFFMAN_ONLY;
+            }
+            else if (std::string("RLE") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_RLE;
+            }
+            else if (std::string("FIXED") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_FIXED;
+            }
+            else if (std::string("DEFAULT") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_DEFAULT_STRATEGY;
+            }
+            else
+            {
+                NanThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
+                return NanEscapeScope(NanUndefined());
+            }
+        }
+    }
+
     try
     {
         std::size_t raw_size = d->buffer_.size();
@@ -2548,7 +2627,16 @@ Local<Value> VectorTile::_getDataSync(_NAN_METHOD_ARGS)
                 throw std::runtime_error(s.str());
                 // LCOV_EXCL_END
             }
-            return NanEscapeScope(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
+            if (!compress)
+            {
+                return NanEscapeScope(NanNewBufferHandle((char*)d->buffer_.data(),raw_size));
+            }
+            else
+            {
+                std::string compressed;
+                mapnik::vector_tile_impl::zlib_compress(d->buffer_, compressed, true, level, strategy);
+                return NanEscapeScope(NanNewBufferHandle((char*)compressed.data(),compressed.size()));
+            }
         }
     } 
     catch (std::exception const& ex) 
@@ -2569,6 +2657,9 @@ typedef struct {
     VectorTile* d;
     bool error;
     std::string data;
+    bool compress;
+    int level;
+    int strategy;
     std::string error_name;
     Persistent<Function> cb;
 } vector_tile_get_data_baton_t;
@@ -2577,21 +2668,97 @@ typedef struct {
 NAN_METHOD(VectorTile::getData)
 {
     NanScope();
-    if (args.Length() == 0) {
+
+    if (args.Length() == 0 || !args[args.Length()-1]->IsFunction()) {
         NanReturnValue(_getDataSync(args));
     }
 
-    // ensure callback is a function
     Local<Value> callback = args[args.Length()-1];
-    if (!args[args.Length()-1]->IsFunction()) {
-        NanThrowTypeError("last argument must be a callback function");
-        NanReturnUndefined();
+    bool compress = false;
+    int level = Z_DEFAULT_COMPRESSION;
+    int strategy = Z_DEFAULT_STRATEGY;
+
+    Local<Object> options = NanNew<Object>();
+
+    if (args.Length() > 1)
+    {
+        if (!args[0]->IsObject())
+        {
+            NanThrowTypeError("first arg must be a options object");
+            NanReturnUndefined();
+        }
+
+        options = args[0]->ToObject();
+
+        if (options->Has(NanNew("compression")))
+        {
+            Local<Value> param_val = options->Get(NanNew("compression"));
+            if (!param_val->IsString())
+            {
+                NanThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
+                NanReturnUndefined();
+            }
+            compress = std::string("gzip") == (TOSTR(param_val->ToString()));
+        }
+
+        if (options->Has(NanNew("level")))
+        {
+            Local<Value> param_val = options->Get(NanNew("level"));
+            if (!param_val->IsNumber())
+            {
+                NanThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
+                NanReturnUndefined();
+            }
+            level = param_val->IntegerValue();
+            if (level < 0 || level > 9)
+            {
+                NanThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
+                NanReturnUndefined();
+            }
+        }
+        if (options->Has(NanNew("strategy")))
+        {
+            Local<Value> param_val = options->Get(NanNew("strategy"));
+            if (!param_val->IsString())
+            {
+                NanThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
+                NanReturnUndefined();
+            }
+            else if (std::string("FILTERED") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_FILTERED;
+            }
+            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_HUFFMAN_ONLY;
+            }
+            else if (std::string("RLE") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_RLE;
+            }
+            else if (std::string("FIXED") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_FIXED;
+            }
+            else if (std::string("DEFAULT") == TOSTR(param_val->ToString()))
+            {
+                strategy = Z_DEFAULT_STRATEGY;
+            }
+            else
+            {
+                NanThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
+                NanReturnUndefined();
+            }
+        }
     }
 
     VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     vector_tile_get_data_baton_t *closure = new vector_tile_get_data_baton_t();
     closure->request.data = closure;
     closure->d = d;
+    closure->compress = compress;
+    closure->level = level;
+    closure->strategy = strategy;
     closure->error = false;
     NanAssignPersistent(closure->cb, callback.As<Function>());
     uv_queue_work(uv_default_loop(), &closure->request, get_data, (uv_after_work_cb)after_get_data);
@@ -2604,7 +2771,11 @@ void VectorTile::get_data(uv_work_t* req)
     vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
     try
     {
-        // TODO: nothing to do unless we are compressing
+        // compress if requested
+        if (closure->compress)
+        {
+            mapnik::vector_tile_impl::zlib_compress(closure->d->buffer_, closure->data, true, closure->level, closure->strategy);
+        }
     }
     catch (std::exception const& ex)
     {
@@ -2621,10 +2792,10 @@ void VectorTile::after_get_data(uv_work_t* req)
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
     }
-    else if (!closure->data.empty()) // TODO: compressed
+    else if (!closure->data.empty())
     {
-        Local<Value> argv[1] = { NanNull() };
-        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        Local<Value> argv[2] = { NanNull(), NanNewBufferHandle((char*)closure->data.data(),closure->data.size()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
     }
     else
     {

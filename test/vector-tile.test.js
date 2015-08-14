@@ -7,6 +7,7 @@ var path = require('path');
 var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
+var zlib = require('zlib');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
@@ -469,45 +470,89 @@ describe('mapnik.VectorTile ', function() {
 
     it('should be able to setData/parse zlib compressed (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
-        // tile1 represents a "solid" vector tile with one layer
-        // that only encodes a single feature with a single path with
-        // a polygon box resulting from clipping a chunk out of
-        // a larger polygon fully outside the rendered/clipping extent
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
         vtile.setData(data);
-        // empty is valid to use before parse() (and after)
-        assert.equal(vtile.empty(), false);
-        vtile.parseSync();
-        assert.equal(vtile.painted(), true);
-        assert.equal(vtile.isSolid(), "world");
-        assert.equal(vtile.empty(), false);
-        vtile.isSolid(function(err, solid, key) {
+        vtile.getData({compression:'gzip',level:9,strategy:'RLE'},function(err,compressed) {
             if (err) throw err;
-            assert.equal(solid, true);
-            assert.equal(key, "world");
-            done();
+            assert.equal(compressed[0],0x1F);
+            assert.equal(compressed[1],0x8B);
+            assert.equal(compressed[2],8);
+            assert.equal(compressed.length,vtile.getData({compression:'gzip',level:9,strategy:'RLE'}).length);
+            var uncompressed = vtile.getData();
+            var default_compressed = vtile.getData({compression:'gzip'});
+            // ensure all the default options match the default node zlib options
+            zlib.gzip(uncompressed,function(err,node_compressed) {
+                assert.equal(default_compressed.length,node_compressed.length);
+            });
+            var vtile2 = new mapnik.VectorTile(9,112,195);
+            vtile2.setData(compressed);
+            assert.equal(vtile.getData().length,vtile2.getData().length);
+            // empty is valid to use before parse() (and after)
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.empty(), false);
+            vtile.parseSync();
+            vtile2.parseSync();
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.painted(), true);
+            assert.equal(vtile2.isSolid(), "world");
+            assert.equal(vtile2.empty(), false);
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                vtile2.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
         });
     });
 
     it('should be able to setData/parse gzip compressed (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
-        // tile1 represents a "solid" vector tile with one layer
-        // that only encodes a single feature with a single path with
-        // a polygon box resulting from clipping a chunk out of
-        // a larger polygon fully outside the rendered/clipping extent
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
         vtile.setData(data);
-        // empty is valid to use before parse() (and after)
-        assert.equal(vtile.empty(), false);
-        vtile.parseSync();
-        assert.equal(vtile.painted(), true);
-        assert.equal(vtile.isSolid(), "world");
-        assert.equal(vtile.empty(), false);
-        vtile.isSolid(function(err, solid, key) {
+        vtile.getData({compression:'gzip',level:9,strategy:'RLE'},function(err,compressed) {
             if (err) throw err;
-            assert.equal(solid, true);
-            assert.equal(key, "world");
-            done();
+            assert.equal(compressed[0],0x1F);
+            assert.equal(compressed[1],0x8B);
+            assert.equal(compressed[2],8);
+            assert.equal(compressed.length,vtile.getData({compression:'gzip',level:9,strategy:'RLE'}).length);
+            var uncompressed = vtile.getData();
+            var default_compressed = vtile.getData({compression:'gzip'});
+            // ensure all the default options match the default node zlib options
+            zlib.gzip(uncompressed,function(err,node_compressed) {
+                assert.equal(default_compressed.length,node_compressed.length);
+            });
+            var vtile2 = new mapnik.VectorTile(9,112,195);
+            vtile2.setData(compressed);
+            assert.equal(vtile.getData().length,vtile2.getData().length);
+            // empty is valid to use before parse() (and after)
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.empty(), false);
+            vtile.parseSync();
+            vtile2.parseSync();
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.painted(), true);
+            assert.equal(vtile2.isSolid(), "world");
+            assert.equal(vtile2.empty(), false);
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                vtile2.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
         });
     });
 
