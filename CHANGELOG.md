@@ -3,6 +3,17 @@
 ## 3.4.3
 
  - Upgrade to mapnik-vector-tile@0.9.2
+ - Added `Image.filter` and `Image.filterSync` to filter images.
+ - Binaries updated to use Mapnik v3.0.3
+
+Notable changines in the Mapnik SDK include:
+
+- Fixed an issue with fields over size of `int32` in `OGR` plugin (https://github.com/mapnik/node-mapnik/issues/499)
+- Added 3 new image-filters to simulate types of colorblindness (`color-blind-protanope`,`color-blind-deuteranope`,`color-blind-tritanope`)
+- Fix so that null text boxes have no bounding boxes when attempting placement ( 162f82cba5b0fb984c425586c6a4b354917abc47 )
+- Patch to add legacy method for setting JPEG quality in images ( #3024 )
+- Added `filter_image` method which can modify an image in place or return a new image that is filtered
+- Added missing typedef's in `mapnik::geometry` to allow experimenting with different containers
 
 ## 3.4.2
 
