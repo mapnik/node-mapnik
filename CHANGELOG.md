@@ -5,8 +5,11 @@
  - Upgrade to mapnik-vector-tile@0.9.2
  - Added `Image.filter` and `Image.filterSync` to filter images.
  - Binaries updated to use Mapnik v3.0.3
+ - Upgrade to mapnik-vector-tile@0.9.3
+   - Fixed multipoint encoding
+   - Optimized geometry decoding
 
-Notable changines in the Mapnik SDK include:
+Notable changes in the Mapnik SDK include:
 
 - Fixed an issue with fields over size of `int32` in `OGR` plugin (https://github.com/mapnik/node-mapnik/issues/499)
 - Added 3 new image-filters to simulate types of colorblindness (`color-blind-protanope`,`color-blind-deuteranope`,`color-blind-tritanope`)
