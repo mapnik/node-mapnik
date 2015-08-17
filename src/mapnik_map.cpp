@@ -888,6 +888,7 @@ NAN_METHOD(Map::get_layer)
         if (index < layers.size())
         {
             info.GetReturnValue().Set(Layer::NewInstance(layers[index]));
+            return;
         }
         else
         {
@@ -906,6 +907,7 @@ NAN_METHOD(Map::get_layer)
             {
                 found = true;
                 info.GetReturnValue().Set(Layer::NewInstance(layers[idx]));
+                return;
             }
             ++idx;
         }
