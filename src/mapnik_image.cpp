@@ -86,6 +86,7 @@ void Image::Initialize(Handle<Object> target) {
     Nan::SetPrototypeMethod(lcons, "painted", painted);
     Nan::SetPrototypeMethod(lcons, "composite", composite);
     Nan::SetPrototypeMethod(lcons, "filter", filter);
+    Nan::SetPrototypeMethod(lcons, "filterSync", filterSync);
     Nan::SetPrototypeMethod(lcons, "fillSync", fillSync);
     Nan::SetPrototypeMethod(lcons, "fill", fill);
     Nan::SetPrototypeMethod(lcons, "premultiplySync", premultiplySync);
