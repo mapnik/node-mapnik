@@ -62,6 +62,11 @@ public:
     static void EIO_AfterSave(uv_work_t* req);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
+    static Local<Value> _filterSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(filterSync);
+    static NAN_METHOD(filter);
+    static void EIO_Filter(uv_work_t* req);
+    static void EIO_AfterFilter(uv_work_t* req);
     static Local<Value> _fillSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(fillSync);
     static NAN_METHOD(fill);

@@ -82,7 +82,6 @@ describe('mapnik.Image SVG', function() {
     it('should err with async invalid buffer', function(done) {
       mapnik.Image.fromSVGBytes(new Buffer('asdfasdf'), function(err, svg) {
         assert.ok(err);
-        console.log(err);
         assert.ok(err.message.match(/SVG parse error:\s+Unable to parse 'asdfasdf'/));
         assert.equal(svg, undefined);
         done();
@@ -122,6 +121,7 @@ describe('mapnik.Image SVG', function() {
             assert.equal(img.width(), 256);
             assert.equal(img.height(), 256);
             assert.equal(img.encodeSync('png32').length, 17272);
+            assert.equal(img.premultiplied(), false);
             done();
         });
     });
@@ -146,6 +146,7 @@ describe('mapnik.Image SVG', function() {
             assert.equal(img.width(), 100);
             assert.equal(img.height(), 100);
             assert.equal(img.encodeSync("png").length, 1270);
+            assert.equal(img.premultiplied(), false);
             done();
         });
     });
@@ -159,5 +160,7 @@ describe('mapnik.Image SVG', function() {
         assert.equal(img.width(), 50);
         assert.equal(img.height(), 50);
         assert.equal(img.encodeSync("png").length, 616);
+        assert.equal(img.premultiplied(), false);
     });
+
 });
