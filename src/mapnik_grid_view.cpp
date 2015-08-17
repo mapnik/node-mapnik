@@ -139,7 +139,8 @@ NAN_METHOD(GridView::isSolid)
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
 
     if (info.Length() == 0) {
-        return isSolidSync(info);
+        info.GetReturnValue().Set(_isSolidSync(info));
+        return;
     }
     // ensure callback is a function
     Local<Value> callback = info[info.Length() - 1];
@@ -222,6 +223,12 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
 NAN_METHOD(GridView::isSolidSync)
 {
     Nan::HandleScope scope;
+    info.GetReturnValue().Set(_isSolidSync(info));
+}
+
+Local<Value> GridView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+    Nan::EscapableHandleScope scope;
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
     grid_view_ptr view = g->get();
     if (view->width() > 0 && view->height() > 0)
@@ -234,12 +241,12 @@ NAN_METHOD(GridView::isSolidSync)
             {
                 if (first_pixel != row[x])
                 {
-                    info.GetReturnValue().Set(Nan::False());
+                    return scope.Escape(Nan::False());
                 }
             }
         }
     }
-    info.GetReturnValue().Set(Nan::True());
+    return scope.Escape(Nan::True());
 }
 
 NAN_METHOD(GridView::getPixel)

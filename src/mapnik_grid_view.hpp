@@ -36,6 +36,7 @@ public:
     static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
+    static Local<Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(isSolidSync);
     static NAN_METHOD(getPixel);
 
