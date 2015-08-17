@@ -2501,7 +2501,7 @@ NAN_METHOD(Map::renderSync)
         return;
     }
     m->release();
-    info.GetReturnValue().Set(Nan::NewBuffer((char*)s.data(), s.size()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
 }
 
 NAN_METHOD(Map::renderFileSync)

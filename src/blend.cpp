@@ -428,7 +428,7 @@ void Work_AfterBlend(uv_work_t* req) {
         std::string result = baton->stream.str();
         Local<Value> argv[] = {
             Nan::Null(),
-            Nan::NewBuffer((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
+            Nan::CopyBuffer((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
     } else {

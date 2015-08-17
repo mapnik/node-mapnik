@@ -356,5 +356,5 @@ NAN_METHOD(Geometry::toWKB)
         Nan::ThrowError("Failed to generate WKB - geometry likely null");
         return;
     }
-    info.GetReturnValue().Set(Nan::NewBuffer(wkb->buffer(), wkb->size()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::CopyBuffer(wkb->buffer(), wkb->size()).ToLocalChecked());
 }

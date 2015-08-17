@@ -1720,7 +1720,7 @@ NAN_METHOD(VectorTile::toJSON)
             if (f.has_raster())
             {
                 std::string const& raster = f.raster();
-                feature_obj->Set(Nan::New("raster").ToLocalChecked(),Nan::NewBuffer((char*)raster.data(),raster.size()).ToLocalChecked());
+                feature_obj->Set(Nan::New("raster").ToLocalChecked(),Nan::CopyBuffer((char*)raster.data(),raster.size()).ToLocalChecked());
             }
             feature_obj->Set(Nan::New("type").ToLocalChecked(),Nan::New<Integer>(f.type()));
             Local<Array> g_arr = Nan::New<Array>();
@@ -2587,7 +2587,7 @@ NAN_METHOD(VectorTile::getData)
                 throw std::runtime_error(s.str());
                 // LCOV_EXCL_END
             }
-            info.GetReturnValue().Set(Nan::NewBuffer((char*)d->buffer_.data(),raw_size).ToLocalChecked());
+            info.GetReturnValue().Set(Nan::CopyBuffer((char*)d->buffer_.data(),raw_size).ToLocalChecked());
             return;
         } else {
             if (d->byte_size_ <= 0) {

@@ -3028,7 +3028,7 @@ NAN_METHOD(Image::encodeSync)
             s = save_to_string(*(im->this_), format);
         }
 
-        info.GetReturnValue().Set(Nan::NewBuffer((char*)s.data(), s.size()).ToLocalChecked());
+        info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
     }
     catch (std::exception const& ex)
     {
@@ -3161,7 +3161,7 @@ void Image::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), Nan::NewBuffer((char*)closure->result.data(), closure->result.size()).ToLocalChecked() };
+        Local<Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->result.data(), closure->result.size()).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 

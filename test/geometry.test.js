@@ -12,7 +12,7 @@ describe('mapnik.Geometry ', function() {
         assert.throws(function() { mapnik.Geometry(); });
     });
 
-    it.only('should access a geometry from a feature', function() {
+    it('should access a geometry from a feature', function() {
         var feature = new mapnik.Feature(1);
         var point = {
          "type": "MultiPoint",

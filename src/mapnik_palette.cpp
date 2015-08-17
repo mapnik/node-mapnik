@@ -124,5 +124,5 @@ NAN_METHOD(Palette::ToBuffer)
         palette[pos++] = colors[i].b;
         palette[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
     }
-    info.GetReturnValue().Set(Nan::NewBuffer(palette, length * 4).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::CopyBuffer(palette, length * 4).ToLocalChecked());
 }

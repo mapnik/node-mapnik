@@ -99,5 +99,5 @@ NAN_METHOD(CairoSurface::getData)
     Nan::HandleScope scope;
     CairoSurface* surface = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
     std::string s = surface->ss_.str();
-    info.GetReturnValue().Set(Nan::NewBuffer((char*)s.data(), s.size()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
 }
