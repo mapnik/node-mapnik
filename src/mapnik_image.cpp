@@ -69,6 +69,7 @@ void Image::Initialize(Handle<Object> target) {
 
     Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Image::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
+
     lcons->SetClassName(Nan::New("Image").ToLocalChecked());
 
     Nan::SetPrototypeMethod(lcons, "getType", getType);
@@ -84,6 +85,7 @@ void Image::Initialize(Handle<Object> target) {
     Nan::SetPrototypeMethod(lcons, "height", height);
     Nan::SetPrototypeMethod(lcons, "painted", painted);
     Nan::SetPrototypeMethod(lcons, "composite", composite);
+    Nan::SetPrototypeMethod(lcons, "filter", filter);
     Nan::SetPrototypeMethod(lcons, "fillSync", fillSync);
     Nan::SetPrototypeMethod(lcons, "fill", fill);
     Nan::SetPrototypeMethod(lcons, "premultiplySync", premultiplySync);
@@ -585,6 +587,134 @@ NAN_METHOD(Image::compare)
     }
     unsigned difference = mapnik::compare(*im->this_, *im2->this_, threshold, alpha);
     info.GetReturnValue().Set(Nan::New<Integer>(difference));
+}
+
+NAN_METHOD(Image::filterSync)
+{
+    Nan::HandleScope scope;
+    info.GetReturnValue().Set(_filterSync(info));
+}
+
+/**
+ * Filter this image
+ *
+ * @name filterSync
+ * @instance
+ * @memberof mapnik.Image
+ * @param {string} filter
+ */
+Local<Value> Image::_filterSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+    Nan::EscapableHandleScope scope;
+    if (info.Length() < 1) {
+        Nan::ThrowTypeError("expects one argument: string filter argument");
+        return scope.Escape(Nan::Undefined());
+    }
+    Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
+    if (!info[0]->IsString())
+    {
+        Nan::ThrowTypeError("A string is expected for filter argument");
+        return scope.Escape(Nan::Undefined());
+    }
+    std::string filter = TOSTR(info[0]);
+    try
+    {
+        mapnik::filter::filter_image(*im->this_,filter);
+    }
+    catch(std::exception const& ex)
+    {
+        Nan::ThrowError(ex.what());
+    }
+    return scope.Escape(Nan::Undefined());
+}
+
+typedef struct {
+    uv_work_t request;
+    Image* im;
+    std::string filter;
+    bool error;
+    std::string error_name;
+    Nan::Persistent<Function> cb;
+} filter_image_baton_t;
+
+/**
+ * Asynchronously filter this image.
+ *
+ * @name filter
+ * @instance
+ * @memberof mapnik.Image
+ * @param {string} filter
+ * @param {Function} callback
+ * @example
+ * var im = new mapnik.Image(5, 5);
+ * im.filter("blur", function(err, im_res) {
+ *   if (err) throw err;
+ *   assert.equal(im_res.getPixel(0, 0), 1);
+ * });
+ */
+NAN_METHOD(Image::filter)
+{
+    Nan::HandleScope scope;
+    if (info.Length() <= 1) {
+        info.GetReturnValue().Set(_filterSync(info));
+        return;
+    }
+
+    if (!info[info.Length()-1]->IsFunction()) {
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
+    }
+    
+    Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
+    if (!info[0]->IsString())
+    {
+        Nan::ThrowTypeError("A string is expected for filter argument");
+        return;
+    }
+    filter_image_baton_t *closure = new filter_image_baton_t();
+    closure->filter = TOSTR(info[0]);
+    
+    // ensure callback is a function
+    Local<Value> callback = info[info.Length()-1];
+    closure->request.data = closure;
+    closure->im = im;
+    closure->error = false;
+    closure->cb.Reset(callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Filter, (uv_after_work_cb)EIO_AfterFilter);
+    im->Ref();
+    return;
+}
+
+void Image::EIO_Filter(uv_work_t* req)
+{
+    filter_image_baton_t *closure = static_cast<filter_image_baton_t *>(req->data);
+    try
+    {
+        mapnik::filter::filter_image(*closure->im->this_,closure->filter);
+    }
+    catch(std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void Image::EIO_AfterFilter(uv_work_t* req)
+{
+    Nan::HandleScope scope;
+    filter_image_baton_t *closure = static_cast<filter_image_baton_t *>(req->data);
+    if (closure->error)
+    {
+        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+    else
+    {
+        Local<Value> argv[2] = { Nan::Null(), closure->im->handle() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+    }
+    closure->im->Unref();
+    closure->cb.Reset();
+    delete closure;
 }
 
 NAN_METHOD(Image::fillSync)
@@ -2271,7 +2401,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
             return scope.Escape(Nan::Undefined());
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height);
+        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2292,6 +2422,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
                                                        marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
 
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
         Image *im2 = new Image(image_ptr);
@@ -2446,7 +2577,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height);
+        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2467,6 +2598,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
                                                        marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
         closure->im = std::make_shared<mapnik::image_any>(im);
     }
     catch (std::exception const& ex)
@@ -2624,7 +2756,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height);
+        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2645,6 +2777,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
                                                        marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
         closure->im = std::make_shared<mapnik::image_any>(im);
     }
     catch (std::exception const& ex)
@@ -3409,6 +3542,7 @@ void Image::EIO_Composite(uv_work_t* req)
             {
                 mapnik::util::apply_visitor(visitor, filter_tag);
             }
+            mapnik::premultiply_alpha(*closure->im2->this_);
         }
         mapnik::composite(*closure->im1->this_,*closure->im2->this_, closure->mode, closure->opacity, closure->dx, closure->dy);
     }

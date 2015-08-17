@@ -249,6 +249,7 @@ NAN_METHOD(MemoryDatasource::add)
             mapnik::memory_datasource *cache = dynamic_cast<mapnik::memory_datasource *>(d->datasource_.get());
             cache->push(feature);
             info.GetReturnValue().Set(Nan::True());
+            return;
         }
     }
     info.GetReturnValue().Set(Nan::False());
