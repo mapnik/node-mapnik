@@ -17,20 +17,20 @@ describe('mapnik.Palette ', function() {
         assert.throws(function() { new mapnik.Palette(1); });
         assert.throws(function() { new mapnik.Palette('foo'); });
         assert.throws(function() {
-            new mapnik.Palette('\x01\x02\x03');
+            new mapnik.Palette(new Buffer('\x01\x02\x03'));
         }, (/invalid palette length/));
     });
 
     it('should be initialized property', function() {
-        var pal = new mapnik.Palette('\x01\x02\x03\x04');
+        var pal = new mapnik.Palette(new Buffer('\x01\x02\x03\x04','ascii'));
         assert.equal('[Palette 1 color #01020304]', pal.toString());
 
-        pal = new mapnik.Palette('\x01\x02\x03', 'rgb');
+        pal = new mapnik.Palette(new Buffer('\x01\x02\x03','ascii'), 'rgb');
         assert.equal('[Palette 1 color #010203]', pal.toString());
 
-        pal = new mapnik.Palette('\xff\x09\x93\xFF\x01\x02\x03\x04');
+        pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
         assert.equal('[Palette 2 colors #01020304 #ff0993]', pal.toString());
-        assert.equal('\x01\x02\x03\x04\xff\x09\x93\xFF', pal.toBuffer().toString('binary'));
+        assert.equal(new Buffer('\x01\x02\x03\x04\xff\x09\x93\xFF'), pal.toBuffer().toString('binary'));
     });
 
     it('should support 64 color ACT palettes', function() {
@@ -48,7 +48,7 @@ describe('mapnik.Palette ', function() {
         map.fromStringSync(fs.readFileSync('./test/stylesheet.xml', 'utf8'), { strict: true, base: './test/' });
         map.zoomAll();
 
-        var pal = new mapnik.Palette('\xff\x00\xff\xff\xff\xff', 'rgb');
+        var pal = new mapnik.Palette(new Buffer('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
 
         // Test rendering a blank image
         var filename = helper.filename();
@@ -64,7 +64,7 @@ describe('mapnik.Palette ', function() {
         map.fromStringSync(fs.readFileSync('./test/stylesheet.xml', 'utf8'), { strict: true, base: './test/' });
         map.zoomAll();
 
-        var pal = new mapnik.Palette('\xff\x00\xff\xff\xff\xff', 'rgb');
+        var pal = new mapnik.Palette(new Buffer('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
 
         // Test rendering a blank image
         var filename = helper.filename();

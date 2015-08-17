@@ -6,6 +6,7 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 Nan::Persistent<FunctionTemplate> Palette::constructor;
 
@@ -41,10 +42,7 @@ NAN_METHOD(Palette::New) {
     std::string palette;
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
     if (info.Length() >= 1) {
-        if (info[0]->IsString()) {
-            palette = std::string(TOSTR(info[0]));
-        }
-        else if (node::Buffer::HasInstance(info[0])) {
+        if (node::Buffer::HasInstance(info[0])) {
             Local<Object> obj = info[0].As<Object>();
             palette = std::string(node::Buffer::Data(obj), node::Buffer::Length(obj));
         }
@@ -52,12 +50,23 @@ NAN_METHOD(Palette::New) {
     if (info.Length() >= 2) {
         if (info[1]->IsString()) {
             std::string obj = std::string(TOSTR(info[1]));
-            if (obj == "rgb") type = mapnik::rgba_palette::PALETTE_RGB;
-            else if (obj == "act") type = mapnik::rgba_palette::PALETTE_ACT;
+            if (obj == "rgb")
+            {
+                type = mapnik::rgba_palette::PALETTE_RGB;
+            }
+            else if (obj == "act")
+            {
+                type = mapnik::rgba_palette::PALETTE_ACT;
+            }
+            else
+            {
+                Nan::ThrowTypeError((std::string("unknown palette type: ") + obj).c_str());
+                return;
+            }
         }
     }
 
-    if (!palette.length()) {
+    if (palette.empty()) {
         Nan::ThrowTypeError("First parameter must be a palette string");
         return;
     }
