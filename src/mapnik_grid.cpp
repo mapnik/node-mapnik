@@ -612,7 +612,7 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
         json->Set(Nan::New("data").ToLocalChecked(), feature_data);
 
-        Local<Value> argv[2] = { Nan::Null(), Nan::New(json) };
+        Local<Value> argv[2] = { Nan::Null(), json };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
