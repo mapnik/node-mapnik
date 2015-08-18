@@ -17,7 +17,6 @@ namespace node_mapnik {
 
 static inline NAN_METHOD(available_input_plugins)
 {
-    Nan::HandleScope scope;
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
     Local<Array> a = Nan::New<Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
@@ -29,7 +28,6 @@ static inline NAN_METHOD(available_input_plugins)
 
 static inline NAN_METHOD(register_datasource)
 {
-    Nan::HandleScope scope;
     if (info.Length() != 1 || !info[0]->IsString())
     {
         Nan::ThrowTypeError("first argument must be a path to a mapnik input plugin (.input)");
@@ -40,13 +38,15 @@ static inline NAN_METHOD(register_datasource)
     mapnik::datasource_cache::instance().register_datasource(path);
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
     if (names_after.size() > names_before.size())
+    {
         info.GetReturnValue().Set(Nan::True());
+        return;
+    }
     info.GetReturnValue().Set(Nan::False());
 }
 
 static inline NAN_METHOD(register_datasources)
 {
-    Nan::HandleScope scope;
     if (info.Length() != 1 || !info[0]->IsString())
     {
         Nan::ThrowTypeError("first argument must be a path to a directory of mapnik input plugins");
@@ -59,6 +59,7 @@ static inline NAN_METHOD(register_datasources)
     if (names_after.size() > names_before.size())
     {
         info.GetReturnValue().Set(Nan::True());
+        return;
     }
     info.GetReturnValue().Set(Nan::False());
 }

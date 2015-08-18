@@ -46,8 +46,6 @@ MemoryDatasource::~MemoryDatasource()
 
 NAN_METHOD(MemoryDatasource::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -119,7 +117,6 @@ Local<Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
 
 NAN_METHOD(MemoryDatasource::parameters)
 {
-    Nan::HandleScope scope;
     MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
     Local<Object> ds = Nan::New<Object>();
     if (d->datasource_) {
@@ -135,7 +132,6 @@ NAN_METHOD(MemoryDatasource::parameters)
 
 NAN_METHOD(MemoryDatasource::describe)
 {
-    Nan::HandleScope scope;
     MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
     Local<Object> description = Nan::New<Object>();
     if (d->datasource_) 
@@ -147,9 +143,6 @@ NAN_METHOD(MemoryDatasource::describe)
 
 NAN_METHOD(MemoryDatasource::featureset)
 {
-
-    Nan::HandleScope scope;
-
     MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
 
     if (d->datasource_) {
@@ -184,9 +177,6 @@ NAN_METHOD(MemoryDatasource::featureset)
 
 NAN_METHOD(MemoryDatasource::add)
 {
-
-    Nan::HandleScope scope;
-
     if ((info.Length() != 1) || !info[0]->IsObject())
     {
         Nan::ThrowError("accepts one argument: an object including x and y (or wkt) and properties");
@@ -257,7 +247,6 @@ NAN_METHOD(MemoryDatasource::add)
 
 NAN_METHOD(MemoryDatasource::fields)
 {
-    Nan::HandleScope scope;
     MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
     Local<Object> fields = Nan::New<Object>();
     if (d->datasource_) {

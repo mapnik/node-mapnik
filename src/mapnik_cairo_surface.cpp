@@ -32,7 +32,6 @@ CairoSurface::~CairoSurface()
 
 NAN_METHOD(CairoSurface::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -80,23 +79,18 @@ NAN_METHOD(CairoSurface::New)
 
 NAN_METHOD(CairoSurface::width)
 {
-    Nan::HandleScope scope;
-
     CairoSurface* im = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
     info.GetReturnValue().Set(Nan::New(im->width()));
 }
 
 NAN_METHOD(CairoSurface::height)
 {
-    Nan::HandleScope scope;
-
     CairoSurface* im = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
     info.GetReturnValue().Set(Nan::New(im->height()));
 }
 
 NAN_METHOD(CairoSurface::getData)
 {
-    Nan::HandleScope scope;
     CairoSurface* surface = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
     std::string s = surface->ss_.str();
     info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());

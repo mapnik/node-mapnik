@@ -40,7 +40,6 @@ Expression::~Expression()
 
 NAN_METHOD(Expression::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -71,16 +70,12 @@ NAN_METHOD(Expression::New)
 
 NAN_METHOD(Expression::toString)
 {
-    Nan::HandleScope scope;
-
     Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
     info.GetReturnValue().Set(Nan::New(mapnik::to_expression_string(*e->get())).ToLocalChecked());
 }
 
 NAN_METHOD(Expression::evaluate)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() < 1) {
         Nan::ThrowError("requires a mapnik.Feature as an argument");
         return;

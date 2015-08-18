@@ -55,7 +55,6 @@ Geometry::~Geometry()
 
 NAN_METHOD(Geometry::New)
 {
-    Nan::HandleScope scope;
     if (info[0]->IsExternal())
     {
         Local<External> ext = info[0].As<External>();
@@ -91,7 +90,6 @@ Local<Value> Geometry::NewInstance(mapnik::feature_ptr f) {
  */
 NAN_METHOD(Geometry::toJSONSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_toJSONSync(info));
 }
 
@@ -181,7 +179,6 @@ struct to_json_baton {
  */
 NAN_METHOD(Geometry::toJSON)
 {
-    Nan::HandleScope scope;
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction()) {
         info.GetReturnValue().Set(_toJSONSync(info));
         return;
@@ -302,7 +299,6 @@ void Geometry::after_to_json(uv_work_t* req)
  */
 NAN_METHOD(Geometry::extent)
 {
-    Nan::HandleScope scope;
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     Local<Array> a = Nan::New<Array>(4);
     mapnik::box2d<double> const& e = g->feat_->envelope();
@@ -323,7 +319,6 @@ NAN_METHOD(Geometry::extent)
  */
 NAN_METHOD(Geometry::toWKT)
 {
-    Nan::HandleScope scope;
     std::string wkt;
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     if (!mapnik::util::to_wkt(wkt, g->feat_->get_geometry()))
@@ -348,7 +343,6 @@ NAN_METHOD(Geometry::toWKT)
  */
 NAN_METHOD(Geometry::toWKB)
 {
-    Nan::HandleScope scope;
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);
     if (!wkb)

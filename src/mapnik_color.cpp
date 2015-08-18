@@ -59,7 +59,6 @@ Color::~Color()
 
 NAN_METHOD(Color::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -187,7 +186,6 @@ Local<Value> Color::NewInstance(mapnik::color const& color) {
 
 NAN_GETTER(Color::get_prop)
 {
-    Nan::HandleScope scope;
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "a")
@@ -202,7 +200,6 @@ NAN_GETTER(Color::get_prop)
 
 NAN_SETTER(Color::set_prop)
 {
-    Nan::HandleScope scope;
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string a = TOSTR(property);
     if (!value->IsNumber())
@@ -238,7 +235,6 @@ NAN_SETTER(Color::set_prop)
  */
 NAN_GETTER(Color::get_premultiplied)
 {
-    Nan::HandleScope scope;
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Boolean>(c->get()->get_premultiplied()));
     return;
@@ -258,7 +254,6 @@ NAN_GETTER(Color::get_premultiplied)
  */
 NAN_SETTER(Color::set_premultiplied)
 {
-    Nan::HandleScope scope;
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     if (!value->IsBoolean())
     {
@@ -282,8 +277,6 @@ NAN_SETTER(Color::set_premultiplied)
  */
 NAN_METHOD(Color::toString)
 {
-    Nan::HandleScope scope;
-
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     info.GetReturnValue().Set(Nan::New<String>(c->get()->to_string()).ToLocalChecked());
 }
@@ -302,8 +295,6 @@ NAN_METHOD(Color::toString)
  */
 NAN_METHOD(Color::hex)
 {
-    Nan::HandleScope scope;
-
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string hex = c->get()->to_hex_string();
     info.GetReturnValue().Set(Nan::New<String>(hex).ToLocalChecked());

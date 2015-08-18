@@ -60,7 +60,6 @@ static bool hexToUInt32Color(char *hex, unsigned int & value) {
 }
 
 NAN_METHOD(rgb2hsl) {
-    Nan::HandleScope scope;
     if (info.Length() != 3) {
         Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
         return;
@@ -83,7 +82,6 @@ NAN_METHOD(rgb2hsl) {
 }
 
 NAN_METHOD(hsl2rgb) {
-    Nan::HandleScope scope;
     if (info.Length() != 3) {
         Nan::ThrowTypeError("Please pass hsl fractional values as three arguments");
         return;
@@ -462,9 +460,7 @@ void Work_AfterBlend(uv_work_t* req) {
  * });
  */
 NAN_METHOD(Blend) {
-    Nan::HandleScope scope;
     std::unique_ptr<BlendBaton> baton(new BlendBaton());
-
     Local<Object> options;
     if (info.Length() == 0 || !info[0]->IsArray()) {
         Nan::ThrowTypeError("First argument must be an array of Buffers.");

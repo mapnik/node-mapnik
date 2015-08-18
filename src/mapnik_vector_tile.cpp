@@ -258,7 +258,6 @@ VectorTile::~VectorTile() { }
 
 NAN_METHOD(VectorTile::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
@@ -581,7 +580,6 @@ void _composite(VectorTile* target_vt,
  */
 NAN_METHOD(VectorTile::compositeSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_compositeSync(info));
 }
 
@@ -739,7 +737,6 @@ typedef struct {
 
 NAN_METHOD(VectorTile::composite)
 {
-    Nan::HandleScope scope;
     if ((info.Length() < 2) || !info[info.Length()-1]->IsFunction()) {
         info.GetReturnValue().Set(_compositeSync(info));
         return;
@@ -908,7 +905,6 @@ void VectorTile::EIO_Composite(uv_work_t* req)
 void VectorTile::EIO_AfterComposite(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
 
     if (closure->error)
@@ -941,7 +937,6 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::names)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
@@ -1014,7 +1009,6 @@ bool VectorTile::lazy_empty()
  */
 NAN_METHOD(VectorTile::empty)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     int raw_size = d->buffer_.size();
     if (raw_size > 0 && d->byte_size_ <= raw_size)
@@ -1058,7 +1052,6 @@ NAN_METHOD(VectorTile::empty)
  */
 NAN_METHOD(VectorTile::width)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Integer>(d->width()));
 }
@@ -1073,7 +1066,6 @@ NAN_METHOD(VectorTile::width)
  */
 NAN_METHOD(VectorTile::height)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Integer>(d->height()));
 }
@@ -1088,7 +1080,6 @@ NAN_METHOD(VectorTile::height)
  */
 NAN_METHOD(VectorTile::painted)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     info.GetReturnValue().Set(Nan::New(d->painted()));
 }
@@ -1120,7 +1111,6 @@ typedef struct {
  */
 NAN_METHOD(VectorTile::query)
 {
-    Nan::HandleScope scope;
     if (info.Length() < 2 || !info[0]->IsNumber() || !info[1]->IsNumber())
     {
         Nan::ThrowError("expects lon,lat info");
@@ -1363,8 +1353,6 @@ typedef struct {
 
 NAN_METHOD(VectorTile::queryMany)
 {
-
-    Nan::HandleScope scope;
     if (info.Length() < 2 || !info[0]->IsArray())
     {
         Nan::ThrowError("expects lon,lat info + object with layer property referring to a layer name");
@@ -1696,7 +1684,6 @@ void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::toJSON)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     vector_tile::Tile const& tiledata = d->get_tile();
     Local<Array> arr = Nan::New<Array>(tiledata.layers_size());
@@ -1850,7 +1837,6 @@ static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
  */
 NAN_METHOD(VectorTile::toGeoJSONSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_toGeoJSONSync(info));
 }
 
@@ -2062,7 +2048,6 @@ struct to_geojson_baton {
  */
 NAN_METHOD(VectorTile::toGeoJSON)
 {
-    Nan::HandleScope scope;
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction()) {
         info.GetReturnValue().Set(_toGeoJSONSync(info));
         return;
@@ -2148,7 +2133,6 @@ void VectorTile::after_to_geojson(uv_work_t* req)
 
 NAN_METHOD(VectorTile::parseSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_parseSync(info));
 }
 
@@ -2178,7 +2162,6 @@ typedef struct {
 
 NAN_METHOD(VectorTile::parse)
 {
-    Nan::HandleScope scope;
     if (info.Length() == 0) {
         info.GetReturnValue().Set(_parseSync(info));
         return;
@@ -2246,7 +2229,6 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::addGeoJSON)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     if (info.Length() < 1 || !info[0]->IsString()) {
         Nan::ThrowError("first argument must be a GeoJSON string");
@@ -2351,7 +2333,6 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
 NAN_METHOD(VectorTile::addImage)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.This());
     if (info.Length() < 1 || !info[0]->IsObject()) {
         Nan::ThrowError("first argument must be a Buffer representing encoded image data");
@@ -2401,7 +2382,6 @@ NAN_METHOD(VectorTile::addImage)
  */
 NAN_METHOD(VectorTile::addData)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     if (info.Length() < 1 || !info[0]->IsObject())
     {
@@ -2427,7 +2407,6 @@ NAN_METHOD(VectorTile::addData)
 
 NAN_METHOD(VectorTile::setDataSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_setDataSync(info));
 }
 
@@ -2478,7 +2457,6 @@ typedef struct {
  */
 NAN_METHOD(VectorTile::setData)
 {
-    Nan::HandleScope scope;
     if (info.Length() == 1) {
         info.GetReturnValue().Set(_setDataSync(info));
         return;
@@ -2539,9 +2517,7 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 void VectorTile::EIO_AfterSetData(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
-
     if (closure->error) {
         // See note about exception in EIO_SetData
         // LCOV_EXCL_START
@@ -2571,7 +2547,6 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::getData)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try {
         // shortcut: return raw data and avoid trip through proto object
@@ -2737,8 +2712,6 @@ struct baton_guard
  */
 NAN_METHOD(VectorTile::render)
 {
-    Nan::HandleScope scope;
-
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     if (info.Length() < 1 || !info[0]->IsObject()) {
         Nan::ThrowTypeError("mapnik.Map expected as first arg");
@@ -3222,9 +3195,7 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
-
     if (closure->error) {
         Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
@@ -3257,7 +3228,6 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 }
 NAN_METHOD(VectorTile::clearSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_clearSync(info));
 }
 
@@ -3288,7 +3258,6 @@ typedef struct {
  */
 NAN_METHOD(VectorTile::clear)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
 
     if (info.Length() == 0) {
@@ -3360,7 +3329,6 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::isSolidSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
@@ -3413,7 +3381,6 @@ typedef struct {
  */
 NAN_METHOD(VectorTile::isSolid)
 {
-    Nan::HandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
 
     if (info.Length() == 0) {

@@ -55,8 +55,6 @@ Datasource::~Datasource()
 
 NAN_METHOD(Datasource::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -154,7 +152,6 @@ Local<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
 
 NAN_METHOD(Datasource::parameters)
 {
-    Nan::HandleScope scope;
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.This());
     Local<Object> ds = Nan::New<Object>();
     mapnik::parameters::const_iterator it = d->datasource_->params().begin();
@@ -176,7 +173,6 @@ NAN_METHOD(Datasource::parameters)
  */
 NAN_METHOD(Datasource::extent)
 {
-    Nan::HandleScope scope;
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     mapnik::box2d<double> e;
     try
@@ -214,7 +210,6 @@ NAN_METHOD(Datasource::extent)
  */
 NAN_METHOD(Datasource::describe)
 {
-    Nan::HandleScope scope;
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     Local<Object> description = Nan::New<Object>();
     try
@@ -238,11 +233,7 @@ NAN_METHOD(Datasource::describe)
 
 NAN_METHOD(Datasource::featureset)
 {
-
-    Nan::HandleScope scope;
-
     Datasource* ds = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-
     mapnik::featureset_ptr fs;
     try
     {
@@ -283,7 +274,6 @@ NAN_METHOD(Datasource::featureset)
 
 NAN_METHOD(Datasource::fields)
 {
-    Nan::HandleScope scope;
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     Local<Object> fields = Nan::New<Object>();
     node_mapnik::get_fields(fields,d->datasource_);

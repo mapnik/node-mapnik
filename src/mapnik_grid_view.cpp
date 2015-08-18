@@ -50,7 +50,6 @@ GridView::~GridView()
 
 NAN_METHOD(GridView::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -89,24 +88,18 @@ Local<Value> GridView::NewInstance(Grid * JSGrid,
 
 NAN_METHOD(GridView::width)
 {
-    Nan::HandleScope scope;
-
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Integer>(g->get()->width()));
 }
 
 NAN_METHOD(GridView::height)
 {
-    Nan::HandleScope scope;
-
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Integer>(g->get()->height()));
 }
 
 NAN_METHOD(GridView::fields)
 {
-    Nan::HandleScope scope;
-
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
     std::set<std::string> const& a = g->get()->get_fields();
     std::set<std::string>::const_iterator itr = a.begin();
@@ -135,7 +128,6 @@ typedef struct {
 
 NAN_METHOD(GridView::isSolid)
 {
-    Nan::HandleScope scope;
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
 
     if (info.Length() == 0) {
@@ -222,7 +214,6 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
 
 NAN_METHOD(GridView::isSolidSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
@@ -251,9 +242,6 @@ Local<Value> GridView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
 NAN_METHOD(GridView::getPixel)
 {
-    Nan::HandleScope scope;
-
-
     unsigned x = 0;
     unsigned y = 0;
 
@@ -287,8 +275,6 @@ NAN_METHOD(GridView::getPixel)
 
 NAN_METHOD(GridView::encodeSync)
 {
-    Nan::HandleScope scope;
-
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
 
     // defaults
@@ -403,8 +389,6 @@ typedef struct {
 
 NAN_METHOD(GridView::encode)
 {
-    Nan::HandleScope scope;
-
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
 
     // defaults

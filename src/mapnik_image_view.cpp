@@ -67,7 +67,6 @@ ImageView::~ImageView()
 
 NAN_METHOD(ImageView::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -114,7 +113,6 @@ typedef struct {
 
 NAN_METHOD(ImageView::isSolid)
 {
-    Nan::HandleScope scope;
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
 
     if (info.Length() == 0) {
@@ -283,7 +281,6 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 
 NAN_METHOD(ImageView::isSolidSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
@@ -305,8 +302,6 @@ Local<Value> ImageView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
 NAN_METHOD(ImageView::getPixel)
 {
-    Nan::HandleScope scope;
-
     int x = 0;
     int y = 0;
     bool get_color = false;
@@ -366,16 +361,12 @@ NAN_METHOD(ImageView::getPixel)
 
 NAN_METHOD(ImageView::width)
 {
-    Nan::HandleScope scope;
-
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Int32>(static_cast<std::int32_t>(im->this_->width())));
 }
 
 NAN_METHOD(ImageView::height)
 {
-    Nan::HandleScope scope;
-
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
@@ -383,8 +374,6 @@ NAN_METHOD(ImageView::height)
 
 NAN_METHOD(ImageView::encodeSync)
 {
-    Nan::HandleScope scope;
-
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
 
     std::string format = "png";
@@ -459,8 +448,6 @@ typedef struct {
 
 NAN_METHOD(ImageView::encode)
 {
-    Nan::HandleScope scope;
-
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
 
     std::string format = "png";
@@ -566,8 +553,6 @@ void ImageView::EIO_AfterEncode(uv_work_t* req)
 
 NAN_METHOD(ImageView::save)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() == 0 || !info[0]->IsString()){
         Nan::ThrowTypeError("filename required");
         return;

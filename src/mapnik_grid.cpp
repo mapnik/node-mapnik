@@ -65,7 +65,6 @@ Grid::~Grid()
 
 NAN_METHOD(Grid::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -118,7 +117,6 @@ NAN_METHOD(Grid::New)
 
 NAN_METHOD(Grid::clearSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_clearSync(info));
 }
 
@@ -140,7 +138,6 @@ typedef struct {
 
 NAN_METHOD(Grid::clear)
 {
-    Nan::HandleScope scope;
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
 
     if (info.Length() == 0) {
@@ -208,8 +205,6 @@ void Grid::EIO_AfterClear(uv_work_t* req)
 
 NAN_METHOD(Grid::painted)
 {
-    Nan::HandleScope scope;
-
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     info.GetReturnValue().Set(Nan::New(g->get()->painted()));
 }
@@ -223,8 +218,6 @@ NAN_METHOD(Grid::painted)
  */
 NAN_METHOD(Grid::width)
 {
-    Nan::HandleScope scope;
-
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Integer>((unsigned)g->get()->width()));
 }
@@ -238,22 +231,18 @@ NAN_METHOD(Grid::width)
  */
 NAN_METHOD(Grid::height)
 {
-    Nan::HandleScope scope;
-
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Integer>(static_cast<unsigned>(g->get()->height())));
 }
 
 NAN_GETTER(Grid::get_key)
 {
-    Nan::HandleScope scope;
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     info.GetReturnValue().Set(Nan::New<String>(g->get()->get_key()).ToLocalChecked());
 }
 
 NAN_SETTER(Grid::set_key)
 {
-    Nan::HandleScope scope;
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     if (!value->IsString())
     {
@@ -273,7 +262,6 @@ NAN_SETTER(Grid::set_key)
  */
 NAN_METHOD(Grid::addField)
 {
-    Nan::HandleScope scope;
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
 
     if (info.Length() == 1) {
@@ -301,8 +289,6 @@ NAN_METHOD(Grid::addField)
  */
 NAN_METHOD(Grid::fields)
 {
-    Nan::HandleScope scope;
-
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     std::set<std::string> const& a = g->get()->get_fields();
     std::set<std::string>::const_iterator itr = a.begin();
@@ -331,8 +317,6 @@ NAN_METHOD(Grid::fields)
  */
 NAN_METHOD(Grid::view)
 {
-    Nan::HandleScope scope;
-
     if ( (info.Length() != 4) || (!info[0]->IsNumber() && !info[1]->IsNumber() && !info[2]->IsNumber() && !info[3]->IsNumber() ))
     {
         Nan::ThrowTypeError("requires 4 integer arguments: x, y, width, height");
@@ -358,8 +342,6 @@ NAN_METHOD(Grid::view)
  */
 NAN_METHOD(Grid::encodeSync)
 {
-    Nan::HandleScope scope;
-
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
 
     // defaults
@@ -471,8 +453,6 @@ typedef struct {
 
 NAN_METHOD(Grid::encode)
 {
-    Nan::HandleScope scope;
-
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
 
     // defaults

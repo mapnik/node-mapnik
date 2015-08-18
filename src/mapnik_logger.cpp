@@ -36,20 +36,16 @@ void Logger::Initialize(Handle<Object> target) {
 }
 
 NAN_METHOD(Logger::New){
-    Nan::HandleScope scope;
     Nan::ThrowError("a mapnik.Logger cannot be created directly - rather you should ....");
     return;
 }
 
 NAN_METHOD(Logger::get_severity){
-    Nan::HandleScope scope;
     int severity = mapnik::logger::instance().get_severity();
     info.GetReturnValue().Set(Nan::New(severity));
 }
 
 NAN_METHOD(Logger::set_severity){
-    Nan::HandleScope scope;
-
     if (info.Length() != 1 || !info[0]->IsNumber()) {
         Nan::ThrowTypeError("requires a severity level parameter");
         return;

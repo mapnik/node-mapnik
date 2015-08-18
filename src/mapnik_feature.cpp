@@ -61,8 +61,6 @@ Feature::~Feature()
 
 NAN_METHOD(Feature::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -101,7 +99,6 @@ NAN_METHOD(Feature::New)
  */
 NAN_METHOD(Feature::fromJSON)
 {
-    Nan::HandleScope scope;
     if (info.Length() < 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("requires one argument: a string representing a GeoJSON feature");
         return;
@@ -142,7 +139,6 @@ Local<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
  */
 NAN_METHOD(Feature::id)
 {
-    Nan::HandleScope scope;
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Number>(fp->get()->id()));
 }
@@ -157,10 +153,7 @@ NAN_METHOD(Feature::id)
  */
 NAN_METHOD(Feature::extent)
 {
-    Nan::HandleScope scope;
-
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-
     Local<Array> a = Nan::New<Array>(4);
     mapnik::box2d<double> const& e = fp->get()->envelope();
     a->Set(0, Nan::New<Number>(e.minx()));
@@ -181,12 +174,8 @@ NAN_METHOD(Feature::extent)
  */
 NAN_METHOD(Feature::attributes)
 {
-    Nan::HandleScope scope;
-
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-
     Local<Object> feat = Nan::New<Object>();
-
     mapnik::feature_ptr feature = fp->get();
     mapnik::feature_impl::iterator itr = feature->begin();
     mapnik::feature_impl::iterator end = feature->end();
@@ -210,7 +199,6 @@ NAN_METHOD(Feature::attributes)
  */
 NAN_METHOD(Feature::geometry)
 {
-    Nan::HandleScope scope;
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     info.GetReturnValue().Set(Geometry::NewInstance(fp->get()));
 }
@@ -225,7 +213,6 @@ NAN_METHOD(Feature::geometry)
  */
 NAN_METHOD(Feature::toJSON)
 {
-    Nan::HandleScope scope;
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     std::string json;
     if (!mapnik::util::to_geojson(json, *(fp->get())))

@@ -16,8 +16,6 @@ namespace node_mapnik {
 
 static inline NAN_METHOD(register_fonts)
 {
-    Nan::HandleScope scope;
-
     try
     {
         if (info.Length() == 0 || !info[0]->IsString())
@@ -72,7 +70,6 @@ static inline NAN_METHOD(register_fonts)
 
 static inline NAN_METHOD(available_font_faces)
 {
-    Nan::HandleScope scope;
     auto const& names = mapnik::freetype_engine::face_names();
     Local<Array> a = Nan::New<Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
@@ -84,7 +81,6 @@ static inline NAN_METHOD(available_font_faces)
 
 static inline NAN_METHOD(memory_fonts)
 {
-    Nan::HandleScope scope;
     auto const& font_cache = mapnik::freetype_engine::get_cache();
     Local<Array> a = Nan::New<Array>(font_cache.size());
     unsigned i = 0;
@@ -97,7 +93,6 @@ static inline NAN_METHOD(memory_fonts)
 
 static inline NAN_METHOD(available_font_files)
 {
-    Nan::HandleScope scope;
     auto const& mapping = mapnik::freetype_engine::get_mapping();
     Local<Object> obj = Nan::New<Object>();
     for (auto const& kv : mapping)

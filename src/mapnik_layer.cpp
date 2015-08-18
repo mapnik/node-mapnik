@@ -59,8 +59,6 @@ Layer::~Layer() {}
 
 NAN_METHOD(Layer::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
@@ -118,7 +116,6 @@ Local<Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
 
 NAN_GETTER(Layer::get_prop)
 {
-    Nan::HandleScope scope;
     Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "name")
@@ -174,7 +171,6 @@ NAN_GETTER(Layer::get_prop)
 
 NAN_SETTER(Layer::set_prop)
 {
-    Nan::HandleScope scope;
     Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "name")
@@ -283,8 +279,6 @@ NAN_SETTER(Layer::set_prop)
 
 NAN_METHOD(Layer::describe)
 {
-    Nan::HandleScope scope;
-
     Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
 
     Local<Object> description = Nan::New<Object>();

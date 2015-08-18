@@ -48,8 +48,6 @@ Projection::~Projection()
 
 NAN_METHOD(Projection::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -110,7 +108,6 @@ NAN_METHOD(Projection::New)
  */
 NAN_METHOD(Projection::forward)
 {
-    Nan::HandleScope scope;
     Projection* p = Nan::ObjectWrap::Unwrap<Projection>(info.Holder());
 
     try
@@ -177,7 +174,6 @@ NAN_METHOD(Projection::forward)
  */
 NAN_METHOD(Projection::inverse)
 {
-    Nan::HandleScope scope;
     Projection* p = Nan::ObjectWrap::Unwrap<Projection>(info.Holder());
 
     try
@@ -257,7 +253,6 @@ ProjTransform::~ProjTransform()
 
 NAN_METHOD(ProjTransform::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
@@ -298,7 +293,6 @@ NAN_METHOD(ProjTransform::New)
 
 NAN_METHOD(ProjTransform::forward)
 {
-    Nan::HandleScope scope;
     ProjTransform* p = Nan::ObjectWrap::Unwrap<ProjTransform>(info.Holder());
 
     if (info.Length() != 1) {
@@ -362,7 +356,6 @@ NAN_METHOD(ProjTransform::forward)
 
 NAN_METHOD(ProjTransform::backward)
 {
-    Nan::HandleScope scope;
     ProjTransform* p = Nan::ObjectWrap::Unwrap<ProjTransform>(info.Holder());
 
     if (info.Length() != 1) {

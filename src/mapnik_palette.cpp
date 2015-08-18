@@ -32,8 +32,6 @@ Palette::~Palette() {
 }
 
 NAN_METHOD(Palette::New) {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
@@ -88,7 +86,6 @@ NAN_METHOD(Palette::New) {
 
 NAN_METHOD(Palette::ToString)
 {
-    Nan::HandleScope scope;
     palette_ptr p = Nan::ObjectWrap::Unwrap<Palette>(info.Holder())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
@@ -117,8 +114,6 @@ NAN_METHOD(Palette::ToString)
 
 NAN_METHOD(Palette::ToBuffer)
 {
-    Nan::HandleScope scope;
-
     palette_ptr p = Nan::ObjectWrap::Unwrap<Palette>(info.Holder())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();

@@ -168,8 +168,6 @@ void Map::release() {
 
 NAN_METHOD(Map::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -226,7 +224,6 @@ NAN_METHOD(Map::New)
 
 NAN_GETTER(Map::get_prop)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
     if(a == "extent") {
@@ -291,7 +288,6 @@ NAN_GETTER(Map::get_prop)
 
 NAN_SETTER(Map::set_prop)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
     if(a == "extent" || a == "maximumExtent") {
@@ -414,14 +410,12 @@ NAN_SETTER(Map::set_prop)
 
 NAN_METHOD(Map::loadFonts)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Boolean>(m->map_->load_fonts()));
 }
 
 NAN_METHOD(Map::memoryFonts)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& font_cache = m->map_->get_font_memory_cache();
     Local<Array> a = Nan::New<Array>(font_cache.size());
@@ -435,7 +429,6 @@ NAN_METHOD(Map::memoryFonts)
 
 NAN_METHOD(Map::registerFonts)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     if (info.Length() == 0 || !info[0]->IsString())
     {
@@ -477,7 +470,6 @@ NAN_METHOD(Map::registerFonts)
  */
 NAN_METHOD(Map::fonts)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& mapping = m->map_->get_font_file_mapping();
     Local<Array> a = Nan::New<Array>(mapping.size());
@@ -499,7 +491,6 @@ NAN_METHOD(Map::fonts)
  */
 NAN_METHOD(Map::fontFiles)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& mapping = m->map_->get_font_file_mapping();
     Local<Object> obj = Nan::New<Object>();
@@ -519,7 +510,6 @@ NAN_METHOD(Map::fontFiles)
  */
 NAN_METHOD(Map::fontDirectory)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     boost::optional<std::string> const& fdir = m->map_->font_directory();
     if (fdir)
@@ -539,7 +529,6 @@ NAN_METHOD(Map::fontDirectory)
  */
 NAN_METHOD(Map::scale)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Number>(m->map_->scale()));
 }
@@ -554,7 +543,6 @@ NAN_METHOD(Map::scale)
  */
 NAN_METHOD(Map::scaleDenominator)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Number>(m->map_->scale_denominator()));
 }
@@ -575,14 +563,12 @@ typedef struct {
 
 NAN_METHOD(Map::queryMapPoint)
 {
-    Nan::HandleScope scope;
     abstractQueryPoint(info,false);
     return;
 }
 
 NAN_METHOD(Map::queryPoint)
 {
-    Nan::HandleScope scope;
     abstractQueryPoint(info,true);
     return;
 }
@@ -771,9 +757,7 @@ void Map::EIO_QueryMap(uv_work_t* req)
 void Map::EIO_AfterQueryMap(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
-
     if (closure->error) {
         Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
@@ -820,7 +804,6 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  */
 NAN_METHOD(Map::layers)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     Local<Array> a = Nan::New<Array>(layers.size());
@@ -840,8 +823,6 @@ NAN_METHOD(Map::layers)
  * @param {mapnik.Layer} new layer
  */
 NAN_METHOD(Map::add_layer) {
-    Nan::HandleScope scope;
-
     if (!info[0]->IsObject()) {
         Nan::ThrowTypeError("mapnik.Layer expected");
         return;
@@ -870,8 +851,6 @@ NAN_METHOD(Map::add_layer) {
  */
 NAN_METHOD(Map::get_layer)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() != 1) {
         Nan::ThrowError("Please provide layer name or index");
         return;
@@ -933,7 +912,6 @@ NAN_METHOD(Map::get_layer)
  */
 NAN_METHOD(Map::clear)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     m->map_->remove_all();
     return;
@@ -950,8 +928,6 @@ NAN_METHOD(Map::clear)
  */
 NAN_METHOD(Map::resize)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() != 2) {
         Nan::ThrowError("Please provide width and height");
         return;
@@ -993,8 +969,6 @@ typedef struct {
  */
 NAN_METHOD(Map::load)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() < 2) {
         Nan::ThrowError("please provide a stylesheet path, options, and callback");
         return;
@@ -1078,9 +1052,7 @@ void Map::EIO_Load(uv_work_t* req)
 void Map::EIO_AfterLoad(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
-
     if (closure->error) {
         Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
@@ -1109,7 +1081,6 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  */
 NAN_METHOD(Map::loadSync)
 {
-    Nan::HandleScope scope;
     if (!info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet");
         return;
@@ -1189,7 +1160,6 @@ NAN_METHOD(Map::loadSync)
  */
 NAN_METHOD(Map::fromStringSync)
 {
-    Nan::HandleScope scope;
     if (info.Length() < 1) {
         Nan::ThrowError("Accepts 2 arguments: stylesheet string and an optional options");
         return;
@@ -1271,8 +1241,6 @@ NAN_METHOD(Map::fromStringSync)
  */
 NAN_METHOD(Map::fromString)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() < 2)
     {
         Nan::ThrowError("please provide a stylesheet string, options, and callback");
@@ -1362,11 +1330,7 @@ void Map::EIO_FromString(uv_work_t* req)
 void Map::EIO_AfterFromString(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
-
-    TryCatch try_catch;
-
     if (closure->error) {
         Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
@@ -1391,7 +1355,6 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  */
 NAN_METHOD(Map::clone)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
@@ -1401,7 +1364,6 @@ NAN_METHOD(Map::clone)
 
 NAN_METHOD(Map::save)
 {
-    Nan::HandleScope scope;
     if (info.Length() != 1 || !info[0]->IsString())
     {
         Nan::ThrowTypeError("first argument must be a path to map.xml to save");
@@ -1417,7 +1379,6 @@ NAN_METHOD(Map::save)
 
 NAN_METHOD(Map::to_string)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
@@ -1426,7 +1387,6 @@ NAN_METHOD(Map::to_string)
 
 NAN_METHOD(Map::zoomAll)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     try
     {
@@ -1442,7 +1402,6 @@ NAN_METHOD(Map::zoomAll)
 
 NAN_METHOD(Map::zoomToBox)
 {
-    Nan::HandleScope scope;
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
     double minx;
@@ -1577,8 +1536,6 @@ struct vector_tile_baton_t {
 
 NAN_METHOD(Map::render)
 {
-    Nan::HandleScope scope;
-
     // ensure at least 2 args
     if (info.Length() < 2) {
         Nan::ThrowTypeError("requires at least two arguments, a renderable mapnik object, and a callback");
@@ -1984,9 +1941,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
 void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
-
     closure->m->release();
 
     if (closure->error) {
@@ -2048,9 +2003,7 @@ void Map::EIO_RenderGrid(uv_work_t* req)
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
-
     closure->m->release();
 
     if (closure->error) {
@@ -2137,9 +2090,7 @@ void Map::EIO_RenderImage(uv_work_t* req)
 void Map::EIO_AfterRenderImage(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
-
     closure->m->release();
 
     if (closure->error) {
@@ -2174,8 +2125,6 @@ typedef struct {
 
 NAN_METHOD(Map::renderFile)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() < 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a file to save");
         return;
@@ -2373,9 +2322,7 @@ void Map::EIO_RenderFile(uv_work_t* req)
 void Map::EIO_AfterRenderFile(uv_work_t* req)
 {
     Nan::HandleScope scope;
-
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
-
     closure->m->release();
 
     if (closure->error) {
@@ -2395,8 +2342,6 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
 // TODO - add support for grids
 NAN_METHOD(Map::renderSync)
 {
-    Nan::HandleScope scope;
-
     std::string format = "png";
     palette_ptr palette;
     double scale_factor = 1.0;
@@ -2508,7 +2453,6 @@ NAN_METHOD(Map::renderSync)
 
 NAN_METHOD(Map::renderFileSync)
 {
-    Nan::HandleScope scope;
     if (info.Length() < 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a file to save");
         return;

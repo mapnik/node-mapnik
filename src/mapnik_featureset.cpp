@@ -33,8 +33,6 @@ Featureset::~Featureset()
 
 NAN_METHOD(Featureset::New)
 {
-    Nan::HandleScope scope;
-
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -66,10 +64,7 @@ NAN_METHOD(Featureset::New)
  */
 NAN_METHOD(Featureset::next)
 {
-    Nan::HandleScope scope;
-
     Featureset* fs = Nan::ObjectWrap::Unwrap<Featureset>(info.Holder());
-
     if (fs->this_) {
         mapnik::feature_ptr fp;
         try

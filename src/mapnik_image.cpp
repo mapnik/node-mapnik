@@ -155,7 +155,6 @@ Image::~Image()
 
 NAN_METHOD(Image::New)
 {
-    Nan::HandleScope scope;
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -285,7 +284,6 @@ NAN_METHOD(Image::New)
  */
 NAN_METHOD(Image::getType)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     unsigned type = im->this_->get_dtype();
     info.GetReturnValue().Set(Nan::New<Number>(type));
@@ -410,7 +408,6 @@ struct visitor_get_pixel
  */
 NAN_METHOD(Image::getPixel)
 {
-    Nan::HandleScope scope;
     int x = 0;
     int y = 0;
     bool get_color = false;
@@ -475,7 +472,6 @@ NAN_METHOD(Image::getPixel)
  */
 NAN_METHOD(Image::setPixel)
 {
-    Nan::HandleScope scope;
     if (info.Length() < 3 || (!info[0]->IsNumber() && !info[1]->IsNumber())) {
         Nan::ThrowTypeError("expects three arguments: x, y, and pixel value");
         return;
@@ -536,8 +532,6 @@ NAN_METHOD(Image::setPixel)
  */
 NAN_METHOD(Image::compare)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() < 1 || !info[0]->IsObject()) {
         Nan::ThrowTypeError("first argument should be a mapnik.Image");
         return;
@@ -592,7 +586,6 @@ NAN_METHOD(Image::compare)
 
 NAN_METHOD(Image::filterSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_filterSync(info));
 }
 
@@ -654,7 +647,6 @@ typedef struct {
  */
 NAN_METHOD(Image::filter)
 {
-    Nan::HandleScope scope;
     if (info.Length() <= 1) {
         info.GetReturnValue().Set(_filterSync(info));
         return;
@@ -720,7 +712,6 @@ void Image::EIO_AfterFilter(uv_work_t* req)
 
 NAN_METHOD(Image::fillSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_fillSync(info));
 }
 
@@ -820,7 +811,6 @@ typedef struct {
  */
 NAN_METHOD(Image::fill)
 {
-    Nan::HandleScope scope;
     if (info.Length() <= 1) {
         info.GetReturnValue().Set(_fillSync(info));
         return;
@@ -946,7 +936,6 @@ void Image::EIO_AfterFill(uv_work_t* req)
  */
 NAN_METHOD(Image::clearSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_clearSync(info));
 }
 
@@ -983,7 +972,6 @@ typedef struct {
  */
 NAN_METHOD(Image::clear)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
 
     if (info.Length() == 0) {
@@ -1041,8 +1029,6 @@ void Image::EIO_AfterClear(uv_work_t* req)
 
 NAN_METHOD(Image::setGrayScaleToAlpha)
 {
-    Nan::HandleScope scope;
-
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     if (info.Length() == 0) {
         mapnik::set_grayscale_to_alpha(*im->this_);
@@ -1082,7 +1068,6 @@ typedef struct {
  */
 NAN_METHOD(Image::premultiplied)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     bool premultiplied = im->this_->get_premultiplied();
     info.GetReturnValue().Set(Nan::New<Boolean>(premultiplied));
@@ -1097,7 +1082,6 @@ NAN_METHOD(Image::premultiplied)
  */
 NAN_METHOD(Image::premultiplySync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_premultiplySync(info));
 }
 
@@ -1118,7 +1102,6 @@ Local<Value> Image::_premultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
  */
 NAN_METHOD(Image::premultiply)
 {
-    Nan::HandleScope scope;
     if (info.Length() == 0) {
         info.GetReturnValue().Set(_premultiplySync(info));
         return;
@@ -1190,7 +1173,6 @@ Local<Value> Image::_demultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
  */
 NAN_METHOD(Image::demultiply)
 {
-    Nan::HandleScope scope;
     if (info.Length() == 0) {
         info.GetReturnValue().Set(_demultiplySync(info));
         return;
@@ -1230,7 +1212,6 @@ typedef struct {
 
 NAN_METHOD(Image::isSolid)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
 
     if (info.Length() == 0) {
@@ -1313,7 +1294,6 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
  */
 NAN_METHOD(Image::isSolidSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
@@ -1353,8 +1333,6 @@ typedef struct {
  */
 NAN_METHOD(Image::copy)
 {
-    Nan::HandleScope scope;
-
     // ensure callback is a function
     Local<Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
@@ -1514,7 +1492,6 @@ void Image::EIO_AfterCopy(uv_work_t* req)
  */
 NAN_METHOD(Image::copySync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_copySync(info));
 }
 
@@ -1641,9 +1618,7 @@ typedef struct {
  * @memberof mapnik.Image
  */
 NAN_METHOD(Image::resize)
-{
-    Nan::HandleScope scope;
-    
+{    
     // ensure callback is a function
     Local<Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
@@ -1931,7 +1906,6 @@ void Image::EIO_AfterResize(uv_work_t* req)
  */
 NAN_METHOD(Image::resizeSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_resizeSync(info));
 }
 
@@ -2075,8 +2049,6 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
 NAN_METHOD(Image::painted)
 {
-    Nan::HandleScope scope;
-
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Boolean>(im->this_->painted()));
 }
@@ -2091,8 +2063,6 @@ NAN_METHOD(Image::painted)
  */
 NAN_METHOD(Image::width)
 {
-    Nan::HandleScope scope;
-
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Int32>(static_cast<std::int32_t>(im->this_->width())));
 }
@@ -2107,15 +2077,12 @@ NAN_METHOD(Image::width)
  */
 NAN_METHOD(Image::height)
 {
-    Nan::HandleScope scope;
-
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
 
 NAN_METHOD(Image::openSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_openSync(info));
 }
 
@@ -2184,8 +2151,6 @@ typedef struct {
 
 NAN_METHOD(Image::open)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() == 1) {
         info.GetReturnValue().Set(_openSync(info));
         return;
@@ -2283,14 +2248,12 @@ void Image::EIO_AfterOpen(uv_work_t* req)
 // Read from a Buffer
 NAN_METHOD(Image::fromSVGBytesSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_fromSVGSync(false, info));
 }
 
 // Read from a file
 NAN_METHOD(Image::fromSVGSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_fromSVGSync(true, info));
 }
 
@@ -2475,8 +2438,6 @@ typedef struct {
  */
 NAN_METHOD(Image::fromSVG)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() == 1) {
         info.GetReturnValue().Set(_fromSVGSync(true, info));
         return;
@@ -2645,8 +2606,6 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
  */
 NAN_METHOD(Image::fromSVGBytes)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() == 1) {
         info.GetReturnValue().Set(_fromSVGSync(false, info));
         return;
@@ -2817,7 +2776,6 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
 
 NAN_METHOD(Image::fromBytesSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_fromBytesSync(info));
 }
 
@@ -2872,8 +2830,6 @@ Local<Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
  */
 NAN_METHOD(Image::fromBytes)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() == 1) {
         info.GetReturnValue().Set(_fromBytesSync(info));
         return;
@@ -2978,8 +2934,6 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
  */
 NAN_METHOD(Image::encodeSync)
 {
-    Nan::HandleScope scope;
-
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
 
     std::string format = "png";
@@ -3066,8 +3020,6 @@ typedef struct {
  */
 NAN_METHOD(Image::encode)
 {
-    Nan::HandleScope scope;
-
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
 
     std::string format = "png";
@@ -3184,8 +3136,6 @@ void Image::EIO_AfterEncode(uv_work_t* req)
  */
 NAN_METHOD(Image::view)
 {
-    Nan::HandleScope scope;
-
     if ( (info.Length() != 4) || (!info[0]->IsNumber() && !info[1]->IsNumber() && !info[2]->IsNumber() && !info[3]->IsNumber() )) {
         Nan::ThrowTypeError("requires 4 integer arguments: x, y, width, height");
         return;
@@ -3214,7 +3164,6 @@ NAN_METHOD(Image::view)
  */
 NAN_METHOD(Image::saveSync)
 {
-    Nan::HandleScope scope;
     info.GetReturnValue().Set(_saveSync(info));
 }
 
@@ -3281,7 +3230,6 @@ typedef struct {
  */
 NAN_METHOD(Image::save)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     
     if (info.Length() == 0 || !info[0]->IsString()){
@@ -3390,8 +3338,6 @@ typedef struct {
  */
 NAN_METHOD(Image::composite)
 {
-    Nan::HandleScope scope;
-
     if (info.Length() < 1){
         Nan::ThrowTypeError("requires at least one argument: an image mask");
         return;
@@ -3577,21 +3523,18 @@ void Image::EIO_AfterComposite(uv_work_t* req)
 
 NAN_GETTER(Image::get_scaling)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Number>(im->this_->get_scaling()));
 }
 
 NAN_GETTER(Image::get_offset)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     info.GetReturnValue().Set(Nan::New<Number>(im->this_->get_offset()));
 }
 
 NAN_SETTER(Image::set_scaling)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     if (!value->IsNumber())
     {
@@ -3611,7 +3554,6 @@ NAN_SETTER(Image::set_scaling)
 
 NAN_SETTER(Image::set_offset)
 {
-    Nan::HandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     if (!value->IsNumber())
     {
