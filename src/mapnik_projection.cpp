@@ -46,18 +46,6 @@ Projection::~Projection()
 {
 }
 
-bool Projection::HasInstance(Handle<Value> val)
-{
-    Nan::HandleScope scope;
-    if (!val->IsObject()) return false;
-    Handle<Object> obj = val.As<Object>();
-
-    if (Nan::New(constructor)->HasInstance(obj))
-        return true;
-
-    return false;
-}
-
 NAN_METHOD(Projection::New)
 {
     Nan::HandleScope scope;
@@ -281,13 +269,13 @@ NAN_METHOD(ProjTransform::New)
     }
 
     Local<Object> src_obj = info[0].As<Object>();
-    if (src_obj->IsNull() || src_obj->IsUndefined() || !Projection::HasInstance(src_obj)) {
+    if (src_obj->IsNull() || src_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(src_obj)) {
         Nan::ThrowTypeError("mapnik.Projection expected for first argument");
         return;
     }
 
     Local<Object> dest_obj = info[1].As<Object>();
-    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Projection::HasInstance(dest_obj)) {
+    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(dest_obj)) {
         Nan::ThrowTypeError("mapnik.Projection expected for second argument");
         return;
     }

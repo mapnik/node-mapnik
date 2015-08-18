@@ -26,7 +26,6 @@ public:
 
     static NAN_METHOD(inverse);
     static NAN_METHOD(forward);
-    static bool HasInstance(Handle<Value> val);
 
     explicit Projection(std::string const& name, bool defer_init);
 
