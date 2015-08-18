@@ -20,7 +20,7 @@ typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 class GridView: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static Local<Value> NewInstance(Grid * JSGrid,
                              unsigned x,unsigned y, unsigned w, unsigned h);

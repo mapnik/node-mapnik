@@ -16,7 +16,7 @@
 
 Nan::Persistent<FunctionTemplate> Layer::constructor;
 
-void Layer::Initialize(Handle<Object> target) {
+void Layer::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -110,7 +110,7 @@ Local<Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
     l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
-    Handle<Value> ext = Nan::New<External>(l);
+    Local<Value> ext = Nan::New<External>(l);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

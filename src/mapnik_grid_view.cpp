@@ -14,7 +14,7 @@
 
 Nan::Persistent<FunctionTemplate> GridView::constructor;
 
-void GridView::Initialize(Handle<Object> target) {
+void GridView::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -82,7 +82,7 @@ Local<Value> GridView::NewInstance(Grid * JSGrid,
     Nan::EscapableHandleScope scope;
     GridView* gv = new GridView(JSGrid);
     gv->this_ = std::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
-    Handle<Value> ext = Nan::New<External>(gv);
+    Local<Value> ext = Nan::New<External>(gv);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

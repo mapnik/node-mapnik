@@ -23,7 +23,7 @@ Nan::Persistent<FunctionTemplate> Projection::constructor;
  * @example
  * var wgs84 = new mapnik.Projection('+init=epsg:4326');
  */
-void Projection::Initialize(Handle<Object> target) {
+void Projection::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -227,7 +227,7 @@ NAN_METHOD(Projection::inverse)
 
 Nan::Persistent<FunctionTemplate> ProjTransform::constructor;
 
-void ProjTransform::Initialize(Handle<Object> target) {
+void ProjTransform::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 

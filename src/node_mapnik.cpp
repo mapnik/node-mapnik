@@ -86,7 +86,7 @@ static NAN_METHOD(shutdown)
  */
 extern "C" {
 
-    static void InitMapnik (Handle<Object> target)
+    static void InitMapnik (Local<Object> target)
     {
         Nan::HandleScope scope;
         GOOGLE_PROTOBUF_VERIFY_VERSION;

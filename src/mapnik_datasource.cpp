@@ -26,7 +26,7 @@ Nan::Persistent<FunctionTemplate> Datasource::constructor;
  * @name mapnik.Datasource
  * @class
  */
-void Datasource::Initialize(Handle<Object> target) {
+void Datasource::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -146,7 +146,7 @@ Local<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Nan::EscapableHandleScope scope;
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
-    Handle<Value> ext = Nan::New<External>(d);
+    Local<Value> ext = Nan::New<External>(d);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

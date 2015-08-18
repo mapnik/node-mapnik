@@ -15,7 +15,7 @@
 
 Nan::Persistent<FunctionTemplate> MemoryDatasource::constructor;
 
-void MemoryDatasource::Initialize(Handle<Object> target) {
+void MemoryDatasource::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -111,7 +111,7 @@ Local<Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Nan::EscapableHandleScope scope;
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
-    Handle<Value> ext = Nan::New<External>(d);
+    Local<Value> ext = Nan::New<External>(d);
     return scope.Escape( Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

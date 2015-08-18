@@ -31,7 +31,7 @@ Nan::Persistent<FunctionTemplate> ImageView::constructor;
  * var im = new mapnik.Image(256, 256);
  * var view = im.view(0, 0, 256, 256);
  */
-void ImageView::Initialize(Handle<Object> target) {
+void ImageView::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -98,7 +98,7 @@ Local<Value> ImageView::NewInstance(Image * JSImage ,
     Nan::EscapableHandleScope scope;
     ImageView* imv = new ImageView(JSImage);
     imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
-    Handle<Value> ext = Nan::New<External>(imv);
+    Local<Value> ext = Nan::New<External>(imv);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

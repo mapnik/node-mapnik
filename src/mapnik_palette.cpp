@@ -10,7 +10,7 @@
 
 Nan::Persistent<FunctionTemplate> Palette::constructor;
 
-void Palette::Initialize(Handle<Object> target) {
+void Palette::Initialize(Local<Object> target) {
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Palette::New);

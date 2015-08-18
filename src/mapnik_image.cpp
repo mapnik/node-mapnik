@@ -63,7 +63,7 @@ Nan::Persistent<FunctionTemplate> Image::constructor;
  *   type: mapnik.imageType.gray8
  * });
  */
-void Image::Initialize(Handle<Object> target) {
+void Image::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -1470,7 +1470,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
     else
     {
         Image* im = new Image(closure->im2);
-        Handle<Value> ext = Nan::New<External>(im);
+        Local<Value> ext = Nan::New<External>(im);
         Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         Local<Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -1583,7 +1583,7 @@ Local<Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
                                                                             scaling)
                                                );
         Image* new_im = new Image(image_ptr);
-        Handle<Value> ext = Nan::New<External>(new_im);
+        Local<Value> ext = Nan::New<External>(new_im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -1883,7 +1883,7 @@ void Image::EIO_AfterResize(uv_work_t* req)
     else
     {
         Image* im = new Image(closure->im2);
-        Handle<Value> ext = Nan::New<External>(im);
+        Local<Value> ext = Nan::New<External>(im);
         Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         Local<Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2036,7 +2036,7 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                              filter_factor);
         mapnik::util::apply_visitor(visit, *image_ptr);
         Image* new_im = new Image(image_ptr);
-        Handle<Value> ext = Nan::New<External>(new_im);
+        Local<Value> ext = Nan::New<External>(new_im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -2115,7 +2115,7 @@ Local<Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
                     mapnik::set_premultiplied_alpha(*image_ptr, true);
                 }
                 Image* im = new Image(image_ptr);
-                Handle<Value> ext = Nan::New<External>(im);
+                Local<Value> ext = Nan::New<External>(im);
                 return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
             }
         }
@@ -2236,7 +2236,7 @@ void Image::EIO_AfterOpen(uv_work_t* req)
     else
     {
         Image* im = new Image(closure->im);
-        Handle<Value> ext = Nan::New<External>(im);
+        Local<Value> ext = Nan::New<External>(im);
         Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         Local<Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2390,7 +2390,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
 
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
         Image *im2 = new Image(image_ptr);
-        Handle<Value> ext = Nan::New<External>(im2);
+        Local<Value> ext = Nan::New<External>(im2);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -2587,7 +2587,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
     else
     {
         Image* im = new Image(closure->im);
-        Handle<Value> ext = Nan::New<External>(im);
+        Local<Value> ext = Nan::New<External>(im);
         Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         Local<Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2764,7 +2764,7 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     else
     {
         Image* im = new Image(closure->im);
-        Handle<Value> ext = Nan::New<External>(im);
+        Local<Value> ext = Nan::New<External>(im);
         Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         Local<Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2801,7 +2801,7 @@ Local<Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
         {
             std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
             Image* im = new Image(image_ptr);
-            Handle<Value> ext = Nan::New<External>(im);
+            Local<Value> ext = Nan::New<External>(im);
             return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
         }
         // The only way this is ever reached is if the reader factory in 
@@ -2910,7 +2910,7 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
     else
     {
         Image* im = new Image(closure->im);
-        Handle<Value> ext = Nan::New<External>(im);
+        Local<Value> ext = Nan::New<External>(im);
         Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         Local<Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);

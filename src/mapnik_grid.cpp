@@ -25,7 +25,7 @@ Nan::Persistent<FunctionTemplate> Grid::constructor;
  * @param {Object} [options={}] optional argument, which can have a 'key' property
  * @property {string} key
  */
-void Grid::Initialize(Handle<Object> target) {
+void Grid::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 

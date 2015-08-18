@@ -19,7 +19,7 @@ public:
     static Nan::Persistent<FunctionTemplate> constructor;
 
     explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(ToString);

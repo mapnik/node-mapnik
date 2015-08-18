@@ -16,7 +16,7 @@ namespace mapnik { class transcoder; }
 class MemoryDatasource: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static Local<Value> NewInstance(mapnik::datasource_ptr ds_ptr);
     static NAN_METHOD(parameters);

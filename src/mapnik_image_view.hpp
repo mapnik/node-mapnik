@@ -21,7 +21,7 @@ typedef std::shared_ptr<mapnik::image_view_any> image_view_ptr;
 class ImageView: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static Local<Value> NewInstance(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);

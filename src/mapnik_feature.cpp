@@ -21,7 +21,7 @@ Nan::Persistent<FunctionTemplate> Feature::constructor;
  * @name mapnik.Feature
  * @class
  */
-void Feature::Initialize(Handle<Object> target) {
+void Feature::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -113,7 +113,7 @@ NAN_METHOD(Feature::fromJSON)
             return;
         }
         Feature* feat = new Feature(f);
-        Handle<Value> ext = Nan::New<External>(feat);
+        Local<Value> ext = Nan::New<External>(feat);
         info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -127,7 +127,7 @@ Local<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
 {
     Nan::EscapableHandleScope scope;
     Feature* f = new Feature(f_ptr);
-    Handle<Value> ext = Nan::New<External>(f);
+    Local<Value> ext = Nan::New<External>(f);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

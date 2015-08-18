@@ -22,7 +22,7 @@ Nan::Persistent<FunctionTemplate> Geometry::constructor;
  * @name mapnik.Geometry
  * @class
  */
-void Geometry::Initialize(Handle<Object> target) {
+void Geometry::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -75,7 +75,7 @@ NAN_METHOD(Geometry::New)
 Local<Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     Nan::EscapableHandleScope scope;
     Geometry* g = new Geometry(f);
-    Handle<Value> ext = Nan::New<External>(g);
+    Local<Value> ext = Nan::New<External>(g);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

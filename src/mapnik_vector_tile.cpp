@@ -200,7 +200,7 @@ Nan::Persistent<FunctionTemplate> VectorTile::constructor;
  * @example
  * var vtile = new mapnik.VectorTile(9,112,195);
  */
-void VectorTile::Initialize(Handle<Object> target) {
+void VectorTile::Initialize(Local<Object> target) {
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(VectorTile::New);

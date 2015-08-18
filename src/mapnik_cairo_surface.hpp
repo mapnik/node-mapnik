@@ -23,7 +23,7 @@ class CairoSurface: public Nan::ObjectWrap {
 public:
     typedef std::stringstream i_stream;
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);
     static NAN_METHOD(width);

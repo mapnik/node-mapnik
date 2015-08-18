@@ -60,7 +60,7 @@ Nan::Persistent<FunctionTemplate> Map::constructor;
  * @example
  * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
  */
-void Map::Initialize(Handle<Object> target) {
+void Map::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -573,7 +573,7 @@ NAN_METHOD(Map::queryPoint)
     return;
 }
 
-Handle<Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords)
+Local<Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords)
 {
     Nan::HandleScope scope;
     if (info.Length() < 3)
@@ -1358,7 +1358,7 @@ NAN_METHOD(Map::clone)
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
-    Handle<Value> ext = Nan::New<External>(m2);
+    Local<Value> ext = Nan::New<External>(m2);
     info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

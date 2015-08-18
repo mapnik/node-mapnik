@@ -15,7 +15,7 @@ using namespace v8;
 class Geometry: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static Local<Value> NewInstance(mapnik::feature_ptr f);
     static NAN_METHOD(extent);

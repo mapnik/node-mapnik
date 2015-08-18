@@ -43,7 +43,7 @@ public:
         LAZY_MERGE = 3
     };
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);
     static NAN_METHOD(render);

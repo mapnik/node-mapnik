@@ -5,7 +5,7 @@
 Nan::Persistent<FunctionTemplate> Logger::constructor;
 
 // Sets up everything for the Logger object when the addon is initialized
-void Logger::Initialize(Handle<Object> target) {
+void Logger::Initialize(Local<Object> target) {
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Logger::New);

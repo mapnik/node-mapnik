@@ -19,7 +19,7 @@ typedef std::shared_ptr<mapnik::layer> layer_ptr;
 class Layer: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
 
     static Local<Value> NewInstance(mapnik::layer const& lay_ref);

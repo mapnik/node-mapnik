@@ -12,7 +12,7 @@ public:
     static Nan::Persistent<FunctionTemplate> constructor;
 
     // Initialize function is needed for all addons
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
 
     // Nan_Method when new Logger object is instantiated
     static NAN_METHOD(New);

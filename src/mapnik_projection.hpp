@@ -21,7 +21,7 @@ typedef std::shared_ptr<mapnik::projection> proj_ptr;
 class Projection: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(inverse);
@@ -41,7 +41,7 @@ typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 class ProjTransform: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(forward);

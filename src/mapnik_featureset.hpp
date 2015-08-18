@@ -17,7 +17,7 @@ typedef mapnik::featureset_ptr fs_ptr;
 class Featureset: public Nan::ObjectWrap {
 public:
     static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static void Initialize(Local<Object> target);
     static NAN_METHOD(New);
     static Local<Value> NewInstance(mapnik::featureset_ptr fs_ptr);
     static NAN_METHOD(next);

@@ -26,7 +26,7 @@ Nan::Persistent<FunctionTemplate> Color::constructor;
  * // premultiplied
  * var c = new mapnik.Color(0, 128, 0, 255, true);
  */
-void Color::Initialize(Handle<Object> target) {
+void Color::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -179,7 +179,7 @@ Local<Value> Color::NewInstance(mapnik::color const& color) {
     Nan::EscapableHandleScope scope;
     Color* c = new Color();
     c->this_ = std::make_shared<mapnik::color>(color);
-    Handle<Value> ext = Nan::New<External>(c);
+    Local<Value> ext = Nan::New<External>(c);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 

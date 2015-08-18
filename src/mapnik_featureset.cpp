@@ -9,7 +9,7 @@ Nan::Persistent<FunctionTemplate> Featureset::constructor;
  * @name mapnik.Featureset
  * @class
  */
-void Featureset::Initialize(Handle<Object> target) {
+void Featureset::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 
@@ -96,6 +96,6 @@ Local<Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
     Nan::EscapableHandleScope scope;
     Featureset* fs = new Featureset();
     fs->this_ = fs_ptr;
-    Handle<Value> ext = Nan::New<External>(fs);
+    Local<Value> ext = Nan::New<External>(fs);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }

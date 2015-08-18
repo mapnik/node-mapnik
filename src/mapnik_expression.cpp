@@ -15,7 +15,7 @@
 
 Nan::Persistent<FunctionTemplate> Expression::constructor;
 
-void Expression::Initialize(Handle<Object> target) {
+void Expression::Initialize(Local<Object> target) {
 
     Nan::HandleScope scope;
 

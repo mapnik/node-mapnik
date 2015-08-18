@@ -4,7 +4,7 @@ using namespace v8;
 
 Nan::Persistent<FunctionTemplate> CairoSurface::constructor;
 
-void CairoSurface::Initialize(Handle<Object> target) {
+void CairoSurface::Initialize(Local<Object> target) {
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(CairoSurface::New);
