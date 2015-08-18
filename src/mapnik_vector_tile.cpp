@@ -1339,7 +1339,7 @@ Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& resul
 {
     Local<Array> arr = Nan::New<Array>();
     for (std::size_t i = 0; i < result.size(); ++i) {
-        Handle<Value> feat = Feature::NewInstance(result[i].feature);
+        Local<Value> feat = Feature::NewInstance(result[i].feature);
         Local<Object> feat_obj = feat->ToObject();
         feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<String>(result[i].layer).ToLocalChecked());
         feat_obj->Set(Nan::New("distance").ToLocalChecked(),Nan::New<Number>(result[i].distance));
@@ -1628,7 +1628,7 @@ Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
     // result.features => features
     typedef std::map<unsigned,query_result>::const_iterator features_it_type;
     for (features_it_type it = result.features.begin(); it != result.features.end(); it++) {
-        Handle<Value> feat = Feature::NewInstance(it->second.feature);
+        Local<Value> feat = Feature::NewInstance(it->second.feature);
         Local<Object> feat_obj = feat->ToObject();
         feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<String>(it->second.layer).ToLocalChecked());
         features->Set(it->first, feat_obj);
