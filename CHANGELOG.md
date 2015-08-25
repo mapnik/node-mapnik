@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.4
+
+ - Rebuilt against updated Mapnik SDK to fix mysterious zlib related build issue.
+
 ## 3.4.3
 
  - Upgrade to mapnik-vector-tile@0.9.2
