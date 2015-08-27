@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.4.5
+
+ - Rebuilt against Mapnik 3.0.4
+
+Notable changes in Mapnik SDK include:
+
+ - CSV.input: plug-in has been refactored to minimise memory usage and to improve handling of larger input.
+   (NOTE: [large_csv](https://github.com/mapnik/mapnik/tree/large_csv) branch adds experimental trunsduction parser with deferred string initialisation)
+ - CSV.input: added internal spatial index (boost::geometry::index::tree) for fast `bounding box` queries (https://github.com/mapnik/mapnik/pull/3010)
+ - Fixed deadlock in recursive datasource registration via @zerebubuth (https://github.com/mapnik/mapnik/pull/3038)
+
 ## 3.4.4
 
  - Rebuilt against updated Mapnik SDK to fix mysterious zlib related build issue.
@@ -15,12 +26,12 @@
 
 Notable changes in the Mapnik SDK include:
 
-- Fixed an issue with fields over size of `int32` in `OGR` plugin (https://github.com/mapnik/node-mapnik/issues/499)
-- Added 3 new image-filters to simulate types of colorblindness (`color-blind-protanope`,`color-blind-deuteranope`,`color-blind-tritanope`)
-- Fix so that null text boxes have no bounding boxes when attempting placement ( 162f82cba5b0fb984c425586c6a4b354917abc47 )
-- Patch to add legacy method for setting JPEG quality in images ( #3024 )
-- Added `filter_image` method which can modify an image in place or return a new image that is filtered
-- Added missing typedef's in `mapnik::geometry` to allow experimenting with different containers
+ - Fixed an issue with fields over size of `int32` in `OGR` plugin (https://github.com/mapnik/node-mapnik/issues/499)
+ - Added 3 new image-filters to simulate types of colorblindness (`color-blind-protanope`,`color-blind-deuteranope`,`color-blind-tritanope`)
+ - Fix so that null text boxes have no bounding boxes when attempting placement ( 162f82cba5b0fb984c425586c6a4b354917abc47 )
+ - Patch to add legacy method for setting JPEG quality in images ( #3024 )
+ - Added `filter_image` method which can modify an image in place or return a new image that is filtered
+ - Added missing typedef's in `mapnik::geometry` to allow experimenting with different containers
 
 ## 3.4.2
 
