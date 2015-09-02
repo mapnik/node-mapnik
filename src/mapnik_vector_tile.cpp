@@ -448,7 +448,7 @@ void VectorTile::parse_proto()
     else
     {
         throwaway_tile.Clear();
-        throw std::runtime_error("could not merge buffer as protobuf");
+        throw std::runtime_error("could not parse buffer as protobuf");
     }
 }
 
