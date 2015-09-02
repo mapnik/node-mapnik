@@ -468,6 +468,343 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should fail to getData due to bad input', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        assert.throws(
+            function() { vtile.getDataSync(null); }, 
+            "first arg must be a options object"
+        );
+        assert.throws(
+            function() { vtile.getData(null, function(err, out) {}); }, 
+            "first arg must be a options object"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({compression:null}); }, 
+            "option 'compression' must be a string, either 'gzip', or 'none' (default)"
+        );
+        assert.throws(
+            function() { vtile.getData({compression:null}, function(err,out) {}); }, 
+            "option 'compression' must be a string, either 'gzip', or 'none' (default)"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({level:null}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getData({level:null}, function(err,out) {}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({level:99}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getData({level:99}, function(err,out) {}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({level:-1}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getData({level:-1}, function(err,out) {}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({strategy:null}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+        assert.throws(
+            function() { vtile.getData({strategy:null}, function(err,out) {}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({strategy:'FOO'}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+        assert.throws(
+            function() { vtile.getData({strategy:'FOO'}, function(err,out) {}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+    });
+    
+    it('should create empty buffer with getData with no data provided.', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var uncompressed = vtile.getData();
+        assert.equal(uncompressed.length, 0);
+        vtile.getData(function(err, uncompressed2) {
+            assert.equal(uncompressed2.length, 0);
+            done();
+        });
+    });
+    
+    it('should be able to getData with a RLE', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_RLE
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'RLE'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'RLE'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a FILTERED', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_FILTERED
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'FILTERED'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'FILTERED'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a HUFFMAN_ONLY', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_HUFFMAN_ONLY
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a FIXED', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_FIXED
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'FIXED'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'FIXED'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a DEFAULT_STRATEGY', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_DEFAULT_STRATEGY
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'DEFAULT'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'DEFAULT'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+
     it('should be able to setData/parse zlib compressed (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
@@ -477,9 +814,9 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(compressed[0],0x1F);
             assert.equal(compressed[1],0x8B);
             assert.equal(compressed[2],8);
-            assert.equal(compressed.length,vtile.getData({compression:'gzip',level:9,strategy:'RLE'}).length);
+            assert.equal(compressed.length,vtile.getDataSync({compression:'gzip',level:9,strategy:'RLE'}).length);
             var uncompressed = vtile.getData();
-            var default_compressed = vtile.getData({compression:'gzip'});
+            var default_compressed = vtile.getDataSync({compression:'gzip'});
             // ensure all the default options match the default node zlib options
             zlib.gzip(uncompressed,function(err,node_compressed) {
                 assert.equal(default_compressed.length,node_compressed.length);

@@ -2514,7 +2514,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  * Get the data in this vector tile as a buffer
  *
  * @memberof mapnik.VectorTile
- * @name getData
+ * @name getDataSync
  * @instance
  * @returns {Buffer} raw data
  */
@@ -2779,8 +2779,13 @@ void VectorTile::get_data(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // As all exception throwing paths are not easily testable or no way can be
+        // found to test with repeatability this exception path is not included
+        // in test coverage.
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_END
     }
 }
 
@@ -2788,9 +2793,15 @@ void VectorTile::after_get_data(uv_work_t* req)
 {
     NanScope();
     vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
-    if (closure->error) {
+    if (closure->error) 
+    {
+        // As all exception throwing paths are not easily testable or no way can be
+        // found to test with repeatability this exception path is not included
+        // in test coverage.
+        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->error_name.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
     }
     else if (!closure->data.empty())
     {
