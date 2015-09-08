@@ -4,6 +4,7 @@ var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
@@ -198,6 +199,13 @@ describe('mapnik.Datasource', function() {
         var ds = new mapnik.Datasource(options);
         assert.ok(ds);
         assert.deepEqual(ds.parameters(), options);
+        var describe = ds.describe();
+        var expected = {  type: 'raster',
+                          encoding: 'utf-8',
+                          fields: { nodata: 'Number' },
+                          geometry_type: 'raster'
+                       };
+        assert.deepEqual(expected,describe);
 
         // Test that if added to layer, can get datasource back
         var layer = new mapnik.Layer('foo', '+init=epsg:4326');
