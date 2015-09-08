@@ -454,7 +454,6 @@ describe('mapnik.VectorTile ', function() {
         // a larger polygon fully outside the rendered/clipping extent
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
-        // empty is valid to use before parse() (and after)
         assert.equal(vtile.empty(), false);
         vtile.parseSync();
         assert.equal(vtile.painted(), true);
@@ -824,7 +823,6 @@ describe('mapnik.VectorTile ', function() {
             var vtile2 = new mapnik.VectorTile(9,112,195);
             vtile2.setData(compressed);
             assert.equal(vtile.getData().length,vtile2.getData().length);
-            // empty is valid to use before parse() (and after)
             assert.equal(vtile.empty(), false);
             assert.equal(vtile2.empty(), false);
             vtile.parseSync();
@@ -868,7 +866,6 @@ describe('mapnik.VectorTile ', function() {
             var vtile2 = new mapnik.VectorTile(9,112,195);
             vtile2.setData(compressed);
             assert.equal(vtile.getData().length,vtile2.getData().length);
-            // empty is valid to use before parse() (and after)
             assert.equal(vtile.empty(), false);
             assert.equal(vtile2.empty(), false);
             vtile.parseSync();
@@ -933,6 +930,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.throws(function() { vtile.empty(); });
             assert.throws(function() { vtile.parse(null); });
+            assert.throws(function() { vtile.toJSON(); });
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
                 done();
