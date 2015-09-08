@@ -95,13 +95,9 @@ inline vector_tile::Tile get_tile(std::string const& buffer)
 bool pbf_layer_match(protozero::pbf_reader const& layer_msg, std::string const& layer_name)
 {
     protozero::pbf_reader lay(layer_msg);
-    while (lay.next()) {
-        if (lay.tag() == 1) {
-            if (lay.get_string() == layer_name) {
-                return true;
-            }
-        } else {
-            lay.skip();
+    while (lay.next(1)) {
+        if (lay.get_string() == layer_name) {
+            return true;
         }
     }
     return false;
@@ -112,15 +108,11 @@ bool pbf_get_layer(std::string const& tile_buffer,
                    protozero::pbf_reader & layer_msg)
 {
     protozero::pbf_reader item(tile_buffer.data(),tile_buffer.size());
-    while (item.next()) {
-        if (item.tag() == 3) {
-            layer_msg = item.get_message();
-            if (pbf_layer_match(layer_msg,layer_name))
-            {
-                return true;
-            }
-        } else {
-            item.skip();
+    while (item.next(3)) {
+        layer_msg = item.get_message();
+        if (pbf_layer_match(layer_msg,layer_name))
+        {
+            return true;
         }
     }
     return false;
@@ -132,21 +124,11 @@ bool lazy_empty(std::string const& buffer)
     if (bytes > 0)
     {
         protozero::pbf_reader item(buffer.data(),bytes);
-        while (item.next()) {
-            if (item.tag() == 3) {
-                protozero::pbf_reader layer_msg = item.get_message();
-                while (layer_msg.next()) {
-                    if (layer_msg.tag() == 2) {
-                        // we hit a feature, assume we've got data
-                        return false;
-                    } else {
-                        layer_msg.skip();
-                    }
-                }
-            }
-            else
-            {
-                item.skip();
+        while (item.next(3)) {
+            protozero::pbf_reader layer_msg = item.get_message();
+            while (layer_msg.next(2)) {
+                // we hit a feature, assume we've got data
+                return false;
             }
         }
     }
@@ -160,18 +142,10 @@ std::vector<std::string> lazy_names(std::string const& buffer)
     if (bytes > 0)
     {
         protozero::pbf_reader item(buffer.data(),bytes);
-        while (item.next()) {
-            if (item.tag() == 3) {
-                protozero::pbf_reader layer_msg = item.get_message();
-                while (layer_msg.next()) {
-                    if (layer_msg.tag() == 1) {
-                        names.emplace_back(layer_msg.get_string());
-                    } else {
-                        layer_msg.skip();
-                    }
-                }
-            } else {
-                item.skip();
+        while (item.next(3)) {
+            protozero::pbf_reader layer_msg = item.get_message();
+            while (layer_msg.next(1)) {
+                names.emplace_back(layer_msg.get_string());
             }
         }
     }
@@ -505,23 +479,19 @@ void _composite(VectorTile* target_vt,
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
             map.set_maximum_extent(max_extent);
             protozero::pbf_reader message(vt->buffer_.data(),vt->buffer_.size());
-            while (message.next()) {
-                if (message.tag() == 3) {
-                    protozero::pbf_reader layer_msg = message.get_message();
-                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                layer_msg,
-                                vt->x_,
-                                vt->y_,
-                                vt->z_,
-                                vt->width()
-                                );
-                    mapnik::layer lyr(ds->get_name(),merc_srs);
-                    ds->set_envelope(m_req.get_buffered_extent());
-                    lyr.set_datasource(ds);
-                    map.add_layer(lyr);
-                } else {
-                    message.skip();
-                }
+            while (message.next(3)) {
+                protozero::pbf_reader layer_msg = message.get_message();
+                auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                            layer_msg,
+                            vt->x_,
+                            vt->y_,
+                            vt->z_,
+                            vt->width()
+                            );
+                mapnik::layer lyr(ds->get_name(),merc_srs);
+                ds->set_envelope(m_req.get_buffered_extent());
+                lyr.set_datasource(ds);
+                map.add_layer(lyr);
             }
             if (!map.layers().empty())
             {
@@ -1222,36 +1192,32 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     else
     {
         protozero::pbf_reader item(d->buffer_.data(),bytes);
-        while (item.next()) {
-            if (item.tag() == 3) {
-                protozero::pbf_reader layer_msg = item.get_message();
-                auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                                layer_msg,
-                                                d->x_,
-                                                d->y_,
-                                                d->z_,
-                                                d->width()
-                                                );
-                mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-                if (fs)
+        while (item.next(3)) {
+            protozero::pbf_reader layer_msg = item.get_message();
+            auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                            layer_msg,
+                                            d->x_,
+                                            d->y_,
+                                            d->z_,
+                                            d->width()
+                                            );
+            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+            if (fs)
+            {
+                mapnik::feature_ptr feature;
+                while ((feature = fs->next()))
                 {
-                    mapnik::feature_ptr feature;
-                    while ((feature = fs->next()))
+                    auto const& geom = feature->get_geometry();
+                    double distance = path_to_point_distance(geom,x,y);
+                    if (distance >= 0 && distance <= tolerance)
                     {
-                        auto const& geom = feature->get_geometry();
-                        double distance = path_to_point_distance(geom,x,y);
-                        if (distance >= 0 && distance <= tolerance)
-                        {
-                            query_result res;
-                            res.distance = distance;
-                            res.layer = ds->get_name();
-                            res.feature = feature;
-                            arr.push_back(std::move(res));
-                        }
+                        query_result res;
+                        res.distance = distance;
+                        res.layer = ds->get_name();
+                        res.feature = feature;
+                        arr.push_back(std::move(res));
                     }
                 }
-            } else {
-                item.skip();
             }
         }
     }
@@ -3206,37 +3172,29 @@ template <typename Renderer> void process_layers(Renderer & ren,
     using layer_list_type = std::vector<protozero::pbf_reader>;
     std::map<std::string,layer_list_type> pbf_layers;
     protozero::pbf_reader item(closure->d->buffer_.data(),closure->d->buffer_.size());
-    while (item.next()) {
-        if (item.tag() == 3) {
-            protozero::pbf_reader layer_msg = item.get_message();
-            // make a copy to ensure that the `get_string()` does not mutate the internal
-            // pointers of the `layer_og` stored in the map
-            // good thing copies are cheap
-            protozero::pbf_reader layer_og(layer_msg);
-            std::string layer_name;
-            while (layer_msg.next()) {
-                if (layer_msg.tag() == 1) {
-                    layer_name = layer_msg.get_string();
-                } else {
-                    layer_msg.skip();
-                }
-            }
-            if (!layer_name.empty())
+    while (item.next(3)) {
+        protozero::pbf_reader layer_msg = item.get_message();
+        // make a copy to ensure that the `get_string()` does not mutate the internal
+        // pointers of the `layer_og` stored in the map
+        // good thing copies are cheap
+        protozero::pbf_reader layer_og(layer_msg);
+        std::string layer_name;
+        while (layer_msg.next(1)) {
+            layer_name = layer_msg.get_string();
+        }
+        if (!layer_name.empty())
+        {
+            // we accept dupes currently, even though this
+            // is of dubious value (tested by `should render by underzooming or mosaicing` in node-mapnik)
+            auto itr = pbf_layers.find(layer_name);
+            if (itr == pbf_layers.end())
             {
-                // we accept dupes currently, even though this
-                // is of dubious value (tested by `should render by underzooming or mosaicing` in node-mapnik)
-                auto itr = pbf_layers.find(layer_name);
-                if (itr == pbf_layers.end())
-                {
-                    pbf_layers.emplace(layer_name,layer_list_type{std::move(layer_og)});
-                }
-                else
-                {
-                    itr->second.push_back(std::move(layer_og));
-                }
+                pbf_layers.emplace(layer_name,layer_list_type{std::move(layer_og)});
             }
-        } else {
-            item.skip();
+            else
+            {
+                itr->second.push_back(std::move(layer_og));
+            }
         }
     }
     // loop over layers in map and match by name
