@@ -933,6 +933,7 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { vtile.parseSync(null); });
             assert.throws(function() { vtile.toJSON(); });
             assert.throws(function() { vtile.toGeoJSON(0); });
+            assert.throws(function() { vtile.toGeoJSON(0,function() {}); });
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
                 done();
