@@ -17,7 +17,7 @@ var available_ds = mapnik.datasources();
 function xmlWithFont(font) {
     var val = '<Map><Style name="text"><Rule>';
     val += '<TextSymbolizer size="12" face-name="' + font + '"><![CDATA[[name]]]></TextSymbolizer>';
-    val += '</Rule></Style>';    
+    val += '</Rule></Style>';
     val += '<Layer name="text" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">';
     val += '<StyleName>text</StyleName>';
     val += '<Datasource>'
@@ -36,7 +36,7 @@ describe('Handling unicode paths, filenames, and data', function(){
     // https://github.com/mapnik/node-mapnik/issues/142
 
     it('register font file with unicode directory and name', function(done){
-        var filepath = './test/data/dir-区县级行政区划/你好_DejaVuSansMono-BoldOblique.ttf';
+        var filepath = path.join(__dirname, 'data', 'dir-区县级行政区划', '你好_DejaVuSansMono-BoldOblique.ttf');
         assert.ok(existsSync(filepath));
         assert.throws(function() { mapnik.register_fonts(); });
         assert.throws(function() { mapnik.register_fonts(filepath, null); });
@@ -62,9 +62,9 @@ describe('Handling unicode paths, filenames, and data', function(){
             console.log('skipping due to lack of csv plugin');
             return done();
         }
-        var filepath = './test/data/ünicode_symbols.xml';
+        var filepath = path.join(__dirname, 'data', 'ünicode_symbols.xml');
         assert.ok(existsSync(filepath));
-        var svg = './test/data/dir-区县级行政区划/你好-ellipses.svg';
+        var svg = path.join(__dirname, 'data', 'dir-区县级行政区划', '你好-ellipses.svg');
         assert.ok(existsSync(svg));
         var map = new mapnik.Map(256,256);
         map.load(filepath,function(err,map) {
@@ -87,7 +87,7 @@ describe('Handling unicode paths, filenames, and data', function(){
         var filepath = './test/data/你好_points.csv';
         assert.ok(existsSync(filepath));
         var ds = new mapnik.Datasource({type:'csv',file:filepath});
-        assert.ok(ds); 
+        assert.ok(ds);
         done();
     });
 
@@ -158,7 +158,7 @@ describe('Handling unicode paths, filenames, and data', function(){
         var filepath = './test/data/你好_points.shp';
         assert.ok(existsSync(filepath));
         var ds = new mapnik.Datasource({type:'shape',file:filepath});
-        assert.ok(ds); 
+        assert.ok(ds);
         done();
     });
 

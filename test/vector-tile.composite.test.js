@@ -8,7 +8,7 @@ var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 
-var data_base = './test/data/vector_tile/compositing';
+var data_base = path.join( __dirname, 'data', 'vector_tile', 'compositing');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
@@ -45,15 +45,20 @@ function render_data(name,coords,callback) {
 
 function render_fresh_tile(name,coords,callback) {
     var map = new mapnik.Map(256, 256);
-    map.loadSync(data_base +'/layers/'+name+'.xml');
+    console.log('map (before load): ', map);
+    map.loadSync(path.join(data_base, 'layers', name+'.xml'));
+    console.log('map (after load): ', map);
     var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
+    console.log('vtile (after creation):', vtile);
     var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
     name = name + '-' + coords.join('-');
     map.extent = extent;
     var opts = JSON.parse(JSON.stringify(rendering_defaults));
     // buffer of >=5 is needed to ensure point ends up in tiles touching null island
     opts.buffer_size = 5;
+    console.log('vtile (before render):', vtile);
     map.render(vtile,opts,function(err,vtile) {
+        console.log('vtile (after render):', vtile);
         if (err) return callback(err);
         return callback(null,vtile);
     });
@@ -158,6 +163,7 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should support compositing tiles that were just rendered to sync', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
+            console.log('vtile1: ', vtile1);
             if (err) throw err;
             assert.equal(vtile1.getData().length,49);
             var vtile2 = new mapnik.VectorTile(1,0,0);
@@ -178,7 +184,7 @@ describe('mapnik.VectorTile.composite', function() {
             done();
         });
     });
-    
+
     it('should support compositing tiles that were just rendered to async', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
