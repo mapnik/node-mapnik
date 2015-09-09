@@ -930,7 +930,9 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.throws(function() { vtile.empty(); });
             assert.throws(function() { vtile.parse(null); });
+            assert.throws(function() { vtile.parseSync(null); });
             assert.throws(function() { vtile.toJSON(); });
+            assert.throws(function() { vtile.toGeoJSON(0); });
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
                 done();
@@ -1033,7 +1035,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
         assert.throws(function() {
             vtile.addData(new Buffer('foo'));
-            vtile.parse();
+            vtile.parseSync();
         });
     });
     
@@ -1046,7 +1048,7 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addData(new Buffer('foo'));
         vtile.clearSync();
-        assert.throws(function() { vtile.parse(); });
+        assert.throws(function() { vtile.parseSync(); });
     });
 
     it('should be able to setData/parse (async)', function(done) {
@@ -1399,7 +1401,9 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        vtile.parse();
+        vtile.parse(function(err) {
+          if (err) throw err;
+        });
         var im = new mapnik.Image(256,256);
         var im_g = new mapnik.Image(256,256,{ type: mapnik.imageType.gray8 });
         var im_c = new mapnik.CairoSurface('SVG',256, 256);
