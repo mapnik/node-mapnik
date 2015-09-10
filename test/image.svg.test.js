@@ -78,6 +78,17 @@ describe('mapnik.Image SVG', function() {
         done();
       });
     });
+    
+    it('should err with async file w/o width or height as Bytes', function(done) {
+        var svgdata = "<svg width='0' height='0'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
+        var buffer = new Buffer(svgdata);
+        mapnik.Image.fromSVGBytes(buffer, function(err, img) {
+            assert.ok(err);
+            assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
+            assert.equal(img, undefined);
+            done();
+        });
+    });
 
     it('should err with async invalid buffer', function(done) {
       mapnik.Image.fromSVGBytes(new Buffer('asdfasdf'), function(err, svg) {
@@ -114,6 +125,16 @@ describe('mapnik.Image SVG', function() {
         assert.equal(img.height(), 256);
         assert.equal(img.encodeSync('png32').length, 17272);
     });
+    
+    it('#fromSVGSync load from SVG file - 2', function() {
+        var img = mapnik.Image.fromSVG('./test/data/vector_tile/tile0.expected-svg.svg');
+        assert.ok(img);
+        assert.ok(img instanceof mapnik.Image);
+        assert.equal(img.width(), 256);
+        assert.equal(img.height(), 256);
+        assert.equal(img.encodeSync('png32').length, 17272);
+    });
+
 
     it('#fromSVG load from SVG file', function(done) {
         mapnik.Image.fromSVG('./test/data/vector_tile/tile0.expected-svg.svg', function(err, img) {
@@ -130,6 +151,17 @@ describe('mapnik.Image SVG', function() {
         var svgdata = "<svg width='100' height='100'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
         var buffer = new Buffer(svgdata);
         var img = mapnik.Image.fromSVGBytesSync(buffer);
+        assert.ok(img);
+        assert.ok(img instanceof mapnik.Image);
+        assert.equal(img.width(), 100);
+        assert.equal(img.height(), 100);
+        assert.equal(img.encodeSync("png").length, 1270);
+    });
+
+    it('#fromSVGBytesSync load from SVG buffer - 2', function() {
+        var svgdata = "<svg width='100' height='100'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
+        var buffer = new Buffer(svgdata);
+        var img = mapnik.Image.fromSVGBytes(buffer);
         assert.ok(img);
         assert.ok(img instanceof mapnik.Image);
         assert.equal(img.width(), 100);

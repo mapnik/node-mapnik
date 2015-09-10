@@ -3,6 +3,8 @@
 ## 3.4.6
 
  - Rebuilt with 0.10.0 of Mapnik Vector Tile. This changes the way that `painted` method returns in `VectorTile` classes.
+ - In `VectorTile` object `parse` is no longer required please consider it depreciated.
+ - `VectorTile` now utilizes the protozero library for lower memory vector tile operations.
 
 ## 3.4.5
 

@@ -112,15 +112,69 @@ describe('mapnik.Feature ', function() {
                 }
             };
         var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"});
+        var describe = ds.describe();
+        var expected_describe = { type: 'vector',
+                                  encoding: 'utf-8',
+                                  fields: {},
+                                  geometry_type: 'polygon' };
+        assert.deepEqual(expected_describe,describe);
         var f = ds.featureset().next();
         var feature = JSON.parse(f.toJSON());
 
         assert.equal(expected.type, feature.type);
         assert.deepEqual(expected.properties, feature.properties);
         assert.equal(expected.geometry.type, feature.geometry.type);
-        if (mapnik.versions.mapnik_number >= 200300) {
-            assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
-        }
+        assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+    });
+
+    it('should output the same geojson that it read (point)', function () {
+        var expected = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'Point',
+                    coordinates: [1,1]
+                }
+            };
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"});
+        var describe = ds.describe();
+        var expected_describe = { type: 'vector',
+                                  encoding: 'utf-8',
+                                  fields: {},
+                                  geometry_type: 'point' };
+        assert.deepEqual(expected_describe,describe);
+        var f = ds.featureset().next();
+        var feature = JSON.parse(f.toJSON());
+
+        assert.equal(expected.type, feature.type);
+        assert.deepEqual(expected.properties, feature.properties);
+        assert.equal(expected.geometry.type, feature.geometry.type);
+        assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
+    });
+
+    it('should output the same geojson that it read (line)', function () {
+        var expected = {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[1,1],[2,2]]
+                }
+            };
+        var ds = new mapnik.Datasource({type:'csv', 'inline': "geojson\n'" + JSON.stringify(expected.geometry) + "'"});
+        var describe = ds.describe();
+        var expected_describe = { type: 'vector',
+                                  encoding: 'utf-8',
+                                  fields: {},
+                                  geometry_type: 'linestring' };
+        assert.deepEqual(expected_describe,describe);
+        var f = ds.featureset().next();
+        var feature = JSON.parse(f.toJSON());
+
+        assert.equal(expected.type, feature.type);
+        assert.deepEqual(expected.properties, feature.properties);
+        assert.equal(expected.geometry.type, feature.geometry.type);
+        assert.deepEqual(expected.geometry.coordinates, feature.geometry.coordinates);
     });
 
     it('should be able to create feature from geojson and turn back into geojson', function (done) {
@@ -159,8 +213,7 @@ describe('mapnik.Feature ', function() {
         });
     });
 
-    // Skipping until issue https://github.com/mapnik/mapnik/issues/2985 is resolved.
-    it.skip('should be able to get a featureset from Memory datasource', function() {
+    it('should be able to get a featureset from Memory datasource', function() {
         var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         var fs0 = mem_datasource.featureset();
         assert.equal(undefined, fs0.next());

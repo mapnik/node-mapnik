@@ -36,6 +36,8 @@
 // boost
 #include <boost/version.hpp>
 
+#include "vector_tile.pb.h"
+
 // cairo
 #if defined(HAVE_CAIRO)
 #include <cairo.h>

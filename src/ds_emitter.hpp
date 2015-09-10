@@ -36,10 +36,14 @@ static void get_fields(Local<Object> fields, mapnik::datasource_ptr ds)
         else if (field_type == mapnik::Float) type = "Number";
         else if (field_type == mapnik::Double) type = "Number";
         else if (field_type == mapnik::String) type = "String";
+        /* LCOV_EXCL_START */
+        // Not currently possible to author these values in mapnik core
+        // Should likely be considered for removing in mapnik
         else if (field_type == mapnik::Boolean) type = "Boolean";
         else if (field_type == mapnik::Geometry) type = "Geometry";
         else if (field_type == mapnik::Object) type = "Object";
         else type = "Unknown";
+        /* LCOV_EXCL_END */
         fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
         fields->Set(NanNew(itr->get_name().c_str()), NanNew(type.c_str()));
         ++itr;

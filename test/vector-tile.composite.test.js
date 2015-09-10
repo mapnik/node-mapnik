@@ -216,26 +216,18 @@ describe('mapnik.VectorTile.composite', function() {
         // Now composite the tiles together
         var opts = {}; // NOTE: options here will have no impact in the case of concatenation
         vtile.composite(vtiles,opts);
-        // It is safe to call vt.getData after vt.composite without calling vt.parse
         var composited_data = vtile.getData();
         assert.equal(composited_data.length,expected_length);
-        // It is also safe to call vtile.names() without vt.parse because vt.names() can
-        // operate on the raw protobuf data and does not need parsed data
-        // In the future other functions will gain this ability.
         assert.deepEqual(vtile.names(),['lines','points']);
-        // Now we parse in order to be able to test rendering
-        vtile.parse(function(err) {
+        // ensure the lengths still match
+        assert.equal(vtile.getData().length,expected_length);
+        var map = new mapnik.Map(256,256);
+        map.loadSync(data_base +'/styles/all.xml');
+        vtile.render(map,new mapnik.Image(256,256),function(err,im) {
             if (err) throw err;
-            // ensure the lengths still match
-            assert.equal(vtile.getData().length,expected_length);
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),function(err,im) {
-                if (err) throw err;
-                var expected_file = data_base +'/expected/concat.png';
-                assert.equal(0,compare_to_image(im,expected_file));
-                done();
-            });
+            var expected_file = data_base +'/expected/concat.png';
+            assert.equal(0,compare_to_image(im,expected_file));
+            done();
         });
     });
 
@@ -249,17 +241,14 @@ describe('mapnik.VectorTile.composite', function() {
         ];
         vtile.composite(vtiles,{});
         assert.deepEqual(vtile.names(),['raster','lines','points']);
-        vtile.parse(function(err) {
+        assert.deepEqual(vtile.toJSON().map(function(l) { return l.name; }), ['raster','lines','points']);
+        var map = new mapnik.Map(256,256);
+        map.loadSync(data_base +'/styles/all.xml');
+        vtile.render(map,new mapnik.Image(256,256),function(err,im) {
             if (err) throw err;
-            assert.deepEqual(vtile.toJSON().map(function(l) { return l.name; }), ['raster','lines','points']);
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),function(err,im) {
-                if (err) throw err;
-                var expected_file = data_base +'/expected/image_concat.png';
-                assert.ok(compare_to_image(im,expected_file) < 525);
-                done();
-            });
+            var expected_file = data_base +'/expected/image_concat.png';
+            assert.ok(compare_to_image(im,expected_file) < 525);
+            done();
         });
     });
 
@@ -273,24 +262,20 @@ describe('mapnik.VectorTile.composite', function() {
         // re-rendered data should be different length
         assert.notEqual(new_length,original_length);
         assert.deepEqual(vtile.names(),['lines','points']);
-        vtile.parse(function(err) {
+        assert.equal(new_length,vtile.getData().length);
+        var json_result = vtile.toJSON();
+        assert.equal(json_result.length,2);
+        assert.equal(json_result[0].features.length,2);
+        assert.equal(json_result[1].features.length,1);
+        // tile is actually bigger because of how geometries are encoded
+        assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length);
+        var map = new mapnik.Map(256,256);
+        map.loadSync(data_base +'/styles/all.xml');
+        vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
             if (err) throw err;
-            // length should be the same before and after parse
-            assert.equal(new_length,vtile.getData().length);
-            var json_result = vtile.toJSON();
-            assert.equal(json_result.length,2);
-            assert.equal(json_result[0].features.length,2);
-            assert.equal(json_result[1].features.length,1);
-            // tile is actually bigger because of how geometries are encoded
-            assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length);
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
-                if (err) throw err;
-                var expected_file = data_base +'/expected/2-1-1.png';
-                assert.equal(0,compare_to_image(im,expected_file));
-                done();
-            });
+            var expected_file = data_base +'/expected/2-1-1.png';
+            assert.equal(0,compare_to_image(im,expected_file));
+            done();
         });
     });
 
@@ -300,18 +285,15 @@ describe('mapnik.VectorTile.composite', function() {
         var opts = {buffer_size:-256}; // will lead to dropped data
         vtile.composite(vtiles,opts);
         assert.deepEqual(vtile.names(),[]);
-        vtile.parse(function(err) {
+        var json_result = vtile.toJSON();
+        assert.equal(json_result.length,0);
+        var map = new mapnik.Map(256,256);
+        map.loadSync(data_base +'/styles/all.xml');
+        vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
             if (err) throw err;
-            var json_result = vtile.toJSON();
-            assert.equal(json_result.length,0);
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
-                if (err) throw err;
-                var expected_file = data_base +'/expected/2-1-1-empty.png';
-                assert.equal(0,compare_to_image(im,expected_file));
-                done();
-            });
+            var expected_file = data_base +'/expected/2-1-1-empty.png';
+            assert.equal(0,compare_to_image(im,expected_file));
+            done();
         });
     });
 
@@ -320,19 +302,16 @@ describe('mapnik.VectorTile.composite', function() {
         var vtiles = [get_tile_at('lines',[2,1,1]),get_tile_at('points',[2,0,1])];
         vtile.composite(vtiles);
         assert.deepEqual(vtile.names(),["lines"]);
-        vtile.parse(function(err) {
+        var json_result = vtile.toJSON();
+        assert.equal(json_result.length,1);
+        assert.equal(json_result[0].features.length,2);
+        var map = new mapnik.Map(256,256);
+        map.loadSync(data_base +'/styles/all.xml');
+        vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
             if (err) throw err;
-            var json_result = vtile.toJSON();
-            assert.equal(json_result.length,1);
-            assert.equal(json_result[0].features.length,2);
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
-                if (err) throw err;
-                var expected_file = data_base +'/expected/2-1-1-no-point.png';
-                assert.equal(0,compare_to_image(im,expected_file));
-                done();
-            });
+            var expected_file = data_base +'/expected/2-1-1-no-point.png';
+            assert.equal(0,compare_to_image(im,expected_file));
+            done();
         });
     });
 
@@ -348,26 +327,23 @@ describe('mapnik.VectorTile.composite', function() {
         });
         vtile.composite(vtiles);
         assert.deepEqual(vtile.names(),["lines","points","lines","points","lines","points","lines","points"]);
-        vtile.parse(function(err) {
+        var json_result = vtile.toJSON();
+        assert.equal(json_result.length,8);
+        assert.equal(json_result[0].features.length,2);
+        assert.equal(json_result[1].features.length,1);
+        // tile is actually bigger because of how geometries are encoded
+        assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length);
+        var map = new mapnik.Map(256,256);
+        map.loadSync(data_base +'/styles/all.xml');
+        vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
             if (err) throw err;
-            var json_result = vtile.toJSON();
-            assert.equal(json_result.length,8);
-            assert.equal(json_result[0].features.length,2);
-            assert.equal(json_result[1].features.length,1);
-            // tile is actually bigger because of how geometries are encoded
-            assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length);
-            var map = new mapnik.Map(256,256);
-            map.loadSync(data_base +'/styles/all.xml');
-            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
-                if (err) throw err;
-                var expected_file = data_base +'/expected/0-0-0-mosaic.png';
-                assert.equal(0,compare_to_image(im,expected_file));
-                done();
-            });
+            var expected_file = data_base +'/expected/0-0-0-mosaic.png';
+            assert.equal(0,compare_to_image(im,expected_file));
+            done();
         });
     });
 
-    it.skip('should contain two raster layers', function(done) {
+    it('should contain two raster layers', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(0,0,0);
         var im = new mapnik.Image(vt.width(),vt.height());
@@ -382,7 +358,7 @@ describe('mapnik.VectorTile.composite', function() {
         done();
     });
 
-    it.skip('should not contain non-overlapping data', function(done) {
+    it('should not contain non-overlapping data', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(1,0,0);
         var im = new mapnik.Image(vt.width(),vt.height());
@@ -393,8 +369,6 @@ describe('mapnik.VectorTile.composite', function() {
         im2.background = new mapnik.Color('blue');
         vt2.addImage(im2.encodeSync('webp'), 'blue');
         vt.composite([vt2]);
-        assert.deepEqual(vt.names(),['green']);
-        vt.parse();
         assert.deepEqual(vt.names(),['green']);
         done();
     });
@@ -484,8 +458,6 @@ describe('mapnik.VectorTile.composite', function() {
         vt2b.setData(vt2.getData());
         assert.deepEqual(vt2b.names(),["sa"]);
         vt1.composite([vt2],{buffer_size:0});
-        // should not throw because it is valid that tile is still empty
-        vt1.parse();
         assert.deepEqual(vt1.names(),[]);
         done();
     });
