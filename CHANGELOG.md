@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.6
+
+ - Rebuilt with 0.10.0 of Mapnik Vector Tile. This changes the way that `painted` method returns in `VectorTile` classes.
+
 ## 3.4.5
 
  - Rebuilt against Mapnik 3.0.4
