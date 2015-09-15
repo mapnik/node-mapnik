@@ -102,6 +102,7 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "copySync", copySync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "resize", resize);
     NODE_SET_PROTOTYPE_METHOD(lcons, "resizeSync", resizeSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "data", data);
     
     // properties
     ATTR(lcons, "scaling", get_scaling, set_scaling);
@@ -120,6 +121,9 @@ void Image::Initialize(Handle<Object> target) {
     NODE_SET_METHOD(lcons->GetFunction(),
                     "fromBytesSync",
                     Image::fromBytesSync);
+    NODE_SET_METHOD(lcons->GetFunction(),
+                    "fromPixelsSync",
+                    Image::fromPixelsSync);
     NODE_SET_METHOD(lcons->GetFunction(),
                     "fromSVG",
                     Image::fromSVG);
@@ -2804,6 +2808,54 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     delete closure;
 }
 
+NAN_METHOD(Image::fromPixelsSync)
+{
+    NanScope();
+    NanReturnValue(_fromPixelsSync(args));
+}
+
+Local<Value> Image::_fromPixelsSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+
+    if (args.Length() < 3 || (!args[0]->IsNumber() && !args[1]->IsNumber()) || !args[2]->IsObject()) {
+        NanThrowTypeError("must provide a width, height, and buffer argument");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    unsigned width = args[0]->IntegerValue();
+    unsigned height = args[1]->IntegerValue();
+
+    Local<Object> obj = args[2]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
+        NanThrowTypeError("third argument is invalid, must be a Buffer");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    // TODO - support other image types?
+    auto im_size = mapnik::image_rgba8::pixel_size * width * height;
+    if (im_size != node::Buffer::Length(obj)) {
+        NanThrowTypeError("invalid image size");
+        return NanEscapeScope(NanUndefined());
+    }
+
+    try
+    {
+
+        mapnik::detail::buffer buf(reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)),im_size);
+        mapnik::image_rgba8 im_wrapper(width,height,std::move(buf));
+        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
+        Image* im = new Image(image_ptr);
+        Handle<Value> ext = NanNew<External>(im);
+        return NanEscapeScope(NanNew(constructor)->GetFunction()->NewInstance(1, &ext));
+    }
+    catch (std::exception const& ex)
+    {
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+    }
+}
+
 NAN_METHOD(Image::fromBytesSync)
 {
     NanScope();
@@ -3610,3 +3662,12 @@ NAN_SETTER(Image::set_offset)
         im->this_->set_offset(val);
     }
 }
+
+NAN_METHOD(Image::data)
+{
+    NanScope();
+    Image* im = node::ObjectWrap::Unwrap<Image>(args.Holder());
+    // TODO - make this zero copy
+    NanReturnValue(NanNewBufferHandle(reinterpret_cast<const char *>(im->this_->bytes()), im->this_->size()));
+}
+

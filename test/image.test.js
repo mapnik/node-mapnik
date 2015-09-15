@@ -3,6 +3,9 @@
 var mapnik = require('../');
 var assert = require('assert');
 var fs = require('fs');
+var path = require('path');
+
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 describe('mapnik.Image ', function() {
 
@@ -1459,6 +1462,13 @@ describe('mapnik.Image ', function() {
                 done();
             });
         });
+    });
+
+    it('be able to create image with zero allocation / from raw pixels', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        var im2 = new mapnik.Image.fromPixelsSync(im.width(), im.height(), im.data());
+        assert.equal(0, im.compare(im2, {threshold:0}));
+        done();
     });
 
 });
