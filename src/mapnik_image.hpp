@@ -42,9 +42,9 @@ public:
     static void EIO_Open(uv_work_t* req);
     static void EIO_AfterOpen(uv_work_t* req);
     static Local<Value> _fromBytesSync(_NAN_METHOD_ARGS);
-    static Local<Value> _fromPixelsSync(_NAN_METHOD_ARGS);
+    static Local<Value> _fromBufferSync(_NAN_METHOD_ARGS);
     static NAN_METHOD(fromBytesSync);
-    static NAN_METHOD(fromPixelsSync);
+    static NAN_METHOD(fromBufferSync);
     static NAN_METHOD(fromBytes);
     static void EIO_FromBytes(uv_work_t* req);
     static void EIO_AfterFromBytes(uv_work_t* req);

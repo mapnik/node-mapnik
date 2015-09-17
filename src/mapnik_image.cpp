@@ -122,8 +122,8 @@ void Image::Initialize(Handle<Object> target) {
                     "fromBytesSync",
                     Image::fromBytesSync);
     NODE_SET_METHOD(lcons->GetFunction(),
-                    "fromPixelsSync",
-                    Image::fromPixelsSync);
+                    "fromBufferSync",
+                    Image::fromBufferSync);
     NODE_SET_METHOD(lcons->GetFunction(),
                     "fromSVG",
                     Image::fromSVG);
@@ -2628,6 +2628,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+
 /**
  * Create a new image from an SVG file
  *
@@ -2808,23 +2809,41 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     delete closure;
 }
 
-NAN_METHOD(Image::fromPixelsSync)
+/**
+ * Create an image of the existing buffer. BUFFER MUST LIVE AS LONG AS THE IMAGE. 
+ * It is recommended that you do not use this method! Be warned!
+ *
+ * @name fromBufferSync
+ * @param {number} width
+ * @param {number} height
+ * @param {Buffer} buffer
+ * @returns {mapnik.Image} image object
+ * @static
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::fromBufferSync)
 {
     NanScope();
-    NanReturnValue(_fromPixelsSync(args));
+    NanReturnValue(_fromBufferSync(args));
 }
 
-Local<Value> Image::_fromPixelsSync(_NAN_METHOD_ARGS)
+Local<Value> Image::_fromBufferSync(_NAN_METHOD_ARGS)
 {
     NanEscapableScope();
 
-    if (args.Length() < 3 || (!args[0]->IsNumber() && !args[1]->IsNumber()) || !args[2]->IsObject()) {
+    if (args.Length() < 3 || !args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsObject()) {
         NanThrowTypeError("must provide a width, height, and buffer argument");
         return NanEscapeScope(NanUndefined());
     }
 
     unsigned width = args[0]->IntegerValue();
     unsigned height = args[1]->IntegerValue();
+
+    if (width <= 0 || height <= 0) 
+    {
+        NanThrowTypeError("width and height must be greater then zero");
+        return NanEscapeScope(NanUndefined());
+    }
 
     Local<Object> obj = args[2]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
@@ -2841,9 +2860,7 @@ Local<Value> Image::_fromPixelsSync(_NAN_METHOD_ARGS)
 
     try
     {
-
-        mapnik::detail::buffer buf(reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)),im_size);
-        mapnik::image_rgba8 im_wrapper(width,height,std::move(buf));
+        mapnik::image_rgba8 im_wrapper(width,height,reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)));
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
         Image* im = new Image(image_ptr);
         Handle<Value> ext = NanNew<External>(im);
@@ -2851,8 +2868,11 @@ Local<Value> Image::_fromPixelsSync(_NAN_METHOD_ARGS)
     }
     catch (std::exception const& ex)
     {
+        // There is no known way for this exception to be reached currently.
+        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
     }
 }
 

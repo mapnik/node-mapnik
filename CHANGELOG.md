@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.4.7
+
+ - Rebuilt with Mapnik 3.0.5
+ - Added ability to create an image using a Buffer object. It should be noted that this should
+   be used very carefully as the lifetime of the Image object is tied to that of the Buffer. If the 
+   buffer obect is garbage collect this could result in a segfault.
+
+Notable Changes in Mapnik 3.0.5 Include:
+
+ - `scale-hsla` image filter: parameters are no longer limited by interval \[0, 1\] (https://github.com/mapnik/mapnik/pull/3054)
+ - Windows: Fixed SVG file loading from unicode paths
+ - `colorize-alpha` image filter: fixed normalization of color components (https://github.com/mapnik/mapnik/pull/3058)
+ - `colorize-alpha` image filter: added support for transparent colors (https://github.com/mapnik/mapnik/pull/3061)
+ - Enable reading optional `MAPNIK_LOG_FORMAT` environment variable(https://github.com/mapnik/mapnik/commit/6d1ffc8a93008b8c0a89d87d68b59afb2cb3757f)
+ - CSV.input uses memory mapped file by default on *nix.
+ - Updated bundled fonts to the latest version
+ - Topojson.input - fixed geometry_index logic which was causing missing features
+ - Fixed SVG file loading from unicode paths (https://github.com/mapnik/node-mapnik/issues/517)
+ - CSV.input - improved support for LF/CR/CRLF line endings on all platforms (https://github.com/mapnik/mapnik/issues/3065)
+
 ## 3.4.6
 
  - Rebuilt with 0.10.0 of Mapnik Vector Tile. This changes the way that `painted` method returns in `VectorTile` classes.
