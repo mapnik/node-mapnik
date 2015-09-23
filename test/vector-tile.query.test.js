@@ -408,6 +408,7 @@ describe('mapnik.VectorTile query multipoint', function() {
         vtile = new mapnik.VectorTile(0,0,0);
         var coords = [
           [0.1,0.1],
+          [0.1001,0.1001],
           [20,20],
           [20.1,20.1],
           [0,0]
@@ -472,7 +473,7 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
             "type": "Feature",
             "geometry": {
               "type": "MultiPoint",
-              "coordinates": [ [-180,85], [180,-85] ]
+              "coordinates": [ [-180,85], [181,-75] ]
             },
             "properties": { "name": "A" }
           }]

@@ -4,7 +4,7 @@ ECHO =========== %~f0 ===========
 
 
 SET APPVEYOR_REPO_COMMIT_MESSAGE=no commit message provided
-SET MAPNIK_GIT=3.0.1-4-ga78a895
+SET MAPNIK_GIT=3.0.4
 SET nodejs_version=0.10.40
 SET platform=x64
 SET msvs_toolset=14
@@ -31,8 +31,7 @@ ECHO msvs_toolset^: %msvs_toolset%
 ECHO TOOLSET_ARGS^: %TOOLSET_ARGS%
 
 
-ECHO calling build-appveyor.bat ....
-CALL scripts\build-appveyor.bat
+ECHO calling build-appveyor.bat... && CALL scripts\build-appveyor.bat
 ECHO build-appveyor.bat finshed, ERRORLEVEL^: %ERRORLEVEL%
 
 ECHO =========== DONE %~f0 ===========

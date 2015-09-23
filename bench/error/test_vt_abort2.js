@@ -36,7 +36,7 @@ Error: could not merge buffer as protobuf
 
 
 if (error) {
-    assert.equal(error.message,'could not merge buffer as protobuf');
+    assert.equal(error.message,'could not parse buffer as protobuf');
     console.log('Test success! (ran ' + count + ' iterations)');
     process.exit(0)
 } else {

@@ -1,5 +1,46 @@
 # Changelog
 
+## 3.4.7
+
+ - Rebuilt with Mapnik 3.0.5
+ - Added ability to create an image using a Buffer object. It should be noted that this should
+   be used very carefully as the lifetime of the Image object is tied to that of the Buffer. If the 
+   buffer obect is garbage collect this could result in a segfault.
+
+Notable Changes in Mapnik 3.0.5 Include:
+
+ - `scale-hsla` image filter: parameters are no longer limited by interval \[0, 1\] (https://github.com/mapnik/mapnik/pull/3054)
+ - Windows: Fixed SVG file loading from unicode paths
+ - `colorize-alpha` image filter: fixed normalization of color components (https://github.com/mapnik/mapnik/pull/3058)
+ - `colorize-alpha` image filter: added support for transparent colors (https://github.com/mapnik/mapnik/pull/3061)
+ - Enable reading optional `MAPNIK_LOG_FORMAT` environment variable(https://github.com/mapnik/mapnik/commit/6d1ffc8a93008b8c0a89d87d68b59afb2cb3757f)
+ - CSV.input uses memory mapped file by default on *nix.
+ - Updated bundled fonts to the latest version
+ - Topojson.input - fixed geometry_index logic which was causing missing features
+ - Fixed SVG file loading from unicode paths (https://github.com/mapnik/node-mapnik/issues/517)
+ - CSV.input - improved support for LF/CR/CRLF line endings on all platforms (https://github.com/mapnik/mapnik/issues/3065)
+
+## 3.4.6
+
+ - Rebuilt with 0.10.0 of Mapnik Vector Tile. This changes the way that `painted` method returns in `VectorTile` classes.
+ - In `VectorTile` object `parse` is no longer required please consider it depreciated.
+ - `VectorTile` now utilizes the protozero library for lower memory vector tile operations.
+
+## 3.4.5
+
+ - Rebuilt against Mapnik 3.0.4
+
+Notable changes in Mapnik SDK include:
+
+ - CSV.input: plug-in has been refactored to minimise memory usage and to improve handling of larger input.
+   (NOTE: [large_csv](https://github.com/mapnik/mapnik/tree/large_csv) branch adds experimental trunsduction parser with deferred string initialisation)
+ - CSV.input: added internal spatial index (boost::geometry::index::tree) for fast `bounding box` queries (https://github.com/mapnik/mapnik/pull/3010)
+ - Fixed deadlock in recursive datasource registration via @zerebubuth (https://github.com/mapnik/mapnik/pull/3038)
+
+## 3.4.4
+
+ - Rebuilt against updated Mapnik SDK to fix mysterious zlib related build issue.
+
 ## 3.4.3
 
  - Upgrade to mapnik-vector-tile@0.9.2
@@ -11,12 +52,12 @@
 
 Notable changes in the Mapnik SDK include:
 
-- Fixed an issue with fields over size of `int32` in `OGR` plugin (https://github.com/mapnik/node-mapnik/issues/499)
-- Added 3 new image-filters to simulate types of colorblindness (`color-blind-protanope`,`color-blind-deuteranope`,`color-blind-tritanope`)
-- Fix so that null text boxes have no bounding boxes when attempting placement ( 162f82cba5b0fb984c425586c6a4b354917abc47 )
-- Patch to add legacy method for setting JPEG quality in images ( #3024 )
-- Added `filter_image` method which can modify an image in place or return a new image that is filtered
-- Added missing typedef's in `mapnik::geometry` to allow experimenting with different containers
+ - Fixed an issue with fields over size of `int32` in `OGR` plugin (https://github.com/mapnik/node-mapnik/issues/499)
+ - Added 3 new image-filters to simulate types of colorblindness (`color-blind-protanope`,`color-blind-deuteranope`,`color-blind-tritanope`)
+ - Fix so that null text boxes have no bounding boxes when attempting placement ( 162f82cba5b0fb984c425586c6a4b354917abc47 )
+ - Patch to add legacy method for setting JPEG quality in images ( #3024 )
+ - Added `filter_image` method which can modify an image in place or return a new image that is filtered
+ - Added missing typedef's in `mapnik::geometry` to allow experimenting with different containers
 
 ## 3.4.2
 

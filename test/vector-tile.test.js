@@ -7,6 +7,7 @@ var path = require('path');
 var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
+var zlib = require('zlib');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
@@ -52,7 +53,6 @@ describe('mapnik.VectorTile ', function() {
         } else {
             _vtile = new mapnik.VectorTile(9,112,195);
             _vtile.setData(fs.readFileSync('./test/data/vector_tile/tile1.vector.pbf'));
-            _vtile.parse();
             _data = _vtile.getData().toString("hex");
             _length = _vtile.getData().length;
             done();
@@ -450,11 +450,10 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with
-        // a polygon box resulting from clipping a chunk out of 
+        // a polygon box resulting from clipping a chunk out of
         // a larger polygon fully outside the rendered/clipping extent
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
-        // empty is valid to use before parse() (and after)
         assert.equal(vtile.empty(), false);
         vtile.parseSync();
         assert.equal(vtile.painted(), true);
@@ -468,6 +467,455 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should fail to getData due to bad input', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        assert.throws(
+            function() { vtile.getDataSync(null); }, 
+            "first arg must be a options object"
+        );
+        assert.throws(
+            function() { vtile.getData(null, function(err, out) {}); }, 
+            "first arg must be a options object"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({compression:null}); }, 
+            "option 'compression' must be a string, either 'gzip', or 'none' (default)"
+        );
+        assert.throws(
+            function() { vtile.getData({compression:null}, function(err,out) {}); }, 
+            "option 'compression' must be a string, either 'gzip', or 'none' (default)"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({level:null}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getData({level:null}, function(err,out) {}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({level:99}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getData({level:99}, function(err,out) {}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({level:-1}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getData({level:-1}, function(err,out) {}); }, 
+            "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({strategy:null}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+        assert.throws(
+            function() { vtile.getData({strategy:null}, function(err,out) {}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+        assert.throws(
+            function() { vtile.getDataSync({strategy:'FOO'}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+        assert.throws(
+            function() { vtile.getData({strategy:'FOO'}, function(err,out) {}); }, 
+            "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
+        );
+    });
+    
+    it('should create empty buffer with getData with no data provided.', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var uncompressed = vtile.getData();
+        assert.equal(uncompressed.length, 0);
+        vtile.getData(function(err, uncompressed2) {
+            assert.equal(uncompressed2.length, 0);
+            done();
+        });
+    });
+    
+    it('should be able to getData with a RLE', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_RLE
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'RLE'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'RLE'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a FILTERED', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_FILTERED
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'FILTERED'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'FILTERED'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a HUFFMAN_ONLY', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_HUFFMAN_ONLY
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a FIXED', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_FIXED
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'FIXED'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'FIXED'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+    
+    it('should be able to getData with a DEFAULT_STRATEGY', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        var uncompressed = vtile.getData();
+        var gzip = zlib.createGzip({
+            strategy: zlib.Z_DEFAULT_STRATEGY
+        }), buffers=[], nread=0;
+
+        gzip.on('error', function(err) {
+            gzip.removeAllListeners();
+            gzip=null;
+        });
+
+        gzip.on('data', function(chunk) {
+            buffers.push(chunk);
+            nread += chunk.length;
+        });
+
+        gzip.on('end', function() {
+            var buffer;
+            switch (buffers.length) {
+                case 0: // no data.  return empty buffer
+                    buffer = new Buffer(0);
+                    break;
+                case 1: // only one chunk of data.  return it.
+                    buffer = buffers[0];
+                    break;
+                default: // concatenate the chunks of data into a single buffer.
+                    buffer = new Buffer(nread);
+                    var n = 0;
+                    buffers.forEach(function(b) {
+                        var l = b.length;
+                        b.copy(buffer, n, 0, l);
+                        n += l;
+                    });
+                    break;
+            }
+
+            gzip.removeAllListeners();
+            gzip=null;
+            var compressed = vtile.getData({compression:'gzip', strategy:'DEFAULT'});
+            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            vtile.getData({compression:'gzip', strategy:'DEFAULT'}, function (err, compressed) {
+                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                done();
+            });
+        });
+
+        gzip.write(uncompressed);
+        gzip.end();
+    });
+
+    it('should be able to setData/parse zlib compressed (sync)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data);
+        vtile.getData({compression:'gzip',level:9,strategy:'RLE'},function(err,compressed) {
+            if (err) throw err;
+            assert.equal(compressed[0],0x1F);
+            assert.equal(compressed[1],0x8B);
+            assert.equal(compressed[2],8);
+            assert.equal(compressed.length,vtile.getDataSync({compression:'gzip',level:9,strategy:'RLE'}).length);
+            var uncompressed = vtile.getData();
+            var default_compressed = vtile.getDataSync({compression:'gzip'});
+            // ensure all the default options match the default node zlib options
+            zlib.gzip(uncompressed,function(err,node_compressed) {
+                assert.equal(default_compressed.length,node_compressed.length);
+            });
+            var vtile2 = new mapnik.VectorTile(9,112,195);
+            vtile2.setData(compressed);
+            assert.equal(vtile.getData().length,vtile2.getData().length);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.empty(), false);
+            vtile.parseSync();
+            vtile2.parseSync();
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.painted(), true);
+            assert.equal(vtile2.isSolid(), "world");
+            assert.equal(vtile2.empty(), false);
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                vtile2.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should be able to setData/parse gzip compressed (sync)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
+        vtile.setData(data);
+        vtile.getData({compression:'gzip',level:9,strategy:'RLE'},function(err,compressed) {
+            if (err) throw err;
+            assert.equal(compressed[0],0x1F);
+            assert.equal(compressed[1],0x8B);
+            assert.equal(compressed[2],8);
+            assert.equal(compressed.length,vtile.getData({compression:'gzip',level:9,strategy:'RLE'}).length);
+            var uncompressed = vtile.getData();
+            var default_compressed = vtile.getData({compression:'gzip'});
+            // ensure all the default options match the default node zlib options
+            zlib.gzip(uncompressed,function(err,node_compressed) {
+                assert.equal(default_compressed.length,node_compressed.length);
+            });
+            var vtile2 = new mapnik.VectorTile(9,112,195);
+            vtile2.setData(compressed);
+            assert.equal(vtile.getData().length,vtile2.getData().length);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.empty(), false);
+            vtile.parseSync();
+            vtile2.parseSync();
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile2.painted(), true);
+            assert.equal(vtile2.isSolid(), "world");
+            assert.equal(vtile2.empty(), false);
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                vtile2.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should error on bogus gzip data', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var fake_gzip = new Buffer(30);
+        fake_gzip.fill(0);
+        fake_gzip[0] = 0x1F;
+        fake_gzip[1] = 0x8B;
+        assert.throws(function() { vtile.setData(fake_gzip); });
+        vtile.setData(fake_gzip,function(err) {
+            assert.ok(err);
+            done();
+        });
+    });
+
+    it('should error on bogus zlib data', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var fake_zlib = new Buffer(30);
+        fake_zlib.fill(0);
+        fake_zlib[0] = 0x78;
+        fake_zlib[1] = 0x9C;
+        assert.throws(function() { vtile.setData(fake_zlib); });
+        vtile.setData(fake_zlib,function(err) {
+            assert.ok(err);
+            done();
+        });
+    });
+
     it('should error out if we pass invalid data to setData - 1', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
@@ -477,12 +925,15 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData(new Buffer('foo'), null); });
-        assert.throws(function() { vtile.setData(new Buffer('foo'));vtile.parse(); });
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
         vtile.setData(new Buffer('foo'),function(err) {
             if (err) throw err;
             assert.throws(function() { vtile.empty(); });
             assert.throws(function() { vtile.parse(null); });
+            assert.throws(function() { vtile.parseSync(null); });
+            assert.throws(function() { vtile.toJSON(); });
+            assert.throws(function() { vtile.toGeoJSON(0); });
+            assert.throws(function() { vtile.toGeoJSON(0,function() {}); });
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
                 done();
@@ -559,7 +1010,6 @@ describe('mapnik.VectorTile ', function() {
     it('should error out if we pass invalid data to setData - 5', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
-        vtile.parse();
         assert.equal(vtile.empty(), true);
         vtile.setData(new Buffer(0),function(err) {
             if (err) throw err;
@@ -586,7 +1036,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
         assert.throws(function() {
             vtile.addData(new Buffer('foo'));
-            vtile.parse();
+            vtile.parseSync();
         });
     });
     
@@ -599,7 +1049,7 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addData(new Buffer('foo'));
         vtile.clearSync();
-        assert.throws(function() { vtile.parse(); });
+        assert.throws(function() { vtile.parseSync(); });
     });
 
     it('should be able to setData/parse (async)', function(done) {
@@ -612,8 +1062,72 @@ describe('mapnik.VectorTile ', function() {
             // names and empty are valid before parse()
             assert.deepEqual(vtile.names(), ["world"]);
             assert.equal(vtile.empty(), false);
-            vtile.parse(function(err) {
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            vtile.isSolid(function(err, solid, key) {
                 if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                assert.deepEqual(vtile.names(), ["world"]);
+                assert.equal(vtile.empty(), false);
+                assert.equal(vtile.painted(), true);
+                assert.equal(vtile.isSolidSync(), "world");
+                vtile.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should be able to setData/parse zlib compressed (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.isSolid(null); });
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.z");
+        vtile.setData(data, function(err) {
+            if (err) throw err;
+            // names and empty are valid before parse()
+            assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
+                assert.deepEqual(vtile.names(), ["world"]);
+                assert.equal(vtile.empty(), false);
+                assert.equal(vtile.painted(), true);
+                assert.equal(vtile.isSolidSync(), "world");
+                vtile.isSolid(function(err, solid, key) {
+                    if (err) throw err;
+                    assert.equal(solid, true);
+                    assert.equal(key, "world");
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should be able to setData/parse gzip compressed (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.isSolid(null); });
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
+        vtile.setData(data, function(err) {
+            if (err) throw err;
+            // names and empty are valid before parse()
+            assert.deepEqual(vtile.names(), ["world"]);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.isSolid(), "world");
+            vtile.isSolid(function(err, solid, key) {
+                if (err) throw err;
+                assert.equal(solid, true);
+                assert.equal(key, "world");
                 assert.deepEqual(vtile.names(), ["world"]);
                 assert.equal(vtile.empty(), false);
                 assert.equal(vtile.painted(), true);
@@ -635,7 +1149,6 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.deepEqual(vtile.names(), ["world"]);
             assert.equal(vtile.empty(), false);
-            vtile.parse();
             assert.deepEqual(vtile.names(), ["world"]);
             assert.equal(vtile.empty(), false);
             done();
@@ -646,7 +1159,6 @@ describe('mapnik.VectorTile ', function() {
     it('should be able to get tile info as JSON', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
-        vtile.parse();
         assert.deepEqual(vtile.names(),['world']);
         var expected = [{"name":"world","extent":4096,"version":2,"features":[{"id":207,"type":3,"geometry":[9,0,0,26,0,8190,8190,0,0,8189,15],"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]}];
         assert.deepEqual(vtile.toJSON(),expected);
@@ -656,7 +1168,6 @@ describe('mapnik.VectorTile ', function() {
     it('should be able to get tile info as various flavors of GeoJSON', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
-        vtile.parse();
         var expected_geojson = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-101.25,39.36827914916011],[-101.25,38.82272471585834],[-100.54704666137694,38.82272471585834],[-100.54704666137694,39.36827914916011],[-101.25,39.36827914916011]]]},"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]};
         var expected_copy = JSON.parse(JSON.stringify(expected_geojson));
         expected_geojson.name = "world";
@@ -687,23 +1198,36 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it('should be able to get and set data', function(done) {
+    it('should be able to get and set data (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
-        vtile.parse();
         var vtile2 = new mapnik.VectorTile(9,112,195);
         vtile2.setData(vtile.getData());
-        vtile2.parse();
         assert.deepEqual(vtile.names(),vtile2.names());
         assert.deepEqual(vtile.toJSON(),vtile2.toJSON());
         assert.deepEqual(vtile2.toJSON(),_vtile.toJSON());
         done();
     });
 
+    it('should be able to get and set data (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        vtile.setData(new Buffer(_data,"hex"),function(err) {
+            if (err) throw err;
+            var vtile2 = new mapnik.VectorTile(9,112,195);
+            vtile.getData(function(err,data) {
+                if (err) throw err;
+                vtile2.setData(data);
+                assert.deepEqual(vtile.names(),vtile2.names());
+                assert.deepEqual(vtile.toJSON(),vtile2.toJSON());
+                assert.deepEqual(vtile2.toJSON(),_vtile.toJSON());
+                done();
+            });
+        });
+    });
+
     it('should be able to get virtual datasource and features', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
-        vtile.parse();
         assert.equal(vtile.getData().length,_length);
         var ds = vtile.toJSON();
         assert.equal(ds.length,1);
@@ -731,7 +1255,6 @@ describe('mapnik.VectorTile ', function() {
     it('should be able to clear data (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
-        vtile.parse();
         assert.equal(vtile.getData().length,_length);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), "world");
@@ -750,7 +1273,6 @@ describe('mapnik.VectorTile ', function() {
         vtile.setData(new Buffer(_data,"hex"));
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(), ["world"]);
-        vtile.parse();
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(), ["world"]);
         assert.equal(vtile.getData().length,_length);
@@ -776,7 +1298,6 @@ describe('mapnik.VectorTile ', function() {
         vtile.addData(new Buffer(_data,"hex"));
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(), ["world","world"]);
-        vtile.parse();
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(), ["world","world"]);
         assert.equal(vtile.getData().length,_length*2);
@@ -810,7 +1331,6 @@ describe('mapnik.VectorTile ', function() {
             var vtile2 = new mapnik.VectorTile(9,112,195);
             var raw_data = fs.readFileSync("./test/data/vector_tile/tile2.vector.pbf");
             vtile2.setData(raw_data);
-            vtile2.parse();
             assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
             assert.equal(vtile.isSolid(), "world-world2");
@@ -842,7 +1362,6 @@ describe('mapnik.VectorTile ', function() {
         var vt = new mapnik.VectorTile(13,1337,2825);
         vt.setData(fs.readFileSync('./test/data/vector_tile/13.1337.2825.vector.pbf'));
         assert.equal(vt.empty(),false);
-        vt.parse();
         vt.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, false);
@@ -856,7 +1375,6 @@ describe('mapnik.VectorTile ', function() {
         var vt = new mapnik.VectorTile(12,771,1608);
         vt.setData(fs.readFileSync('./test/data/vector_tile/12.771.1608.vector.pbf'));
         assert.equal(vt.empty(),false);
-        vt.parse();
         vt.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, false);
@@ -872,7 +1390,6 @@ describe('mapnik.VectorTile ', function() {
         var vt = new mapnik.VectorTile(10,196,370);
         vt.setData(fs.readFileSync('./test/data/vector_tile/10.196.370.vector.pbf'));
         assert.equal(vt.empty(),false);
-        vt.parse();
         vt.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, true);
@@ -885,7 +1402,9 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        vtile.parse();
+        vtile.parse(function(err) {
+          if (err) throw err;
+        });
         var im = new mapnik.Image(256,256);
         var im_g = new mapnik.Image(256,256,{ type: mapnik.imageType.gray8 });
         var im_c = new mapnik.CairoSurface('SVG',256, 256);
@@ -931,7 +1450,6 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.vector.pbf");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        vtile.parse();
         assert.equal(vtile.getData().length,544);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), false);
@@ -1037,11 +1555,20 @@ describe('mapnik.VectorTile ', function() {
             assert(Math.abs(489203 - vtile.toGeoJSON(0).length) < 50);
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0.vector.pbf';
+            var actual = './test/data/vector_tile/tile0.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            if (expected_data.length != vtile.getData().length) {
+                fs.writeFileSync(actual, vtile.getData());
+            }
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });
@@ -1056,11 +1583,20 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-area_threshold.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            if (expected_data.length != vtile.getData().length) {
+                fs.writeFileSync(actual, vtile.getData());
+            }
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });
@@ -1075,11 +1611,20 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-simplify_distance.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            if (expected_data.length != vtile.getData().length) {
+                fs.writeFileSync(actual, vtile.getData());
+            }
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });
@@ -1087,7 +1632,6 @@ describe('mapnik.VectorTile ', function() {
     it('should read back the vector tile and render an image with it', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-        vtile.parse();
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -1111,7 +1655,6 @@ describe('mapnik.VectorTile ', function() {
         if (mapnik.supports.svg) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-            vtile.parse();
             var map = new mapnik.Map(256, 256);
             map.loadSync('./test/stylesheet.xml');
             map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -1137,7 +1680,6 @@ describe('mapnik.VectorTile ', function() {
         if (mapnik.supports.cairo) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-            vtile.parse();
             var map = new mapnik.Map(256, 256);
             map.loadSync('./test/stylesheet.xml');
             map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -1164,7 +1706,6 @@ describe('mapnik.VectorTile ', function() {
     it('should read back the vector tile and render an image with it using negative buffer', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-        vtile.parse();
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -1188,7 +1729,6 @@ describe('mapnik.VectorTile ', function() {
         it('should read back the vector tile and render a grid with it', function(done) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-            vtile.parse();
             var map = new mapnik.Map(256, 256);
             map.loadSync('./test/stylesheet.xml');
             map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -1245,7 +1785,6 @@ describe('mapnik.VectorTile ', function() {
     it('should read back the vector tile and render an image with markers', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.vector.pbf'));
-        vtile.parse();
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/markers.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -1354,7 +1893,6 @@ describe('mapnik.VectorTile ', function() {
         // getData from the image vtile
         var vtile2 = new mapnik.VectorTile(1, 0, 0);
         vtile2.setData(vtile.getData());
-        vtile2.parse();
         var json_obj2 = vtile2.toJSON();
         assert.deepEqual(json_obj, json_obj2);
         done();

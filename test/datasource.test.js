@@ -199,6 +199,13 @@ describe('mapnik.Datasource', function() {
         var ds = new mapnik.Datasource(options);
         assert.ok(ds);
         assert.deepEqual(ds.parameters(), options);
+        var describe = ds.describe();
+        var expected = {  type: 'raster',
+                          encoding: 'utf-8',
+                          fields: { nodata: 'Number' },
+                          geometry_type: 'raster'
+                       };
+        assert.deepEqual(expected,describe);
 
         // Test that if added to layer, can get datasource back
         var layer = new mapnik.Layer('foo', '+init=epsg:4326');

@@ -69,7 +69,6 @@ void Image::Initialize(Local<Object> target) {
 
     Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Image::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-
     lcons->SetClassName(Nan::New("Image").ToLocalChecked());
 
     Nan::SetPrototypeMethod(lcons, "getType", getType);
@@ -103,6 +102,7 @@ void Image::Initialize(Local<Object> target) {
     Nan::SetPrototypeMethod(lcons, "copySync", copySync);
     Nan::SetPrototypeMethod(lcons, "resize", resize);
     Nan::SetPrototypeMethod(lcons, "resizeSync", resizeSync);
+    Nan::SetPrototypeMethod(lcons, "data", data);
     
     // properties
     ATTR(lcons, "scaling", get_scaling, set_scaling);
@@ -121,6 +121,9 @@ void Image::Initialize(Local<Object> target) {
     Nan::SetMethod(lcons->GetFunction(),
                     "fromBytesSync",
                     Image::fromBytesSync);
+    Nan::SetMethod(lcons->GetFunction(),
+                    "fromBufferSync",
+                    Image::fromBufferSync);
     Nan::SetMethod(lcons->GetFunction(),
                     "fromSVG",
                     Image::fromSVG);
@@ -2595,6 +2598,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
+
 /**
  * Create a new image from an SVG file
  *
@@ -2772,6 +2776,72 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     closure->cb.Reset();
     closure->buffer.Reset();
     delete closure;
+}
+
+/**
+ * Create an image of the existing buffer. BUFFER MUST LIVE AS LONG AS THE IMAGE. 
+ * It is recommended that you do not use this method! Be warned!
+ *
+ * @name fromBufferSync
+ * @param {number} width
+ * @param {number} height
+ * @param {Buffer} buffer
+ * @returns {mapnik.Image} image object
+ * @static
+ * @memberof mapnik.Image
+ */
+NAN_METHOD(Image::fromBufferSync)
+{
+    info.GetReturnValue().Set(_fromBufferSync(info));
+}
+
+Local<Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+    Nan::EscapableHandleScope scope;
+
+    if (info.Length() < 3 || !info[0]->IsNumber() || !info[1]->IsNumber() || !info[2]->IsObject()) {
+        Nan::ThrowTypeError("must provide a width, height, and buffer argument");
+        return scope.Escape(Nan::Undefined());
+    }
+
+    unsigned width = info[0]->IntegerValue();
+    unsigned height = info[1]->IntegerValue();
+
+    if (width <= 0 || height <= 0) 
+    {
+        Nan::ThrowTypeError("width and height must be greater then zero");
+        return scope.Escape(Nan::Undefined());
+    }
+
+    Local<Object> obj = info[2]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
+        Nan::ThrowTypeError("third argument is invalid, must be a Buffer");
+        return scope.Escape(Nan::Undefined());
+    }
+
+    // TODO - support other image types?
+    auto im_size = mapnik::image_rgba8::pixel_size * width * height;
+    if (im_size != node::Buffer::Length(obj)) {
+        Nan::ThrowTypeError("invalid image size");
+        return scope.Escape(Nan::Undefined());
+    }
+
+    try
+    {
+        mapnik::image_rgba8 im_wrapper(width,height,reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)));
+        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
+        Image* im = new Image(image_ptr);
+        Local<Value> ext = Nan::New<External>(im);
+        return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    }
+    catch (std::exception const& ex)
+    {
+        // There is no known way for this exception to be reached currently.
+        // LCOV_EXCL_START
+        Nan::ThrowError(ex.what());
+        return scope.Escape(Nan::Undefined());
+        // LCOV_EXCL_END
+    }
 }
 
 NAN_METHOD(Image::fromBytesSync)
@@ -3565,3 +3635,11 @@ NAN_SETTER(Image::set_offset)
         im->this_->set_offset(val);
     }
 }
+
+NAN_METHOD(Image::data)
+{
+    Image* im = node::ObjectWrap::Unwrap<Image>(info.Holder());
+    // TODO - make this zero copy
+    info.GetReturnValue().Set(Nan::CopyBuffer(reinterpret_cast<const char *>(im->this_->bytes()), im->this_->size()).ToLocalChecked());
+}
+
