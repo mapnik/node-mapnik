@@ -12,13 +12,13 @@
 // std
 #include <exception>
 
-Nan::Persistent<FunctionTemplate> GridView::constructor;
+Nan::Persistent<v8::FunctionTemplate> GridView::constructor;
 
-void GridView::Initialize(Local<Object> target) {
+void GridView::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(GridView::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(GridView::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("GridView").ToLocalChecked());
 
@@ -58,7 +58,7 @@ NAN_METHOD(GridView::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         GridView* g =  static_cast<GridView*>(ptr);
         g->Wrap(info.This());
@@ -72,7 +72,7 @@ NAN_METHOD(GridView::New)
     return;
 }
 
-Local<Value> GridView::NewInstance(Grid * JSGrid,
+v8::Local<v8::Value> GridView::NewInstance(Grid * JSGrid,
                             unsigned x,
                             unsigned y,
                             unsigned w,
@@ -82,20 +82,20 @@ Local<Value> GridView::NewInstance(Grid * JSGrid,
     Nan::EscapableHandleScope scope;
     GridView* gv = new GridView(JSGrid);
     gv->this_ = std::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
-    Local<Value> ext = Nan::New<External>(gv);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(gv);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
 NAN_METHOD(GridView::width)
 {
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Integer>(g->get()->width()));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(g->get()->width()));
 }
 
 NAN_METHOD(GridView::height)
 {
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Integer>(g->get()->height()));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(g->get()->height()));
 }
 
 NAN_METHOD(GridView::fields)
@@ -104,12 +104,12 @@ NAN_METHOD(GridView::fields)
     std::set<std::string> const& a = g->get()->get_fields();
     std::set<std::string>::const_iterator itr = a.begin();
     std::set<std::string>::const_iterator end = a.end();
-    Local<Array> l = Nan::New<Array>(a.size());
+    v8::Local<v8::Array> l = Nan::New<v8::Array>(a.size());
     int idx = 0;
     for (; itr != end; ++itr)
     {
         std::string name = *itr;
-        l->Set(idx, Nan::New<String>(name).ToLocalChecked());
+        l->Set(idx, Nan::New<v8::String>(name).ToLocalChecked());
         ++idx;
     }
     info.GetReturnValue().Set(l);
@@ -118,7 +118,7 @@ NAN_METHOD(GridView::fields)
 typedef struct {
     uv_work_t request;
     GridView* g;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     bool error;
     std::string error_name;
     bool result;
@@ -135,7 +135,7 @@ NAN_METHOD(GridView::isSolid)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction())
     {
         Nan::ThrowTypeError("last argument must be a callback function");
@@ -148,7 +148,7 @@ NAN_METHOD(GridView::isSolid)
     closure->result = true;
     closure->pixel = 0;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
     g->Ref();
     return;
@@ -186,22 +186,22 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
     Nan::HandleScope scope;
     is_solid_grid_view_baton_t *closure = static_cast<is_solid_grid_view_baton_t *>(req->data);
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         if (closure->result)
         {
-            Local<Value> argv[3] = { Nan::Null(),
+            v8::Local<v8::Value> argv[3] = { Nan::Null(),
                                      Nan::New(closure->result),
-                                     Nan::New<Number>(closure->pixel),
+                                     Nan::New<v8::Number>(closure->pixel),
             };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
         }
         else
         {
-            Local<Value> argv[2] = { Nan::Null(),
+            v8::Local<v8::Value> argv[2] = { Nan::Null(),
                                      Nan::New(closure->result)
             };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -217,7 +217,7 @@ NAN_METHOD(GridView::isSolidSync)
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
-Local<Value> GridView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> GridView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     GridView* g = Nan::ObjectWrap::Unwrap<GridView>(info.Holder());
@@ -268,7 +268,7 @@ NAN_METHOD(GridView::getPixel)
     if (x < view->width() && y < view->height())
     {
         mapnik::grid_view::value_type pixel = view->get_row(y)[x];
-        info.GetReturnValue().Set(Nan::New<Number>(pixel));
+        info.GetReturnValue().Set(Nan::New<v8::Number>(pixel));
     }
     return;
 }
@@ -289,11 +289,11 @@ NAN_METHOD(GridView::encodeSync)
             return;
         }
 
-        Local<Object> options = info[0].As<Object>();
+        v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
         if (options->Has(Nan::New("resolution").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("'resolution' must be an Integer");
@@ -311,7 +311,7 @@ NAN_METHOD(GridView::encodeSync)
 
         if (options->Has(Nan::New("features").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
             if (!bind_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("'features' must be an Boolean");
@@ -329,18 +329,18 @@ NAN_METHOD(GridView::encodeSync)
         node_mapnik::grid2utf<mapnik::grid_view>(*g->get(),lines,key_order,resolution);
 
         // convert key order to proper javascript array
-        Local<Array> keys_a = Nan::New<Array>(key_order.size());
+        v8::Local<v8::Array> keys_a = Nan::New<v8::Array>(key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
         for (it = key_order.begin(), i = 0; it != key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<String>(*it).ToLocalChecked());
+            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid_view const& grid_type = *g->get();
 
         // gather feature data
-        Local<Object> feature_data = Nan::New<Object>();
+        v8::Local<v8::Object> feature_data = Nan::New<v8::Object>();
         if (add_features) {
             node_mapnik::write_features<mapnik::grid_view>(grid_type,
                                                            feature_data,
@@ -348,13 +348,13 @@ NAN_METHOD(GridView::encodeSync)
         }
 
         // Create the return hash.
-        Local<Object> json = Nan::New<Object>();
-        Local<Array> grid_array = Nan::New<Array>();
+        v8::Local<v8::Object> json = Nan::New<v8::Object>();
+        v8::Local<v8::Array> grid_array = Nan::New<v8::Array>();
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, Nan::New<String>(line.get(),array_size).ToLocalChecked());
+            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
         json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
         json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
@@ -379,7 +379,7 @@ typedef struct {
     GridView* g;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     std::vector<node_mapnik::grid_line_type> lines;
     unsigned int resolution;
     bool add_features;
@@ -403,11 +403,11 @@ NAN_METHOD(GridView::encode)
             return;
         }
 
-        Local<Object> options = info[0].As<Object>();
+        v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
         if (options->Has(Nan::New("resolution").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("'resolution' must be an Integer");
@@ -425,7 +425,7 @@ NAN_METHOD(GridView::encode)
 
         if (options->Has(Nan::New("features").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
             if (!bind_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("'features' must be an Boolean");
@@ -442,7 +442,7 @@ NAN_METHOD(GridView::encode)
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
     }
-    Local<Function> callback = info[info.Length() - 1].As<Function>();
+    v8::Local<v8::Function> callback = info[info.Length() - 1].As<v8::Function>();
 
     encode_grid_view_baton_t *closure = new encode_grid_view_baton_t();
     closure->request.data = closure;
@@ -489,44 +489,44 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         // There is no known ways to throw errors in the processing prior
         // so simply removing the following from coverage
         /* LCOV_EXCL_START */
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_END */
     }
     else
     {
         // convert key order to proper javascript array
-        Local<Array> keys_a = Nan::New<Array>(closure->key_order.size());
+        v8::Local<v8::Array> keys_a = Nan::New<v8::Array>(closure->key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
         for (it = closure->key_order.begin(), i = 0; it != closure->key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<String>(*it).ToLocalChecked());
+            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid_view const& grid_type = *(closure->g->get());
 
         // gather feature data
-        Local<Object> feature_data = Nan::New<Object>();
+        v8::Local<v8::Object> feature_data = Nan::New<v8::Object>();
         if (closure->add_features) {
             node_mapnik::write_features<mapnik::grid_view>(grid_type,
                                                            feature_data,
                                                            closure->key_order);
         }
         // Create the return hash.
-        Local<Object> json = Nan::New<Object>();
-        Local<Array> grid_array = Nan::New<Array>(closure->lines.size());
+        v8::Local<v8::Object> json = Nan::New<v8::Object>();
+        v8::Local<v8::Array> grid_array = Nan::New<v8::Array>(closure->lines.size());
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(closure->resolution));
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, Nan::New<String>(line.get(),array_size).ToLocalChecked());
+            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
         json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
         json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
         json->Set(Nan::New("data").ToLocalChecked(), feature_data);
 
-        Local<Value> argv[2] = { Nan::Null(), json };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), json };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 

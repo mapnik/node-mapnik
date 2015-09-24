@@ -11,7 +11,7 @@
 #include <string>
 #include <mapnik/feature.hpp>
 
-using namespace v8;
+
 
 struct query_lonlat {
     double lon;
@@ -36,12 +36,12 @@ struct queryMany_result {
 
 class VectorTile: public Nan::ObjectWrap {
 public:
-    static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Local<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);
     static NAN_METHOD(getDataSync);
-    static Local<Value> _getDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _getDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static void get_data(uv_work_t* req);
     static void after_get_data(uv_work_t* req);
     static NAN_METHOD(render);
@@ -51,15 +51,15 @@ public:
     static void EIO_AfterQuery(uv_work_t* req);
     static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name);
     static bool _querySort(query_result const& a, query_result const& b);
-    static Local<Array> _queryResultToV8(std::vector<query_result> const& result);
+    static v8::Local<v8::Array> _queryResultToV8(std::vector<query_result> const& result);
     static NAN_METHOD(queryMany);
     static void _queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
     static bool _queryManySort(query_hit const& a, query_hit const& b);
-    static Local<Object> _queryManyResultToV8(queryMany_result const& result);
+    static v8::Local<v8::Object> _queryManyResultToV8(queryMany_result const& result);
     static void EIO_QueryMany(uv_work_t* req);
     static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
-    static Local<Value> _toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(toGeoJSONSync);
     static void to_geojson(uv_work_t* req);
@@ -71,17 +71,17 @@ public:
     static NAN_METHOD(setData);
     static void EIO_SetData(uv_work_t* req);
     static void EIO_AfterSetData(uv_work_t* req);
-    static Local<Value> _setDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _setDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(setDataSync);
     static NAN_METHOD(parse);
     static void EIO_Parse(uv_work_t* req);
     static void EIO_AfterParse(uv_work_t* req);
     static NAN_METHOD(parseSync);
-    static Local<Value> _parseSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _parseSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(addData);
     static NAN_METHOD(composite);
     static NAN_METHOD(compositeSync);
-    static Local<Value> _compositeSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _compositeSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
     // methods common to mapnik.Image
@@ -89,7 +89,7 @@ public:
     static NAN_METHOD(height);
     static NAN_METHOD(painted);
     static NAN_METHOD(clearSync);
-    static Local<Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
@@ -98,7 +98,7 @@ public:
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
     static NAN_METHOD(isSolidSync);
-    static Local<Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
 

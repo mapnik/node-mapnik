@@ -10,7 +10,7 @@
 
 #include "utils.hpp"
 
-using namespace v8;
+
 
 namespace node_mapnik {
 
@@ -35,10 +35,10 @@ static inline NAN_METHOD(register_fonts)
                 return;
             }
 
-            Local<Object> options = info[1].As<Object>();
+            v8::Local<v8::Object> options = info[1].As<v8::Object>();
             if (options->Has(Nan::New("recurse").ToLocalChecked()))
             {
-                Local<Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
+                v8::Local<v8::Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
                 if (!recurse_opt->IsBoolean())
                 {
                     Nan::ThrowTypeError("'recurse' must be a Boolean");
@@ -71,10 +71,10 @@ static inline NAN_METHOD(register_fonts)
 static inline NAN_METHOD(available_font_faces)
 {
     auto const& names = mapnik::freetype_engine::face_names();
-    Local<Array> a = Nan::New<Array>(names.size());
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, Nan::New<String>(names[i].c_str()).ToLocalChecked());
+        a->Set(i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -82,11 +82,11 @@ static inline NAN_METHOD(available_font_faces)
 static inline NAN_METHOD(memory_fonts)
 {
     auto const& font_cache = mapnik::freetype_engine::get_cache();
-    Local<Array> a = Nan::New<Array>(font_cache.size());
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(font_cache.size());
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        a->Set(i++, Nan::New<String>(kv.first.c_str()).ToLocalChecked());
+        a->Set(i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -94,10 +94,10 @@ static inline NAN_METHOD(memory_fonts)
 static inline NAN_METHOD(available_font_files)
 {
     auto const& mapping = mapnik::freetype_engine::get_mapping();
-    Local<Object> obj = Nan::New<Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     for (auto const& kv : mapping)
     {
-        obj->Set(Nan::New<String>(kv.first.c_str()).ToLocalChecked(), Nan::New<String>(kv.second.second.c_str()).ToLocalChecked());
+        obj->Set(Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(obj);
 }

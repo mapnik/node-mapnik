@@ -14,13 +14,13 @@
 // stl
 #include <limits>
 
-Nan::Persistent<FunctionTemplate> Layer::constructor;
+Nan::Persistent<v8::FunctionTemplate> Layer::constructor;
 
-void Layer::Initialize(Local<Object> target) {
+void Layer::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Layer::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Layer::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Layer").ToLocalChecked());
 
@@ -66,7 +66,7 @@ NAN_METHOD(Layer::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Layer* l =  static_cast<Layer*>(ptr);
         l->Wrap(info.This());
@@ -105,12 +105,12 @@ NAN_METHOD(Layer::New)
     info.GetReturnValue().Set(info.This());
 }
 
-Local<Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
+v8::Local<v8::Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     Nan::EscapableHandleScope scope;
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
     l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
-    Local<Value> ext = Nan::New<External>(l);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(l);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
@@ -119,15 +119,15 @@ NAN_GETTER(Layer::get_prop)
     Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "name")
-        info.GetReturnValue().Set(Nan::New<String>(l->layer_->name()).ToLocalChecked());
+        info.GetReturnValue().Set(Nan::New<v8::String>(l->layer_->name()).ToLocalChecked());
     else if (a == "srs")
-        info.GetReturnValue().Set(Nan::New<String>(l->layer_->srs()).ToLocalChecked());
+        info.GetReturnValue().Set(Nan::New<v8::String>(l->layer_->srs()).ToLocalChecked());
     else if (a == "styles") {
         std::vector<std::string> const& style_names = l->layer_->styles();
-        Local<Array> s = Nan::New<Array>(style_names.size());
+        v8::Local<v8::Array> s = Nan::New<v8::Array>(style_names.size());
         for (unsigned i = 0; i < style_names.size(); ++i)
         {
-            s->Set(i, Nan::New<String>(style_names[i]).ToLocalChecked() );
+            s->Set(i, Nan::New<v8::String>(style_names[i]).ToLocalChecked() );
         }
         info.GetReturnValue().Set(s);
     }
@@ -149,23 +149,23 @@ NAN_GETTER(Layer::get_prop)
     }
     else if (a == "minimum_scale_denominator") 
     {
-        info.GetReturnValue().Set(Nan::New<Number>(l->layer_->minimum_scale_denominator()));   
+        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->minimum_scale_denominator()));   
     }
     else if (a == "maximum_scale_denominator") 
     {
-        info.GetReturnValue().Set(Nan::New<Number>(l->layer_->maximum_scale_denominator()));   
+        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->maximum_scale_denominator()));   
     }
     else if (a == "queryable") 
     {
-        info.GetReturnValue().Set(Nan::New<Boolean>(l->layer_->queryable()));   
+        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->queryable()));   
     }
     else if (a == "clear_label_cache") 
     {
-        info.GetReturnValue().Set(Nan::New<Boolean>(l->layer_->clear_label_cache()));   
+        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->clear_label_cache()));   
     }
     else // if (a == "active") 
     {
-        info.GetReturnValue().Set(Nan::New<Boolean>(l->layer_->active()));   
+        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->active()));   
     }
 }
 
@@ -197,7 +197,7 @@ NAN_SETTER(Layer::set_prop)
             Nan::ThrowTypeError("Must provide an array of style names");
             return;
         } else {
-            Local<Array> arr = value.As<Array>();
+            v8::Local<v8::Array> arr = value.As<v8::Array>();
             // todo - how to check if cast worked?
             unsigned int i = 0;
             unsigned int a_length = arr->Length();
@@ -209,7 +209,7 @@ NAN_SETTER(Layer::set_prop)
     }
     else if (a == "datasource")
     {
-        Local<Object> obj = value.As<Object>();
+        v8::Local<v8::Object> obj = value.As<v8::Object>();
         if (value->IsNull() || value->IsUndefined()) {
             Nan::ThrowTypeError("mapnik.Datasource, or mapnik.MemoryDatasource instance expected");
             return;
@@ -281,34 +281,34 @@ NAN_METHOD(Layer::describe)
 {
     Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
 
-    Local<Object> description = Nan::New<Object>();
+    v8::Local<v8::Object> description = Nan::New<v8::Object>();
     mapnik::layer const& layer = *l->layer_;
         
-    description->Set(Nan::New("name").ToLocalChecked(), Nan::New<String>(layer.name()).ToLocalChecked());
+    description->Set(Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer.name()).ToLocalChecked());
 
-    description->Set(Nan::New("srs").ToLocalChecked(), Nan::New<String>(layer.srs()).ToLocalChecked());
+    description->Set(Nan::New("srs").ToLocalChecked(), Nan::New<v8::String>(layer.srs()).ToLocalChecked());
 
-    description->Set(Nan::New("active").ToLocalChecked(), Nan::New<Boolean>(layer.active()));
+    description->Set(Nan::New("active").ToLocalChecked(), Nan::New<v8::Boolean>(layer.active()));
 
-    description->Set(Nan::New("clear_label_cache").ToLocalChecked(), Nan::New<Boolean>(layer.clear_label_cache()));
+    description->Set(Nan::New("clear_label_cache").ToLocalChecked(), Nan::New<v8::Boolean>(layer.clear_label_cache()));
 
-    description->Set(Nan::New("minimum_scale_denominator").ToLocalChecked(), Nan::New<Number>(layer.minimum_scale_denominator()));
+    description->Set(Nan::New("minimum_scale_denominator").ToLocalChecked(), Nan::New<v8::Number>(layer.minimum_scale_denominator()));
 
-    description->Set(Nan::New("maximum_scale_denominator").ToLocalChecked(), Nan::New<Number>(layer.maximum_scale_denominator()));
+    description->Set(Nan::New("maximum_scale_denominator").ToLocalChecked(), Nan::New<v8::Number>(layer.maximum_scale_denominator()));
 
-    description->Set(Nan::New("queryable").ToLocalChecked(), Nan::New<Boolean>(layer.queryable()));
+    description->Set(Nan::New("queryable").ToLocalChecked(), Nan::New<v8::Boolean>(layer.queryable()));
 
     std::vector<std::string> const& style_names = layer.styles();
-    Local<Array> s = Nan::New<Array>(style_names.size());
+    v8::Local<v8::Array> s = Nan::New<v8::Array>(style_names.size());
     for (unsigned i = 0; i < style_names.size(); ++i)
     {
-        s->Set(i, Nan::New<String>(style_names[i]).ToLocalChecked() );
+        s->Set(i, Nan::New<v8::String>(style_names[i]).ToLocalChecked() );
     }
 
     description->Set(Nan::New("styles").ToLocalChecked(), s );
 
     mapnik::datasource_ptr datasource = layer.datasource();
-    Local<v8::Object> ds = Nan::New<Object>();
+    v8::Local<v8::Object> ds = Nan::New<v8::Object>();
     description->Set(Nan::New("datasource").ToLocalChecked(), ds );
     if ( datasource )
     {

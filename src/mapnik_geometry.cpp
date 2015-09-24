@@ -8,7 +8,7 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
-Nan::Persistent<FunctionTemplate> Geometry::constructor;
+Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
 
 /**
  * Geometry: a representation of geographical features in terms of
@@ -22,11 +22,11 @@ Nan::Persistent<FunctionTemplate> Geometry::constructor;
  * @name mapnik.Geometry
  * @class
  */
-void Geometry::Initialize(Local<Object> target) {
+void Geometry::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Geometry::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Geometry::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Geometry").ToLocalChecked());
 
@@ -57,7 +57,7 @@ NAN_METHOD(Geometry::New)
 {
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Geometry* g =  static_cast<Geometry*>(ptr);
         g->Wrap(info.This());
@@ -72,10 +72,10 @@ NAN_METHOD(Geometry::New)
     info.GetReturnValue().Set(info.This());
 }
 
-Local<Value> Geometry::NewInstance(mapnik::feature_ptr f) {
+v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     Nan::EscapableHandleScope scope;
     Geometry* g = new Geometry(f);
-    Local<Value> ext = Nan::New<External>(g);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(g);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
@@ -103,7 +103,7 @@ bool to_geojson_projected(std::string & json,
     return mapnik::util::to_geojson(json,projected_geom);
 }
 
-Local<Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     std::string json;
@@ -125,16 +125,16 @@ Local<Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             Nan::ThrowTypeError("optional first arg must be an options object");
             return scope.Escape(Nan::Undefined());
         }
-        Local<Object> options = info[0]->ToObject();
+        v8::Local<v8::Object> options = info[0]->ToObject();
         if (options->Has(Nan::New("transform").ToLocalChecked()))
         {
-            Local<Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
+            v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
             if (!bound_opt->IsObject()) {
                 Nan::ThrowTypeError("'transform' must be an object");
                 return scope.Escape(Nan::Undefined());
             }
 
-            Local<Object> obj = bound_opt->ToObject();
+            v8::Local<v8::Object> obj = bound_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(ProjTransform::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.ProjTransform expected as first arg");
                 return scope.Escape(Nan::Undefined());
@@ -153,7 +153,7 @@ Local<Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             }
         }
     }
-    return scope.Escape(Nan::New<String>(json).ToLocalChecked());
+    return scope.Escape(Nan::New<v8::String>(json).ToLocalChecked());
 }
 
 struct to_json_baton {
@@ -162,7 +162,7 @@ struct to_json_baton {
     ProjTransform* tr;
     bool error;
     std::string result;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 };
 
 
@@ -195,16 +195,16 @@ NAN_METHOD(Geometry::toJSON)
             Nan::ThrowTypeError("optional first arg must be an options object");
             return;
         }
-        Local<Object> options = info[0]->ToObject();
+        v8::Local<v8::Object> options = info[0]->ToObject();
         if (options->Has(Nan::New("transform").ToLocalChecked()))
         {
-            Local<Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
+            v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
             if (!bound_opt->IsObject()) {
                 Nan::ThrowTypeError("'transform' must be an object");
                 return;
             }
 
-            Local<Object> obj = bound_opt->ToObject();
+            v8::Local<v8::Object> obj = bound_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(ProjTransform::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.ProjTransform expected as first arg");
                 return;
@@ -213,8 +213,8 @@ NAN_METHOD(Geometry::toJSON)
             closure->tr->_ref();
         }
     }
-    Local<Value> callback = info[info.Length()-1];
-    closure->cb.Reset(callback.As<Function>());
+    v8::Local<v8::Value> callback = info[info.Length()-1];
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, to_json, (uv_after_work_cb)after_to_json);
     closure->g->Ref();
     return;
@@ -272,13 +272,13 @@ void Geometry::after_to_json(uv_work_t* req)
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
-        Local<Value> argv[1] = { Nan::Error(closure->result.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_END */
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), Nan::New<String>(closure->result).ToLocalChecked() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->g->Unref();
@@ -295,17 +295,17 @@ void Geometry::after_to_json(uv_work_t* req)
  * @name extent
  * @memberof mapnik.Geometry
  * @instance
- * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
+ * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
 NAN_METHOD(Geometry::extent)
 {
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
-    Local<Array> a = Nan::New<Array>(4);
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
     mapnik::box2d<double> const& e = g->feat_->envelope();
-    a->Set(0, Nan::New<Number>(e.minx()));
-    a->Set(1, Nan::New<Number>(e.miny()));
-    a->Set(2, Nan::New<Number>(e.maxx()));
-    a->Set(3, Nan::New<Number>(e.maxy()));
+    a->Set(0, Nan::New<v8::Number>(e.minx()));
+    a->Set(1, Nan::New<v8::Number>(e.miny()));
+    a->Set(2, Nan::New<v8::Number>(e.maxx()));
+    a->Set(3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(a);
 }
 
@@ -330,7 +330,7 @@ NAN_METHOD(Geometry::toWKT)
         return;
         /* LCOV_EXCL_END */
     }
-    info.GetReturnValue().Set(Nan::New<String>(wkt).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(wkt).ToLocalChecked());
 }
 
 /**

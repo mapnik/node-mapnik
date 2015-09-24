@@ -277,7 +277,7 @@ double path_to_point_distance(mapnik::geometry::geometry<double> const& geom, do
     return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
 
-Nan::Persistent<FunctionTemplate> VectorTile::constructor;
+Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
 
 /**
  * A generator for the [Mapbox Vector Tile](https://www.mapbox.com/developers/vector-tiles/)
@@ -291,10 +291,10 @@ Nan::Persistent<FunctionTemplate> VectorTile::constructor;
  * @example
  * var vtile = new mapnik.VectorTile(9,112,195);
  */
-void VectorTile::Initialize(Local<Object> target) {
+void VectorTile::Initialize(v8::Local<v8::Object> target) {
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(VectorTile::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(VectorTile::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("VectorTile").ToLocalChecked());
     Nan::SetPrototypeMethod(lcons, "render", render);
@@ -362,7 +362,7 @@ NAN_METHOD(VectorTile::New)
         }
         unsigned width = 256;
         unsigned height = 256;
-        Local<Object> options = Nan::New<Object>();
+        v8::Local<v8::Object> options = Nan::New<v8::Object>();
         if (info.Length() > 3) {
             if (!info[3]->IsObject())
             {
@@ -371,7 +371,7 @@ NAN_METHOD(VectorTile::New)
             }
             options = info[3]->ToObject();
             if (options->Has(Nan::New("width").ToLocalChecked())) {
-                Local<Value> opt = options->Get(Nan::New("width").ToLocalChecked());
+                v8::Local<v8::Value> opt = options->Get(Nan::New("width").ToLocalChecked());
                 if (!opt->IsNumber())
                 {
                     Nan::ThrowTypeError("optional arg 'width' must be a number");
@@ -380,7 +380,7 @@ NAN_METHOD(VectorTile::New)
                 width = opt->IntegerValue();
             }
             if (options->Has(Nan::New("height").ToLocalChecked())) {
-                Local<Value> opt = options->Get(Nan::New("height").ToLocalChecked());
+                v8::Local<v8::Value> opt = options->Get(Nan::New("height").ToLocalChecked());
                 if (!opt->IsNumber())
                 {
                     Nan::ThrowTypeError("optional arg 'height' must be a number");
@@ -531,20 +531,20 @@ void _composite(VectorTile* target_vt,
  * @memberof mapnik.VectorTile
  * @name compositeSync
  * @instance
- * @param {Array<mapnik.VectorTile>} vector tiles
+ * @param {v8::Array<mapnik.VectorTile>} vector tiles
  */
 NAN_METHOD(VectorTile::compositeSync)
 {
     info.GetReturnValue().Set(_compositeSync(info));
 }
 
-Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     if (info.Length() < 1 || !info[0]->IsArray()) {
         Nan::ThrowTypeError("must provide an array of VectorTile objects and an optional options object");
         return scope.Escape(Nan::Undefined());
     }
-    Local<Array> vtiles = info[0].As<Array>();
+    v8::Local<v8::Array> vtiles = info[0].As<v8::Array>();
     unsigned num_tiles = vtiles->Length();
     if (num_tiles < 1) {
         Nan::ThrowTypeError("must provide an array with at least one VectorTile object and an optional options object");
@@ -569,10 +569,10 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             Nan::ThrowTypeError("optional second argument must be an options object");
             return scope.Escape(Nan::Undefined());
         }
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
         if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) {
 
-            Local<Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
@@ -582,7 +582,7 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         }
         if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
         {
-            Local<Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
+            v8::Local<v8::Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
             if (!area_thres->IsNumber())
             {
                 Nan::ThrowTypeError("area_threshold value must be a number");
@@ -591,7 +591,7 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             area_threshold = area_thres->NumberValue();
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
@@ -600,7 +600,7 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             buffer_size = bind_opt->IntegerValue();
         }
         if (options->Has(Nan::New("scale").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
@@ -610,7 +610,7 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         }
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
@@ -619,7 +619,7 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             scale_denominator = bind_opt->NumberValue();
         }
         if (options->Has(Nan::New("offset_x").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
@@ -628,7 +628,7 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             offset_x = bind_opt->IntegerValue();
         }
         if (options->Has(Nan::New("offset_y").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
@@ -641,12 +641,12 @@ Local<Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     std::vector<VectorTile*> vtiles_vec;
     vtiles_vec.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j) {
-        Local<Value> val = vtiles->Get(j);
+        v8::Local<v8::Value> val = vtiles->Get(j);
         if (!val->IsObject()) {
             Nan::ThrowTypeError("must provide an array of VectorTile objects");
             return scope.Escape(Nan::Undefined());
         }
-        Local<Object> tile_obj = val->ToObject();
+        v8::Local<v8::Object> tile_obj = val->ToObject();
         if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Nan::New(VectorTile::constructor)->HasInstance(tile_obj)) {
             Nan::ThrowTypeError("must provide an array of VectorTile objects");
             return scope.Escape(Nan::Undefined());
@@ -687,7 +687,7 @@ typedef struct {
     std::vector<VectorTile*> vtiles;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
 
 NAN_METHOD(VectorTile::composite)
@@ -700,7 +700,7 @@ NAN_METHOD(VectorTile::composite)
         Nan::ThrowTypeError("must provide an array of VectorTile objects and an optional options object");
         return;
     }
-    Local<Array> vtiles = info[0].As<Array>();
+    v8::Local<v8::Array> vtiles = info[0].As<v8::Array>();
     unsigned num_tiles = vtiles->Length();
     if (num_tiles < 1) {
         Nan::ThrowTypeError("must provide an array with at least one VectorTile object and an optional options object");
@@ -728,10 +728,10 @@ NAN_METHOD(VectorTile::composite)
             Nan::ThrowTypeError("optional second argument must be an options object");
             return;
         }
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
         if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) {
 
-            Local<Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
@@ -741,7 +741,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
         {
-            Local<Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
+            v8::Local<v8::Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
             if (!area_thres->IsNumber())
             {
                 Nan::ThrowTypeError("area_threshold value must be a number");
@@ -750,7 +750,7 @@ NAN_METHOD(VectorTile::composite)
             area_threshold = area_thres->NumberValue();
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
@@ -759,7 +759,7 @@ NAN_METHOD(VectorTile::composite)
             buffer_size = bind_opt->IntegerValue();
         }
         if (options->Has(Nan::New("scale").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
@@ -769,7 +769,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
@@ -778,7 +778,7 @@ NAN_METHOD(VectorTile::composite)
             scale_denominator = bind_opt->NumberValue();
         }
         if (options->Has(Nan::New("offset_x").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
@@ -787,7 +787,7 @@ NAN_METHOD(VectorTile::composite)
             offset_x = bind_opt->IntegerValue();
         }
         if (options->Has(Nan::New("offset_y").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
@@ -797,7 +797,7 @@ NAN_METHOD(VectorTile::composite)
         }
     }
 
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     vector_tile_composite_baton_t *closure = new vector_tile_composite_baton_t();
     closure->request.data = closure;
     closure->offset_x = offset_x;
@@ -811,14 +811,14 @@ NAN_METHOD(VectorTile::composite)
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j) {
-        Local<Value> val = vtiles->Get(j);
+        v8::Local<v8::Value> val = vtiles->Get(j);
         if (!val->IsObject())
         {
             delete closure;
             Nan::ThrowTypeError("must provide an array of VectorTile objects");
             return;
         }
-        Local<Object> tile_obj = val->ToObject();
+        v8::Local<v8::Object> tile_obj = val->ToObject();
         if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Nan::New(VectorTile::constructor)->HasInstance(tile_obj))
         {
             delete closure;
@@ -830,7 +830,7 @@ NAN_METHOD(VectorTile::composite)
         closure->vtiles.push_back(vt);
     }
     closure->d->Ref();
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
     return;
 }
@@ -864,12 +864,12 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
 
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), closure->d->handle() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     for (VectorTile* vt : closure->vtiles)
@@ -888,7 +888,7 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name names
  * @instance
- * @param {Array<string>} layer names
+ * @param {v8::Array<string>} layer names
  */
 NAN_METHOD(VectorTile::names)
 {
@@ -899,11 +899,11 @@ NAN_METHOD(VectorTile::names)
         try
         {
             std::vector<std::string> names = detail::lazy_names(d->buffer_);
-            Local<Array> arr = Nan::New<Array>(names.size());
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(names.size());
             unsigned idx = 0;
             for (std::string const& name : names)
             {
-                arr->Set(idx++,Nan::New<String>(name).ToLocalChecked());
+                arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
             }
             info.GetReturnValue().Set(arr);
             return;
@@ -914,7 +914,7 @@ NAN_METHOD(VectorTile::names)
             return;
         }
     }
-    info.GetReturnValue().Set(Nan::New<Array>(0));
+    info.GetReturnValue().Set(Nan::New<v8::Array>(0));
 }
 
 /**
@@ -934,7 +934,7 @@ NAN_METHOD(VectorTile::empty)
     {
         try
         {
-            info.GetReturnValue().Set(Nan::New<Boolean>(detail::lazy_empty(d->buffer_)));
+            info.GetReturnValue().Set(Nan::New<v8::Boolean>(detail::lazy_empty(d->buffer_)));
             return;
         }
         catch (std::exception const& ex)
@@ -943,7 +943,7 @@ NAN_METHOD(VectorTile::empty)
             return;
         }
     }
-    info.GetReturnValue().Set(Nan::New<Boolean>(true));
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(true));
 }
 
 /**
@@ -957,7 +957,7 @@ NAN_METHOD(VectorTile::empty)
 NAN_METHOD(VectorTile::width)
 {
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Integer>(d->width()));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(d->width()));
 }
 
 /**
@@ -971,7 +971,7 @@ NAN_METHOD(VectorTile::width)
 NAN_METHOD(VectorTile::height)
 {
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Integer>(d->height()));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(d->height()));
 }
 
 /**
@@ -998,7 +998,7 @@ typedef struct {
     std::vector<query_result> result;
     std::string layer_name;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } vector_tile_query_baton_t;
 
 /**
@@ -1024,7 +1024,7 @@ NAN_METHOD(VectorTile::query)
     std::string layer_name("");
     if (info.Length() > 2)
     {
-        Local<Object> options = Nan::New<Object>();
+        v8::Local<v8::Object> options = Nan::New<v8::Object>();
         if (!info[2]->IsObject())
         {
             Nan::ThrowTypeError("optional third argument must be an options object");
@@ -1033,7 +1033,7 @@ NAN_METHOD(VectorTile::query)
         options = info[2]->ToObject();
         if (options->Has(Nan::New("tolerance").ToLocalChecked()))
         {
-            Local<Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
+            v8::Local<v8::Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
             if (!tol->IsNumber())
             {
                 Nan::ThrowTypeError("tolerance value must be a number");
@@ -1043,7 +1043,7 @@ NAN_METHOD(VectorTile::query)
         }
         if (options->Has(Nan::New("layer").ToLocalChecked()))
         {
-            Local<Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
+            v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
             if (!layer_id->IsString())
             {
                 Nan::ThrowTypeError("layer value must be a string");
@@ -1061,7 +1061,7 @@ NAN_METHOD(VectorTile::query)
     if (!info[info.Length()-1]->IsFunction()) {
         try  {
             std::vector<query_result> result = _query(d, lon, lat, tolerance, layer_name);
-            Local<Array> arr = _queryResultToV8(result);
+            v8::Local<v8::Array> arr = _queryResultToV8(result);
             info.GetReturnValue().Set(arr);
             return;
         }
@@ -1071,7 +1071,7 @@ NAN_METHOD(VectorTile::query)
             return;
         }
     } else {
-        Local<Value> callback = info[info.Length()-1];
+        v8::Local<v8::Value> callback = info[info.Length()-1];
         vector_tile_query_baton_t *closure = new vector_tile_query_baton_t();
         closure->request.data = closure;
         closure->lon = lon;
@@ -1080,7 +1080,7 @@ NAN_METHOD(VectorTile::query)
         closure->layer_name = layer_name;
         closure->d = d;
         closure->error = false;
-        closure->cb.Reset(callback.As<Function>());
+        closure->cb.Reset(callback.As<v8::Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_Query, (uv_after_work_cb)EIO_AfterQuery);
         d->Ref();
         return;
@@ -1106,14 +1106,14 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     Nan::HandleScope scope;
     vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         std::vector<query_result> result = closure->result;
-        Local<Array> arr = _queryResultToV8(result);
-        Local<Value> argv[2] = { Nan::Null(), arr };
+        v8::Local<v8::Array> arr = _queryResultToV8(result);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), arr };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -1223,16 +1223,16 @@ bool VectorTile::_querySort(query_result const& a, query_result const& b) {
     return a.distance < b.distance;
 }
 
-Local<Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
+v8::Local<v8::Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
-    Local<Array> arr = Nan::New<Array>();
+    v8::Local<v8::Array> arr = Nan::New<v8::Array>();
     std::size_t i = 0;
     for (auto const& item : result)
     {
-        Local<Value> feat = Feature::NewInstance(item.feature);
-        Local<Object> feat_obj = feat->ToObject();
-        feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<String>(item.layer).ToLocalChecked());
-        feat_obj->Set(Nan::New("distance").ToLocalChecked(),Nan::New<Number>(item.distance));
+        v8::Local<v8::Value> feat = Feature::NewInstance(item.feature);
+        v8::Local<v8::Object> feat_obj = feat->ToObject();
+        feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.layer).ToLocalChecked());
+        feat_obj->Set(Nan::New("distance").ToLocalChecked(),Nan::New<v8::Number>(item.distance));
         arr->Set(i++,feat);
     }
     return arr;
@@ -1248,7 +1248,7 @@ typedef struct {
     queryMany_result result;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } vector_tile_queryMany_baton_t;
 
 NAN_METHOD(VectorTile::queryMany)
@@ -1265,19 +1265,19 @@ NAN_METHOD(VectorTile::queryMany)
     std::vector<query_lonlat> query;
 
     // Convert v8 queryArray to a std vector
-    Local<Array> queryArray = Local<Array>::Cast(info[0]);
+    v8::Local<v8::Array> queryArray = v8::Local<v8::Array>::Cast(info[0]);
     query.reserve(queryArray->Length());
     for (uint32_t p = 0; p < queryArray->Length(); ++p)
     {
-        Local<Value> item = queryArray->Get(p);
+        v8::Local<v8::Value> item = queryArray->Get(p);
         if (!item->IsArray())
         {
             Nan::ThrowError("non-array item encountered");
             return;
         }
-        Local<Array> pair = Local<Array>::Cast(item);
-        Local<Value> lon = pair->Get(0);
-        Local<Value> lat = pair->Get(1);
+        v8::Local<v8::Array> pair = v8::Local<v8::Array>::Cast(item);
+        v8::Local<v8::Value> lon = pair->Get(0);
+        v8::Local<v8::Value> lat = pair->Get(1);
         if (!lon->IsNumber() || !lat->IsNumber())
         {
             Nan::ThrowError("lng lat must be numbers");
@@ -1292,7 +1292,7 @@ NAN_METHOD(VectorTile::queryMany)
     // Convert v8 options object to std params
     if (info.Length() > 1)
     {
-        Local<Object> options = Nan::New<Object>();
+        v8::Local<v8::Object> options = Nan::New<v8::Object>();
         if (!info[1]->IsObject())
         {
             Nan::ThrowTypeError("optional second argument must be an options object");
@@ -1301,7 +1301,7 @@ NAN_METHOD(VectorTile::queryMany)
         options = info[1]->ToObject();
         if (options->Has(Nan::New("tolerance").ToLocalChecked()))
         {
-            Local<Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
+            v8::Local<v8::Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
             if (!tol->IsNumber())
             {
                 Nan::ThrowTypeError("tolerance value must be a number");
@@ -1311,7 +1311,7 @@ NAN_METHOD(VectorTile::queryMany)
         }
         if (options->Has(Nan::New("layer").ToLocalChecked()))
         {
-            Local<Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
+            v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
             if (!layer_id->IsString())
             {
                 Nan::ThrowTypeError("layer value must be a string");
@@ -1320,17 +1320,17 @@ NAN_METHOD(VectorTile::queryMany)
             layer_name = TOSTR(layer_id);
         }
         if (options->Has(Nan::New("fields").ToLocalChecked())) {
-            Local<Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
             if (!param_val->IsArray()) {
                 Nan::ThrowTypeError("option 'fields' must be an array of strings");
                 return;
             }
-            Local<Array> a = Local<Array>::Cast(param_val);
+            v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(param_val);
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
             fields.reserve(num_fields);
             while (i < num_fields) {
-                Local<Value> name = a->Get(i);
+                v8::Local<v8::Value> name = a->Get(i);
                 if (name->IsString()){
                     fields.emplace_back(TOSTR(name));
                 }
@@ -1353,7 +1353,7 @@ NAN_METHOD(VectorTile::queryMany)
         {
             queryMany_result result;
             _queryMany(result, d, query, tolerance, layer_name, fields);
-            Local<Object> result_obj = _queryManyResultToV8(result);
+            v8::Local<v8::Object> result_obj = _queryManyResultToV8(result);
             info.GetReturnValue().Set(result_obj);
             return;
         }
@@ -1363,7 +1363,7 @@ NAN_METHOD(VectorTile::queryMany)
             return;
         }
     } else {
-        Local<Value> callback = info[info.Length()-1];
+        v8::Local<v8::Value> callback = info[info.Length()-1];
         vector_tile_queryMany_baton_t *closure = new vector_tile_queryMany_baton_t();
         closure->d = d;
         closure->query = query;
@@ -1372,7 +1372,7 @@ NAN_METHOD(VectorTile::queryMany)
         closure->fields = fields;
         closure->error = false;
         closure->request.data = closure;
-        closure->cb.Reset(callback.As<Function>());
+        closure->cb.Reset(callback.As<v8::Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMany, (uv_after_work_cb)EIO_AfterQueryMany);
         d->Ref();
         return;
@@ -1496,32 +1496,32 @@ bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b) {
     return a.distance < b.distance;
 }
 
-Local<Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
-    Local<Object> results = Nan::New<Object>();
-    Local<Array> features = Nan::New<Array>();
-    Local<Array> hits = Nan::New<Array>();
+v8::Local<v8::Object> VectorTile::_queryManyResultToV8(queryMany_result const& result) {
+    v8::Local<v8::Object> results = Nan::New<v8::Object>();
+    v8::Local<v8::Array> features = Nan::New<v8::Array>();
+    v8::Local<v8::Array> hits = Nan::New<v8::Array>();
     results->Set(Nan::New("hits").ToLocalChecked(), hits);
     results->Set(Nan::New("features").ToLocalChecked(), features);
 
     // result.features => features
     for (auto const& item : result.features)
     {
-        Local<Value> feat = Feature::NewInstance(item.second.feature);
-        Local<Object> feat_obj = feat->ToObject();
-        feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<String>(item.second.layer).ToLocalChecked());
+        v8::Local<v8::Value> feat = Feature::NewInstance(item.second.feature);
+        v8::Local<v8::Object> feat_obj = feat->ToObject();
+        feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.second.layer).ToLocalChecked());
         features->Set(item.first, feat_obj);
     }
 
     // result.hits => hits
     for (auto const& hit : result.hits)
     {
-        Local<Array> point_hits = Nan::New<Array>(hit.second.size());
+        v8::Local<v8::Array> point_hits = Nan::New<v8::Array>(hit.second.size());
         std::size_t i = 0;
         for (auto const& h : hit.second)
         {
-            Local<Object> hit_obj = Nan::New<Object>();
-            hit_obj->Set(Nan::New("distance").ToLocalChecked(), Nan::New<Number>(h.distance));
-            hit_obj->Set(Nan::New("feature_id").ToLocalChecked(), Nan::New<Number>(h.feature_id));
+            v8::Local<v8::Object> hit_obj = Nan::New<v8::Object>();
+            hit_obj->Set(Nan::New("distance").ToLocalChecked(), Nan::New<v8::Number>(h.distance));
+            hit_obj->Set(Nan::New("feature_id").ToLocalChecked(), Nan::New<v8::Number>(h.feature_id));
             point_hits->Set(i++, hit_obj);
         }
         hits->Set(hit.first, point_hits);
@@ -1549,14 +1549,14 @@ void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
     Nan::HandleScope scope;
     vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         queryMany_result result = closure->result;
-        Local<Object> obj = _queryManyResultToV8(result);
-        Local<Value> argv[2] = { Nan::Null(), obj };
+        v8::Local<v8::Object> obj = _queryManyResultToV8(result);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -1581,37 +1581,37 @@ NAN_METHOD(VectorTile::toJSON)
     {
 
         vector_tile::Tile tiledata = detail::get_tile(d->buffer_);
-        Local<Array> arr = Nan::New<Array>(tiledata.layers_size());
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(tiledata.layers_size());
         for (int i=0; i < tiledata.layers_size(); ++i)
         {
             vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-            Local<Object> layer_obj = Nan::New<Object>();
-            layer_obj->Set(Nan::New("name").ToLocalChecked(), Nan::New<String>(layer.name()).ToLocalChecked());
-            layer_obj->Set(Nan::New("extent").ToLocalChecked(), Nan::New<Integer>(layer.extent()));
-            layer_obj->Set(Nan::New("version").ToLocalChecked(), Nan::New<Integer>(layer.version()));
+            v8::Local<v8::Object> layer_obj = Nan::New<v8::Object>();
+            layer_obj->Set(Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer.name()).ToLocalChecked());
+            layer_obj->Set(Nan::New("extent").ToLocalChecked(), Nan::New<v8::Integer>(layer.extent()));
+            layer_obj->Set(Nan::New("version").ToLocalChecked(), Nan::New<v8::Integer>(layer.version()));
 
-            Local<Array> f_arr = Nan::New<Array>(layer.features_size());
+            v8::Local<v8::Array> f_arr = Nan::New<v8::Array>(layer.features_size());
             for (int j=0; j < layer.features_size(); ++j)
             {
-                Local<Object> feature_obj = Nan::New<Object>();
+                v8::Local<v8::Object> feature_obj = Nan::New<v8::Object>();
                 vector_tile::Tile_Feature const& f = layer.features(j);
                 if (f.has_id())
                 {
-                    feature_obj->Set(Nan::New("id").ToLocalChecked(),Nan::New<Number>(f.id()));
+                    feature_obj->Set(Nan::New("id").ToLocalChecked(),Nan::New<v8::Number>(f.id()));
                 }
                 if (f.has_raster())
                 {
                     std::string const& raster = f.raster();
                     feature_obj->Set(Nan::New("raster").ToLocalChecked(),Nan::CopyBuffer((char*)raster.data(),raster.size()).ToLocalChecked());
                 }
-                feature_obj->Set(Nan::New("type").ToLocalChecked(),Nan::New<Integer>(f.type()));
-                Local<Array> g_arr = Nan::New<Array>();
+                feature_obj->Set(Nan::New("type").ToLocalChecked(),Nan::New<v8::Integer>(f.type()));
+                v8::Local<v8::Array> g_arr = Nan::New<v8::Array>();
                 for (int k = 0; k < f.geometry_size();++k)
                 {
-                    g_arr->Set(k,Nan::New<Number>(f.geometry(k)));
+                    g_arr->Set(k,Nan::New<v8::Number>(f.geometry(k)));
                 }
                 feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
-                Local<Object> att_obj = Nan::New<Object>();
+                v8::Local<v8::Object> att_obj = Nan::New<v8::Object>();
                 for (int m = 0; m < f.tags_size(); m += 2)
                 {
                     std::size_t key_name = f.tags(m);
@@ -1627,30 +1627,30 @@ NAN_METHOD(VectorTile::toJSON)
                         }
                         else if (value.has_int_value())
                         {
-                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<Number>(value.int_value()));
+                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<v8::Number>(value.int_value()));
                         }
                         else if (value.has_double_value())
                         {
-                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<Number>(value.double_value()));
+                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<v8::Number>(value.double_value()));
                         }
                         // The following lines are not currently supported by mapnik-vector-tiles
                         // therefore these lines are not currently testable.
                         /* LCOV_EXCL_START */
                         else if (value.has_float_value())
                         {
-                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<Number>(value.float_value()));
+                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<v8::Number>(value.float_value()));
                         }
                         else if (value.has_bool_value())
                         {
-                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<Boolean>(value.bool_value()));
+                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<v8::Boolean>(value.bool_value()));
                         }
                         else if (value.has_sint_value())
                         {
-                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<Number>(value.sint_value()));
+                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<v8::Number>(value.sint_value()));
                         }
                         else if (value.has_uint_value())
                         {
-                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<Number>(value.uint_value()));
+                            att_obj->Set(Nan::New(name).ToLocalChecked(), Nan::New<v8::Number>(value.uint_value()));
                         }
                         else
                         {
@@ -1739,7 +1739,7 @@ NAN_METHOD(VectorTile::toGeoJSONSync)
     info.GetReturnValue().Set(_toGeoJSONSync(info));
 }
 
-void handle_to_geojson_args(Local<Value> const& layer_id,
+void handle_to_geojson_args(v8::Local<v8::Value> const& layer_id,
                             vector_tile::Tile const& tiledata,
                             bool & all_array,
                             bool & all_flattened,
@@ -1879,13 +1879,13 @@ void write_geojson_to_string(std::string & result,
     }
 }
 
-Local<Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     if (info.Length() < 1) {
         Nan::ThrowError("first argument must be either a layer name (string) or layer index (integer)");
         return scope.Escape(Nan::Undefined());
     }
-    Local<Value> layer_id = info[0];
+    v8::Local<v8::Value> layer_id = info[0];
     if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
         Nan::ThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
         return scope.Escape(Nan::Undefined());
@@ -1922,7 +1922,7 @@ Local<Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         return scope.Escape(Nan::Undefined());
         // LCOV_EXCL_END
     }
-    return scope.Escape(Nan::New<String>(result).ToLocalChecked());
+    return scope.Escape(Nan::New<v8::String>(result).ToLocalChecked());
 }
 
 struct to_geojson_baton {
@@ -1933,7 +1933,7 @@ struct to_geojson_baton {
     int layer_idx;
     bool all_array;
     bool all_flattened;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 };
 
 /**
@@ -1961,7 +1961,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
 
     std::string error_msg;
 
-    Local<Value> layer_id = info[0];
+    v8::Local<v8::Value> layer_id = info[0];
     if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
         delete closure;
         Nan::ThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
@@ -1991,8 +1991,8 @@ NAN_METHOD(VectorTile::toGeoJSON)
         Nan::ThrowTypeError(error_msg.c_str());
         return;
     }
-    Local<Value> callback = info[info.Length()-1];
-    closure->cb.Reset(callback.As<Function>());
+    v8::Local<v8::Value> callback = info[info.Length()-1];
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, to_geojson, (uv_after_work_cb)after_to_geojson);
     closure->v->Ref();
     return;
@@ -2025,13 +2025,13 @@ void VectorTile::after_to_geojson(uv_work_t* req)
         // Because there are no known ways to trigger the exception path in to_geojson
         // there is no easy way to test this path currently
         // LCOV_EXCL_START
-        Local<Value> argv[1] = { Nan::Error(closure->result.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_END
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), Nan::New<String>(closure->result).ToLocalChecked() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->v->Unref();
@@ -2045,7 +2045,7 @@ NAN_METHOD(VectorTile::parseSync)
     info.GetReturnValue().Set(_parseSync(info));
 }
 
-Local<Value> VectorTile::_parseSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_parseSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -2066,7 +2066,7 @@ typedef struct {
     VectorTile* d;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } vector_tile_parse_baton_t;
 
 NAN_METHOD(VectorTile::parse)
@@ -2077,7 +2077,7 @@ NAN_METHOD(VectorTile::parse)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -2088,7 +2088,7 @@ NAN_METHOD(VectorTile::parse)
     closure->request.data = closure;
     closure->d = d;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Parse, (uv_after_work_cb)EIO_AfterParse);
     d->Ref();
     return;
@@ -2113,12 +2113,12 @@ void VectorTile::EIO_AfterParse(uv_work_t* req)
     Nan::HandleScope scope;
     vector_tile_parse_baton_t *closure = static_cast<vector_tile_parse_baton_t *>(req->data);
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[1] = { Nan::Null() };
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
@@ -2150,7 +2150,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     std::string geojson_string = TOSTR(info[0]);
     std::string geojson_name = TOSTR(info[1]);
 
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     double area_threshold = 0.1;
     double simplify_distance = 0.0;
     unsigned path_multiplier = 16;
@@ -2166,7 +2166,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         options = info[2]->ToObject();
 
         if (options->Has(Nan::New("area_threshold").ToLocalChecked())) {
-            Local<Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
             if (!param_val->IsNumber()) {
                 Nan::ThrowError("option 'area_threshold' must be a number");
                 return;
@@ -2175,7 +2175,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
 
         if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) {
-            Local<Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
             if (!param_val->IsNumber()) {
                 Nan::ThrowError("option 'path_multiplier' must be an unsigned integer");
                 return;
@@ -2184,7 +2184,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
 
         if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) {
-            Local<Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
             if (!param_val->IsNumber()) {
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                 return;
@@ -2193,7 +2193,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
         
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                 return;
@@ -2252,7 +2252,7 @@ NAN_METHOD(VectorTile::addImage)
         return;
     }
     std::string layer_name = TOSTR(info[1]);
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowError("first argument must be a Buffer representing encoded image data");
         return;
@@ -2295,7 +2295,7 @@ NAN_METHOD(VectorTile::addData)
         Nan::ThrowError("first argument must be a buffer object");
         return;
     }
-    Local<Object> obj = info[0].As<Object>();
+    v8::Local<v8::Object> obj = info[0].As<v8::Object>();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
     {
         Nan::ThrowTypeError("first arg must be a buffer object");
@@ -2316,7 +2316,7 @@ NAN_METHOD(VectorTile::setDataSync)
     info.GetReturnValue().Set(_setDataSync(info));
 }
 
-Local<Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -2324,7 +2324,7 @@ Local<Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         Nan::ThrowTypeError("first argument must be a buffer object");
         return scope.Escape(Nan::Undefined());
     }
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first arg must be a buffer object");
         return scope.Escape(Nan::Undefined());
@@ -2363,8 +2363,8 @@ typedef struct {
     size_t dataLength;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
-    Nan::Persistent<Object> buffer;
+    Nan::Persistent<v8::Function> cb;
+    Nan::Persistent<v8::Object> buffer;
 } vector_tile_setdata_baton_t;
 
 
@@ -2385,7 +2385,7 @@ NAN_METHOD(VectorTile::setData)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -2395,7 +2395,7 @@ NAN_METHOD(VectorTile::setData)
         Nan::ThrowTypeError("first argument must be a buffer object");
         return;
     }
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first arg must be a buffer object");
         return;
@@ -2407,8 +2407,8 @@ NAN_METHOD(VectorTile::setData)
     closure->request.data = closure;
     closure->d = d;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
-    closure->buffer.Reset(obj.As<Object>());
+    closure->cb.Reset(callback.As<v8::Function>());
+    closure->buffer.Reset(obj.As<v8::Object>());
     closure->data = node::Buffer::Data(obj);
     closure->dataLength = node::Buffer::Length(obj);
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
@@ -2450,13 +2450,13 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     if (closure->error) {
         // See note about exception in EIO_SetData
         // LCOV_EXCL_START
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_END
     }
     else
     {
-        Local<Value> argv[1] = { Nan::Null() };
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
@@ -2480,7 +2480,7 @@ NAN_METHOD(VectorTile::getDataSync)
     info.GetReturnValue().Set(_getDataSync(info));
 }
 
-Local<Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -2489,7 +2489,7 @@ Local<Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
     int level = Z_DEFAULT_COMPRESSION;
     int strategy = Z_DEFAULT_STRATEGY;
 
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
 
     if (info.Length() > 0)
     {
@@ -2501,9 +2501,9 @@ Local<Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
         options = info[0]->ToObject();
 
-        if (options->Has(Nan::New<String>("compression").ToLocalChecked()))
+        if (options->Has(Nan::New<v8::String>("compression").ToLocalChecked()))
         {
-            Local<Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
@@ -2512,9 +2512,9 @@ Local<Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             compress = std::string("gzip") == (TOSTR(param_val->ToString()));
         }
 
-        if (options->Has(Nan::New<String>("level").ToLocalChecked()))
+        if (options->Has(Nan::New<v8::String>("level").ToLocalChecked()))
         {
-            Local<Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
@@ -2527,9 +2527,9 @@ Local<Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New<String>("strategy").ToLocalChecked()))
+        if (options->Has(Nan::New<v8::String>("strategy").ToLocalChecked()))
         {
-            Local<Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
@@ -2617,7 +2617,7 @@ typedef struct {
     int level;
     int strategy;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } vector_tile_get_data_baton_t;
 
 
@@ -2628,12 +2628,12 @@ NAN_METHOD(VectorTile::getData)
         return;
     }
 
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     bool compress = false;
     int level = Z_DEFAULT_COMPRESSION;
     int strategy = Z_DEFAULT_STRATEGY;
 
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
 
     if (info.Length() > 1)
     {
@@ -2647,7 +2647,7 @@ NAN_METHOD(VectorTile::getData)
 
         if (options->Has(Nan::New("compression").ToLocalChecked()))
         {
-            Local<Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
@@ -2658,7 +2658,7 @@ NAN_METHOD(VectorTile::getData)
 
         if (options->Has(Nan::New("level").ToLocalChecked()))
         {
-            Local<Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
@@ -2673,7 +2673,7 @@ NAN_METHOD(VectorTile::getData)
         }
         if (options->Has(Nan::New("strategy").ToLocalChecked()))
         {
-            Local<Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
@@ -2715,7 +2715,7 @@ NAN_METHOD(VectorTile::getData)
     closure->level = level;
     closure->strategy = strategy;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, get_data, (uv_after_work_cb)after_get_data);
     d->Ref();
     return;
@@ -2754,13 +2754,13 @@ void VectorTile::after_get_data(uv_work_t* req)
         // found to test with repeatability this exception path is not included
         // in test coverage.
         // LCOV_EXCL_START
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_END
     }
     else if (!closure->data.empty())
     {
-        Local<Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->data.data(),closure->data.size()).ToLocalChecked() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->data.data(),closure->data.size()).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     else
@@ -2768,7 +2768,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         std::size_t raw_size = closure->d->buffer_.size();
         if (raw_size <= 0)
         {
-            Local<Value> argv[2] = { Nan::Null(), Nan::NewBuffer(0).ToLocalChecked() };
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::NewBuffer(0).ToLocalChecked() };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
         else if (raw_size >= node::Buffer::kMaxLength)
@@ -2779,13 +2779,13 @@ void VectorTile::after_get_data(uv_work_t* req)
             std::ostringstream s;
             s << "Data is too large to convert to a node::Buffer ";
             s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
-            Local<Value> argv[1] = { Nan::Error(s.str().c_str()) };
+            v8::Local<v8::Value> argv[1] = { Nan::Error(s.str().c_str()) };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
             // LCOV_EXCL_END
         }
         else
         {
-            Local<Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->d->buffer_.data(),raw_size).ToLocalChecked() };
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->d->buffer_.data(),raw_size).ToLocalChecked() };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
@@ -2821,7 +2821,7 @@ struct vector_tile_render_baton_t {
     surface_type surface;
     mapnik::attributes variables;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     std::string result;
     std::size_t layer_idx;
     int z;
@@ -2899,7 +2899,7 @@ NAN_METHOD(VectorTile::render)
         Nan::ThrowTypeError("mapnik.Map expected as first arg");
         return;
     }
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Map::constructor)->HasInstance(obj)) {
         Nan::ThrowTypeError("mapnik.Map expected as first arg");
         return;
@@ -2910,10 +2910,10 @@ NAN_METHOD(VectorTile::render)
         Nan::ThrowTypeError("a renderable mapnik object is expected as second arg");
         return;
     }
-    Local<Object> im_obj = info[1]->ToObject();
+    v8::Local<v8::Object> im_obj = info[1]->ToObject();
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction())
     {
         Nan::ThrowTypeError("last argument must be a callback function");
@@ -2922,7 +2922,7 @@ NAN_METHOD(VectorTile::render)
 
     vector_tile_render_baton_t *closure = new vector_tile_render_baton_t();
     baton_guard guard(closure);
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
 
     if (info.Length() > 2)
     {
@@ -2934,7 +2934,7 @@ NAN_METHOD(VectorTile::render)
         options = info[2]->ToObject();
         if (options->Has(Nan::New("z").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("z").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("z").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'z' must be a number");
                 return;
@@ -2944,7 +2944,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (options->Has(Nan::New("x").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("x").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("x").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'x' must be a number");
                 return;
@@ -2954,7 +2954,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (options->Has(Nan::New("y").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("y").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("y").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'y' must be a number");
                 return;
@@ -2963,7 +2963,7 @@ NAN_METHOD(VectorTile::render)
             closure->zxy_override = true;
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                 return;
@@ -2971,7 +2971,7 @@ NAN_METHOD(VectorTile::render)
             closure->buffer_size = bind_opt->IntegerValue();
         }
         if (options->Has(Nan::New("scale").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
@@ -2981,7 +2981,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
@@ -2991,7 +2991,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (options->Has(Nan::New("variables").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
             if (!bind_opt->IsObject())
             {
                 Nan::ThrowTypeError("optional arg 'variables' must be an object");
@@ -3019,7 +3019,7 @@ NAN_METHOD(VectorTile::render)
         closure->surface = c;
         if (options->Has(Nan::New("renderer").ToLocalChecked()))
         {
-            Local<Value> renderer = options->Get(Nan::New("renderer").ToLocalChecked());
+            v8::Local<v8::Value> renderer = options->Get(Nan::New("renderer").ToLocalChecked());
             if (!renderer->IsString() )
             {
                 Nan::ThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
@@ -3060,7 +3060,7 @@ NAN_METHOD(VectorTile::render)
         } else {
             std::vector<mapnik::layer> const& layers = m->get()->layers();
 
-            Local<Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
+            v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
 
             if (layer_id->IsString()) {
                 bool found = false;
@@ -3110,17 +3110,17 @@ NAN_METHOD(VectorTile::render)
         }
         if (options->Has(Nan::New("fields").ToLocalChecked())) {
 
-            Local<Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
             if (!param_val->IsArray())
             {
                 Nan::ThrowTypeError("option 'fields' must be an array of strings");
                 return;
             }
-            Local<Array> a = Local<Array>::Cast(param_val);
+            v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(param_val);
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
             while (i < num_fields) {
-                Local<Value> name = a->Get(i);
+                v8::Local<v8::Value> name = a->Get(i);
                 if (name->IsString()){
                     g->get()->add_field(TOSTR(name));
                 }
@@ -3139,7 +3139,7 @@ NAN_METHOD(VectorTile::render)
     closure->d = d;
     closure->m = m;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, (uv_after_work_cb)EIO_AfterRenderTile);
     m->_ref();
     d->Ref();
@@ -3387,26 +3387,26 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     Nan::HandleScope scope;
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         if (closure->surface.is<Image *>())
         {
-            Local<Value> argv[2] = { Nan::Null(), mapnik::util::get<Image *>(closure->surface)->handle() };
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<Image *>(closure->surface)->handle() };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
 #if defined(GRID_RENDERER)
         else if (closure->surface.is<Grid *>())
         {
-            Local<Value> argv[2] = { Nan::Null(), mapnik::util::get<Grid *>(closure->surface)->handle() };
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<Grid *>(closure->surface)->handle() };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
 #endif
         else if (closure->surface.is<CairoSurface *>())
         {
-            Local<Value> argv[2] = { Nan::Null(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
@@ -3421,7 +3421,7 @@ NAN_METHOD(VectorTile::clearSync)
     info.GetReturnValue().Set(_clearSync(info));
 }
 
-Local<Value> VectorTile::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -3435,7 +3435,7 @@ typedef struct {
     std::string format;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } clear_vector_tile_baton_t;
 
 /**
@@ -3455,7 +3455,7 @@ NAN_METHOD(VectorTile::clear)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!callback->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -3464,7 +3464,7 @@ NAN_METHOD(VectorTile::clear)
     closure->request.data = closure;
     closure->d = d;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     d->Ref();
     return;
@@ -3495,13 +3495,13 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
     {
         // No reason this should ever throw an exception, not currently testable.
         // LCOV_EXCL_START
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_END
     }
     else
     {
-        Local<Value> argv[1] = { Nan::Null() };
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     closure->d->Unref();
@@ -3522,7 +3522,7 @@ NAN_METHOD(VectorTile::isSolidSync)
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
-Local<Value> VectorTile::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -3532,7 +3532,7 @@ Local<Value> VectorTile::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
         bool is_solid = mapnik::vector_tile_impl::is_solid_extent(d->buffer_, key);
         if (is_solid)
         {
-            return scope.Escape(Nan::New<String>(key).ToLocalChecked());
+            return scope.Escape(Nan::New<v8::String>(key).ToLocalChecked());
         }
         else
         {
@@ -3555,7 +3555,7 @@ typedef struct {
     uv_work_t request;
     VectorTile* d;
     std::string key;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     bool error;
     std::string error_name;
     bool result;
@@ -3578,7 +3578,7 @@ NAN_METHOD(VectorTile::isSolid)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!callback->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -3589,7 +3589,7 @@ NAN_METHOD(VectorTile::isSolid)
     closure->d = d;
     closure->result = true;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
     d->Ref();
     return;
@@ -3622,15 +3622,15 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
         // There is a chance of this throwing an error, however, only in the situation such that there
         // is an illegal command within the vector tile. 
         // LCOV_EXCL_START
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_END
     }
     else
     {
-        Local<Value> argv[3] = { Nan::Null(),
-                                 Nan::New<Boolean>(closure->result),
-                                 Nan::New<String>(closure->key).ToLocalChecked()
+        v8::Local<v8::Value> argv[3] = { Nan::Null(),
+                                 Nan::New<v8::Boolean>(closure->result),
+                                 Nan::New<v8::String>(closure->key).ToLocalChecked()
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
     }

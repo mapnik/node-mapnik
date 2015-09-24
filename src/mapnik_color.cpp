@@ -8,7 +8,7 @@
 // stl
 #include <exception>                    // for exception
 
-Nan::Persistent<FunctionTemplate> Color::constructor;
+Nan::Persistent<v8::FunctionTemplate> Color::constructor;
 
 /**
  * @name mapnik.Color
@@ -26,11 +26,11 @@ Nan::Persistent<FunctionTemplate> Color::constructor;
  * // premultiplied
  * var c = new mapnik.Color(0, 128, 0, 255, true);
  */
-void Color::Initialize(Local<Object> target) {
+void Color::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Color::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Color::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Color").ToLocalChecked());
 
@@ -67,7 +67,7 @@ NAN_METHOD(Color::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Color* c = static_cast<Color*>(ptr);
         c->Wrap(info.This());
@@ -175,11 +175,11 @@ NAN_METHOD(Color::New)
     info.GetReturnValue().Set(info.This());
 }
 
-Local<Value> Color::NewInstance(mapnik::color const& color) {
+v8::Local<v8::Value> Color::NewInstance(mapnik::color const& color) {
     Nan::EscapableHandleScope scope;
     Color* c = new Color();
     c->this_ = std::make_shared<mapnik::color>(color);
-    Local<Value> ext = Nan::New<External>(c);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(c);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
@@ -189,13 +189,13 @@ NAN_GETTER(Color::get_prop)
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "a")
-        info.GetReturnValue().Set(Nan::New<Integer>(c->get()->alpha()));
+        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->alpha()));
     else if (a == "r")
-        info.GetReturnValue().Set(Nan::New<Integer>(c->get()->red()));
+        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->red()));
     else if (a == "g")
-        info.GetReturnValue().Set(Nan::New<Integer>(c->get()->green()));
+        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->green()));
     else //if (a == "b")
-        info.GetReturnValue().Set(Nan::New<Integer>(c->get()->blue()));
+        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->blue()));
 }
 
 NAN_SETTER(Color::set_prop)
@@ -236,7 +236,7 @@ NAN_SETTER(Color::set_prop)
 NAN_GETTER(Color::get_premultiplied)
 {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Boolean>(c->get()->get_premultiplied()));
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(c->get()->get_premultiplied()));
     return;
 }
 
@@ -278,7 +278,7 @@ NAN_SETTER(Color::set_premultiplied)
 NAN_METHOD(Color::toString)
 {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<String>(c->get()->to_string()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(c->get()->to_string()).ToLocalChecked());
 }
 
 /**
@@ -297,5 +297,5 @@ NAN_METHOD(Color::hex)
 {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string hex = c->get()->to_hex_string();
-    info.GetReturnValue().Set(Nan::New<String>(hex).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(hex).ToLocalChecked());
 }

@@ -12,12 +12,12 @@
 // mapnik
 #include <mapnik/expression.hpp>
 
-using namespace v8;
+
 
 class Expression: public Nan::ObjectWrap {
 public:
-    static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Local<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(toString);
     static NAN_METHOD(evaluate);

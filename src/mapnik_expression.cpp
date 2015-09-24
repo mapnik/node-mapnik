@@ -13,13 +13,13 @@
 // stl
 #include <exception>                    // for exception
 
-Nan::Persistent<FunctionTemplate> Expression::constructor;
+Nan::Persistent<v8::FunctionTemplate> Expression::constructor;
 
-void Expression::Initialize(Local<Object> target) {
+void Expression::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Expression::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Expression::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Expression").ToLocalChecked());
 
@@ -81,7 +81,7 @@ NAN_METHOD(Expression::evaluate)
         return;
     }
 
-    Local<Object> obj = info[0].As<Object>();
+    v8::Local<v8::Object> obj = info[0].As<v8::Object>();
     if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Feature::constructor)->HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a mapnik.Feature");
         return;
@@ -90,7 +90,7 @@ NAN_METHOD(Expression::evaluate)
     Feature* f = Nan::ObjectWrap::Unwrap<Feature>(obj);
 
     Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     mapnik::attributes vars;
     if (info.Length() > 1)
     {
@@ -103,7 +103,7 @@ NAN_METHOD(Expression::evaluate)
 
         if (options->Has(Nan::New("variables").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
             if (!bind_opt->IsObject())
             {
                 Nan::ThrowTypeError("optional arg 'variables' must be an object");

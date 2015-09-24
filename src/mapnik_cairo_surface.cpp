@@ -1,13 +1,13 @@
 #include "utils.hpp"
 #include "mapnik_cairo_surface.hpp"
-using namespace v8;
 
-Nan::Persistent<FunctionTemplate> CairoSurface::constructor;
 
-void CairoSurface::Initialize(Local<Object> target) {
+Nan::Persistent<v8::FunctionTemplate> CairoSurface::constructor;
+
+void CairoSurface::Initialize(v8::Local<v8::Object> target) {
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(CairoSurface::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(CairoSurface::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("CairoSurface").ToLocalChecked());
     Nan::SetPrototypeMethod(lcons, "width", width);
@@ -42,7 +42,7 @@ NAN_METHOD(CairoSurface::New)
     {
         // Currently there is no C++ that executes this call
         /* LCOV_EXCL_START */
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         CairoSurface* im =  static_cast<CairoSurface*>(ptr);
         im->Wrap(info.This());

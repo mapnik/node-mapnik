@@ -6,7 +6,7 @@
 #include <mapnik/projection.hpp>
 #include <sstream>
 
-Nan::Persistent<FunctionTemplate> Projection::constructor;
+Nan::Persistent<v8::FunctionTemplate> Projection::constructor;
 
 /**
  * A geographical projection: this class makes it possible to translate between
@@ -23,11 +23,11 @@ Nan::Persistent<FunctionTemplate> Projection::constructor;
  * @example
  * var wgs84 = new mapnik.Projection('+init=epsg:4326');
  */
-void Projection::Initialize(Local<Object> target) {
+void Projection::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Projection::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Projection::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Projection").ToLocalChecked());
 
@@ -66,10 +66,10 @@ NAN_METHOD(Projection::New)
             Nan::ThrowTypeError("The second parameter provided should be an options object");
             return;
         }
-        Local<Object> options = info[1].As<Object>();
+        v8::Local<v8::Object> options = info[1].As<v8::Object>();
         if (options->Has(Nan::New("lazy").ToLocalChecked()))
         {
-            Local<Value> lazy_opt = options->Get(Nan::New("lazy").ToLocalChecked());
+            v8::Local<v8::Value> lazy_opt = options->Get(Nan::New("lazy").ToLocalChecked());
             if (!lazy_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("'lazy' must be a Boolean");
@@ -99,8 +99,8 @@ NAN_METHOD(Projection::New)
  * @name forward
  * @memberof mapnik.Projection
  * @instance
- * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
- * @returns {Array<number>} projected coordinates
+ * @param {v8::Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {v8::Array<number>} projected coordinates
  * @example
  * var merc = new mapnik.Projection('+init=epsg:3857');
  * var long_lat_coords = [-122.33517, 47.63752];
@@ -120,14 +120,14 @@ NAN_METHOD(Projection::forward)
                 Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
                 return;
             }
-            Local<Array> a = info[0].As<Array>();
+            v8::Local<v8::Array> a = info[0].As<v8::Array>();
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
                 double x = a->Get(0)->NumberValue();
                 double y = a->Get(1)->NumberValue();
                 p->projection_->forward(x,y);
-                Local<Array> arr = Nan::New<Array>(2);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
                 arr->Set(0, Nan::New(x));
                 arr->Set(1, Nan::New(y));
                 info.GetReturnValue().Set(arr);
@@ -143,7 +143,7 @@ NAN_METHOD(Projection::forward)
                 p->projection_->forward(urx,ury);
                 p->projection_->forward(lrx,lry);
                 p->projection_->forward(llx,lly);
-                Local<Array> arr = Nan::New<Array>(4);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
                 arr->Set(0, Nan::New(std::min(ulx,llx)));
                 arr->Set(1, Nan::New(std::min(lry,lly)));
                 arr->Set(2, Nan::New(std::max(urx,lrx)));
@@ -169,8 +169,8 @@ NAN_METHOD(Projection::forward)
  * @name inverse
  * @memberof mapnik.Projection
  * @instance
- * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
- * @returns {Array<number>} unprojected coordinates
+ * @param {v8::Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {v8::Array<number>} unprojected coordinates
  */
 NAN_METHOD(Projection::inverse)
 {
@@ -186,14 +186,14 @@ NAN_METHOD(Projection::inverse)
                 Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
                 return;
             }
-            Local<Array> a = info[0].As<Array>();
+            v8::Local<v8::Array> a = info[0].As<v8::Array>();
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
                 double x = a->Get(0)->NumberValue();
                 double y = a->Get(1)->NumberValue();
                 p->projection_->inverse(x,y);
-                Local<Array> arr = Nan::New<Array>(2);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
                 arr->Set(0, Nan::New(x));
                 arr->Set(1, Nan::New(y));
                 info.GetReturnValue().Set(arr);
@@ -206,7 +206,7 @@ NAN_METHOD(Projection::inverse)
                 double maxy = a->Get(3)->NumberValue();
                 p->projection_->inverse(minx,miny);
                 p->projection_->inverse(maxx,maxy);
-                Local<Array> arr = Nan::New<Array>(4);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
                 arr->Set(0, Nan::New(minx));
                 arr->Set(1, Nan::New(miny));
                 arr->Set(2, Nan::New(maxx));
@@ -225,13 +225,13 @@ NAN_METHOD(Projection::inverse)
     }
 }
 
-Nan::Persistent<FunctionTemplate> ProjTransform::constructor;
+Nan::Persistent<v8::FunctionTemplate> ProjTransform::constructor;
 
-void ProjTransform::Initialize(Local<Object> target) {
+void ProjTransform::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(ProjTransform::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(ProjTransform::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("ProjTransform").ToLocalChecked());
 
@@ -263,13 +263,13 @@ NAN_METHOD(ProjTransform::New)
         return;
     }
 
-    Local<Object> src_obj = info[0].As<Object>();
+    v8::Local<v8::Object> src_obj = info[0].As<v8::Object>();
     if (src_obj->IsNull() || src_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(src_obj)) {
         Nan::ThrowTypeError("mapnik.Projection expected for first argument");
         return;
     }
 
-    Local<Object> dest_obj = info[1].As<Object>();
+    v8::Local<v8::Object> dest_obj = info[1].As<v8::Object>();
     if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(dest_obj)) {
         Nan::ThrowTypeError("mapnik.Projection expected for second argument");
         return;
@@ -304,7 +304,7 @@ NAN_METHOD(ProjTransform::forward)
             return;
         }
 
-        Local<Array> a = info[0].As<Array>();
+        v8::Local<v8::Array> a = info[0].As<v8::Array>();
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
@@ -320,7 +320,7 @@ NAN_METHOD(ProjTransform::forward)
                 return;
 
             }
-            Local<Array> arr = Nan::New<Array>(2);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
             arr->Set(0, Nan::New(x));
             arr->Set(1, Nan::New(y));
             info.GetReturnValue().Set(arr);
@@ -339,7 +339,7 @@ NAN_METHOD(ProjTransform::forward)
                 Nan::ThrowError(s.str().c_str());
                 return;
             }
-            Local<Array> arr = Nan::New<Array>(4);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
             arr->Set(0, Nan::New(box.minx()));
             arr->Set(1, Nan::New(box.miny()));
             arr->Set(2, Nan::New(box.maxx()));
@@ -368,7 +368,7 @@ NAN_METHOD(ProjTransform::backward)
             return;
         }
 
-        Local<Array> a = info[0].As<Array>();
+        v8::Local<v8::Array> a = info[0].As<v8::Array>();
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
@@ -383,7 +383,7 @@ NAN_METHOD(ProjTransform::backward)
                 Nan::ThrowError(s.str().c_str());
                 return;
             }
-            Local<Array> arr = Nan::New<Array>(2);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
             arr->Set(0, Nan::New(x));
             arr->Set(1, Nan::New(y));
             info.GetReturnValue().Set(arr);
@@ -402,7 +402,7 @@ NAN_METHOD(ProjTransform::backward)
                 Nan::ThrowError(s.str().c_str());
                 return;
             }
-            Local<Array> arr = Nan::New<Array>(4);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
             arr->Set(0, Nan::New(box.minx()));
             arr->Set(1, Nan::New(box.miny()));
             arr->Set(2, Nan::New(box.maxx()));

@@ -45,8 +45,8 @@
 
 namespace node_mapnik {
 
-using namespace node;
-using namespace v8;
+
+
 
 static std::string format_version(int version)
 {
@@ -88,7 +88,7 @@ static NAN_METHOD(shutdown)
  */
 extern "C" {
 
-    static void InitMapnik (Local<Object> target)
+    static void InitMapnik (v8::Local<v8::Object> target)
     {
         Nan::HandleScope scope;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -137,20 +137,20 @@ extern "C" {
         CairoSurface::Initialize(target);
 
         // versions of deps
-        Local<Object> versions = Nan::New<Object>();
-        versions->Set(Nan::New("node").ToLocalChecked(), Nan::New<String>(NODE_VERSION+1).ToLocalChecked()); // NOTE: +1 strips the v in v0.10.26
-        versions->Set(Nan::New("v8").ToLocalChecked(), Nan::New<String>(V8::GetVersion()).ToLocalChecked());
-        versions->Set(Nan::New("boost").ToLocalChecked(), Nan::New<String>(format_version(BOOST_VERSION)).ToLocalChecked());
+        v8::Local<v8::Object> versions = Nan::New<v8::Object>();
+        versions->Set(Nan::New("node").ToLocalChecked(), Nan::New<v8::String>(NODE_VERSION+1).ToLocalChecked()); // NOTE: +1 strips the v in v0.10.26
+        versions->Set(Nan::New("v8").ToLocalChecked(), Nan::New<v8::String>(v8::V8::GetVersion()).ToLocalChecked());
+        versions->Set(Nan::New("boost").ToLocalChecked(), Nan::New<v8::String>(format_version(BOOST_VERSION)).ToLocalChecked());
         versions->Set(Nan::New("boost_number").ToLocalChecked(), Nan::New(BOOST_VERSION));
-        versions->Set(Nan::New("mapnik").ToLocalChecked(), Nan::New<String>(format_version(MAPNIK_VERSION)).ToLocalChecked());
+        versions->Set(Nan::New("mapnik").ToLocalChecked(), Nan::New<v8::String>(format_version(MAPNIK_VERSION)).ToLocalChecked());
         versions->Set(Nan::New("mapnik_number").ToLocalChecked(), Nan::New(MAPNIK_VERSION));
-        versions->Set(Nan::New("mapnik_git_describe").ToLocalChecked(), Nan::New<String>(MAPNIK_GIT_REVISION).ToLocalChecked());
+        versions->Set(Nan::New("mapnik_git_describe").ToLocalChecked(), Nan::New<v8::String>(MAPNIK_GIT_REVISION).ToLocalChecked());
 #if defined(HAVE_CAIRO)
-        versions->Set(Nan::New("cairo").ToLocalChecked(), Nan::New<String>(CAIRO_VERSION_STRING).ToLocalChecked());
+        versions->Set(Nan::New("cairo").ToLocalChecked(), Nan::New<v8::String>(CAIRO_VERSION_STRING).ToLocalChecked());
 #endif
         target->Set(Nan::New("versions").ToLocalChecked(), versions);
 
-        Local<Object> supports = Nan::New<Object>();
+        v8::Local<v8::Object> supports = Nan::New<v8::Object>();
 #ifdef GRID_RENDERER
         supports->Set(Nan::New("grid").ToLocalChecked(), Nan::True());
 #else
@@ -263,7 +263,7 @@ extern "C" {
  * @static
  * @class
  */
-        Local<Object> composite_ops = Nan::New<Object>();
+        v8::Local<v8::Object> composite_ops = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst", mapnik::dst)
@@ -321,7 +321,7 @@ extern "C" {
  * @property {number} gray64s
  * @property {number} gray64f
  */
-        Local<Object> image_types = Nan::New<Object>();
+        v8::Local<v8::Object> image_types = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "null", mapnik::image_dtype_null)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "rgba8", mapnik::image_dtype_rgba8)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray8", mapnik::image_dtype_gray8)
@@ -361,7 +361,7 @@ extern "C" {
  * @property {number} lanczos
  * @property {number} blackman
  */
-        Local<Object> image_scaling_types = Nan::New<Object>();
+        v8::Local<v8::Object> image_scaling_types = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "near", mapnik::SCALING_NEAR)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bilinear", mapnik::SCALING_BILINEAR)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bicubic", mapnik::SCALING_BICUBIC)

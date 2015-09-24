@@ -14,14 +14,14 @@
 namespace mapnik { class proj_transform; }
 namespace mapnik { class projection; }
 
-using namespace v8;
+
 
 typedef std::shared_ptr<mapnik::projection> proj_ptr;
 
 class Projection: public Nan::ObjectWrap {
 public:
-    static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Local<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(inverse);
@@ -40,8 +40,8 @@ typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 
 class ProjTransform: public Nan::ObjectWrap {
 public:
-    static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Local<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(forward);

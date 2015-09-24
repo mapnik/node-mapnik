@@ -12,7 +12,7 @@
 // std
 #include <exception>
 
-Nan::Persistent<FunctionTemplate> Grid::constructor;
+Nan::Persistent<v8::FunctionTemplate> Grid::constructor;
 
 /**
  * Generator for [UTFGrid](https://www.mapbox.com/guides/an-open-platform)
@@ -25,11 +25,11 @@ Nan::Persistent<FunctionTemplate> Grid::constructor;
  * @param {Object} [options={}] optional argument, which can have a 'key' property
  * @property {string} key
  */
-void Grid::Initialize(Local<Object> target) {
+void Grid::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Grid::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Grid::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Grid").ToLocalChecked());
 
@@ -89,10 +89,10 @@ NAN_METHOD(Grid::New)
                 Nan::ThrowTypeError("optional third arg must be an options object");
                 return;
             }
-            Local<Object> options = info[2].As<Object>();
+            v8::Local<v8::Object> options = info[2].As<v8::Object>();
 
             if (options->Has(Nan::New("key").ToLocalChecked())) {
-                Local<Value> bind_opt = options->Get(Nan::New("key").ToLocalChecked());
+                v8::Local<v8::Value> bind_opt = options->Get(Nan::New("key").ToLocalChecked());
                 if (!bind_opt->IsString())
                 {
                     Nan::ThrowTypeError("optional arg 'key' must be an string");
@@ -120,7 +120,7 @@ NAN_METHOD(Grid::clearSync)
     info.GetReturnValue().Set(_clearSync(info));
 }
 
-Local<Value> Grid::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Grid::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
@@ -133,7 +133,7 @@ typedef struct {
     Grid* g;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } clear_grid_baton_t;
 
 NAN_METHOD(Grid::clear)
@@ -145,7 +145,7 @@ NAN_METHOD(Grid::clear)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction())
     {
         Nan::ThrowTypeError("last argument must be a callback function");
@@ -155,7 +155,7 @@ NAN_METHOD(Grid::clear)
     closure->request.data = closure;
     closure->g = g;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     g->Ref();
     return;
@@ -189,13 +189,13 @@ void Grid::EIO_AfterClear(uv_work_t* req)
         // process and therefore not possible to have an error here so removing it from code
         // coverage
         /* LCOV_EXCL_START */
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_END */
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), closure->g->handle() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->g->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->g->Unref();
@@ -219,7 +219,7 @@ NAN_METHOD(Grid::painted)
 NAN_METHOD(Grid::width)
 {
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Integer>((unsigned)g->get()->width()));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>((unsigned)g->get()->width()));
 }
 
 /**
@@ -232,13 +232,13 @@ NAN_METHOD(Grid::width)
 NAN_METHOD(Grid::height)
 {
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<unsigned>(g->get()->height())));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<unsigned>(g->get()->height())));
 }
 
 NAN_GETTER(Grid::get_key)
 {
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<String>(g->get()->get_key()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(g->get()->get_key()).ToLocalChecked());
 }
 
 NAN_SETTER(Grid::set_key)
@@ -285,7 +285,7 @@ NAN_METHOD(Grid::addField)
  * @memberof mapnik.Grid
  * @instance
  * @name addField
- * @returns {Array<string>} fields
+ * @returns {v8::Array<string>} fields
  */
 NAN_METHOD(Grid::fields)
 {
@@ -293,12 +293,12 @@ NAN_METHOD(Grid::fields)
     std::set<std::string> const& a = g->get()->get_fields();
     std::set<std::string>::const_iterator itr = a.begin();
     std::set<std::string>::const_iterator end = a.end();
-    Local<Array> l = Nan::New<Array>(a.size());
+    v8::Local<v8::Array> l = Nan::New<v8::Array>(a.size());
     int idx = 0;
     for (; itr != end; ++itr)
     {
         std::string name = *itr;
-        l->Set(idx, Nan::New<String>(name).ToLocalChecked());
+        l->Set(idx, Nan::New<v8::String>(name).ToLocalChecked());
         ++idx;
     }
     info.GetReturnValue().Set(l);
@@ -356,11 +356,11 @@ NAN_METHOD(Grid::encodeSync)
             return;
         }
 
-        Local<Object> options = info[0].As<Object>();
+        v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
         if (options->Has(Nan::New("resolution").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("'resolution' must be an Integer");
@@ -377,7 +377,7 @@ NAN_METHOD(Grid::encodeSync)
 
         if (options->Has(Nan::New("features").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
             if (!bind_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("'features' must be an Boolean");
@@ -395,18 +395,18 @@ NAN_METHOD(Grid::encodeSync)
         node_mapnik::grid2utf<mapnik::grid>(*g->get(),lines,key_order,resolution);
 
         // convert key order to proper javascript array
-        Local<Array> keys_a = Nan::New<Array>(key_order.size());
+        v8::Local<v8::Array> keys_a = Nan::New<v8::Array>(key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
         for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<String>(*it).ToLocalChecked());
+            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid const& grid_type = *g->get();
 
         // gather feature data
-        Local<Object> feature_data = Nan::New<Object>();
+        v8::Local<v8::Object> feature_data = Nan::New<v8::Object>();
         if (add_features) {
             node_mapnik::write_features<mapnik::grid>(*g->get(),
                                                       feature_data,
@@ -414,13 +414,13 @@ NAN_METHOD(Grid::encodeSync)
         }
 
         // Create the return hash.
-        Local<Object> json = Nan::New<Object>();
-        Local<Array> grid_array = Nan::New<Array>();
+        v8::Local<v8::Object> json = Nan::New<v8::Object>();
+        v8::Local<v8::Array> grid_array = Nan::New<v8::Array>();
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, Nan::New<String>(line.get(),array_size).ToLocalChecked());
+            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
         json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
         json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
@@ -444,7 +444,7 @@ typedef struct {
     Grid* g;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     std::vector<node_mapnik::grid_line_type> lines;
     unsigned int resolution;
     bool add_features;
@@ -467,11 +467,11 @@ NAN_METHOD(Grid::encode)
             return;
         }
 
-        Local<Object> options = info[0].As<Object>();
+        v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
         if (options->Has(Nan::New("resolution").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("'resolution' must be an Integer");
@@ -488,7 +488,7 @@ NAN_METHOD(Grid::encode)
 
         if (options->Has(Nan::New("features").ToLocalChecked()))
         {
-            Local<Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
             if (!bind_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("'features' must be an Boolean");
@@ -505,7 +505,7 @@ NAN_METHOD(Grid::encode)
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
     }
-    Local<Function> callback = Local<Function>::Cast(info[info.Length()-1]);
+    v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(info[info.Length()-1]);
 
     encode_grid_baton_t *closure = new encode_grid_baton_t();
     closure->request.data = closure;
@@ -513,7 +513,7 @@ NAN_METHOD(Grid::encode)
     closure->error = false;
     closure->resolution = resolution;
     closure->add_features = add_features;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     // todo - reserve lines size?
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
     g->Ref();
@@ -554,7 +554,7 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         // There is no known ways to throw errors in the processing prior
         // so simply removing the following from coverage
         /* LCOV_EXCL_START */
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_END */
     } 
@@ -562,17 +562,17 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
     {
 
         // convert key order to proper javascript array
-        Local<Array> keys_a = Nan::New<Array>(closure->key_order.size());
+        v8::Local<v8::Array> keys_a = Nan::New<v8::Array>(closure->key_order.size());
         std::vector<std::string>::iterator it;
         unsigned int i;
         for (it = closure->key_order.begin(), i = 0; it < closure->key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<String>(*it).ToLocalChecked());
+            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid const& grid_type = *closure->g->get();
         // gather feature data
-        Local<Object> feature_data = Nan::New<Object>();
+        v8::Local<v8::Object> feature_data = Nan::New<v8::Object>();
         if (closure->add_features) {
             node_mapnik::write_features<mapnik::grid>(grid_type,
                                                       feature_data,
@@ -580,19 +580,19 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         }
 
         // Create the return hash.
-        Local<Object> json = Nan::New<Object>();
-        Local<Array> grid_array = Nan::New<Array>(closure->lines.size());
+        v8::Local<v8::Object> json = Nan::New<v8::Object>();
+        v8::Local<v8::Array> grid_array = Nan::New<v8::Array>(closure->lines.size());
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(closure->resolution));
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, Nan::New<String>(line.get(),array_size).ToLocalChecked());
+            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
         json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
         json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
         json->Set(Nan::New("data").ToLocalChecked(), feature_data);
 
-        Local<Value> argv[2] = { Nan::Null(), json };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), json };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 

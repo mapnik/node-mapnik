@@ -46,7 +46,7 @@
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>
 
-Nan::Persistent<FunctionTemplate> Image::constructor;
+Nan::Persistent<v8::FunctionTemplate> Image::constructor;
 
 /**
  * @name mapnik.Image
@@ -63,11 +63,11 @@ Nan::Persistent<FunctionTemplate> Image::constructor;
  *   type: mapnik.imageType.gray8
  * });
  */
-void Image::Initialize(Local<Object> target) {
+void Image::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Image::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Image::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Image").ToLocalChecked());
 
@@ -166,7 +166,7 @@ NAN_METHOD(Image::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Image* im =  static_cast<Image*>(ptr);
         im->Wrap(info.This());
@@ -189,10 +189,10 @@ NAN_METHOD(Image::New)
         {
             if (info[2]->IsObject())
             {
-                Local<Object> options = Local<Object>::Cast(info[2]);
+                v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[2]);
                 if (options->Has(Nan::New("type").ToLocalChecked()))
                 {
-                    Local<Value> init_val = options->Get(Nan::New("type").ToLocalChecked());
+                    v8::Local<v8::Value> init_val = options->Get(Nan::New("type").ToLocalChecked());
 
                     if (!init_val.IsEmpty() && init_val->IsNumber())
                     {
@@ -212,7 +212,7 @@ NAN_METHOD(Image::New)
 
                 if (options->Has(Nan::New("initialize").ToLocalChecked()))
                 {
-                    Local<Value> init_val = options->Get(Nan::New("initialize").ToLocalChecked());
+                    v8::Local<v8::Value> init_val = options->Get(Nan::New("initialize").ToLocalChecked());
                     if (!init_val.IsEmpty() && init_val->IsBoolean())
                     {
                         initialize = init_val->BooleanValue();
@@ -226,7 +226,7 @@ NAN_METHOD(Image::New)
 
                 if (options->Has(Nan::New("premultiplied").ToLocalChecked()))
                 {
-                    Local<Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
+                    v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
                     if (!pre_val.IsEmpty() && pre_val->IsBoolean())
                     {
                         premultiplied = pre_val->BooleanValue();
@@ -240,7 +240,7 @@ NAN_METHOD(Image::New)
 
                 if (options->Has(Nan::New("painted").ToLocalChecked()))
                 {
-                    Local<Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
+                    v8::Local<v8::Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
                     if (!painted_val.IsEmpty() && painted_val->IsBoolean())
                     {
                         painted = painted_val->BooleanValue();
@@ -289,7 +289,7 @@ NAN_METHOD(Image::getType)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     unsigned type = im->this_->get_dtype();
-    info.GetReturnValue().Set(Nan::New<Number>(type));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(type));
 }
 
 struct visitor_get_pixel
@@ -297,7 +297,7 @@ struct visitor_get_pixel
     visitor_get_pixel(int x, int y)
         : x_(x), y_(y) {}
 
-    Local<Value> operator() (mapnik::image_null const&)
+    v8::Local<v8::Value> operator() (mapnik::image_null const&)
     {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
@@ -308,81 +308,81 @@ struct visitor_get_pixel
 
     }
 
-    Local<Value> operator() (mapnik::image_gray8 const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray8 const& data)
     {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Uint32>(val));
+        return scope.Escape(Nan::New<v8::Uint32>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray8s const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray8s const& data)
     {
         Nan::EscapableHandleScope scope;
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Int32>(val));
+        return scope.Escape(Nan::New<v8::Int32>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray16 const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray16 const& data)
     {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Uint32>(val));
+        return scope.Escape(Nan::New<v8::Uint32>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray16s const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray16s const& data)
     {
         Nan::EscapableHandleScope scope;
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Int32>(val));
+        return scope.Escape(Nan::New<v8::Int32>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray32 const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray32 const& data)
     {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Uint32>(val));
+        return scope.Escape(Nan::New<v8::Uint32>(val));
     }
     
-    Local<Value> operator() (mapnik::image_gray32s const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray32s const& data)
     {
         Nan::EscapableHandleScope scope;
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Int32>(val));
+        return scope.Escape(Nan::New<v8::Int32>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray32f const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray32f const& data)
     {
         Nan::EscapableHandleScope scope;
         double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Nan::New<Number>(val));
+        return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray64 const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray64 const& data)
     {
         Nan::EscapableHandleScope scope;
         std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Number>(val));
+        return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray64s const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray64s const& data)
     {
         Nan::EscapableHandleScope scope;
         std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Number>(val));
+        return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    Local<Value> operator() (mapnik::image_gray64f const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_gray64f const& data)
     {
         Nan::EscapableHandleScope scope;
         double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Nan::New<Number>(val));
+        return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    Local<Value> operator() (mapnik::image_rgba8 const& data)
+    v8::Local<v8::Value> operator() (mapnik::image_rgba8 const& data)
     {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<Number>(val));
+        return scope.Escape(Nan::New<v8::Number>(val));
     }
 
   private:
@@ -421,10 +421,10 @@ NAN_METHOD(Image::getPixel)
             return;
         }
 
-        Local<Object> options = info[2]->ToObject();
+        v8::Local<v8::Object> options = info[2]->ToObject();
 
         if (options->Has(Nan::New("get_color").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("get_color").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("get_color").ToLocalChecked());
             if (!bind_opt->IsBoolean()) {
                 Nan::ThrowTypeError("optional arg 'color' must be a boolean");
                 return;
@@ -504,7 +504,7 @@ NAN_METHOD(Image::setPixel)
     }
     else if (info[2]->IsObject())
     {
-        Local<Object> obj = info[2]->ToObject();
+        v8::Local<v8::Object> obj = info[2]->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) 
         {
             Nan::ThrowTypeError("A numeric or color value is expected as third arg");
@@ -539,7 +539,7 @@ NAN_METHOD(Image::compare)
         Nan::ThrowTypeError("first argument should be a mapnik.Image");
         return;
     }
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Image::constructor)->HasInstance(obj)) {
         Nan::ThrowTypeError("mapnik.Image expected as first arg");
         return;
@@ -555,10 +555,10 @@ NAN_METHOD(Image::compare)
             return;
         }
 
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
 
         if (options->Has(Nan::New("threshold").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("threshold").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("threshold").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'threshold' must be a number");
                 return;
@@ -567,7 +567,7 @@ NAN_METHOD(Image::compare)
         }
 
         if (options->Has(Nan::New("alpha").ToLocalChecked())) {
-            Local<Value> bind_opt = options->Get(Nan::New("alpha").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("alpha").ToLocalChecked());
             if (!bind_opt->IsBoolean()) {
                 Nan::ThrowTypeError("optional arg 'alpha' must be a boolean");
                 return;
@@ -584,7 +584,7 @@ NAN_METHOD(Image::compare)
             return;
     }
     unsigned difference = mapnik::compare(*im->this_, *im2->this_, threshold, alpha);
-    info.GetReturnValue().Set(Nan::New<Integer>(difference));
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(difference));
 }
 
 NAN_METHOD(Image::filterSync)
@@ -600,7 +600,7 @@ NAN_METHOD(Image::filterSync)
  * @memberof mapnik.Image
  * @param {string} filter
  */
-Local<Value> Image::_filterSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Image::_filterSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     if (info.Length() < 1) {
         Nan::ThrowTypeError("expects one argument: string filter argument");
@@ -630,7 +630,7 @@ typedef struct {
     std::string filter;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } filter_image_baton_t;
 
 /**
@@ -670,11 +670,11 @@ NAN_METHOD(Image::filter)
     closure->filter = TOSTR(info[0]);
     
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     closure->request.data = closure;
     closure->im = im;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Filter, (uv_after_work_cb)EIO_AfterFilter);
     im->Ref();
     return;
@@ -700,12 +700,12 @@ void Image::EIO_AfterFilter(uv_work_t* req)
     filter_image_baton_t *closure = static_cast<filter_image_baton_t *>(req->data);
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), closure->im->handle() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im->Unref();
@@ -726,7 +726,7 @@ NAN_METHOD(Image::fillSync)
  * @memberof mapnik.Image
  * @param {mapnik.Color|number} color
  */
-Local<Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     if (info.Length() < 1 ) {
         Nan::ThrowTypeError("expects one argument: Color object or a number");
@@ -752,7 +752,7 @@ Local<Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         }
         else if (info[0]->IsObject())
         {
-            Local<Object> obj = info[0]->ToObject();
+            v8::Local<v8::Object> obj = info[0]->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) 
             {
                 Nan::ThrowTypeError("A numeric or color value is expected");
@@ -794,7 +794,7 @@ typedef struct {
     //std::string format;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } fill_image_baton_t;
 
 /**
@@ -838,7 +838,7 @@ NAN_METHOD(Image::fill)
     }
     else if (info[0]->IsObject())
     {
-        Local<Object> obj = info[0]->ToObject();
+        v8::Local<v8::Object> obj = info[0]->ToObject();
         if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) 
         {
             delete closure;
@@ -858,7 +858,7 @@ NAN_METHOD(Image::fill)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         delete closure;
         Nan::ThrowTypeError("last argument must be a callback function");
@@ -869,7 +869,7 @@ NAN_METHOD(Image::fill)
         closure->request.data = closure;
         closure->im = im;
         closure->error = false;
-        closure->cb.Reset(callback.As<Function>());
+        closure->cb.Reset(callback.As<v8::Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_Fill, (uv_after_work_cb)EIO_AfterFill);
         im->Ref();
     }
@@ -911,12 +911,12 @@ void Image::EIO_AfterFill(uv_work_t* req)
     fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), closure->im->handle() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im->Unref();
@@ -942,7 +942,7 @@ NAN_METHOD(Image::clearSync)
     info.GetReturnValue().Set(_clearSync(info));
 }
 
-Local<Value> Image::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Image::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     try
@@ -962,7 +962,7 @@ typedef struct {
     //std::string format;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } clear_image_baton_t;
 
 /**
@@ -982,7 +982,7 @@ NAN_METHOD(Image::clear)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -991,7 +991,7 @@ NAN_METHOD(Image::clear)
     closure->request.data = closure;
     closure->im = im;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     im->Ref();
     return;
@@ -1017,12 +1017,12 @@ void Image::EIO_AfterClear(uv_work_t* req)
     clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), closure->im->handle() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im->Unref();
@@ -1041,7 +1041,7 @@ NAN_METHOD(Image::setGrayScaleToAlpha)
             return;
         }
 
-        Local<Object> obj = info[0]->ToObject();
+        v8::Local<v8::Object> obj = info[0]->ToObject();
 
         if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) {
             Nan::ThrowTypeError("mapnik.Color expected as first arg");
@@ -1058,7 +1058,7 @@ NAN_METHOD(Image::setGrayScaleToAlpha)
 typedef struct {
     uv_work_t request;
     Image* im;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } image_op_baton_t;
 
 /**
@@ -1073,7 +1073,7 @@ NAN_METHOD(Image::premultiplied)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     bool premultiplied = im->this_->get_premultiplied();
-    info.GetReturnValue().Set(Nan::New<Boolean>(premultiplied));
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(premultiplied));
 }
 
 /**
@@ -1088,7 +1088,7 @@ NAN_METHOD(Image::premultiplySync)
     info.GetReturnValue().Set(_premultiplySync(info));
 }
 
-Local<Value> Image::_premultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Image::_premultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     mapnik::premultiply_alpha(*im->this_);
@@ -1111,7 +1111,7 @@ NAN_METHOD(Image::premultiply)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -1121,7 +1121,7 @@ NAN_METHOD(Image::premultiply)
     image_op_baton_t *closure = new image_op_baton_t();
     closure->request.data = closure;
     closure->im = im;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Premultiply, (uv_after_work_cb)EIO_AfterMultiply);
     im->Ref();
     return;
@@ -1137,7 +1137,7 @@ void Image::EIO_AfterMultiply(uv_work_t* req)
 {
     Nan::HandleScope scope;
     image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
-    Local<Value> argv[2] = { Nan::Null(), closure->im->handle() };
+    v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
     Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     closure->im->Unref();
     closure->cb.Reset();
@@ -1158,7 +1158,7 @@ NAN_METHOD(Image::demultiplySync)
     info.GetReturnValue().Set(_demultiplySync(info));
 }
 
-Local<Value> Image::_demultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Image::_demultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     mapnik::demultiply_alpha(*im->this_);
@@ -1182,7 +1182,7 @@ NAN_METHOD(Image::demultiply)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -1192,7 +1192,7 @@ NAN_METHOD(Image::demultiply)
     image_op_baton_t *closure = new image_op_baton_t();
     closure->request.data = closure;
     closure->im = im;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Demultiply, (uv_after_work_cb)EIO_AfterMultiply);
     im->Ref();
     return;
@@ -1207,7 +1207,7 @@ void Image::EIO_Demultiply(uv_work_t* req)
 typedef struct {
     uv_work_t request;
     Image* im;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     bool error;
     std::string error_name;
     bool result;
@@ -1222,7 +1222,7 @@ NAN_METHOD(Image::isSolid)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -1233,7 +1233,7 @@ NAN_METHOD(Image::isSolid)
     closure->im = im;
     closure->result = true;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
     im->Ref();
     return;
@@ -1258,14 +1258,14 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
     Nan::HandleScope scope;
     is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         if (closure->result)
         {
-            Local<Value> argv[3] = { Nan::Null(),
+            v8::Local<v8::Value> argv[3] = { Nan::Null(),
                                      Nan::New(closure->result),
                                      mapnik::util::apply_visitor(visitor_get_pixel(0,0),*(closure->im->this_)),
             };
@@ -1273,7 +1273,7 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
         }
         else
         {
-            Local<Value> argv[2] = { Nan::Null(), Nan::New(closure->result) };
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New(closure->result) };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
@@ -1300,13 +1300,13 @@ NAN_METHOD(Image::isSolidSync)
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
-Local<Value> Image::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     if (im->this_->width() > 0 && im->this_->height() > 0)
     {
-        return scope.Escape(Nan::New<Boolean>(mapnik::is_solid(*(im->this_))));
+        return scope.Escape(Nan::New<v8::Boolean>(mapnik::is_solid(*(im->this_))));
     }
     Nan::ThrowError("image does not have valid dimensions");
     return scope.Escape(Nan::Undefined());
@@ -1319,7 +1319,7 @@ typedef struct {
     mapnik::image_dtype type;  
     double offset;
     double scaling;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     bool error;
     std::string error_name;
 } copy_image_baton_t;
@@ -1337,7 +1337,7 @@ typedef struct {
 NAN_METHOD(Image::copy)
 {
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         info.GetReturnValue().Set(_copySync(info));
         return;
@@ -1348,7 +1348,7 @@ NAN_METHOD(Image::copy)
     bool scaling_or_offset_set = false;
     double scaling = 1.0;
     mapnik::image_dtype type = im1->this_->get_dtype();
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     
     if (info.Length() >= 2)
     {
@@ -1386,7 +1386,7 @@ NAN_METHOD(Image::copy)
     
     if (options->Has(Nan::New("scaling").ToLocalChecked()))
     {
-        Local<Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
+        v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
             scaling = scaling_val->NumberValue();
@@ -1401,7 +1401,7 @@ NAN_METHOD(Image::copy)
     
     if (options->Has(Nan::New("offset").ToLocalChecked()))
     {
-        Local<Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
+        v8::Local<v8::Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
         if (offset_val->IsNumber())
         {
             offset = offset_val->NumberValue();
@@ -1427,7 +1427,7 @@ NAN_METHOD(Image::copy)
     closure->scaling = scaling;
     closure->type = type;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Copy, (uv_after_work_cb)EIO_AfterCopy);
     closure->im1->Ref();
     return;
@@ -1458,7 +1458,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
     copy_image_baton_t *closure = static_cast<copy_image_baton_t *>(req->data);
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else if (!closure->im2)
@@ -1466,16 +1466,16 @@ void Image::EIO_AfterCopy(uv_work_t* req)
         // Not quite sure if this is even required or ever can be reached, but leaving it
         // and simply removing it from coverage tests.
         /* LCOV_EXCL_START */
-        Local<Value> argv[1] = { Nan::Error("could not render to image") };
+        v8::Local<v8::Value> argv[1] = { Nan::Error("could not render to image") };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_END */
     }
     else
     {
         Image* im = new Image(closure->im2);
-        Local<Value> ext = Nan::New<External>(im);
-        Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        Local<Value> argv[2] = { Nan::Null(), image_obj };
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
+        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im1->Unref();
@@ -1498,7 +1498,7 @@ NAN_METHOD(Image::copySync)
     info.GetReturnValue().Set(_copySync(info));
 }
 
-Local<Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
@@ -1506,7 +1506,7 @@ Local<Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     bool scaling_or_offset_set = false;
     double scaling = 1.0;
     mapnik::image_dtype type = im->this_->get_dtype();
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() >= 1)
     {
         if (info[0]->IsNumber())
@@ -1543,7 +1543,7 @@ Local<Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     
     if (options->Has(Nan::New("scaling").ToLocalChecked()))
     {
-        Local<Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
+        v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
             scaling = scaling_val->NumberValue();
@@ -1558,7 +1558,7 @@ Local<Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     
     if (options->Has(Nan::New("offset").ToLocalChecked()))
     {
-        Local<Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
+        v8::Local<v8::Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
         if (offset_val->IsNumber())
         {
             offset = offset_val->NumberValue();
@@ -1586,7 +1586,7 @@ Local<Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
                                                                             scaling)
                                                );
         Image* new_im = new Image(image_ptr);
-        Local<Value> ext = Nan::New<External>(new_im);
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -1604,7 +1604,7 @@ typedef struct {
     std::size_t size_x;
     std::size_t size_y;
     double filter_factor;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     bool error;
     std::string error_name;
 } resize_image_baton_t;
@@ -1623,7 +1623,7 @@ typedef struct {
 NAN_METHOD(Image::resize)
 {    
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         info.GetReturnValue().Set(_resizeSync(info));
         return;
@@ -1633,7 +1633,7 @@ NAN_METHOD(Image::resize)
     std::size_t height = 0;
     double filter_factor = 1.0;
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     
     if (info.Length() >= 3)
     {
@@ -1688,7 +1688,7 @@ NAN_METHOD(Image::resize)
     
     if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
     {
-        Local<Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
+        v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
             scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
@@ -1707,7 +1707,7 @@ NAN_METHOD(Image::resize)
     
     if (options->Has(Nan::New("filter_factor").ToLocalChecked()))
     {
-        Local<Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
+        v8::Local<v8::Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
         if (ff_val->IsNumber())
         {
             filter_factor = ff_val->NumberValue();
@@ -1726,7 +1726,7 @@ NAN_METHOD(Image::resize)
     closure->size_y = height;
     closure->filter_factor = filter_factor;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Resize, (uv_after_work_cb)EIO_AfterResize);
     closure->im1->Ref();
     return;
@@ -1880,15 +1880,15 @@ void Image::EIO_AfterResize(uv_work_t* req)
     resize_image_baton_t *closure = static_cast<resize_image_baton_t *>(req->data);
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         Image* im = new Image(closure->im2);
-        Local<Value> ext = Nan::New<External>(im);
-        Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        Local<Value> argv[2] = { Nan::Null(), image_obj };
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
+        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im1->Unref();
@@ -1912,7 +1912,7 @@ NAN_METHOD(Image::resizeSync)
     info.GetReturnValue().Set(_resizeSync(info));
 }
 
-Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
@@ -1920,7 +1920,7 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     std::size_t height = 0;
     double filter_factor = 1.0;
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
-    Local<Object> options = Nan::New<Object>();
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() >= 2)
     {
         if (info[0]->IsNumber())
@@ -1974,7 +1974,7 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     
     if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
     {
-        Local<Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
+        v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
             scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
@@ -1993,7 +1993,7 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     
     if (options->Has(Nan::New("filter_factor").ToLocalChecked()))
     {
-        Local<Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
+        v8::Local<v8::Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
         if (ff_val->IsNumber())
         {
             filter_factor = ff_val->NumberValue();
@@ -2039,7 +2039,7 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                              filter_factor);
         mapnik::util::apply_visitor(visit, *image_ptr);
         Image* new_im = new Image(image_ptr);
-        Local<Value> ext = Nan::New<External>(new_im);
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -2053,7 +2053,7 @@ Local<Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
 NAN_METHOD(Image::painted)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Boolean>(im->this_->painted()));
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(im->this_->painted()));
 }
 
 /**
@@ -2067,7 +2067,7 @@ NAN_METHOD(Image::painted)
 NAN_METHOD(Image::width)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Int32>(static_cast<std::int32_t>(im->this_->width())));
+    info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->width())));
 }
 
 /**
@@ -2081,7 +2081,7 @@ NAN_METHOD(Image::width)
 NAN_METHOD(Image::height)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Int32>(static_cast<std::int32_t>(im->this_->height())));
+    info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
 
 NAN_METHOD(Image::openSync)
@@ -2089,7 +2089,7 @@ NAN_METHOD(Image::openSync)
     info.GetReturnValue().Set(_openSync(info));
 }
 
-Local<Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
 
@@ -2118,7 +2118,7 @@ Local<Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
                     mapnik::set_premultiplied_alpha(*image_ptr, true);
                 }
                 Image* im = new Image(image_ptr);
-                Local<Value> ext = Nan::New<External>(im);
+                v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
                 return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
             }
         }
@@ -2139,8 +2139,8 @@ typedef struct {
     size_t dataLength;
     bool error;
     std::string error_name;
-    Nan::Persistent<Object> buffer;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Object> buffer;
+    Nan::Persistent<v8::Function> cb;
 } image_mem_ptr_baton_t;
 
 typedef struct {
@@ -2149,7 +2149,7 @@ typedef struct {
     std::string filename;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } image_file_ptr_baton_t;
 
 NAN_METHOD(Image::open)
@@ -2170,7 +2170,7 @@ NAN_METHOD(Image::open)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -2180,7 +2180,7 @@ NAN_METHOD(Image::open)
     closure->request.data = closure;
     closure->filename = TOSTR(info[0]);
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Open, (uv_after_work_cb)EIO_AfterOpen);
     return;
 }
@@ -2233,15 +2233,15 @@ void Image::EIO_AfterOpen(uv_work_t* req)
     image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         Image* im = new Image(closure->im);
-        Local<Value> ext = Nan::New<External>(im);
-        Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        Local<Value> argv[2] = { Nan::Null(), image_obj };
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
+        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->cb.Reset();
@@ -2260,7 +2260,7 @@ NAN_METHOD(Image::fromSVGSync)
     info.GetReturnValue().Set(_fromSVGSync(true, info));
 }
 
-Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
 
@@ -2285,10 +2285,10 @@ Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return scope.Escape(Nan::Undefined());
         }
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
         if (options->Has(Nan::New("scale").ToLocalChecked()))
         {
-            Local<Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!scale_opt->IsNumber()) 
             {
                 Nan::ThrowTypeError("'scale' must be a number");
@@ -2327,7 +2327,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
         }
         else
         {
-            Local<Object> obj = info[0]->ToObject();
+            v8::Local<v8::Object> obj = info[0]->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) 
             {
                 Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
@@ -2393,7 +2393,7 @@ Local<Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info)
 
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
         Image *im2 = new Image(image_ptr);
-        Local<Value> ext = Nan::New<External>(im2);
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im2);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -2415,7 +2415,7 @@ typedef struct {
     bool error;
     double scale;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } svg_file_ptr_baton_t;
 
 typedef struct {
@@ -2426,8 +2426,8 @@ typedef struct {
     bool error;
     double scale;
     std::string error_name;
-    Nan::Persistent<Object> buffer;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Object> buffer;
+    Nan::Persistent<v8::Function> cb;
 } svg_mem_ptr_baton_t;
 
 /**
@@ -2453,7 +2453,7 @@ NAN_METHOD(Image::fromSVG)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -2467,10 +2467,10 @@ NAN_METHOD(Image::fromSVG)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return;
         }
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
         if (options->Has(Nan::New("scale").ToLocalChecked()))
         {
-            Local<Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!scale_opt->IsNumber()) 
             {
                 Nan::ThrowTypeError("'scale' must be a number");
@@ -2490,7 +2490,7 @@ NAN_METHOD(Image::fromSVG)
     closure->filename = TOSTR(info[0]);
     closure->error = false;
     closure->scale = scale;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVG, (uv_after_work_cb)EIO_AfterFromSVG);
     return;
 }
@@ -2584,15 +2584,15 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
     svg_file_ptr_baton_t *closure = static_cast<svg_file_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         Image* im = new Image(closure->im);
-        Local<Value> ext = Nan::New<External>(im);
-        Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        Local<Value> argv[2] = { Nan::Null(), image_obj };
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
+        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->cb.Reset();
@@ -2620,14 +2620,14 @@ NAN_METHOD(Image::fromSVGBytes)
         return;
     }
 
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
         return;
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -2641,10 +2641,10 @@ NAN_METHOD(Image::fromSVGBytes)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return;
         }
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
         if (options->Has(Nan::New("scale").ToLocalChecked()))
         {
-            Local<Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!scale_opt->IsNumber()) 
             {
                 Nan::ThrowTypeError("'scale' must be a number");
@@ -2662,8 +2662,8 @@ NAN_METHOD(Image::fromSVGBytes)
     svg_mem_ptr_baton_t *closure = new svg_mem_ptr_baton_t();
     closure->request.data = closure;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
-    closure->buffer.Reset(obj.As<Object>());
+    closure->cb.Reset(callback.As<v8::Function>());
+    closure->buffer.Reset(obj.As<v8::Object>());
     closure->data = node::Buffer::Data(obj);
     closure->scale = scale;
     closure->dataLength = node::Buffer::Length(obj);
@@ -2762,15 +2762,15 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     svg_mem_ptr_baton_t *closure = static_cast<svg_mem_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         Image* im = new Image(closure->im);
-        Local<Value> ext = Nan::New<External>(im);
-        Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        Local<Value> argv[2] = { Nan::Null(), image_obj };
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
+        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->cb.Reset();
@@ -2795,7 +2795,7 @@ NAN_METHOD(Image::fromBufferSync)
     info.GetReturnValue().Set(_fromBufferSync(info));
 }
 
-Local<Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
 
@@ -2813,7 +2813,7 @@ Local<Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         return scope.Escape(Nan::Undefined());
     }
 
-    Local<Object> obj = info[2]->ToObject();
+    v8::Local<v8::Object> obj = info[2]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("third argument is invalid, must be a Buffer");
         return scope.Escape(Nan::Undefined());
@@ -2831,7 +2831,7 @@ Local<Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         mapnik::image_rgba8 im_wrapper(width,height,reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)));
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
         Image* im = new Image(image_ptr);
-        Local<Value> ext = Nan::New<External>(im);
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -2849,7 +2849,7 @@ NAN_METHOD(Image::fromBytesSync)
     info.GetReturnValue().Set(_fromBytesSync(info));
 }
 
-Local<Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
 
@@ -2858,7 +2858,7 @@ Local<Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
         return scope.Escape(Nan::Undefined());
     }
 
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
         return scope.Escape(Nan::Undefined());
@@ -2871,7 +2871,7 @@ Local<Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
         {
             std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
             Image* im = new Image(image_ptr);
-            Local<Value> ext = Nan::New<External>(im);
+            v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
             return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
         }
         // The only way this is ever reached is if the reader factory in 
@@ -2915,14 +2915,14 @@ NAN_METHOD(Image::fromBytes)
         return;
     }
 
-    Local<Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
         return;
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -2931,8 +2931,8 @@ NAN_METHOD(Image::fromBytes)
     image_mem_ptr_baton_t *closure = new image_mem_ptr_baton_t();
     closure->request.data = closure;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
-    closure->buffer.Reset(obj.As<Object>());
+    closure->cb.Reset(callback.As<v8::Function>());
+    closure->buffer.Reset(obj.As<v8::Object>());
     closure->data = node::Buffer::Data(obj);
     closure->dataLength = node::Buffer::Length(obj);
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterFromBytes);
@@ -2974,15 +2974,15 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
     image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         Image* im = new Image(closure->im);
-        Local<Value> ext = Nan::New<External>(im);
-        Local<Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        Local<Value> argv[2] = { Nan::Null(), image_obj };
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
+        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->cb.Reset();
@@ -3025,16 +3025,16 @@ NAN_METHOD(Image::encodeSync)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return;
         }
-        Local<Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject();
         if (options->Has(Nan::New("palette").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
+            v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
                 return;
             }
 
-            Local<Object> obj = format_opt->ToObject();
+            v8::Local<v8::Object> obj = format_opt->ToObject();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.Palette expected as second arg");
                 return;
@@ -3069,7 +3069,7 @@ typedef struct {
     palette_ptr palette;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
     std::string result;
 } encode_image_baton_t;
 
@@ -3111,17 +3111,17 @@ NAN_METHOD(Image::encode)
             return;
         }
 
-        Local<Object> options = info[1].As<Object>();
+        v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         if (options->Has(Nan::New("palette").ToLocalChecked()))
         {
-            Local<Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
+            v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
                 return;
             }
 
-            Local<Object> obj = format_opt.As<Object>();
+            v8::Local<v8::Object> obj = format_opt.As<v8::Object>();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.Palette expected as second arg");
                 return;
@@ -3132,7 +3132,7 @@ NAN_METHOD(Image::encode)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -3144,7 +3144,7 @@ NAN_METHOD(Image::encode)
     closure->format = format;
     closure->palette = palette;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
     im->Ref();
 
@@ -3179,12 +3179,12 @@ void Image::EIO_AfterEncode(uv_work_t* req)
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
 
     if (closure->error) {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->result.data(), closure->result.size()).ToLocalChecked() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->result.data(), closure->result.size()).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -3237,7 +3237,7 @@ NAN_METHOD(Image::saveSync)
     info.GetReturnValue().Set(_saveSync(info));
 }
 
-Local<Value> Image::_saveSync(Nan::NAN_METHOD_ARGS_TYPE info) {
+v8::Local<v8::Value> Image::_saveSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     
@@ -3285,7 +3285,7 @@ typedef struct {
     std::string filename;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } save_image_baton_t;
 
 /**
@@ -3312,7 +3312,7 @@ NAN_METHOD(Image::save)
         return;
     }
     // ensure callback is a function
-    Local<Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length()-1];
     
     std::string filename = TOSTR(info[0]);
     std::string format("");
@@ -3341,7 +3341,7 @@ NAN_METHOD(Image::save)
     closure->filename = filename;
     closure->im = im;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Save, (uv_after_work_cb)EIO_AfterSave);
     im->Ref();
     return;
@@ -3369,12 +3369,12 @@ void Image::EIO_AfterSave(uv_work_t* req)
     save_image_baton_t *closure = static_cast<save_image_baton_t *>(req->data);
     if (closure->error)
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
-        Local<Value> argv[1] = { Nan::Null() };
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     closure->im->Unref();
@@ -3393,7 +3393,7 @@ typedef struct {
     std::vector<mapnik::filter::filter_type> filters;
     bool error;
     std::string error_name;
-    Nan::Persistent<Function> cb;
+    Nan::Persistent<v8::Function> cb;
 } composite_image_baton_t;
 
 /**
@@ -3418,7 +3418,7 @@ NAN_METHOD(Image::composite)
         return;
     }
 
-    Local<Object> im2 = info[0].As<Object>();
+    v8::Local<v8::Object> im2 = info[0].As<v8::Object>();
     if (im2->IsNull() || im2->IsUndefined() || !Nan::New(Image::constructor)->HasInstance(im2))
     {
         Nan::ThrowTypeError("mapnik.Image expected as first arg");
@@ -3426,7 +3426,7 @@ NAN_METHOD(Image::composite)
     }
 
     // ensure callback is a function
-    Local<Value> callback = info[info.Length() - 1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction())
     {
         Nan::ThrowTypeError("last argument must be a callback function");
@@ -3460,11 +3460,11 @@ NAN_METHOD(Image::composite)
             return;
         }
 
-        Local<Object> options = info[1].As<Object>();
+        v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         if (options->Has(Nan::New("comp_op").ToLocalChecked()))
         {
-            Local<Value> opt = options->Get(Nan::New("comp_op").ToLocalChecked());
+            v8::Local<v8::Value> opt = options->Get(Nan::New("comp_op").ToLocalChecked());
             if (!opt->IsNumber())
             {
                 Nan::ThrowTypeError("comp_op must be a mapnik.compositeOp value");
@@ -3480,7 +3480,7 @@ NAN_METHOD(Image::composite)
 
         if (options->Has(Nan::New("opacity").ToLocalChecked()))
         {
-            Local<Value> opt = options->Get(Nan::New("opacity").ToLocalChecked());
+            v8::Local<v8::Value> opt = options->Get(Nan::New("opacity").ToLocalChecked());
             if (!opt->IsNumber()) {
                 Nan::ThrowTypeError("opacity must be a floating point number");
                 return;
@@ -3494,7 +3494,7 @@ NAN_METHOD(Image::composite)
 
         if (options->Has(Nan::New("dx").ToLocalChecked()))
         {
-            Local<Value> opt = options->Get(Nan::New("dx").ToLocalChecked());
+            v8::Local<v8::Value> opt = options->Get(Nan::New("dx").ToLocalChecked());
             if (!opt->IsNumber()) {
                 Nan::ThrowTypeError("dx must be an integer");
                 return;
@@ -3504,7 +3504,7 @@ NAN_METHOD(Image::composite)
 
         if (options->Has(Nan::New("dy").ToLocalChecked()))
         {
-            Local<Value> opt = options->Get(Nan::New("dy").ToLocalChecked());
+            v8::Local<v8::Value> opt = options->Get(Nan::New("dy").ToLocalChecked());
             if (!opt->IsNumber()) {
                 Nan::ThrowTypeError("dy must be an integer");
                 return;
@@ -3514,7 +3514,7 @@ NAN_METHOD(Image::composite)
 
         if (options->Has(Nan::New("image_filters").ToLocalChecked()))
         {
-            Local<Value> opt = options->Get(Nan::New("image_filters").ToLocalChecked());
+            v8::Local<v8::Value> opt = options->Get(Nan::New("image_filters").ToLocalChecked());
             if (!opt->IsString()) {
                 Nan::ThrowTypeError("image_filters argument must string of filter names");
                 return;
@@ -3539,7 +3539,7 @@ NAN_METHOD(Image::composite)
     closure->dx = dx;
     closure->dy = dy;
     closure->error = false;
-    closure->cb.Reset(callback.As<Function>());
+    closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
     closure->im1->Ref();
     closure->im2->Ref();
@@ -3578,10 +3578,10 @@ void Image::EIO_AfterComposite(uv_work_t* req)
 
     if (closure->error) 
     {
-        Local<Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        Local<Value> argv[2] = { Nan::Null(), closure->im1->handle() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im1->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -3594,13 +3594,13 @@ void Image::EIO_AfterComposite(uv_work_t* req)
 NAN_GETTER(Image::get_scaling)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Number>(im->this_->get_scaling()));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(im->this_->get_scaling()));
 }
 
 NAN_GETTER(Image::get_offset)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Number>(im->this_->get_offset()));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(im->this_->get_offset()));
 }
 
 NAN_SETTER(Image::set_scaling)

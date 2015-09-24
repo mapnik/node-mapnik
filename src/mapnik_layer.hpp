@@ -11,18 +11,18 @@
 #include <string>
 #include <memory>
 
-using namespace v8;
+
 
 namespace mapnik { class layer; }
 typedef std::shared_ptr<mapnik::layer> layer_ptr;
 
 class Layer: public Nan::ObjectWrap {
 public:
-    static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Local<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
-    static Local<Value> NewInstance(mapnik::layer const& lay_ref);
+    static v8::Local<v8::Value> NewInstance(mapnik::layer const& lay_ref);
     static NAN_METHOD(describe);
 
     static NAN_GETTER(get_prop);

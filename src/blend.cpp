@@ -28,8 +28,8 @@
 #include <cstdlib>
 #include <memory>
 
-using namespace v8;
-using namespace node;
+
+
 
 namespace node_mapnik {
 
@@ -72,12 +72,12 @@ NAN_METHOD(rgb2hsl) {
     r = info[0]->IntegerValue();
     g = info[1]->IntegerValue();
     b = info[2]->IntegerValue();
-    Local<Array> hsl = Nan::New<Array>(3);
+    v8::Local<v8::Array> hsl = Nan::New<v8::Array>(3);
     double h,s,l;
     rgb_to_hsl(r,g,b,h,s,l);
-    hsl->Set(0,Nan::New<Number>(h));
-    hsl->Set(1,Nan::New<Number>(s));
-    hsl->Set(2,Nan::New<Number>(l));
+    hsl->Set(0,Nan::New<v8::Number>(h));
+    hsl->Set(1,Nan::New<v8::Number>(s));
+    hsl->Set(2,Nan::New<v8::Number>(l));
     info.GetReturnValue().Set(hsl);
 }
 
@@ -94,47 +94,47 @@ NAN_METHOD(hsl2rgb) {
     h = info[0]->NumberValue();
     s = info[1]->NumberValue();
     l = info[2]->NumberValue();
-    Local<Array> rgb = Nan::New<Array>(3);
+    v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
     unsigned r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
-    rgb->Set(0,Nan::New<Integer>(r));
-    rgb->Set(1,Nan::New<Integer>(g));
-    rgb->Set(2,Nan::New<Integer>(b));
+    rgb->Set(0,Nan::New<v8::Integer>(r));
+    rgb->Set(1,Nan::New<v8::Integer>(g));
+    rgb->Set(2,Nan::New<v8::Integer>(b));
     info.GetReturnValue().Set(rgb);
 }
 
-static void parseTintOps(Local<Object> const& tint, Tinter & tinter, std::string & msg) {
+static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std::string & msg) {
     Nan::HandleScope scope;
-    Local<Value> hue = tint->Get(Nan::New("h").ToLocalChecked());
+    v8::Local<v8::Value> hue = tint->Get(Nan::New("h").ToLocalChecked());
     if (!hue.IsEmpty() && hue->IsArray()) {
-        Local<Array> val_array = Local<Array>::Cast(hue);
+        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(hue);
         if (val_array->Length() != 2) {
             msg = "h array must be a pair of values";
         }
         tinter.h0 = val_array->Get(0)->NumberValue();
         tinter.h1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> sat = tint->Get(Nan::New("s").ToLocalChecked());
+    v8::Local<v8::Value> sat = tint->Get(Nan::New("s").ToLocalChecked());
     if (!sat.IsEmpty() && sat->IsArray()) {
-        Local<Array> val_array = Local<Array>::Cast(sat);
+        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(sat);
         if (val_array->Length() != 2) {
             msg = "s array must be a pair of values";
         }
         tinter.s0 = val_array->Get(0)->NumberValue();
         tinter.s1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> light = tint->Get(Nan::New("l").ToLocalChecked());
+    v8::Local<v8::Value> light = tint->Get(Nan::New("l").ToLocalChecked());
     if (!light.IsEmpty() && light->IsArray()) {
-        Local<Array> val_array = Local<Array>::Cast(light);
+        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(light);
         if (val_array->Length() != 2) {
             msg = "l array must be a pair of values";
         }
         tinter.l0 = val_array->Get(0)->NumberValue();
         tinter.l1 = val_array->Get(1)->NumberValue();
     }
-    Local<Value> alpha = tint->Get(Nan::New("a").ToLocalChecked());
+    v8::Local<v8::Value> alpha = tint->Get(Nan::New("a").ToLocalChecked());
     if (!alpha.IsEmpty() && alpha->IsArray()) {
-        Local<Array> val_array = Local<Array>::Cast(alpha);
+        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(alpha);
         if (val_array->Length() != 2) {
             msg = "a array must be a pair of values";
         }
@@ -424,13 +424,13 @@ void Work_AfterBlend(uv_work_t* req) {
 
     if (!baton->message.length()) {
         std::string result = baton->stream.str();
-        Local<Value> argv[] = {
+        v8::Local<v8::Value> argv[] = {
             Nan::Null(),
             Nan::CopyBuffer((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
     } else {
-        Local<Value> argv[] = {
+        v8::Local<v8::Value> argv[] = {
             Nan::Error(baton->message.c_str())
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 1, argv);
@@ -443,7 +443,7 @@ void Work_AfterBlend(uv_work_t* req) {
  * over how the images are combined, resampled, and blended.
  *
  * @name mapnik.blend
- * @param {Array<Buffer>} buffers an array of buffers
+ * @param {v8::Array<Buffer>} buffers an array of buffers
  * @param {Object} options can include width, height, `compression`,
  * `reencode`, palette, mode can be either `hextree` or `octree`, quality. JPEG & WebP quality
  * quality ranges from 0-100, PNG quality from 2-256. Compression varies by platform -
@@ -461,7 +461,7 @@ void Work_AfterBlend(uv_work_t* req) {
  */
 NAN_METHOD(Blend) {
     std::unique_ptr<BlendBaton> baton(new BlendBaton());
-    Local<Object> options;
+    v8::Local<v8::Object> options;
     if (info.Length() == 0 || !info[0]->IsArray()) {
         Nan::ThrowTypeError("First argument must be an array of Buffers.");
         return;
@@ -474,41 +474,41 @@ NAN_METHOD(Blend) {
             Nan::ThrowTypeError("Second argument must be a function.");
             return;
         }
-        baton->callback.Reset(info[1].As<Function>());
+        baton->callback.Reset(info[1].As<v8::Function>());
     } else if (info.Length() >= 3) {
         if (!info[1]->IsObject()) {
             Nan::ThrowTypeError("Second argument must be a an options object.");
             return;
         }
-        options = Local<Object>::Cast(info[1]);
+        options = v8::Local<v8::Object>::Cast(info[1]);
 
         if (!info[2]->IsFunction()) {
             Nan::ThrowTypeError("Third argument must be a function.");
             return;
         }
-        baton->callback.Reset(info[2].As<Function>());
+        baton->callback.Reset(info[2].As<v8::Function>());
     }
 
     // Validate options
     if (!options.IsEmpty()) {
         baton->quality = options->Get(Nan::New("quality").ToLocalChecked())->Int32Value();
 
-        Local<Value> format_val = options->Get(Nan::New("format").ToLocalChecked());
+        v8::Local<v8::Value> format_val = options->Get(Nan::New("format").ToLocalChecked());
         if (!format_val.IsEmpty() && format_val->IsString()) {
-            if (strcmp(*String::Utf8Value(format_val), "jpeg") == 0 ||
-                    strcmp(*String::Utf8Value(format_val), "jpg") == 0) {
+            if (strcmp(*v8::String::Utf8Value(format_val), "jpeg") == 0 ||
+                    strcmp(*v8::String::Utf8Value(format_val), "jpg") == 0) {
                 baton->format = BLEND_FORMAT_JPEG;
                 if (baton->quality == 0) baton->quality = 85; // 85 is same default as mapnik core jpeg
                 else if (baton->quality < 0 || baton->quality > 100) {
                     Nan::ThrowTypeError("JPEG quality is range 0-100.");
                     return;
                 }
-            } else if (strcmp(*String::Utf8Value(format_val), "png") == 0) {
+            } else if (strcmp(*v8::String::Utf8Value(format_val), "png") == 0) {
                 if (baton->quality == 1 || baton->quality > 256) {
                     Nan::ThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
                     return;
                 }
-            } else if (strcmp(*String::Utf8Value(format_val), "webp") == 0) {
+            } else if (strcmp(*v8::String::Utf8Value(format_val), "webp") == 0) {
                 baton->format = BLEND_FORMAT_WEBP;
                 if (baton->quality == 0) baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
@@ -525,9 +525,9 @@ NAN_METHOD(Blend) {
         baton->width = options->Get(Nan::New("width").ToLocalChecked())->Int32Value();
         baton->height = options->Get(Nan::New("height").ToLocalChecked())->Int32Value();
 
-        Local<Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
+        v8::Local<v8::Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            if (!hexToUInt32Color(*String::Utf8Value(matte_val->ToString()), baton->matte))
+            if (!hexToUInt32Color(*v8::String::Utf8Value(matte_val->ToString()), baton->matte))
             {
                 Nan::ThrowTypeError("Invalid batte provided.");
                 return;
@@ -539,33 +539,33 @@ NAN_METHOD(Blend) {
             }
         }
 
-        Local<Value> palette_val = options->Get(Nan::New("palette").ToLocalChecked());
+        v8::Local<v8::Value> palette_val = options->Get(Nan::New("palette").ToLocalChecked());
         if (!palette_val.IsEmpty() && palette_val->IsObject()) {
             baton->palette = Nan::ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
         }
 
-        Local<Value> mode_val = options->Get(Nan::New("mode").ToLocalChecked());
+        v8::Local<v8::Value> mode_val = options->Get(Nan::New("mode").ToLocalChecked());
         if (!mode_val.IsEmpty() && mode_val->IsString()) {
-            if (strcmp(*String::Utf8Value(mode_val), "octree") == 0 ||
-                strcmp(*String::Utf8Value(mode_val), "o") == 0) {
+            if (strcmp(*v8::String::Utf8Value(mode_val), "octree") == 0 ||
+                strcmp(*v8::String::Utf8Value(mode_val), "o") == 0) {
                 baton->mode = BLEND_MODE_OCTREE;
             }
-            else if (strcmp(*String::Utf8Value(mode_val), "hextree") == 0 ||
-                strcmp(*String::Utf8Value(mode_val), "h") == 0) {
+            else if (strcmp(*v8::String::Utf8Value(mode_val), "hextree") == 0 ||
+                strcmp(*v8::String::Utf8Value(mode_val), "h") == 0) {
                 baton->mode = BLEND_MODE_HEXTREE;
             }
         }
 
-        Local<Value> encoder_val = options->Get(Nan::New("encoder").ToLocalChecked());
+        v8::Local<v8::Value> encoder_val = options->Get(Nan::New("encoder").ToLocalChecked());
         if (!encoder_val.IsEmpty() && encoder_val->IsString()) {
-            if (strcmp(*String::Utf8Value(encoder_val), "miniz") == 0) {
+            if (strcmp(*v8::String::Utf8Value(encoder_val), "miniz") == 0) {
                 baton->encoder = BLEND_ENCODER_MINIZ;
             }
             // default is libpng
         }
 
         if (options->Has(Nan::New("compression").ToLocalChecked())) {
-            Local<Value> compression_val = options->Get(Nan::New("compression").ToLocalChecked());
+            v8::Local<v8::Value> compression_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!compression_val.IsEmpty() && compression_val->IsNumber())
             {
                 baton->compression = compression_val->Int32Value();
@@ -596,16 +596,16 @@ NAN_METHOD(Blend) {
         }
     }
 
-    Local<Array> js_images = Local<Array>::Cast(info[0]);
+    v8::Local<v8::Array> js_images = v8::Local<v8::Array>::Cast(info[0]);
     uint32_t length = js_images->Length();
     if (length < 1 && !baton->reencode) {
         Nan::ThrowTypeError("First argument must contain at least one Buffer.");
         return;
     } else if (length == 1 && !baton->reencode) {
-        Local<Value> buffer = js_images->Get(0);
-        if (Buffer::HasInstance(buffer)) {
+        v8::Local<v8::Value> buffer = js_images->Get(0);
+        if (node::Buffer::HasInstance(buffer)) {
             // Directly pass through buffer if it's the only one.
-            Local<Value> argv[] = {
+            v8::Local<v8::Value> argv[] = {
                 Nan::Null(),
                 buffer
             };
@@ -617,9 +617,9 @@ NAN_METHOD(Blend) {
             // process below.
             bool valid = false;
             if (buffer->IsObject()) {
-                Local<Object> props = buffer->ToObject();
+                v8::Local<v8::Object> props = buffer->ToObject();
                 valid = props->Has(Nan::New("buffer").ToLocalChecked()) &&
-                        Buffer::HasInstance(props->Get(Nan::New("buffer").ToLocalChecked()));
+                        node::Buffer::HasInstance(props->Get(Nan::New("buffer").ToLocalChecked()));
             }
             if (!valid) {
                 Nan::ThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
@@ -640,23 +640,23 @@ NAN_METHOD(Blend) {
 
     for (uint32_t i = 0; i < length; i++) {
         ImagePtr image = std::make_shared<BImage>();
-        Local<Value> buffer = js_images->Get(i);
-        if (Buffer::HasInstance(buffer)) {
-            image->buffer.Reset(buffer.As<Object>());
+        v8::Local<v8::Value> buffer = js_images->Get(i);
+        if (node::Buffer::HasInstance(buffer)) {
+            image->buffer.Reset(buffer.As<v8::Object>());
         } else if (buffer->IsObject()) {
-            Local<Object> props = buffer->ToObject();
+            v8::Local<v8::Object> props = buffer->ToObject();
             if (props->Has(Nan::New("buffer").ToLocalChecked())) {
                 buffer = props->Get(Nan::New("buffer").ToLocalChecked());
-                if (Buffer::HasInstance(buffer)) {
-                    image->buffer.Reset(buffer.As<Object>());
+                if (node::Buffer::HasInstance(buffer)) {
+                    image->buffer.Reset(buffer.As<v8::Object>());
                 }
             }
             image->x = props->Get(Nan::New("x").ToLocalChecked())->Int32Value();
             image->y = props->Get(Nan::New("y").ToLocalChecked())->Int32Value();
 
-            Local<Value> tint_val = props->Get(Nan::New("tint").ToLocalChecked());
+            v8::Local<v8::Value> tint_val = props->Get(Nan::New("tint").ToLocalChecked());
             if (!tint_val.IsEmpty() && tint_val->IsObject()) {
-                Local<Object> tint = tint_val->ToObject();
+                v8::Local<v8::Object> tint = tint_val->ToObject();
                 if (!tint.IsEmpty()) {
                     baton->reencode = true;
                     std::string msg;

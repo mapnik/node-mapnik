@@ -8,12 +8,12 @@
 #include <sstream>
 #include <iostream>
 
-Nan::Persistent<FunctionTemplate> Palette::constructor;
+Nan::Persistent<v8::FunctionTemplate> Palette::constructor;
 
-void Palette::Initialize(Local<Object> target) {
+void Palette::Initialize(v8::Local<v8::Object> target) {
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Palette::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Palette::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Palette").ToLocalChecked());
 
@@ -41,7 +41,7 @@ NAN_METHOD(Palette::New) {
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
     if (info.Length() >= 1) {
         if (node::Buffer::HasInstance(info[0])) {
-            Local<Object> obj = info[0].As<Object>();
+            v8::Local<v8::Object> obj = info[0].As<v8::Object>();
             palette = std::string(node::Buffer::Data(obj), node::Buffer::Length(obj));
         }
     }
@@ -109,7 +109,7 @@ NAN_METHOD(Palette::ToString)
     }
 
     str << "]";
-    info.GetReturnValue().Set(Nan::New<String>(str.str()).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(str.str()).ToLocalChecked());
 }
 
 NAN_METHOD(Palette::ToBuffer)

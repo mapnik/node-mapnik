@@ -1,7 +1,7 @@
 #include "mapnik_featureset.hpp"
 #include "mapnik_feature.hpp"
 
-Nan::Persistent<FunctionTemplate> Featureset::constructor;
+Nan::Persistent<v8::FunctionTemplate> Featureset::constructor;
 
 /**
  * An iterator of {@link mapnik.Feature} objects.
@@ -9,11 +9,11 @@ Nan::Persistent<FunctionTemplate> Featureset::constructor;
  * @name mapnik.Featureset
  * @class
  */
-void Featureset::Initialize(Local<Object> target) {
+void Featureset::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Featureset::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Featureset::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Featureset").ToLocalChecked());
 
@@ -41,7 +41,7 @@ NAN_METHOD(Featureset::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Featureset* fs =  static_cast<Featureset*>(ptr);
         fs->Wrap(info.This());
@@ -91,11 +91,11 @@ NAN_METHOD(Featureset::next)
     return;
 }
 
-Local<Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
+v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
 {
     Nan::EscapableHandleScope scope;
     Featureset* fs = new Featureset();
     fs->this_ = fs_ptr;
-    Local<Value> ext = Nan::New<External>(fs);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(fs);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }

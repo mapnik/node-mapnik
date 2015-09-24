@@ -2,13 +2,13 @@
 #include "mapnik_logger.hpp"
 #include <mapnik/debug.hpp>
 
-Nan::Persistent<FunctionTemplate> Logger::constructor;
+Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
 
 // Sets up everything for the Logger object when the addon is initialized
-void Logger::Initialize(Local<Object> target) {
+void Logger::Initialize(v8::Local<v8::Object> target) {
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Logger::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Logger::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
 

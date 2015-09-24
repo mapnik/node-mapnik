@@ -17,7 +17,7 @@
 #include <exception>
 #include <vector>
 
-Nan::Persistent<FunctionTemplate> Datasource::constructor;
+Nan::Persistent<v8::FunctionTemplate> Datasource::constructor;
 
 /**
  * A Datasource object. This is the connector from Mapnik to any kind
@@ -26,11 +26,11 @@ Nan::Persistent<FunctionTemplate> Datasource::constructor;
  * @name mapnik.Datasource
  * @class
  */
-void Datasource::Initialize(Local<Object> target) {
+void Datasource::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Datasource::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Datasource::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Datasource").ToLocalChecked());
 
@@ -63,7 +63,7 @@ NAN_METHOD(Datasource::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Datasource* d =  static_cast<Datasource*>(ptr);
         if (d->datasource_->type() == mapnik::datasource::Raster)
@@ -92,15 +92,15 @@ NAN_METHOD(Datasource::New)
         return;
     }
 
-    Local<Object> options = info[0].As<Object>();
+    v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
     mapnik::parameters params;
-    Local<Array> names = options->GetPropertyNames();
+    v8::Local<v8::Array> names = options->GetPropertyNames();
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        Local<Value> name = names->Get(i)->ToString();
-        Local<Value> value = options->Get(name);
+        v8::Local<v8::Value> name = names->Get(i)->ToString();
+        v8::Local<v8::Value> value = options->Get(name);
         // TODO - don't treat everything as strings
         params[TOSTR(name)] = TOSTR(value);
         i++;
@@ -142,18 +142,18 @@ NAN_METHOD(Datasource::New)
     /* LCOV_EXCL_END */
 }
 
-Local<Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
+v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Nan::EscapableHandleScope scope;
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
-    Local<Value> ext = Nan::New<External>(d);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
 NAN_METHOD(Datasource::parameters)
 {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.This());
-    Local<Object> ds = Nan::New<Object>();
+    v8::Local<v8::Object> ds = Nan::New<v8::Object>();
     mapnik::parameters::const_iterator it = d->datasource_->params().begin();
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
     for (; it != end; ++it)
@@ -169,7 +169,7 @@ NAN_METHOD(Datasource::parameters)
  * @name extent
  * @memberof mapnik.Datasource
  * @instance
- * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
 NAN_METHOD(Datasource::extent)
 {
@@ -191,11 +191,11 @@ NAN_METHOD(Datasource::extent)
         /* LCOV_EXCL_END */
     }
 
-    Local<Array> a = Nan::New<Array>(4);
-    a->Set(0, Nan::New<Number>(e.minx()));
-    a->Set(1, Nan::New<Number>(e.miny()));
-    a->Set(2, Nan::New<Number>(e.maxx()));
-    a->Set(3, Nan::New<Number>(e.maxy()));
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
+    a->Set(0, Nan::New<v8::Number>(e.minx()));
+    a->Set(1, Nan::New<v8::Number>(e.miny()));
+    a->Set(2, Nan::New<v8::Number>(e.maxx()));
+    a->Set(3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(a);
 }
 
@@ -211,7 +211,7 @@ NAN_METHOD(Datasource::extent)
 NAN_METHOD(Datasource::describe)
 {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-    Local<Object> description = Nan::New<Object>();
+    v8::Local<v8::Object> description = Nan::New<v8::Object>();
     try
     {
         node_mapnik::describe_datasource(description,d->datasource_);
@@ -275,7 +275,7 @@ NAN_METHOD(Datasource::featureset)
 NAN_METHOD(Datasource::fields)
 {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-    Local<Object> fields = Nan::New<Object>();
+    v8::Local<v8::Object> fields = Nan::New<v8::Object>();
     node_mapnik::get_fields(fields,d->datasource_);
     info.GetReturnValue().Set(fields);
 }

@@ -11,7 +11,7 @@
 #include <mapnik/value_types.hpp>
 #include <mapnik/util/feature_to_geojson.hpp>
 
-Nan::Persistent<FunctionTemplate> Feature::constructor;
+Nan::Persistent<v8::FunctionTemplate> Feature::constructor;
 
 /**
  * A single geographic feature, with geometry and properties. This is
@@ -21,11 +21,11 @@ Nan::Persistent<FunctionTemplate> Feature::constructor;
  * @name mapnik.Feature
  * @class
  */
-void Feature::Initialize(Local<Object> target) {
+void Feature::Initialize(v8::Local<v8::Object> target) {
 
     Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = Nan::New<FunctionTemplate>(Feature::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Feature::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
     lcons->SetClassName(Nan::New("Feature").ToLocalChecked());
 
@@ -69,7 +69,7 @@ NAN_METHOD(Feature::New)
 
     if (info[0]->IsExternal())
     {
-        Local<External> ext = info[0].As<External>();
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Feature* f =  static_cast<Feature*>(ptr);
         f->Wrap(info.This());
@@ -113,7 +113,7 @@ NAN_METHOD(Feature::fromJSON)
             return;
         }
         Feature* feat = new Feature(f);
-        Local<Value> ext = Nan::New<External>(feat);
+        v8::Local<v8::Value> ext = Nan::New<v8::External>(feat);
         info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
     catch (std::exception const& ex)
@@ -123,11 +123,11 @@ NAN_METHOD(Feature::fromJSON)
     }
 }
 
-Local<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
+v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
 {
     Nan::EscapableHandleScope scope;
     Feature* f = new Feature(f_ptr);
-    Local<Value> ext = Nan::New<External>(f);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(f);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
@@ -140,7 +140,7 @@ Local<Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
 NAN_METHOD(Feature::id)
 {
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<Number>(fp->get()->id()));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(fp->get()->id()));
 }
 
 /**
@@ -149,17 +149,17 @@ NAN_METHOD(Feature::id)
  * @name extent
  * @memberof mapnik.Feature
  * @instance
- * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
 NAN_METHOD(Feature::extent)
 {
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    Local<Array> a = Nan::New<Array>(4);
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
     mapnik::box2d<double> const& e = fp->get()->envelope();
-    a->Set(0, Nan::New<Number>(e.minx()));
-    a->Set(1, Nan::New<Number>(e.miny()));
-    a->Set(2, Nan::New<Number>(e.maxx()));
-    a->Set(3, Nan::New<Number>(e.maxy()));
+    a->Set(0, Nan::New<v8::Number>(e.minx()));
+    a->Set(1, Nan::New<v8::Number>(e.miny()));
+    a->Set(2, Nan::New<v8::Number>(e.maxx()));
+    a->Set(3, Nan::New<v8::Number>(e.maxy()));
 
     info.GetReturnValue().Set(a);
 }
@@ -175,13 +175,13 @@ NAN_METHOD(Feature::extent)
 NAN_METHOD(Feature::attributes)
 {
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    Local<Object> feat = Nan::New<Object>();
+    v8::Local<v8::Object> feat = Nan::New<v8::Object>();
     mapnik::feature_ptr feature = fp->get();
     mapnik::feature_impl::iterator itr = feature->begin();
     mapnik::feature_impl::iterator end = feature->end();
     for ( ;itr!=end; ++itr)
     {
-        feat->Set(Nan::New<String>(std::get<0>(*itr)).ToLocalChecked(), 
+        feat->Set(Nan::New<v8::String>(std::get<0>(*itr)).ToLocalChecked(), 
                   mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
         );
     }
@@ -222,6 +222,6 @@ NAN_METHOD(Feature::toJSON)
         return;
         /* LCOV_EXCL_END */
     }
-    info.GetReturnValue().Set(Nan::New<String>(json).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(json).ToLocalChecked());
 }
 

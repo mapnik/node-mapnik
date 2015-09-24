@@ -11,7 +11,7 @@
 #include <string>
 #include <memory>
 
-using namespace v8;
+
 
 namespace mapnik { class Map; }
 
@@ -20,8 +20,8 @@ typedef std::shared_ptr<mapnik::Map> map_ptr;
 class Map: public Nan::ObjectWrap {
 public:
 
-    static Nan::Persistent<FunctionTemplate> constructor;
-    static void Initialize(Local<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(fonts);
@@ -72,7 +72,7 @@ public:
     static NAN_METHOD(scaleDenominator);
     static NAN_METHOD(queryPoint);
     static NAN_METHOD(queryMapPoint);
-    static Local<Value> abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords);
+    static v8::Local<v8::Value> abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords);
     static void EIO_QueryMap(uv_work_t* req);
     static void EIO_AfterQueryMap(uv_work_t* req);
 
