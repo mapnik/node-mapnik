@@ -1560,9 +1560,7 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(expected, vtile.getData());
             }
             var expected_data = fs.readFileSync(expected);
-            if (expected_data.length != vtile.getData().length) {
-                fs.writeFileSync(actual, vtile.getData());
-            }
+            fs.writeFileSync(actual, vtile.getData());
             var actual_data = fs.readFileSync(actual);
             var vt1 = new mapnik.VectorTile(0,0,0);
             vt1.setData(expected_data);
@@ -1588,9 +1586,7 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(expected, vtile.getData());
             }
             var expected_data = fs.readFileSync(expected);
-            if (expected_data.length != vtile.getData().length) {
-                fs.writeFileSync(actual, vtile.getData());
-            }
+            fs.writeFileSync(actual, vtile.getData());
             var actual_data = fs.readFileSync(actual);
             var vt1 = new mapnik.VectorTile(0,0,0);
             vt1.setData(expected_data);
@@ -1616,9 +1612,7 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(expected, vtile.getData());
             }
             var expected_data = fs.readFileSync(expected);
-            if (expected_data.length != vtile.getData().length) {
-                fs.writeFileSync(actual, vtile.getData());
-            }
+            fs.writeFileSync(actual, vtile.getData());
             var actual_data = fs.readFileSync(actual);
             var vt1 = new mapnik.VectorTile(0,0,0);
             vt1.setData(expected_data);
