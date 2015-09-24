@@ -3638,7 +3638,7 @@ NAN_SETTER(Image::set_offset)
 
 NAN_METHOD(Image::data)
 {
-    Image* im = node::ObjectWrap::Unwrap<Image>(info.Holder());
+    Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     // TODO - make this zero copy
     info.GetReturnValue().Set(Nan::CopyBuffer(reinterpret_cast<const char *>(im->this_->bytes()), im->this_->size()).ToLocalChecked());
 }

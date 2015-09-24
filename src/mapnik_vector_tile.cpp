@@ -1891,7 +1891,7 @@ Local<Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         return scope.Escape(Nan::Undefined());
     }
 
-    VectorTile* v = node::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     int layer_idx = -1;
     bool all_array = false;
     bool all_flattened = false;
@@ -2707,7 +2707,7 @@ NAN_METHOD(VectorTile::getData)
         }
     }
 
-    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     vector_tile_get_data_baton_t *closure = new vector_tile_get_data_baton_t();
     closure->request.data = closure;
     closure->d = d;
