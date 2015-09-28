@@ -2,6 +2,7 @@
 
 var mapnik = require('../');
 var assert = require('assert');
+var fs = require('fs');
 
 describe('mapnik.ImageView ', function() {
     it('should throw with invalid usage', function() {
@@ -213,6 +214,16 @@ describe('mapnik.ImageView ', function() {
             done();
         });
     });
+
+    it('should be able to save an ImageView', function(done) {
+        var im = new mapnik.Image(256, 256);
+        var view = im.view(0,0,256,256);
+        var pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
+        var expected = '/tmp/mapnik-image-view-saved.png';
+        view.save(expected);
+        assert.ok(fs.existsSync(expected));
+        done();
+    });
     
     it('should throw with invalid formats', function() {
         var im = new mapnik.Image(256, 256);
@@ -221,6 +232,17 @@ describe('mapnik.ImageView ', function() {
         assert.throws(function() { view.save(); });
         assert.throws(function() { view.save('file.png', null); });
         assert.throws(function() { view.save('foo'); });
+        assert.throws(function() { view.save('foo','foo'); });
+        assert.throws(function() { view.save(); });
+        assert.throws(function() { view.save('file.png', null); });
+        assert.throws(function() { view.save('foo'); });
+        assert.throws(function() { view.saveSync(); });
+        assert.throws(function() { view.saveSync('foo','foo'); });
+        assert.throws(function() { view.saveSync('file.png', null); });
+        assert.throws(function() { view.saveSync('foo'); });
+        assert.throws(function() { view.save(function(err) {}); });
+        assert.throws(function() { view.save('file.png', null, function(err) {}); });
+        assert.throws(function() { view.save('foo', function(err) {}); });
     });
 
     if (mapnik.supports.webp) {

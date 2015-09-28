@@ -585,7 +585,6 @@ NAN_METHOD(ImageView::save)
     catch (std::exception const& ex)
     {
         Nan::ThrowError(ex.what());
-        return;
     }
     return;
 }
