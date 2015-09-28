@@ -4,128 +4,7 @@ General guidelines for contributing to node-mapnik
 
 ## Coding Conventions
 
-Mapnik is written in C++, and we try to follow general coding guidelines.
-
-If you see bits of code around that do not follow these please don't hesitate to flag the issue or correct it yourself.
-
-#### Prefix cmath functions with std::
-
-The avoids ambiguity and potential bugs of using old C library math directly.
-
-So always do `std::abs()` instead of `abs()`. Here is a script to fix your code in one fell swoop:
-
-
-```sh
-DIR=./bindings
-for i in {abs,fabs,tan,sin,cos,floor,ceil,atan2,acos,asin}; do
-    find $DIR -type f -name '*.cpp' -or -name '*.h' -or -name '*.hpp' | xargs perl -i -p -e "s/ $i\(/ std::$i\(/g;"
-    find $DIR -type f -name '*.cpp' -or -name '*.h' -or -name '*.hpp' | xargs perl -i -p -e "s/\($i\(/\(std::$i\(/g;"
-done
-```
-
-#### Avoid boost::lexical_cast
-
-It's slow both to compile and at runtime.
-
-#### Avoid sstream objects if possible
-
-They should never be used in performance critical code because they trigger std::locale usage
-which triggers locks
-
-#### Spaces not tabs, and avoid trailing whitespace
-
-#### Indentation is four spaces
-
-#### Use C++ style casts
-
-    static_cast<int>(value); // yes
-
-    (int)value; // no
-
-
-#### Use const keyword after the type
-
-    std::string const& variable_name // preferred, for consistency
-
-    const std::string & variable_name // no
-
-
-#### Pass built-in types by value, all others by const&
-
-    void my_function(int double val); // if int, char, double, etc pass by value
-
-    void my_function(std::string const& val); // if std::string or user type, pass by const&
-
-#### Use unique_ptr instead of new/delete
-
-#### Use std::copy instead of memcpy
-
-#### When to use shared_ptr and unique_ptr
-
-Sparingly, always prefer passing objects as const& except where using share_ptr or unique_ptr express more clearly your intent. See http://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/ for more details.
-
-#### Shared pointers should be created with std::make_shared.
-
-#### Use assignment operator for zero initialized numbers
-
-    double num = 0; // please
-
-    double num(0); // no
-
-
-#### Function definitions should not be separated from their arguments:
-
-    void foo(int a) // please
-
-    void foo (int a) // no
-
-
-#### Separate arguments by a single space:
-
-    void foo(int a, float b) // please
-
-    void foo(int a,float b) // no
-
-
-#### Space between operators:
-
-    if (a == b) // please
-
-    if(a==b) // no
-
-
-#### Braces should always be used:
-
-    if (!file)
-    {
-        throw mapnik::datasource_exception("not found"); // please    
-    }
-
-    if (!file)
-        throw mapnik::datasource_exception("not found"); // no
-
-
-#### Braces should be on a separate line:
-
-    if (a == b)
-    {
-        int z = 5;
-        // more...
-    }
-
-
-#### Prefer `empty()` over `size() == 0` if container supports it
-
-This avoids implicit conversions to bool and reduces compiler warnings.
-
-    if (container.empty()) // please
-
-    if (container.size() == 0) // no
-
-
-### Other C++ style resources
-
-Many also follow the useful [Google style guide](http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml) which mostly fits our style. However, Google obviously has to maintain a lot of aging codebases. Mapnik can move faster, so we don't follow all of those style recommendations.
+See the [Mapnik guide](https://github.com/mapnik/mapnik/blob/master/docs/contributing.md#coding-conventions).
 
 ## Testing
 
@@ -138,6 +17,12 @@ If this case does occur you can put a comment block such as shown below to exclu
 can_not_reach_code();
 // LCOV_EXCL_END
 ```
+
+## Developing / Pre-release
+
+Create a milestone for the next release on github. If all anticipated changes are back compatible then a `patch` release is in order. If minor API changes are needed then a `minor` release is in order. And a `major` bump is warranted if a new Mapnik major version is dependent upon or major API changes are needed.
+
+Assign tickets and pull requests you are working to the milestone you created.
 
 ## Releasing
 
