@@ -16,6 +16,7 @@ describe('mapnik.Palette ', function() {
         assert.throws(function() { new mapnik.Palette(); });
         assert.throws(function() { new mapnik.Palette(1); });
         assert.throws(function() { new mapnik.Palette('foo'); });
+        assert.throws(function() { new mapnik.Palette(new Buffer('\xff\x00\xff\xff\xff\xff','ascii'), 'bogus') });
         assert.throws(function() {
             new mapnik.Palette(new Buffer('\x01\x02\x03'));
         }, (/invalid palette length/));
