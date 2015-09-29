@@ -45,8 +45,8 @@
 
 namespace node_mapnik {
 
-using namespace node;
-using namespace v8;
+
+
 
 static std::string format_version(int version)
 {
@@ -57,19 +57,19 @@ static std::string format_version(int version)
 
 static NAN_METHOD(clearCache)
 {
-    NanScope();
+    Nan::HandleScope scope;
 #if defined(SHAPE_MEMORY_MAPPED_FILE)
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
 #endif
-    NanReturnUndefined();
+    return;
 }
 
 static NAN_METHOD(shutdown)
 {
-    NanScope();
+    Nan::HandleScope scope;
     google::protobuf::ShutdownProtobufLibrary();
-    NanReturnUndefined();
+    return;
 }
 
 /**
@@ -88,28 +88,28 @@ static NAN_METHOD(shutdown)
  */
 extern "C" {
 
-    static void InitMapnik (Handle<Object> target)
+    static void InitMapnik (v8::Local<v8::Object> target)
     {
-        NanScope();
+        Nan::HandleScope scope;
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
-        NODE_SET_METHOD(target, "blend",node_mapnik::Blend);
-        NODE_SET_METHOD(target, "rgb2hsl", rgb2hsl);
-        NODE_SET_METHOD(target, "hsl2rgb", hsl2rgb);
+        Nan::SetMethod(target, "blend",node_mapnik::Blend);
+        Nan::SetMethod(target, "rgb2hsl", rgb2hsl);
+        Nan::SetMethod(target, "hsl2rgb", hsl2rgb);
         // back compat
-        NODE_SET_METHOD(target, "registerFonts", node_mapnik::register_fonts);
-        NODE_SET_METHOD(target, "registerDatasource", node_mapnik::register_datasource);
-        NODE_SET_METHOD(target, "registerDatasources", node_mapnik::register_datasources);
-        NODE_SET_METHOD(target, "register_fonts", node_mapnik::register_fonts);
-        NODE_SET_METHOD(target, "register_datasource", node_mapnik::register_datasource);
-        NODE_SET_METHOD(target, "register_datasources", node_mapnik::register_datasources);
-        NODE_SET_METHOD(target, "datasources", node_mapnik::available_input_plugins);
-        NODE_SET_METHOD(target, "fonts", node_mapnik::available_font_faces);
-        NODE_SET_METHOD(target, "fontFiles", node_mapnik::available_font_files);
-        NODE_SET_METHOD(target, "memoryFonts", node_mapnik::memory_fonts);
-        NODE_SET_METHOD(target, "clearCache", clearCache);
-        NODE_SET_METHOD(target, "shutdown",shutdown);
+        Nan::SetMethod(target, "registerFonts", node_mapnik::register_fonts);
+        Nan::SetMethod(target, "registerDatasource", node_mapnik::register_datasource);
+        Nan::SetMethod(target, "registerDatasources", node_mapnik::register_datasources);
+        Nan::SetMethod(target, "register_fonts", node_mapnik::register_fonts);
+        Nan::SetMethod(target, "register_datasource", node_mapnik::register_datasource);
+        Nan::SetMethod(target, "register_datasources", node_mapnik::register_datasources);
+        Nan::SetMethod(target, "datasources", node_mapnik::available_input_plugins);
+        Nan::SetMethod(target, "fonts", node_mapnik::available_font_faces);
+        Nan::SetMethod(target, "fontFiles", node_mapnik::available_font_files);
+        Nan::SetMethod(target, "memoryFonts", node_mapnik::memory_fonts);
+        Nan::SetMethod(target, "clearCache", clearCache);
+        Nan::SetMethod(target, "shutdown",shutdown);
 
         // Classes
         VectorTile::Initialize(target);
@@ -137,85 +137,85 @@ extern "C" {
         CairoSurface::Initialize(target);
 
         // versions of deps
-        Local<Object> versions = NanNew<Object>();
-        versions->Set(NanNew("node"), NanNew(NODE_VERSION+1)); // NOTE: +1 strips the v in v0.10.26
-        versions->Set(NanNew("v8"), NanNew(V8::GetVersion()));
-        versions->Set(NanNew("boost"), NanNew(format_version(BOOST_VERSION).c_str()));
-        versions->Set(NanNew("boost_number"), NanNew(BOOST_VERSION));
-        versions->Set(NanNew("mapnik"), NanNew(format_version(MAPNIK_VERSION).c_str()));
-        versions->Set(NanNew("mapnik_number"), NanNew(MAPNIK_VERSION));
-        versions->Set(NanNew("mapnik_git_describe"), NanNew(MAPNIK_GIT_REVISION));
+        v8::Local<v8::Object> versions = Nan::New<v8::Object>();
+        versions->Set(Nan::New("node").ToLocalChecked(), Nan::New<v8::String>(NODE_VERSION+1).ToLocalChecked()); // NOTE: +1 strips the v in v0.10.26
+        versions->Set(Nan::New("v8").ToLocalChecked(), Nan::New<v8::String>(v8::V8::GetVersion()).ToLocalChecked());
+        versions->Set(Nan::New("boost").ToLocalChecked(), Nan::New<v8::String>(format_version(BOOST_VERSION)).ToLocalChecked());
+        versions->Set(Nan::New("boost_number").ToLocalChecked(), Nan::New(BOOST_VERSION));
+        versions->Set(Nan::New("mapnik").ToLocalChecked(), Nan::New<v8::String>(format_version(MAPNIK_VERSION)).ToLocalChecked());
+        versions->Set(Nan::New("mapnik_number").ToLocalChecked(), Nan::New(MAPNIK_VERSION));
+        versions->Set(Nan::New("mapnik_git_describe").ToLocalChecked(), Nan::New<v8::String>(MAPNIK_GIT_REVISION).ToLocalChecked());
 #if defined(HAVE_CAIRO)
-        versions->Set(NanNew("cairo"), NanNew(CAIRO_VERSION_STRING));
+        versions->Set(Nan::New("cairo").ToLocalChecked(), Nan::New<v8::String>(CAIRO_VERSION_STRING).ToLocalChecked());
 #endif
-        target->Set(NanNew("versions"), versions);
+        target->Set(Nan::New("versions").ToLocalChecked(), versions);
 
-        Local<Object> supports = NanNew<Object>();
+        v8::Local<v8::Object> supports = Nan::New<v8::Object>();
 #ifdef GRID_RENDERER
-        supports->Set(NanNew("grid"), NanTrue());
+        supports->Set(Nan::New("grid").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("grid"), NanFalse());
+        supports->Set(Nan::New("grid").ToLocalChecked(), Nan::False());
 #endif
 
 #ifdef SVG_RENDERER
-        supports->Set(NanNew("svg"), NanTrue());
+        supports->Set(Nan::New("svg").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("svg"), NanFalse());
+        supports->Set(Nan::New("svg").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(HAVE_CAIRO)
-        supports->Set(NanNew("cairo"), NanTrue());
+        supports->Set(Nan::New("cairo").ToLocalChecked(), Nan::True());
         #ifdef CAIRO_HAS_PDF_SURFACE
-        supports->Set(NanNew("cairo_pdf"), NanTrue());
+        supports->Set(Nan::New("cairo_pdf").ToLocalChecked(), Nan::True());
         #else
-        supports->Set(NanNew("cairo_pdf"), NanFalse());
+        supports->Set(Nan::New("cairo_pdf").ToLocalChecked(), Nan::False());
         #endif
         #ifdef CAIRO_HAS_SVG_SURFACE
-        supports->Set(NanNew("cairo_svg"), NanTrue());
+        supports->Set(Nan::New("cairo_svg").ToLocalChecked(), Nan::True());
         #else
-        supports->Set(NanNew("cairo_svg"), NanFalse());
+        supports->Set(Nan::New("cairo_svg").ToLocalChecked(), Nan::False());
         #endif
 #else
-        supports->Set(NanNew("cairo"), NanFalse());
+        supports->Set(Nan::New("cairo").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(HAVE_PNG)
-        supports->Set(NanNew("png"), NanTrue());
+        supports->Set(Nan::New("png").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("png"), NanFalse());
+        supports->Set(Nan::New("png").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(HAVE_JPEG)
-        supports->Set(NanNew("jpeg"), NanTrue());
+        supports->Set(Nan::New("jpeg").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("jpeg"), NanFalse());
+        supports->Set(Nan::New("jpeg").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(HAVE_TIFF)
-        supports->Set(NanNew("tiff"), NanTrue());
+        supports->Set(Nan::New("tiff").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("tiff"), NanFalse());
+        supports->Set(Nan::New("tiff").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(HAVE_WEBP)
-        supports->Set(NanNew("webp"), NanTrue());
+        supports->Set(Nan::New("webp").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("webp"), NanFalse());
+        supports->Set(Nan::New("webp").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(MAPNIK_USE_PROJ4)
-        supports->Set(NanNew("proj4"), NanTrue());
+        supports->Set(Nan::New("proj4").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("proj4"), NanFalse());
+        supports->Set(Nan::New("proj4").ToLocalChecked(), Nan::False());
 #endif
 
 #if defined(MAPNIK_THREADSAFE)
-        supports->Set(NanNew("threadsafe"), NanTrue());
+        supports->Set(Nan::New("threadsafe").ToLocalChecked(), Nan::True());
 #else
-        supports->Set(NanNew("threadsafe"), NanFalse());
+        supports->Set(Nan::New("threadsafe").ToLocalChecked(), Nan::False());
 #endif
 
-        target->Set(NanNew("supports"), supports);
+        target->Set(Nan::New("supports").ToLocalChecked(), supports);
 
 
 /**
@@ -263,7 +263,7 @@ extern "C" {
  * @static
  * @class
  */
-        Local<Object> composite_ops = NanNew<Object>();
+        v8::Local<v8::Object> composite_ops = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst", mapnik::dst)
@@ -300,7 +300,7 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_dodge", mapnik::linear_dodge)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_burn", mapnik::linear_burn)
         NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "divide", mapnik::divide)
-        target->Set(NanNew("compositeOp"), composite_ops);
+        target->Set(Nan::New("compositeOp").ToLocalChecked(), composite_ops);
         
 /**
  * Image type constants representing color and grayscale encodings.
@@ -321,7 +321,7 @@ extern "C" {
  * @property {number} gray64s
  * @property {number} gray64f
  */
-        Local<Object> image_types = NanNew<Object>();
+        v8::Local<v8::Object> image_types = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "null", mapnik::image_dtype_null)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "rgba8", mapnik::image_dtype_rgba8)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray8", mapnik::image_dtype_gray8)
@@ -334,7 +334,7 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64", mapnik::image_dtype_gray64)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64s", mapnik::image_dtype_gray64s)
         NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64f", mapnik::image_dtype_gray64f)
-        target->Set(NanNew("imageType"), image_types);
+        target->Set(Nan::New("imageType").ToLocalChecked(), image_types);
 
 /**
  * Image scaling type constants representing color and grayscale encodings.
@@ -361,7 +361,7 @@ extern "C" {
  * @property {number} lanczos
  * @property {number} blackman
  */
-        Local<Object> image_scaling_types = NanNew<Object>();
+        v8::Local<v8::Object> image_scaling_types = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "near", mapnik::SCALING_NEAR)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bilinear", mapnik::SCALING_BILINEAR)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bicubic", mapnik::SCALING_BICUBIC)
@@ -379,7 +379,7 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "sinc", mapnik::SCALING_SINC)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "lanczos", mapnik::SCALING_LANCZOS)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "blackman", mapnik::SCALING_BLACKMAN)
-        target->Set(NanNew("imageScaling"), image_scaling_types);
+        target->Set(Nan::New("imageScaling").ToLocalChecked(), image_scaling_types);
     }
 
 }

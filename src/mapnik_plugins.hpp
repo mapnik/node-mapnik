@@ -11,56 +11,57 @@
 #include <string>
 #include "utils.hpp"
 
-using namespace v8;
+
 
 namespace node_mapnik {
 
 static inline NAN_METHOD(available_input_plugins)
 {
-    NanScope();
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
-    Local<Array> a = NanNew<Array>(names.size());
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, NanNew(names[i].c_str()));
+        a->Set(i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
     }
-    NanReturnValue(a);
+    info.GetReturnValue().Set(a);
 }
 
 static inline NAN_METHOD(register_datasource)
 {
-    NanScope();
-    if (args.Length() != 1 || !args[0]->IsString())
+    if (info.Length() != 1 || !info[0]->IsString())
     {
-        NanThrowTypeError("first argument must be a path to a mapnik input plugin (.input)");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("first argument must be a path to a mapnik input plugin (.input)");
+        return;
     }
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
-    std::string path = TOSTR(args[0]);
+    std::string path = TOSTR(info[0]);
     mapnik::datasource_cache::instance().register_datasource(path);
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
     if (names_after.size() > names_before.size())
-        NanReturnValue(NanTrue());
-    NanReturnValue(NanFalse());
+    {
+        info.GetReturnValue().Set(Nan::True());
+        return;
+    }
+    info.GetReturnValue().Set(Nan::False());
 }
 
 static inline NAN_METHOD(register_datasources)
 {
-    NanScope();
-    if (args.Length() != 1 || !args[0]->IsString())
+    if (info.Length() != 1 || !info[0]->IsString())
     {
-        NanThrowTypeError("first argument must be a path to a directory of mapnik input plugins");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("first argument must be a path to a directory of mapnik input plugins");
+        return;
     }
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
-    std::string path = TOSTR(args[0]);
+    std::string path = TOSTR(info[0]);
     mapnik::datasource_cache::instance().register_datasources(path);
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
     if (names_after.size() > names_before.size())
     {
-        NanReturnValue(NanTrue());
+        info.GetReturnValue().Set(Nan::True());
+        return;
     }
-    NanReturnValue(NanFalse());
+    info.GetReturnValue().Set(Nan::False());
 }
 
 

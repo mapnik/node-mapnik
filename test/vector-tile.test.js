@@ -1555,11 +1555,18 @@ describe('mapnik.VectorTile ', function() {
             assert(Math.abs(489203 - vtile.toGeoJSON(0).length) < 50);
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0.vector.pbf';
+            var actual = './test/data/vector_tile/tile0.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });
@@ -1574,11 +1581,18 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-area_threshold.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });
@@ -1593,11 +1607,18 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
             var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-simplify_distance.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });

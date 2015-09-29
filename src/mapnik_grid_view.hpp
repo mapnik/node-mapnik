@@ -13,16 +13,16 @@
 #include <memory>
 
 class Grid;
-using namespace v8;
+
 
 typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
-class GridView: public node::ObjectWrap {
+class GridView: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> NewInstance(Grid * JSGrid,
+    static v8::Local<v8::Value> NewInstance(Grid * JSGrid,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);
@@ -36,6 +36,7 @@ public:
     static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
+    static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(isSolidSync);
     static NAN_METHOD(getPixel);
 

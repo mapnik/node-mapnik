@@ -13,29 +13,29 @@
 // stl
 #include <exception>
 
-Persistent<FunctionTemplate> MemoryDatasource::constructor;
+Nan::Persistent<v8::FunctionTemplate> MemoryDatasource::constructor;
 
-void MemoryDatasource::Initialize(Handle<Object> target) {
+void MemoryDatasource::Initialize(v8::Local<v8::Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(MemoryDatasource::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(MemoryDatasource::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("MemoryDatasource"));
+    lcons->SetClassName(Nan::New("MemoryDatasource").ToLocalChecked());
 
     // methods
-    NODE_SET_PROTOTYPE_METHOD(lcons, "parameters", parameters);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "describe", describe);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "featureset", featureset);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "add", add);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "fields", fields);
+    Nan::SetPrototypeMethod(lcons, "parameters", parameters);
+    Nan::SetPrototypeMethod(lcons, "describe", describe);
+    Nan::SetPrototypeMethod(lcons, "featureset", featureset);
+    Nan::SetPrototypeMethod(lcons, "add", add);
+    Nan::SetPrototypeMethod(lcons, "fields", fields);
 
-    target->Set(NanNew("MemoryDatasource"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("MemoryDatasource").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 MemoryDatasource::MemoryDatasource() :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     datasource_(),
     feature_id_(1),
     tr_("utf8") {}
@@ -46,42 +46,41 @@ MemoryDatasource::~MemoryDatasource()
 
 NAN_METHOD(MemoryDatasource::New)
 {
-    NanScope();
-
-    if (!args.IsConstructCall())
+    if (!info.IsConstructCall())
     {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
-    if (args[0]->IsExternal())
+    if (info[0]->IsExternal())
     {
-        Local<External> ext = Local<External>::Cast(args[0]);
+        v8::Local<v8::External> ext = v8::Local<v8::External>::Cast(info[0]);
         void* ptr = ext->Value();
         MemoryDatasource* d =  static_cast<MemoryDatasource*>(ptr);
-        d->Wrap(args.This());
-        NanReturnValue(args.This());
+        d->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
-    if (args.Length() != 1){
-        NanThrowTypeError("accepts only one argument, an object of key:value datasource options");
-        NanReturnUndefined();
+    if (info.Length() != 1){
+        Nan::ThrowTypeError("accepts only one argument, an object of key:value datasource options");
+        return;
     }
 
-    if (!args[0]->IsObject())
+    if (!info[0]->IsObject())
     {
-        NanThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
+        return;
     }
 
-    Local<Object> options = args[0].As<Object>();
+    v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
     mapnik::parameters params;
-    Local<Array> names = options->GetPropertyNames();
+    v8::Local<v8::Array> names = options->GetPropertyNames();
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        Local<Value> name = names->Get(i)->ToString();
-        Local<Value> value = options->Get(name);
+        v8::Local<v8::Value> name = names->Get(i)->ToString();
+        v8::Local<v8::Value> value = options->Get(name);
         if (value->IsUint32() || value->IsInt32())
         {
             params[TOSTR(name)] = value->IntegerValue();
@@ -103,25 +102,23 @@ NAN_METHOD(MemoryDatasource::New)
     params["type"] = "memory";
     //memory_datasource cache;
     MemoryDatasource* d = new MemoryDatasource();
-    d->Wrap(args.This());
+    d->Wrap(info.This());
     d->datasource_ = std::make_shared<mapnik::memory_datasource>(params);
-    NanReturnValue(args.This());
+    info.GetReturnValue().Set(info.This());
 }
 
-Handle<Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
-    NanEscapableScope();
+v8::Local<v8::Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
+    Nan::EscapableHandleScope scope;
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
-    Handle<Value> ext = NanNew<External>(d);
-    Handle<Object> obj = NanNew(constructor)->GetFunction()->NewInstance(1, &ext);
-    return NanEscapeScope(obj);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
+    return scope.Escape( Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
 NAN_METHOD(MemoryDatasource::parameters)
 {
-    NanScope();
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
-    Local<Object> ds = NanNew<Object>();
+    MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
+    v8::Local<v8::Object> ds = Nan::New<v8::Object>();
     if (d->datasource_) {
         mapnik::parameters::const_iterator it = d->datasource_->params().begin();
         mapnik::parameters::const_iterator end = d->datasource_->params().end();
@@ -130,27 +127,23 @@ NAN_METHOD(MemoryDatasource::parameters)
             node_mapnik::params_to_object(ds, it->first, it->second);
         }
     }
-    NanReturnValue(ds);
+    info.GetReturnValue().Set(ds);
 }
 
 NAN_METHOD(MemoryDatasource::describe)
 {
-    NanScope();
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
-    Local<Object> description = NanNew<Object>();
+    MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
+    v8::Local<v8::Object> description = Nan::New<v8::Object>();
     if (d->datasource_) 
     {
         node_mapnik::describe_datasource(description,d->datasource_);
     }
-    NanReturnValue(description);
+    info.GetReturnValue().Set(description);
 }
 
 NAN_METHOD(MemoryDatasource::featureset)
 {
-
-    NanScope();
-
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
+    MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
 
     if (d->datasource_) {
         mapnik::query q(d->datasource_->envelope());
@@ -171,62 +164,59 @@ NAN_METHOD(MemoryDatasource::featureset)
         mapnik::featureset_ptr fs = d->datasource_->features(q);
         if (fs)
         {
-            NanReturnValue(Featureset::NewInstance(fs));
+            info.GetReturnValue().Set(Featureset::NewInstance(fs));
         }
     }
     
     // Even if there is an empty query, a featureset is still created
     // therefore it should be impossible to reach this point in the code.
     /* LCOV_EXCL_START */
-    NanReturnUndefined();
+    return;
     /* LCOV_EXCL_END */
 }
 
 NAN_METHOD(MemoryDatasource::add)
 {
-
-    NanScope();
-
-    if ((args.Length() != 1) || !args[0]->IsObject())
+    if ((info.Length() != 1) || !info[0]->IsObject())
     {
-        NanThrowError("accepts one argument: an object including x and y (or wkt) and properties");
-        NanReturnUndefined();
+        Nan::ThrowError("accepts one argument: an object including x and y (or wkt) and properties");
+        return;
     }
 
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
+    MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
 
-    Local<Object> obj = args[0].As<Object>();
+    v8::Local<v8::Object> obj = info[0].As<v8::Object>();
 
-    if (obj->Has(NanNew("wkt")) || (obj->Has(NanNew("x")) && obj->Has(NanNew("y"))))
+    if (obj->Has(Nan::New("wkt").ToLocalChecked()) || (obj->Has(Nan::New("x").ToLocalChecked()) && obj->Has(Nan::New("y").ToLocalChecked())))
     {
-        if (obj->Has(NanNew("wkt")))
+        if (obj->Has(Nan::New("wkt").ToLocalChecked()))
         {
-            NanThrowError("wkt not yet supported");
-            NanReturnUndefined();
+            Nan::ThrowError("wkt not yet supported");
+            return;
         }
 
-        Local<Value> x = obj->Get(NanNew("x"));
-        Local<Value> y = obj->Get(NanNew("y"));
+        v8::Local<v8::Value> x = obj->Get(Nan::New("x").ToLocalChecked());
+        v8::Local<v8::Value> y = obj->Get(Nan::New("y").ToLocalChecked());
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
             feature->set_geometry(mapnik::geometry::point<double>(x->NumberValue(),y->NumberValue()));
-            if (obj->Has(NanNew("properties")))
+            if (obj->Has(Nan::New("properties").ToLocalChecked()))
             {
-                Local<Value> props = obj->Get(NanNew("properties"));
+                v8::Local<v8::Value> props = obj->Get(Nan::New("properties").ToLocalChecked());
                 if (props->IsObject())
                 {
-                    Local<Object> p_obj = props->ToObject();
-                    Local<Array> names = p_obj->GetPropertyNames();
+                    v8::Local<v8::Object> p_obj = props->ToObject();
+                    v8::Local<v8::Array> names = p_obj->GetPropertyNames();
                     unsigned int i = 0;
                     unsigned int a_length = names->Length();
                     while (i < a_length)
                     {
-                        Local<Value> name = names->Get(i)->ToString();
+                        v8::Local<v8::Value> name = names->Get(i)->ToString();
                         // if name in q.property_names() ?
-                        Local<Value> value = p_obj->Get(name);
+                        v8::Local<v8::Value> value = p_obj->Get(name);
                         if (value->IsString()) {
                             mapnik::value_unicode_string ustr = d->tr_.transcode(TOSTR(value));
                             feature->put_new(TOSTR(name),ustr);
@@ -248,19 +238,19 @@ NAN_METHOD(MemoryDatasource::add)
             }
             mapnik::memory_datasource *cache = dynamic_cast<mapnik::memory_datasource *>(d->datasource_.get());
             cache->push(feature);
-            NanReturnValue(NanTrue());
+            info.GetReturnValue().Set(Nan::True());
+            return;
         }
     }
-    NanReturnValue(NanFalse());
+    info.GetReturnValue().Set(Nan::False());
 }
 
 NAN_METHOD(MemoryDatasource::fields)
 {
-    NanScope();
-    MemoryDatasource* d = node::ObjectWrap::Unwrap<MemoryDatasource>(args.Holder());
-    Local<Object> fields = NanNew<Object>();
+    MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
+    v8::Local<v8::Object> fields = Nan::New<v8::Object>();
     if (d->datasource_) {
         node_mapnik::get_fields(fields,d->datasource_);
     }
-    NanReturnValue(fields);
+    info.GetReturnValue().Set(fields);
 }

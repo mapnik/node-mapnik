@@ -9,7 +9,7 @@
 
 #include <memory>
 
-using namespace v8;
+
 
 namespace mapnik { 
     struct image_any; 
@@ -18,10 +18,10 @@ namespace mapnik {
 
 typedef std::shared_ptr<mapnik::image_any> image_ptr;
 
-class Image: public node::ObjectWrap {
+class Image: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(getType);
@@ -36,19 +36,19 @@ public:
     static NAN_METHOD(width);
     static NAN_METHOD(height);
     static NAN_METHOD(view);
-    static Local<Value> _openSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _openSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(openSync);
     static NAN_METHOD(open);
     static void EIO_Open(uv_work_t* req);
     static void EIO_AfterOpen(uv_work_t* req);
-    static Local<Value> _fromBytesSync(_NAN_METHOD_ARGS);
-    static Local<Value> _fromBufferSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static v8::Local<v8::Value> _fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(fromBytesSync);
     static NAN_METHOD(fromBufferSync);
     static NAN_METHOD(fromBytes);
     static void EIO_FromBytes(uv_work_t* req);
     static void EIO_AfterFromBytes(uv_work_t* req);
-    static Local<Value> _fromSVGSync(bool fromFile, _NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(fromSVGSync);
     static NAN_METHOD(fromSVG);
     static NAN_METHOD(fromSVGBytesSync);
@@ -57,34 +57,34 @@ public:
     static void EIO_AfterFromSVG(uv_work_t* req);
     static void EIO_FromSVGBytes(uv_work_t* req);
     static void EIO_AfterFromSVGBytes(uv_work_t* req);
-    static Local<Value> _saveSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _saveSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(saveSync);
     static NAN_METHOD(save);
     static void EIO_Save(uv_work_t* req);
     static void EIO_AfterSave(uv_work_t* req);
     static NAN_METHOD(painted);
     static NAN_METHOD(composite);
-    static Local<Value> _filterSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _filterSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(filterSync);
     static NAN_METHOD(filter);
     static void EIO_Filter(uv_work_t* req);
     static void EIO_AfterFilter(uv_work_t* req);
-    static Local<Value> _fillSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _fillSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(fillSync);
     static NAN_METHOD(fill);
     static void EIO_Fill(uv_work_t* req);
     static void EIO_AfterFill(uv_work_t* req);
-    static Local<Value> _premultiplySync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _premultiplySync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(premultiplySync);
     static NAN_METHOD(premultiply);
     static NAN_METHOD(premultiplied);
     static void EIO_Premultiply(uv_work_t* req);
-    static Local<Value> _demultiplySync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _demultiplySync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(demultiplySync);
     static NAN_METHOD(demultiply);
     static void EIO_Demultiply(uv_work_t* req);
     static void EIO_AfterMultiply(uv_work_t* req);
-    static Local<Value> _clearSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(clearSync);
     static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);
@@ -95,17 +95,17 @@ public:
     static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
-    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(isSolidSync);
     static NAN_METHOD(copy);
     static void EIO_Copy(uv_work_t* req);
     static void EIO_AfterCopy(uv_work_t* req);
-    static Local<Value> _copySync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _copySync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(copySync);
     static NAN_METHOD(resize);
     static void EIO_Resize(uv_work_t* req);
     static void EIO_AfterResize(uv_work_t* req);
-    static Local<Value> _resizeSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _resizeSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(resizeSync);
     static NAN_METHOD(data);
     

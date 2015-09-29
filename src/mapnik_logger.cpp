@@ -2,19 +2,19 @@
 #include "mapnik_logger.hpp"
 #include <mapnik/debug.hpp>
 
-Persistent<FunctionTemplate> Logger::constructor;
+Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
 
 // Sets up everything for the Logger object when the addon is initialized
-void Logger::Initialize(Handle<Object> target) {
-    NanScope();
+void Logger::Initialize(v8::Local<v8::Object> target) {
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Logger::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Logger::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Logger"));
+    lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
 
     // Static methods
-    NODE_SET_METHOD(lcons->GetFunction(), "getSeverity", Logger::get_severity);
-    NODE_SET_METHOD(lcons->GetFunction(), "setSeverity", Logger::set_severity);
+    Nan::SetMethod(lcons->GetFunction(), "getSeverity", Logger::get_severity);
+    Nan::SetMethod(lcons->GetFunction(), "setSeverity", Logger::set_severity);
 
     // Constants
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"NONE",mapnik::logger::severity_type::none);
@@ -30,32 +30,28 @@ void Logger::Initialize(Handle<Object> target) {
     // DEBUG
 
     // Not sure if needed...
-    target->Set(NanNew("Logger"),lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Logger").ToLocalChecked(),lcons->GetFunction());
+    constructor.Reset(lcons);
 
 }
 
 NAN_METHOD(Logger::New){
-    NanScope();
-    NanThrowError("a mapnik.Logger cannot be created directly - rather you should ....");
-    NanReturnUndefined();
+    Nan::ThrowError("a mapnik.Logger cannot be created directly - rather you should ....");
+    return;
 }
 
 NAN_METHOD(Logger::get_severity){
-    NanScope();
     int severity = mapnik::logger::instance().get_severity();
-    NanReturnValue(NanNew(severity));
+    info.GetReturnValue().Set(Nan::New(severity));
 }
 
 NAN_METHOD(Logger::set_severity){
-    NanScope();
-
-    if (args.Length() != 1 || !args[0]->IsNumber()) {
-        NanThrowTypeError("requires a severity level parameter");
-        NanReturnUndefined();
+    if (info.Length() != 1 || !info[0]->IsNumber()) {
+        Nan::ThrowTypeError("requires a severity level parameter");
+        return;
     }
 
-    int severity = args[0]->IntegerValue();
+    int severity = info[0]->IntegerValue();
     mapnik::logger::instance().set_severity(static_cast<mapnik::logger::severity_type>(severity));
-    NanReturnUndefined();
+    return;
 }

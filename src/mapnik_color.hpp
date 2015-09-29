@@ -9,17 +9,17 @@
 
 #include <memory>
 
-using namespace v8;
+
 
 namespace mapnik { class color; }
 typedef std::shared_ptr<mapnik::color> color_ptr;
 
-class Color: public node::ObjectWrap {
+class Color: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> NewInstance(mapnik::color const& color);
+    static v8::Local<v8::Value> NewInstance(mapnik::color const& color);
     static NAN_METHOD(toString);
     static NAN_METHOD(hex);
 

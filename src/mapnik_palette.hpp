@@ -10,16 +10,16 @@
 #include <mapnik/palette.hpp>
 #include <memory>
 
-using namespace v8;
+
 
 typedef std::shared_ptr<mapnik::rgba_palette> palette_ptr;
 
-class Palette: public node::ObjectWrap {
+class Palette: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
 
     explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
-    static void Initialize(Handle<Object> target);
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(ToString);

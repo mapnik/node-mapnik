@@ -63,7 +63,7 @@ describe('mapnik.Image ', function() {
     
     it('should encode with a pallete', function(done) {
         var im = new mapnik.Image(256, 256);
-        var pal = new mapnik.Palette('\xff\x09\x93\xFF\x01\x02\x03\x04');
+        var pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
         assert.ok(im.encodeSync('png', {palette:pal}));
         im.encode('png', {palette:pal}, function(err, result) {
             if (err) throw err;

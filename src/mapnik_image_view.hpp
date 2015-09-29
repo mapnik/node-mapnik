@@ -14,16 +14,16 @@
 class Image;
 namespace mapnik { template <typename T> class image_view; }
 
-using namespace v8;
+
 
 typedef std::shared_ptr<mapnik::image_view_any> image_view_ptr;
 
-class ImageView: public node::ObjectWrap {
+class ImageView: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> NewInstance(Image * JSImage,
+    static v8::Local<v8::Value> NewInstance(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);
@@ -39,7 +39,7 @@ public:
     static NAN_METHOD(isSolid);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
-    static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(isSolidSync);
     static NAN_METHOD(getPixel);
 

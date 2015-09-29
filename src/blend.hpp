@@ -27,7 +27,7 @@ struct BImage {
         height(0),
         tint(),
         im_ptr(nullptr) {}
-    v8::Persistent<v8::Object> buffer;
+    Nan::Persistent<v8::Object> buffer;
     const char * data;
     size_t dataLength;
     int x;
@@ -62,7 +62,7 @@ NAN_METHOD(Blend);
 
 struct BlendBaton {
     uv_work_t request;
-    v8::Persistent<v8::Function> callback;
+    Nan::Persistent<v8::Function> callback;
     Images images;
 
     std::string message;
@@ -96,9 +96,9 @@ struct BlendBaton {
 
     ~BlendBaton() {
         for (Images::iterator cur = images.begin(); cur != images.end(); cur++) {
-            NanDisposePersistent((*cur)->buffer);
+            (*cur)->buffer.Reset();            
         }
-        NanDisposePersistent(callback);
+        callback.Reset();
     }
 };
 
