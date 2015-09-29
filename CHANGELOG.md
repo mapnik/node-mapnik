@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.4.8
+
+ - Now supporting Node v4.x
+ - The `new mapnik.Palette` constructor no longer accepts a string - please pass a correctly encoded buffer.
+
 ## 3.4.7
 
  - Rebuilt with Mapnik 3.0.5
