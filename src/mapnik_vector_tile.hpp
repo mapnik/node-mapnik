@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <mapnik/feature.hpp>
+#include <boost/version.hpp>
 
 using namespace v8;
 
@@ -99,6 +100,11 @@ public:
     static void EIO_AfterIsSolid(uv_work_t* req);
     static NAN_METHOD(isSolidSync);
     static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
+#if BOOST_VERSION >= 105600
+    static NAN_METHOD(validate);
+    static void EIO_Validate(uv_work_t* req);
+    static void EIO_AfterValidate(uv_work_t* req);
+#endif // BOOST_VERSION >= 105600
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
 

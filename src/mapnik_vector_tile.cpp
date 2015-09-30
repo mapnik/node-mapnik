@@ -38,6 +38,8 @@
 #include <mapnik/util/feature_to_geojson.hpp>
 #include <mapnik/feature_kv_iterator.hpp>
 #include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry_is_simple.hpp>
+#include <mapnik/geometry_is_valid.hpp>
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
 #include <cairo.h>
@@ -434,6 +436,7 @@ void _composite(VectorTile* target_vt,
                 unsigned offset_x,
                 unsigned offset_y,
                 double area_threshold,
+                bool strictly_simple,
                 double scale_denominator)
 {
     vector_tile::Tile new_tiledata;
@@ -501,7 +504,8 @@ void _composite(VectorTile* target_vt,
                                   scale_factor,
                                   offset_x,
                                   offset_y,
-                                  area_threshold);
+                                  area_threshold,
+                                  strictly_simple);
                 ren.apply(scale_denominator);
             }
 
@@ -562,6 +566,7 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
     unsigned offset_x = 0;
     unsigned offset_y = 0;
     double area_threshold = 0.1;
+    bool strictly_simple = false;
     double scale_denominator = 0.0;
 
     if (args.Length() > 1) {
@@ -591,6 +596,16 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
                 return NanEscapeScope(NanUndefined());
             }
             area_threshold = area_thres->NumberValue();
+        }
+        if (options->Has(NanNew("strictly_simple")))
+        {
+            Local<Value> strict_simp = options->Get(NanNew("strictly_simple"));
+            if (!strict_simp->IsBoolean())
+            {
+                NanThrowTypeError("strictly_simple value must be a boolean");
+                return NanEscapeScope(NanUndefined());
+            }
+            strictly_simple = strict_simp->BooleanValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -665,6 +680,7 @@ Local<Value> VectorTile::_compositeSync(_NAN_METHOD_ARGS) {
                    offset_x,
                    offset_y,
                    area_threshold,
+                   strictly_simple,
                    scale_denominator);
     }
     catch (std::exception const& ex)
@@ -688,6 +704,7 @@ typedef struct {
     double scale_denominator;
     std::vector<VectorTile*> vtiles;
     bool error;
+    bool strictly_simple;
     std::string error_name;
     Persistent<Function> cb;
 } vector_tile_composite_baton_t;
@@ -718,6 +735,7 @@ NAN_METHOD(VectorTile::composite)
     unsigned offset_x = 0;
     unsigned offset_y = 0;
     double area_threshold = 0.1;
+    bool strictly_simple = false;
     double scale_denominator = 0.0;
     // not options yet, likely should never be....
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
@@ -750,6 +768,16 @@ NAN_METHOD(VectorTile::composite)
                 NanReturnUndefined();
             }
             area_threshold = area_thres->NumberValue();
+        }
+        if (options->Has(NanNew("strictly_simple")))
+        {
+            Local<Value> strict_simp = options->Get(NanNew("strictly_simple"));
+            if (!strict_simp->IsBoolean())
+            {
+                NanThrowTypeError("strictly_simple value must be a boolean");
+                NanReturnUndefined();
+            }
+            strictly_simple = strict_simp->BooleanValue();
         }
         if (options->Has(NanNew("buffer_size"))) {
             Local<Value> bind_opt = options->Get(NanNew("buffer_size"));
@@ -804,6 +832,7 @@ NAN_METHOD(VectorTile::composite)
     closure->request.data = closure;
     closure->offset_x = offset_x;
     closure->offset_y = offset_y;
+    closure->strictly_simple = strictly_simple;
     closure->area_threshold = area_threshold;
     closure->path_multiplier = path_multiplier;
     closure->buffer_size = buffer_size;
@@ -850,6 +879,7 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->offset_x,
                    closure->offset_y,
                    closure->area_threshold,
+                   closure->strictly_simple,
                    closure->scale_denominator);
     }
     catch (std::exception const& ex)
@@ -2159,6 +2189,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     double simplify_distance = 0.0;
     unsigned path_multiplier = 16;
     int buffer_size = 8;
+    bool strictly_simple = false;
 
     if (args.Length() > 2) {
         // options object
@@ -2176,6 +2207,17 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 NanReturnUndefined();
             }
             area_threshold = param_val->IntegerValue();
+        }
+        
+        if (options->Has(NanNew("strictly_simple")))
+        {
+            Local<Value> strict_simp = options->Get(NanNew("strictly_simple"));
+            if (!strict_simp->IsBoolean())
+            {
+                NanThrowTypeError("strictly_simple value must be a boolean");
+                NanReturnUndefined();
+            }
+            strictly_simple = strict_simp->BooleanValue();
         }
 
         if (options->Has(NanNew("path_multiplier"))) {
@@ -2231,7 +2273,8 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           1,
                           0,
                           0,
-                          area_threshold);
+                          area_threshold,
+                          strictly_simple);
         ren.set_simplify_distance(simplify_distance);
         ren.apply();
         detail::add_tile(d->buffer_,tiledata);
@@ -3655,3 +3698,141 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
     NanDisposePersistent(closure->cb);
     delete closure;
 }
+
+#if BOOST_VERSION >= 105600
+
+
+// This method checks if a vector tile is both valid and simple
+static bool layer_validate(vector_tile::Tile_Layer const& layer,
+                           unsigned x,
+                           unsigned y,
+                           unsigned z,
+                           unsigned width)
+{
+    mapnik::vector_tile_impl::tile_datasource ds(layer,
+                                                 x,
+                                                 y,
+                                                 z,
+                                                 width);
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::query q(ds.envelope());
+    mapnik::layer_descriptor ld = ds.get_descriptor();
+    for (auto const& item : ld.get_descriptors())
+    {
+        q.add_property_name(item.get_name());
+    }
+    mapnik::featureset_ptr fs = ds.features(q);
+    if (fs)
+    {
+        mapnik::feature_ptr feature;
+        while ((feature = fs->next()))
+        {
+            if (!mapnik::geometry::is_valid(feature->get_geometry()))
+            {
+                return false;
+            }
+            if (!mapnik::geometry::is_simple(feature->get_geometry()))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool validate_vectortile(VectorTile * v)
+{
+    vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
+    unsigned layer_num = tiledata.layers_size();
+    for (unsigned i=0;i<layer_num;++i)
+    {
+        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+        if (!layer_validate(layer,v->x_,v->y_,v->z_,v->width()))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+struct validate_baton {
+    uv_work_t request;
+    VectorTile* v;
+    bool error;
+    bool result;
+    std::string err_msg;
+    Persistent<Function> cb;
+};
+
+/**
+ * Validate that the geometry in a tile is both valid and simple
+ *
+ * @memberof mapnik.VectorTile
+ * @name validate
+ * @instance
+ * @param {Function} callback
+ */
+NAN_METHOD(VectorTile::validate)
+{
+    NanScope();
+    if ((args.Length() != 1) || !args[0]->IsFunction()) 
+    {
+        NanThrowTypeError("requires one argument that is a callback");
+        NanReturnUndefined();
+    }
+    validate_baton *closure = new validate_baton();
+    closure->request.data = closure;
+    closure->v = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    closure->error = false;
+    closure->result = true;
+    Local<Value> callback = args[0];
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_Validate, (uv_after_work_cb)EIO_AfterValidate);
+    closure->v->Ref();
+    NanReturnUndefined();
+}
+
+void VectorTile::EIO_Validate(uv_work_t* req)
+{
+    validate_baton *closure = static_cast<validate_baton *>(req->data);
+    try
+    {
+        closure->result = validate_vectortile(closure->v);
+    }
+    catch (std::exception const& ex)
+    {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
+        closure->error = true;
+        closure->err_msg = ex.what();
+        // LCOV_EXCL_END
+    }
+}
+
+void VectorTile::EIO_AfterValidate(uv_work_t* req)
+{
+    NanScope();
+    validate_baton *closure = static_cast<validate_baton *>(req->data);
+    if (closure->error)
+    {
+        // Because there are no known ways to trigger the exception path in to_geojson
+        // there is no easy way to test this path currently
+        // LCOV_EXCL_START
+        Local<Value> argv[1] = { NanError(closure->err_msg.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
+    }
+    else
+    {
+        Local<Value> argv[2] = { NanNull(), NanNew(closure->result) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    closure->v->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+#endif // BOOST_VERSION >= 1.56

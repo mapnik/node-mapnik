@@ -1555,6 +1555,7 @@ struct vector_tile_baton_t {
     mapnik::scaling_method_e scaling_method;
     double simplify_distance;
     bool error;
+    bool strictly_simple;
     std::string error_name;
     Persistent<Function> cb;
     vector_tile_baton_t() :
@@ -1569,7 +1570,8 @@ struct vector_tile_baton_t {
         image_format("jpeg"),
         scaling_method(mapnik::SCALING_NEAR),
         simplify_distance(0.0),
-        error(false) {}
+        error(false),
+        strictly_simple(false) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1866,6 +1868,18 @@ NAN_METHOD(Map::render)
                 closure->area_threshold = param_val->NumberValue();
             }
 
+            if (options->Has(NanNew("strictly_simple")))
+            {
+                Local<Value> strict_simp = options->Get(NanNew("strictly_simple"));
+                if (!strict_simp->IsBoolean())
+                {
+                    delete closure;
+                    NanThrowTypeError("strictly_simple value must be a boolean");
+                    NanReturnUndefined();
+                }
+                closure->strictly_simple = strict_simp->BooleanValue();
+            }
+
             if (options->Has(NanNew("path_multiplier"))) {
                 Local<Value> param_val = options->Get(NanNew("path_multiplier"));
                 if (!param_val->IsNumber()) {
@@ -1964,6 +1978,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->offset_x,
                           closure->offset_y,
                           closure->area_threshold,
+                          closure->strictly_simple,
                           closure->image_format,
                           closure->scaling_method);
         ren.set_simplify_distance(closure->simplify_distance);
