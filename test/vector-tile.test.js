@@ -59,6 +59,22 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
+    it('should fail when bad parameters are passed to isSimple', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        if (vtile.isSimple)
+        {
+            assert.throws(function() { vtile.isSimple(null); });
+        }
+    });
+    
+    it('should fail when bad parameters are passed to isValid', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        if (vtile.isValid)
+        {
+            assert.throws(function() { vtile.isValid(null); });
+        }
+    });
+
     it('should fail when adding bad parameters to add geoJSON', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
@@ -87,6 +103,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addGeoJSON(geo_str, 1); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", null); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {area_threshold:null}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {strictly_simple:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {path_multiplier:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {buffer_size:null}); });
@@ -154,7 +171,7 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {simplify_distance:1.0,path_multiplier:16,area_threshold:0.1} );
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {simplify_distance:1.0,path_multiplier:16,area_threshold:0.1,strictly_simple:false} );
         assert.equal(vtile.getData().length,58);
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
@@ -430,6 +447,8 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.painted(), false);
         assert.equal(vtile.getData().toString(),"");
         assert.equal(vtile.isSolid(), "");
+        if (vtile.isSimple) assert.equal(vtile.isSimple(), true); 
+        if (vtile.isValid) assert.equal(vtile.isValid(), true); 
         assert.equal(vtile.empty(), true);
         vtile.isSolid(function(err, solid, key) {
             if (err) throw err;
@@ -1521,6 +1540,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {image_scaling:'foo'}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {image_format:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {area_threshold:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {strictly_simple:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {path_multiplier:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_algorithm:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_distance:null}, function(err, vtile) {}); });
@@ -1579,6 +1599,31 @@ describe('mapnik.VectorTile ', function() {
             }
             var expected_data = fs.readFileSync(expected).toString('hex');
             assert.equal(expected_data, vtile.getData().toString('hex'));
+            if (vtile.isSimple) {
+                assert.equal(vtile.isSimple(), true);
+            }
+            done();
+        });
+    });
+    
+    it('should render a vector_tile of the whole world - strictly simple applied', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        map.render(vtile, {variables:{pizza:'pie'}, strictly_simple:true}, function(err, vtile) {
+            if (err) throw err;
+            assert.equal(vtile.isSolid(), false);
+            var expected = './test/data/vector_tile/tile0-strictly_simple.vector.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected).toString('hex');
+            assert.equal(expected_data, vtile.getData().toString('hex'));
+            if (vtile.isSimple) {
+                assert.equal(vtile.isSimple(), true);
+            }
             done();
         });
     });

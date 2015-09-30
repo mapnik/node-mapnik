@@ -317,6 +317,12 @@ void VectorTile::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(lcons, "toGeoJSONSync", toGeoJSONSync);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addGeoJSON", addGeoJSON);
     NODE_SET_PROTOTYPE_METHOD(lcons, "addImage", addImage);
+#if BOOST_VERSION >= 105600
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isSimple", isSimple);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isSimpleSync", isSimpleSync);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isValid", isValid);
+    NODE_SET_PROTOTYPE_METHOD(lcons, "isValidSync", isValidSync);
+#endif // BOOST_VERSION >= 105600
 
     // common to mapnik.Image
     NODE_SET_PROTOTYPE_METHOD(lcons, "width", width);
@@ -3701,9 +3707,8 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
 
 #if BOOST_VERSION >= 105600
 
-
-// This method checks if a vector tile is both valid and simple
-static bool layer_validate(vector_tile::Tile_Layer const& layer,
+// This method checks if a vector tile is simple
+static bool layer_is_simple(vector_tile::Tile_Layer const& layer,
                            unsigned x,
                            unsigned y,
                            unsigned z,
@@ -3714,9 +3719,39 @@ static bool layer_validate(vector_tile::Tile_Layer const& layer,
                                                  y,
                                                  z,
                                                  width);
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::query q(ds.envelope());
+    mapnik::layer_descriptor ld = ds.get_descriptor();
+    for (auto const& item : ld.get_descriptors())
+    {
+        q.add_property_name(item.get_name());
+    }
+    mapnik::featureset_ptr fs = ds.features(q);
+    if (fs)
+    {
+        mapnik::feature_ptr feature;
+        while ((feature = fs->next()))
+        {
+            if (!mapnik::geometry::is_simple(feature->get_geometry()))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Checks that a layer is valid (which should imply it is simple)
+static bool layer_is_valid(vector_tile::Tile_Layer const& layer,
+                           unsigned x,
+                           unsigned y,
+                           unsigned z,
+                           unsigned width)
+{
+    mapnik::vector_tile_impl::tile_datasource ds(layer,
+                                                 x,
+                                                 y,
+                                                 z,
+                                                 width);
     mapnik::query q(ds.envelope());
     mapnik::layer_descriptor ld = ds.get_descriptor();
     for (auto const& item : ld.get_descriptors())
@@ -3733,23 +3768,19 @@ static bool layer_validate(vector_tile::Tile_Layer const& layer,
             {
                 return false;
             }
-            if (!mapnik::geometry::is_simple(feature->get_geometry()))
-            {
-                return false;
-            }
         }
     }
     return true;
 }
 
-bool validate_vectortile(VectorTile * v)
+bool vector_tile_is_simple(VectorTile * v)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        if (!layer_validate(layer,v->x_,v->y_,v->z_,v->width()))
+        if (!layer_is_simple(layer,v->x_,v->y_,v->z_,v->width()))
         {
             return false;
         }
@@ -3757,7 +3788,31 @@ bool validate_vectortile(VectorTile * v)
     return true;
 }
 
-struct validate_baton {
+bool vector_tile_is_valid(VectorTile * v)
+{
+    vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
+    unsigned layer_num = tiledata.layers_size();
+    for (unsigned i=0;i<layer_num;++i)
+    {
+        vector_tile::Tile_Layer const& layer = tiledata.layers(i);
+        if (!layer_is_valid(layer,v->x_,v->y_,v->z_,v->width()))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+struct is_simple_baton {
+    uv_work_t request;
+    VectorTile* v;
+    bool error;
+    bool result;
+    std::string err_msg;
+    Persistent<Function> cb;
+};
+
+struct is_valid_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
@@ -3767,39 +3822,110 @@ struct validate_baton {
 };
 
 /**
- * Validate that the geometry in a tile is both valid and simple
+ * Test whether this tile geometry is simple
  *
  * @memberof mapnik.VectorTile
- * @name validate
+ * @name isSimpleSync
+ * @instance
+ * @returns {boolean} whether the tile is simple
+ */
+NAN_METHOD(VectorTile::isSimpleSync)
+{
+    NanScope();
+    NanReturnValue(_isSimpleSync(args));
+}
+
+/**
+ * Test whether this tile's geometry is valid
+ *
+ * @memberof mapnik.VectorTile
+ * @name isValidSync
+ * @instance
+ * @returns {boolean} whether the tile is valid
+ */
+NAN_METHOD(VectorTile::isValidSync)
+{
+    NanScope();
+    NanReturnValue(_isValidSync(args));
+}
+
+Local<Value> VectorTile::_isSimpleSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    try
+    {
+        return NanEscapeScope(NanNew(vector_tile_is_simple(d)));
+    }
+    catch (std::exception const& ex)
+    {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile or some strange boost geometry error
+        // LCOV_EXCL_START
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
+    }
+    return NanEscapeScope(NanUndefined());
+}
+
+Local<Value> VectorTile::_isValidSync(_NAN_METHOD_ARGS)
+{
+    NanEscapableScope();
+    VectorTile* d = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    try
+    {
+        return NanEscapeScope(NanNew(vector_tile_is_valid(d)));
+    }
+    catch (std::exception const& ex)
+    {
+        // There is a chance of this throwing an error, however, only in the situation such that there
+        // is an illegal command within the vector tile or some strange boost geometry error
+        // LCOV_EXCL_START
+        NanThrowError(ex.what());
+        return NanEscapeScope(NanUndefined());
+        // LCOV_EXCL_END
+    }
+    return NanEscapeScope(NanUndefined());
+}
+
+/**
+ * Validate that the geometry in a tile is simple
+ *
+ * @memberof mapnik.VectorTile
+ * @name isSimple
  * @instance
  * @param {Function} callback
  */
-NAN_METHOD(VectorTile::validate)
+NAN_METHOD(VectorTile::isSimple)
 {
     NanScope();
-    if ((args.Length() != 1) || !args[0]->IsFunction()) 
-    {
-        NanThrowTypeError("requires one argument that is a callback");
+    if (args.Length() == 0) {
+        NanReturnValue(_isSimpleSync(args));
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!callback->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
         NanReturnUndefined();
     }
-    validate_baton *closure = new validate_baton();
+    is_simple_baton *closure = new is_simple_baton();
     closure->request.data = closure;
     closure->v = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
     closure->error = false;
     closure->result = true;
-    Local<Value> callback = args[0];
     NanAssignPersistent(closure->cb, callback.As<Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Validate, (uv_after_work_cb)EIO_AfterValidate);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSimple, (uv_after_work_cb)EIO_AfterIsSimple);
     closure->v->Ref();
     NanReturnUndefined();
 }
 
-void VectorTile::EIO_Validate(uv_work_t* req)
+void VectorTile::EIO_IsSimple(uv_work_t* req)
 {
-    validate_baton *closure = static_cast<validate_baton *>(req->data);
+    is_simple_baton *closure = static_cast<is_simple_baton *>(req->data);
     try
     {
-        closure->result = validate_vectortile(closure->v);
+        closure->result = vector_tile_is_simple(closure->v);
     }
     catch (std::exception const& ex)
     {
@@ -3812,13 +3938,85 @@ void VectorTile::EIO_Validate(uv_work_t* req)
     }
 }
 
-void VectorTile::EIO_AfterValidate(uv_work_t* req)
+void VectorTile::EIO_AfterIsSimple(uv_work_t* req)
 {
     NanScope();
-    validate_baton *closure = static_cast<validate_baton *>(req->data);
+    is_simple_baton *closure = static_cast<is_simple_baton *>(req->data);
     if (closure->error)
     {
-        // Because there are no known ways to trigger the exception path in to_geojson
+        // Because there are no known ways to trigger the exception path in to vector_tile_is_simple
+        // there is no easy way to test this path currently
+        // LCOV_EXCL_START
+        Local<Value> argv[1] = { NanError(closure->err_msg.c_str()) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
+        // LCOV_EXCL_END
+    }
+    else
+    {
+        Local<Value> argv[2] = { NanNull(), NanNew(closure->result) };
+        NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 2, argv);
+    }
+    closure->v->Unref();
+    NanDisposePersistent(closure->cb);
+    delete closure;
+}
+
+/**
+ * Validate that the geometry in a tile is OGC valid
+ *
+ * @memberof mapnik.VectorTile
+ * @name isValid
+ * @instance
+ * @param {Function} callback
+ */
+NAN_METHOD(VectorTile::isValid)
+{
+    NanScope();
+    if (args.Length() == 0) {
+        NanReturnValue(_isValidSync(args));
+    }
+    // ensure callback is a function
+    Local<Value> callback = args[args.Length() - 1];
+    if (!callback->IsFunction()) {
+        NanThrowTypeError("last argument must be a callback function");
+        NanReturnUndefined();
+    }
+    is_valid_baton *closure = new is_valid_baton();
+    closure->request.data = closure;
+    closure->v = node::ObjectWrap::Unwrap<VectorTile>(args.Holder());
+    closure->error = false;
+    closure->result = true;
+    NanAssignPersistent(closure->cb, callback.As<Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsValid, (uv_after_work_cb)EIO_AfterIsValid);
+    closure->v->Ref();
+    NanReturnUndefined();
+}
+
+void VectorTile::EIO_IsValid(uv_work_t* req)
+{
+    is_valid_baton *closure = static_cast<is_valid_baton *>(req->data);
+    try
+    {
+        closure->result = vector_tile_is_valid(closure->v);
+    }
+    catch (std::exception const& ex)
+    {
+        // There are currently no known ways to trigger this exception in testing. If it was
+        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
+        // LCOV_EXCL_START
+        closure->error = true;
+        closure->err_msg = ex.what();
+        // LCOV_EXCL_END
+    }
+}
+
+void VectorTile::EIO_AfterIsValid(uv_work_t* req)
+{
+    NanScope();
+    is_valid_baton *closure = static_cast<is_valid_baton *>(req->data);
+    if (closure->error)
+    {
+        // Because there are no known ways to trigger the exception path in to vector_tile_is_valid
         // there is no easy way to test this path currently
         // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->err_msg.c_str()) };

@@ -101,9 +101,16 @@ public:
     static NAN_METHOD(isSolidSync);
     static Local<Value> _isSolidSync(_NAN_METHOD_ARGS);
 #if BOOST_VERSION >= 105600
-    static NAN_METHOD(validate);
-    static void EIO_Validate(uv_work_t* req);
-    static void EIO_AfterValidate(uv_work_t* req);
+    static NAN_METHOD(isSimple);
+    static void EIO_IsSimple(uv_work_t* req);
+    static void EIO_AfterIsSimple(uv_work_t* req);
+    static NAN_METHOD(isSimpleSync);
+    static Local<Value> _isSimpleSync(_NAN_METHOD_ARGS);
+    static NAN_METHOD(isValid);
+    static void EIO_IsValid(uv_work_t* req);
+    static void EIO_AfterIsValid(uv_work_t* req);
+    static NAN_METHOD(isValidSync);
+    static Local<Value> _isValidSync(_NAN_METHOD_ARGS);
 #endif // BOOST_VERSION >= 105600
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
