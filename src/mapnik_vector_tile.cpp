@@ -3882,7 +3882,7 @@ NAN_METHOD(VectorTile::isSimple)
 
     is_simple_baton *closure = new is_simple_baton();
     closure->request.data = closure;
-    closure->v = node::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->result = true;
     closure->cb.Reset(callback.As<v8::Function>());
@@ -3949,7 +3949,7 @@ NAN_METHOD(VectorTile::isValid)
 
     is_valid_baton *closure = new is_valid_baton();
     closure->request.data = closure;
-    closure->v = node::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->result = true;
     closure->cb.Reset(callback.As<v8::Function>());
