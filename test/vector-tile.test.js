@@ -1628,11 +1628,18 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.isSimple(), true);
             assert.equal(vtile.isValid(), false); // Dataset not expected to be OGC valid
             var expected = './test/data/vector_tile/tile0.vector.pbf';
+            var actual = './test/data/vector_tile/tile0.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });
@@ -1649,11 +1656,18 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.isSimple(), true);
             assert.equal(vtile.isValid(), false); // Dataset not expected to be OGC valid
             var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-area_threshold.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             if (vtile.isSimple) {
                 assert.equal(vtile.isSimple(), true);
             }
@@ -1673,11 +1687,18 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.isSimple(), true);
             assert.equal(vtile.isValid(), false); // Dataset not expected to be OGC valid
             var expected = './test/data/vector_tile/tile0-strictly_simple.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-strictly_simple.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             if (vtile.isSimple) {
                 assert.equal(vtile.isSimple(), true);
             }
@@ -1697,11 +1718,18 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.isSimple(), true);
             assert.equal(vtile.isValid(), false); // Dataset not expected to be OGC valid
             var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-simplify_distance.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
-            var expected_data = fs.readFileSync(expected).toString('hex');
-            assert.equal(expected_data, vtile.getData().toString('hex'));
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
             done();
         });
     });

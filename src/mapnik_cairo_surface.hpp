@@ -17,13 +17,13 @@
 #define cairo_status_t int
 #endif
 
-using namespace v8;
 
-class CairoSurface: public node::ObjectWrap {
+
+class CairoSurface: public Nan::ObjectWrap {
 public:
     typedef std::stringstream i_stream;
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
     static NAN_METHOD(getData);
     static NAN_METHOD(width);

@@ -6,15 +6,15 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/value_types.hpp>
 
-static inline void object_to_container(mapnik::attributes & cont, Local<Object> const& vars)
+static inline void object_to_container(mapnik::attributes & cont, v8::Local<v8::Object> const& vars)
 {
-    Local<Array> names = vars->GetPropertyNames();
+    v8::Local<v8::Array> names = vars->GetPropertyNames();
     std::size_t a_length = names->Length();
     mapnik::transcoder tr("utf8");
     cont.reserve(a_length);
     for(std::size_t i=0; i < a_length; ++i) {
-        Local<Value> name = names->Get(i)->ToString();
-        Local<Value> value = vars->Get(name);
+        v8::Local<v8::Value> name = names->Get(i)->ToString();
+        v8::Local<v8::Value> value = vars->Get(name);
         if (value->IsBoolean()) {
             cont[TOSTR(name)] = value->ToBoolean()->Value();
         } else if (value->IsString()) {

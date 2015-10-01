@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.4.8
+
+ - Now supporting Node v4.x
+ - The `new mapnik.Palette` constructor no longer accepts a string - please pass a correctly encoded buffer.
+
 ## 3.4.7
 
  - Rebuilt with Mapnik 3.0.5
@@ -22,6 +27,9 @@ Notable Changes in Mapnik 3.0.5 Include:
 
 ## 3.4.6
 
+ - Enhanced `vtile.setData` and `vtile.getData` to have async signatures if callback passed as last argument.
+ - Enhanced `vtile.setData` to accept gzip and zlib compressed data.
+ - Enhanced `vtile.getData` to accept options to gzip compress data before returning buffer like `vtile.getData({compression:'gzip'})`
  - Rebuilt with 0.10.0 of Mapnik Vector Tile. This changes the way that `painted` method returns in `VectorTile` classes.
  - In `VectorTile` object `parse` is no longer required please consider it depreciated.
  - `VectorTile` now utilizes the protozero library for lower memory vector tile operations.

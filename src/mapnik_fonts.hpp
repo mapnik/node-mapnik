@@ -10,101 +10,96 @@
 
 #include "utils.hpp"
 
-using namespace v8;
+
 
 namespace node_mapnik {
 
 static inline NAN_METHOD(register_fonts)
 {
-    NanScope();
-
     try
     {
-        if (args.Length() == 0 || !args[0]->IsString())
+        if (info.Length() == 0 || !info[0]->IsString())
         {
-            NanThrowTypeError("first argument must be a path to a directory of fonts");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("first argument must be a path to a directory of fonts");
+            return;
         }
 
         bool found = false;
 
         // option hash
-        if (args.Length() >= 2)
+        if (info.Length() >= 2)
         {
-            if (!args[1]->IsObject())
+            if (!info[1]->IsObject())
             {
-                NanThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
+                return;
             }
 
-            Local<Object> options = args[1].As<Object>();
-            if (options->Has(NanNew("recurse")))
+            v8::Local<v8::Object> options = info[1].As<v8::Object>();
+            if (options->Has(Nan::New("recurse").ToLocalChecked()))
             {
-                Local<Value> recurse_opt = options->Get(NanNew("recurse"));
+                v8::Local<v8::Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
                 if (!recurse_opt->IsBoolean())
                 {
-                    NanThrowTypeError("'recurse' must be a Boolean");
-                    NanReturnUndefined();
+                    Nan::ThrowTypeError("'recurse' must be a Boolean");
+                    return;
                 }
 
                 bool recurse = recurse_opt->BooleanValue();
-                std::string path = TOSTR(args[0]);
+                std::string path = TOSTR(info[0]);
                 found = mapnik::freetype_engine::register_fonts(path,recurse);
             }
         }
         else
         {
-            std::string path = TOSTR(args[0]);
+            std::string path = TOSTR(info[0]);
             found = mapnik::freetype_engine::register_fonts(path);
         }
 
-        NanReturnValue(NanNew(found));
+        info.GetReturnValue().Set(Nan::New(found));
     }
     catch (std::exception const& ex)
     {
         // Does not appear that this line can ever be reached, not certain what would ever throw an exception
         /* LCOV_EXCL_START */
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
         /* LCOV_EXCL_END */
     }
 }
 
 static inline NAN_METHOD(available_font_faces)
 {
-    NanScope();
     auto const& names = mapnik::freetype_engine::face_names();
-    Local<Array> a = NanNew<Array>(names.size());
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, NanNew(names[i].c_str()));
+        a->Set(i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
     }
-    NanReturnValue(a);
+    info.GetReturnValue().Set(a);
 }
 
 static inline NAN_METHOD(memory_fonts)
 {
-    NanScope();
     auto const& font_cache = mapnik::freetype_engine::get_cache();
-    Local<Array> a = NanNew<Array>(font_cache.size());
+    v8::Local<v8::Array> a = Nan::New<v8::Array>(font_cache.size());
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        a->Set(i++, NanNew(kv.first.c_str()));
+        a->Set(i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
     }
-    NanReturnValue(a);
+    info.GetReturnValue().Set(a);
 }
 
 static inline NAN_METHOD(available_font_files)
 {
-    NanScope();
     auto const& mapping = mapnik::freetype_engine::get_mapping();
-    Local<Object> obj = NanNew<Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     for (auto const& kv : mapping)
     {
-        obj->Set(NanNew(kv.first.c_str()), NanNew(kv.second.second.c_str()));
+        obj->Set(Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
     }
-    NanReturnValue(obj);
+    info.GetReturnValue().Set(obj);
 }
 
 

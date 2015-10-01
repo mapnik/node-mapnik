@@ -13,14 +13,14 @@
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
 
-using namespace v8;
 
-class Feature: public node::ObjectWrap {
+
+class Feature: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
-    static Handle<Value> NewInstance(mapnik::feature_ptr f_ptr);
+    static v8::Local<v8::Value> NewInstance(mapnik::feature_ptr f_ptr);
     static NAN_METHOD(fromJSON);
     static NAN_METHOD(id);
     static NAN_METHOD(extent);

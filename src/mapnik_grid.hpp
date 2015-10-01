@@ -12,14 +12,14 @@
 #include <mapnik/grid/grid.hpp>
 #include <memory>
 
-using namespace v8;
+
 
 typedef std::shared_ptr<mapnik::grid> grid_ptr;
 
-class Grid: public node::ObjectWrap {
+class Grid: public Nan::ObjectWrap {
 public:
-    static Persistent<FunctionTemplate> constructor;
-    static void Initialize(Handle<Object> target);
+    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
 
     static NAN_METHOD(encodeSync);
@@ -33,7 +33,7 @@ public:
     static NAN_METHOD(width);
     static NAN_METHOD(height);
     static NAN_METHOD(painted);
-    static Local<Value> _clearSync(_NAN_METHOD_ARGS);
+    static v8::Local<v8::Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(clearSync);
     static NAN_METHOD(clear);
     static void EIO_Clear(uv_work_t* req);

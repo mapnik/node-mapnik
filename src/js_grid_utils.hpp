@@ -14,8 +14,8 @@
 
 #include <memory>
 
-using namespace v8;
-using namespace node;
+
+
 
 namespace node_mapnik {
 
@@ -85,10 +85,10 @@ static void grid2utf(T const& grid_type,
 
 template <typename T>
 static void write_features(T const& grid_type,
-                           Local<Object>& feature_data,
+                           v8::Local<v8::Object>& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    NanScope();
+    Nan::HandleScope scope;
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     if (g_features.size() <= 0)
     {
@@ -110,19 +110,19 @@ static void write_features(T const& grid_type,
         }
 
         bool found = false;
-        Local<Object> feat = NanNew<Object>();
+        v8::Local<v8::Object> feat = Nan::New<v8::Object>();
         mapnik::feature_ptr feature = feat_itr->second;
         for (std::string const& attr : attributes)
         {
             if (attr == "__id__")
             {
-                feat->Set(NanNew(attr.c_str()), NanNew<Number>(feature->id()));
+                feat->Set(Nan::New<v8::String>(attr).ToLocalChecked(), Nan::New<v8::Number>(feature->id()));
             }
             else if (feature->has_key(attr))
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
-                feat->Set(NanNew(attr.c_str()),
+                feat->Set(Nan::New<v8::String>(attr).ToLocalChecked(),
                     mapnik::util::apply_visitor(node_mapnik::value_converter(),
                     attr_val));
             }
@@ -130,7 +130,7 @@ static void write_features(T const& grid_type,
 
         if (found)
         {
-            feature_data->Set(NanNew(feat_itr->first.c_str()), feat);
+            feature_data->Set(Nan::New<v8::String>(feat_itr->first).ToLocalChecked(), feat);
         }
     }
 }

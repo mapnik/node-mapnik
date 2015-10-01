@@ -6,7 +6,7 @@
 #include <mapnik/projection.hpp>
 #include <sstream>
 
-Persistent<FunctionTemplate> Projection::constructor;
+Nan::Persistent<v8::FunctionTemplate> Projection::constructor;
 
 /**
  * A geographical projection: this class makes it possible to translate between
@@ -23,71 +23,57 @@ Persistent<FunctionTemplate> Projection::constructor;
  * @example
  * var wgs84 = new mapnik.Projection('+init=epsg:4326');
  */
-void Projection::Initialize(Handle<Object> target) {
+void Projection::Initialize(v8::Local<v8::Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Projection::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Projection::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Projection"));
+    lcons->SetClassName(Nan::New("Projection").ToLocalChecked());
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "forward", forward);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "inverse", inverse);
+    Nan::SetPrototypeMethod(lcons, "forward", forward);
+    Nan::SetPrototypeMethod(lcons, "inverse", inverse);
 
-    target->Set(NanNew("Projection"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Projection").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 Projection::Projection(std::string const& name, bool defer_init) :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     projection_(std::make_shared<mapnik::projection>(name, defer_init)) {}
 
 Projection::~Projection()
 {
 }
 
-bool Projection::HasInstance(Handle<Value> val)
-{
-    NanScope();
-    if (!val->IsObject()) return false;
-    Handle<Object> obj = val.As<Object>();
-
-    if (NanNew(constructor)->HasInstance(obj))
-        return true;
-
-    return false;
-}
-
 NAN_METHOD(Projection::New)
 {
-    NanScope();
-
-    if (!args.IsConstructCall())
+    if (!info.IsConstructCall())
     {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
-    if (args.Length() <= 0 || !args[0]->IsString()) {
-        NanThrowTypeError("please provide a proj4 intialization string");
-        NanReturnUndefined();
+    if (info.Length() <= 0 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("please provide a proj4 intialization string");
+        return;
     }
     bool lazy = false;
-    if (args.Length() >= 2)
+    if (info.Length() >= 2)
     {
-        if (!args[1]->IsObject())
+        if (!info[1]->IsObject())
         {
-            NanThrowTypeError("The second parameter provided should be an options object");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("The second parameter provided should be an options object");
+            return;
         }
-        Local<Object> options = args[1].As<Object>();
-        if (options->Has(NanNew("lazy")))
+        v8::Local<v8::Object> options = info[1].As<v8::Object>();
+        if (options->Has(Nan::New("lazy").ToLocalChecked()))
         {
-            Local<Value> lazy_opt = options->Get(NanNew("lazy"));
+            v8::Local<v8::Value> lazy_opt = options->Get(Nan::New("lazy").ToLocalChecked());
             if (!lazy_opt->IsBoolean())
             {
-                NanThrowTypeError("'lazy' must be a Boolean");
-                NanReturnUndefined();
+                Nan::ThrowTypeError("'lazy' must be a Boolean");
+                return;
             }
             lazy = lazy_opt->BooleanValue();
         }
@@ -95,14 +81,15 @@ NAN_METHOD(Projection::New)
             
     try
     {
-        Projection* p = new Projection(TOSTR(args[0]), lazy);
-        p->Wrap(args.This());
-        NanReturnValue(args.This());
+        Projection* p = new Projection(TOSTR(info[0]), lazy);
+        p->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 }
 
@@ -112,8 +99,8 @@ NAN_METHOD(Projection::New)
  * @name forward
  * @memberof mapnik.Projection
  * @instance
- * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
- * @returns {Array<number>} projected coordinates
+ * @param {v8::Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {v8::Array<number>} projected coordinates
  * @example
  * var merc = new mapnik.Projection('+init=epsg:3857');
  * var long_lat_coords = [-122.33517, 47.63752];
@@ -121,30 +108,29 @@ NAN_METHOD(Projection::New)
  */
 NAN_METHOD(Projection::forward)
 {
-    NanScope();
-    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.Holder());
+    Projection* p = Nan::ObjectWrap::Unwrap<Projection>(info.Holder());
 
     try
     {
-        if (args.Length() != 1) {
-            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+        if (info.Length() != 1) {
+            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            return;
         } else {
-            if (!args[0]->IsArray()) {
-                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                NanReturnUndefined();
+            if (!info[0]->IsArray()) {
+                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                return;
             }
-            Local<Array> a = args[0].As<Array>();
+            v8::Local<v8::Array> a = info[0].As<v8::Array>();
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
                 double x = a->Get(0)->NumberValue();
                 double y = a->Get(1)->NumberValue();
                 p->projection_->forward(x,y);
-                Local<Array> arr = NanNew<Array>(2);
-                arr->Set(0, NanNew(x));
-                arr->Set(1, NanNew(y));
-                NanReturnValue(arr);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
+                arr->Set(0, Nan::New(x));
+                arr->Set(1, Nan::New(y));
+                info.GetReturnValue().Set(arr);
             }
             else if (array_length == 4)
             {
@@ -157,22 +143,22 @@ NAN_METHOD(Projection::forward)
                 p->projection_->forward(urx,ury);
                 p->projection_->forward(lrx,lry);
                 p->projection_->forward(llx,lly);
-                Local<Array> arr = NanNew<Array>(4);
-                arr->Set(0, NanNew(std::min(ulx,llx)));
-                arr->Set(1, NanNew(std::min(lry,lly)));
-                arr->Set(2, NanNew(std::max(urx,lrx)));
-                arr->Set(3, NanNew(std::max(ury,uly)));
-                NanReturnValue(arr);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+                arr->Set(0, Nan::New(std::min(ulx,llx)));
+                arr->Set(1, Nan::New(std::min(lry,lly)));
+                arr->Set(2, Nan::New(std::max(urx,lrx)));
+                arr->Set(3, Nan::New(std::max(ury,uly)));
+                info.GetReturnValue().Set(arr);
             }
             else
             {
-                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                NanReturnUndefined();
+                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                return;
             }
         }
     } catch (std::exception const & ex) {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 }
 
@@ -183,35 +169,34 @@ NAN_METHOD(Projection::forward)
  * @name inverse
  * @memberof mapnik.Projection
  * @instance
- * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
- * @returns {Array<number>} unprojected coordinates
+ * @param {v8::Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
+ * @returns {v8::Array<number>} unprojected coordinates
  */
 NAN_METHOD(Projection::inverse)
 {
-    NanScope();
-    Projection* p = node::ObjectWrap::Unwrap<Projection>(args.Holder());
+    Projection* p = Nan::ObjectWrap::Unwrap<Projection>(info.Holder());
 
     try
     {
-        if (args.Length() != 1) {
-            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+        if (info.Length() != 1) {
+            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            return;
         } else {
-            if (!args[0]->IsArray()) {
-                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                NanReturnUndefined();
+            if (!info[0]->IsArray()) {
+                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                return;
             }
-            Local<Array> a = args[0].As<Array>();
+            v8::Local<v8::Array> a = info[0].As<v8::Array>();
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
                 double x = a->Get(0)->NumberValue();
                 double y = a->Get(1)->NumberValue();
                 p->projection_->inverse(x,y);
-                Local<Array> arr = NanNew<Array>(2);
-                arr->Set(0, NanNew(x));
-                arr->Set(1, NanNew(y));
-                NanReturnValue(arr);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
+                arr->Set(0, Nan::New(x));
+                arr->Set(1, Nan::New(y));
+                info.GetReturnValue().Set(arr);
             }
             else if (array_length == 4)
             {
@@ -221,45 +206,45 @@ NAN_METHOD(Projection::inverse)
                 double maxy = a->Get(3)->NumberValue();
                 p->projection_->inverse(minx,miny);
                 p->projection_->inverse(maxx,maxy);
-                Local<Array> arr = NanNew<Array>(4);
-                arr->Set(0, NanNew(minx));
-                arr->Set(1, NanNew(miny));
-                arr->Set(2, NanNew(maxx));
-                arr->Set(3, NanNew(maxy));
-                NanReturnValue(arr);
+                v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+                arr->Set(0, Nan::New(minx));
+                arr->Set(1, Nan::New(miny));
+                arr->Set(2, Nan::New(maxx));
+                arr->Set(3, Nan::New(maxy));
+                info.GetReturnValue().Set(arr);
             }
             else
             {
-                NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                NanReturnUndefined();
+                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+                return;
             }
         }
     } catch (std::exception const & ex) {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 }
 
-Persistent<FunctionTemplate> ProjTransform::constructor;
+Nan::Persistent<v8::FunctionTemplate> ProjTransform::constructor;
 
-void ProjTransform::Initialize(Handle<Object> target) {
+void ProjTransform::Initialize(v8::Local<v8::Object> target) {
 
-    NanScope();
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(ProjTransform::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(ProjTransform::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("ProjTransform"));
+    lcons->SetClassName(Nan::New("ProjTransform").ToLocalChecked());
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "forward", forward);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "backward", backward);
+    Nan::SetPrototypeMethod(lcons, "forward", forward);
+    Nan::SetPrototypeMethod(lcons, "backward", backward);
 
-    target->Set(NanNew("ProjTransform"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("ProjTransform").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 ProjTransform::ProjTransform(mapnik::projection const& src,
                              mapnik::projection const& dest) :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     this_(std::make_shared<mapnik::proj_transform>(src,dest)) {}
 
 ProjTransform::~ProjTransform()
@@ -268,60 +253,58 @@ ProjTransform::~ProjTransform()
 
 NAN_METHOD(ProjTransform::New)
 {
-    NanScope();
-    if (!args.IsConstructCall()) {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+    if (!info.IsConstructCall()) {
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
-    if (args.Length() != 2 || !args[0]->IsObject()  || !args[1]->IsObject()) {
-        NanThrowTypeError("please provide two arguments: a pair of mapnik.Projection objects");
-        NanReturnUndefined();
+    if (info.Length() != 2 || !info[0]->IsObject()  || !info[1]->IsObject()) {
+        Nan::ThrowTypeError("please provide two arguments: a pair of mapnik.Projection objects");
+        return;
     }
 
-    Local<Object> src_obj = args[0].As<Object>();
-    if (src_obj->IsNull() || src_obj->IsUndefined() || !Projection::HasInstance(src_obj)) {
-        NanThrowTypeError("mapnik.Projection expected for first argument");
-        NanReturnUndefined();
+    v8::Local<v8::Object> src_obj = info[0].As<v8::Object>();
+    if (src_obj->IsNull() || src_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(src_obj)) {
+        Nan::ThrowTypeError("mapnik.Projection expected for first argument");
+        return;
     }
 
-    Local<Object> dest_obj = args[1].As<Object>();
-    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Projection::HasInstance(dest_obj)) {
-        NanThrowTypeError("mapnik.Projection expected for second argument");
-        NanReturnUndefined();
+    v8::Local<v8::Object> dest_obj = info[1].As<v8::Object>();
+    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(dest_obj)) {
+        Nan::ThrowTypeError("mapnik.Projection expected for second argument");
+        return;
     }
 
-    Projection *p1 = node::ObjectWrap::Unwrap<Projection>(src_obj);
-    Projection *p2 = node::ObjectWrap::Unwrap<Projection>(dest_obj);
+    Projection *p1 = Nan::ObjectWrap::Unwrap<Projection>(src_obj);
+    Projection *p2 = Nan::ObjectWrap::Unwrap<Projection>(dest_obj);
 
     try
     {
         ProjTransform* p = new ProjTransform(*p1->get(),*p2->get());
-        p->Wrap(args.This());
-        NanReturnValue(args.This());
+        p->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 }
 
 NAN_METHOD(ProjTransform::forward)
 {
-    NanScope();
-    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.Holder());
+    ProjTransform* p = Nan::ObjectWrap::Unwrap<ProjTransform>(info.Holder());
 
-    if (args.Length() != 1) {
-        NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-        NanReturnUndefined();
+    if (info.Length() != 1) {
+        Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+        return;
     } else {
-        if (!args[0]->IsArray()) {
-            NanThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+        if (!info[0]->IsArray()) {
+            Nan::ThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            return;
         }
 
-        Local<Array> a = args[0].As<Array>();
+        v8::Local<v8::Array> a = info[0].As<v8::Array>();
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
@@ -333,14 +316,14 @@ NAN_METHOD(ProjTransform::forward)
                 std::ostringstream s;
                 s << "Failed to forward project "
                   << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                NanThrowError(s.str().c_str());
-                NanReturnUndefined();
+                Nan::ThrowError(s.str().c_str());
+                return;
 
             }
-            Local<Array> arr = NanNew<Array>(2);
-            arr->Set(0, NanNew(x));
-            arr->Set(1, NanNew(y));
-            NanReturnValue(arr);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
+            arr->Set(0, Nan::New(x));
+            arr->Set(1, Nan::New(y));
+            info.GetReturnValue().Set(arr);
         }
         else if (array_length == 4)
         {
@@ -353,40 +336,39 @@ NAN_METHOD(ProjTransform::forward)
                 std::ostringstream s;
                 s << "Failed to forward project "
                   << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                NanThrowError(s.str().c_str());
-                NanReturnUndefined();
+                Nan::ThrowError(s.str().c_str());
+                return;
             }
-            Local<Array> arr = NanNew<Array>(4);
-            arr->Set(0, NanNew(box.minx()));
-            arr->Set(1, NanNew(box.miny()));
-            arr->Set(2, NanNew(box.maxx()));
-            arr->Set(3, NanNew(box.maxy()));
-            NanReturnValue(arr);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+            arr->Set(0, Nan::New(box.minx()));
+            arr->Set(1, Nan::New(box.miny()));
+            arr->Set(2, Nan::New(box.maxx()));
+            arr->Set(3, Nan::New(box.maxy()));
+            info.GetReturnValue().Set(arr);
         }
         else
         {
-            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            return;
         }
     }
 }
 
 NAN_METHOD(ProjTransform::backward)
 {
-    NanScope();
-    ProjTransform* p = node::ObjectWrap::Unwrap<ProjTransform>(args.Holder());
+    ProjTransform* p = Nan::ObjectWrap::Unwrap<ProjTransform>(info.Holder());
 
-    if (args.Length() != 1) {
-        NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-        NanReturnUndefined();
+    if (info.Length() != 1) {
+        Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+        return;
     } else {
-        if (!args[0]->IsArray())
+        if (!info[0]->IsArray())
         {
-            NanThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+            Nan::ThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            return;
         }
 
-        Local<Array> a = args[0].As<Array>();
+        v8::Local<v8::Array> a = info[0].As<v8::Array>();
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
@@ -398,13 +380,13 @@ NAN_METHOD(ProjTransform::backward)
                 std::ostringstream s;
                 s << "Failed to back project "
                   << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
-                NanThrowError(s.str().c_str());
-                NanReturnUndefined();
+                Nan::ThrowError(s.str().c_str());
+                return;
             }
-            Local<Array> arr = NanNew<Array>(2);
-            arr->Set(0, NanNew(x));
-            arr->Set(1, NanNew(y));
-            NanReturnValue(arr);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
+            arr->Set(0, Nan::New(x));
+            arr->Set(1, Nan::New(y));
+            info.GetReturnValue().Set(arr);
         }
         else if (array_length == 4)
         {
@@ -417,20 +399,20 @@ NAN_METHOD(ProjTransform::backward)
                 std::ostringstream s;
                 s << "Failed to back project "
                   << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                NanThrowError(s.str().c_str());
-                NanReturnUndefined();
+                Nan::ThrowError(s.str().c_str());
+                return;
             }
-            Local<Array> arr = NanNew<Array>(4);
-            arr->Set(0, NanNew(box.minx()));
-            arr->Set(1, NanNew(box.miny()));
-            arr->Set(2, NanNew(box.maxx()));
-            arr->Set(3, NanNew(box.maxy()));
-            NanReturnValue(arr);
+            v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+            arr->Set(0, Nan::New(box.minx()));
+            arr->Set(1, Nan::New(box.miny()));
+            arr->Set(2, Nan::New(box.maxx()));
+            arr->Set(3, Nan::New(box.maxy()));
+            info.GetReturnValue().Set(arr);
         }
         else
         {
-            NanThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            NanReturnUndefined();
+            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
+            return;
         }
     }
 }

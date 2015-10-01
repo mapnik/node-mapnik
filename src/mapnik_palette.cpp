@@ -6,81 +6,87 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
-Persistent<FunctionTemplate> Palette::constructor;
+Nan::Persistent<v8::FunctionTemplate> Palette::constructor;
 
-void Palette::Initialize(Handle<Object> target) {
-    NanScope();
+void Palette::Initialize(v8::Local<v8::Object> target) {
+    Nan::HandleScope scope;
 
-    Local<FunctionTemplate> lcons = NanNew<FunctionTemplate>(Palette::New);
+    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Palette::New);
     lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(NanNew("Palette"));
+    lcons->SetClassName(Nan::New("Palette").ToLocalChecked());
 
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toString", ToString);
-    NODE_SET_PROTOTYPE_METHOD(lcons, "toBuffer", ToBuffer);
+    Nan::SetPrototypeMethod(lcons, "toString", ToString);
+    Nan::SetPrototypeMethod(lcons, "toBuffer", ToBuffer);
 
-    target->Set(NanNew("Palette"), lcons->GetFunction());
-    NanAssignPersistent(constructor, lcons);
+    target->Set(Nan::New("Palette").ToLocalChecked(), lcons->GetFunction());
+    constructor.Reset(lcons);
 }
 
 Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
-    node::ObjectWrap(),
+    Nan::ObjectWrap(),
     palette_(std::make_shared<mapnik::rgba_palette>(palette, type)) {}
 
 Palette::~Palette() {
 }
 
 NAN_METHOD(Palette::New) {
-    NanScope();
-
-    if (!args.IsConstructCall()) {
-        NanThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        NanReturnUndefined();
+    if (!info.IsConstructCall()) {
+        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
     }
 
     std::string palette;
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
-    if (args.Length() >= 1) {
-        if (args[0]->IsString()) {
-            NanAsciiString nan_string(args[0]);
-            palette = std::string(*nan_string,nan_string.length());
-        }
-        else if (node::Buffer::HasInstance(args[0])) {
-            Local<Object> obj = args[0].As<Object>();
+    if (info.Length() >= 1) {
+        if (node::Buffer::HasInstance(info[0])) {
+            v8::Local<v8::Object> obj = info[0].As<v8::Object>();
             palette = std::string(node::Buffer::Data(obj), node::Buffer::Length(obj));
         }
     }
-    if (args.Length() >= 2) {
-        if (args[1]->IsString()) {
-            std::string obj = std::string(TOSTR(args[1]));
-            if (obj == "rgb") type = mapnik::rgba_palette::PALETTE_RGB;
-            else if (obj == "act") type = mapnik::rgba_palette::PALETTE_ACT;
+    if (info.Length() >= 2) {
+        if (info[1]->IsString()) {
+            std::string obj = TOSTR(info[1]);
+            if (obj == "rgb")
+            {
+                type = mapnik::rgba_palette::PALETTE_RGB;
+            }
+            else if (obj == "act")
+            {
+                type = mapnik::rgba_palette::PALETTE_ACT;
+            }
+            else
+            {
+                Nan::ThrowTypeError((std::string("unknown palette type: ") + obj).c_str());
+                return;
+            }
         }
     }
 
-    if (!palette.length()) {
-        NanThrowTypeError("First parameter must be a palette string");
-        NanReturnUndefined();
+    if (palette.empty()) {
+        Nan::ThrowTypeError("First parameter must be a palette string");
+        return;
     }
 
     try
     {
 
         Palette* p = new Palette(palette, type);
-        p->Wrap(args.This());
-        NanReturnValue(args.This());
+        p->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+        return;
     }
     catch (std::exception const& ex)
     {
-        NanThrowError(ex.what());
-        NanReturnUndefined();
+        Nan::ThrowError(ex.what());
+        return;
     }
 }
 
 NAN_METHOD(Palette::ToString)
 {
-    NanScope();
-    palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.Holder())->palette_;
+    palette_ptr p = Nan::ObjectWrap::Unwrap<Palette>(info.Holder())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     std::size_t length = colors.size();
@@ -103,14 +109,12 @@ NAN_METHOD(Palette::ToString)
     }
 
     str << "]";
-    NanReturnValue(NanNew(str.str().c_str()));
+    info.GetReturnValue().Set(Nan::New<v8::String>(str.str()).ToLocalChecked());
 }
 
 NAN_METHOD(Palette::ToBuffer)
 {
-    NanScope();
-
-    palette_ptr p = node::ObjectWrap::Unwrap<Palette>(args.Holder())->palette_;
+    palette_ptr p = Nan::ObjectWrap::Unwrap<Palette>(info.Holder())->palette_;
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     std::size_t length = colors.size();
@@ -124,5 +128,5 @@ NAN_METHOD(Palette::ToBuffer)
         palette[pos++] = colors[i].b;
         palette[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
     }
-    NanReturnValue(NanNewBufferHandle(palette, length * 4));
+    info.GetReturnValue().Set(Nan::CopyBuffer(palette, length * 4).ToLocalChecked());
 }
