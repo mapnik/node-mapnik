@@ -3859,12 +3859,8 @@ Local<Value> VectorTile::_isSimpleSync(_NAN_METHOD_ARGS)
     }
     catch (std::exception const& ex)
     {
-        // There is a chance of this throwing an error, however, only in the situation such that there
-        // is an illegal command within the vector tile or some strange boost geometry error
-        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
-        // LCOV_EXCL_END
     }
     return NanEscapeScope(NanUndefined());
 }
@@ -3879,12 +3875,8 @@ Local<Value> VectorTile::_isValidSync(_NAN_METHOD_ARGS)
     }
     catch (std::exception const& ex)
     {
-        // There is a chance of this throwing an error, however, only in the situation such that there
-        // is an illegal command within the vector tile or some strange boost geometry error
-        // LCOV_EXCL_START
         NanThrowError(ex.what());
         return NanEscapeScope(NanUndefined());
-        // LCOV_EXCL_END
     }
     return NanEscapeScope(NanUndefined());
 }
@@ -3929,12 +3921,8 @@ void VectorTile::EIO_IsSimple(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
-        // There are currently no known ways to trigger this exception in testing. If it was
-        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
-        // LCOV_EXCL_START
         closure->error = true;
         closure->err_msg = ex.what();
-        // LCOV_EXCL_END
     }
 }
 
@@ -3944,12 +3932,8 @@ void VectorTile::EIO_AfterIsSimple(uv_work_t* req)
     is_simple_baton *closure = static_cast<is_simple_baton *>(req->data);
     if (closure->error)
     {
-        // Because there are no known ways to trigger the exception path in to vector_tile_is_simple
-        // there is no easy way to test this path currently
-        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->err_msg.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
-        // LCOV_EXCL_END
     }
     else
     {
@@ -4001,12 +3985,8 @@ void VectorTile::EIO_IsValid(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
-        // There are currently no known ways to trigger this exception in testing. If it was
-        // triggered this would likely be a bug in either mapnik or mapnik-vector-tile.
-        // LCOV_EXCL_START
         closure->error = true;
         closure->err_msg = ex.what();
-        // LCOV_EXCL_END
     }
 }
 
@@ -4016,12 +3996,8 @@ void VectorTile::EIO_AfterIsValid(uv_work_t* req)
     is_valid_baton *closure = static_cast<is_valid_baton *>(req->data);
     if (closure->error)
     {
-        // Because there are no known ways to trigger the exception path in to vector_tile_is_valid
-        // there is no easy way to test this path currently
-        // LCOV_EXCL_START
         Local<Value> argv[1] = { NanError(closure->err_msg.c_str()) };
         NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(closure->cb), 1, argv);
-        // LCOV_EXCL_END
     }
     else
     {
