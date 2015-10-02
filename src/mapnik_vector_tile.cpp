@@ -3688,12 +3688,13 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
 #if BOOST_VERSION >= 105600
 
 // This method checks if a vector tile is simple
-static bool layer_is_simple(vector_tile::Tile_Layer const& layer,
+static unsigned layer_is_simple(vector_tile::Tile_Layer const& layer,
                            unsigned x,
                            unsigned y,
                            unsigned z,
                            unsigned width)
 {
+    unsigned count = 0;
     mapnik::vector_tile_impl::tile_datasource ds(layer,
                                                  x,
                                                  y,
@@ -3713,20 +3714,21 @@ static bool layer_is_simple(vector_tile::Tile_Layer const& layer,
         {
             if (!mapnik::geometry::is_simple(feature->get_geometry()))
             {
-                return false;
+                count++;
             }
         }
     }
-    return true;
+    return count;
 }
 
 // Checks that a layer is valid (which should imply it is simple)
-static bool layer_is_valid(vector_tile::Tile_Layer const& layer,
+static unsigned layer_is_valid(vector_tile::Tile_Layer const& layer,
                            unsigned x,
                            unsigned y,
                            unsigned z,
                            unsigned width)
 {
+    unsigned count = 0;
     mapnik::vector_tile_impl::tile_datasource ds(layer,
                                                  x,
                                                  y,
@@ -3746,48 +3748,44 @@ static bool layer_is_valid(vector_tile::Tile_Layer const& layer,
         {
             if (!mapnik::geometry::is_valid(feature->get_geometry()))
             {
-                return false;
+                count++;
             }
         }
     }
-    return true;
+    return count;
 }
 
-bool vector_tile_is_simple(VectorTile * v)
+unsigned vector_tile_is_simple(VectorTile * v)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
+    unsigned count = 0;
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        if (!layer_is_simple(layer,v->x_,v->y_,v->z_,v->width()))
-        {
-            return false;
-        }
+        count += layer_is_simple(layer,v->x_,v->y_,v->z_,v->width());
     }
-    return true;
+    return count;
 }
 
-bool vector_tile_is_valid(VectorTile * v)
+unsigned vector_tile_is_valid(VectorTile * v)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
+    unsigned count = 0;
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        if (!layer_is_valid(layer,v->x_,v->y_,v->z_,v->width()))
-        {
-            return false;
-        }
+        count += layer_is_valid(layer,v->x_,v->y_,v->z_,v->width());
     }
-    return true;
+    return count;
 }
 
 struct is_simple_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
-    bool result;
+    unsigned result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
 };
@@ -3796,7 +3794,7 @@ struct is_valid_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
-    bool result;
+    unsigned result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
 };
@@ -3807,7 +3805,7 @@ struct is_valid_baton {
  * @memberof mapnik.VectorTile
  * @name isSimpleSync
  * @instance
- * @returns {boolean} whether the tile is simple
+ * @returns {number} number of features that are not simple 
  */
 NAN_METHOD(VectorTile::isSimpleSync)
 {
@@ -3820,12 +3818,11 @@ v8::Local<v8::Value> VectorTile::_isSimpleSync(Nan::NAN_METHOD_ARGS_TYPE info)
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
-        return scope.Escape(Nan::New<v8::Boolean>(vector_tile_is_simple(d)));
+        return scope.Escape(Nan::New<v8::Number>(vector_tile_is_simple(d)));
     }
     catch (std::exception const& ex)
     {
         Nan::ThrowError(ex.what());
-        return scope.Escape(Nan::Undefined());
     }
     return scope.Escape(Nan::Undefined());
 }
@@ -3836,7 +3833,7 @@ v8::Local<v8::Value> VectorTile::_isSimpleSync(Nan::NAN_METHOD_ARGS_TYPE info)
  * @memberof mapnik.VectorTile
  * @name isValidSync
  * @instance
- * @returns {boolean} whether the tile is valid
+ * @returns {number} number of features that are not valid
  */
 NAN_METHOD(VectorTile::isValidSync)
 {
@@ -3849,12 +3846,11 @@ v8::Local<v8::Value> VectorTile::_isValidSync(Nan::NAN_METHOD_ARGS_TYPE info)
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
-        return scope.Escape(Nan::New<v8::Boolean>(vector_tile_is_valid(d)));
+        return scope.Escape(Nan::New<v8::Number>(vector_tile_is_valid(d)));
     }
     catch (std::exception const& ex)
     {
         Nan::ThrowError(ex.what());
-        return scope.Escape(Nan::Undefined());
     }
     return scope.Escape(Nan::Undefined());
 }
@@ -3884,7 +3880,7 @@ NAN_METHOD(VectorTile::isSimple)
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
-    closure->result = true;
+    closure->result = 0;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSimple, (uv_after_work_cb)EIO_AfterIsSimple);
     closure->v->Ref();
@@ -3917,7 +3913,7 @@ void VectorTile::EIO_AfterIsSimple(uv_work_t* req)
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(),
-                                 Nan::New<v8::Boolean>(closure->result)
+                                 Nan::New<v8::Number>(closure->result)
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
@@ -3951,7 +3947,7 @@ NAN_METHOD(VectorTile::isValid)
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
-    closure->result = true;
+    closure->result = 0;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_IsValid, (uv_after_work_cb)EIO_AfterIsValid);
     closure->v->Ref();
@@ -3984,7 +3980,7 @@ void VectorTile::EIO_AfterIsValid(uv_work_t* req)
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(),
-                                 Nan::New<v8::Boolean>(closure->result)
+                                 Nan::New<v8::Number>(closure->result)
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
