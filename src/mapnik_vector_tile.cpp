@@ -318,10 +318,10 @@ void VectorTile::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "addGeoJSON", addGeoJSON);
     Nan::SetPrototypeMethod(lcons, "addImage", addImage);
 #if BOOST_VERSION >= 105600
-    Nan::SetPrototypeMethod(lcons, "isSimple", isSimple);
-    Nan::SetPrototypeMethod(lcons, "isSimpleSync", isSimpleSync);
-    Nan::SetPrototypeMethod(lcons, "isValid", isValid);
-    Nan::SetPrototypeMethod(lcons, "isValidSync", isValidSync);
+    Nan::SetPrototypeMethod(lcons, "notSimpleGeomCount", notSimpleGeomCount);
+    Nan::SetPrototypeMethod(lcons, "notSimpleGeomCountSync", notSimpleGeomCountSync);
+    Nan::SetPrototypeMethod(lcons, "notValidGeomCount", notValidGeomCount);
+    Nan::SetPrototypeMethod(lcons, "notValidGeomCountSync", notValidGeomCountSync);
 #endif // BOOST_VERSION >= 105600
 
     // common to mapnik.Image
@@ -3687,8 +3687,7 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
 
 #if BOOST_VERSION >= 105600
 
-// This method checks if a vector tile is simple
-static unsigned layer_is_simple(vector_tile::Tile_Layer const& layer,
+static unsigned layer_not_simple_count(vector_tile::Tile_Layer const& layer,
                            unsigned x,
                            unsigned y,
                            unsigned z,
@@ -3721,8 +3720,7 @@ static unsigned layer_is_simple(vector_tile::Tile_Layer const& layer,
     return count;
 }
 
-// Checks that a layer is valid (which should imply it is simple)
-static unsigned layer_is_valid(vector_tile::Tile_Layer const& layer,
+static unsigned layer_not_valid_count(vector_tile::Tile_Layer const& layer,
                            unsigned x,
                            unsigned y,
                            unsigned z,
@@ -3755,7 +3753,7 @@ static unsigned layer_is_valid(vector_tile::Tile_Layer const& layer,
     return count;
 }
 
-unsigned vector_tile_is_simple(VectorTile * v)
+unsigned vector_tile_not_simple_count(VectorTile * v)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
@@ -3763,12 +3761,12 @@ unsigned vector_tile_is_simple(VectorTile * v)
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        count += layer_is_simple(layer,v->x_,v->y_,v->z_,v->width());
+        count += layer_not_simple_count(layer,v->x_,v->y_,v->z_,v->width());
     }
     return count;
 }
 
-unsigned vector_tile_is_valid(VectorTile * v)
+unsigned vector_tile_not_valid_count(VectorTile * v)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
@@ -3776,12 +3774,12 @@ unsigned vector_tile_is_valid(VectorTile * v)
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        count += layer_is_valid(layer,v->x_,v->y_,v->z_,v->width());
+        count += layer_not_valid_count(layer,v->x_,v->y_,v->z_,v->width());
     }
     return count;
 }
 
-struct is_simple_baton {
+struct not_simple_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
@@ -3790,7 +3788,7 @@ struct is_simple_baton {
     Nan::Persistent<v8::Function> cb;
 };
 
-struct is_valid_baton {
+struct not_valid_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
@@ -3800,25 +3798,25 @@ struct is_valid_baton {
 };
 
 /**
- * Test whether this tile geometry is simple
+ * Count the number of geometries that are not OGC simple
  *
  * @memberof mapnik.VectorTile
- * @name isSimpleSync
+ * @name notSimpleGeomCountSync
  * @instance
  * @returns {number} number of features that are not simple 
  */
-NAN_METHOD(VectorTile::isSimpleSync)
+NAN_METHOD(VectorTile::notSimpleGeomCountSync)
 {
-    info.GetReturnValue().Set(_isSimpleSync(info));
+    info.GetReturnValue().Set(_notSimpleGeomCountSync(info));
 }
 
-v8::Local<v8::Value> VectorTile::_isSimpleSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_notSimpleGeomCountSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
-        return scope.Escape(Nan::New<v8::Number>(vector_tile_is_simple(d)));
+        return scope.Escape(Nan::New<v8::Number>(vector_tile_not_simple_count(d)));
     }
     catch (std::exception const& ex)
     {
@@ -3828,25 +3826,25 @@ v8::Local<v8::Value> VectorTile::_isSimpleSync(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 /**
- * Test whether this tile's geometry is valid
+ * Count the number of geometries that are not OGC valid
  *
  * @memberof mapnik.VectorTile
- * @name isValidSync
+ * @name notValidGeomCountSync
  * @instance
  * @returns {number} number of features that are not valid
  */
-NAN_METHOD(VectorTile::isValidSync)
+NAN_METHOD(VectorTile::notValidGeomCountSync)
 {
-    info.GetReturnValue().Set(_isValidSync(info));
+    info.GetReturnValue().Set(_notValidGeomCountSync(info));
 }
 
-v8::Local<v8::Value> VectorTile::_isValidSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_notValidGeomCountSync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
-        return scope.Escape(Nan::New<v8::Number>(vector_tile_is_valid(d)));
+        return scope.Escape(Nan::New<v8::Number>(vector_tile_not_valid_count(d)));
     }
     catch (std::exception const& ex)
     {
@@ -3856,17 +3854,17 @@ v8::Local<v8::Value> VectorTile::_isValidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 /**
- * Validate that the geometry in a tile is simple
+ * Count the number of non OGC simple geometries
  *
  * @memberof mapnik.VectorTile
- * @name isSimple
+ * @name notSimpleGeomCount
  * @instance
  * @param {Function} callback
  */
-NAN_METHOD(VectorTile::isSimple)
+NAN_METHOD(VectorTile::notSimpleGeomCount)
 {
     if (info.Length() == 0) {
-        info.GetReturnValue().Set(_isSimpleSync(info));
+        info.GetReturnValue().Set(_notSimpleGeomCountSync(info));
         return;
     }
     // ensure callback is a function
@@ -3876,23 +3874,23 @@ NAN_METHOD(VectorTile::isSimple)
         return;
     }
 
-    is_simple_baton *closure = new is_simple_baton();
+    not_simple_baton *closure = new not_simple_baton();
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->result = 0;
     closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSimple, (uv_after_work_cb)EIO_AfterIsSimple);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_NotSimpleGeomCount, (uv_after_work_cb)EIO_AfterNotSimpleGeomCount);
     closure->v->Ref();
     return;
 }
 
-void VectorTile::EIO_IsSimple(uv_work_t* req)
+void VectorTile::EIO_NotSimpleGeomCount(uv_work_t* req)
 {
-    is_simple_baton *closure = static_cast<is_simple_baton *>(req->data);
+    not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
     try
     {
-        closure->result = vector_tile_is_simple(closure->v);
+        closure->result = vector_tile_not_simple_count(closure->v);
     }
     catch (std::exception const& ex)
     {
@@ -3901,10 +3899,10 @@ void VectorTile::EIO_IsSimple(uv_work_t* req)
     }
 }
 
-void VectorTile::EIO_AfterIsSimple(uv_work_t* req)
+void VectorTile::EIO_AfterNotSimpleGeomCount(uv_work_t* req)
 {
     Nan::HandleScope scope;
-    is_simple_baton *closure = static_cast<is_simple_baton *>(req->data);
+    not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
     if (closure->error) 
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
@@ -3923,17 +3921,17 @@ void VectorTile::EIO_AfterIsSimple(uv_work_t* req)
 }
 
 /**
- * Validate that the geometry in a tile is OGC valid
+ * Count the number of non OGC valid geometries
  *
  * @memberof mapnik.VectorTile
- * @name isValid
+ * @name notValidGeomCount
  * @instance
  * @param {Function} callback
  */
-NAN_METHOD(VectorTile::isValid)
+NAN_METHOD(VectorTile::notValidGeomCount)
 {
     if (info.Length() == 0) {
-        info.GetReturnValue().Set(_isValidSync(info));
+        info.GetReturnValue().Set(_notValidGeomCountSync(info));
         return;
     }
     // ensure callback is a function
@@ -3943,23 +3941,23 @@ NAN_METHOD(VectorTile::isValid)
         return;
     }
 
-    is_valid_baton *closure = new is_valid_baton();
+    not_valid_baton *closure = new not_valid_baton();
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->result = 0;
     closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsValid, (uv_after_work_cb)EIO_AfterIsValid);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_NotValidGeomCount, (uv_after_work_cb)EIO_AfterNotValidGeomCount);
     closure->v->Ref();
     return;
 }
 
-void VectorTile::EIO_IsValid(uv_work_t* req)
+void VectorTile::EIO_NotValidGeomCount(uv_work_t* req)
 {
-    is_valid_baton *closure = static_cast<is_valid_baton *>(req->data);
+    not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     try
     {
-        closure->result = vector_tile_is_valid(closure->v);
+        closure->result = vector_tile_not_valid_count(closure->v);
     }
     catch (std::exception const& ex)
     {
@@ -3968,10 +3966,10 @@ void VectorTile::EIO_IsValid(uv_work_t* req)
     }
 }
 
-void VectorTile::EIO_AfterIsValid(uv_work_t* req)
+void VectorTile::EIO_AfterNotValidGeomCount(uv_work_t* req)
 {
     Nan::HandleScope scope;
-    is_valid_baton *closure = static_cast<is_valid_baton *>(req->data);
+    not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     if (closure->error) 
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };

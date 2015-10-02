@@ -101,16 +101,16 @@ public:
     static NAN_METHOD(isSolidSync);
     static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
 #if BOOST_VERSION >= 105600
-    static NAN_METHOD(isSimple);
-    static void EIO_IsSimple(uv_work_t* req);
-    static void EIO_AfterIsSimple(uv_work_t* req);
-    static NAN_METHOD(isSimpleSync);
-    static v8::Local<v8::Value> _isSimpleSync(Nan::NAN_METHOD_ARGS_TYPE info);
-    static NAN_METHOD(isValid);
-    static void EIO_IsValid(uv_work_t* req);
-    static void EIO_AfterIsValid(uv_work_t* req);
-    static NAN_METHOD(isValidSync);
-    static v8::Local<v8::Value> _isValidSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static NAN_METHOD(notSimpleGeomCount);
+    static void EIO_NotSimpleGeomCount(uv_work_t* req);
+    static void EIO_AfterNotSimpleGeomCount(uv_work_t* req);
+    static NAN_METHOD(notSimpleGeomCountSync);
+    static v8::Local<v8::Value> _notSimpleGeomCountSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static NAN_METHOD(notValidGeomCount);
+    static void EIO_NotValidGeomCount(uv_work_t* req);
+    static void EIO_AfterNotValidGeomCount(uv_work_t* req);
+    static NAN_METHOD(notValidGeomCountSync);
+    static v8::Local<v8::Value> _notValidGeomCountSync(Nan::NAN_METHOD_ARGS_TYPE info);
 #endif // BOOST_VERSION >= 105600
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
