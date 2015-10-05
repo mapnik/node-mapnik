@@ -112,6 +112,6 @@ NAN_METHOD(Expression::evaluate)
             object_to_container(vars,bind_opt->ToObject());
         }
     }
-    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::Feature,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
+    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::feature_impl,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
     info.GetReturnValue().Set(mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj));
 }
