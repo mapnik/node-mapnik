@@ -318,10 +318,10 @@ void VectorTile::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "addGeoJSON", addGeoJSON);
     Nan::SetPrototypeMethod(lcons, "addImage", addImage);
 #if BOOST_VERSION >= 105600
-    Nan::SetPrototypeMethod(lcons, "notSimpleGeomCount", notSimpleGeomCount);
-    Nan::SetPrototypeMethod(lcons, "notSimpleGeomCountSync", notSimpleGeomCountSync);
-    Nan::SetPrototypeMethod(lcons, "notValidGeomCount", notValidGeomCount);
-    Nan::SetPrototypeMethod(lcons, "notValidGeomCountSync", notValidGeomCountSync);
+    Nan::SetPrototypeMethod(lcons, "reportGeometrySimplicity", reportGeometrySimplicity);
+    Nan::SetPrototypeMethod(lcons, "reportGeometrySimplicitySync", reportGeometrySimplicitySync);
+    Nan::SetPrototypeMethod(lcons, "reportGeometryValidity", reportGeometryValidity);
+    Nan::SetPrototypeMethod(lcons, "reportGeometryValiditySync", reportGeometryValiditySync);
 #endif // BOOST_VERSION >= 105600
 
     // common to mapnik.Image
@@ -1708,12 +1708,12 @@ NAN_METHOD(VectorTile::toJSON)
     }
 }
 
-static bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
-                             std::string & result,
-                             unsigned x,
-                             unsigned y,
-                             unsigned z,
-                             unsigned width)
+bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
+                      std::string & result,
+                      unsigned x,
+                      unsigned y,
+                      unsigned z,
+                      unsigned width)
 {
     mapnik::vector_tile_impl::tile_datasource ds(layer,
                                                  x,
@@ -3685,15 +3685,38 @@ void VectorTile::EIO_AfterIsSolid(uv_work_t* req)
     delete closure;
 }
 
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 105800
 
-static unsigned layer_not_simple_count(vector_tile::Tile_Layer const& layer,
-                           unsigned x,
-                           unsigned y,
-                           unsigned z,
-                           unsigned width)
+struct not_simple_feature
 {
-    unsigned count = 0;
+    not_simple_feature(std::string const& layer_, 
+                       std::int64_t feature_id_)
+        : layer(layer_),
+          feature_id(feature_id_) {} 
+    std::string const layer;
+    std::int64_t const feature_id;
+};
+
+struct not_valid_feature
+{
+    not_valid_feature(std::string const& message_,
+                      std::string const& layer_, 
+                      std::int64_t feature_id_)
+        : message(message_),
+          layer(layer_),
+          feature_id(feature_id_) {} 
+    std::string const message;
+    std::string const layer;
+    std::int64_t const feature_id;
+};
+
+void layer_not_simple(vector_tile::Tile_Layer const& layer,
+               unsigned x,
+               unsigned y,
+               unsigned z,
+               unsigned width,
+               std::vector<not_simple_feature> & errors)
+{
     mapnik::vector_tile_impl::tile_datasource ds(layer,
                                                  x,
                                                  y,
@@ -3713,20 +3736,19 @@ static unsigned layer_not_simple_count(vector_tile::Tile_Layer const& layer,
         {
             if (!mapnik::geometry::is_simple(feature->get_geometry()))
             {
-                count++;
+                errors.emplace_back(layer.name(), feature->id());
             }
         }
     }
-    return count;
 }
 
-static unsigned layer_not_valid_count(vector_tile::Tile_Layer const& layer,
-                           unsigned x,
-                           unsigned y,
-                           unsigned z,
-                           unsigned width)
+void layer_not_valid(vector_tile::Tile_Layer const& layer,
+               unsigned x,
+               unsigned y,
+               unsigned z,
+               unsigned width,
+               std::vector<not_valid_feature> & errors)
 {
-    unsigned count = 0;
     mapnik::vector_tile_impl::tile_datasource ds(layer,
                                                  x,
                                                  y,
@@ -3744,46 +3766,93 @@ static unsigned layer_not_valid_count(vector_tile::Tile_Layer const& layer,
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
         {
-            if (!mapnik::geometry::is_valid(feature->get_geometry()))
+            std::string message;
+            if (!mapnik::geometry::is_valid(feature->get_geometry(), message))
             {
-                count++;
+                errors.emplace_back(message,
+                                    layer.name(),
+                                    feature->id());
             }
         }
     }
-    return count;
 }
 
-unsigned vector_tile_not_simple_count(VectorTile * v)
+void vector_tile_not_simple(VectorTile * v,
+                            std::vector<not_simple_feature> & errors)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
-    unsigned count = 0;
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        count += layer_not_simple_count(layer,v->x_,v->y_,v->z_,v->width());
+        layer_not_simple(layer,
+                         v->x_,
+                         v->y_,
+                         v->z_,
+                         v->width(),
+                         errors);
     }
-    return count;
 }
 
-unsigned vector_tile_not_valid_count(VectorTile * v)
+v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & errors) 
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Array> array = Nan::New<v8::Array>(errors.size());
+    v8::Local<v8::String> layer_key = Nan::New<v8::String>("layer").ToLocalChecked();
+    v8::Local<v8::String> feature_id_key = Nan::New<v8::String>("featureId").ToLocalChecked();
+    std::uint32_t idx = 0;
+    for (auto const& error : errors)
+    {
+        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+        obj->Set(layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
+        obj->Set(feature_id_key, Nan::New<v8::Number>(error.feature_id));
+        array->Set(idx++, obj);
+    }
+    return scope.Escape(array);
+}
+
+void vector_tile_not_valid(VectorTile * v,
+                           std::vector<not_valid_feature> & errors)
 {
     vector_tile::Tile tiledata = detail::get_tile(v->buffer_);
     unsigned layer_num = tiledata.layers_size();
-    unsigned count = 0;
     for (unsigned i=0;i<layer_num;++i)
     {
         vector_tile::Tile_Layer const& layer = tiledata.layers(i);
-        count += layer_not_valid_count(layer,v->x_,v->y_,v->z_,v->width());
+        layer_not_valid(layer,
+                        v->x_,
+                        v->y_,
+                        v->z_,
+                        v->width(),
+                        errors);
     }
-    return count;
 }
+
+v8::Local<v8::Array> make_not_valid_array(std::vector<not_valid_feature> & errors) 
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Array> array = Nan::New<v8::Array>(errors.size());
+    v8::Local<v8::String> layer_key = Nan::New<v8::String>("layer").ToLocalChecked();
+    v8::Local<v8::String> feature_id_key = Nan::New<v8::String>("featureId").ToLocalChecked();
+    v8::Local<v8::String> message_key = Nan::New<v8::String>("message").ToLocalChecked();
+    std::uint32_t idx = 0;
+    for (auto const& error : errors)
+    {
+        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+        obj->Set(layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
+        obj->Set(message_key, Nan::New<v8::String>(error.message).ToLocalChecked());
+        obj->Set(feature_id_key, Nan::New<v8::Number>(error.feature_id));
+        array->Set(idx++, obj);
+    }
+    return scope.Escape(array);
+}
+
 
 struct not_simple_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
-    unsigned result;
+    std::vector<not_simple_feature> result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
 };
@@ -3792,7 +3861,7 @@ struct not_valid_baton {
     uv_work_t request;
     VectorTile* v;
     bool error;
-    unsigned result;
+    std::vector<not_valid_feature> result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
 };
@@ -3801,22 +3870,24 @@ struct not_valid_baton {
  * Count the number of geometries that are not OGC simple
  *
  * @memberof mapnik.VectorTile
- * @name notSimpleGeomCountSync
+ * @name reportGeometrySimplicitySync
  * @instance
  * @returns {number} number of features that are not simple 
  */
-NAN_METHOD(VectorTile::notSimpleGeomCountSync)
+NAN_METHOD(VectorTile::reportGeometrySimplicitySync)
 {
-    info.GetReturnValue().Set(_notSimpleGeomCountSync(info));
+    info.GetReturnValue().Set(_reportGeometrySimplicitySync(info));
 }
 
-v8::Local<v8::Value> VectorTile::_notSimpleGeomCountSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
-        return scope.Escape(Nan::New<v8::Number>(vector_tile_not_simple_count(d)));
+        std::vector<not_simple_feature> errors;
+        vector_tile_not_simple(d, errors);
+        return scope.Escape(make_not_simple_array(errors));
     }
     catch (std::exception const& ex)
     {
@@ -3829,22 +3900,24 @@ v8::Local<v8::Value> VectorTile::_notSimpleGeomCountSync(Nan::NAN_METHOD_ARGS_TY
  * Count the number of geometries that are not OGC valid
  *
  * @memberof mapnik.VectorTile
- * @name notValidGeomCountSync
+ * @name reportGeometryValiditySync
  * @instance
  * @returns {number} number of features that are not valid
  */
-NAN_METHOD(VectorTile::notValidGeomCountSync)
+NAN_METHOD(VectorTile::reportGeometryValiditySync)
 {
-    info.GetReturnValue().Set(_notValidGeomCountSync(info));
+    info.GetReturnValue().Set(_reportGeometryValiditySync(info));
 }
 
-v8::Local<v8::Value> VectorTile::_notValidGeomCountSync(Nan::NAN_METHOD_ARGS_TYPE info)
+v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
-        return scope.Escape(Nan::New<v8::Number>(vector_tile_not_valid_count(d)));
+        std::vector<not_valid_feature> errors;
+        vector_tile_not_valid(d, errors);
+        return scope.Escape(make_not_valid_array(errors));
     }
     catch (std::exception const& ex)
     {
@@ -3857,14 +3930,14 @@ v8::Local<v8::Value> VectorTile::_notValidGeomCountSync(Nan::NAN_METHOD_ARGS_TYP
  * Count the number of non OGC simple geometries
  *
  * @memberof mapnik.VectorTile
- * @name notSimpleGeomCount
+ * @name reportGeometrySimplicity
  * @instance
  * @param {Function} callback
  */
-NAN_METHOD(VectorTile::notSimpleGeomCount)
+NAN_METHOD(VectorTile::reportGeometrySimplicity)
 {
     if (info.Length() == 0) {
-        info.GetReturnValue().Set(_notSimpleGeomCountSync(info));
+        info.GetReturnValue().Set(_reportGeometrySimplicitySync(info));
         return;
     }
     // ensure callback is a function
@@ -3878,19 +3951,18 @@ NAN_METHOD(VectorTile::notSimpleGeomCount)
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
-    closure->result = 0;
     closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_NotSimpleGeomCount, (uv_after_work_cb)EIO_AfterNotSimpleGeomCount);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometrySimplicity, (uv_after_work_cb)EIO_AfterReportGeometrySimplicity);
     closure->v->Ref();
     return;
 }
 
-void VectorTile::EIO_NotSimpleGeomCount(uv_work_t* req)
+void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
 {
     not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
     try
     {
-        closure->result = vector_tile_not_simple_count(closure->v);
+        vector_tile_not_simple(closure->v, closure->result);
     }
     catch (std::exception const& ex)
     {
@@ -3899,7 +3971,7 @@ void VectorTile::EIO_NotSimpleGeomCount(uv_work_t* req)
     }
 }
 
-void VectorTile::EIO_AfterNotSimpleGeomCount(uv_work_t* req)
+void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 {
     Nan::HandleScope scope;
     not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
@@ -3910,9 +3982,8 @@ void VectorTile::EIO_AfterNotSimpleGeomCount(uv_work_t* req)
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(),
-                                 Nan::New<v8::Number>(closure->result)
-        };
+        v8::Local<v8::Array> array = make_not_simple_array(closure->result);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), array };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->v->Unref();
@@ -3924,14 +3995,14 @@ void VectorTile::EIO_AfterNotSimpleGeomCount(uv_work_t* req)
  * Count the number of non OGC valid geometries
  *
  * @memberof mapnik.VectorTile
- * @name notValidGeomCount
+ * @name reportGeometryValidity
  * @instance
  * @param {Function} callback
  */
-NAN_METHOD(VectorTile::notValidGeomCount)
+NAN_METHOD(VectorTile::reportGeometryValidity)
 {
     if (info.Length() == 0) {
-        info.GetReturnValue().Set(_notValidGeomCountSync(info));
+        info.GetReturnValue().Set(_reportGeometryValiditySync(info));
         return;
     }
     // ensure callback is a function
@@ -3945,19 +4016,18 @@ NAN_METHOD(VectorTile::notValidGeomCount)
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
-    closure->result = 0;
     closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_NotValidGeomCount, (uv_after_work_cb)EIO_AfterNotValidGeomCount);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
     closure->v->Ref();
     return;
 }
 
-void VectorTile::EIO_NotValidGeomCount(uv_work_t* req)
+void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
 {
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     try
     {
-        closure->result = vector_tile_not_valid_count(closure->v);
+        vector_tile_not_valid(closure->v, closure->result);
     }
     catch (std::exception const& ex)
     {
@@ -3966,7 +4036,7 @@ void VectorTile::EIO_NotValidGeomCount(uv_work_t* req)
     }
 }
 
-void VectorTile::EIO_AfterNotValidGeomCount(uv_work_t* req)
+void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 {
     Nan::HandleScope scope;
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
@@ -3977,9 +4047,8 @@ void VectorTile::EIO_AfterNotValidGeomCount(uv_work_t* req)
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(),
-                                 Nan::New<v8::Number>(closure->result)
-        };
+        v8::Local<v8::Array> array = make_not_valid_array(closure->result);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), array };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->v->Unref();
@@ -3987,4 +4056,4 @@ void VectorTile::EIO_AfterNotValidGeomCount(uv_work_t* req)
     delete closure;
 }
 
-#endif // BOOST_VERSION >= 1.56
+#endif // BOOST_VERSION >= 1.58

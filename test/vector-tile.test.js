@@ -8,8 +8,17 @@ var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 var zlib = require('zlib');
+var boost_version = mapnik.versions.boost.split('.');
+
+var hasBoostSimple = false;
+if (boost_version[0] > 1 || (boost_version[0] == 1 && boost_version[1] >= 58))
+{
+    hasBoostSimple = true;
+}
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
+
+
 
 var trunc_6 = function(key, val) {
     return val.toFixed ? Number(val.toFixed(6)) : val;
@@ -59,50 +68,53 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
-    it('should fail when bad parameters are passed to notSimpleGeomCount', function() {
-        var vtile = new mapnik.VectorTile(0,0,0);
-        if (vtile.notSimpleGeomCount) {
-            assert.throws(function() { vtile.notSimpleGeomCount(null); });
-        }
-    });
+    if (hasBoostSimple) {
+        it('should fail when bad parameters are passed to reportGeometrySimplicity', function() {
+            var vtile = new mapnik.VectorTile(0,0,0);
+            assert.throws(function() { vtile.reportGeometrySimplicity(null); });
+        });
+    } else {
+        it('should fail when bad parameters are passed to reportGeometrySimplicity', function() {});
+    }
 
-    it('empty tile should be simple', function (done) {
-        var vtile = new mapnik.VectorTile(0,0,0);
-        if (vtile.notSimpleGeomCount) {
-            assert.equal(vtile.notSimpleGeomCountSync(), 0);
-            assert.equal(vtile.notSimpleGeomCount(), 0);
-            vtile.notSimpleGeomCount(function(err, simple) {
+    if (hasBoostSimple) {
+        it('empty tile should be simple', function (done) {
+            var vtile = new mapnik.VectorTile(0,0,0);
+            assert.equal(vtile.reportGeometrySimplicitySync(), 0);
+            assert.equal(vtile.reportGeometrySimplicity(), 0);
+            vtile.reportGeometrySimplicity(function(err, simple) {
                 if (err) throw err;
                 assert.equal(simple, 0);
                 done();
             });
-        } else {
-            done();
-        }
-    });
-    
-    it('should fail when bad parameters are passed to notValidGeomCount', function() {
-        var vtile = new mapnik.VectorTile(0,0,0);
-        if (vtile.notValidGeomCount)
-        {
-            assert.throws(function() { vtile.notValidGeomCount(null); });
-        }
-    });
+        });
+    } else {
+        it.skip('empty tile should be simple', function () {});
+    }
 
-    it('empty tile should be valid', function (done) {
-        var vtile = new mapnik.VectorTile(0,0,0);
-        if (vtile.notValidGeomCount) {
-            assert.equal(vtile.notValidGeomCountSync(), 0);
-            assert.equal(vtile.notValidGeomCount(), 0);
-            vtile.notValidGeomCount(function(err, valid) {
+    if (hasBoostSimple) {
+        it('should fail when bad parameters are passed to reportGeometryValidity', function() {
+            var vtile = new mapnik.VectorTile(0,0,0);
+            assert.throws(function() { vtile.reportGeometryValidity(null); });
+        });
+    } else {
+        it.skip('should fail when bad parameters are passed to reportGeometryValidity', function() {});
+    }
+
+    if (hasBoostSimple) {
+        it('empty tile should be valid', function (done) {
+            var vtile = new mapnik.VectorTile(0,0,0);
+            assert.equal(vtile.reportGeometryValiditySync(), 0);
+            assert.equal(vtile.reportGeometryValidity(), 0);
+            vtile.reportGeometryValidity(function(err, valid) {
                 if (err) throw err;
                 assert.equal(valid, 0);
                 done();
             });
-        } else {
-            done();
-        }
-    });
+        });
+    } else {
+        it.skip('empty tile should be valid', function (done) {});
+    }
 
     it('should fail when adding bad parameters to add geoJSON', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
@@ -476,8 +488,10 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.painted(), false);
         assert.equal(vtile.getData().toString(),"");
         assert.equal(vtile.isSolid(), "");
-        if (vtile.notSimpleGeomCount) assert.equal(vtile.notSimpleGeomCount(), 0); 
-        if (vtile.notValidGeomCount) assert.equal(vtile.notValidGeomCount(), 0); 
+        if (hasBoostSimple) {
+            assert.equal(vtile.reportGeometrySimplicity().length, 0); 
+            assert.equal(vtile.reportGeometryValidity().length, 0); 
+        }
         assert.equal(vtile.empty(), true);
         vtile.isSolid(function(err, solid, key) {
             if (err) throw err;
@@ -507,8 +521,10 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.isSolid(), "world");
         assert.equal(vtile.empty(), false);
-        if (vtile.notSimpleGeomCount) assert.equal(vtile.notSimpleGeomCount(), 0); 
-        if (vtile.notValidGeomCount) assert.equal(vtile.notValidGeomCount(), 0); 
+        if (hasBoostSimple) {
+            assert.equal(vtile.reportGeometrySimplicity().length, 0); 
+            assert.equal(vtile.reportGeometryValidity().length, 0); 
+        }
         vtile.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, true);
@@ -984,15 +1000,17 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { vtile.toJSON(); });
             assert.throws(function() { vtile.toGeoJSON(0); });
             assert.throws(function() { vtile.toGeoJSON(0,function() {}); });
-            if (vtile.notSimpleGeomCount) assert.throws( function() { vtile.notSimpleGeomCount(); }); 
-            if (vtile.notValidGeomCount) assert.throws( function() { vtile.notValidGeomCount(); }); 
+            if (hasBoostSimple) {
+                assert.throws( function() { vtile.reportGeometrySimplicity(); }); 
+                assert.throws( function() { vtile.reportGeometryValidity(); }); 
+            }
             vtile.parse(function(err) {
                 assert.throws(function() { if (err) throw err; });
-                if (vtile.notSimpleGeomCount && vtile.notValidGeomCount) {
-                    vtile.notSimpleGeomCount(function (err, simple) {
+                if (hasBoostSimple) {
+                    vtile.reportGeometrySimplicity(function (err, simple) {
                         assert.throws( function() { if (err) throw err; } );
                         assert.ok(err);
-                        vtile.notValidGeomCount(function (err, valid) {
+                        vtile.reportGeometryValidity(function (err, valid) {
                             assert.throws( function() { if (err) throw err; } );
                             assert.ok(err);
                             done();
@@ -1166,8 +1184,10 @@ describe('mapnik.VectorTile ', function() {
                 assert.equal(vtile.empty(), false);
                 assert.equal(vtile.painted(), true);
                 assert.equal(vtile.isSolidSync(), "world");
-                assert.equal(vtile.notSimpleGeomCount(), 0);
-                assert.equal(vtile.notValidGeomCount(), 0);
+                if (hasBoostSimple) {
+                    assert.equal(vtile.reportGeometrySimplicity().length, 0);
+                    assert.equal(vtile.reportGeometryValidity().length, 0);
+                }
                 vtile.isSolid(function(err, solid, key) {
                     if (err) throw err;
                     assert.equal(solid, true);
@@ -1428,8 +1448,10 @@ describe('mapnik.VectorTile ', function() {
         var vt = new mapnik.VectorTile(13,1337,2825);
         vt.setData(fs.readFileSync('./test/data/vector_tile/13.1337.2825.vector.pbf'));
         assert.equal(vt.empty(),false);
-        assert.equal(vt.notSimpleGeomCount(), 2); // Dataset not expected to be OGC simple
-        assert.equal(vt.notValidGeomCount(), 3); // Dataset not expected to be OGC valid
+        if (hasBoostSimple) {
+            assert.equal(vt.reportGeometrySimplicity().length, 2); // Dataset not expected to be OGC simple
+            assert.equal(vt.reportGeometryValidity().length, 3); // Dataset not expected to be OGC valid
+        }
         vt.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, false);
@@ -1443,8 +1465,10 @@ describe('mapnik.VectorTile ', function() {
         var vt = new mapnik.VectorTile(12,771,1608);
         vt.setData(fs.readFileSync('./test/data/vector_tile/12.771.1608.vector.pbf'));
         assert.equal(vt.empty(),false);
-        assert.equal(vt.notSimpleGeomCount(), 1); // Dataset not expected to be OGC simple
-        assert.equal(vt.notValidGeomCount(), 1); // Dataset not expected to be OGC valid
+        if (hasBoostSimple) {
+            assert.equal(vt.reportGeometrySimplicity().length, 1); // Dataset not expected to be OGC simple
+            assert.equal(vt.reportGeometryValidity().length, 1); // Dataset not expected to be OGC valid
+        }
         vt.isSolid(function(err, solid, key) {
             if (err) throw err;
             assert.equal(solid, false);
@@ -1625,8 +1649,10 @@ describe('mapnik.VectorTile ', function() {
             // This next tests that multipart layers work in toGeoJSON
             assert(Math.abs(489203 - vtile.toGeoJSON(0).length) < 50);
             assert.equal(vtile.isSolid(), false);
-            assert.equal(vtile.notSimpleGeomCount(), 0);
-            assert.equal(vtile.notValidGeomCount(), 16); // Dataset not expected to be OGC valid
+            if (hasBoostSimple) {
+                assert.equal(vtile.reportGeometrySimplicity().length, 0);
+                assert.equal(vtile.reportGeometryValidity().length, 16); // Dataset not expected to be OGC valid
+            }
             var expected = './test/data/vector_tile/tile0.vector.pbf';
             var actual = './test/data/vector_tile/tile0.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
@@ -1653,8 +1679,10 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}, area_threshold:0.8}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
-            assert.equal(vtile.notSimpleGeomCount(), 0);
-            assert.equal(vtile.notValidGeomCount(), 16); // Dataset not expected to be OGC valid
+            if (hasBoostSimple) {
+                assert.equal(vtile.reportGeometrySimplicity().length, 0);
+                assert.equal(vtile.reportGeometryValidity().length, 16); // Dataset not expected to be OGC valid
+            }
             var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
             var actual = './test/data/vector_tile/tile0-area_threshold.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
@@ -1668,8 +1696,9 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.deepEqual(vt1.toJSON(),vt2.toJSON());
-            if (vtile.notSimpleGeomCount) {
-                assert.equal(vtile.notSimpleGeomCount(), 0);
+            if (hasBoostSimple) {
+                assert.equal(vtile.reportGeometrySimplicity().length, 0);
+                assert.equal(vtile.reportGeometryValidity().length, 16);
             }
             done();
         });
@@ -1684,8 +1713,13 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}, strictly_simple:true}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
-            assert.equal(vtile.notSimpleGeomCount(), 0);
-            assert.equal(vtile.notValidGeomCount(), 12); // Dataset not expected to be OGC valid
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 11); // Dataset not expected to be OGC valid
+                console.log(validityReport);
+            }
             var expected = './test/data/vector_tile/tile0-strictly_simple.vector.pbf';
             var actual = './test/data/vector_tile/tile0-strictly_simple.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
@@ -1699,9 +1733,6 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.deepEqual(vt1.toJSON(),vt2.toJSON());
-            if (vtile.notSimpleGeomCount) {
-                assert.equal(vtile.notSimpleGeomCount(), 0);
-            }
             done();
         });
     });
@@ -1715,8 +1746,12 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}, simplify_distance:4}, function(err, vtile) {
             if (err) throw err;
             assert.equal(vtile.isSolid(), false);
-            assert.equal(vtile.notSimpleGeomCount(), 0);
-            assert.equal(vtile.notValidGeomCount(), 16); // Dataset not expected to be OGC valid
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 18); // Dataset not expected to be OGC valid
+            }
             var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
             var actual = './test/data/vector_tile/tile0-simplify_distance.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
