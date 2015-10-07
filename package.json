@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.4.7",
+  "version": "3.4.8",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -40,7 +40,7 @@
     }
   ],
   "dependencies": {
-    "mapnik-vector-tile": "~0.10.0",
+    "mapnik-vector-tile": "~0.11.0",
     "nan": "~2.0.9",
     "node-pre-gyp": "~0.6.11"
   },
