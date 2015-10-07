@@ -1718,7 +1718,6 @@ describe('mapnik.VectorTile ', function() {
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 11); // Dataset not expected to be OGC valid
-                console.log(validityReport);
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple.vector.pbf';
             var actual = './test/data/vector_tile/tile0-strictly_simple.vector.actual.pbf';
@@ -1754,6 +1753,38 @@ describe('mapnik.VectorTile ', function() {
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
             var actual = './test/data/vector_tile/tile0-simplify_distance.vector.actual.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
+            done();
+        });
+    });
+
+    it('should render a vector_tile of the whole world - strictly simple and simplify distance applied', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        map.render(vtile, {variables:{pizza:'pie'}, strictly_simple:true, simplify_distance:4}, function(err, vtile) {
+            if (err) throw err;
+            assert.equal(vtile.isSolid(), false);
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 13); // Dataset not expected to be OGC valid
+            }
+            var expected = './test/data/vector_tile/tile0-simple_and_distance.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-simple_and_distance.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
