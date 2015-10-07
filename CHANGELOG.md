@@ -4,7 +4,7 @@
 
  - Now supporting Node v4.x
  - The `new mapnik.Palette` constructor no longer accepts a string - please pass a correctly encoded buffer.
- - Added `isSimple` and `isValid` to `mapnik.VectorTile`. These check if the geometry in the vector tile is OGC simple or valid.
+ - Added `reportGeometrySimplicity` and `reportGeometryValidity` to `mapnik.VectorTile`. These check if the geometry in the vector tile is OGC simple or valid.
  - Added `strictlySimple` option when creating vector tiles.
 
 ## 3.4.7
