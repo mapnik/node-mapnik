@@ -338,6 +338,17 @@ describe('mapnik.blend', function() {
             done();
         });
     });
+
+    it('blended png with quality - paletted - hextree ("h") mode', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-hex-palette-256.png');
+        mapnik.blend(images_alpha, {quality:256, mode:"h"}, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //fs.writeFileSync('test/blend-fixtures/actual-hex-palette-256.png',result);
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
     
     it('blended fails png with quality - paletted - hextree', function(done) {
         mapnik.blend(images_tiny, {quality:256, mode:"hextree"}, function(err, result) {
