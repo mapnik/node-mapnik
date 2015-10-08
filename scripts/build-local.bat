@@ -4,8 +4,8 @@ ECHO =========== %~f0 ===========
 
 
 SET APPVEYOR_REPO_COMMIT_MESSAGE=no commit message provided
-SET MAPNIK_GIT=3.0.4
-SET nodejs_version=0.10.40
+SET MAPNIK_GIT=3.0.6
+SET nodejs_version=0.12.7
 SET platform=x64
 SET msvs_toolset=14
 SET TOOLSET_ARGS=--dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
