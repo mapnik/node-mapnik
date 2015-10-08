@@ -123,7 +123,7 @@ describe('mapnik.Image SVG', function() {
         assert.ok(img instanceof mapnik.Image);
         assert.equal(img.width(), 256);
         assert.equal(img.height(), 256);
-        assert.equal(img.encodeSync('png32').length, 17272);
+        assert.equal(img.encodeSync('png32').length, 17258);
     });
     
     it('#fromSVGSync load from SVG file - 2', function() {
@@ -132,7 +132,7 @@ describe('mapnik.Image SVG', function() {
         assert.ok(img instanceof mapnik.Image);
         assert.equal(img.width(), 256);
         assert.equal(img.height(), 256);
-        assert.equal(img.encodeSync('png32').length, 17272);
+        assert.equal(img.encodeSync('png32').length, 17258);
     });
 
 
@@ -141,7 +141,7 @@ describe('mapnik.Image SVG', function() {
             assert.ok(img); assert.ok(img instanceof mapnik.Image);
             assert.equal(img.width(), 256);
             assert.equal(img.height(), 256);
-            assert.equal(img.encodeSync('png32').length, 17272);
+            assert.equal(img.encodeSync('png32').length, 17258);
             assert.equal(img.premultiplied(), false);
             done();
         });

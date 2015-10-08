@@ -1647,11 +1647,11 @@ describe('mapnik.VectorTile ', function() {
         map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
             // This next tests that multipart layers work in toGeoJSON
-            assert(Math.abs(489203 - vtile.toGeoJSON(0).length) < 50);
+            assert(Math.abs(485030 - vtile.toGeoJSON(0).length) < 50);
             assert.equal(vtile.isSolid(), false);
             if (hasBoostSimple) {
                 assert.equal(vtile.reportGeometrySimplicity().length, 0);
-                assert.equal(vtile.reportGeometryValidity().length, 16); // Dataset not expected to be OGC valid
+                assert.equal(vtile.reportGeometryValidity().length, 14); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0.vector.pbf';
             var actual = './test/data/vector_tile/tile0.vector.actual.pbf';
@@ -1665,7 +1665,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
+            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
             done();
         });
     });
@@ -1681,7 +1681,7 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.isSolid(), false);
             if (hasBoostSimple) {
                 assert.equal(vtile.reportGeometrySimplicity().length, 0);
-                assert.equal(vtile.reportGeometryValidity().length, 16); // Dataset not expected to be OGC valid
+                assert.equal(vtile.reportGeometryValidity().length, 14); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-area_threshold.vector.pbf';
             var actual = './test/data/vector_tile/tile0-area_threshold.vector.actual.pbf';
@@ -1695,11 +1695,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
-            if (hasBoostSimple) {
-                assert.equal(vtile.reportGeometrySimplicity().length, 0);
-                assert.equal(vtile.reportGeometryValidity().length, 16);
-            }
+            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
             done();
         });
     });
@@ -1717,7 +1713,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 11); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 10); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple.vector.pbf';
             var actual = './test/data/vector_tile/tile0-strictly_simple.vector.actual.pbf';
@@ -1731,7 +1727,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
+            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
             done();
         });
     });
@@ -1749,7 +1745,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 18); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 10); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.vector.pbf';
             var actual = './test/data/vector_tile/tile0-simplify_distance.vector.actual.pbf';
@@ -1763,7 +1759,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
+            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
             done();
         });
     });
@@ -1781,7 +1777,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 13); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 9); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.vector.pbf';
             var actual = './test/data/vector_tile/tile0-simple_and_distance.vector.actual.pbf';
@@ -1795,7 +1791,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.deepEqual(vt1.toJSON(),vt2.toJSON());
+            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
             done();
         });
     });
