@@ -14,7 +14,7 @@
     "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
   },
   "bugs": {
-    "email": "dane@dbsgeo.com",
+    "email": "dane@mapbox.com",
     "url": "http://github.com/mapnik/node-mapnik/issues"
   },
   "keywords": [
