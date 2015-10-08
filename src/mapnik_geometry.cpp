@@ -4,6 +4,7 @@
 
 #include <mapnik/datasource.hpp>
 #include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry_is_valid.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
@@ -31,6 +32,7 @@ void Geometry::Initialize(v8::Local<v8::Object> target) {
     lcons->SetClassName(Nan::New("Geometry").ToLocalChecked());
 
     Nan::SetPrototypeMethod(lcons, "extent", extent);
+	Nan::SetPrototypeMethod(lcons, "isValid", isValid);
     Nan::SetPrototypeMethod(lcons, "toWKB", toWKB);
     Nan::SetPrototypeMethod(lcons, "toWKT", toWKT);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
@@ -307,6 +309,22 @@ NAN_METHOD(Geometry::extent)
     a->Set(2, Nan::New<v8::Number>(e.maxx()));
     a->Set(3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(a);
+}
+
+NAN_METHOD(Geometry::isValid) {
+	info.GetReturnValue().Set(_isValid(info));
+}
+
+v8::Local<v8::Value> Geometry::_isValid(Nan::NAN_METHOD_ARGS_TYPE info) {
+	Nan::EscapableHandleScope scope;
+	Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+	//std::string message;
+	if (mapnik::geometry::is_valid(g->feat_->get_geometry())) {
+		return scope.Escape(Nan::True());
+	}
+	else {
+		return scope.Escape(Nan::False());
+	}
 }
 
 /**
