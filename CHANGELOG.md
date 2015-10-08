@@ -6,6 +6,7 @@
  - The `new mapnik.Palette` constructor no longer accepts a string - please pass a correctly encoded buffer.
  - Added `reportGeometrySimplicity` and `reportGeometryValidity` to `mapnik.VectorTile`. These check if the geometry in the vector tile is OGC simple or valid.
  - Added `strictlySimple` option when creating vector tiles.
+ - Updated to use mapnik-vector-tile `0.12.0`
 
 Notable Changes in Mapnik 3.0.5 Include:
  - PostGIS plugin: added `key_field_as_attribute` option. Defaults to `True` to preserve current behavior of having the `key_field` added both
