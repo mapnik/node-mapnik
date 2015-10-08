@@ -65,7 +65,11 @@ before_install:
 install:
  - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
  - if [[ ${COVERAGE} == true ]]; then
-     PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
+     if [[ $(uname -s) == 'Linux' ]]; then
+       PYTHONUSERBASE=$(pwd)/mason_packages/.link easy_install --user cpp-coveralls;
+     else
+       PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
+     fi;
      ./scripts/build_against_sdk.sh --coverage=true;
    else
      ./scripts/build_against_sdk.sh;
