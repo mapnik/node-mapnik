@@ -16,6 +16,7 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojso
 var rendering_defaults = {
     path_multiplier: 16,
     area_threshold: 0.1,
+    strictly_simple: false,
     scale: 1,
     scale_denominator: 0.0,
     offset_x: 0,
@@ -145,6 +146,8 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {scale_denominator:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {area_threshold:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {area_threshold:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {strictly_simple:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {strictly_simple:null}, function(err, result) {}); });
         assert.throws(function() { vtile3.compositeSync([vtile1]); });
         assert.throws(function() { vtile1.compositeSync([vtile3]); });
         vtile3.composite([vtile1], function(err, result) {
@@ -170,6 +173,7 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_x: 0,
                 offset_y: 0,
                 area_threshold: 0.1,
+                strictly_simple: false,
                 scale_denominator: 0.0
             }
             vtile2.compositeSync([vtile1,vtile1],options);
@@ -193,6 +197,7 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_x: 0,
                 offset_y: 0,
                 area_threshold: 0.1,
+                strictly_simple: false,
                 scale_denominator: 0.0
             }
             vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
