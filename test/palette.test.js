@@ -29,6 +29,10 @@ describe('mapnik.Palette ', function() {
         pal = new mapnik.Palette(new Buffer('\x01\x02\x03','ascii'), 'rgb');
         assert.equal('[Palette 1 color #010203]', pal.toString());
 
+        pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'), 'rgba');
+        assert.equal('[Palette 2 colors #01020304 #ff0993]', pal.toString());
+        assert.equal(new Buffer('\x01\x02\x03\x04\xff\x09\x93\xFF'), pal.toBuffer().toString('binary'));
+        
         pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
         assert.equal('[Palette 2 colors #01020304 #ff0993]', pal.toString());
         assert.equal(new Buffer('\x01\x02\x03\x04\xff\x09\x93\xFF'), pal.toBuffer().toString('binary'));

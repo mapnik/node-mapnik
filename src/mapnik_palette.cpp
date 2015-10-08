@@ -48,7 +48,11 @@ NAN_METHOD(Palette::New) {
     if (info.Length() >= 2) {
         if (info[1]->IsString()) {
             std::string obj = TOSTR(info[1]);
-            if (obj == "rgb")
+            if (obj == "rgba")
+            {
+                type = mapnik::rgba_palette::PALETTE_RGBA;
+            }
+            else if (obj == "rgb")
             {
                 type = mapnik::rgba_palette::PALETTE_RGB;
             }
