@@ -7,6 +7,13 @@
  - Added `reportGeometrySimplicity` and `reportGeometryValidity` to `mapnik.VectorTile`. These check if the geometry in the vector tile is OGC simple or valid.
  - Added `strictlySimple` option when creating vector tiles.
 
+Notable Changes in Mapnik 3.0.5 Include:
+ - PostGIS plugin: added `key_field_as_attribute` option. Defaults to `True` to preserve current behavior of having the `key_field` added both
+   as an attribute and as the `feature.id` value. If `key_field_as_attribute=false` is passed then the attribute is discarded (https://github.com/mapnik/mapnik/issues/3115)
+ - CSV plugin has been further optimized and has gained experimental support for on-disk indexes (https://github.com/mapnik/mapnik/issues/3089)
+ - SVG parser now fallsback to using `viewbox` if explicit dimensions are lacking (https://github.com/mapnik/mapnik/issues/3081)
+ - Fixed parsing colors in hexadecimal notation (https://github.com/mapnik/mapnik/pull/3075)
+
 ## 3.4.7
 
  - Rebuilt with Mapnik 3.0.5
