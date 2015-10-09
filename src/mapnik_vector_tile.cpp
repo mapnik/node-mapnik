@@ -14,6 +14,7 @@
 #include "vector_tile_projection.hpp"
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_datasource_pbf.hpp"
+#include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile.pb.h"
 #include "object_to_container.hpp"
@@ -1600,6 +1601,195 @@ void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
     delete closure;
 }
 
+struct geometry_array_visitor
+{
+    v8::Local<v8::Array> operator() (mapnik::geometry::geometry_empty const &)
+    {
+        // Removed as it should be a bug if a vector tile has reached this point
+        // therefore no known tests reach this point
+        // LCOV_EXCL_START
+        Nan::EscapableHandleScope scope;
+        return scope.Escape(Nan::New<v8::Array>());   
+        // LCOV_EXCL_END
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::point<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
+        arr->Set(0, Nan::New<v8::Number>(geom.x));
+        arr->Set(1, Nan::New<v8::Number>(geom.y));
+        return scope.Escape(arr);   
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::line_string<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        if (geom.empty())
+        {
+            // Removed as it should be a bug if a vector tile has reached this point
+            // therefore no known tests reach this point
+            // LCOV_EXCL_START
+            return scope.Escape(Nan::New<v8::Array>());
+            // LCOV_EXCL_END
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        std::uint32_t c = 0;
+        for (auto const & pt : geom)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::linear_ring<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        if (geom.empty())
+        {
+            // Removed as it should be a bug if a vector tile has reached this point
+            // therefore no known tests reach this point
+            // LCOV_EXCL_START
+            return scope.Escape(Nan::New<v8::Array>());
+            // LCOV_EXCL_END
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        std::uint32_t c = 0;
+        for (auto const & pt : geom)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::multi_point<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        if (geom.empty())
+        {
+            // Removed as it should be a bug if a vector tile has reached this point
+            // therefore no known tests reach this point
+            // LCOV_EXCL_START
+            return scope.Escape(Nan::New<v8::Array>());
+            // LCOV_EXCL_END
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        std::uint32_t c = 0;
+        for (auto const & pt : geom)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::multi_line_string<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        if (geom.empty())
+        {
+            // Removed as it should be a bug if a vector tile has reached this point
+            // therefore no known tests reach this point
+            // LCOV_EXCL_START
+            return scope.Escape(Nan::New<v8::Array>());
+            // LCOV_EXCL_END
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        std::uint32_t c = 0;
+        for (auto const & pt : geom)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::polygon<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        if (geom.exterior_ring.empty())
+        {
+            // Removed as it should be a bug if a vector tile has reached this point
+            // therefore no known tests reach this point
+            // LCOV_EXCL_START
+            return scope.Escape(Nan::New<v8::Array>());
+            // LCOV_EXCL_END
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(1 + geom.interior_rings.size());
+        std::uint32_t c = 0;
+        arr->Set(c++, (*this)(geom.exterior_ring));
+        for (auto const & pt : geom.interior_rings)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::multi_polygon<T> const & geom)
+    {
+        Nan::EscapableHandleScope scope;
+        if (geom.empty())
+        {
+            // Removed as it should be a bug if a vector tile has reached this point
+            // therefore no known tests reach this point
+            // LCOV_EXCL_START
+            return scope.Escape(Nan::New<v8::Array>());
+            // LCOV_EXCL_END
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        std::uint32_t c = 0;
+        for (auto const & pt : geom)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+    }
+
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::geometry<T> const & geom)
+    {
+        // Removed as it should be a bug if a vector tile has reached this point
+        // therefore no known tests reach this point
+        // LCOV_EXCL_START
+        Nan::EscapableHandleScope scope;
+        return scope.Escape(mapnik::util::apply_visitor((*this), geom));
+        // LCOV_EXCL_END
+    }
+    
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::geometry_collection<T> const & geom)
+    {
+        // Removed as it should be a bug if a vector tile has reached this point
+        // therefore no known tests reach this point
+        // LCOV_EXCL_START
+        Nan::EscapableHandleScope scope;
+        if (geom.empty())
+        {
+            return scope.Escape(Nan::New<v8::Array>());
+        }
+        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        std::uint32_t c = 0;
+        for (auto const & pt : geom)
+        {
+            arr->Set(c++, (*this)(pt));
+        }
+        return scope.Escape(arr);   
+        // LCOV_EXCL_END
+    }
+};
+
+template <typename T>
+v8::Local<v8::Array> geometry_to_array(mapnik::geometry::geometry<T> const & geom)
+{
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(mapnik::util::apply_visitor(geometry_array_visitor(), geom));
+}
+
 /**
  * Get a JSON representation of this tile
  *
@@ -1611,6 +1801,26 @@ void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::toJSON)
 {
+    bool decode_geometry = false;
+    if (info.Length() >= 1) 
+    {
+        if (!info[0]->IsObject()) 
+        {
+            Nan::ThrowError("The first argument must be an object");
+            return;
+        }
+        v8::Local<v8::Object> options = info[0]->ToObject();
+
+        if (options->Has(Nan::New("decode_geometry").ToLocalChecked())) {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("decode_geometry").ToLocalChecked());
+            if (!param_val->IsBoolean()) {
+                Nan::ThrowError("option 'decode_geometry' must be a boolean");
+                return;
+            }
+            decode_geometry = param_val->BooleanValue();
+        }
+    }
+
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
@@ -1640,12 +1850,23 @@ NAN_METHOD(VectorTile::toJSON)
                     feature_obj->Set(Nan::New("raster").ToLocalChecked(),Nan::CopyBuffer((char*)raster.data(),raster.size()).ToLocalChecked());
                 }
                 feature_obj->Set(Nan::New("type").ToLocalChecked(),Nan::New<v8::Integer>(f.type()));
-                v8::Local<v8::Array> g_arr = Nan::New<v8::Array>();
-                for (int k = 0; k < f.geometry_size();++k)
+                if (decode_geometry)
                 {
-                    g_arr->Set(k,Nan::New<v8::Number>(f.geometry(k)));
+                    // Decode the geometry first into an int64_t mapnik geometry
+                    mapnik::vector_tile_impl::Geometry<std::int64_t> geoms(f, 0, 0, 1.0, 1.0);
+                    mapnik::geometry::geometry<std::int64_t> geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, f.type());
+                    v8::Local<v8::Array> g_arr = geometry_to_array<std::int64_t>(geom);
+                    feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
                 }
-                feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
+                else
+                {
+                    v8::Local<v8::Array> g_arr = Nan::New<v8::Array>(f.geometry_size());
+                    for (int k = 0; k < f.geometry_size();++k)
+                    {
+                        g_arr->Set(k,Nan::New<v8::Number>(f.geometry(k)));
+                    }
+                    feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
+                }
                 v8::Local<v8::Object> att_obj = Nan::New<v8::Object>();
                 for (int m = 0; m < f.tags_size(); m += 2)
                 {

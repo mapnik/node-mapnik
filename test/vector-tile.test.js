@@ -234,7 +234,144 @@ describe('mapnik.VectorTile ', function() {
         });
     });
     
+    it('should be able to export multipoint with toJSON decode_geometry', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "MultiPoint",
+                "coordinates": [[
+                  -122,
+                  48
+                ],
+                [ 
+                  -121,
+                  48
+                ]]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        var actual = vtile.toJSON({decode_geometry:true});
+        var expected = [ { 
+            name: 'layer-name',
+            extent: 4096,
+            version: 1,
+            features: [{
+                geometry: [[660,1424],[671,1424]],
+                id: 1,
+                properties: {
+                  name: "geojson data"
+                },
+                type: 1
+              }]
+        } ];
+        assert.deepEqual(actual, expected);
+        done();
+    });
     
+    it('should be able to export line-string with toJSON decode_geometry', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "LineString",
+                "coordinates": [[
+                  -122,
+                  48
+                ],
+                [ 
+                  -121,
+                  48
+                ]]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        var actual = vtile.toJSON({decode_geometry:true});
+        var expected = [ { 
+            name: 'layer-name',
+            extent: 4096,
+            version: 1,
+            features: [{
+                geometry: [[660,1424],[671,1424]],
+                id: 1,
+                properties: {
+                  name: "geojson data"
+                },
+                type: 2
+              }]
+        } ];
+        assert.deepEqual(actual, expected);
+        done();
+    });
+
+    it('should be able to export multi-line-string with toJSON decode_geometry', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [[[
+                      -122,
+                      48
+                    ],
+                    [ 
+                      -121,
+                      48
+                    ]],[[
+                      -122,
+                      49
+                    ],
+                    [ 
+                      -121,
+                      49
+                    
+                ]]]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        var actual = vtile.toJSON({decode_geometry:true});
+        var expected = [ { 
+            name: 'layer-name',
+            extent: 4096,
+            version: 1,
+            features: [{
+                geometry: [[[660,1424],[671,1424]],[[660,1407],[671,1407]]],
+                id: 1,
+                properties: {
+                  name: "geojson data"
+                },
+                type: 2
+              }]
+        } ];
+        assert.deepEqual(actual, expected);
+        done();
+    });
+
+
     it('should be able to create a vector tile from geojson - multipoint', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
@@ -1251,6 +1388,15 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
+    it('should be able to get tile info as JSON with decoded geometry', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        vtile.setData(new Buffer(_data,"hex"));
+        assert.deepEqual(vtile.names(),['world']);
+        var expected = [{"name":"world","extent":4096,"version":2,"features":[{"id":207,"type":3,"geometry":[[[0,0],[4095,0],[4095,4095],[0,4095],[0,0]]],"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]}];
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}),expected);
+        done();
+    });
+
     it('should be able to get tile info as various flavors of GeoJSON', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
@@ -1282,6 +1428,12 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(actual.features[0].properties.NAME,expected_geojson.features[0].properties.NAME);
         deepEqualTrunc(actual.features[0].geometry,expected_geojson.features[0].geometry);
         done();
+    });
+
+    it('should fail to parse toJSON due to bad input', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.throws(function() { vtile.toJSON(null) });
+        assert.throws(function() { vtile.toJSON({decode_geometry:null}) });
     });
 
     it('should be able to get and set data (sync)', function(done) {
@@ -1665,7 +1817,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})),JSON.stringify(vt2.toJSON({decode_geometry:true})));
             done();
         });
     });
