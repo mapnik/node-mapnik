@@ -20,7 +20,6 @@ public:
     static v8::Local<v8::Value> NewInstance(mapnik::feature_ptr f);
     static NAN_METHOD(extent);
 	static NAN_METHOD(isValid);
-	static v8::Local<v8::Value> _isValid(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(toWKB);
     static NAN_METHOD(toWKT);
     static v8::Local<v8::Value> _toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);

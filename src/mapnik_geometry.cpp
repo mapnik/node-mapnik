@@ -312,20 +312,17 @@ NAN_METHOD(Geometry::extent)
 }
 
 NAN_METHOD(Geometry::isValid) {
-	info.GetReturnValue().Set(_isValid(info));
-}
-
-v8::Local<v8::Value> Geometry::_isValid(Nan::NAN_METHOD_ARGS_TYPE info) {
 	Nan::EscapableHandleScope scope;
 	Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
-	//std::string message;
-	if (mapnik::geometry::is_valid(g->feat_->get_geometry())) {
-		return scope.Escape(Nan::True());
+	std::string message;
+	if (!mapnik::geometry::is_valid(g->feat_->get_geometry(), message)) {
+		info.GetReturnValue().Set(Nan::New<v8::String>(message).ToLocalChecked());
 	}
 	else {
-		return scope.Escape(Nan::False());
+		info.GetReturnValue().Set(scope.Escape(Nan::Undefined()));
 	}
 }
+
 
 /**
  * Get the geometry's representation as [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text)
