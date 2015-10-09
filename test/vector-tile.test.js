@@ -234,6 +234,46 @@ describe('mapnik.VectorTile ', function() {
         });
     });
     
+    it('should be able to export point with toJSON decode_geometry', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -122,
+                  48
+                ]
+              },
+              "properties": {
+                "name": "geojson data"
+              }
+            }
+          ]
+        };
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
+        var actual = vtile.toJSON({decode_geometry:true});
+        var expected = [ { 
+            name: 'layer-name',
+            extent: 4096,
+            version: 1,
+            features: [{
+                geometry: [660,1424],
+                geometry_type: "Point",
+                id: 1,
+                properties: {
+                  name: "geojson data"
+                },
+                type: 1
+              }]
+        } ];
+        assert.deepEqual(actual, expected);
+        done();
+    });
+    
     it('should be able to export multipoint with toJSON decode_geometry', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
@@ -266,6 +306,7 @@ describe('mapnik.VectorTile ', function() {
             version: 1,
             features: [{
                 geometry: [[660,1424],[671,1424]],
+                geometry_type: "MultiPoint",
                 id: 1,
                 properties: {
                   name: "geojson data"
@@ -309,6 +350,7 @@ describe('mapnik.VectorTile ', function() {
             version: 1,
             features: [{
                 geometry: [[660,1424],[671,1424]],
+                geometry_type: "LineString",
                 id: 1,
                 properties: {
                   name: "geojson data"
@@ -360,6 +402,7 @@ describe('mapnik.VectorTile ', function() {
             version: 1,
             features: [{
                 geometry: [[[660,1424],[671,1424]],[[660,1407],[671,1407]]],
+                geometry_type: "MultiLineString",
                 id: 1,
                 properties: {
                   name: "geojson data"
@@ -1392,7 +1435,7 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.deepEqual(vtile.names(),['world']);
-        var expected = [{"name":"world","extent":4096,"version":2,"features":[{"id":207,"type":3,"geometry":[[[0,0],[4095,0],[4095,4095],[0,4095],[0,0]]],"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]}];
+        var expected = [{"name":"world","extent":4096,"version":2,"features":[{"id":207,"type":3,"geometry_type":"Polygon","geometry":[[[0,0],[4095,0],[4095,4095],[0,4095],[0,0]]],"properties":{"AREA":915896,"FIPS":"US","ISO2":"US","ISO3":"USA","LAT":39.622,"LON":-98.606,"NAME":"United States","POP2005":299846449,"REGION":19,"SUBREGION":21,"UN":840}}]}];
         assert.deepEqual(vtile.toJSON({decode_geometry:true}),expected);
         done();
     });

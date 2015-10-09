@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.4.9
+
+ - Updated to use mapnik-vector-tile `0.13.0`
+ - Linestrings will no longer contain repeated points when vector tiles are created
+ - Added a new method called `decode_geometry` as an optional argument to `toJSON` for `mapnik.VectorTile` object
+   this option provides decoded geometry in the raw form from the vector tile.
+ - Updated to use a more recent version of the angus clipper library.
+
 ## 3.4.8
 
  - Now supporting Node v4.x

@@ -1601,6 +1601,72 @@ void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
     delete closure;
 }
 
+struct geometry_type_name
+{
+    template <typename T>
+    std::string operator () (T const& geom) const
+    {
+        return mapnik::util::apply_visitor(*this, geom);
+    }
+
+    std::string operator() (mapnik::geometry::geometry_empty const& ) const
+    {
+        // LCOV_EXCL_START
+        return "Empty";
+        // LCOV_EXCL_END
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::point<T> const&) const
+    {
+        return "Point";
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::line_string<T> const&) const
+    {
+        return "LineString";
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::polygon<T> const&) const
+    {
+        return "Polygon";
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::multi_point<T> const&) const
+    {
+        return "MultiPoint";
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::multi_line_string<T> const&) const
+    {
+        return "MultiLineString";
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::multi_polygon<T> const&) const
+    {
+        return "MultiPolygon";
+    }
+
+    template <typename T>
+    std::string operator () (mapnik::geometry::geometry_collection<T> const&) const
+    {
+        // LCOV_EXCL_START
+        return "GeometryCollection";
+        // LCOV_EXCL_END
+    }
+};
+
+template <typename T>
+static inline std::string geometry_type_as_string(T const& geom)
+{
+    return geometry_type_name()(geom);
+}
+
 struct geometry_array_visitor
 {
     v8::Local<v8::Array> operator() (mapnik::geometry::geometry_empty const &)
@@ -1857,6 +1923,8 @@ NAN_METHOD(VectorTile::toJSON)
                     mapnik::geometry::geometry<std::int64_t> geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, f.type());
                     v8::Local<v8::Array> g_arr = geometry_to_array<std::int64_t>(geom);
                     feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
+                    std::string geom_type = geometry_type_as_string(geom);
+                    feature_obj->Set(Nan::New("geometry_type").ToLocalChecked(),Nan::New(geom_type).ToLocalChecked());
                 }
                 else
                 {
