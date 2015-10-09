@@ -83,7 +83,13 @@ else if ((/.tif$/.test(obj)) ||
 else if (/.xml$/.test(obj)) {
     var map = new mapnik.Map(1, 1);
     map.loadSync(obj);
-    console.log(map.layers());
+    map.layers().forEach(function(l) {
+        if (l.name == 'place_label') {
+            var ds = l.datasource;
+            //console.log(l.describe(),console.log(ds.describe()),ds.featureset().next().attributes());
+            console.log(ds.featureset().next().attributes());
+        }
+    });
 }
 else if (/.prj$/.test(obj)) {
     var srs = require('srs');
