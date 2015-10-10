@@ -25,12 +25,10 @@ static void get_fields(v8::Local<v8::Object> fields, mapnik::datasource_ptr ds)
     Nan::HandleScope scope;
     mapnik::layer_descriptor ld = ds->get_descriptor();
     // field names and types
-    std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-    std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-    std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-    while (itr != end)
+    auto const& desc = ld.get_descriptors();
+    for (auto const& attr_info : desc)
     {
-        unsigned field_type = itr->get_type();
+        unsigned field_type = attr_info.get_type();
         std::string type("");
         if (field_type == mapnik::Integer) type = "Number";
         else if (field_type == mapnik::Float) type = "Number";
@@ -43,10 +41,10 @@ static void get_fields(v8::Local<v8::Object> fields, mapnik::datasource_ptr ds)
         else if (field_type == mapnik::Geometry) type = "Geometry";
         else if (field_type == mapnik::Object) type = "Object";
         else type = "Unknown";
-        fields->Set(Nan::New<v8::String>(itr->get_name()).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
-        fields->Set(Nan::New<v8::String>(itr->get_name()).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
+        std::string const& name = attr_info.get_name();
+        fields->Set(Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
+        fields->Set(Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
         /* LCOV_EXCL_END */
-        ++itr;
     }
 }
 

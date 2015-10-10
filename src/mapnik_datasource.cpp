@@ -239,13 +239,10 @@ NAN_METHOD(Datasource::featureset)
     {
         mapnik::query q(ds->datasource_->envelope());
         mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
-        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-        while (itr != end)
+        auto const& desc = ld.get_descriptors();
+        for (auto const& attr_info : desc)
         {
-            q.add_property_name(itr->get_name());
-            ++itr;
+            q.add_property_name(attr_info.get_name());
         }
 
         fs = ds->datasource_->features(q);

@@ -148,17 +148,14 @@ NAN_METHOD(MemoryDatasource::featureset)
     if (d->datasource_) {
         mapnik::query q(d->datasource_->envelope());
         mapnik::layer_descriptor ld = d->datasource_->get_descriptor();
-        std::vector<mapnik::attribute_descriptor> const& desc = ld.get_descriptors();
-        std::vector<mapnik::attribute_descriptor>::const_iterator itr = desc.begin();
-        std::vector<mapnik::attribute_descriptor>::const_iterator end = desc.end();
-        while (itr != end)
+        auto const& desc = ld.get_descriptors();
+        for (auto const& attr_info : desc)
         {
             // There is currently no way in the memory_datasource within mapnik to even
             // add a descriptor. Therefore it is impossible that this will ever be reached
             // currently.
             /* LCOV_EXCL_START */
-            q.add_property_name(itr->get_name());
-            ++itr;
+            q.add_property_name(attr_info.get_name());
             /* LCOV_EXCL_END */
         }
         mapnik::featureset_ptr fs = d->datasource_->features(q);
