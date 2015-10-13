@@ -7,6 +7,15 @@
  - Added a new method called `decode_geometry` as an optional argument to `toJSON` for `mapnik.VectorTile` object
    this option provides decoded geometry in the raw form from the vector tile.
  - Updated to use a more recent version of the angus clipper library.
+ - Binaries updated to use Mapnik v3.0.7 and mapnik-packaging@9606f72ef0
+
+Notable Changes in Mapnik 3.0.7 Include:
+
+ - Fixed bugs in the PostGIS `key_field_as_attribute` behavior
+
+Notable changes in the Mapnik SDK include:
+ - Upgrade cairo 1.12.18 -> 1.14.2
+ - Upgrade boost 1.58 -> 1.59
 
 ## 3.4.8
 
