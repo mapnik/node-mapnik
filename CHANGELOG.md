@@ -1,5 +1,9 @@
 # Changelog
 
+## Future
+
+ - Stricter GeoJSON parsing in geojson.input ref :https://github.com/mapnik/mapnik/issues/3125
+  
 ## 3.4.9
 
  - Updated to use mapnik-vector-tile `0.13.0`
