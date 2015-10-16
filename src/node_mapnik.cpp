@@ -58,7 +58,7 @@ static std::string format_version(int version)
 static NAN_METHOD(clearCache)
 {
     Nan::HandleScope scope;
-#if defined(SHAPE_MEMORY_MAPPED_FILE)
+#if defined(MAPNIK_MEMORY_MAPPED_FILE)
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
 #endif
