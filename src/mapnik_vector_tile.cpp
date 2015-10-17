@@ -2012,7 +2012,13 @@ bool layer_to_geojson(vector_tile::Tile_Layer const& layer,
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
-    mapnik::query q(ds.envelope());
+    // This mega box ensures we capture all features, including those
+    // outside the tile extent. Geometries outside the tile extent are
+    // likely when the vtile was created by clipping to a buffered extent
+    mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
+                                          std::numeric_limits<double>::lowest(),
+                                          std::numeric_limits<double>::max(),
+                                          std::numeric_limits<double>::max()));
     mapnik::layer_descriptor ld = ds.get_descriptor();
     for (auto const& item : ld.get_descriptors())
     {
@@ -4011,7 +4017,10 @@ void layer_not_simple(vector_tile::Tile_Layer const& layer,
                                                  y,
                                                  z,
                                                  width);
-    mapnik::query q(ds.envelope());
+    mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
+                                          std::numeric_limits<double>::lowest(),
+                                          std::numeric_limits<double>::max(),
+                                          std::numeric_limits<double>::max()));
     mapnik::layer_descriptor ld = ds.get_descriptor();
     for (auto const& item : ld.get_descriptors())
     {
@@ -4043,7 +4052,10 @@ void layer_not_valid(vector_tile::Tile_Layer const& layer,
                                                  y,
                                                  z,
                                                  width);
-    mapnik::query q(ds.envelope());
+    mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
+                                          std::numeric_limits<double>::lowest(),
+                                          std::numeric_limits<double>::max(),
+                                          std::numeric_limits<double>::max()));
     mapnik::layer_descriptor ld = ds.get_descriptor();
     for (auto const& item : ld.get_descriptors())
     {
