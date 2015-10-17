@@ -2297,4 +2297,13 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('toGeoJSON should not drop geometries outside tile extent', function(done) {
+        var vt = new mapnik.VectorTile(10,131,242);
+        vt.setData(fs.readFileSync('./test/data/v4-10_131_242.vector.pbf'));
+        vt.toJSON().forEach(function(layer) {
+            assert.equal(layer.features.length, JSON.parse(vt.toGeoJSONSync(layer.name)).features.length);
+        })
+        done();
+    });
+
 });
