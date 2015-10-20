@@ -81,6 +81,8 @@ MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 rm -rf ${MODULE_PATH}
 npm install --build-from-source ${ARGS} --clang=1
 npm ls
+# copy mapnik-index
+cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}
 # copy shapeindex
 cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}
 # copy lib
