@@ -98,7 +98,7 @@ public:
     static void EIO_AfterIsSolid(uv_work_t* req);
     static NAN_METHOD(isSolidSync);
     static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 105800
     static NAN_METHOD(reportGeometrySimplicity);
     static void EIO_ReportGeometrySimplicity(uv_work_t* req);
     static void EIO_AfterReportGeometrySimplicity(uv_work_t* req);
@@ -109,7 +109,7 @@ public:
     static void EIO_AfterReportGeometryValidity(uv_work_t* req);
     static NAN_METHOD(reportGeometryValiditySync);
     static v8::Local<v8::Value> _reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info);
-#endif // BOOST_VERSION >= 105600
+#endif // BOOST_VERSION >= 105800
 
     VectorTile(int z, int x, int y, unsigned w, unsigned h);
 

@@ -2297,6 +2297,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+<<<<<<< Updated upstream
     it('toGeoJSON should not drop geometries outside tile extent', function(done) {
         var vt = new mapnik.VectorTile(10,131,242);
         vt.setData(fs.readFileSync('./test/data/v4-10_131_242.vector.pbf'));
@@ -2304,6 +2305,25 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(layer.features.length, JSON.parse(vt.toGeoJSONSync(layer.name)).features.length);
         })
         done();
+=======
+    it('test that overlapping multipolygon results in two polygons in round trip.', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [[[[-2, 2], [2, 2], [2, -2], [-2, -2], [-2, 2]]], [[[-1, 1], [1, 1], [1, -1], [-1, -1], [-1, 1]]]]
+                    },
+                    "properties": {}
+                }
+            ]
+        }), "geojson");
+        var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[[2025,2025],[2071,2025],[2071,2071],[2025,2071],[2025,2025]]],[[[2037,2037],[2059,2037],[2059,2059],[2037,2059],[2037,2037]]]],"geometry_type":"MultiPolygon","properties":{}}]}];
+        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+>>>>>>> Stashed changes
     });
 
 });

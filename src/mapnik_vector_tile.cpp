@@ -353,6 +353,13 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
 VectorTile::~VectorTile() { }
 /* LCOV_EXCL_END */
 
+std::string copy_vector_tile(std::string const& buffer,
+                             bool strictly_simple,
+                             bool area_threshold)
+{
+
+}
+
 NAN_METHOD(VectorTile::New)
 {
     if (!info.IsConstructCall()) {
