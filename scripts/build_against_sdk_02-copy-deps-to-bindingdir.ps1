@@ -7,6 +7,7 @@ Try{
     Write-Output "to: $env:NODEMAPNIK_BINDING_DIR"
 
     Copy-Item $env:MAPNIK_SDK\bin\shapeindex.exe $env:NODEMAPNIK_BINDING_DIR\ -ErrorAction Stop
+    Copy-Item $env:MAPNIK_SDK\bin\mapnik-index.exe $env:NODEMAPNIK_BINDING_DIR\ -ErrorAction Stop
 
     $deps = Get-ChildItem -Path $env:MAPNIK_SDK\lib -Filter *.dll | % { $_.FullName }
 
