@@ -2,6 +2,9 @@
 
 ## Future
 
+ - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
+   even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
+   best performance.
  - Stricter GeoJSON parsing in geojson.input ref :https://github.com/mapnik/mapnik/issues/3125
   
 ## 3.4.9
