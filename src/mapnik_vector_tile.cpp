@@ -445,11 +445,11 @@ void _composite(VectorTile* target_vt,
                 double area_threshold,
                 bool strictly_simple,
                 double scale_denominator,
-                bool reencode)
+                bool reencode,
+                boost::optional<mapnik::box2d<double>> const& max_extent)
 {
     vector_tile::Tile new_tiledata;
     std::string merc_srs("+init=epsg:3857");
-    mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
     if (target_vt->width() <= 0 || target_vt->height() <= 0)
     {
         throw std::runtime_error("Vector tile width and height must be great than zero");
@@ -489,7 +489,10 @@ void _composite(VectorTile* target_vt,
             m_req.set_buffer_size(buffer_size);
             // create map
             mapnik::Map map(target_vt->width(),target_vt->height(),merc_srs);
-            map.set_maximum_extent(max_extent);
+            if (max_extent)
+            {
+                map.set_maximum_extent(*max_extent);
+            }
             protozero::pbf_reader message(vt->buffer_.data(),vt->buffer_.size());
             while (message.next(3)) {
                 protozero::pbf_reader layer_msg = message.get_message();
@@ -576,6 +579,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
     bool strictly_simple = false;
     double scale_denominator = 0.0;
     bool reencode = false;
+    boost::optional<mapnik::box2d<double>> max_extent;
 
     if (info.Length() > 1) {
         // options object
@@ -670,6 +674,32 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             reencode = reencode_opt->BooleanValue();
         }
+        if (options->Has(Nan::New("max_extent").ToLocalChecked())) {
+            v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
+            if (!max_extent_opt->IsArray())
+            {
+                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
+                return scope.Escape(Nan::Undefined());
+            }
+            v8::Local<v8::Array> bbox = max_extent_opt.As<v8::Array>();
+            auto len = bbox->Length();
+            if (!(len == 4))
+            {
+                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
+                return scope.Escape(Nan::Undefined());
+            }
+            v8::Local<v8::Value> minx = bbox->Get(0);
+            v8::Local<v8::Value> miny = bbox->Get(1);
+            v8::Local<v8::Value> maxx = bbox->Get(2);
+            v8::Local<v8::Value> maxy = bbox->Get(3);
+            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
+            {
+                Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
+                return scope.Escape(Nan::Undefined());
+            }
+            max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
+                                               maxx->NumberValue(),maxy->NumberValue());
+        }
     }
     VectorTile* target_vt = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     std::vector<VectorTile*> vtiles_vec;
@@ -699,7 +729,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
                    area_threshold,
                    strictly_simple,
                    scale_denominator,
-                   reencode);
+                   reencode,
+                   max_extent);
     }
     catch (std::exception const& ex)
     {
@@ -724,6 +755,7 @@ typedef struct {
     bool error;
     bool strictly_simple;
     bool reencode;
+    boost::optional<mapnik::box2d<double>> max_extent;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
@@ -757,8 +789,7 @@ NAN_METHOD(VectorTile::composite)
     bool strictly_simple = false;
     double scale_denominator = 0.0;
     bool reencode = false;
-    // not options yet, likely should never be....
-    mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
+    boost::optional<mapnik::box2d<double>> max_extent;
     std::string merc_srs("+init=epsg:3857");
 
     if (info.Length() > 2) {
@@ -853,6 +884,32 @@ NAN_METHOD(VectorTile::composite)
             }
             reencode = reencode_opt->BooleanValue();
         }
+        if (options->Has(Nan::New("max_extent").ToLocalChecked())) {
+            v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
+            if (!max_extent_opt->IsArray())
+            {
+                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
+                return;
+            }
+            v8::Local<v8::Array> bbox = max_extent_opt.As<v8::Array>();
+            auto len = bbox->Length();
+            if (!(len == 4))
+            {
+                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
+                return;
+            }
+            v8::Local<v8::Value> minx = bbox->Get(0);
+            v8::Local<v8::Value> miny = bbox->Get(1);
+            v8::Local<v8::Value> maxx = bbox->Get(2);
+            v8::Local<v8::Value> maxy = bbox->Get(3);
+            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
+            {
+                Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
+                return;
+            }
+            max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
+                                               maxx->NumberValue(),maxy->NumberValue());
+        }
     }
 
     v8::Local<v8::Value> callback = info[info.Length()-1];
@@ -867,6 +924,7 @@ NAN_METHOD(VectorTile::composite)
     closure->scale_factor = scale_factor;
     closure->scale_denominator = scale_denominator;
     closure->reencode = reencode;
+    closure->max_extent = max_extent;
     closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
@@ -911,7 +969,8 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->area_threshold,
                    closure->strictly_simple,
                    closure->scale_denominator,
-                   closure->reencode);
+                   closure->reencode,
+                   closure->max_extent);
     }
     catch (std::exception const& ex)
     {

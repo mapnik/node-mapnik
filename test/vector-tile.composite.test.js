@@ -2,6 +2,7 @@
 
 var mapnik = require('../');
 var assert = require('assert');
+var util = require('util');
 var fs = require('fs');
 var path = require('path');
 var mercator = new(require('sphericalmercator'))();
@@ -209,6 +210,76 @@ describe('mapnik.VectorTile.composite', function() {
         });
     });
     
+    it('should support compositing tiles and clipping to max_extent (reencode)', function(done) {
+        var map = new mapnik.Map(256,256);
+        var map_template = fs.readFileSync('./test/data/vector_tile/generic_map.xml', 'utf8');
+        var color = function(str) {
+          var rgb = [0, 0, 0];
+          for (var i = 0; i < str.length; i++) {
+              var v = str.charCodeAt(i);
+              rgb[v % 3] = (rgb[i % 3] + (13*(v%13))) % 12;
+          }
+          var r = 4 + rgb[0];
+          var g = 4 + rgb[1];
+          var b = 4 + rgb[2];
+          r = (r * 16) + r;
+          g = (g * 16) + g;
+          b = (b * 16) + b;
+          return [r,g,b];
+        };
+        var vtile2 = new mapnik.VectorTile(0,0,0);
+        vtile2.setData(fs.readFileSync('./test/data/v6-0_0_0.vector.pbf'));
+        var xml = '<Map srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over" background-color="#000000" maximum-extent="-20037508.34,-20037508.34,20037508.34,20037508.34">';
+        xml += vtile2.names().map(function(name) {
+                    var rgb = color(name).join(',');
+                    return util.format(map_template, name, rgb, rgb, rgb, rgb, rgb, name, name);
+                  }).join('\n');
+        xml += '</Map>';
+        map.fromStringSync(xml);
+
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var vtile1 = new mapnik.VectorTile(0,0,0);
+        var vtile3 = new mapnik.VectorTile(0,0,0);
+        var vtile4 = new mapnik.VectorTile(0,0,0);
+        var world_clipping_extent = [-20037508.34,-20037508.34,20037508.34,20037508.34];
+        vtile.composite([vtile2],{reencode:true});
+        vtile1.composite([vtile2],{reencode:true,max_extent:world_clipping_extent});
+        assert.equal(vtile.getData().length,54626);
+        assert.deepEqual(vtile.names(),["water","admin"]);
+        assert.equal(vtile1.getData().length,54461);
+        assert.deepEqual(vtile1.names(),["water","admin"]);
+        var expected_file = data_base +'/expected/world-reencode.png';
+        var expected_file2 = data_base +'/expected/world-reencode-max-extent.png';
+        vtile.render(map,new mapnik.Image(256,256),function(err,im) {
+            if (err) throw err;
+            assert.equal(0,compare_to_image(im,expected_file));
+            vtile1.render(map,new mapnik.Image(256,256),function(err,im2) {
+                if (err) throw err;
+                assert.equal(0,compare_to_image(im2,expected_file2));
+                vtile3.composite([vtile2],{reencode:true}, function(err) {
+                    if (err) throw err;
+                    assert.equal(vtile3.getData().length,54626);
+                    assert.deepEqual(vtile3.names(),["water","admin"]);
+                    vtile3.render(map,new mapnik.Image(256,256),function(err,im) {
+                        if (err) throw err;
+                        assert.equal(0,compare_to_image(im,expected_file));
+                        vtile4.composite([vtile2],{reencode:true,max_extent:world_clipping_extent}, function(err) {
+                            if (err) throw err;
+                            assert.equal(vtile4.getData().length,54461);
+                            assert.deepEqual(vtile4.names(),["water","admin"]);
+                            assert.equal(0,compare_to_image(im2,expected_file2));
+                            vtile4.render(map,new mapnik.Image(256,256),function(err,im) {
+                                if (err) throw err;
+                                assert.equal(0,compare_to_image(im,expected_file2));
+                                done();
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+
     it('should support compositing tiles that were just rendered to async', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;

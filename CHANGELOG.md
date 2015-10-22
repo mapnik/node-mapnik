@@ -2,6 +2,8 @@
 
 ## Future
 
+ - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
+   clipping extent will be used for the operation. If provided the data will be restricted to this extent.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.
