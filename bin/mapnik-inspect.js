@@ -30,6 +30,16 @@ var meta = function(ds) {
     console.log('Description -->');
     console.log(ds.describe());
     console.log('extent: ' + ds.extent().toString());
+    var fs = ds.featureset();
+    var count = 0;
+    if (fs) {
+        var feat = fs.next();
+        while (feat) {
+            count++;
+            feat = fs.next();
+        }
+    }
+    console.log(count,'features');
 };
 
 if (/.shp$/.test(obj)) {
