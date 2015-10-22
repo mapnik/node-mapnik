@@ -219,7 +219,7 @@ describe('mapnik.ImageView ', function() {
         var im = new mapnik.Image(256, 256);
         var view = im.view(0,0,256,256);
         var pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
-        var expected = '/tmp/mapnik-image-view-saved.png';
+        var expected = './test/tmp/mapnik-image-view-saved.png';
         view.save(expected);
         assert.ok(fs.existsSync(expected));
         done();
