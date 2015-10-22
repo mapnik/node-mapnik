@@ -444,7 +444,8 @@ void _composite(VectorTile* target_vt,
                 unsigned offset_y,
                 double area_threshold,
                 bool strictly_simple,
-                double scale_denominator)
+                double scale_denominator,
+                bool reencode)
 {
     vector_tile::Tile new_tiledata;
     std::string merc_srs("+init=epsg:3857");
@@ -460,7 +461,8 @@ void _composite(VectorTile* target_vt,
             throw std::runtime_error("Vector tile width and height must be great than zero");
         }
         // TODO - handle name clashes
-        if (target_vt->z_ == vt->z_ &&
+        if (!reencode &&
+            target_vt->z_ == vt->z_ &&
             target_vt->x_ == vt->x_ &&
             target_vt->y_ == vt->y_)
         {
@@ -573,6 +575,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
     double area_threshold = 0.1;
     bool strictly_simple = false;
     double scale_denominator = 0.0;
+    bool reencode = false;
 
     if (info.Length() > 1) {
         // options object
@@ -658,6 +661,15 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             offset_y = bind_opt->IntegerValue();
         }
+        if (options->Has(Nan::New("reencode").ToLocalChecked())) {
+            v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
+            if (!reencode_opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("reencode value must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            reencode = reencode_opt->BooleanValue();
+        }
     }
     VectorTile* target_vt = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     std::vector<VectorTile*> vtiles_vec;
@@ -686,7 +698,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
                    offset_y,
                    area_threshold,
                    strictly_simple,
-                   scale_denominator);
+                   scale_denominator,
+                   reencode);
     }
     catch (std::exception const& ex)
     {
@@ -710,6 +723,7 @@ typedef struct {
     std::vector<VectorTile*> vtiles;
     bool error;
     bool strictly_simple;
+    bool reencode;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
@@ -742,6 +756,7 @@ NAN_METHOD(VectorTile::composite)
     double area_threshold = 0.1;
     bool strictly_simple = false;
     double scale_denominator = 0.0;
+    bool reencode = false;
     // not options yet, likely should never be....
     mapnik::box2d<double> max_extent(-20037508.34,-20037508.34,20037508.34,20037508.34);
     std::string merc_srs("+init=epsg:3857");
@@ -829,6 +844,15 @@ NAN_METHOD(VectorTile::composite)
             }
             offset_y = bind_opt->IntegerValue();
         }
+        if (options->Has(Nan::New("reencode").ToLocalChecked())) {
+            v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
+            if (!reencode_opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("reencode value must be a boolean");
+                return;
+            }
+            reencode = reencode_opt->BooleanValue();
+        }
     }
 
     v8::Local<v8::Value> callback = info[info.Length()-1];
@@ -842,10 +866,12 @@ NAN_METHOD(VectorTile::composite)
     closure->buffer_size = buffer_size;
     closure->scale_factor = scale_factor;
     closure->scale_denominator = scale_denominator;
+    closure->reencode = reencode;
     closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
-    for (unsigned j=0;j < num_tiles;++j) {
+    for (unsigned j=0;j < num_tiles;++j)
+    {
         v8::Local<v8::Value> val = vtiles->Get(j);
         if (!val->IsObject())
         {
@@ -884,7 +910,8 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->offset_y,
                    closure->area_threshold,
                    closure->strictly_simple,
-                   closure->scale_denominator);
+                   closure->scale_denominator,
+                   closure->reencode);
     }
     catch (std::exception const& ex)
     {

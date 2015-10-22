@@ -174,10 +174,36 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
-                scale_denominator: 0.0
+                scale_denominator: 0.0,
+                reencode: false
             }
             vtile2.compositeSync([vtile1,vtile1],options);
             assert.equal(vtile2.getData().length,98);
+            assert.deepEqual(vtile2.names(),["lines","lines"]);
+            done();
+        });
+    });
+
+    it('should support compositing tiles that were just rendered to sync (reencode)', function(done) {
+        render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
+            if (err) throw err;
+            assert.equal(vtile1.getData().length,49);
+            var vtile2 = new mapnik.VectorTile(1,0,0);
+            // Since the tiles are same location, no rendering is required
+            // so these options have no effect
+            var options = {
+                path_multiplier: 16,
+                buffer_size: 1,
+                scale: 1.0,
+                offset_x: 0,
+                offset_y: 0,
+                area_threshold: 0.1,
+                strictly_simple: false,
+                scale_denominator: 0.0,
+                reencode: true
+            }
+            vtile2.compositeSync([vtile1,vtile1],options);
+            assert.equal(vtile2.getData().length,94);
             assert.deepEqual(vtile2.names(),["lines","lines"]);
             done();
         });
@@ -198,11 +224,39 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
-                scale_denominator: 0.0
+                scale_denominator: 0.0,
+                reencode: false
             }
             vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
                 if (err) throw err;
                 assert.equal(vtile2.getData().length,98);
+                assert.deepEqual(vtile2.names(),["lines","lines"]);
+                done();
+            });
+        });
+    });
+
+    it('should support compositing tiles that were just rendered to async (reencode)', function(done) {
+        render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
+            if (err) throw err;
+            assert.equal(vtile1.getData().length,49);
+            var vtile2 = new mapnik.VectorTile(1,0,0);
+            // Since the tiles are same location, no rendering is required
+            // so these options have no effect
+            var options = {
+                path_multiplier: 16,
+                buffer_size: 1,
+                scale: 1.0,
+                offset_x: 0,
+                offset_y: 0,
+                area_threshold: 0.1,
+                strictly_simple: false,
+                scale_denominator: 0.0,
+                reencode: true
+            }
+            vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
+                if (err) throw err;
+                assert.equal(vtile2.getData().length,94);
                 assert.deepEqual(vtile2.names(),["lines","lines"]);
                 done();
             });
