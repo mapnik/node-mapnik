@@ -2656,6 +2656,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           area_threshold,
                           strictly_simple);
         ren.set_simplify_distance(simplify_distance);
+        ren.set_multi_polygon_union(true);
         ren.apply();
         detail::add_tile(d->buffer_,tiledata);
         info.GetReturnValue().Set(Nan::True());

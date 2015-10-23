@@ -1941,6 +1941,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->image_format,
                           closure->scaling_method);
         ren.set_simplify_distance(closure->simplify_distance);
+        ren.set_multi_polygon_union(true);
         ren.apply(closure->scale_denominator);
         std::string new_message;
         if (!tiledata.SerializeToString(&new_message))
