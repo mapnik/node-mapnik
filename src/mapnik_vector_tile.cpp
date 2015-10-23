@@ -521,10 +521,10 @@ void _composite(VectorTile* target_vt,
                                   offset_y,
                                   area_threshold,
                                   strictly_simple);
-                ren.apply(scale_denominator);
                 ren.set_simplify_distance(simplify_distance);
                 ren.set_process_all_mp_rings(process_all_mp_rings);
                 ren.set_multi_polygon_union(multi_polygon_union);
+                ren.apply(scale_denominator);
             }
 
             std::string new_message;
