@@ -2306,6 +2306,67 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
+    var multi_polygon_with_degerate_exterior_ring = {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+              "type": "MultiPolygon",
+              "coordinates": [[
+                [
+                  [
+                    -30.937499999999996,
+                    2.811371193331128
+                  ],
+                  [
+                    -30.937499999999996,
+                    73.42842364106818
+                  ]
+                ],
+                [
+                  [
+                    -6.328125,
+                    23.241346102386135
+                  ],
+                  [
+                    -6.328125,
+                    67.60922060496382
+                  ],
+                  [
+                    64.6875,
+                    67.60922060496382
+                  ],
+                  [
+                    64.6875,
+                    23.241346102386135
+                  ],
+                  [
+                    -6.328125,
+                    23.241346102386135
+                  ]
+                ]
+              ]]
+            }
+          }
+        ]
+    };
+
+    it('test that degenerate exterior ring causes all rings to be throw out', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson");
+        var expected = [{"name":"geojson","extent":4096,"version":1,"features":[]}];
+        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+    });
+
+    it('test that degenerate exterior ring is skipped when `process_all_mp_rings` is true and remaining polygons are processed', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson", {process_all_mp_rings:true});
+        var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[1976,992],[2784,992],[2784,1776],[1976,1776],[1976,992]]],"geometry_type":"Polygon","properties":{}}]}];
+        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+    });
+
     it.skip('test that overlapping multipolygon results in two polygons in round trip.', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify({
