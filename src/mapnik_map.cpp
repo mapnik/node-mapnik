@@ -1520,6 +1520,8 @@ struct vector_tile_baton_t {
     double simplify_distance;
     bool error;
     bool strictly_simple;
+    bool process_all_mp_rings;
+    bool multi_polygon_union;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
@@ -1535,7 +1537,9 @@ struct vector_tile_baton_t {
         scaling_method(mapnik::SCALING_NEAR),
         simplify_distance(0.0),
         error(false),
-        strictly_simple(false) {}
+        strictly_simple(false),
+        process_all_mp_rings(false),
+        multi_polygon_union(true) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1881,6 +1885,26 @@ NAN_METHOD(Map::render)
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
 
+            if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked())) {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+                if (!param_val->IsBoolean()) {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
+                    return;
+                }
+                closure->multi_polygon_union = param_val->BooleanValue();
+            }
+
+            if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
+                if (!param_val->IsBoolean()) {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
+                    return;
+                }
+                closure->process_all_mp_rings = param_val->BooleanValue();
+            }
+
             closure->request.data = closure;
             closure->m = m;
             closure->d = vector_tile_obj;
@@ -1941,7 +1965,8 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->image_format,
                           closure->scaling_method);
         ren.set_simplify_distance(closure->simplify_distance);
-        ren.set_multi_polygon_union(true);
+        ren.set_process_all_mp_rings(closure->process_all_mp_rings);
+        ren.set_multi_polygon_union(closure->multi_polygon_union);
         ren.apply(closure->scale_denominator);
         std::string new_message;
         if (!tiledata.SerializeToString(&new_message))
