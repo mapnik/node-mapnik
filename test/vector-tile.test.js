@@ -2042,7 +2042,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 7); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 16); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-evenOdd.vector.pbf';
             var actual = './test/data/vector_tile/tile0-evenOdd.vector.actual.pbf';
@@ -2459,14 +2459,14 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson");
         var expected = [{"name":"geojson","extent":4096,"version":1,"features":[]}];
-        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
     it('test that degenerate exterior ring is skipped when `process_all_mp_rings` is true and remaining polygons are processed', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson", {process_all_mp_rings:true});
         var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[1976,992],[2784,992],[2784,1776],[1976,1776],[1976,992]]],"geometry_type":"Polygon","properties":{}}]}];
-        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
     it('test that overlapping multipolygon results in two polygons in round trip with multipolygon false', function() {
@@ -2485,7 +2485,7 @@ describe('mapnik.VectorTile ', function() {
             ]
         }), "geojson", {multi_polygon_union:false});
         var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[[2025,2025],[2071,2025],[2071,2071],[2025,2071],[2025,2025]]],[[[2037,2037],[2059,2037],[2059,2059],[2037,2059],[2037,2037]]]],"geometry_type":"MultiPolygon","properties":{}}]}];
-        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
     
     it('test that overlapping multipolygon results in one polygon in round trip with multipolygon true', function() {
@@ -2504,7 +2504,27 @@ describe('mapnik.VectorTile ', function() {
             ]
         }), "geojson", {multi_polygon_union:true});
         var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[2025,2025],[2071,2025],[2071,2071],[2025,2071],[2025,2025]]],"geometry_type":"Polygon","properties":{}}]}];
-        assert.deepEqual(expected, vtile.toJSON({decode_geometry:true}));
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
+
+    it('test that overlapping multipolygon results in one polygon in round trip with multipolygon true and even odd', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [[[[-2, 2], [2, 2], [2, -2], [-2, -2], [-2, 2]]], [[[-1, 1], [1, 1], [1, -1], [-1, -1], [-1, 1]]]]
+                    },
+                    "properties": {}
+                }
+            ]
+        }), "geojson", {multi_polygon_union:true, fill_type:mapnik.polygonFillType.evenOdd});
+        var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[2025,2025],[2071,2025],[2071,2071],[2025,2071],[2025,2025]],[[2059,2059],[2059,2037],[2037,2037],[2037,2059],[2059,2059]]],"geometry_type":"Polygon","properties":{}}]}];
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+    });
+
 
 });
