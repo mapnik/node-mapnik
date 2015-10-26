@@ -444,6 +444,8 @@ void _composite(VectorTile* target_vt,
                 unsigned offset_y,
                 double area_threshold,
                 bool strictly_simple,
+                bool multi_polygon_union,
+                mapnik::vector_tile_impl::polygon_fill_type fill_type,
                 double scale_denominator,
                 bool reencode,
                 boost::optional<mapnik::box2d<double>> const& max_extent)
@@ -518,6 +520,8 @@ void _composite(VectorTile* target_vt,
                                   offset_y,
                                   area_threshold,
                                   strictly_simple);
+                ren.set_fill_type(fill_type);
+                ren.set_multi_polygon_union(multi_polygon_union);
                 ren.apply(scale_denominator);
             }
 
@@ -577,6 +581,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
     unsigned offset_y = 0;
     double area_threshold = 0.1;
     bool strictly_simple = false;
+    bool multi_polygon_union = true;
+    mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::non_zero_fill;
     double scale_denominator = 0.0;
     bool reencode = false;
     boost::optional<mapnik::box2d<double>> max_extent;
@@ -619,7 +625,33 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             strictly_simple = strict_simp->BooleanValue();
         }
-        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
+        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+            if (!mpu->IsBoolean())
+            {
+                Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            multi_polygon_union = mpu->BooleanValue();
+        }
+        if (options->Has(Nan::New("fill_type").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
+            if (!ft->IsNumber())
+            {
+                Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
+                return scope.Escape(Nan::Undefined());
+            }
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
+            if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+            {
+                Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
+                return scope.Escape(Nan::Undefined());
+            }
+        }
+        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
@@ -728,6 +760,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
                    offset_y,
                    area_threshold,
                    strictly_simple,
+                   multi_polygon_union,
+                   fill_type,
                    scale_denominator,
                    reencode,
                    max_extent);
@@ -754,6 +788,8 @@ typedef struct {
     std::vector<VectorTile*> vtiles;
     bool error;
     bool strictly_simple;
+    bool multi_polygon_union;
+    mapnik::vector_tile_impl::polygon_fill_type fill_type;
     bool reencode;
     boost::optional<mapnik::box2d<double>> max_extent;
     std::string error_name;
@@ -787,6 +823,8 @@ NAN_METHOD(VectorTile::composite)
     unsigned offset_y = 0;
     double area_threshold = 0.1;
     bool strictly_simple = false;
+    bool multi_polygon_union = true;
+    mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::non_zero_fill;
     double scale_denominator = 0.0;
     bool reencode = false;
     boost::optional<mapnik::box2d<double>> max_extent;
@@ -828,6 +866,29 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
             strictly_simple = strict_simp->BooleanValue();
+        }
+        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked())) {
+            v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+            if (!mpu->IsBoolean())
+            {
+                Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
+                return;
+            }
+            multi_polygon_union = mpu->BooleanValue();
+        }
+        if (options->Has(Nan::New("fill_type").ToLocalChecked())) {
+            v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
+            if (!ft->IsNumber())
+            {
+                Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
+                return;
+            }
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
+            if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+            {
+                Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
+                return;
+            }
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
@@ -918,6 +979,8 @@ NAN_METHOD(VectorTile::composite)
     closure->offset_x = offset_x;
     closure->offset_y = offset_y;
     closure->strictly_simple = strictly_simple;
+    closure->fill_type = fill_type;
+    closure->multi_polygon_union = multi_polygon_union;
     closure->area_threshold = area_threshold;
     closure->path_multiplier = path_multiplier;
     closure->buffer_size = buffer_size;
@@ -968,6 +1031,8 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->offset_y,
                    closure->area_threshold,
                    closure->strictly_simple,
+                   closure->multi_polygon_union,
+                   closure->fill_type,
                    closure->scale_denominator,
                    closure->reencode,
                    closure->max_extent);
@@ -2572,55 +2637,96 @@ NAN_METHOD(VectorTile::addGeoJSON)
     unsigned path_multiplier = 16;
     int buffer_size = 8;
     bool strictly_simple = false;
+    bool multi_polygon_union = true;
+    mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::non_zero_fill;
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2) 
+    {
         // options object
-        if (!info[2]->IsObject()) {
+        if (!info[2]->IsObject()) 
+        {
             Nan::ThrowError("optional third argument must be an options object");
             return;
         }
 
         options = info[2]->ToObject();
 
-        if (options->Has(Nan::New("area_threshold").ToLocalChecked())) {
+        if (options->Has(Nan::New("area_threshold").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
-            if (!param_val->IsNumber()) {
+            if (!param_val->IsNumber()) 
+            {
                 Nan::ThrowError("option 'area_threshold' must be a number");
                 return;
             }
             area_threshold = param_val->IntegerValue();
         }
 
-        if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) {
+        if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("strictly_simple").ToLocalChecked());
-            if (!param_val->IsBoolean()) {
+            if (!param_val->IsBoolean()) 
+            {
                 Nan::ThrowError("option 'strictly_simple' must be a boolean");
                 return;
             }
             strictly_simple = param_val->BooleanValue();
         }
 
-        if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) {
+        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+            if (!mpu->IsBoolean())
+            {
+                Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
+                return;
+            }
+            multi_polygon_union = mpu->BooleanValue();
+        }
+
+        if (options->Has(Nan::New("fill_type").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
+            if (!ft->IsNumber())
+            {
+                Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
+                return;
+            }
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
+            if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+            {
+                Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
+                return;
+            }
+        }
+
+        if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
-            if (!param_val->IsNumber()) {
+            if (!param_val->IsNumber()) 
+            {
                 Nan::ThrowError("option 'path_multiplier' must be an unsigned integer");
                 return;
             }
             path_multiplier = param_val->NumberValue();
         }
 
-        if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) {
+        if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
-            if (!param_val->IsNumber()) {
+            if (!param_val->IsNumber()) 
+            {
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                 return;
             }
             simplify_distance = param_val->NumberValue();
         }
         
-        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
+        if (options->Has(Nan::New("buffer_size").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
-            if (!bind_opt->IsNumber()) {
+            if (!bind_opt->IsNumber()) 
+            {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                 return;
             }
@@ -2656,7 +2762,8 @@ NAN_METHOD(VectorTile::addGeoJSON)
                           area_threshold,
                           strictly_simple);
         ren.set_simplify_distance(simplify_distance);
-        ren.set_multi_polygon_union(true);
+        ren.set_multi_polygon_union(multi_polygon_union);
+        ren.set_fill_type(fill_type);
         ren.apply();
         detail::add_tile(d->buffer_,tiledata);
         info.GetReturnValue().Set(Nan::True());

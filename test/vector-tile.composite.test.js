@@ -18,6 +18,8 @@ var rendering_defaults = {
     path_multiplier: 16,
     area_threshold: 0.1,
     strictly_simple: false,
+    multi_polygon_union: true,
+    fill_type: mapnik.polygonFillType.nonZero,
     scale: 1,
     scale_denominator: 0.0,
     offset_x: 0,
@@ -149,6 +151,12 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {area_threshold:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {strictly_simple:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {strictly_simple:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {multi_polygon_union:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {multi_polygon_union:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {fill_type:null}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {fill_type:99}); });
+        assert.throws(function() { vtile1.composite([vtile2], {fill_type:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.composite([vtile2], {fill_type:99}, function(err, result) {}); });
         assert.throws(function() { vtile3.compositeSync([vtile1]); });
         assert.throws(function() { vtile1.compositeSync([vtile3]); });
         vtile3.composite([vtile1], function(err, result) {
