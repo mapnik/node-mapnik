@@ -47,7 +47,7 @@ Notable Changes in Mapnik 3.0.5 Include:
  - Rebuilt with Mapnik 3.0.5
  - Added ability to create an image using a Buffer object. It should be noted that this should
    be used very carefully as the lifetime of the Image object is tied to that of the Buffer. If the 
-   buffer obect is garbage collect this could result in a segfault.
+   buffer object is garbage collect this could result in a segfault.
 
 Notable Changes in Mapnik 3.0.5 Include:
 
