@@ -1,7 +1,8 @@
 # Changelog
 
-## Future
+## 3.4.10
 
+ - Now bundling the `mapnik-index` command (https://github.com/mapnik/node-mapnik/pull/545)
  - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
    clipping extent will be used for the operation. If provided the data will be restricted to this extent.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
