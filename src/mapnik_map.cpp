@@ -1522,6 +1522,7 @@ struct vector_tile_baton_t {
     bool strictly_simple;
     bool multi_polygon_union;
     mapnik::vector_tile_impl::polygon_fill_type fill_type;
+    bool process_all_mp_rings;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
@@ -1539,7 +1540,8 @@ struct vector_tile_baton_t {
         error(false),
         strictly_simple(false),
         multi_polygon_union(true),
-        fill_type(mapnik::vector_tile_impl::non_zero_fill) {}
+        fill_type(mapnik::vector_tile_impl::non_zero_fill),
+        process_all_mp_rings(false) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1932,6 +1934,18 @@ NAN_METHOD(Map::render)
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
 
+            if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) 
+            {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
+                if (!param_val->IsBoolean()) 
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
+                    return;
+                }
+                closure->process_all_mp_rings = param_val->BooleanValue();
+            }
+
             closure->request.data = closure;
             closure->m = m;
             closure->d = vector_tile_obj;
@@ -1944,13 +1958,15 @@ NAN_METHOD(Map::render)
             closure->error = false;
             if (!m->acquire())
             {
-                    delete closure;
+                delete closure;
                 Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 return;
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
-        } else {
+        } 
+        else 
+        {
             Nan::ThrowTypeError("renderable mapnik object expected");
             return;
         }
@@ -1994,6 +2010,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
         ren.set_simplify_distance(closure->simplify_distance);
         ren.set_multi_polygon_union(closure->multi_polygon_union);
         ren.set_fill_type(closure->fill_type);
+        ren.set_process_all_mp_rings(closure->process_all_mp_rings);
         ren.apply(closure->scale_denominator);
         std::string new_message;
         if (!tiledata.SerializeToString(&new_message))
@@ -2020,10 +2037,13 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     closure->m->release();
 
-    if (closure->error) {
+    if (closure->error) 
+    {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-    } else {
+    } 
+    else 
+    {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
