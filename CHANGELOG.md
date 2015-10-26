@@ -1,7 +1,8 @@
 # Changelog
 
-## Future
+## 3.4.10
 
+ - Now bundling the `mapnik-index` command (https://github.com/mapnik/node-mapnik/pull/545)
  - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
    clipping extent will be used for the operation. If provided the data will be restricted to this extent.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
@@ -46,7 +47,7 @@ Notable Changes in Mapnik 3.0.5 Include:
  - Rebuilt with Mapnik 3.0.5
  - Added ability to create an image using a Buffer object. It should be noted that this should
    be used very carefully as the lifetime of the Image object is tied to that of the Buffer. If the 
-   buffer obect is garbage collect this could result in a segfault.
+   buffer object is garbage collect this could result in a segfault.
 
 Notable Changes in Mapnik 3.0.5 Include:
 
