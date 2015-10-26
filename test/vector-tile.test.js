@@ -148,6 +148,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {multi_polygon_union:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {fill_type:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {fill_type:99}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {process_all_mp_rings:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {path_multiplier:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {buffer_size:null}); });
@@ -1817,6 +1818,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {multi_polygon_union:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {fill_type:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {fill_type:99}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {process_all_mp_rings:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {path_multiplier:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_algorithm:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_distance:null}, function(err, vtile) {}); });
@@ -2078,6 +2080,38 @@ describe('mapnik.VectorTile ', function() {
             }
             var expected = './test/data/vector_tile/tile0-nonZero.vector.pbf';
             var actual = './test/data/vector_tile/tile0-nonZero.vector.actual.pbf';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            done();
+        });
+    });
+
+    it('should render a vector_tile of the whole world - process_all_mp_rings', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/stylesheet.xml');
+        map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
+
+        map.render(vtile, {variables:{pizza:'pie'}, process_all_mp_rings:true}, function(err, vtile) {
+            if (err) throw err;
+            assert.equal(vtile.isSolid(), false);
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 14); // Dataset not expected to be OGC valid
+            }
+            var expected = './test/data/vector_tile/tile0-process-all-mp-rings.vector.pbf';
+            var actual = './test/data/vector_tile/tile0-process-all-mp-rings.vector.actual.pbf';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
@@ -2466,6 +2500,44 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson", {process_all_mp_rings:true});
         var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[1976,992],[2784,992],[2784,1776],[1976,1776],[1976,992]]],"geometry_type":"Polygon","properties":{}}]}];
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+    });
+    
+    it('test that polygon with invalid exterior ring results a polygon process_all_mp_rings true', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-2, 2], [-2, 2]], [[-1, 1], [1, 1], [1, -1], [-1, -1], [-1, 1]]]
+                    },
+                    "properties": {}
+                }
+            ]
+        }), "geojson", {process_all_mp_rings:true});
+        var expected = [{"name":"geojson","extent":4096,"version":1,"features":[{"id":1,"type":3,"geometry":[[[2037,2037],[2059,2037],[2059,2059],[2037,2059],[2037,2037]]],"geometry_type":"Polygon","properties":{}}]}];
+        assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+    });
+    
+    it('test that polygon with invalid exterior ring results in an empty vector tile with process_all_mp_rings false', function() {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[-2, 2], [-2, 2]], [[-1, 1], [1, 1], [1, -1], [-1, -1], [-1, 1]]]
+                    },
+                    "properties": {}
+                }
+            ]
+        }), "geojson", {process_all_mp_rings:false});
+        var expected = [{"name":"geojson","extent":4096,"version":1,"features":[]}];
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
