@@ -21,6 +21,7 @@ var rendering_defaults = {
     multi_polygon_union: true,
     fill_type: mapnik.polygonFillType.nonZero,
     process_all_mp_rings:false,
+    reencode:false,
     scale: 1,
     scale_denominator: 0.0,
     offset_x: 0,
@@ -158,8 +159,8 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.compositeSync([vtile2], {fill_type:99}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {process_all_mp_rings:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {process_all_mp_rings:null}, function(err, result) {}); });
-        assert.throws(function() { vtile1.composite([vtile2], {fill_type:null}, function(err, result) {}); });
-        assert.throws(function() { vtile1.composite([vtile2], {fill_type:99}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {reencode:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {reencode:null}, function(err, result) {}); });
         assert.throws(function() { vtile3.compositeSync([vtile1]); });
         assert.throws(function() { vtile1.compositeSync([vtile3]); });
         vtile3.composite([vtile1], function(err, result) {
@@ -186,6 +187,7 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
+                process_all_mp_rings:false,
                 scale_denominator: 0.0,
                 reencode: false
             }
@@ -201,6 +203,7 @@ describe('mapnik.VectorTile.composite', function() {
             if (err) throw err;
             assert.equal(vtile1.getData().length,49);
             var vtile2 = new mapnik.VectorTile(1,0,0);
+            var vtile3 = new mapnik.VectorTile(1,0,0);
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
             var options = {
@@ -217,7 +220,12 @@ describe('mapnik.VectorTile.composite', function() {
             vtile2.compositeSync([vtile1,vtile1],options);
             assert.equal(vtile2.getData().length,94);
             assert.deepEqual(vtile2.names(),["lines","lines"]);
-            done();
+            vtile3.composite([vtile1,vtile1],options,function(err) {
+                if (err) throw err;
+                assert.equal(vtile3.getData().length,94);
+                assert.deepEqual(vtile3.names(),["lines","lines"]);
+                done();
+            });
         });
     });
     

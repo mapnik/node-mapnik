@@ -678,7 +678,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             buffer_size = bind_opt->IntegerValue();
         }
-        if (options->Has(Nan::New("scale").ToLocalChecked())) {
+        if (options->Has(Nan::New("scale").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
@@ -697,7 +698,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             scale_denominator = bind_opt->NumberValue();
         }
-        if (options->Has(Nan::New("offset_x").ToLocalChecked())) {
+        if (options->Has(Nan::New("offset_x").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
@@ -706,7 +708,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             offset_x = bind_opt->IntegerValue();
         }
-        if (options->Has(Nan::New("offset_y").ToLocalChecked())) {
+        if (options->Has(Nan::New("offset_y").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
             if (!bind_opt->IsNumber())
             {
@@ -715,7 +718,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             offset_y = bind_opt->IntegerValue();
         }
-        if (options->Has(Nan::New("reencode").ToLocalChecked())) {
+        if (options->Has(Nan::New("reencode").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
             if (!reencode_opt->IsBoolean())
             {
@@ -724,7 +728,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             reencode = reencode_opt->BooleanValue();
         }
-        if (options->Has(Nan::New("max_extent").ToLocalChecked())) {
+        if (options->Has(Nan::New("max_extent").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
             if (!max_extent_opt->IsArray())
             {
@@ -749,15 +754,6 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             }
             max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
                                                maxx->NumberValue(),maxy->NumberValue());
-        }
-
-        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked())) {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
-            if (!param_val->IsBoolean()) {
-                Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
-                return scope.Escape(Nan::Undefined());
-            }
-            multi_polygon_union = param_val->BooleanValue();
         }
 
         if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) {
