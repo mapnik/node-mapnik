@@ -632,6 +632,11 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
                 return scope.Escape(Nan::Undefined());
             }
             simplify_distance = param_val->NumberValue();
+            if (simplify_distance < 0.0)
+            {
+                Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
+                return scope.Escape(Nan::Undefined());
+            }
         }
         if (options->Has(Nan::New("strictly_simple").ToLocalChecked()))
         {
@@ -755,8 +760,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
                                                maxx->NumberValue(),maxy->NumberValue());
         }
-
-        if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) {
+        if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) 
+        {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
             if (!param_val->IsBoolean()) {
                 Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
@@ -946,6 +951,11 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
             simplify_distance = param_val->NumberValue();
+            if (simplify_distance < 0.0)
+            {
+                Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
+                return;
+            }
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) 
         {
@@ -2798,6 +2808,11 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
             simplify_distance = param_val->NumberValue();
+            if (simplify_distance < 0.0)
+            {
+                Nan::ThrowTypeError("option 'simplify_distance' must be a positive number");
+                return;
+            }
         }
         
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) 

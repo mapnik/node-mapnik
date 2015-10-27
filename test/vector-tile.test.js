@@ -151,6 +151,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {process_all_mp_rings:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {path_multiplier:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:null}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:-0.5}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {buffer_size:null}); });
     });
 
@@ -1821,6 +1822,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {process_all_mp_rings:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {path_multiplier:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_distance:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {simplify_distance:-0.5}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {variables:null}, function(err, vtile) {}); });
         map.render(vtile, {}, function(err, vtile) {
             assert.throws(function() { if (err) throw err; });

@@ -22,6 +22,7 @@ var rendering_defaults = {
     fill_type: mapnik.polygonFillType.nonZero,
     process_all_mp_rings:false,
     reencode:false,
+    simplify_distance: 0.0,
     scale: 1,
     scale_denominator: 0.0,
     offset_x: 0,
@@ -156,11 +157,25 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.compositeSync([vtile2], {multi_polygon_union:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {multi_polygon_union:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {fill_type:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {fill_type:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {fill_type:99}); });
+        assert.throws(function() { vtile1.composite([vtile2], {fill_type:99}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {process_all_mp_rings:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {process_all_mp_rings:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {reencode:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {reencode:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {simplify_distance:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {simplify_distance:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {simplify_distance:-0.5}); });
+        assert.throws(function() { vtile1.composite([vtile2], {simplify_distance:-0.5}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {max_extent:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {max_extent:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {max_extent:[]}); });
+        assert.throws(function() { vtile1.composite([vtile2], {max_extent:[]}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {max_extent:[1,2,3,4,5]}); });
+        assert.throws(function() { vtile1.composite([vtile2], {max_extent:[1,2,3,4,5]}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {max_extent:['1',2,3,4]}); });
+        assert.throws(function() { vtile1.composite([vtile2], {max_extent:['1',2,3,4]}, function(err, result) {}); });
         assert.throws(function() { vtile3.compositeSync([vtile1]); });
         assert.throws(function() { vtile1.compositeSync([vtile3]); });
         vtile3.composite([vtile1], function(err, result) {
@@ -189,6 +204,7 @@ describe('mapnik.VectorTile.composite', function() {
                 strictly_simple: false,
                 process_all_mp_rings:false,
                 scale_denominator: 0.0,
+                simplify_distance: 0.0,
                 reencode: false
             }
             vtile2.compositeSync([vtile1,vtile1],options);

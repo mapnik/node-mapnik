@@ -1908,6 +1908,12 @@ NAN_METHOD(Map::render)
                     return;
                 }
                 closure->simplify_distance = param_val->NumberValue();
+                if (closure->simplify_distance < 0)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
+                    return;
+                }
             }
 
             if (options->Has(Nan::New("variables").ToLocalChecked()))
