@@ -3535,7 +3535,7 @@ NAN_METHOD(Image::composite)
     closure->im2 = source_image;
     closure->mode = mode;
     closure->opacity = opacity;
-    closure->filters = filters;
+    closure->filters = std::move(filters);
     closure->dx = dx;
     closure->dy = dy;
     closure->error = false;
