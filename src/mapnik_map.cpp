@@ -1898,18 +1898,6 @@ NAN_METHOD(Map::render)
                 closure->path_multiplier = param_val->IntegerValue();
             }
 
-            if (options->Has(Nan::New("simplify_algorithm").ToLocalChecked())) 
-            {
-                v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_algorithm").ToLocalChecked());
-                if (!param_val->IsString()) 
-                {
-                    delete closure;
-                    Nan::ThrowTypeError("option 'simplify_algorithm' must be an string");
-                    return;
-                }
-                // TODO
-            }
-
             if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());

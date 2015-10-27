@@ -1820,7 +1820,6 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {fill_type:99}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {process_all_mp_rings:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {path_multiplier:null}, function(err, vtile) {}); });
-        assert.throws(function() { map.render(vtile, {simplify_algorithm:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_distance:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {variables:null}, function(err, vtile) {}); });
         map.render(vtile, {}, function(err, vtile) {
