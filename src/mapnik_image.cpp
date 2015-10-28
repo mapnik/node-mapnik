@@ -2826,9 +2826,58 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         return scope.Escape(Nan::Undefined());
     }
 
+    bool premultiplied = false;
+    bool painted = false;
+
+    if (info.Length() >= 4)
+    {
+        if (info[3]->IsObject())
+        {
+            v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[3]);
+            if (options->Has(Nan::New("type").ToLocalChecked()))
+            {
+                Nan::ThrowTypeError("'type' option not supported (only rgba images currently viable)");
+                return scope.Escape(Nan::Undefined());
+            }
+
+            if (options->Has(Nan::New("premultiplied").ToLocalChecked()))
+            {
+                v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
+                if (!pre_val.IsEmpty() && pre_val->IsBoolean())
+                {
+                    premultiplied = pre_val->BooleanValue();
+                }
+                else
+                {
+                    Nan::ThrowTypeError("premultiplied option must be a boolean");
+                    return scope.Escape(Nan::Undefined());
+                }
+            }
+
+            if (options->Has(Nan::New("painted").ToLocalChecked()))
+            {
+                v8::Local<v8::Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
+                if (!painted_val.IsEmpty() && painted_val->IsBoolean())
+                {
+                    painted = painted_val->BooleanValue();
+                }
+                else
+                {
+                    Nan::ThrowTypeError("painted option must be a boolean");
+                    return scope.Escape(Nan::Undefined());
+                }
+            }
+        }
+        else
+        {
+            Nan::ThrowTypeError("Options parameter must be an object");
+            return scope.Escape(Nan::Undefined());
+        }
+    }
+
     try
     {
-        mapnik::image_rgba8 im_wrapper(width,height,reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)));
+        mapnik::image_rgba8 im_wrapper(width, height, reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)), premultiplied, painted);
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
         Image* im = new Image(image_ptr);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);

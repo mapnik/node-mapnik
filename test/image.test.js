@@ -1466,8 +1466,23 @@ describe('mapnik.Image ', function() {
 
     it('be able to create image with zero allocation / from raw buffer', function() {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        assert.equal(im.premultiplied(), false);
         var im2 = new mapnik.Image.fromBufferSync(im.width(), im.height(), im.data());
+        assert.equal(im2.premultiplied(), false);
         assert.equal(0, im.compare(im2, {threshold:0}));
+        im.premultiplySync();
+        im2.premultiplySync();
+        assert.equal(im.premultiplied(), true);
+        assert.equal(im2.premultiplied(), true);
+        assert.equal(im.painted(), false);
+        assert.equal(im2.painted(), false);
+        assert.equal(0, im.compare(im2, {threshold:0}));
+        var im3 = new mapnik.Image.fromBufferSync(im.width(), im.height(), im.data(), {
+            premultiplied: true,
+            painted: true
+        });
+        assert.equal(im3.premultiplied(), true);
+        assert.equal(im3.painted(), true);
     });
 
     it('should fail to use fromBufferSync due to bad input', function() {
