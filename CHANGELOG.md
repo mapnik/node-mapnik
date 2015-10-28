@@ -9,7 +9,16 @@
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.
  - Stricter GeoJSON parsing in geojson.input ref :https://github.com/mapnik/mapnik/issues/3125
-  
+
+Notable changes in the Mapnik SDK include:
+ - Upgrade freetype 2.6 -> 2.6.1
+ - Upgrade proj 4.8.0 -> 4.9.2
+ - Upgrade png 1.6.17 -> 1.6.18
+ - Upgrade tiff 4.0.4 -> 4.0.6
+ - Upgrade jpeg-turbo 1.4.1 -> 1.4.2
+ - Upgrade GDAL 2.0.0 -> 2.0.1
+ - Upgrade Harfbuzz 0.9.41 -> 1.0.6
+
 ## 3.4.9
 
  - Updated to use mapnik-vector-tile `0.13.0`
