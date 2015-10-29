@@ -202,6 +202,8 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
+                multi_polygon_union: true,
+                fill_type: mapnik.polygonFillType.nonZero,
                 process_all_mp_rings:false,
                 scale_denominator: 0.0,
                 simplify_distance: 0.0,
@@ -230,6 +232,9 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
+                multi_polygon_union: true,
+                fill_type: mapnik.polygonFillType.nonZero,
+                process_all_mp_rings:false,
                 scale_denominator: 0.0,
                 reencode: true
             }
@@ -330,6 +335,9 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
+                multi_polygon_union: true,
+                fill_type: mapnik.polygonFillType.nonZero,
+                process_all_mp_rings:false,
                 scale_denominator: 0.0,
                 reencode: false
             }
@@ -357,6 +365,9 @@ describe('mapnik.VectorTile.composite', function() {
                 offset_y: 0,
                 area_threshold: 0.1,
                 strictly_simple: false,
+                multi_polygon_union: true,
+                fill_type: mapnik.polygonFillType.nonZero,
+                process_all_mp_rings:false,
                 scale_denominator: 0.0,
                 reencode: true
             }

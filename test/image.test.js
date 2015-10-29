@@ -1495,6 +1495,11 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(1, 2, b); });
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(0, 2, b); });
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, {}); });
+        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, null); });
+        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':'stuff'}); });
+        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':null}); });
+        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'premultiplied':null}); });
+        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'painted':null}); });
     });
 
 });

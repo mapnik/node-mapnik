@@ -627,7 +627,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
         if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
-            if (!param_val->IsNumber()) {
+            if (!param_val->IsNumber()) 
+            {
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                 return scope.Escape(Nan::Undefined());
             }
@@ -763,7 +764,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
         if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) 
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
-            if (!param_val->IsBoolean()) {
+            if (!param_val->IsBoolean()) 
+            {
                 Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
                 return scope.Escape(Nan::Undefined());
             }
@@ -774,14 +776,17 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
     VectorTile* target_vt = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     std::vector<VectorTile*> vtiles_vec;
     vtiles_vec.reserve(num_tiles);
-    for (unsigned j=0;j < num_tiles;++j) {
+    for (unsigned j=0;j < num_tiles;++j) 
+    {
         v8::Local<v8::Value> val = vtiles->Get(j);
-        if (!val->IsObject()) {
+        if (!val->IsObject()) 
+        {
             Nan::ThrowTypeError("must provide an array of VectorTile objects");
             return scope.Escape(Nan::Undefined());
         }
         v8::Local<v8::Object> tile_obj = val->ToObject();
-        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Nan::New(VectorTile::constructor)->HasInstance(tile_obj)) {
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Nan::New(VectorTile::constructor)->HasInstance(tile_obj)) 
+        {
             Nan::ThrowTypeError("must provide an array of VectorTile objects");
             return scope.Escape(Nan::Undefined());
         }
