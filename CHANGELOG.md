@@ -3,12 +3,24 @@
 ## 3.4.10
 
  - Now bundling the `mapnik-index` command (https://github.com/mapnik/node-mapnik/pull/545)
+ - Added `process_all_rings`  option to `VectorTile.composite`, `VectorTile.addGeoJSON`, and `Map.render`.
+   This option enables invalid ring sizes to be processed when creating vector tiles. By default this is set
+   to `false`. Use with caution.
+ - Added enum for all polygon fill types under `mapnik.polygonFillType`. Options are `nonZero`, `evenOdd`, `positive`,
+   and `negative`
+ - Added `fill_type`  option to `VectorTile.composite`, `VectorTile.addGeoJSON`, and `Map.render`. By default
+   this is set to `mapnik.polygonFillType.nonZero`
+ - Added `multi_polygon_union`  option to `VectorTile.composite`, `VectorTile.addGeoJSON`, and `Map.render`. By
+   default this is set to `true`. This will cause multipolygons to undergo a union operation during vector tile
+   creation. 
+ - Added `simplify_distance`  option to `VectorTile.composite`. 
  - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
    clipping extent will be used for the operation. If provided the data will be restricted to this extent.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.
  - Stricter GeoJSON parsing in geojson.input ref :https://github.com/mapnik/mapnik/issues/3125
+ - Updated mapnik-vector-tile to `v0.14.1`
 
 Notable changes in the Mapnik SDK include:
  - Upgrade freetype 2.6 -> 2.6.1
