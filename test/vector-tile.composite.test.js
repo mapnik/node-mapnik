@@ -20,7 +20,7 @@ var rendering_defaults = {
     strictly_simple: false,
     multi_polygon_union: true,
     fill_type: mapnik.polygonFillType.nonZero,
-    process_all_mp_rings:false,
+    process_all_rings:false,
     reencode:false,
     simplify_distance: 0.0,
     scale: 1,
@@ -160,8 +160,8 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {fill_type:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {fill_type:99}); });
         assert.throws(function() { vtile1.composite([vtile2], {fill_type:99}, function(err, result) {}); });
-        assert.throws(function() { vtile1.compositeSync([vtile2], {process_all_mp_rings:null}); });
-        assert.throws(function() { vtile1.composite([vtile2], {process_all_mp_rings:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {process_all_rings:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {process_all_rings:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {reencode:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {reencode:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {simplify_distance:null}); });
@@ -204,7 +204,7 @@ describe('mapnik.VectorTile.composite', function() {
                 strictly_simple: false,
                 multi_polygon_union: true,
                 fill_type: mapnik.polygonFillType.nonZero,
-                process_all_mp_rings:false,
+                process_all_rings:false,
                 scale_denominator: 0.0,
                 simplify_distance: 0.0,
                 reencode: false
@@ -234,7 +234,7 @@ describe('mapnik.VectorTile.composite', function() {
                 strictly_simple: false,
                 multi_polygon_union: true,
                 fill_type: mapnik.polygonFillType.nonZero,
-                process_all_mp_rings:false,
+                process_all_rings:false,
                 scale_denominator: 0.0,
                 reencode: true
             }
@@ -337,7 +337,7 @@ describe('mapnik.VectorTile.composite', function() {
                 strictly_simple: false,
                 multi_polygon_union: true,
                 fill_type: mapnik.polygonFillType.nonZero,
-                process_all_mp_rings:false,
+                process_all_rings:false,
                 scale_denominator: 0.0,
                 reencode: false
             }
@@ -367,7 +367,7 @@ describe('mapnik.VectorTile.composite', function() {
                 strictly_simple: false,
                 multi_polygon_union: true,
                 fill_type: mapnik.polygonFillType.nonZero,
-                process_all_mp_rings:false,
+                process_all_rings:false,
                 scale_denominator: 0.0,
                 reencode: true
             }

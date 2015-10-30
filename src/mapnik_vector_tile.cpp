@@ -450,7 +450,7 @@ void _composite(VectorTile* target_vt,
                 bool reencode,
                 boost::optional<mapnik::box2d<double>> const& max_extent,
                 double simplify_distance,
-                bool process_all_mp_rings)
+                bool process_all_rings)
 {
     vector_tile::Tile new_tiledata;
     std::string merc_srs("+init=epsg:3857");
@@ -524,7 +524,7 @@ void _composite(VectorTile* target_vt,
                                   strictly_simple);
                 ren.set_fill_type(fill_type);
                 ren.set_simplify_distance(simplify_distance);
-                ren.set_process_all_mp_rings(process_all_mp_rings);
+                ren.set_process_all_rings(process_all_rings);
                 ren.set_multi_polygon_union(multi_polygon_union);
                 ren.apply(scale_denominator);
             }
@@ -593,7 +593,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
     bool reencode = false;
     boost::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance = 0.0;
-    bool process_all_mp_rings = false;
+    bool process_all_rings = false;
 
     if (info.Length() > 1) 
     {
@@ -761,15 +761,15 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
                                                maxx->NumberValue(),maxy->NumberValue());
         }
-        if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) 
+        if (options->Has(Nan::New("process_all_rings").ToLocalChecked())) 
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
             if (!param_val->IsBoolean()) 
             {
-                Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
+                Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
                 return scope.Escape(Nan::Undefined());
             }
-            process_all_mp_rings = param_val->BooleanValue();
+            process_all_rings = param_val->BooleanValue();
         }
 
     }
@@ -809,7 +809,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
                    reencode,
                    max_extent,
                    simplify_distance,
-                   process_all_mp_rings);
+                   process_all_rings);
     }
     catch (std::exception const& ex)
     {
@@ -838,7 +838,7 @@ typedef struct {
     bool reencode;
     boost::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance;
-    bool process_all_mp_rings;
+    bool process_all_rings;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
@@ -879,7 +879,7 @@ NAN_METHOD(VectorTile::composite)
     bool reencode = false;
     boost::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance = 0.0;
-    bool process_all_mp_rings = false;
+    bool process_all_rings = false;
     std::string merc_srs("+init=epsg:3857");
 
     if (info.Length() > 2) 
@@ -1049,14 +1049,14 @@ NAN_METHOD(VectorTile::composite)
             max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
                                                maxx->NumberValue(),maxy->NumberValue());
         }
-        if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) 
+        if (options->Has(Nan::New("process_all_rings").ToLocalChecked())) 
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
             if (!param_val->IsBoolean()) {
-                Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
+                Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
                 return;
             }
-            process_all_mp_rings = param_val->BooleanValue();
+            process_all_rings = param_val->BooleanValue();
         }
 
     }
@@ -1077,7 +1077,7 @@ NAN_METHOD(VectorTile::composite)
     closure->reencode = reencode;
     closure->max_extent = max_extent;
     closure->simplify_distance = simplify_distance;
-    closure->process_all_mp_rings = process_all_mp_rings;
+    closure->process_all_rings = process_all_rings;
     closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
@@ -1127,7 +1127,7 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->reencode,
                    closure->max_extent,
                    closure->simplify_distance,
-                   closure->process_all_mp_rings);
+                   closure->process_all_rings);
     }
     catch (std::exception const& ex)
     {
@@ -2731,7 +2731,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     bool strictly_simple = false;
     bool multi_polygon_union = true;
     mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::non_zero_fill;
-    bool process_all_mp_rings = false;
+    bool process_all_rings = false;
 
     if (info.Length() > 2) 
     {
@@ -2831,15 +2831,15 @@ NAN_METHOD(VectorTile::addGeoJSON)
             buffer_size = bind_opt->IntegerValue();
         }
 
-        if (options->Has(Nan::New("process_all_mp_rings").ToLocalChecked())) 
+        if (options->Has(Nan::New("process_all_rings").ToLocalChecked())) 
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_mp_rings").ToLocalChecked());
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
             if (!param_val->IsBoolean()) 
             {
-                Nan::ThrowTypeError("option 'process_all_mp_rings' must be a boolean");
+                Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
                 return;
             }
-            process_all_mp_rings = param_val->BooleanValue();
+            process_all_rings = param_val->BooleanValue();
         }
 
     }
@@ -2874,7 +2874,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         ren.set_simplify_distance(simplify_distance);
         ren.set_multi_polygon_union(multi_polygon_union);
         ren.set_fill_type(fill_type);
-        ren.set_process_all_mp_rings(process_all_mp_rings);
+        ren.set_process_all_rings(process_all_rings);
         ren.apply();
         detail::add_tile(d->buffer_,tiledata);
         info.GetReturnValue().Set(Nan::True());
