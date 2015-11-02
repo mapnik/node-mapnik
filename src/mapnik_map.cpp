@@ -1520,6 +1520,9 @@ struct vector_tile_baton_t {
     double simplify_distance;
     bool error;
     bool strictly_simple;
+    bool multi_polygon_union;
+    mapnik::vector_tile_impl::polygon_fill_type fill_type;
+    bool process_all_rings;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
@@ -1535,7 +1538,10 @@ struct vector_tile_baton_t {
         scaling_method(mapnik::SCALING_NEAR),
         simplify_distance(0.0),
         error(false),
-        strictly_simple(false) {}
+        strictly_simple(false),
+        multi_polygon_union(true),
+        fill_type(mapnik::vector_tile_impl::non_zero_fill),
+        process_all_rings(false) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1788,21 +1794,25 @@ NAN_METHOD(Map::render)
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
         }
 #endif
-        else if (Nan::New(VectorTile::constructor)->HasInstance(obj)) {
+        else if (Nan::New(VectorTile::constructor)->HasInstance(obj)) 
+        {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
             VectorTile * vector_tile_obj = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
 
-            if (options->Has(Nan::New("image_scaling").ToLocalChecked())) {
+            if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
+            {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
-                if (!param_val->IsString()) {
+                if (!param_val->IsString()) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_scaling' must be a string");
                     return;
                 }
                 std::string image_scaling = TOSTR(param_val);
                 boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
-                if (!method) {
+                if (!method) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
                     return;
@@ -1810,9 +1820,11 @@ NAN_METHOD(Map::render)
                 closure->scaling_method = *method;
             }
 
-            if (options->Has(Nan::New("image_format").ToLocalChecked())) {
+            if (options->Has(Nan::New("image_format").ToLocalChecked())) 
+            {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
-                if (!param_val->IsString()) {
+                if (!param_val->IsString()) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_format' must be a string");
                     return;
@@ -1820,9 +1832,11 @@ NAN_METHOD(Map::render)
                 closure->image_format = TOSTR(param_val);
             }
 
-            if (options->Has(Nan::New("area_threshold").ToLocalChecked())) {
+            if (options->Has(Nan::New("area_threshold").ToLocalChecked())) 
+            {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
-                if (!param_val->IsNumber()) {
+                if (!param_val->IsNumber()) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'area_threshold' must be a number");
                     return;
@@ -1830,43 +1844,76 @@ NAN_METHOD(Map::render)
                 closure->area_threshold = param_val->NumberValue();
             }
 
-            if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) {
+            if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) 
+            {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("strictly_simple").ToLocalChecked());
-                if (!param_val->IsBoolean()) {
+                if (!param_val->IsBoolean()) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
                     return;
                 }
                 closure->strictly_simple = param_val->BooleanValue();
             }
-            if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) {
+
+            if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked())) 
+            {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+                if (!param_val->IsBoolean()) 
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
+                    return;
+                }
+                closure->multi_polygon_union = param_val->BooleanValue();
+            }
+
+            if (options->Has(Nan::New("fill_type").ToLocalChecked())) 
+            {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("fill_type").ToLocalChecked());
+                if (!param_val->IsNumber()) 
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'fill_type' must be an unsigned integer");
+                    return;
+                }
+                closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val->IntegerValue());
+                if (closure->fill_type < 0 || closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
+                    return;
+                }
+            }
+
+            if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) 
+            {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
-                if (!param_val->IsNumber()) {
+                if (!param_val->IsNumber()) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
                     return;
                 }
-                closure->path_multiplier = param_val->NumberValue();
+                closure->path_multiplier = param_val->IntegerValue();
             }
 
-            if (options->Has(Nan::New("simplify_algorithm").ToLocalChecked())) {
-                v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_algorithm").ToLocalChecked());
-                if (!param_val->IsString()) {
-                    delete closure;
-                    Nan::ThrowTypeError("option 'simplify_algorithm' must be an string");
-                    return;
-                }
-                // TODO
-            }
-
-            if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) {
+            if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
+            {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
-                if (!param_val->IsNumber()) {
+                if (!param_val->IsNumber()) 
+                {
                     delete closure;
                     Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                     return;
                 }
                 closure->simplify_distance = param_val->NumberValue();
+                if (closure->simplify_distance < 0)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
+                    return;
+                }
             }
 
             if (options->Has(Nan::New("variables").ToLocalChecked()))
@@ -1881,6 +1928,18 @@ NAN_METHOD(Map::render)
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
 
+            if (options->Has(Nan::New("process_all_rings").ToLocalChecked())) 
+            {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
+                if (!param_val->IsBoolean()) 
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
+                    return;
+                }
+                closure->process_all_rings = param_val->BooleanValue();
+            }
+
             closure->request.data = closure;
             closure->m = m;
             closure->d = vector_tile_obj;
@@ -1893,13 +1952,15 @@ NAN_METHOD(Map::render)
             closure->error = false;
             if (!m->acquire())
             {
-                    delete closure;
+                delete closure;
                 Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 return;
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
-        } else {
+        } 
+        else 
+        {
             Nan::ThrowTypeError("renderable mapnik object expected");
             return;
         }
@@ -1941,6 +2002,9 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                           closure->image_format,
                           closure->scaling_method);
         ren.set_simplify_distance(closure->simplify_distance);
+        ren.set_multi_polygon_union(closure->multi_polygon_union);
+        ren.set_fill_type(closure->fill_type);
+        ren.set_process_all_rings(closure->process_all_rings);
         ren.apply(closure->scale_denominator);
         std::string new_message;
         if (!tiledata.SerializeToString(&new_message))
@@ -1967,10 +2031,13 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     closure->m->release();
 
-    if (closure->error) {
+    if (closure->error) 
+    {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-    } else {
+    } 
+    else 
+    {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }

@@ -1,4 +1,6 @@
 
+// Vector Tile
+#include "vector_tile_processor.hpp"
 // node-mapnik
 #include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"
@@ -380,8 +382,27 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "lanczos", mapnik::SCALING_LANCZOS)
         NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "blackman", mapnik::SCALING_BLACKMAN)
         target->Set(Nan::New("imageScaling").ToLocalChecked(), image_scaling_types);
-    }
 
+/**
+ * Image scaling type constants representing color and grayscale encodings.
+ *
+ * @name polygonFillType
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} evenOdd
+ * @property {number} nonZero
+ * @property {number} positive
+ * @property {number} negative
+ */
+        v8::Local<v8::Object> polygon_fill_types = Nan::New<v8::Object>();
+        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "evenOdd", mapnik::vector_tile_impl::even_odd_fill)
+        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "nonZero", mapnik::vector_tile_impl::non_zero_fill)
+        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "positive", mapnik::vector_tile_impl::positive_fill)
+        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "negative", mapnik::vector_tile_impl::negative_fill)
+        target->Set(Nan::New("polygonFillType").ToLocalChecked(), polygon_fill_types);
+
+    }
 }
 
 } // namespace node_mapnik
