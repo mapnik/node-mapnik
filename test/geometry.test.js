@@ -56,9 +56,12 @@ describe('mapnik.Geometry ', function() {
             type: 'Point',
             coordinates: [ 7.415119300000001, 43.730364300000005 ]
         };
-        assert.throws(function() {
-            var transformed = mapnik.Feature.fromJSON(JSON.stringify(geometry));
-        });
+        // starts throwing, as expected, at Mapnik v3.0.9 (https://github.com/mapnik/node-mapnik/issues/560)
+        if (mapnik.versions.mapnik_number >= 300009) {
+            assert.throws(function() {
+                var transformed = mapnik.Feature.fromJSON(JSON.stringify(geometry));
+            });
+        }
     });
 
     it('should throw from empty geometry from toWKB', function() {
