@@ -51,25 +51,20 @@ describe('mapnik.Geometry ', function() {
         assert.throws(function() { geom.toJSON({transform:{}}, function(err, json) {}); });
     });
 
-    it('should throw from emptry geojson from toWKB', function() {
-        var src = new mapnik.Projection('+init=epsg:4326');
-        var dst = new mapnik.Projection('+init=epsg:3857');
-        var trans = new mapnik.ProjTransform(src,dst);
-         
-        var feature = {
-          type: 'Feature',
-          properties: { crossing_ref: 'zebra', highway: 'crossing' },
-          geometry: {
+    it('should throw if we attempt to create a Feature from a geojson geometry (rather than geojson feature)', function() {
+        var geometry = {
             type: 'Point',
             coordinates: [ 7.415119300000001, 43.730364300000005 ]
-          }
-        }
-        var transformed = mapnik.Feature.fromJSON(JSON.stringify(feature))
-          .geometry().toJSON({transform:trans});
-        var s = new mapnik.Feature.fromJSON(transformed);
-        var g = s.geometry();
+        };
         assert.throws(function() {
-            var geom = g.toWKB();
+            var transformed = mapnik.Feature.fromJSON(JSON.stringify(geometry));
+        });
+    });
+
+    it('should throw from empty geometry from toWKB', function() {
+        var s = new mapnik.Feature(1);
+        assert.throws(function() {
+            var geom = s.geometry().toWKB();
         });
     });
 });
