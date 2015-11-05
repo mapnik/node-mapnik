@@ -783,9 +783,12 @@ describe('mapnik.Image ', function() {
     
     it('clear sync', function() {
         var im = new mapnik.Image(5,5);
+        assert.equal(0,im.compare(new mapnik.Image(5,5),{threshold:0}))
         im.fillSync(1);
         assert.equal(im.getPixel(0,0), 1);
+        assert.equal(25,im.compare(new mapnik.Image(5,5),{threshold:0}))
         im.clearSync();
+        assert.equal(0,im.compare(new mapnik.Image(5,5),{threshold:0}))
         assert.equal(im.getPixel(0,0), 0);
     });
 
