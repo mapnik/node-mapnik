@@ -4,8 +4,8 @@
 
  - Now bundling the `mapnik-index` command (https://github.com/mapnik/node-mapnik/pull/545)
  - Added `process_all_rings`  option to `VectorTile.composite`, `VectorTile.addGeoJSON`, and `Map.render`.
-   This option enables invalid ring sizes to be processed when creating vector tiles. By default this is set
-   to `false`. Use with caution.
+   This option enables invalid ring to be processed (and potentially kept during re-encoding) when creating vector tiles.
+   By default this is set to `false`. Use with caution.
  - Added enum for all polygon fill types under `mapnik.polygonFillType`. Options are `nonZero`, `evenOdd`, `positive`,
    and `negative`
  - Added `fill_type`  option to `VectorTile.composite`, `VectorTile.addGeoJSON`, and `Map.render`. By default
