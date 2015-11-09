@@ -21,6 +21,7 @@
    best performance.
  - Stricter GeoJSON parsing in geojson.input ref :https://github.com/mapnik/mapnik/issues/3125
  - Updated mapnik-vector-tile to `v0.14.1`
+ - Binaries updated to use Mapnik v3.0.9-rc2 and mapnik-packaging@6f2f178
 
 Notable changes in the Mapnik SDK include:
  - Upgrade freetype 2.6 -> 2.6.1
@@ -30,6 +31,8 @@ Notable changes in the Mapnik SDK include:
  - Upgrade jpeg-turbo 1.4.1 -> 1.4.2
  - Upgrade GDAL 2.0.0 -> 2.0.1
  - Upgrade Harfbuzz 0.9.41 -> 1.0.6
+ - Upgrade sqlite 3.8.10.2 -> 3.9.2
+ - Upgrade webp 0.4.3 -> 0.4.4
 
 ## 3.4.9
 

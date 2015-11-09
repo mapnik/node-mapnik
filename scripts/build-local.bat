@@ -4,7 +4,7 @@ ECHO =========== %~f0 ===========
 
 
 SET APPVEYOR_REPO_COMMIT_MESSAGE=no commit message provided
-SET MAPNIK_GIT=3.0.6
+SET MAPNIK_GIT=v3.0.9-rc2
 SET nodejs_version=0.12.7
 SET platform=x64
 SET msvs_toolset=14
