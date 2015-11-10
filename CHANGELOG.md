@@ -19,9 +19,15 @@
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.
- - Stricter GeoJSON parsing in geojson.input ref :https://github.com/mapnik/mapnik/issues/3125
  - Updated mapnik-vector-tile to `v0.14.1`
  - Binaries updated to use Mapnik v3.0.9-rc2 and mapnik-packaging@6f2f178
+
+Notable Changes in Mapnik 3.0.9/3.0.8 Include:
+
+ - Improved support for natural earth shapefiles
+ - Improved CSV and JSON parsing and error handling
+ - Stricter GeoJSON parsing in geojson.input (https://github.com/mapnik/mapnik/issues/3125)
+ - For more details see entries for https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#308 and https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#309
 
 Notable changes in the Mapnik SDK include:
  - Upgrade freetype 2.6 -> 2.6.1
