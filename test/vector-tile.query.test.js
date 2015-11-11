@@ -46,6 +46,7 @@ describe('mapnik.VectorTile query polygon', function() {
             assert.equal(features.length,1);
             assert.equal(JSON.parse(features[0].toJSON()).properties.NAME,'Japan');
             assert.equal(features[0].id(),89);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.Polygon);
             assert.equal(features[0].distance,0);
             assert.equal(features[0].layer,'world');
         }
@@ -87,6 +88,7 @@ describe('mapnik.VectorTile query polygon', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),89);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.Polygon);
             assert.equal(features[0].distance,0);
             assert.equal(features[0].layer,'world');
         }
@@ -187,6 +189,7 @@ describe('mapnik.VectorTile query point', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.Point);
             assert.ok(Math.abs(features[0].distance - 1888.66) < 1);
             assert.equal(features[0].layer,'layer-name');
         }
@@ -286,6 +289,7 @@ describe('mapnik.VectorTile query line', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.LineString);
             assert.ok(features[0].distance < 0.00000001);
             assert.equal(features[0].attributes().name,'A');
             assert.equal(features[0].layer,'layer-name');
@@ -301,6 +305,7 @@ describe('mapnik.VectorTile query line', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.LineString);
             assert.ok(features[0].distance < 1000);
             assert.equal(features[0].attributes().name,'A');
             assert.equal(features[0].layer,'layer-name');
@@ -382,6 +387,7 @@ describe('mapnik.VectorTile query multiline', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.MultiLineString);
             assert.ok(features[0].distance < 100);
             assert.equal(features[0].layer,'layer-name');
         }
@@ -396,6 +402,7 @@ describe('mapnik.VectorTile query multiline', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.LineString);
             assert.ok(features[0].distance < 10000);
             assert.equal(features[0].layer,'layer-name');
         }
@@ -442,6 +449,7 @@ describe('mapnik.VectorTile query multipoint', function() {
         function check(features) {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
+            assert.equal(features[0].geometry().type(),mapnik.Geometry.MultiPoint);
             assert.ok(features[0].distance < 2000);
             assert.equal(features[0].layer,'layer-name');
         }

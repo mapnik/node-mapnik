@@ -31,16 +31,27 @@ void Geometry::Initialize(v8::Local<v8::Object> target) {
     lcons->SetClassName(Nan::New("Geometry").ToLocalChecked());
 
     Nan::SetPrototypeMethod(lcons, "extent", extent);
+    Nan::SetPrototypeMethod(lcons, "type", type);
     Nan::SetPrototypeMethod(lcons, "toWKB", toWKB);
     Nan::SetPrototypeMethod(lcons, "toWKT", toWKT);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
     Nan::SetPrototypeMethod(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Point",mapnik::datasource_geometry_t::Point)
+                                "Unknown",mapnik::geometry::geometry_types::Unknown)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "LineString",mapnik::datasource_geometry_t::LineString)
+                                "Point",mapnik::geometry::geometry_types::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Polygon",mapnik::datasource_geometry_t::Polygon)
+                                "MultiPoint",mapnik::geometry::geometry_types::MultiPoint)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "LineString",mapnik::geometry::geometry_types::LineString)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "MultiLineString",mapnik::geometry::geometry_types::MultiLineString)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "Polygon",mapnik::geometry::geometry_types::Polygon)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "MultiPolygon",mapnik::geometry::geometry_types::MultiPolygon)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "GeometryCollection",mapnik::geometry::geometry_types::GeometryCollection)
     target->Set(Nan::New("Geometry").ToLocalChecked(), lcons->GetFunction());
     constructor.Reset(lcons);
 }
@@ -77,6 +88,21 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     Geometry* g = new Geometry(f);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(g);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+}
+
+/**
+ * Get the geometry type
+ *
+ * @returns {string} type of geometry.
+ * @memberof mapnik.Geometry
+ * @instance
+ * @name type
+ */
+NAN_METHOD(Geometry::type)
+{
+    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+    auto const& geom = g->feat_->get_geometry();
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(mapnik::geometry::geometry_type(geom)));
 }
 
 /**
