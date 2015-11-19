@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.4.11
+
+ - Binaries updated to use Mapnik v3.0.9 and mapnik-packaging@TBD
+
+Notable Changes in Mapnik 3.0.9 Include:
+
+ - The `mapnik-index` command now has a `--validate-features` option
+ - For more details see entries for https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#309
+
+Notable changes in the Mapnik SDK include:
+
+ - TDB
+
 ## 3.4.10
 
  - Now bundling the `mapnik-index` command (https://github.com/mapnik/node-mapnik/pull/545)
@@ -22,7 +35,7 @@
  - Updated mapnik-vector-tile to `v0.14.1`
  - Binaries updated to use Mapnik v3.0.9-rc2 and mapnik-packaging@6f2f178
 
-Notable Changes in Mapnik 3.0.9/3.0.8 Include:
+Notable Changes in Mapnik 3.0.9-rc2/3.0.8 Include:
 
  - Improved support for natural earth shapefiles
  - Improved CSV and JSON parsing and error handling
