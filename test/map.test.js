@@ -96,7 +96,7 @@ describe('mapnik.Map', function() {
             map.extent = world;
             assert.deepEqual(map.extent,world);
         }
-        
+
         assert.equal(map.srs, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
         assert.throws(function() { map.srs = 100; });
         map.srs = '+init=epsg:3857';
@@ -113,9 +113,11 @@ describe('mapnik.Map', function() {
     });
 
     it('should support scale methods', function() {
-        var map = new mapnik.Map(4000, 4000);
-        assert.equal(map.scale(), -0.00025);
-        assert.equal(map.scaleDenominator(), -99392.40249399428);
+      var map = new mapnik.Map(4000, 4000);
+      map.zoomToBox([0,0,1,1]);
+      console.log(map.extent);
+      assert.equal(map.scale(), 0.00025);
+      assert.equal(map.scaleDenominator(), 99392.40249399428);
     });
 
     it('should fail to load a stylesheet async', function(done) {
@@ -193,7 +195,7 @@ describe('mapnik.Map', function() {
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {strict: 12 }); });
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {base: 12 }); });
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {base: '/DOESNOTEXIST' }); });
-        
+
         // Test loading a sample world map
         map.loadSync('./test/stylesheet.xml');
 
@@ -217,7 +219,7 @@ describe('mapnik.Map', function() {
         var layers2 = map.layers();
         assert.equal(layers2.length, 0);
     });
-    
+
     it('should load fromString sync', function() {
         var map = new mapnik.Map(4, 4);
         var s = '<Map>';
@@ -230,7 +232,7 @@ describe('mapnik.Map', function() {
 
         assert.equal(map.fromStringSync(s, {strict:false, base:''}),undefined);
     });
-    
+
     it('should not load fromString Sync', function() {
         var map = new mapnik.Map(4, 4);
         var s = '<xMap>';
@@ -250,7 +252,7 @@ describe('mapnik.Map', function() {
         // Test good parameters, bad string
         assert.throws(function() { map.fromStringSync(s, {strict:false, base:''}); });
     });
-    
+
     it('should not load fromString Async - bad string', function(done) {
         var map = new mapnik.Map(4, 4);
         var s = '<xMap>';
