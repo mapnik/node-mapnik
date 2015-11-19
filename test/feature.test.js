@@ -20,7 +20,7 @@ function deepEqualTrunc(json1,json2) {
 }
 
 describe('mapnik.Feature ', function() {
-    
+
     it('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.Feature(); });
@@ -38,7 +38,7 @@ describe('mapnik.Feature ', function() {
     it('should construct a feature properly', function() {
         var feature = new mapnik.Feature(1);
         assert.ok(feature);
-        assert.deepEqual(feature.extent(),[0,0,-1,-1]);
+        assert.deepEqual(feature.extent(),[1.7976931348623157e+308,1.7976931348623157e+308,-1.7976931348623157e+308,-1.7976931348623157e+308]);
         assert.throws(function() { mapnik.Feature.fromJSON(); });
         assert.throws(function() { mapnik.Feature.fromJSON(null); });
         assert.throws(function() { mapnik.Feature.fromJSON('foo'); });
@@ -93,11 +93,11 @@ describe('mapnik.Feature ', function() {
         assert.ok(attr.null_val === null);
         assert.equal(attr.feat_id,1);
         assert.equal(attr.name,'name');
-        var describe_expected = { 
+        var describe_expected = {
             type: 'vector',
             encoding: 'utf-8',
             fields: {},
-            geometry_type: 'collection' 
+            geometry_type: 'collection'
         };
         assert.deepEqual(describe_expected, ds.describe());
     });
