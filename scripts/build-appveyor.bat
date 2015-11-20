@@ -145,7 +145,8 @@ CALL node_modules\.bin\node-pre-gyp package %TOOLSET_ARGS%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 CALL npm test
-SET ERRORLEVEL=0
+:: uncomment to allow build to work even if tests do not pass
+::SET ERRORLEVEL=0
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO APPVEYOR_REPO_COMMIT_MESSAGE^: %APPVEYOR_REPO_COMMIT_MESSAGE%
