@@ -85,8 +85,8 @@ function get_tile_at(name,coords) {
     return vt;
 }
 
-function get_image_vtile() {
-    var vt = new mapnik.VectorTile(0,0,0);
+function get_image_vtile(coords) {
+    var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
     vt.addImage(fs.readFileSync(__dirname + '/data/vector_tile/cloudless_1_0_0.jpg'), 'raster');
     return vt;
 }
@@ -411,7 +411,7 @@ describe('mapnik.VectorTile.composite', function() {
         var coords = [0,0,0];
         var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
         var vtiles = [
-            get_image_vtile(),
+            get_image_vtile(coords),
             get_tile_at('lines',coords),
             get_tile_at('points',coords)
         ];
@@ -430,19 +430,20 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should render by overzooming', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
-        var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        var vtiles = [get_image_vtile([0,0,0]),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
         var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
         vtile.composite(vtiles,{buffer_size:1});
         var new_length = vtile.getData().length;
         // re-rendered data should be different length
         assert.notEqual(new_length,original_length);
-        assert.deepEqual(vtile.names(),['lines','points']);
+        assert.deepEqual(vtile.names(),['raster','lines','points']);
         assert.equal(new_length,vtile.getData().length);
         var json_result = vtile.toJSON();
-        assert.equal(json_result.length,2);
-        assert.equal(json_result[0].features.length,2);
-        assert.equal(json_result[1].features.length,1);
+        assert.equal(json_result.length,3);
+        assert.equal(json_result[0].features.length,1);
+        assert.equal(json_result[1].features.length,2);
+        assert.equal(json_result[2].features.length,1);
         // tile is actually bigger because of how geometries are encoded
         assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length);
         var map = new mapnik.Map(256,256);
