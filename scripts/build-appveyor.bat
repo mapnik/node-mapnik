@@ -69,7 +69,7 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 ::upgrade npm to get consistent behaviour with older node versions
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm install -g npm-windows-upgrade
+CALL npm install -g npm-windows-upgrade@0.5.3
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm-windows-upgrade --version:3.3.2 --no-dns-check --no-prompt
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
