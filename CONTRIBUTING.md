@@ -87,9 +87,9 @@ But the ideal way is to test a lot at once: enter mapnik-swoop.
 
 ### mapnik-swoop
 
-Head over to https://github.com/mapbox/mapnik-swoop and create a branch that points [the package.json](https://github.com/mapbox/mapnik-swoop/blob/master/package.json#L14) at your working node-mapnik version.
+Head over to https://github.com/mapbox/mapnik-swoop. Install it and run it [like so](https://github.com/mapbox/mapnik-swoop#installing) after ensuring that it is pointed at your upcoming node-mapnik version.
 
-Ensure that all tests are passing. Only ignore failing tests for dependencies if you can confirm with the downstream maintainers of the modules that those tests are okay to fail and unrelated to your node-mapnik changes. You can check [recent builds](https://travis-ci.org/mapbox/mapnik-swoop/builds) to see if all builds were green and passing before your change. If they were red and failing before then try to resolve those issues before testing your new node-mapnik version.
+Ensure that all tests are passing and no dupes are reported. Only ignore failing tests for dependencies if you can confirm with the downstream maintainers of the modules that those tests are okay to fail and unrelated to your node-mapnik changes. You can check [recent builds](https://travis-ci.org/mapbox/mapnik-swoop/builds) to see if all builds were green and passing before your change. If they were red and failing before then try to resolve those issues before testing your new node-mapnik version.
 
 **7)** Official release
 
