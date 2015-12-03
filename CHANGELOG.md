@@ -2,16 +2,36 @@
 
 ## 3.4.11
 
- - Binaries updated to use Mapnik v3.0.9 and mapnik-packaging@TBD
+ - Expose `mapnik.Geometry.type` https://github.com/mapnik/node-mapnik/issues/562
+ - Travis tests now run against `osx_image: xcode7`
+ - Appveyor tests now run against `nodejs_version: 5.1.0`
+ - Updated nan to "~2.1.0"
+ - Updated node-pre-gyp to "~0.6.16"
+ - Updated npm-windows-upgrade (https://github.com/mapnik/node-mapnik/issues/566)
+ - Binaries updated to use Mapnik v3.0.9 and mapnik-packaging@1aa9705
 
 Notable Changes in Mapnik 3.0.9 Include:
 
  - The `mapnik-index` command now has a `--validate-features` option
+ - CSV - change 'quote' auto-dection logic to handle mixed cases better
+ - Fixed `shapeindex` for 3dpoints (https://github.com/mapnik/mapnik/issues/3184)
+ - Fixed GeoJSON ordering (https://github.com/mapnik/mapnik/issues/3182)
+ - Fixed parsing of empty GeoJSON FeatureCollections (https://github.com/mapnik/mapnik/issues/3167)
+ - Invalid bbox is now instantiated with `std::numeric_limits<T>::max()` (https://github.com/mapnik/mapnik/commit/4d6a735f535c27561bb40567398aba19a88243d4)
+ - Fixed raster scaling/nodata handling (https://github.com/mapnik/mapnik/pull/3147)
  - For more details see entries for https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#309
 
 Notable changes in the Mapnik SDK include:
 
- - TDB
+ - Upgrade harfbuxx 1.0.6 -> 1.1.2
+ - Upgrade pixman 0.32.6 -> 0.32.8
+ - Upgrade cairo 1.14.2 -> 1.14.4
+ - Upgrade libxml2 2.9.2 -> 2.9.3
+ - Upgrade postgres 9.4.0 -> 9.4.5
+ - Upgrade libpng 1.6.18 -> 1.6.19
+ - Upgrade icu_version 55.1 -> 56.1
+ - Upgrade icu_version2 55_1 -> 56_1  
+
 
 ## 3.4.10
 
