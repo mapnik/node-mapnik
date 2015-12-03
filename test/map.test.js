@@ -113,11 +113,10 @@ describe('mapnik.Map', function() {
     });
 
     it('should support scale methods', function() {
-      var map = new mapnik.Map(4000, 4000);
-      map.zoomToBox([0,0,1,1]);
-      console.log(map.extent);
-      assert.equal(map.scale(), 0.00025);
-      assert.equal(map.scaleDenominator(), 99392.40249399428);
+        var map = new mapnik.Map(4000, 4000);
+        map.zoomToBox([0,0,1,1]);
+        assert.equal(map.scale(), 0.00025);
+        assert.equal(map.scaleDenominator(), 99392.40249399428);
     });
 
     it('should fail to load a stylesheet async', function(done) {
