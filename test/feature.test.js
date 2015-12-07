@@ -4,6 +4,7 @@ var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
 
@@ -389,4 +390,27 @@ describe('mapnik.Feature ', function() {
         assert.deepEqual(expected, f.geometry().toWKB());
         assert.deepEqual(expected, f.toWKB());
     });
+
+    it('should round trip a geojson property with an array', function() {
+        var input = {
+          "type": "Feature",
+          "properties": {
+            "something": []
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [ 1, 1 ]
+          }
+        };
+        var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input) });
+        var fs = ds.featureset()
+        var feat = fs.next();
+        var feature = JSON.parse(feat.toJSON());
+        assert.equal(input.type, feature.type);
+        assert.deepEqual(input.geometry, feature.geometry);
+        // expected that the array is stringified after https://github.com/mapnik/mapnik/issues/2678
+        input.properties.something = "[]";
+        assert.deepEqual(input.properties, feature.properties);
+    });
+
 });
