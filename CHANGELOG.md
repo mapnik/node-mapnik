@@ -5,8 +5,8 @@
  - Expose `mapnik.Geometry.type` https://github.com/mapnik/node-mapnik/issues/562
  - Travis tests now run against `osx_image: xcode7`
  - Appveyor tests now run against `nodejs_version: 5.1.0`
- - Updated nan to "~2.1.0"
- - Updated node-pre-gyp to "~0.6.16"
+ - Updated nan to `~2.1.0`
+ - Updated node-pre-gyp to `~0.6.16`
  - Updated npm-windows-upgrade (https://github.com/mapnik/node-mapnik/issues/566)
  - Binaries updated to use Mapnik v3.0.9 and mapnik-packaging@1aa9705
 
