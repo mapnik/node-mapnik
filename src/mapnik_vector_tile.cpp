@@ -345,7 +345,8 @@ VectorTile::VectorTile(int z, int x, int y, unsigned w, unsigned h) :
     y_(y),
     buffer_(),
     width_(w),
-    height_(h) {}
+    height_(h),
+    painted_(false) {}
 
 // For some reason coverage never seems to be considered here even though
 // I have tested it and it does print
@@ -527,6 +528,10 @@ void _composite(VectorTile* target_vt,
                 ren.set_process_all_rings(process_all_rings);
                 ren.set_multi_polygon_union(multi_polygon_union);
                 ren.apply(scale_denominator);
+                if (ren.painted())
+                {
+                    target_vt->painted(true);
+                }
             }
 
             std::string new_message;
@@ -2876,6 +2881,11 @@ NAN_METHOD(VectorTile::addGeoJSON)
         ren.set_fill_type(fill_type);
         ren.set_process_all_rings(process_all_rings);
         ren.apply();
+        if (ren.painted())
+        {
+            d->painted(true);
+        }
+
         detail::add_tile(d->buffer_,tiledata);
         info.GetReturnValue().Set(Nan::True());
     }
@@ -2921,6 +2931,7 @@ NAN_METHOD(VectorTile::addImage)
     new_feature->set_raster(std::string(node::Buffer::Data(obj),buffer_size));
     // report that we have data
     detail::add_tile(d->buffer_,tiledata);
+    if (!d->buffer_.empty()) d->painted(true);
     return;
 }
 
@@ -2999,6 +3010,7 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
     {
         d->buffer_ = std::string(node::Buffer::Data(obj),buffer_size);
     }
+    if (!d->buffer_.empty()) d->painted(true);
     return scope.Escape(Nan::Undefined());
 }
 
@@ -3077,6 +3089,7 @@ void VectorTile::EIO_SetData(uv_work_t* req)
         {
             closure->d->buffer_ = std::string(closure->data,closure->dataLength);
         }
+        if (!closure->d->buffer_.empty()) closure->d->painted(true);
     }
     catch (std::exception const& ex)
     {

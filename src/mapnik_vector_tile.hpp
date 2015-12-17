@@ -115,10 +115,14 @@ public:
 
     void clear() {
         buffer_.clear();
+        painted_ = false;
     }
     void parse_proto();
+    void painted(bool painted) {
+        painted_ = painted;
+    }
     bool painted() const {
-        return !buffer_.empty();
+        return painted_;
     }
     unsigned width() const {
         return width_;
@@ -136,6 +140,7 @@ private:
     ~VectorTile();
     unsigned width_;
     unsigned height_;
+    bool painted_;
 };
 
 #endif // __NODE_MAPNIK_VECTOR_TILE_H__

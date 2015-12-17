@@ -2006,6 +2006,10 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
         ren.set_fill_type(closure->fill_type);
         ren.set_process_all_rings(closure->process_all_rings);
         ren.apply(closure->scale_denominator);
+        if (ren.painted())
+        {
+            closure->d->painted(true);
+        }
         std::string new_message;
         if (!tiledata.SerializeToString(&new_message))
         {
