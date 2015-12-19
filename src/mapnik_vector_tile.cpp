@@ -450,7 +450,9 @@ void _composite(VectorTile* target_vt,
                 bool reencode,
                 boost::optional<mapnik::box2d<double>> const& max_extent,
                 double simplify_distance,
-                bool process_all_rings)
+                bool process_all_rings,
+                std::string const& image_format,
+                mapnik::scaling_method_e scaling_method)
 {
     vector_tile::Tile new_tiledata;
     std::string merc_srs("+init=epsg:3857");
@@ -521,7 +523,9 @@ void _composite(VectorTile* target_vt,
                                   offset_x,
                                   offset_y,
                                   area_threshold,
-                                  strictly_simple);
+                                  strictly_simple,
+                                  image_format,
+                                  scaling_method);
                 ren.set_fill_type(fill_type);
                 ren.set_simplify_distance(simplify_distance);
                 ren.set_process_all_rings(process_all_rings);
@@ -594,6 +598,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
     boost::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance = 0.0;
     bool process_all_rings = false;
+    std::string image_format = "webp";
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
 
     if (info.Length() > 1) 
     {
@@ -772,6 +778,34 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
             process_all_rings = param_val->BooleanValue();
         }
 
+        if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string");
+                return scope.Escape(Nan::Undefined());
+            }
+            std::string image_scaling = TOSTR(param_val);
+            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            if (!method) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                return scope.Escape(Nan::Undefined());
+            }
+            scaling_method = *method;
+        }
+
+        if (options->Has(Nan::New("image_format").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_format' must be a string");
+                return scope.Escape(Nan::Undefined());
+            }
+            image_format = TOSTR(param_val);
+        }
     }
     VectorTile* target_vt = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     std::vector<VectorTile*> vtiles_vec;
@@ -809,7 +843,9 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info) 
                    reencode,
                    max_extent,
                    simplify_distance,
-                   process_all_rings);
+                   process_all_rings,
+                   image_format,
+                   scaling_method);
     }
     catch (std::exception const& ex)
     {
@@ -839,6 +875,8 @@ typedef struct {
     boost::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance;
     bool process_all_rings;
+    std::string image_format;
+    mapnik::scaling_method_e scaling_method;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
@@ -880,6 +918,8 @@ NAN_METHOD(VectorTile::composite)
     boost::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance = 0.0;
     bool process_all_rings = false;
+    std::string image_format = "webp";
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
     std::string merc_srs("+init=epsg:3857");
 
     if (info.Length() > 2) 
@@ -1059,6 +1099,34 @@ NAN_METHOD(VectorTile::composite)
             process_all_rings = param_val->BooleanValue();
         }
 
+        if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string");
+                return;
+            }
+            std::string image_scaling = TOSTR(param_val);
+            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            if (!method) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                return;
+            }
+            scaling_method = *method;
+        }
+
+        if (options->Has(Nan::New("image_format").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_format' must be a string");
+                return;
+            }
+            image_format = TOSTR(param_val);
+        }
     }
 
     v8::Local<v8::Value> callback = info[info.Length()-1];
@@ -1078,6 +1146,8 @@ NAN_METHOD(VectorTile::composite)
     closure->max_extent = max_extent;
     closure->simplify_distance = simplify_distance;
     closure->process_all_rings = process_all_rings;
+    closure->scaling_method = scaling_method;
+    closure->image_format = image_format;
     closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
@@ -1127,7 +1197,9 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->reencode,
                    closure->max_extent,
                    closure->simplify_distance,
-                   closure->process_all_rings);
+                   closure->process_all_rings,
+                   closure->image_format,
+                   closure->scaling_method);
     }
     catch (std::exception const& ex)
     {
