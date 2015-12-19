@@ -87,9 +87,9 @@ function get_tile_at(name,coords) {
     return vt;
 }
 
-function get_image_vtile(coords,name) {
+function get_image_vtile(coords,file,name) {
     var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
-    vt.addImage(fs.readFileSync(__dirname + '/data/vector_tile/'+name), 'raster');
+    vt.addImage(fs.readFileSync(__dirname + '/data/vector_tile/'+file), name);
     return vt;
 }
 
@@ -413,7 +413,7 @@ describe('mapnik.VectorTile.composite', function() {
         var coords = [0,0,0];
         var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
         var vtiles = [
-            get_image_vtile(coords,'cloudless_1_0_0.jpg'),
+            get_image_vtile(coords,'cloudless_1_0_0.jpg','raster'),
             get_tile_at('lines',coords),
             get_tile_at('points',coords)
         ];
@@ -432,7 +432,7 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should render by overzooming+jpeg+near', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
-        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
         var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
         vtile.composite(vtiles,{buffer_size:1,image_format:"jpeg",image_scaling:"near"});
@@ -460,20 +460,21 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should render by overzooming+webp+biliear', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
-        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
         var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
         vtile.composite(vtiles,{buffer_size:1,image_format:"webp",image_scaling:"bilinear"});
         var new_length = vtile.getData().length;
         // re-rendered data should be different length
         assert.notEqual(new_length,original_length);
-        assert.deepEqual(vtile.names(),['raster','lines','points']);
+        assert.deepEqual(vtile.names(),['raster','raster2','lines','points']);
         assert.equal(new_length,vtile.getData().length);
         var json_result = vtile.toJSON();
-        assert.equal(json_result.length,3);
+        assert.equal(json_result.length,4);
         assert.equal(json_result[0].features.length,1);
-        assert.equal(json_result[1].features.length,2);
-        assert.equal(json_result[2].features.length,1);
+        assert.equal(json_result[1].features.length,1);
+        assert.equal(json_result[2].features.length,2);
+        assert.equal(json_result[3].features.length,1);
         var map = new mapnik.Map(256,256);
         map.loadSync(data_base +'/styles/all.xml');
         vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
