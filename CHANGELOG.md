@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.12
+
+ - Exposed `image_scaling` and `image_format` in `vtile.composite`
+
 ## 3.4.11
 
  - Expose `mapnik.Geometry.type` https://github.com/mapnik/node-mapnik/issues/562
