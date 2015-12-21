@@ -182,8 +182,12 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile3.compositeSync([vtile1]); });
         assert.throws(function() { vtile1.compositeSync([vtile3]); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {image_scaling:'foo'}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {image_scaling:[]}); });
         assert.throws(function() { vtile1.composite([vtile2], {image_scaling:'foo'}, function(err, result) {}); });
+        assert.throws(function() { vtile1.composite([vtile2], {image_scaling:[]}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile5], {image_format:'foo',reencode:true}); });
+        assert.throws(function() { vtile1.compositeSync([vtile5], {image_format:[],reencode:true}); });
+        assert.throws(function() { vtile1.composite([vtile2], {image_format:[],reencode:true}, function(err, result) {}); });
         vtile1.composite([vtile5], {image_format:'foo',reencode:true}, function(err, result) {
             assert.throws(function() { if (err) throw err; });
             vtile3.composite([vtile1], function(err, result) {
