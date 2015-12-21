@@ -127,6 +127,7 @@ describe('mapnik.VectorTile.composite', function() {
         var vtile2 = new mapnik.VectorTile(1,0,0);
         var vtile3 = new mapnik.VectorTile(3,0,0, {width:0, height:0});
         var vtile4 = new mapnik.VectorTile(4,0,0, {width:-1, height:-1});
+        var vtile5 = get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster');
         assert.throws(function() { vtile1.composite(); });
         assert.throws(function() { vtile1.compositeSync(); });
         assert.throws(function() { vtile1.composite(function(err, result) {}); });
@@ -180,11 +181,17 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {max_extent:['1',2,3,4]}, function(err, result) {}); });
         assert.throws(function() { vtile3.compositeSync([vtile1]); });
         assert.throws(function() { vtile1.compositeSync([vtile3]); });
-        vtile3.composite([vtile1], function(err, result) {
+        assert.throws(function() { vtile1.compositeSync([vtile2], {image_scaling:'foo'}); });
+        assert.throws(function() { vtile1.composite([vtile2], {image_scaling:'foo'}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile5], {image_format:'foo',reencode:true}); });
+        vtile1.composite([vtile5], {image_format:'foo',reencode:true}, function(err, result) {
             assert.throws(function() { if (err) throw err; });
-            vtile1.composite([vtile3], function(err, result) {
+            vtile3.composite([vtile1], function(err, result) {
                 assert.throws(function() { if (err) throw err; });
-                done();
+                vtile1.composite([vtile3], function(err, result) {
+                    assert.throws(function() { if (err) throw err; });
+                    done();
+                });
             });
         });
     });
