@@ -118,8 +118,12 @@ NAN_METHOD(Feature::fromJSON)
     }
     catch (std::exception const& ex)
     {
+        // no way currently for any of the above code to throw,
+        // but we'll keep this try catch to protect against mapnik or v8 changing
+        /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
+        /* LCOV_EXCL_END */
     }
 }
 
