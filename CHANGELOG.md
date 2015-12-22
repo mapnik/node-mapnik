@@ -7,6 +7,12 @@
 ## 3.4.12
 
  - Exposed `image_scaling` and `image_format` in `vtile.composite`
+ - Binaries updated to use Mapnik v3.0.9-17-g75cb954 and mapnik-packaging@e29a81e
+
+Notable Changes in Mapnik 3.0.9-17-g75cb954 include:
+
+ - Support arbitrary (nested) attributes in JSON Geometry
+ - Fixed `shapeindex` to avoid creating an index for null shapes
 
 ## 3.4.11
 
