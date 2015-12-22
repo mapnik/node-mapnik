@@ -1,5 +1,9 @@
 # Changelog
 
+## Future
+
+ - Upgraded to mapnik-vector-tile@0.14.2
+
 ## 3.4.12
 
  - Exposed `image_scaling` and `image_format` in `vtile.composite`
