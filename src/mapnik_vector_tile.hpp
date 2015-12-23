@@ -20,7 +20,14 @@ struct query_lonlat {
 struct query_result {
     std::string layer;
     double distance;
+    double x_hit;
+    double y_hit;
     mapnik::feature_ptr feature;
+    explicit query_result() :
+     layer(),
+     distance(0),
+     x_hit(0),
+     y_hit(0) {}
 };
 
 struct query_hit {
