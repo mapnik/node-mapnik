@@ -511,3 +511,85 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
     });
 });
 
+describe('mapnik.VectorTile query xy single features', function() {
+    it('Point', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [ 0,0 ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    it('MultiPoint', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "MultiPoint",
+              "coordinates": [[ 0,0 ]]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    it('LineString', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [ [ 0,0 ], [100, 100] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    it('MultiLineString', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "MultiLineString",
+              "coordinates": [ [ [ 0,0 ], [100, 100] ] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+});
+
