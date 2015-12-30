@@ -438,12 +438,16 @@ describe('mapnik.blend', function() {
         assert.throws(function() { 
             mapnik.blend(images, {format:"webp", compression:999}, function(err, result) {});
         });
-        var expected = new mapnik.Image.open('test/blend-fixtures/expected-compression-5.webp');
+        // Expected output with libwebp 0.4.x
+        var expected04 = new mapnik.Image.open('test/blend-fixtures/expected-compression-5-04.webp');
+        // Expected output with libwebp 0.5.x
+        var expected05 = new mapnik.Image.open('test/blend-fixtures/expected-compression-5-05.webp');
         mapnik.blend(images, {format:"webp", compression:5}, function(err, result) {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //fs.writeFileSync('test/blend-fixtures/actual-compression-5.webp',result);
-            assert.equal(0,expected.compare(actual));
+            assert(expected04.compare(actual) == 0 ||
+                   expected05.compare(actual) == 0);
             done();
         });
     });
