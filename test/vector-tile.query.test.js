@@ -591,5 +591,51 @@ describe('mapnik.VectorTile query xy single features', function() {
         assert.equal(res[0].attributes().name, 'A');
         done();
     });
+
+    // -------
+    // | . . |
+    // | . . |
+    // -------
+    it('Multiple Points', function(done) {
+        var vtile = new mapnik.VectorTile(14,8192,8192);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.005, -0.015 ]
+                },
+                "properties": { "name": "Point A" }
+            },{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.015,-0.015 ]
+                },
+                "properties": { "name": "Point B" }
+            },{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.015, -0.005 ]
+                },
+                "properties": { "name": "Point C" }
+            },{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.005,-0.005 ]
+                },
+                "properties": { "name": "Point D" }
+            }]
+        }),"layer-name");
+        var res = vtile.query(0.015, -0.005, {tolerance:10000});
+        assert.deepEqual([res[0].x_hit, res[0].y_hit], [ 1669.6713366043189, -556.5571122014396 ]);
+        assert.deepEqual([res[1].x_hit, res[1].y_hit], [ 1669.6713366043189, -1669.6713366043189]);
+        assert.deepEqual([res[2].x_hit, res[2].y_hit], [  556.5571122014396, -556.5571122014396]);
+        assert.deepEqual([res[3].x_hit, res[3].y_hit], [  556.5571122014396, -1669.6713366043189]);
+        done();
+    });
 });
 
