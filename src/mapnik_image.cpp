@@ -3685,6 +3685,13 @@ NAN_SETTER(Image::set_offset)
     }
 }
 
+/**
+ * Return a copy of the pixel data in this image as a buffer
+ *
+ * @name data
+ * @instance
+ * @memberof mapnik.Image
+ */
 NAN_METHOD(Image::data)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
