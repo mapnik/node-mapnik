@@ -2,6 +2,7 @@
 
 ## Future
 
+ - Upgraded to node-pre-gyp@0.6.19
  - Upgraded to mapnik-vector-tile@0.14.2
 
 ## 3.4.12
