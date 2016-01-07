@@ -1,9 +1,22 @@
 # Changelog
 
-## Future
+## 3.4.13
 
  - Upgraded to node-pre-gyp@0.6.19
  - Upgraded to mapnik-vector-tile@0.14.2
+ - Binaries updated to use Mapnik v3.0.9-48-gbb8cd10 and mapnik-packaging@039aa0d
+
+Notable Changes in Mapnik v3.0.9-48-gbb8cd10 Include:
+
+ - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9...v3.0.9-48-gbb8cd10
+ - The `shapeindex` command now has a `--index-parts` option
+ - Upgraded mapbox::variant@3ac6e46
+ - JSON parsing now supports arbitrary (nested) attributes in `geometry`
+
+Notable changes in the Mapnik SDK include:
+
+ - Upgrade libpng 1.6.19 -> 1.6.20
+ - Upgrade webp 0.4.4 -> 0.5.0
 
 ## 3.4.12
 
@@ -38,7 +51,7 @@ Notable Changes in Mapnik 3.0.9 Include:
 
 Notable changes in the Mapnik SDK include:
 
- - Upgrade harfbuxx 1.0.6 -> 1.1.2
+ - Upgrade harfbuzz 1.0.6 -> 1.1.2
  - Upgrade pixman 0.32.6 -> 0.32.8
  - Upgrade cairo 1.14.2 -> 1.14.4
  - Upgrade libxml2 2.9.2 -> 2.9.3
