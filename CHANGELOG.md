@@ -17,6 +17,7 @@ Notable changes in the Mapnik SDK include:
 
  - Upgrade libpng 1.6.19 -> 1.6.20
  - Upgrade webp 0.4.4 -> 0.5.0
+ - Upgrade sqlite3 3.9.2 -> 3.10.0
 
 ## 3.4.12
 
