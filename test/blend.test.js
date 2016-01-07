@@ -443,7 +443,9 @@ describe('mapnik.blend', function() {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //fs.writeFileSync('test/blend-fixtures/actual-compression-5.webp',result);
-            assert.equal(0,expected.compare(actual));
+            var diff = expected.compare(actual);
+            // webp 0.5.0 leads to image with 730 diff pixels
+            assert.ok(diff <= 730);
             done();
         });
     });
