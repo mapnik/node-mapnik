@@ -33,8 +33,9 @@ environment:
 
 os: Visual Studio 2015
 
-cache:
-  - mapnik-sdk -> appveyor.yml
+# Disabled since we're seeing this hang frequently
+#cache:
+#  - mapnik-sdk -> appveyor.yml
 
 shallow_clone: true
 
