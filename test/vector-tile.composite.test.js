@@ -125,8 +125,8 @@ describe('mapnik.VectorTile.composite', function() {
     it('should fail to composite due to bad parameters', function(done) {
         var vtile1 = new mapnik.VectorTile(1,0,0);
         var vtile2 = new mapnik.VectorTile(1,0,0);
-        var vtile3 = new mapnik.VectorTile(3,0,0, {width:0, height:0});
-        var vtile4 = new mapnik.VectorTile(4,0,0, {width:-1, height:-1});
+        var vtile3 = new mapnik.VectorTile(3,0,0, {tile_size:0});
+        var vtile4 = new mapnik.VectorTile(4,0,0, {tile_size:-1});
         var vtile5 = get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster');
         assert.throws(function() { vtile1.composite(); });
         assert.throws(function() { vtile1.compositeSync(); });
@@ -297,9 +297,9 @@ describe('mapnik.VectorTile.composite', function() {
         var world_clipping_extent = [-20037508.34,-20037508.34,20037508.34,20037508.34];
         vtile.composite([vtile2],{reencode:true});
         vtile1.composite([vtile2],{reencode:true,max_extent:world_clipping_extent});
-        assert.equal(vtile.getData().length,54626);
+        assert.equal(vtile.getData().length,54630);
         assert.deepEqual(vtile.names(),["water","admin"]);
-        assert.equal(vtile1.getData().length,54461);
+        assert.equal(vtile1.getData().length,54465);
         assert.deepEqual(vtile1.names(),["water","admin"]);
         var expected_file = data_base +'/expected/world-reencode.png';
         var expected_file2 = data_base +'/expected/world-reencode-max-extent.png';
@@ -311,14 +311,14 @@ describe('mapnik.VectorTile.composite', function() {
                 assert.equal(0,compare_to_image(im2,expected_file2));
                 vtile3.composite([vtile2],{reencode:true}, function(err) {
                     if (err) throw err;
-                    assert.equal(vtile3.getData().length,54626);
+                    assert.equal(vtile3.getData().length,54630);
                     assert.deepEqual(vtile3.names(),["water","admin"]);
                     vtile3.render(map,new mapnik.Image(256,256),function(err,im) {
                         if (err) throw err;
                         assert.equal(0,compare_to_image(im,expected_file));
                         vtile4.composite([vtile2],{reencode:true,max_extent:world_clipping_extent}, function(err) {
                             if (err) throw err;
-                            assert.equal(vtile4.getData().length,54461);
+                            assert.equal(vtile4.getData().length,54465);
                             assert.deepEqual(vtile4.names(),["water","admin"]);
                             assert.equal(0,compare_to_image(im2,expected_file2));
                             vtile4.render(map,new mapnik.Image(256,256),function(err,im) {
@@ -575,11 +575,11 @@ describe('mapnik.VectorTile.composite', function() {
     it('should contain two raster layers', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(0,0,0);
-        var im = new mapnik.Image(vt.width(),vt.height());
+        var im = new mapnik.Image(vt.tileSize(),vt.tileSize());
         im.background = new mapnik.Color('green');
         vt.addImage(im.encodeSync('webp'), 'green');
         var vt2 = new mapnik.VectorTile(0,0,0);
-        var im2 = new mapnik.Image(vt.width(),vt.height());
+        var im2 = new mapnik.Image(vt.tileSize(),vt.tileSize());
         im2.background = new mapnik.Color('blue');
         vt2.addImage(im2.encodeSync('webp'), 'blue');
         vt.composite([vt2]);
@@ -590,11 +590,11 @@ describe('mapnik.VectorTile.composite', function() {
     it('should not contain non-overlapping data', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(1,0,0);
-        var im = new mapnik.Image(vt.width(),vt.height());
+        var im = new mapnik.Image(vt.tileSize(),vt.tileSize());
         im.background = new mapnik.Color('green');
         vt.addImage(im.encodeSync('webp'), 'green');
         var vt2 = new mapnik.VectorTile(1,1,0);
-        var im2 = new mapnik.Image(vt.width(),vt.height());
+        var im2 = new mapnik.Image(vt.tileSize(),vt.tileSize());
         im2.background = new mapnik.Color('blue');
         vt2.addImage(im2.encodeSync('webp'), 'blue');
         vt.composite([vt2]);

@@ -83,9 +83,7 @@ public:
     static v8::Local<v8::Value> _compositeSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
-    // methods common to mapnik.Image
-    static NAN_METHOD(width);
-    static NAN_METHOD(height);
+    static NAN_METHOD(tileSize);
     static NAN_METHOD(painted);
     static NAN_METHOD(clearSync);
     static v8::Local<v8::Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
@@ -93,11 +91,6 @@ public:
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
     static NAN_METHOD(empty);
-    static NAN_METHOD(isSolid);
-    static void EIO_IsSolid(uv_work_t* req);
-    static void EIO_AfterIsSolid(uv_work_t* req);
-    static NAN_METHOD(isSolidSync);
-    static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
 #if BOOST_VERSION >= 105800
     static NAN_METHOD(reportGeometrySimplicity);
     static void EIO_ReportGeometrySimplicity(uv_work_t* req);
@@ -111,31 +104,41 @@ public:
     static v8::Local<v8::Value> _reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info);
 #endif // BOOST_VERSION >= 105800
 
-    VectorTile(int z, int x, int y, unsigned w, unsigned h);
+    VectorTile(int z, int x, int y, unsigned tile_size);
 
-    void clear() {
+    void clear() 
+    {
         buffer_.clear();
     }
     void parse_proto();
-    bool painted() const {
-        return !buffer_.empty();
+    bool painted() const 
+    {
+        return painted_;
     }
-    unsigned width() const {
-        return width_;
+    void set_painted(bool val)
+    {
+        painted_ = val;
     }
-    unsigned height() const {
-        return height_;
+    unsigned tile_size() const
+    {
+        return tile_size_;
     }
-    void _ref() { Ref(); }
-    void _unref() { Unref(); }
+    void _ref()
+    { 
+        Ref(); 
+    }
+    void _unref()
+    { 
+        Unref(); 
+    }
     int z_;
     int x_;
     int y_;
     std::string buffer_;
 private:
     ~VectorTile();
-    unsigned width_;
-    unsigned height_;
+    unsigned tile_size_;
+    bool painted_;
 };
 
 #endif // __NODE_MAPNIK_VECTOR_TILE_H__

@@ -8,10 +8,13 @@
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
-#include "vector_tile_processor.hpp"
-#include "vector_tile_backend_pbf.hpp"
 #include "mapnik_vector_tile.hpp"
 #include "object_to_container.hpp"
+
+// mapnik-vector-tile
+#define MAPNIK_VECTOR_TILE_LIBRARY
+#include "vector_tile_processor.hpp"
+#undef MAPNIK_VECTOR_TILE_LIBRARY
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
@@ -24,6 +27,7 @@
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
 #endif
 #include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/image_any.hpp>
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
@@ -39,11 +43,8 @@
 // stl
 #include <exception>                    // for exception
 #include <iosfwd>                       // for ostringstream, ostream
-#include <iostream>                     // for clog
 #include <ostream>                      // for operator<<, basic_ostream, etc
 #include <sstream>                      // for basic_ostringstream, etc
-
-#include "vector_tile.pb.h"
 
 // boost
 #include <boost/optional/optional.hpp>  // for optional
@@ -1798,7 +1799,6 @@ NAN_METHOD(Map::render)
         {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
-            VectorTile * vector_tile_obj = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
 
             if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
             {
@@ -1942,7 +1942,7 @@ NAN_METHOD(Map::render)
 
             closure->request.data = closure;
             closure->m = m;
-            closure->d = vector_tile_obj;
+            closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
             closure->d->_ref();
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
@@ -1983,39 +1983,37 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     try
     {
-        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-        vector_tile::Tile tiledata;
-        backend_type backend(tiledata,
-                             closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(closure->buffer_size);
-        renderer_type ren(backend,
-                          map,
-                          m_req,
-                          closure->scale_factor,
-                          closure->offset_x,
-                          closure->offset_y,
-                          closure->area_threshold,
-                          closure->strictly_simple,
-                          closure->image_format,
-                          closure->scaling_method);
+        
+        mapnik::vector_tile_impl::processor ren(map);
         ren.set_simplify_distance(closure->simplify_distance);
         ren.set_multi_polygon_union(closure->multi_polygon_union);
         ren.set_fill_type(closure->fill_type);
         ren.set_process_all_rings(closure->process_all_rings);
-        ren.apply(closure->scale_denominator);
-        std::string new_message;
-        if (!tiledata.SerializeToString(&new_message))
+        ren.set_scale_factor(closure->scale_factor);
+        ren.set_strictly_simple(closure->strictly_simple);
+        ren.set_image_format(closure->image_format);
+        ren.set_scaling_method(closure->scaling_method);
+        ren.set_area_threshold(closure->area_threshold);
+
+        mapnik::vector_tile_impl::tile tiledata = ren.create_tile(
+                        m_req,
+                        closure->path_multiplier,
+                        closure->scale_denominator,
+                        closure->offset_x,
+                        closure->offset_y);
+
+        if (tiledata.is_painted())
+        {
+            closure->d->set_painted(true);
+        }
+        if (!tiledata.append_to_string(closure->d->buffer_))
         {
             /* LCOV_EXCL_START */
             throw std::runtime_error("could not serialize new data for vt");
             /* LCOV_EXCL_END */
-        }
-        if (!new_message.empty())
-        {
-            closure->d->buffer_.append(new_message.data(),new_message.size());
         }
     }
     catch (std::exception const& ex)

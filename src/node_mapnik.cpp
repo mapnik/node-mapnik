@@ -1,6 +1,9 @@
 
 // Vector Tile
+#define MAPNIK_VECTOR_TILE_LIBRARY
 #include "vector_tile_processor.hpp"
+#undef MAPNIK_VECTOR_TILE_LIBRARY
+
 // node-mapnik
 #include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"

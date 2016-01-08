@@ -26,8 +26,8 @@ describe('mapnik.VectorTile query polygon', function() {
         assert.throws(function() { vtile.query(1,2,{layer:null}); });
     });
 
-    it('should not be able to query on a vector tile with width or height of zero', function(done) {
-        var vtile2 = new mapnik.VectorTile(5,28,12,{width:0, height:0});
+    it('should not be able to query on a vector tile with tilesize of zero', function(done) {
+        var vtile2 = new mapnik.VectorTile(5,28,12,{tile_size:0});
         assert.throws(function() { vtile2.query(1,2); });
         vtile2.query(1,2, function(err, results) {
             assert.throws(function() { if (err) throw err; });
@@ -43,12 +43,17 @@ describe('mapnik.VectorTile query polygon', function() {
             done();
         });
         function check(features) {
-            assert.equal(features.length,1);
+            assert.equal(features.length,2);
             assert.equal(JSON.parse(features[0].toJSON()).properties.NAME,'Japan');
             assert.equal(features[0].id(),89);
             assert.equal(features[0].geometry().type(),mapnik.Geometry.Polygon);
             assert.equal(features[0].distance,0);
             assert.equal(features[0].layer,'world');
+            assert.equal(JSON.parse(features[1].toJSON()).properties.NAME,'Japan');
+            assert.equal(features[1].id(),89);
+            assert.equal(features[1].geometry().type(),mapnik.Geometry.Polygon);
+            assert.equal(features[1].distance,0);
+            assert.equal(features[1].layer,'world2');
         }
     });
 
