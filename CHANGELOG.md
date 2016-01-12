@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.4.14
+
+ - Binaries updated to use Mapnik v3.0.9-57-g9494bc1 and mapnik-packaging@039aa0d
+
+Notable Changes in Mapnik v3.0.9-57-g9494bc1 Include:
+
+ - Fixed parsing of SVG `PathElement` (https://github.com/mapnik/mapnik/issues/3225)
+
 ## 3.4.13
 
  - Upgraded to node-pre-gyp@0.6.19
@@ -17,6 +25,7 @@ Notable changes in the Mapnik SDK include:
 
  - Upgrade libpng 1.6.19 -> 1.6.20
  - Upgrade webp 0.4.4 -> 0.5.0
+ - Upgrade sqlite3 3.9.2 -> 3.10.0
 
 ## 3.4.12
 
