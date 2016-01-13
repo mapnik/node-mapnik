@@ -48,6 +48,8 @@ describe('mapnik.VectorTile query polygon', function() {
             assert.equal(features[0].id(),89);
             assert.equal(features[0].geometry().type(),mapnik.Geometry.Polygon);
             assert.equal(features[0].distance,0);
+            assert.equal(features[0].x_hit,0);
+            assert.equal(features[0].y_hit,0);
             assert.equal(features[0].layer,'world');
         }
     });
@@ -191,6 +193,8 @@ describe('mapnik.VectorTile query point', function() {
             assert.equal(features[0].id(),1);
             assert.equal(features[0].geometry().type(),mapnik.Geometry.Point);
             assert.ok(Math.abs(features[0].distance - 1888.66) < 1);
+            assert.ok(Math.abs(features[0].x_hit - -13580108) < 1);
+            assert.ok(Math.abs(features[0].y_hit - 6105178.3) < 1);
             assert.equal(features[0].layer,'layer-name');
         }
     });
@@ -503,6 +507,134 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
           }]
         }),"layer-name");
         assert.equal(vtile.query(175,80,{tolerance:1}).length,0);
+        done();
+    });
+});
+
+describe('mapnik.VectorTile query xy single features', function() {
+    it('Point', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [ 0,0 ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    it('MultiPoint', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "MultiPoint",
+              "coordinates": [[ 0,0 ]]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    it('LineString', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [ [ 0,0 ], [100, 100] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    it('MultiLineString', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.addGeoJSON(JSON.stringify({
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "MultiLineString",
+              "coordinates": [ [ [ 0,0 ], [100, 100] ] ]
+            },
+            "properties": { "name": "A" }
+          }]
+        }),"layer-name");
+        var res = vtile.query(0,0,{tolerance:1});
+        assert.equal(res[0].x_hit, 0);
+        assert.equal(res[0].y_hit, 0);
+        assert.equal(res[0].attributes().name, 'A');
+        done();
+    });
+
+    // -------
+    // | . . |
+    // | . . |
+    // -------
+    it('Multiple Points', function(done) {
+        var vtile = new mapnik.VectorTile(14,8192,8192);
+        vtile.addGeoJSON(JSON.stringify({
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.005, -0.015 ]
+                },
+                "properties": { "name": "Point A" }
+            },{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.015,-0.015 ]
+                },
+                "properties": { "name": "Point B" }
+            },{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.015, -0.005 ]
+                },
+                "properties": { "name": "Point C" }
+            },{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [ 0.005,-0.005 ]
+                },
+                "properties": { "name": "Point D" }
+            }]
+        }),"layer-name");
+        var res = vtile.query(0.015, -0.005, {tolerance:10000});
+        assert.deepEqual([res[0].x_hit, res[0].y_hit], [ 0.014998912811279297, -0.0049996375974215084 ]);
+        assert.deepEqual([res[1].x_hit, res[1].y_hit], [ 0.014998912811279297, -0.0149989126399668430 ]);
+        assert.deepEqual([res[2].x_hit, res[2].y_hit], [ 0.004999637603759766, -0.0049996375974215084 ]);
+        assert.deepEqual([res[3].x_hit, res[3].y_hit], [ 0.004999637603759766, -0.0149989126399668430 ]);
         done();
     });
 });
