@@ -1577,6 +1577,14 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     auto p2p = path_to_point_distance(geom,x,y);
                     if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
+                        if (!tr.forward(p2p.x_hit,p2p.y_hit,z))
+                        {
+                            // THIS CAN NEVER BE REACHED CURRENTLY
+                            // internally lonlat2merc in mapnik can never return false.
+                            /* LCOV_EXCL_START */
+                            throw std::runtime_error("could not reproject lon/lat to mercator");
+                            /* LCOV_EXCL_END */
+                        }
                         query_result res;
                         res.x_hit = p2p.x_hit;
                         res.y_hit = p2p.y_hit;
