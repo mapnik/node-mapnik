@@ -1575,6 +1575,12 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 {
                     auto const& geom = feature->get_geometry();
                     auto p2p = path_to_point_distance(geom,x,y);
+                    if (!tr.forward(p2p.x_hit,p2p.y_hit,z))
+                    {
+                        /* LCOV_EXCL_START */
+                        throw std::runtime_error("could not reproject lon/lat to mercator");
+                        /* LCOV_EXCL_END */
+                    }
                     if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
                         query_result res;
@@ -1609,6 +1615,12 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 {
                     auto const& geom = feature->get_geometry();
                     auto p2p = path_to_point_distance(geom,x,y);
+                    if (!tr.forward(p2p.x_hit,p2p.y_hit,z))
+                    {
+                        /* LCOV_EXCL_START */
+                        throw std::runtime_error("could not reproject lon/lat to mercator");
+                        /* LCOV_EXCL_END */
+                    }
                     if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
                         query_result res;
