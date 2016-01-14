@@ -193,8 +193,8 @@ describe('mapnik.VectorTile query point', function() {
             assert.equal(features[0].id(),1);
             assert.equal(features[0].geometry().type(),mapnik.Geometry.Point);
             assert.ok(Math.abs(features[0].distance - 1888.66) < 1);
-            assert.ok(Math.abs(features[0].x_hit - -13580108) < 1);
-            assert.ok(Math.abs(features[0].y_hit - 6105178.3) < 1);
+            assert.ok(Math.abs(features[0].x_hit - -121.9921875) < 1);
+            assert.ok(Math.abs(features[0].y_hit - 47.98992166741417) < 1);
             assert.equal(features[0].layer,'layer-name');
         }
     });
