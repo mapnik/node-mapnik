@@ -30,9 +30,6 @@ describe('mapnik.Image SVG', function() {
           mapnik.Image.fromSVGSync('./test/data/SVG_DOES_NOT_EXIST.svg');
         }, /SVG parse error:\s+Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/);
         assert.throws(function() {
-          mapnik.Image.fromSVGSync('./test/data/vector_tile/errors.svg');
-        }, /SVG parse error:\s+parse_rect: Invalid width\s+Failed to parse double: "FAIL"\s+parse_rect: Invalid height\s+parse_rect: Invalid rx\s+parse_rect: Invalid ry\s+unable to parse invalid svg <path>\s+unable to parse invalid svg <path> with id 'fail-path'\s+unable to parse invalid svg <path> with id 'fail-path'\s+parse_circle: Invalid radius\s+Failed to parse <polygon> 'points'\s+Failed to parse <polyline> 'points'\s+parse_ellipse: Invalid rx\s+parse_ellipse: Invalid ry\s+parse_rect: Invalid height/);
-        assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', 256);
         }, /optional second arg must be an options object/);
         assert.throws(function() {
@@ -111,7 +108,7 @@ describe('mapnik.Image SVG', function() {
     it('should error with async file full of errors', function(done) {
       mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', function(err, svg) {
         assert.ok(err);
-        assert.ok(err.message.match(/SVG parse error:\s+parse_rect: Invalid width\s+Failed to parse double: "FAIL"\s+parse_rect: Invalid height\s+parse_rect: Invalid rx\s+parse_rect: Invalid ry\s+unable to parse invalid svg <path>\s+unable to parse invalid svg <path> with id 'fail-path'\s+unable to parse invalid svg <path> with id 'fail-path'\s+parse_circle: Invalid radius\s+Failed to parse <polygon> 'points'\s+Failed to parse <polyline> 'points'\s+parse_ellipse: Invalid rx\s+parse_ellipse: Invalid ry\s+parse_rect: Invalid height/));
+        assert.ok(err.message.match(/SVG parse error:/));
         assert.equal(svg, undefined);
         done();
       });
