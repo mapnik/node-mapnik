@@ -631,10 +631,15 @@ describe('mapnik.VectorTile query xy single features', function() {
             }]
         }),"layer-name");
         var res = vtile.query(0.015, -0.005, {tolerance:10000});
-        assert.deepEqual([res[0].x_hit, res[0].y_hit], [ 0.014998912811279297, -0.0049996375974215084 ]);
-        assert.deepEqual([res[1].x_hit, res[1].y_hit], [ 0.014998912811279297, -0.0149989126399668430 ]);
-        assert.deepEqual([res[2].x_hit, res[2].y_hit], [ 0.004999637603759766, -0.0049996375974215084 ]);
-        assert.deepEqual([res[3].x_hit, res[3].y_hit], [ 0.004999637603759766, -0.0149989126399668430 ]);
+
+        for (var res_it = 0; res_it < res.length; res_it++) {
+            res[res_it].x_hit = Math.round(res[res_it].x_hit * 1000000);
+            res[res_it].y_hit = Math.round(res[res_it].y_hit * 1000000);
+        }
+        assert.deepEqual([res[0].x_hit, res[0].y_hit], [ 14999, -5000  ]);
+        assert.deepEqual([res[1].x_hit, res[1].y_hit], [ 14999, -14999 ]);
+        assert.deepEqual([res[2].x_hit, res[2].y_hit], [ 5000 , -5000  ]);
+        assert.deepEqual([res[3].x_hit, res[3].y_hit], [ 5000 , -14999 ]);
         done();
     });
 });
