@@ -1542,7 +1542,6 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform tr(wgs84,merc);
-    mapnik::proj_transform tr2(merc, wgs84);
     double x = lon;
     double y = lat;
     double z = 0;
@@ -1576,7 +1575,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 {
                     auto const& geom = feature->get_geometry();
                     auto p2p = path_to_point_distance(geom,x,y);
-                    if (!tr2.forward(p2p.x_hit,p2p.y_hit,z))
+                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
                     {
                         /* LCOV_EXCL_START */
                         throw std::runtime_error("could not reproject lon/lat to mercator");
@@ -1616,7 +1615,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 {
                     auto const& geom = feature->get_geometry();
                     auto p2p = path_to_point_distance(geom,x,y);
-                    if (!tr2.forward(p2p.x_hit,p2p.y_hit,z))
+                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
                     {
                         /* LCOV_EXCL_START */
                         throw std::runtime_error("could not reproject lon/lat to mercator");
