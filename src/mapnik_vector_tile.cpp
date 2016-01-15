@@ -155,37 +155,59 @@ std::vector<std::string> lazy_names(std::string const& buffer)
     return names;
 }
 
+struct p2p_result
+{
+    explicit p2p_result() :
+      distance(-1),
+      x_hit(0),
+      y_hit(0) {}
+
+    double distance;
+    double x_hit;
+    double y_hit;
+};
+
 struct p2p_distance
 {
     p2p_distance(double x, double y)
      : x_(x),
        y_(y) {}
 
-    double operator() (mapnik::geometry::geometry_empty const& ) const
+    p2p_result operator() (mapnik::geometry::geometry_empty const& ) const
     {
         // There is no current way that a geometry empty could be returned from a vector tile.
         /* LCOV_EXCL_START */
-        return -1;
+        p2p_result p2p;
+        return p2p;
         /* LCOV_EXCL_END */
     }
 
-    double operator() (mapnik::geometry::point<double> const& geom) const
+    p2p_result operator() (mapnik::geometry::point<double> const& geom) const
     {
-        return mapnik::distance(geom.x, geom.y, x_, y_);
+        p2p_result p2p;
+        p2p.x_hit = geom.x;
+        p2p.y_hit = geom.y;
+        p2p.distance = mapnik::distance(geom.x, geom.y, x_, y_);
+        return p2p;
     }
-    double operator() (mapnik::geometry::multi_point<double> const& geom) const
+    p2p_result operator() (mapnik::geometry::multi_point<double> const& geom) const
     {
-        double distance = -1;
+        p2p_result p2p;
         for (auto const& pt : geom)
         {
-            double dist = operator()(pt);
-            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+            p2p_result p2p_sub = operator()(pt);
+            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
+            {
+                p2p.x_hit = p2p_sub.x_hit;
+                p2p.y_hit = p2p_sub.y_hit;
+                p2p.distance = p2p_sub.distance;
+            }
         }
-        return distance;
+        return p2p;
     }
-    double operator() (mapnik::geometry::line_string<double> const& geom) const
+    p2p_result operator() (mapnik::geometry::line_string<double> const& geom) const
     {
-        double distance = -1;
+        p2p_result p2p;
         std::size_t num_points = geom.num_points();
         if (num_points > 1)
         {
@@ -194,26 +216,40 @@ struct p2p_distance
                 auto const& pt0 = geom[i-1];
                 auto const& pt1 = geom[i];
                 double dist = mapnik::point_to_segment_distance(x_,y_,pt0.x,pt0.y,pt1.x,pt1.y);
-                if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+                if (dist >= 0 && (p2p.distance < 0 || dist < p2p.distance))
+                {
+                    p2p.x_hit = pt0.x;
+                    p2p.y_hit = pt0.y;
+                    p2p.distance = dist;
+                }
             }
         }
-        return distance;
+        return p2p;
     }
-    double operator() (mapnik::geometry::multi_line_string<double> const& geom) const
+    p2p_result operator() (mapnik::geometry::multi_line_string<double> const& geom) const
     {
-        double distance = -1;
+        p2p_result p2p;
         for (auto const& line: geom)
         {
-            double dist = operator()(line);
-            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+            p2p_result p2p_sub = operator()(line);
+            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
+            {
+                p2p.x_hit = p2p_sub.x_hit;
+                p2p.y_hit = p2p_sub.y_hit;
+                p2p.distance = p2p_sub.distance;
+            }
         }
-        return distance;
+        return p2p;
     }
-    double operator() (mapnik::geometry::polygon<double> const& geom) const
+    p2p_result operator() (mapnik::geometry::polygon<double> const& geom) const
     {
         auto const& exterior = geom.exterior_ring;
         std::size_t num_points = exterior.num_points();
-        if (num_points < 4) return -1;
+        p2p_result p2p;
+        if (num_points < 4)
+        {
+            return p2p;
+        }
         bool inside = false;
         for (std::size_t i = 1; i < num_points; ++i)
         {
@@ -225,7 +261,10 @@ struct p2p_distance
                 inside = !inside;
             }
         }
-        if (!inside) return -1;
+        if (!inside)
+        {
+            return p2p;
+        }
         for (auto const& ring :  geom.interior_rings)
         {
             std::size_t num_interior_points = ring.size();
@@ -243,29 +282,43 @@ struct p2p_distance
                 }
             }
         }
-        return inside ? 0 : -1;
+        if (inside)
+        {
+            p2p.distance = 0;
+        }
+        return p2p;
     }
-    double operator() (mapnik::geometry::multi_polygon<double> const& geom) const
+    p2p_result operator() (mapnik::geometry::multi_polygon<double> const& geom) const
     {
-        double distance = -1;
+        p2p_result p2p;
         for (auto const& poly: geom)
         {
-            double dist = operator()(poly);
-            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+            p2p_result p2p_sub = operator()(poly);
+            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
+            {
+                p2p.x_hit = p2p_sub.x_hit;
+                p2p.y_hit = p2p_sub.y_hit;
+                p2p.distance = p2p_sub.distance;
+            }
         }
-        return distance;
+        return p2p;
     }
-    double operator() (mapnik::geometry::geometry_collection<double> const& collection) const
+    p2p_result operator() (mapnik::geometry::geometry_collection<double> const& collection) const
     {
         // There is no current way that a geometry collection could be returned from a vector tile.
         /* LCOV_EXCL_START */
-        double distance = -1;
+        p2p_result p2p;
         for (auto const& geom: collection)
         {
-            double dist = mapnik::util::apply_visitor((*this),geom);
-            if (dist >= 0 && (distance < 0 || dist < distance)) distance = dist;
+            p2p_result p2p_sub = mapnik::util::apply_visitor((*this),geom);
+            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
+            {
+                p2p.x_hit = p2p_sub.x_hit;
+                p2p.y_hit = p2p_sub.y_hit;
+                p2p.distance = p2p_sub.distance;
+            }
         }
-        return distance;
+        return p2p;
         /* LCOV_EXCL_END */
     }
 
@@ -275,7 +328,7 @@ struct p2p_distance
 
 }
 
-double path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
+detail::p2p_result path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
 {
     return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
@@ -1521,11 +1574,19 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     auto const& geom = feature->get_geometry();
-                    double distance = path_to_point_distance(geom,x,y);
-                    if (distance >= 0 && distance <= tolerance)
+                    auto p2p = path_to_point_distance(geom,x,y);
+                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
+                    {
+                        /* LCOV_EXCL_START */
+                        throw std::runtime_error("could not reproject lon/lat to mercator");
+                        /* LCOV_EXCL_END */
+                    }
+                    if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
                         query_result res;
-                        res.distance = distance;
+                        res.x_hit = p2p.x_hit;
+                        res.y_hit = p2p.y_hit;
+                        res.distance = p2p.distance;
                         res.layer = layer_name;
                         res.feature = feature;
                         arr.push_back(std::move(res));
@@ -1553,11 +1614,19 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                 while ((feature = fs->next()))
                 {
                     auto const& geom = feature->get_geometry();
-                    double distance = path_to_point_distance(geom,x,y);
-                    if (distance >= 0 && distance <= tolerance)
+                    auto p2p = path_to_point_distance(geom,x,y);
+                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
+                    {
+                        /* LCOV_EXCL_START */
+                        throw std::runtime_error("could not reproject lon/lat to mercator");
+                        /* LCOV_EXCL_END */
+                    }
+                    if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
                         query_result res;
-                        res.distance = distance;
+                        res.x_hit = p2p.x_hit;
+                        res.y_hit = p2p.y_hit;
+                        res.distance = p2p.distance;
                         res.layer = ds->get_name();
                         res.feature = feature;
                         arr.push_back(std::move(res));
@@ -1584,6 +1653,8 @@ v8::Local<v8::Array> VectorTile::_queryResultToV8(std::vector<query_result> cons
         v8::Local<v8::Object> feat_obj = feat->ToObject();
         feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.layer).ToLocalChecked());
         feat_obj->Set(Nan::New("distance").ToLocalChecked(),Nan::New<v8::Number>(item.distance));
+        feat_obj->Set(Nan::New("x_hit").ToLocalChecked(),Nan::New<v8::Number>(item.x_hit));
+        feat_obj->Set(Nan::New("y_hit").ToLocalChecked(),Nan::New<v8::Number>(item.y_hit));
         arr->Set(i++,feat);
     }
     return arr;
@@ -1798,17 +1869,19 @@ void VectorTile::_queryMany(queryMany_result & result, VectorTile* d, std::vecto
                 for (std::size_t p = 0; p < points.size(); ++p) {
                     mapnik::coord2d const& pt = points[p];
                     auto const& geom = feature->get_geometry();
-                    double distance = path_to_point_distance(geom,pt.x,pt.y);
-                    if (distance >= 0 && distance <= tolerance)
+                    auto p2p = path_to_point_distance(geom,pt.x,pt.y);
+                    if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
                         has_hit = 1;
                         query_result res;
+                        res.x_hit = p2p.x_hit;
+                        res.y_hit = p2p.y_hit;
                         res.feature = feature;
                         res.distance = 0;
                         res.layer = ds->get_name();
 
                         query_hit hit;
-                        hit.distance = distance;
+                        hit.distance = p2p.distance;
                         hit.feature_id = idx;
 
                         features.insert(std::make_pair(idx, res));
