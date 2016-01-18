@@ -59,6 +59,6 @@ ECHO ~~~~~~~~~~~~~~~ ERROR %~f0 ~~~~~~~~~~~~~~~
 SET EL=%ERRORLEVEL%
 ECHO ERRORLEVEL^: %EL%
 
-
+:DONE
 ECHO =========== DONE %~f0 ===========
 EXIT /B %EL%
