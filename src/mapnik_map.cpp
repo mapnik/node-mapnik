@@ -1509,8 +1509,6 @@ struct vector_tile_baton_t {
     Map *m;
     VectorTile *d;
     double area_threshold;
-    unsigned path_multiplier;
-    int buffer_size;
     double scale_factor;
     double scale_denominator;
     mapnik::attributes variables;
@@ -1528,8 +1526,6 @@ struct vector_tile_baton_t {
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
         area_threshold(0.1),
-        path_multiplier(16),
-        buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
         variables(),
@@ -1539,8 +1535,8 @@ struct vector_tile_baton_t {
         scaling_method(mapnik::SCALING_BILINEAR),
         simplify_distance(0.0),
         error(false),
-        strictly_simple(false),
-        multi_polygon_union(true),
+        strictly_simple(true),
+        multi_polygon_union(false),
         fill_type(mapnik::vector_tile_impl::non_zero_fill),
         process_all_rings(false) {}
 };
@@ -1842,6 +1838,12 @@ NAN_METHOD(Map::render)
                     return;
                 }
                 closure->area_threshold = param_val->NumberValue();
+                if (closure->area_threshold < 0.0)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'area_threshold' must not be a negative number");
+                    return;
+                }
             }
 
             if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) 
@@ -1884,18 +1886,6 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
                     return;
                 }
-            }
-
-            if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) 
-            {
-                v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
-                if (!param_val->IsNumber()) 
-                {
-                    delete closure;
-                    Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
-                    return;
-                }
-                closure->path_multiplier = param_val->IntegerValue();
             }
 
             if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
@@ -1944,7 +1934,6 @@ NAN_METHOD(Map::render)
             closure->m = m;
             closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
             closure->d->_ref();
-            closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
             closure->offset_x = offset_x;
@@ -1984,8 +1973,6 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     try
     {
         mapnik::Map const& map = *closure->m->get();
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(closure->buffer_size);
         
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_simplify_distance(closure->simplify_distance);
@@ -1998,23 +1985,10 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
         ren.set_scaling_method(closure->scaling_method);
         ren.set_area_threshold(closure->area_threshold);
 
-        mapnik::vector_tile_impl::tile tiledata = ren.create_tile(
-                        m_req,
-                        closure->path_multiplier,
+        ren.update_tile(*closure->d->get_tile(),
                         closure->scale_denominator,
                         closure->offset_x,
                         closure->offset_y);
-
-        if (tiledata.is_painted())
-        {
-            closure->d->set_painted(true);
-        }
-        if (!tiledata.append_to_string(closure->d->buffer_))
-        {
-            /* LCOV_EXCL_START */
-            throw std::runtime_error("could not serialize new data for vt");
-            /* LCOV_EXCL_END */
-        }
     }
     catch (std::exception const& ex)
     {

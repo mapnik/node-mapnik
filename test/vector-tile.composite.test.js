@@ -55,7 +55,7 @@ function render_data(name,coords,callback) {
 function render_fresh_tile(name,coords,callback) {
     var map = new mapnik.Map(256, 256);
     map.loadSync(data_base +'/layers/'+name+'.xml');
-    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
+    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
     var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
     name = name + '-' + coords.join('-');
     map.extent = extent;
@@ -575,13 +575,13 @@ describe('mapnik.VectorTile.composite', function() {
     it('should contain two raster layers', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(0,0,0);
-        var im = new mapnik.Image(vt.tileSize(),vt.tileSize());
+        var im = new mapnik.Image(vt.tileSize,vt.tileSize);
         im.background = new mapnik.Color('green');
-        vt.addImage(im.encodeSync('webp'), 'green');
+        vt.addImage(im, 'green');
         var vt2 = new mapnik.VectorTile(0,0,0);
-        var im2 = new mapnik.Image(vt.tileSize(),vt.tileSize());
+        var im2 = new mapnik.Image(vt.tileSize,vt.tileSize);
         im2.background = new mapnik.Color('blue');
-        vt2.addImage(im2.encodeSync('webp'), 'blue');
+        vt2.addImage(im2, 'blue');
         vt.composite([vt2]);
         assert.deepEqual(vt.names(),['green','blue']);
         done();
@@ -590,13 +590,13 @@ describe('mapnik.VectorTile.composite', function() {
     it('should not contain non-overlapping data', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(1,0,0);
-        var im = new mapnik.Image(vt.tileSize(),vt.tileSize());
+        var im = new mapnik.Image(vt.tileSize,vt.tileSize);
         im.background = new mapnik.Color('green');
-        vt.addImage(im.encodeSync('webp'), 'green');
+        vt.addImage(im, 'green');
         var vt2 = new mapnik.VectorTile(1,1,0);
-        var im2 = new mapnik.Image(vt.tileSize(),vt.tileSize());
+        var im2 = new mapnik.Image(vt.tileSize,vt.tileSize);
         im2.background = new mapnik.Color('blue');
-        vt2.addImage(im2.encodeSync('webp'), 'blue');
+        vt2.addImage(im2, 'blue');
         vt.composite([vt2]);
         assert.deepEqual(vt.names(),['green']);
         done();

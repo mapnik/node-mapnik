@@ -10,10 +10,9 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojso
 describe('mapnik.VectorTile query polygon', function() {
     var vtile;
     before(function(done) {
-        var data = fs.readFileSync(path.resolve(__dirname + "/data/vector_tile/tile3.vector.pbf"));
+        var data = fs.readFileSync(path.resolve(__dirname + "/data/vector_tile/tile3.mvt"));
         vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        vtile.parse();
         done();
     });
 
@@ -24,15 +23,6 @@ describe('mapnik.VectorTile query polygon', function() {
         assert.throws(function() { vtile.query(1,2,null); });
         assert.throws(function() { vtile.query(1,2,{tolerance:null}); });
         assert.throws(function() { vtile.query(1,2,{layer:null}); });
-    });
-
-    it('should not be able to query on a vector tile with tilesize of zero', function(done) {
-        var vtile2 = new mapnik.VectorTile(5,28,12,{tile_size:0});
-        assert.throws(function() { vtile2.query(1,2); });
-        vtile2.query(1,2, function(err, results) {
-            assert.throws(function() { if (err) throw err; });
-            done();
-        });
     });
 
     it('query polygon', function(done) {
@@ -108,7 +98,6 @@ describe('mapnik.VectorTile query polygon (clipped)', function() {
         var pbf = require('fs').readFileSync(path.resolve(__dirname + '/data/vector_tile/6.20.34.pbf'));
         vtile = new mapnik.VectorTile(6, 20, 34);
         vtile.setData(pbf);
-        vtile.parse();
         done();
     });
     // ensure querying clipped polygons works

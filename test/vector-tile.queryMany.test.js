@@ -138,8 +138,7 @@ describe('mapnik.VectorTile queryMany', function() {
 
     // Done outside of test so mocha doesn't time the vt load/parse.
     var profile = new mapnik.VectorTile(0,0,0);
-    profile.setData(fs.readFileSync(path.join(__dirname, 'data', 'vector_tile', 'tile0.vector.pbf')));
-    profile.parse();
+    profile.setData(fs.readFileSync(path.join(__dirname, 'data', 'vector_tile', 'tile0.mvt')));
     it('vtile.queryMany profile x10 runs', function(done) {
         var remaining = 10;
         function run() {

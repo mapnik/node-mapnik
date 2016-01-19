@@ -7,17 +7,30 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include <vector>
+// mapnik-vector-tile
+#define MAPNIK_VECTOR_TILE_LIBRARY
+#include "vector_tile_merc_tile.hpp"
+#undef MAPNIK_VECTOR_TILE_LIBRARY
+
+// std
 #include <string>
+#include <set>
+#include <vector>
+
+// mapnik
 #include <mapnik/feature.hpp>
+
+// boost
 #include <boost/version.hpp>
 
-struct query_lonlat {
+struct query_lonlat 
+{
     double lon;
     double lat;
 };
 
-struct query_result {
+struct query_result 
+{
     std::string layer;
     double distance;
     double x_hit;
@@ -30,17 +43,20 @@ struct query_result {
      y_hit(0) {}
 };
 
-struct query_hit {
+struct query_hit 
+{
     double distance;
     unsigned feature_id;
 };
 
-struct queryMany_result {
+struct queryMany_result 
+{
     std::map<unsigned,query_result> features;
     std::map<unsigned,std::vector<query_hit> > hits;
 };
 
-class VectorTile: public Nan::ObjectWrap {
+class VectorTile: public Nan::ObjectWrap
+{
 public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
@@ -65,6 +81,8 @@ public:
     static void EIO_QueryMany(uv_work_t* req);
     static void EIO_AfterQueryMany(uv_work_t* req);
     static NAN_METHOD(names);
+    static NAN_METHOD(emptyLayers);
+    static NAN_METHOD(paintedLayers);
     static v8::Local<v8::Value> _toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(toGeoJSON);
     static NAN_METHOD(toGeoJSONSync);
@@ -79,18 +97,12 @@ public:
     static void EIO_AfterSetData(uv_work_t* req);
     static v8::Local<v8::Value> _setDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(setDataSync);
-    static NAN_METHOD(parse);
-    static void EIO_Parse(uv_work_t* req);
-    static void EIO_AfterParse(uv_work_t* req);
-    static NAN_METHOD(parseSync);
-    static v8::Local<v8::Value> _parseSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(addData);
     static NAN_METHOD(composite);
     static NAN_METHOD(compositeSync);
     static v8::Local<v8::Value> _compositeSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
-    static NAN_METHOD(tileSize);
     static NAN_METHOD(painted);
     static NAN_METHOD(clearSync);
     static v8::Local<v8::Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
@@ -111,41 +123,65 @@ public:
     static v8::Local<v8::Value> _reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info);
 #endif // BOOST_VERSION >= 105800
 
-    VectorTile(int z, int x, int y, unsigned tile_size);
+    static NAN_GETTER(get_tile_size);
+    static NAN_SETTER(set_tile_size);
+    static NAN_GETTER(get_buffer_size);
+    static NAN_SETTER(set_buffer_size);
+
+    VectorTile(int z, 
+               int x, 
+               int y, 
+               std::uint32_t tile_size,
+               std::int32_t buffer_size);
 
     void clear() 
     {
-        buffer_.clear();
+        tile_->clear();
     }
-    void parse_proto();
-    bool painted() const 
+    
+    std::uint32_t tile_size() const
     {
-        return painted_;
+        return tile_->tile_size();
     }
-    void set_painted(bool val)
+    
+    void tile_size(std::uint32_t val)
     {
-        painted_ = val;
+        tile_->tile_size(val);
     }
-    unsigned tile_size() const
+    
+    std::int32_t buffer_size() const
     {
-        return tile_size_;
+        return tile_->buffer_size();
     }
+    
+    void buffer_size(std::int32_t val)
+    {
+        tile_->buffer_size(val);
+    }
+
+    mapnik::vector_tile_impl::merc_tile_ptr & get_tile()
+    {
+        return tile_;
+    }
+
+    mapnik::vector_tile_impl::merc_tile_ptr const& get_tile() const
+    {
+        return tile_;
+    }
+    
     void _ref()
     { 
         Ref(); 
     }
+    
     void _unref()
     { 
         Unref(); 
     }
-    int z_;
-    int x_;
-    int y_;
-    std::string buffer_;
+
 private:
+    mapnik::vector_tile_impl::merc_tile_ptr tile_;
     ~VectorTile();
-    unsigned tile_size_;
-    bool painted_;
 };
 
 #endif // __NODE_MAPNIK_VECTOR_TILE_H__
