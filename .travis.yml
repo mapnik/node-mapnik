@@ -73,6 +73,7 @@ before_install:
 
 install:
  - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+ - echo ${COMMIT_MESSAGE}
  - if [[ ${COVERAGE} == true ]]; then
      if [[ $(uname -s) == 'Linux' ]]; then
        PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
@@ -87,10 +88,13 @@ install:
  - npm test
 
 before_script:
- - if [[ ${CXX} =~ "clang" ]] && [[ ${COVERAGE} == false ]]; then
+ - if [[ ${COVERAGE} == false ]]; then
+      echo "publishing";
       if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]]; then
+        echo "publishing for the first time";
         node-pre-gyp publish;
       elif [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]]; then
+        echo "republishing";
         node-pre-gyp unpublish publish;
       fi
    fi
