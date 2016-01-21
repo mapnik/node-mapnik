@@ -7,7 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
-var overwrite_expected_data = true;
+var overwrite_expected_data = false;
 
 var data_base = './test/data/vector_tile/compositing';
 
