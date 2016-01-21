@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.15
+
+- vtile.query now returns WGS84 x_hit and y_hit values of the nearest point/vertex
+
 ## 3.4.14
 
  - Binaries updated to use Mapnik v3.0.9-57-g9494bc1 and mapnik-packaging@039aa0d
