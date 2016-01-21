@@ -2,7 +2,9 @@
 
 ## 3.4.15
 
-- vtile.query now returns WGS84 x_hit and y_hit values of the nearest point/vertex
+ - `vtile.query` now returns WGS84 `x_hit` and `y_hit` values of the nearest point/vertex
+ - Upgraded to nan@2.2.0
+ - Upgraded to mapnik-vector-tile@0.14.4
 
 ## 3.4.14
 

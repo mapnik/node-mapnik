@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.4.14",
+  "version": "3.4.15",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -40,8 +40,8 @@
     }
   ],
   "dependencies": {
-    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/master",
-    "nan": "~2.1.0",
+    "mapnik-vector-tile": "~0.14.3",
+    "nan": "~2.2.0",
     "node-pre-gyp": "~0.6.19"
   },
   "bundledDependencies": [
