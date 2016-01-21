@@ -12,9 +12,7 @@
 #include "object_to_container.hpp"
 
 // mapnik-vector-tile
-#define MAPNIK_VECTOR_TILE_LIBRARY
 #include "vector_tile_processor.hpp"
-#undef MAPNIK_VECTOR_TILE_LIBRARY
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer

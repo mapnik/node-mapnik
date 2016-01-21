@@ -7,7 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var mercator = new(require('sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
-var overwrite_expected_data = false;
+var overwrite_expected_data = true;
 
 var data_base = './test/data/vector_tile/compositing';
 
@@ -15,7 +15,6 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.in
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
 var rendering_defaults = {
-    path_multiplier: 16,
     area_threshold: 0.1,
     strictly_simple: false,
     multi_polygon_union: true,
@@ -27,41 +26,46 @@ var rendering_defaults = {
     scale_denominator: 0.0,
     offset_x: 0,
     offset_y: 0,
-    buffer_size: 1,
     image_format: "jpeg",
     image_scaling: "near"
 };
 
 function render_data(name,coords,callback) {
-    var map = new mapnik.Map(256, 256);
-    map.loadSync(data_base +'/layers/'+name+'.xml');
-    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
-    var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
-    name = name + '-' + coords.join('-');
-    map.extent = extent;
-    var opts = JSON.parse(JSON.stringify(rendering_defaults));
     // buffer of >=5 is needed to ensure point ends up in tiles touching null island
-    opts.buffer_size = 5;
+    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
+    var map_i = new mapnik.Map(256, 256);
+    map_i.loadSync(data_base +'/layers/'+name+'.xml');
+    var layer = map_i.get_layer(0);
+    name = name + '-' + coords.join('-');
+    layer.name = name;
+    var map = new mapnik.Map(256, 256);
+    map.extent = vtile.extent();
+    map.srs = map_i.srs;
+    map.add_layer(layer);
+    var opts = JSON.parse(JSON.stringify(rendering_defaults));
     //map.renderFileSync('./test/data/vector_tile/compositing/'+name+'.png')
     map.render(vtile,opts,function(err,vtile) {
         if (err) return callback(err);
         var tiledata = vtile.getData();
-        var tilename = data_base +'/tiles/'+name+'.vector.pbf';
+        var tilename = data_base +'/tiles/'+name+'.mvt';
         fs.writeFileSync(tilename,tiledata);
         return callback();
     });
 }
 
 function render_fresh_tile(name,coords,callback) {
-    var map = new mapnik.Map(256, 256);
-    map.loadSync(data_base +'/layers/'+name+'.xml');
-    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
-    var extent = mercator.bbox(coords[1],coords[2],coords[0], false, '900913');
-    name = name + '-' + coords.join('-');
-    map.extent = extent;
-    var opts = JSON.parse(JSON.stringify(rendering_defaults));
     // buffer of >=5 is needed to ensure point ends up in tiles touching null island
-    opts.buffer_size = 5;
+    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
+    var map_i = new mapnik.Map(256, 256);
+    map_i.loadSync(data_base +'/layers/'+name+'.xml');
+    var layer = map_i.get_layer(0);
+    name = name + '-' + coords.join('-');
+    layer.name = name;
+    var map = new mapnik.Map(256, 256);
+    map.extent = vtile.extent();
+    map.srs = map_i.srs;
+    map.add_layer(layer);
+    var opts = JSON.parse(JSON.stringify(rendering_defaults));
     map.render(vtile,opts,function(err,vtile) {
         if (err) return callback(err);
         return callback(null,vtile);
@@ -78,18 +82,23 @@ var tiles = [[0,0,0],
              [2,1,1]];
 
 function get_data_at(name,coords) {
-    return fs.readFileSync(data_base +'/tiles/'+name+'-'+coords.join('-')+'.vector.pbf');
+    return fs.readFileSync(data_base +'/tiles/'+name+'-'+coords.join('-')+'.mvt');
 }
 
 function get_tile_at(name,coords) {
-    var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
-    vt.setData(get_data_at(name,coords));
-    return vt;
+    var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
+    try {
+        vt.setData(get_data_at(name,coords));
+    } finally {
+        return vt;
+    }
 }
 
-function get_image_vtile(coords,file,name) {
-    var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
-    vt.addImage(fs.readFileSync(__dirname + '/data/vector_tile/'+file), name);
+function get_image_vtile(coords,file,name,format) {
+    var vt = new mapnik.VectorTile(coords[0],coords[1],coords[2], {tile_size:256});
+    var image_buffer = fs.readFileSync(__dirname + '/data/vector_tile/'+file);
+    var im = new mapnik.Image.fromBytesSync(image_buffer);
+    vt.addImage(im, name, {image_format:format});
     return vt;
 }
 
@@ -125,9 +134,7 @@ describe('mapnik.VectorTile.composite', function() {
     it('should fail to composite due to bad parameters', function(done) {
         var vtile1 = new mapnik.VectorTile(1,0,0);
         var vtile2 = new mapnik.VectorTile(1,0,0);
-        var vtile3 = new mapnik.VectorTile(3,0,0, {tile_size:0});
-        var vtile4 = new mapnik.VectorTile(4,0,0, {tile_size:-1});
-        var vtile5 = get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster');
+        var vtile3 = get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster','jpeg');
         assert.throws(function() { vtile1.composite(); });
         assert.throws(function() { vtile1.compositeSync(); });
         assert.throws(function() { vtile1.composite(function(err, result) {}); });
@@ -141,10 +148,6 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([{}], function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], null); });
         assert.throws(function() { vtile1.composite([vtile2], null, function(err, result) {}); });
-        assert.throws(function() { vtile1.compositeSync([vtile2], {path_multiplier:null}); });
-        assert.throws(function() { vtile1.composite([vtile2], {path_multiplier:null}, function(err, result) {}); });
-        assert.throws(function() { vtile1.compositeSync([vtile2], {buffer_size:null}); });
-        assert.throws(function() { vtile1.composite([vtile2], {buffer_size:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {scale:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {scale:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {offset_x:null}); });
@@ -179,37 +182,27 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {max_extent:[1,2,3,4,5]}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {max_extent:['1',2,3,4]}); });
         assert.throws(function() { vtile1.composite([vtile2], {max_extent:['1',2,3,4]}, function(err, result) {}); });
-        assert.throws(function() { vtile3.compositeSync([vtile1]); });
-        assert.throws(function() { vtile1.compositeSync([vtile3]); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {image_scaling:'foo'}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {image_scaling:[]}); });
         assert.throws(function() { vtile1.composite([vtile2], {image_scaling:'foo'}, function(err, result) {}); });
         assert.throws(function() { vtile1.composite([vtile2], {image_scaling:[]}, function(err, result) {}); });
-        assert.throws(function() { vtile1.compositeSync([vtile5], {image_format:'foo',reencode:true}); });
-        assert.throws(function() { vtile1.compositeSync([vtile5], {image_format:[],reencode:true}); });
+        assert.throws(function() { vtile1.compositeSync([vtile3], {image_format:'foo',reencode:true}); });
+        assert.throws(function() { vtile1.compositeSync([vtile3], {image_format:[],reencode:true}); });
         assert.throws(function() { vtile1.composite([vtile2], {image_format:[],reencode:true}, function(err, result) {}); });
-        vtile1.composite([vtile5], {image_format:'foo',reencode:true}, function(err, result) {
+        vtile1.composite([vtile3], {image_format:'foo',reencode:true}, function(err, result) {
             assert.throws(function() { if (err) throw err; });
-            vtile3.composite([vtile1], function(err, result) {
-                assert.throws(function() { if (err) throw err; });
-                vtile1.composite([vtile3], function(err, result) {
-                    assert.throws(function() { if (err) throw err; });
-                    done();
-                });
-            });
+            done();
         });
     });
 
     it('should support compositing tiles that were just rendered to sync', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,49);
-            var vtile2 = new mapnik.VectorTile(1,0,0);
+            assert.equal(vtile1.getData().length,53);
+            var vtile2 = new mapnik.VectorTile(1,0,0, {buffer_size: 1});
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
             var options = {
-                path_multiplier: 16,
-                buffer_size: 1,
                 scale: 1.0,
                 offset_x: 0,
                 offset_y: 0,
@@ -223,8 +216,8 @@ describe('mapnik.VectorTile.composite', function() {
                 reencode: false
             }
             vtile2.compositeSync([vtile1,vtile1],options);
-            assert.equal(vtile2.getData().length,98);
-            assert.deepEqual(vtile2.names(),["lines","lines"]);
+            assert.equal(vtile2.getData().length,53);
+            assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
             done();
         });
     });
@@ -232,14 +225,12 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to sync (reencode)', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,49);
-            var vtile2 = new mapnik.VectorTile(1,0,0);
-            var vtile3 = new mapnik.VectorTile(1,0,0);
+            assert.equal(vtile1.getData().length,53);
+            var vtile2 = new mapnik.VectorTile(1,0,0, {buffer_size: 1});
+            var vtile3 = new mapnik.VectorTile(1,0,0, {buffer_size: 1});
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
             var options = {
-                path_multiplier: 16,
-                buffer_size: 1,
                 scale: 1.0,
                 offset_x: 0,
                 offset_y: 0,
@@ -252,12 +243,12 @@ describe('mapnik.VectorTile.composite', function() {
                 reencode: true
             }
             vtile2.compositeSync([vtile1,vtile1],options);
-            assert.equal(vtile2.getData().length,94);
-            assert.deepEqual(vtile2.names(),["lines","lines"]);
+            assert.equal(vtile2.getData().length,53);
+            assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
             vtile3.composite([vtile1,vtile1],options,function(err) {
                 if (err) throw err;
-                assert.equal(vtile3.getData().length,94);
-                assert.deepEqual(vtile3.names(),["lines","lines"]);
+                assert.equal(vtile3.getData().length,53);
+                assert.deepEqual(vtile3.names(),["lines-1-0-0"]);
                 done();
             });
         });
@@ -281,7 +272,7 @@ describe('mapnik.VectorTile.composite', function() {
           return [r,g,b];
         };
         var vtile2 = new mapnik.VectorTile(0,0,0);
-        vtile2.setData(fs.readFileSync('./test/data/v6-0_0_0.vector.pbf'));
+        vtile2.setData(fs.readFileSync('./test/data/v6-0_0_0.mvt'));
         var xml = '<Map srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over" background-color="#000000" maximum-extent="-20037508.34,-20037508.34,20037508.34,20037508.34">';
         xml += vtile2.names().map(function(name) {
                     var rgb = color(name).join(',');
@@ -297,9 +288,9 @@ describe('mapnik.VectorTile.composite', function() {
         var world_clipping_extent = [-20037508.34,-20037508.34,20037508.34,20037508.34];
         vtile.composite([vtile2],{reencode:true});
         vtile1.composite([vtile2],{reencode:true,max_extent:world_clipping_extent});
-        assert.equal(vtile.getData().length,54630);
+        assert.equal(vtile.getData().length,54610);
         assert.deepEqual(vtile.names(),["water","admin"]);
-        assert.equal(vtile1.getData().length,54465);
+        assert.equal(vtile1.getData().length,54462);
         assert.deepEqual(vtile1.names(),["water","admin"]);
         var expected_file = data_base +'/expected/world-reencode.png';
         var expected_file2 = data_base +'/expected/world-reencode-max-extent.png';
@@ -311,14 +302,14 @@ describe('mapnik.VectorTile.composite', function() {
                 assert.equal(0,compare_to_image(im2,expected_file2));
                 vtile3.composite([vtile2],{reencode:true}, function(err) {
                     if (err) throw err;
-                    assert.equal(vtile3.getData().length,54630);
+                    assert.equal(vtile3.getData().length,54610);
                     assert.deepEqual(vtile3.names(),["water","admin"]);
                     vtile3.render(map,new mapnik.Image(256,256),function(err,im) {
                         if (err) throw err;
                         assert.equal(0,compare_to_image(im,expected_file));
                         vtile4.composite([vtile2],{reencode:true,max_extent:world_clipping_extent}, function(err) {
                             if (err) throw err;
-                            assert.equal(vtile4.getData().length,54465);
+                            assert.equal(vtile4.getData().length,54462);
                             assert.deepEqual(vtile4.names(),["water","admin"]);
                             assert.equal(0,compare_to_image(im2,expected_file2));
                             vtile4.render(map,new mapnik.Image(256,256),function(err,im) {
@@ -336,13 +327,11 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to async', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,49);
+            assert.equal(vtile1.getData().length,53);
             var vtile2 = new mapnik.VectorTile(1,0,0);
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
             var options = {
-                path_multiplier: 16,
-                buffer_size: 1,
                 scale: 1.0,
                 offset_x: 0,
                 offset_y: 0,
@@ -356,8 +345,8 @@ describe('mapnik.VectorTile.composite', function() {
             }
             vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
                 if (err) throw err;
-                assert.equal(vtile2.getData().length,98);
-                assert.deepEqual(vtile2.names(),["lines","lines"]);
+                assert.equal(vtile2.getData().length,53);
+                assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
                 done();
             });
         });
@@ -366,13 +355,11 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to async (reencode)', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,49);
+            assert.equal(vtile1.getData().length,53);
             var vtile2 = new mapnik.VectorTile(1,0,0);
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
             var options = {
-                path_multiplier: 16,
-                buffer_size: 1,
                 scale: 1.0,
                 offset_x: 0,
                 offset_y: 0,
@@ -386,8 +373,8 @@ describe('mapnik.VectorTile.composite', function() {
             }
             vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
                 if (err) throw err;
-                assert.equal(vtile2.getData().length,94);
-                assert.deepEqual(vtile2.names(),["lines","lines"]);
+                assert.equal(vtile2.getData().length,53);
+                assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
                 done();
             });
         });
@@ -407,7 +394,7 @@ describe('mapnik.VectorTile.composite', function() {
         vtile.composite(vtiles,opts);
         var composited_data = vtile.getData();
         assert.equal(composited_data.length,expected_length);
-        assert.deepEqual(vtile.names(),['lines','points']);
+        assert.deepEqual(vtile.names(),['lines-0-0-0','points-0-0-0']);
         // ensure the lengths still match
         assert.equal(vtile.getData().length,expected_length);
         var map = new mapnik.Map(256,256);
@@ -424,13 +411,13 @@ describe('mapnik.VectorTile.composite', function() {
         var coords = [0,0,0];
         var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2]);
         var vtiles = [
-            get_image_vtile(coords,'cloudless_1_0_0.jpg','raster'),
+            get_image_vtile(coords,'cloudless_1_0_0.jpg','raster','jpeg'),
             get_tile_at('lines',coords),
             get_tile_at('points',coords)
         ];
         vtile.composite(vtiles,{});
-        assert.deepEqual(vtile.names(),['raster','lines','points']);
-        assert.deepEqual(vtile.toJSON().map(function(l) { return l.name; }), ['raster','lines','points']);
+        assert.deepEqual(vtile.names(),['raster','lines-0-0-0','points-0-0-0']);
+        assert.deepEqual(vtile.toJSON().map(function(l) { return l.name; }), ['raster','lines-0-0-0','points-0-0-0']);
         var map = new mapnik.Map(256,256);
         map.loadSync(data_base +'/styles/all.xml');
         vtile.render(map,new mapnik.Image(256,256),function(err,im) {
@@ -442,20 +429,18 @@ describe('mapnik.VectorTile.composite', function() {
     });
 
     it('should render by overzooming+jpeg+near', function(done) {
-        var vtile = new mapnik.VectorTile(2,1,1);
+        var vtile = new mapnik.VectorTile(2,1,1,{buffer_size:1});
         var vtile2 = new mapnik.VectorTile(2,1,1);
-        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster','jpeg'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
-        var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
-        var opts = {buffer_size:1,image_format:"jpeg",image_scaling:"near"};
+        var opts = {image_format:"jpeg",image_scaling:"near"};
         vtile2.composite(vtiles,opts, function(err) {
             if (err) throw err;
             vtile.composite(vtiles,opts);
             assert.equal(vtile.getData().length,vtile2.getData().length);
             var new_length = vtile.getData().length;
             // re-rendered data should be different length
-            assert.notEqual(new_length,original_length);
-            assert.deepEqual(vtile.names(),['raster','lines','points']);
+            assert.deepEqual(vtile.names(),['raster','lines-0-0-0','points-1-1-1']);
             assert.equal(new_length,vtile.getData().length);
             var json_result = vtile.toJSON();
             assert.equal(json_result.length,3);
@@ -463,12 +448,12 @@ describe('mapnik.VectorTile.composite', function() {
             assert.equal(json_result[1].features.length,2);
             assert.equal(json_result[2].features.length,1);
             // tile is actually bigger because of how geometries are encoded
-            assert.ok(vtile.getData().length > Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length);
             var map = new mapnik.Map(256,256);
             map.loadSync(data_base +'/styles/all.xml');
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"jpeg",image_scaling:"near"},function(err,im) {
                 if (err) throw err;
                 var expected_file = data_base +'/expected/2-1-1.png';
+                //im.save(data_base +'/expected/2-1-1.png');
                 assert.equal(0,compare_to_image(im,expected_file));
                 done();
             });
@@ -477,19 +462,19 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should render by overzooming+webp+biliear', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
-        var vtile2 = new mapnik.VectorTile(2,1,1);
-        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        var vtile2 = new mapnik.VectorTile(2,1,1,{buffer_size:1});
+        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster', 'jpeg'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2', 'png'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
-        var original_length = Buffer.concat([vtiles[0].getData(),vtiles[1].getData()]).length;
-        var opts = {buffer_size:1,image_format:"webp",image_scaling:"bilinear"};
+        var opts = {image_format:"webp",image_scaling:"bilinear"};
         vtile2.composite(vtiles,opts, function(err) {
             if (err) throw err;
             vtile.composite(vtiles,opts);
             assert.equal(vtile.getData().length,vtile2.getData().length);
             var new_length = vtile.getData().length;
-            // re-rendered data should be different length
-            assert.notEqual(new_length,original_length);
-            assert.deepEqual(vtile.names(),['raster','raster2','lines','points']);
+            // raster2 is first in list after composite because it is in the same tile and can be
+            // simply copied. The others require reprojection and therefore must go through
+            // the processor.
+            assert.deepEqual(vtile.names(),['raster2','raster','lines-0-0-0','points-1-1-1']);
             assert.equal(new_length,vtile.getData().length);
             var json_result = vtile.toJSON();
             assert.equal(json_result.length,4);
@@ -502,6 +487,7 @@ describe('mapnik.VectorTile.composite', function() {
             vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
                 if (err) throw err;
                 var expected_file = data_base +'/expected/2-1-1b.png';
+                //im.save(data_base +'/expected/2-1-1b.png');
                 assert.equal(0,compare_to_image(im,expected_file));
                 done();
             });
@@ -509,10 +495,9 @@ describe('mapnik.VectorTile.composite', function() {
     });
 
     it('should render with custom buffer_size', function(done) {
-        var vtile = new mapnik.VectorTile(2,1,1);
+        var vtile = new mapnik.VectorTile(2,1,1, {buffer_size: -2000});
         var vtiles = [get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
-        var opts = {buffer_size:-256}; // will lead to dropped data
-        vtile.composite(vtiles,opts);
+        vtile.composite(vtiles);
         assert.deepEqual(vtile.names(),[]);
         var json_result = vtile.toJSON();
         assert.equal(json_result.length,0);
@@ -530,7 +515,7 @@ describe('mapnik.VectorTile.composite', function() {
         var vtile = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_tile_at('lines',[2,1,1]),get_tile_at('points',[2,0,1])];
         vtile.composite(vtiles);
-        assert.deepEqual(vtile.names(),["lines"]);
+        assert.deepEqual(vtile.names(),["lines-2-1-1"]);
         var json_result = vtile.toJSON();
         assert.equal(json_result.length,1);
         assert.equal(json_result[0].features.length,2);
@@ -539,6 +524,7 @@ describe('mapnik.VectorTile.composite', function() {
         vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
             if (err) throw err;
             var expected_file = data_base +'/expected/2-1-1-no-point.png';
+            //im.save(data_base +'/expected/2-1-1-no-point.png');
             assert.equal(0,compare_to_image(im,expected_file));
             done();
         });
@@ -555,7 +541,15 @@ describe('mapnik.VectorTile.composite', function() {
             }
         });
         vtile.composite(vtiles);
-        assert.deepEqual(vtile.names(),["lines","points","lines","points","lines","points","lines","points"]);
+        var expected_names = ["lines-1-0-0",
+                              "points-1-0-0",
+                              "lines-1-0-1",
+                              "points-1-0-1",
+                              "lines-1-1-0",
+                              "points-1-1-0",
+                              "lines-1-1-1",
+                              "points-1-1-1"];
+        assert.deepEqual(vtile.names(),expected_names);
         var json_result = vtile.toJSON();
         assert.equal(json_result.length,8);
         assert.equal(json_result[0].features.length,2);
@@ -567,6 +561,7 @@ describe('mapnik.VectorTile.composite', function() {
         vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
             if (err) throw err;
             var expected_file = data_base +'/expected/0-0-0-mosaic.png';
+            //im.save(data_base + '/expected/0-0-0-mosaic.png');
             assert.equal(0,compare_to_image(im,expected_file));
             done();
         });

@@ -279,6 +279,8 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "compositeSync", compositeSync);
     Nan::SetPrototypeMethod(lcons, "query", query);
     Nan::SetPrototypeMethod(lcons, "queryMany", queryMany);
+    Nan::SetPrototypeMethod(lcons, "extent", extent);
+    Nan::SetPrototypeMethod(lcons, "bufferedExtent", bufferedExtent);
     Nan::SetPrototypeMethod(lcons, "names", names);
     Nan::SetPrototypeMethod(lcons, "emptyLayers", emptyLayers);
     Nan::SetPrototypeMethod(lcons, "paintedLayers", paintedLayers);
@@ -1114,6 +1116,48 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
     closure->d->Unref();
     closure->cb.Reset();
     delete closure;
+}
+
+/**
+ * Get the extent of this vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name extent
+ * @instance
+ * @param {v8::Array<number>} extent
+ */
+NAN_METHOD(VectorTile::extent)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+    mapnik::box2d<double> const& e = d->tile_->extent();
+    arr->Set(0, Nan::New<v8::Number>(e.minx()));
+    arr->Set(1, Nan::New<v8::Number>(e.miny()));
+    arr->Set(2, Nan::New<v8::Number>(e.maxx()));
+    arr->Set(3, Nan::New<v8::Number>(e.maxy()));
+    info.GetReturnValue().Set(arr);
+    return;
+}
+
+/**
+ * Get the extent including the buffer of this vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name bufferedExtent
+ * @instance
+ * @param {v8::Array<number>} extent
+ */
+NAN_METHOD(VectorTile::bufferedExtent)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+    mapnik::box2d<double> e = d->tile_->get_buffered_extent();
+    arr->Set(0, Nan::New<v8::Number>(e.minx()));
+    arr->Set(1, Nan::New<v8::Number>(e.miny()));
+    arr->Set(2, Nan::New<v8::Number>(e.maxx()));
+    arr->Set(3, Nan::New<v8::Number>(e.maxy()));
+    info.GetReturnValue().Set(arr);
+    return;
 }
 
 /**
@@ -2913,6 +2957,49 @@ NAN_METHOD(VectorTile::addImage)
         Nan::ThrowError("Image width and height must be greater then zero");
         return;
     }
+
+    std::string image_format = "jpeg";
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
+    
+    if (info.Length() > 2) 
+    {
+        // options object
+        if (!info[2]->IsObject()) 
+        {
+            Nan::ThrowError("optional third argument must be an options object");
+            return;
+        }
+
+        v8::Local<v8::Object> options = info[2]->ToObject();
+        if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string");
+                return;
+            }
+            std::string image_scaling = TOSTR(param_val);
+            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            if (!method) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                return;
+            }
+            scaling_method = *method;
+        }
+
+        if (options->Has(Nan::New("image_format").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_format' must be a string");
+                return;
+            }
+            image_format = TOSTR(param_val);
+        }
+    }
     mapnik::image_any im_copy = *im->get();
     std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(mapnik::parameters());
     mapnik::raster_ptr ras = std::make_shared<mapnik::raster>(d->get_tile()->extent(), im_copy, 1.0);
@@ -2929,6 +3016,8 @@ NAN_METHOD(VectorTile::addImage)
         map.add_layer(lyr);
         
         mapnik::vector_tile_impl::processor ren(map);
+        ren.set_scaling_method(scaling_method);
+        ren.set_image_format(image_format);
         ren.update_tile(*d->get_tile());
         info.GetReturnValue().Set(Nan::True());
     }

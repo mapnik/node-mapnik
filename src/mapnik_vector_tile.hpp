@@ -8,9 +8,7 @@
 #pragma GCC diagnostic pop
 
 // mapnik-vector-tile
-#define MAPNIK_VECTOR_TILE_LIBRARY
 #include "vector_tile_merc_tile.hpp"
-#undef MAPNIK_VECTOR_TILE_LIBRARY
 
 // std
 #include <string>
@@ -80,6 +78,8 @@ public:
     static v8::Local<v8::Object> _queryManyResultToV8(queryMany_result const& result);
     static void EIO_QueryMany(uv_work_t* req);
     static void EIO_AfterQueryMany(uv_work_t* req);
+    static NAN_METHOD(extent);
+    static NAN_METHOD(bufferedExtent);
     static NAN_METHOD(names);
     static NAN_METHOD(emptyLayers);
     static NAN_METHOD(paintedLayers);
