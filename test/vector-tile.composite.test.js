@@ -32,7 +32,7 @@ var rendering_defaults = {
 
 function render_data(name,coords,callback) {
     // buffer of >=5 is needed to ensure point ends up in tiles touching null island
-    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
+    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 80});
     var map_i = new mapnik.Map(256, 256);
     map_i.loadSync(data_base +'/layers/'+name+'.xml');
     var layer = map_i.get_layer(0);
@@ -55,7 +55,7 @@ function render_data(name,coords,callback) {
 
 function render_fresh_tile(name,coords,callback) {
     // buffer of >=5 is needed to ensure point ends up in tiles touching null island
-    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 5});
+    var vtile = new mapnik.VectorTile(coords[0],coords[1],coords[2], {buffer_size: 80});
     var map_i = new mapnik.Map(256, 256);
     map_i.loadSync(data_base +'/layers/'+name+'.xml');
     var layer = map_i.get_layer(0);
@@ -198,7 +198,7 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to sync', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,53);
+            assert.equal(vtile1.getData().length,55);
             var vtile2 = new mapnik.VectorTile(1,0,0, {buffer_size: 1});
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
@@ -216,7 +216,7 @@ describe('mapnik.VectorTile.composite', function() {
                 reencode: false
             }
             vtile2.compositeSync([vtile1,vtile1],options);
-            assert.equal(vtile2.getData().length,53);
+            assert.equal(vtile2.getData().length,55);
             assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
             done();
         });
@@ -225,7 +225,7 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to sync (reencode)', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,53);
+            assert.equal(vtile1.getData().length,55);
             var vtile2 = new mapnik.VectorTile(1,0,0, {buffer_size: 1});
             var vtile3 = new mapnik.VectorTile(1,0,0, {buffer_size: 1});
             // Since the tiles are same location, no rendering is required
@@ -327,7 +327,7 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to async', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,53);
+            assert.equal(vtile1.getData().length,55);
             var vtile2 = new mapnik.VectorTile(1,0,0);
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
@@ -345,7 +345,7 @@ describe('mapnik.VectorTile.composite', function() {
             }
             vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
                 if (err) throw err;
-                assert.equal(vtile2.getData().length,53);
+                assert.equal(vtile2.getData().length,55);
                 assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
                 done();
             });
@@ -355,7 +355,7 @@ describe('mapnik.VectorTile.composite', function() {
     it('should support compositing tiles that were just rendered to async (reencode)', function(done) {
         render_fresh_tile('lines',[1,0,0], function(err,vtile1) {
             if (err) throw err;
-            assert.equal(vtile1.getData().length,53);
+            assert.equal(vtile1.getData().length,55);
             var vtile2 = new mapnik.VectorTile(1,0,0);
             // Since the tiles are same location, no rendering is required
             // so these options have no effect
@@ -462,7 +462,7 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should render by overzooming+webp+biliear', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
-        var vtile2 = new mapnik.VectorTile(2,1,1,{buffer_size:1});
+        var vtile2 = new mapnik.VectorTile(2,1,1,{buffer_size:16});
         var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster', 'jpeg'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2', 'png'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
         var opts = {image_format:"webp",image_scaling:"bilinear"};
@@ -532,7 +532,7 @@ describe('mapnik.VectorTile.composite', function() {
 
     // NOTE: this is a unintended usecase, but it can be done, so let's test it
     it('should render by underzooming or mosaicing', function(done) {
-        var vtile = new mapnik.VectorTile(0,0,0);
+        var vtile = new mapnik.VectorTile(0,0,0, {buffer:80});
         var vtiles = [];
         tiles.forEach(function(coords) {
             if (coords[0] == 1) {

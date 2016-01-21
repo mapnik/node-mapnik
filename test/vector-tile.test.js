@@ -2336,7 +2336,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.names(),['raster']);
         var json_obj = vtile.toJSON();
         assert.equal(json_obj[0].name,'raster');
-        assert.equal(json_obj[0].features[0].raster.length, 13266);
+        assert.equal(json_obj[0].features[0].raster.length, 12983);
         // now render out with fancy styling
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/raster_style.xml');
@@ -2364,7 +2364,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.names(),['raster']);
         var json_obj = vtile.toJSON();
         assert.equal(json_obj[0].name,'raster');
-        assert.equal(json_obj[0].features[0].raster.length, 13266);
+        assert.equal(json_obj[0].features[0].raster.length, 12983);
         // getData from the image vtile
         var vtile2 = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var vtile_buf = vtile.getData();

@@ -3007,11 +3007,13 @@ NAN_METHOD(VectorTile::addImage)
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     feature->set_raster(ras);
     ds->push(feature);
+    ds->envelope(); // can be removed later, currently doesn't work with out this.
+    ds->set_envelope(d->get_tile()->extent());
     try
     {
         // create map object
         mapnik::Map map(d->tile_size(),d->tile_size(),"+init=epsg:3857");
-        mapnik::layer lyr(layer_name,"+init=epsg:4326");
+        mapnik::layer lyr(layer_name,"+init=epsg:3857");
         lyr.set_datasource(ds);
         map.add_layer(lyr);
         
