@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.4.16
+
+ - Fixed `image.resize` behavior when scaling images with alpha (https://github.com/mapnik/node-mapnik/issues/585)
+ - Binaries updated to use v3.0.9-125-g5e30aee and mapnik-packaging@db696ed
+
+Notable Changes in Mapnik v3.0.9-125-g5e30aee include:
+
+ - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9-48-gbb8cd10...v3.0.9-125-g5e30aee
+ - Support for rendering `dash-array` in SVGs
+ - SVG parser is now stricter (fails is all input is not parsable)
+ - SVG parser now correctly handles optional separator `(,)` between multiple command parts
+ - Optimized parsing of `png` format string
+ - The `memory_datasource` now dynamically reports correct datasource type (vector or raster)
+ - Upgraded `mapbox::variant@272f91c`
+
+Notable changes in the Mapnik SDK include:
+
+ - none
+
 ## 3.4.15
 
  - `vtile.query` now returns WGS84 `x_hit` and `y_hit` values of the nearest point/vertex
@@ -10,7 +29,7 @@
 
  - Binaries updated to use Mapnik v3.0.9-57-g9494bc1 and mapnik-packaging@039aa0d
 
-Notable Changes in Mapnik v3.0.9-57-g9494bc1 Include:
+Notable Changes in Mapnik v3.0.9-57-g9494bc1 include:
 
  - Fixed parsing of SVG `PathElement` (https://github.com/mapnik/mapnik/issues/3225)
 
@@ -20,7 +39,7 @@ Notable Changes in Mapnik v3.0.9-57-g9494bc1 Include:
  - Upgraded to mapnik-vector-tile@0.14.2
  - Binaries updated to use Mapnik v3.0.9-48-gbb8cd10 and mapnik-packaging@039aa0d
 
-Notable Changes in Mapnik v3.0.9-48-gbb8cd10 Include:
+Notable Changes in Mapnik v3.0.9-48-gbb8cd10 include:
 
  - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9...v3.0.9-48-gbb8cd10
  - The `shapeindex` command now has a `--index-parts` option
@@ -53,7 +72,7 @@ Notable Changes in Mapnik 3.0.9-17-g75cb954 include:
  - Updated npm-windows-upgrade (https://github.com/mapnik/node-mapnik/issues/566)
  - Binaries updated to use Mapnik v3.0.9 and mapnik-packaging@1aa9705
 
-Notable Changes in Mapnik 3.0.9 Include:
+Notable Changes in Mapnik 3.0.9 include:
 
  - The `mapnik-index` command now has a `--validate-features` option
  - CSV - change 'quote' auto-dection logic to handle mixed cases better
@@ -98,7 +117,7 @@ Notable changes in the Mapnik SDK include:
  - Updated mapnik-vector-tile to `v0.14.1`
  - Binaries updated to use Mapnik v3.0.9-rc2 and mapnik-packaging@6f2f178
 
-Notable Changes in Mapnik 3.0.9-rc2/3.0.8 Include:
+Notable Changes in Mapnik 3.0.9-rc2/3.0.8 include:
 
  - Improved support for natural earth shapefiles
  - Improved CSV and JSON parsing and error handling
@@ -125,7 +144,7 @@ Notable changes in the Mapnik SDK include:
  - Updated to use a more recent version of the angus clipper library.
  - Binaries updated to use Mapnik v3.0.7 and mapnik-packaging@9606f72ef0
 
-Notable Changes in Mapnik 3.0.7 Include:
+Notable Changes in Mapnik 3.0.7 include:
 
  - Fixed bugs in the PostGIS `key_field_as_attribute` behavior
 
@@ -141,7 +160,7 @@ Notable changes in the Mapnik SDK include:
  - Added `strictlySimple` option when creating vector tiles.
  - Updated to use mapnik-vector-tile `0.12.0`
 
-Notable Changes in Mapnik 3.0.5 Include:
+Notable Changes in Mapnik 3.0.5 include:
  - PostGIS plugin: added `key_field_as_attribute` option. Defaults to `True` to preserve current behavior of having the `key_field` added both
    as an attribute and as the `feature.id` value. If `key_field_as_attribute=false` is passed then the attribute is discarded (https://github.com/mapnik/mapnik/issues/3115)
  - CSV plugin has been further optimized and has gained experimental support for on-disk indexes (https://github.com/mapnik/mapnik/issues/3089)
@@ -155,7 +174,7 @@ Notable Changes in Mapnik 3.0.5 Include:
    be used very carefully as the lifetime of the Image object is tied to that of the Buffer. If the 
    buffer object is garbage collect this could result in a segfault.
 
-Notable Changes in Mapnik 3.0.5 Include:
+Notable Changes in Mapnik 3.0.5 include:
 
  - `scale-hsla` image filter: parameters are no longer limited by interval \[0, 1\] (https://github.com/mapnik/mapnik/pull/3054)
  - Windows: Fixed SVG file loading from unicode paths
