@@ -16,7 +16,6 @@ documentation.
  * @brief Contains the pbf_reader class.
  */
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -24,17 +23,13 @@ documentation.
 #include <string>
 #include <utility>
 
-#include <protozero/pbf_types.hpp>
+#include <protozero/config.hpp>
 #include <protozero/exception.hpp>
+#include <protozero/pbf_types.hpp>
 #include <protozero/varint.hpp>
 
-#if __BYTE_ORDER != __LITTLE_ENDIAN
+#if PROTOZERO_BYTE_ORDER != PROTOZERO_LITTLE_ENDIAN
 # include <protozero/byteswap.hpp>
-#endif
-
-/// Wrapper for assert() used for testing
-#ifndef pbf_assert
-# define pbf_assert(x) assert(x)
 #endif
 
 namespace protozero {
@@ -77,24 +72,32 @@ class pbf_reader {
     // The tag of the current field.
     pbf_tag_type m_tag = 0;
 
+    // Copy N bytes from src to dest on little endian machines, on big endian
+    // swap the bytes in the process.
+    template <int N>
+    static void copy_or_byteswap(const char* src, void* dest) noexcept {
+#if PROTOZERO_BYTE_ORDER == PROTOZERO_LITTLE_ENDIAN
+        memcpy(dest, src, N);
+#else
+        byteswap<N>(src, reinterpret_cast<char*>(dest));
+#endif
+    }
+
     template <typename T>
     inline T get_fixed() {
         T result;
         skip_bytes(sizeof(T));
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-        memcpy(&result, m_data - sizeof(T), sizeof(T));
-#else
-        byteswap<sizeof(T)>(m_data - sizeof(T), reinterpret_cast<char*>(&result));
-#endif
+        copy_or_byteswap<sizeof(T)>(m_data - sizeof(T), &result);
         return result;
     }
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef PROTOZERO_USE_BARE_POINTER_FOR_PACKED_FIXED
+
     template <typename T>
     inline std::pair<const T*, const T*> packed_fixed() {
-        pbf_assert(tag() != 0 && "call next() before accessing field value");
+        protozero_assert(tag() != 0 && "call next() before accessing field value");
         auto len = get_len_and_skip();
-        pbf_assert(len % sizeof(T) == 0);
+        protozero_assert(len % sizeof(T) == 0);
         return std::make_pair(reinterpret_cast<const T*>(m_data-len), reinterpret_cast<const T*>(m_data));
     }
 
@@ -128,7 +131,7 @@ class pbf_reader {
 
         T operator*() {
             T result;
-            byteswap<sizeof(T)>(m_data, reinterpret_cast<char*>(&result));
+            copy_or_byteswap<sizeof(T)>(m_data , &result);
             return result;
         }
 
@@ -155,12 +158,13 @@ class pbf_reader {
 
     template <typename T>
     inline std::pair<const_fixed_iterator<T>, const_fixed_iterator<T>> packed_fixed() {
-        pbf_assert(tag() != 0 && "call next() before accessing field value");
+        protozero_assert(tag() != 0 && "call next() before accessing field value");
         auto len = get_len_and_skip();
-        pbf_assert(len % sizeof(T) == 0);
+        protozero_assert(len % sizeof(T) == 0);
         return std::make_pair(const_fixed_iterator<T>(m_data-len, m_data),
                               const_fixed_iterator<T>(m_data, m_data));
     }
+
 #endif
 
     template <typename T> inline T get_varint();
@@ -357,7 +361,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline int32_t get_enum() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_varint<int32_t>();
     }
 
@@ -369,7 +373,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline int32_t get_int32() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_varint<int32_t>();
     }
 
@@ -381,7 +385,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline int32_t get_sint32() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_svarint<int32_t>();
     }
 
@@ -393,7 +397,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline uint32_t get_uint32() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_varint<uint32_t>();
     }
 
@@ -405,7 +409,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline int64_t get_int64() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_varint<int64_t>();
     }
 
@@ -417,7 +421,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline int64_t get_sint64() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_svarint<int64_t>();
     }
 
@@ -429,7 +433,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     inline uint64_t get_uint64() {
-        pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+        protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
         return get_varint<uint64_t>();
     }
 
@@ -863,11 +867,19 @@ bool pbf_reader::next() {
 
     // tags 0 and 19000 to 19999 are not allowed as per
     // https://developers.google.com/protocol-buffers/docs/proto
-    pbf_assert(((m_tag > 0 && m_tag < 19000) || (m_tag > 19999 && m_tag <= ((1 << 29) - 1))) && "tag out of range");
+    protozero_assert(((m_tag > 0 && m_tag < 19000) || (m_tag > 19999 && m_tag <= ((1 << 29) - 1))) && "tag out of range");
 
     m_wire_type = pbf_wire_type(value & 0x07);
-// XXX do we want this check? or should it throw an exception?
-//        pbf_assert((m_wire_type <=2 || m_wire_type == 5) && "illegal wire type");
+    switch (m_wire_type) {
+        case pbf_wire_type::varint:
+        case pbf_wire_type::fixed64:
+        case pbf_wire_type::length_delimited:
+        case pbf_wire_type::fixed32:
+            break;
+        default:
+            throw unknown_pbf_wire_type_exception();
+    }
+
     return true;
 }
 
@@ -908,7 +920,7 @@ void pbf_reader::skip_bytes(pbf_length_type len) {
 }
 
 void pbf_reader::skip() {
-    pbf_assert(tag() != 0 && "call next() before calling skip()");
+    protozero_assert(tag() != 0 && "call next() before calling skip()");
     switch (wire_type()) {
         case pbf_wire_type::varint:
             (void)get_uint32(); // called for the side-effect of skipping value
@@ -940,57 +952,57 @@ T pbf_reader::get_varint() {
 
 template <typename T>
 T pbf_reader::get_svarint() {
-    pbf_assert((has_wire_type(pbf_wire_type::varint) || has_wire_type(pbf_wire_type::length_delimited)) && "not a varint");
+    protozero_assert((has_wire_type(pbf_wire_type::varint) || has_wire_type(pbf_wire_type::length_delimited)) && "not a varint");
     return static_cast<T>(decode_zigzag64(decode_varint(&m_data, m_end)));
 }
 
 uint32_t pbf_reader::get_fixed32() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::fixed32) && "not a 32-bit fixed");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::fixed32) && "not a 32-bit fixed");
     return get_fixed<uint32_t>();
 }
 
 int32_t pbf_reader::get_sfixed32() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::fixed32) && "not a 32-bit fixed");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::fixed32) && "not a 32-bit fixed");
     return get_fixed<int32_t>();
 }
 
 uint64_t pbf_reader::get_fixed64() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::fixed64) && "not a 64-bit fixed");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::fixed64) && "not a 64-bit fixed");
     return get_fixed<uint64_t>();
 }
 
 int64_t pbf_reader::get_sfixed64() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::fixed64) && "not a 64-bit fixed");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::fixed64) && "not a 64-bit fixed");
     return get_fixed<int64_t>();
 }
 
 float pbf_reader::get_float() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::fixed32) && "not a 32-bit fixed");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::fixed32) && "not a 32-bit fixed");
     return get_fixed<float>();
 }
 
 double pbf_reader::get_double() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::fixed64) && "not a 64-bit fixed");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::fixed64) && "not a 64-bit fixed");
     return get_fixed<double>();
 }
 
 bool pbf_reader::get_bool() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
-    pbf_assert((*m_data & 0x80) == 0 && "not a 1 byte varint");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::varint) && "not a varint");
+    protozero_assert((*m_data & 0x80) == 0 && "not a 1 byte varint");
     skip_bytes(1);
     return m_data[-1] != 0; // -1 okay because we incremented m_data the line before
 }
 
 std::pair<const char*, pbf_length_type> pbf_reader::get_data() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
-    pbf_assert(has_wire_type(pbf_wire_type::length_delimited) && "not of type string, bytes or message");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(has_wire_type(pbf_wire_type::length_delimited) && "not of type string, bytes or message");
     auto len = get_len_and_skip();
     return std::make_pair(m_data-len, len);
 }
@@ -1013,42 +1025,42 @@ std::pair<pbf_reader::const_enum_iterator, pbf_reader::const_enum_iterator> pbf_
 }
 
 std::pair<pbf_reader::const_int32_iterator, pbf_reader::const_int32_iterator> pbf_reader::get_packed_int32() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
     auto len = get_len_and_skip();
     return std::make_pair(pbf_reader::const_int32_iterator(m_data-len, m_data),
                           pbf_reader::const_int32_iterator(m_data, m_data));
 }
 
 std::pair<pbf_reader::const_uint32_iterator, pbf_reader::const_uint32_iterator> pbf_reader::get_packed_uint32() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
     auto len = get_len_and_skip();
     return std::make_pair(pbf_reader::const_uint32_iterator(m_data-len, m_data),
                           pbf_reader::const_uint32_iterator(m_data, m_data));
 }
 
 std::pair<pbf_reader::const_sint32_iterator, pbf_reader::const_sint32_iterator> pbf_reader::get_packed_sint32() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
     auto len = get_len_and_skip();
     return std::make_pair(pbf_reader::const_sint32_iterator(m_data-len, m_data),
                           pbf_reader::const_sint32_iterator(m_data, m_data));
 }
 
 std::pair<pbf_reader::const_int64_iterator, pbf_reader::const_int64_iterator> pbf_reader::get_packed_int64() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
     auto len = get_len_and_skip();
     return std::make_pair(pbf_reader::const_int64_iterator(m_data-len, m_data),
                           pbf_reader::const_int64_iterator(m_data, m_data));
 }
 
 std::pair<pbf_reader::const_uint64_iterator, pbf_reader::const_uint64_iterator> pbf_reader::get_packed_uint64() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
     auto len = get_len_and_skip();
     return std::make_pair(pbf_reader::const_uint64_iterator(m_data-len, m_data),
                           pbf_reader::const_uint64_iterator(m_data, m_data));
 }
 
 std::pair<pbf_reader::const_sint64_iterator, pbf_reader::const_sint64_iterator> pbf_reader::get_packed_sint64() {
-    pbf_assert(tag() != 0 && "call next() before accessing field value");
+    protozero_assert(tag() != 0 && "call next() before accessing field value");
     auto len = get_len_and_skip();
     return std::make_pair(pbf_reader::const_sint64_iterator(m_data-len, m_data),
                           pbf_reader::const_sint64_iterator(m_data, m_data));

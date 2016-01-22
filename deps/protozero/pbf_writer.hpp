@@ -16,23 +16,19 @@ documentation.
  * @brief Contains the pbf_writer class.
  */
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <string>
 
+#include <protozero/config.hpp>
 #include <protozero/pbf_types.hpp>
 #include <protozero/varint.hpp>
 
-#if __BYTE_ORDER != __LITTLE_ENDIAN
+#if PROTOZERO_BYTE_ORDER != PROTOZERO_LITTLE_ENDIAN
 # include <protozero/byteswap.hpp>
-#endif
-
-/// Wrapper for assert() used for testing
-#ifndef pbf_assert
-# define pbf_assert(x) assert(x)
 #endif
 
 namespace protozero {
@@ -50,13 +46,13 @@ class pbf_writer {
     size_t m_pos = 0;
 
     inline void add_varint(uint64_t value) {
-        pbf_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
-        pbf_assert(m_data);
+        protozero_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
+        protozero_assert(m_data);
         write_varint(std::back_inserter(*m_data), value);
     }
 
     inline void add_field(pbf_tag_type tag, pbf_wire_type type) {
-        pbf_assert(((tag > 0 && tag < 19000) || (tag > 19999 && tag <= ((1 << 29) - 1))) && "tag out of range");
+        protozero_assert(((tag > 0 && tag < 19000) || (tag > 19999 && tag <= ((1 << 29) - 1))) && "tag out of range");
         uint32_t b = (tag << 3) | uint32_t(type);
         add_varint(b);
     }
@@ -68,9 +64,9 @@ class pbf_writer {
 
     template <typename T>
     inline void add_fixed(T value) {
-        pbf_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
-        pbf_assert(m_data);
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+        protozero_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
+        protozero_assert(m_data);
+#if PROTOZERO_BYTE_ORDER == PROTOZERO_LITTLE_ENDIAN
         m_data->append(reinterpret_cast<const char*>(&value), sizeof(T));
 #else
         auto size = m_data->size();
@@ -137,19 +133,19 @@ class pbf_writer {
     static const int reserve_bytes = sizeof(pbf_length_type) * 8 / 7 + 1;
 
     inline void open_submessage(pbf_tag_type tag) {
-        pbf_assert(m_pos == 0);
-        pbf_assert(m_data);
+        protozero_assert(m_pos == 0);
+        protozero_assert(m_data);
         add_field(tag, pbf_wire_type::length_delimited);
         m_data->append(size_t(reserve_bytes), '\0');
         m_pos = m_data->size();
     }
 
     inline void close_submessage() {
-        pbf_assert(m_pos != 0);
-        pbf_assert(m_data);
+        protozero_assert(m_pos != 0);
+        protozero_assert(m_data);
         auto length = pbf_length_type(m_data->size() - m_pos);
 
-        pbf_assert(m_data->size() >= m_pos - reserve_bytes);
+        protozero_assert(m_data->size() >= m_pos - reserve_bytes);
         auto n = write_varint(m_data->begin() + long(m_pos) - reserve_bytes, length);
 
         m_data->erase(m_data->begin() + long(m_pos) - reserve_bytes + n, m_data->begin() + long(m_pos));
@@ -228,7 +224,9 @@ public:
      */
     inline void add_bool(pbf_tag_type tag, bool value) {
         add_field(tag, pbf_wire_type::varint);
-        add_fixed<char>(value);
+        protozero_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
+        protozero_assert(m_data);
+        m_data->append(1, value);
     }
 
     /**
@@ -375,9 +373,9 @@ public:
      * @param size Number of bytes to be written
      */
     inline void add_bytes(pbf_tag_type tag, const char* value, size_t size) {
-        pbf_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
-        pbf_assert(m_data);
-        assert(size <= std::numeric_limits<pbf_length_type>::max());
+        protozero_assert(m_pos == 0 && "you can't add fields to a parent pbf_writer if there is an existing pbf_writer for a submessage");
+        protozero_assert(m_data);
+        protozero_assert(size <= std::numeric_limits<pbf_length_type>::max());
         add_length_varint(tag, pbf_length_type(size));
         m_data->append(value, size);
     }
