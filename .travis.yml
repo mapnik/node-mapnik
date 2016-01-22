@@ -78,7 +78,7 @@ before_install:
  - export PATH=./node_modules/.bin/:$PATH
 
 install:
- - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+ - COMMIT_MESSAGE=$(git log --format=%B --no-merges -n 1 | tr -d '\n')
  - echo ${COMMIT_MESSAGE}
  - if [[ ${COVERAGE} == true ]]; then
      if [[ $(uname -s) == 'Linux' ]]; then
