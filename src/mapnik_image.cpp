@@ -2025,7 +2025,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(width, 
                                                            height, 
                                                            im->this_->get_dtype(),
-                                                           false,
+                                                           true,
                                                            true,
                                                            false);
         image_ptr->set_offset(offset);
