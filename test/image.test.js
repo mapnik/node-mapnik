@@ -1505,4 +1505,37 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'painted':null}); });
     });
 
+    it('resizes consistently', function(done) {
+        var data = require('fs').readFileSync(__dirname + '/support/a.png');
+        var image = mapnik.Image.fromBytesSync(data);
+        image.premultiplySync();
+        image.resize(64, 64, function(err, control) {
+            if (err) throw err;
+            var remaining = 100;
+            for (var i = 0; i < 100; i++) (function() {
+                mapnik.Image.fromBytes(data, function(err, im) {
+                    if (err) throw err;
+                    im.premultiply(function(err, im) {
+                        if (err) throw err;
+                        im.resize(64,64,{}, function(err,resized) {
+                            if (err) throw err;
+                            assert.equal(control.compare(resized, {}), 0);
+                            if (!--remaining) done();
+                        });
+                    });
+                });
+            })();
+        });
+    });
+
+    it('resizes consistently (sync)', function(done) {
+        var data = require('fs').readFileSync(__dirname + '/support/a.png');
+        var image = mapnik.Image.fromBytesSync(data);
+        image.premultiplySync();
+        var control = image.resizeSync(64, 64);
+        for (var i = 0; i < 100; i++) {
+            assert.equal(control.compare(image.resizeSync(64, 64), {}), 0);
+        }
+        done();
+    });
 });
