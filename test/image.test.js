@@ -1527,4 +1527,15 @@ describe('mapnik.Image ', function() {
             })();
         });
     });
+
+    it('resizes consistently (sync)', function(done) {
+        var data = require('fs').readFileSync(__dirname + '/support/a.png');
+        var image = mapnik.Image.fromBytesSync(data);
+        image.premultiplySync();
+        var control = image.resizeSync(64, 64);
+        for (var i = 0; i < 100; i++) {
+            assert.equal(control.compare(image.resizeSync(64, 64), {}), 0);
+        }
+        done();
+    });
 });
