@@ -1845,7 +1845,7 @@ void Image::EIO_Resize(uv_work_t* req)
         closure->im2 = std::make_shared<mapnik::image_any>(closure->size_x, 
                                                            closure->size_y, 
                                                            closure->im1->this_->get_dtype(),
-                                                           false,
+                                                           true,
                                                            true,
                                                            false);
         closure->im2->set_offset(offset);
