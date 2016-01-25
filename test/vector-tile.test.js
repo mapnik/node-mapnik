@@ -1277,7 +1277,7 @@ describe('mapnik.VectorTile ', function() {
                     {
                         "id":207,
                         "type":3,
-                        "geometry":[9,8192,8192,26,8191,0,0,8191,8192,0,15],
+                        "geometry":[9,8208,8208,26,8223,0,0,8223,8224,0,15],
                         "properties":{
                             "AREA":915896,
                             "FIPS":"US",
@@ -1302,7 +1302,7 @@ describe('mapnik.VectorTile ', function() {
                     {
                         "id":207,
                         "type":3,
-                        "geometry":[9,8192,8192,26,8191,0,0,8191,8192,0,15],
+                        "geometry":[9,8208,8208,26,8223,0,0,8223,8224,0,15],
                         "properties":{
                             "AREA":915896,
                             "FIPS":"US",
@@ -1339,7 +1339,7 @@ describe('mapnik.VectorTile ', function() {
                         "type":3,
                         "geometry_type":"Polygon",
                         "geometry":[
-                            [[4096,4096],[0,4096],[0,0],[4096,0],[4096,4096]]
+                            [[4104,4104],[-8,4104],[-8,-8],[4104,-8],[4104,4104]]
                         ],
                         "properties":{
                             "AREA":915896,
@@ -1367,7 +1367,7 @@ describe('mapnik.VectorTile ', function() {
                         "type":3,
                         "geometry_type":"Polygon",
                         "geometry":[
-                            [[4096,4096],[0,4096],[0,0],[4096,0],[4096,4096]]
+                            [[4104,4104],[-8,4104],[-8,-8],[4104,-8],[4104,4104]]
                         ],
                         "properties":{
                             "AREA":915896,
@@ -1402,11 +1402,11 @@ describe('mapnik.VectorTile ', function() {
                         "type":"Polygon",
                         "coordinates":[
                             [
-                                [ -100.546875, 38.8225909761771 ],
-                                [ -100.546875, 39.3682791491601 ],
-                                [ -101.25, 39.3682791491601 ],
-                                [ -101.25, 38.8225909761771 ],
-                                [ -100.546875, 38.8225909761771 ]
+                                [ -100.545501708984, 38.8215210496842 ],
+                                [ -100.545501708984, 39.3693408115864 ],
+                                [ -101.251373291016, 39.3693408115864 ],
+                                [ -101.251373291016, 38.8215210496842 ],
+                                [ -100.545501708984, 38.8215210496842 ]
                              ]
                         ]
                     },
@@ -1684,7 +1684,7 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        assert.equal(vtile.getData().length,923);
+        assert.equal(vtile.getData().length,943);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         var map = new mapnik.Map(vtile.tileSize,vtile.tileSize);
@@ -1713,7 +1713,7 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        assert.equal(vtile.getData().length,923);
+        assert.equal(vtile.getData().length,943);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         var map = new mapnik.Map(vtile.tileSize,vtile.tileSize);
@@ -1786,8 +1786,6 @@ describe('mapnik.VectorTile ', function() {
 
         map.render(vtile, {variables:{pizza:'pie'}}, function(err, vtile) {
             if (err) throw err;
-            // This next tests that multipart layers work in toGeoJSON
-            assert(Math.abs(486830 - vtile.toGeoJSON(0).length) < 50);
             if (hasBoostSimple) {
                 assert.equal(vtile.reportGeometrySimplicity().length, 0);
                 assert.equal(vtile.reportGeometryValidity().length, 15); // Dataset not expected to be OGC valid
@@ -1912,7 +1910,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 22); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.mvt';
             var actual = './test/data/vector_tile/tile0-simplify_distance.actual.mvt';
@@ -1943,7 +1941,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 22); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.mvt';
             var actual = './test/data/vector_tile/tile0-simple_and_distance.actual.mvt';

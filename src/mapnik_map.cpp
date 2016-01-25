@@ -1535,7 +1535,7 @@ struct vector_tile_baton_t {
         error(false),
         strictly_simple(true),
         multi_polygon_union(false),
-        fill_type(mapnik::vector_tile_impl::non_zero_fill),
+        fill_type(mapnik::vector_tile_impl::positive_fill),
         process_all_rings(false) {}
 };
 
