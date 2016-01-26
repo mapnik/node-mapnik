@@ -423,7 +423,8 @@ void _composite(VectorTile* target_vt,
                 double simplify_distance,
                 bool process_all_rings,
                 std::string const& image_format,
-                mapnik::scaling_method_e scaling_method)
+                mapnik::scaling_method_e scaling_method,
+                std::launch threading_mode)
 {
     // create map
     mapnik::Map map(target_vt->tile_size(),target_vt->tile_size(),"+init=epsg:3857");
@@ -448,6 +449,7 @@ void _composite(VectorTile* target_vt,
     ren.set_scale_factor(scale_factor);
     ren.set_scaling_method(scaling_method);
     ren.set_image_format(image_format);
+    ren.set_threading_mode(threading_mode);
 
     mapnik::vector_tile_impl::composite(*target_vt->get_tile(),
                                         merc_vtiles,
@@ -505,6 +507,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     bool process_all_rings = false;
     std::string image_format = "webp";
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
+    std::launch threading_mode = std::launch::deferred;
 
     if (info.Length() > 1) 
     {
@@ -577,6 +580,21 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
+                return scope.Escape(Nan::Undefined());
+            }
+        }
+        if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+            if (!param_val->IsNumber())
+            {
+                Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
+                return scope.Escape(Nan::Undefined());
+            }
+            threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+            if (threading_mode != std::launch::async && threading_mode != std::launch::deferred)
+            {
+                Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
                 return scope.Escape(Nan::Undefined());
             }
         }
@@ -743,7 +761,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                    simplify_distance,
                    process_all_rings,
                    image_format,
-                   scaling_method);
+                   scaling_method,
+                   threading_mode);
     }
     catch (std::exception const& ex)
     {
@@ -774,6 +793,7 @@ typedef struct
     bool process_all_rings;
     std::string image_format;
     mapnik::scaling_method_e scaling_method;
+    std::launch threading_mode;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
@@ -815,6 +835,7 @@ NAN_METHOD(VectorTile::composite)
     bool process_all_rings = false;
     std::string image_format = "webp";
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
+    std::launch threading_mode = std::launch::deferred;
     std::string merc_srs("+init=epsg:3857");
 
     if (info.Length() > 2) 
@@ -876,7 +897,21 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-
+        if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+            if (!param_val->IsNumber())
+            {
+                Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
+                return;
+            }
+            threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+            if (threading_mode != std::launch::async && threading_mode != std::launch::deferred)
+            {
+                Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
+                return;
+            }
+        }
         if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
@@ -1036,6 +1071,7 @@ NAN_METHOD(VectorTile::composite)
     closure->process_all_rings = process_all_rings;
     closure->scaling_method = scaling_method;
     closure->image_format = image_format;
+    closure->threading_mode = threading_mode;
     closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
@@ -1085,7 +1121,8 @@ void VectorTile::EIO_Composite(uv_work_t* req)
                    closure->simplify_distance,
                    closure->process_all_rings,
                    closure->image_format,
-                   closure->scaling_method);
+                   closure->scaling_method,
+                   closure->threading_mode);
     }
     catch (std::exception const& ex)
     {
@@ -2813,6 +2850,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
     bool multi_polygon_union = false;
     mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::positive_fill;
     bool process_all_rings = false;
+    std::launch threading_mode = std::launch::deferred;
 
     if (info.Length() > 2) 
     {
@@ -2874,6 +2912,21 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
         }
+        if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+            if (!param_val->IsNumber())
+            {
+                Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
+                return;
+            }
+            threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+            if (threading_mode != std::launch::async && threading_mode != std::launch::deferred)
+            {
+                Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
+                return;
+            }
+        }
         if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
@@ -2919,6 +2972,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         ren.set_multi_polygon_union(multi_polygon_union);
         ren.set_fill_type(fill_type);
         ren.set_process_all_rings(process_all_rings);
+        ren.set_threading_mode(threading_mode);
         ren.update_tile(*d->get_tile());
         info.GetReturnValue().Set(Nan::True());
     }

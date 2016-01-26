@@ -27,7 +27,8 @@ var rendering_defaults = {
     offset_x: 0,
     offset_y: 0,
     image_format: "jpeg",
-    image_scaling: "near"
+    image_scaling: "near",
+    threading_mode: mapnik.threadingMode.deferred
 };
 
 function render_data(name,coords,callback) {

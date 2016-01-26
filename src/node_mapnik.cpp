@@ -402,6 +402,21 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "negative", mapnik::vector_tile_impl::negative_fill)
         target->Set(Nan::New("polygonFillType").ToLocalChecked(), polygon_fill_types);
 
+/**
+ * Constants representing std::async threading mode (aka launch policy - http://en.cppreference.com/w/cpp/thread/launch).
+ *
+ * @name threadingMode
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} async
+ * @property {number} deferred
+ */
+        v8::Local<v8::Object> threading_mode = Nan::New<v8::Object>();
+        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "async", static_cast<unsigned>(std::launch::async))
+        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "deferred", static_cast<unsigned>(std::launch::deferred))
+        target->Set(Nan::New("threadingMode").ToLocalChecked(), threading_mode);
+
     }
 }
 

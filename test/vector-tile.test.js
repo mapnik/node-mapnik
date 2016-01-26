@@ -1760,6 +1760,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {simplify_distance:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {simplify_distance:-0.5}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {variables:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {threading_mode:99}, function(err, vtile) {}); });
         map.render(vtile, {}, function(err, vtile) {
             assert.throws(function() { if (err) throw err; });
             done();

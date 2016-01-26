@@ -1520,6 +1520,7 @@ struct vector_tile_baton_t {
     bool multi_polygon_union;
     mapnik::vector_tile_impl::polygon_fill_type fill_type;
     bool process_all_rings;
+    std::launch threading_mode;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
@@ -1536,7 +1537,8 @@ struct vector_tile_baton_t {
         strictly_simple(true),
         multi_polygon_union(false),
         fill_type(mapnik::vector_tile_impl::positive_fill),
-        process_all_rings(false) {}
+        process_all_rings(false),
+        threading_mode(std::launch::deferred) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1886,6 +1888,24 @@ NAN_METHOD(Map::render)
                 }
             }
 
+            if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
+            {
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+                if (!param_val->IsNumber())
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
+                    return;
+                }
+                closure->threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+                if (closure->threading_mode != std::launch::async && closure->threading_mode != std::launch::deferred)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
+                    return;
+                }
+            }
+
             if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
@@ -1982,6 +2002,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
         ren.set_image_format(closure->image_format);
         ren.set_scaling_method(closure->scaling_method);
         ren.set_area_threshold(closure->area_threshold);
+        ren.set_threading_mode(closure->threading_mode);
 
         ren.update_tile(*closure->d->get_tile(),
                         closure->scale_denominator,
