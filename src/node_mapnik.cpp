@@ -384,7 +384,7 @@ extern "C" {
         target->Set(Nan::New("imageScaling").ToLocalChecked(), image_scaling_types);
 
 /**
- * Image scaling type constants representing color and grayscale encodings.
+ * Constants representing fill types understood by Clipper during vector tile encoding (http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm).
  *
  * @name polygonFillType
  * @memberof mapnik
