@@ -15,7 +15,6 @@
 #include "vector_tile_composite.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_projection.hpp"
-#include "vector_tile_datasource.hpp"
 #include "vector_tile_datasource_pbf.hpp"
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_load_tile.hpp"
@@ -64,8 +63,6 @@
 
 // protozero
 #include <protozero/pbf_reader.hpp>
-
-#include <google/protobuf/io/coded_stream.h>
 
 namespace detail
 {

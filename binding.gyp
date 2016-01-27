@@ -10,20 +10,6 @@
       'type': 'none',
       'actions': [
         {
-          'action_name': 'generate_protoc_files',
-          'inputs': [
-            './node_modules/mapnik-vector-tile/proto/'
-          ],
-          'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc',
-            '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h'
-          ],
-          'action': [ 'protoc',
-            '-I<(RULE_INPUT_PATH)',
-            '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
-            '<(RULE_INPUT_PATH)/vector_tile.proto']
-        },
-        {
           'action_name': 'generate_setting',
           'inputs': [
             'gen_settings.py'
@@ -92,15 +78,8 @@
           {
             'include_dirs':[
               '<!@(mapnik-config --includes)'
-            ],
-            'libraries': [
-              'libprotobuf-lite.lib'
-            ]
-          },
+            ]          },
           {
-            'libraries':[
-              '-lprotobuf-lite'
-            ],
           }
         ]
       ]
@@ -172,7 +151,6 @@
               'mapnik-wkt.lib',
               'mapnik-json.lib',
               '<!@(mapnik-config --dep-libs)',
-              'libprotobuf-lite.lib',
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
@@ -193,7 +171,6 @@
               '-lmapnik-wkt',
               '-lmapnik-json',
               '<!@(mapnik-config --ldflags)',
-              '-lprotobuf-lite',
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[

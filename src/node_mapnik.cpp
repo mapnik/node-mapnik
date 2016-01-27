@@ -1,5 +1,5 @@
 // Vector Tile
-#include "vector_tile_processor.hpp"
+#include "vector_tile_config.hpp"
 
 // node-mapnik
 #include "mapnik_vector_tile.hpp"
@@ -38,12 +38,13 @@
 // boost
 #include <boost/version.hpp>
 
-#include "vector_tile.pb.h"
-
 // cairo
 #if defined(HAVE_CAIRO)
 #include <cairo.h>
 #endif
+
+// std
+#include <future>
 
 namespace node_mapnik {
 
@@ -67,13 +68,6 @@ static NAN_METHOD(clearCache)
     return;
 }
 
-static NAN_METHOD(shutdown)
-{
-    Nan::HandleScope scope;
-    google::protobuf::ShutdownProtobufLibrary();
-    return;
-}
-
 /**
  * Mapnik is the core of cartographic design and processing.
  *
@@ -93,7 +87,6 @@ extern "C" {
     static void InitMapnik (v8::Local<v8::Object> target)
     {
         Nan::HandleScope scope;
-        GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
         Nan::SetMethod(target, "blend",node_mapnik::Blend);
@@ -111,7 +104,6 @@ extern "C" {
         Nan::SetMethod(target, "fontFiles", node_mapnik::available_font_files);
         Nan::SetMethod(target, "memoryFonts", node_mapnik::memory_fonts);
         Nan::SetMethod(target, "clearCache", clearCache);
-        Nan::SetMethod(target, "shutdown",shutdown);
 
         // Classes
         VectorTile::Initialize(target);
