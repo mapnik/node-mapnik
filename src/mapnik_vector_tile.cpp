@@ -355,7 +355,7 @@ NAN_METHOD(VectorTile::New)
     }
 
     std::uint32_t tile_size = 4096;
-    std::int32_t buffer_size = 8;
+    std::int32_t buffer_size = 128;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() > 3)
     {
@@ -3009,8 +3009,8 @@ NAN_METHOD(VectorTile::addImage)
         return;
     }
 
-    std::string image_format = "jpeg";
-    mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
+    std::string image_format = "webp";
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
     
     if (info.Length() > 2) 
     {

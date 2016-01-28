@@ -668,7 +668,7 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.ok(vtile instanceof mapnik.VectorTile);
         assert.equal(vtile.tileSize, 4096);
-        assert.equal(vtile.bufferSize, 8);
+        assert.equal(vtile.bufferSize, 128);
         assert.equal(vtile.painted(), false);
         assert.equal(vtile.getData().toString(),"");
         if (hasBoostSimple) {
@@ -1277,7 +1277,7 @@ describe('mapnik.VectorTile ', function() {
                     {
                         "id":207,
                         "type":3,
-                        "geometry":[9,8208,8208,26,8223,0,0,8223,8224,0,15],
+                        "geometry":[9,8448,8448,26,8703,0,0,8703,8704,0,15],
                         "properties":{
                             "AREA":915896,
                             "FIPS":"US",
@@ -1302,7 +1302,7 @@ describe('mapnik.VectorTile ', function() {
                     {
                         "id":207,
                         "type":3,
-                        "geometry":[9,8208,8208,26,8223,0,0,8223,8224,0,15],
+                        "geometry":[9,8448,8448,26,8703,0,0,8703,8704,0,15],
                         "properties":{
                             "AREA":915896,
                             "FIPS":"US",
@@ -1339,7 +1339,7 @@ describe('mapnik.VectorTile ', function() {
                         "type":3,
                         "geometry_type":"Polygon",
                         "geometry":[
-                            [[4104,4104],[-8,4104],[-8,-8],[4104,-8],[4104,4104]]
+                            [[4224,4224],[-128,4224],[-128,-128],[4224,-128],[4224,4224]]
                         ],
                         "properties":{
                             "AREA":915896,
@@ -1367,7 +1367,7 @@ describe('mapnik.VectorTile ', function() {
                         "type":3,
                         "geometry_type":"Polygon",
                         "geometry":[
-                            [[4104,4104],[-8,4104],[-8,-8],[4104,-8],[4104,4104]]
+                            [[4224,4224],[-128,4224],[-128,-128],[4224,-128],[4224,4224]]
                         ],
                         "properties":{
                             "AREA":915896,
@@ -1402,12 +1402,12 @@ describe('mapnik.VectorTile ', function() {
                         "type":"Polygon",
                         "coordinates":[
                             [
-                                [ -100.545501708984, 38.8215210496842 ],
-                                [ -100.545501708984, 39.3693408115864 ],
-                                [ -101.251373291016, 39.3693408115864 ],
-                                [ -101.251373291016, 38.8215210496842 ],
-                                [ -100.545501708984, 38.8215210496842 ]
-                             ]
+                                [ -100.52490234375, 38.8054702231775 ],
+                                [ -100.52490234375, 39.3852638109977 ],
+                                [ -101.27197265625, 39.3852638109977 ],
+                                [ -101.27197265625, 38.8054702231775 ],
+                                [ -100.52490234375, 38.8054702231775 ]
+                            ]
                         ]
                     },
                     "properties": {
@@ -1684,7 +1684,7 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        assert.equal(vtile.getData().length,943);
+        assert.equal(vtile.getData().length,983);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         var map = new mapnik.Map(vtile.tileSize,vtile.tileSize);
@@ -1713,7 +1713,7 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
-        assert.equal(vtile.getData().length,943);
+        assert.equal(vtile.getData().length,983);
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         var map = new mapnik.Map(vtile.tileSize,vtile.tileSize);
@@ -2329,7 +2329,7 @@ describe('mapnik.VectorTile ', function() {
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
         // push image into a named vtile layer
-        vtile.addImage(im,'raster');
+        vtile.addImage(im,'raster', {image_format:'jpeg'});
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(),['raster']);
@@ -2357,7 +2357,7 @@ describe('mapnik.VectorTile ', function() {
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
         // push image into a named vtile layer
-        vtile.addImage(im,'raster');
+        vtile.addImage(im,'raster', {image_format:"jpeg"});
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(),['raster']);
