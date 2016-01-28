@@ -174,7 +174,7 @@ describe('mapnik.VectorTile ', function() {
             }
           ]
         };
-        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", {buffer_size:8});
+        vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
         assert.equal(vtile.getData().length,58);
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
