@@ -289,7 +289,7 @@ describe('mapnik.VectorTile.composite', function() {
         var world_clipping_extent = [-20037508.34,-20037508.34,20037508.34,20037508.34];
         vtile.composite([vtile2],{reencode:true});
         vtile1.composite([vtile2],{reencode:true,max_extent:world_clipping_extent});
-        assert.equal(vtile.getData().length,54610);
+        assert.equal(vtile.getData().length,54780);
         assert.deepEqual(vtile.names(),["water","admin"]);
         assert.equal(vtile1.getData().length,54462);
         assert.deepEqual(vtile1.names(),["water","admin"]);
@@ -303,7 +303,7 @@ describe('mapnik.VectorTile.composite', function() {
                 assert.equal(0,compare_to_image(im2,expected_file2));
                 vtile3.composite([vtile2],{reencode:true}, function(err) {
                     if (err) throw err;
-                    assert.equal(vtile3.getData().length,54610);
+                    assert.equal(vtile3.getData().length,54780);
                     assert.deepEqual(vtile3.names(),["water","admin"]);
                     vtile3.render(map,new mapnik.Image(256,256),function(err,im) {
                         if (err) throw err;
@@ -374,7 +374,7 @@ describe('mapnik.VectorTile.composite', function() {
             }
             vtile2.composite([vtile1,vtile1],options, function(err, vtile2) {
                 if (err) throw err;
-                assert.equal(vtile2.getData().length,53);
+                assert.equal(vtile2.getData().length,55);
                 assert.deepEqual(vtile2.names(),["lines-1-0-0"]);
                 done();
             });
@@ -430,7 +430,7 @@ describe('mapnik.VectorTile.composite', function() {
     });
 
     it('should render by overzooming+jpeg+near', function(done) {
-        var vtile = new mapnik.VectorTile(2,1,1,{buffer_size:1});
+        var vtile = new mapnik.VectorTile(2,1,1);
         var vtile2 = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster','jpeg'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
@@ -463,7 +463,7 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should render by overzooming+webp+biliear', function(done) {
         var vtile = new mapnik.VectorTile(2,1,1);
-        var vtile2 = new mapnik.VectorTile(2,1,1,{buffer_size:16});
+        var vtile2 = new mapnik.VectorTile(2,1,1);
         var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster', 'jpeg'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2', 'png'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
         // raw length of input buffers
         var opts = {image_format:"webp",image_scaling:"bilinear"};
@@ -571,10 +571,12 @@ describe('mapnik.VectorTile.composite', function() {
     it('should contain two raster layers', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(0,0,0);
+        vt.tileSize = 256;
         var im = new mapnik.Image(vt.tileSize,vt.tileSize);
         im.background = new mapnik.Color('green');
         vt.addImage(im, 'green');
         var vt2 = new mapnik.VectorTile(0,0,0);
+        vt2.tileSize = 256;
         var im2 = new mapnik.Image(vt.tileSize,vt.tileSize);
         im2.background = new mapnik.Color('blue');
         vt2.addImage(im2, 'blue');
@@ -586,10 +588,12 @@ describe('mapnik.VectorTile.composite', function() {
     it('should not contain non-overlapping data', function(done) {
         // two tiles that do not overlap
         var vt = new mapnik.VectorTile(1,0,0);
+        vt.tileSize = 256;
         var im = new mapnik.Image(vt.tileSize,vt.tileSize);
         im.background = new mapnik.Color('green');
         vt.addImage(im, 'green');
         var vt2 = new mapnik.VectorTile(1,1,0);
+        vt2.tileSize = 256;
         var im2 = new mapnik.Image(vt.tileSize,vt.tileSize);
         im2.background = new mapnik.Color('blue');
         vt2.addImage(im2, 'blue');
@@ -648,11 +652,13 @@ describe('mapnik.VectorTile.composite', function() {
         vt2b.setData(vt2.getData());
         assert.deepEqual(vt2b.names(),["sa"]);
 
-        vt1.composite([vt2],{buffer_size:0});
+        vt1.composite([vt2]);
         assert.deepEqual(vt1.names(),["na"]);
 
-        vt1b.composite([vt2b],{buffer_size:0});
-        assert.deepEqual(vt1b.names(),["na"]);
+        // verify they would intersect with large buffer.
+        vt1b.bufferSize = 4096;
+        vt1b.composite([vt2b]);
+        assert.deepEqual(vt1b.names(),["na", "sa"]);
         done();
     });
 
@@ -682,7 +688,8 @@ describe('mapnik.VectorTile.composite', function() {
         var vt2b = new mapnik.VectorTile(1,0,1);
         vt2b.setData(vt2.getData());
         assert.deepEqual(vt2b.names(),["sa"]);
-        vt1.composite([vt2],{buffer_size:0});
+        vt1.bufferSize = 0;
+        vt1.composite([vt2]);
         assert.deepEqual(vt1.names(),[]);
         done();
     });
