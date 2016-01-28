@@ -652,11 +652,13 @@ describe('mapnik.VectorTile.composite', function() {
         vt2b.setData(vt2.getData());
         assert.deepEqual(vt2b.names(),["sa"]);
 
-        vt1.composite([vt2],{buffer_size:0});
+        vt1.composite([vt2]);
         assert.deepEqual(vt1.names(),["na"]);
 
-        vt1b.composite([vt2b],{buffer_size:0});
-        assert.deepEqual(vt1b.names(),["na"]);
+        // verify they would intersect with large buffer.
+        vt1b.bufferSize = 4096;
+        vt1b.composite([vt2b]);
+        assert.deepEqual(vt1b.names(),["na", "sa"]);
         done();
     });
 
@@ -686,7 +688,8 @@ describe('mapnik.VectorTile.composite', function() {
         var vt2b = new mapnik.VectorTile(1,0,1);
         vt2b.setData(vt2.getData());
         assert.deepEqual(vt2b.names(),["sa"]);
-        vt1.composite([vt2],{buffer_size:0});
+        vt1.bufferSize = 0;
+        vt1.composite([vt2]);
         assert.deepEqual(vt1.names(),[]);
         done();
     });
