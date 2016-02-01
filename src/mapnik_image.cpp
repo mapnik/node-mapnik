@@ -1603,6 +1603,8 @@ typedef struct {
     mapnik::scaling_method_e scaling_method;
     std::size_t size_x;
     std::size_t size_y;
+    int offset_x;
+    int offset_y;
     double filter_factor;
     Nan::Persistent<v8::Function> cb;
     bool error;
@@ -1631,6 +1633,8 @@ NAN_METHOD(Image::resize)
     Image* im1 = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     std::size_t width = 0;
     std::size_t height = 0;
+    int offset_x = 0;
+    int offset_y = 0;
     double filter_factor = 1.0;
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
@@ -1685,7 +1689,26 @@ NAN_METHOD(Image::resize)
             return;
         }
     }
-    
+    if (options->Has(Nan::New("offset_x").ToLocalChecked())) 
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
+            return;
+        }
+        offset_x = bind_opt->IntegerValue();
+    }
+    if (options->Has(Nan::New("offset_y").ToLocalChecked())) 
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
+            return;
+        }
+        offset_y = bind_opt->IntegerValue();
+    }
     if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
     {
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
@@ -1724,6 +1747,8 @@ NAN_METHOD(Image::resize)
     closure->scaling_method = scaling_method;
     closure->size_x = width;
     closure->size_y = height;
+    closure->offset_x = offset_x;
+    closure->offset_y = offset_y;
     closure->filter_factor = filter_factor;
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
@@ -1739,12 +1764,16 @@ struct resize_visitor
                    mapnik::scaling_method_e scaling_method,
                    double image_ratio_x,
                    double image_ratio_y,
-                   double filter_factor) :
+                   double filter_factor,
+                   int offset_x,
+                   int offset_y) :
         im1_(im1),
         scaling_method_(scaling_method),
         image_ratio_x_(image_ratio_x),
         image_ratio_y_(image_ratio_y),
-        filter_factor_(filter_factor) {}
+        filter_factor_(filter_factor),
+        offset_x_(offset_x),
+        offset_y_(offset_y) {}
 
     void operator()(mapnik::image_rgba8 & im2) const
     {
@@ -1757,8 +1786,8 @@ struct resize_visitor
                                 scaling_method_,
                                 image_ratio_x_,
                                 image_ratio_y_,
-                                0,
-                                0,
+                                offset_x_,
+                                offset_y_,
                                 filter_factor_);
     }
 
@@ -1770,8 +1799,8 @@ struct resize_visitor
                                 scaling_method_,
                                 image_ratio_x_,
                                 image_ratio_y_,
-                                0,
-                                0,
+                                offset_x_,
+                                offset_y_,
                                 filter_factor_);
     }
     
@@ -1825,6 +1854,8 @@ struct resize_visitor
     double image_ratio_x_;
     double image_ratio_y_;
     double filter_factor_;
+    int offset_x_;
+    int offset_y_;
 
 };
 
@@ -1864,7 +1895,9 @@ void Image::EIO_Resize(uv_work_t* req)
                              closure->scaling_method,
                              image_ratio_x,
                              image_ratio_y,
-                             closure->filter_factor);
+                             closure->filter_factor,
+                             closure->offset_x,
+                             closure->offset_y);
         mapnik::util::apply_visitor(visit, *(closure->im2));
     }
     catch (std::exception const& ex)
@@ -1919,6 +1952,8 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     std::size_t width = 0;
     std::size_t height = 0;
     double filter_factor = 1.0;
+    int offset_x = 0;
+    int offset_y = 0;
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() >= 2)
@@ -1970,6 +2005,26 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("Expected options object as third argument");
             return scope.Escape(Nan::Undefined());
         }
+    }
+    if (options->Has(Nan::New("offset_x").ToLocalChecked())) 
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
+            return scope.Escape(Nan::Undefined());
+        }
+        offset_x = bind_opt->IntegerValue();
+    }
+    if (options->Has(Nan::New("offset_y").ToLocalChecked())) 
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
+            return scope.Escape(Nan::Undefined());
+        }
+        offset_y = bind_opt->IntegerValue();
     }
     
     if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
@@ -2036,7 +2091,9 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                              scaling_method,
                              image_ratio_x,
                              image_ratio_y,
-                             filter_factor);
+                             filter_factor,
+                             offset_x,
+                             offset_y);
         mapnik::util::apply_visitor(visit, *image_ptr);
         Image* new_im = new Image(image_ptr);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
