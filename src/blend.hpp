@@ -51,11 +51,6 @@ enum AlphaMode {
     BLEND_MODE_HEXTREE
 };
 
-enum EncoderType {
-    BLEND_ENCODER_LIBPNG,
-    BLEND_ENCODER_MINIZ
-};
-
 NAN_METHOD(rgb2hsl);
 NAN_METHOD(hsl2rgb);
 NAN_METHOD(Blend);
@@ -76,7 +71,6 @@ struct BlendBaton {
     unsigned int matte;
     int compression;
     AlphaMode mode;
-    EncoderType encoder;
     std::ostringstream stream;
 
     BlendBaton() :
@@ -88,7 +82,6 @@ struct BlendBaton {
         matte(0),
         compression(-1),
         mode(BLEND_MODE_HEXTREE),
-        encoder(BLEND_ENCODER_LIBPNG),
         stream(std::ios::out | std::ios::binary)
     {
         this->request.data = this;
