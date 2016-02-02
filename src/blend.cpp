@@ -276,7 +276,6 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
 #if defined(HAVE_PNG)
             mapnik::png_options opts;
             opts.compression = baton->compression;
-            if (baton->encoder == BLEND_ENCODER_MINIZ) opts.use_miniz = true;
             if (baton->palette && baton->palette->valid()) {
                 mapnik::save_as_png8_pal(baton->stream, image, *baton->palette, opts);
             } else if (baton->quality > 0) {
@@ -556,14 +555,6 @@ NAN_METHOD(Blend) {
             }
         }
 
-        v8::Local<v8::Value> encoder_val = options->Get(Nan::New("encoder").ToLocalChecked());
-        if (!encoder_val.IsEmpty() && encoder_val->IsString()) {
-            if (strcmp(*v8::String::Utf8Value(encoder_val), "miniz") == 0) {
-                baton->encoder = BLEND_ENCODER_MINIZ;
-            }
-            // default is libpng
-        }
-
         if (options->Has(Nan::New("compression").ToLocalChecked())) {
             v8::Local<v8::Value> compression_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!compression_val.IsEmpty() && compression_val->IsNumber())
@@ -581,7 +572,6 @@ NAN_METHOD(Blend) {
         int max_compression = Z_BEST_COMPRESSION;
         if (baton->format == BLEND_FORMAT_PNG) {
             if (baton->compression < 0) baton->compression = Z_DEFAULT_COMPRESSION;
-            if (baton->encoder == BLEND_ENCODER_MINIZ) max_compression = 10; // MZ_UBER_COMPRESSION
         } else if (baton->format == BLEND_FORMAT_WEBP) {
             min_compression = 0, max_compression = 6;
             if (baton->compression < 0) baton->compression = -1;
