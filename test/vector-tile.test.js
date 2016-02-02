@@ -1185,7 +1185,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.empty(), true);
         assert.equal(vtile.empty(), true);
         vtile.setData(new Buffer(0),function(err) {
-            if (err) throw err;
+            assert.throws(function() { if (err) throw err; });
             assert.deepEqual(vtile.names(), []);
             assert.equal(vtile.empty(), true);
             done();
@@ -1202,15 +1202,47 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.empty(), true);
     });
 
-    it('should error out if we pass invalid data to addData', function() {
+    it('should error out if we pass invalid data to addData', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.addData(null); }); // empty buffer is not valid
         assert.throws(function() { vtile.addData({}); }); // empty buffer is not valid
         assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
-        assert.throws(function() {
-            vtile.addData(new Buffer('foo'));
-            vtile.parseSync();
+        assert.throws(function() { vtile.addData(new Buffer('foo')); });
+        assert.throws(function() { vtile.addDataSync(null); }); // empty buffer is not valid
+        assert.throws(function() { vtile.addDataSync({}); }); // empty buffer is not valid
+        assert.throws(function() { vtile.addDataSync(new Buffer(0)); }); // empty buffer is not valid
+        assert.throws(function() { vtile.addDataSync(new Buffer('foo')); });
+        assert.throws(function() { vtile.addData(null, function(err) {}); });
+        assert.throws(function() { vtile.addData({}, function(err) {}); });
+        vtile.addData(new Buffer(0), function(err) {
+            assert.throws(function() { if (err) throw err; }); 
+            vtile.addData(new Buffer('foo'), function(err) {
+                assert.throws(function() { if (err) throw err; }); 
+                done();
+            });
+        });
+    });
+
+    it('should error out if we pass invalid data to addData', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        assert.equal(vtile.empty(), true);
+        assert.throws(function() { vtile.setData(null); }); // empty buffer is not valid
+        assert.throws(function() { vtile.setData({}); }); // empty buffer is not valid
+        assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
+        assert.throws(function() { vtile.setData(new Buffer('foo')); });
+        assert.throws(function() { vtile.setDataSync(null); }); // empty buffer is not valid
+        assert.throws(function() { vtile.setDataSync({}); }); // empty buffer is not valid
+        assert.throws(function() { vtile.setDataSync(new Buffer(0)); }); // empty buffer is not valid
+        assert.throws(function() { vtile.setDataSync(new Buffer('foo')); });
+        assert.throws(function() { vtile.setData(null, function(err) {}); });
+        assert.throws(function() { vtile.setData({}, function(err) {}); });
+        vtile.setData(new Buffer(0), function(err) {
+            assert.throws(function() { if (err) throw err; }); 
+            vtile.setData(new Buffer('foo'), function(err) {
+                assert.throws(function() { if (err) throw err; }); 
+                done();
+            });
         });
     });
     
@@ -1224,12 +1256,59 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addData(new Buffer('foo')); });
         assert.throws(function() { vtile.setData(new Buffer('foo')); });
     });
+    
+    it('should be able to addData sync', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.addDataSync(data);
+        assert.deepEqual(vtile.names(), ["world", "world2"]);
+        assert.equal(vtile.empty(), false);
+        assert.equal(vtile.painted(), true);
+    });
+    
+    it('should be able to setData sync', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setDataSync(data);
+        assert.deepEqual(vtile.names(), ["world", "world2"]);
+        assert.equal(vtile.empty(), false);
+        assert.equal(vtile.painted(), true);
+    });
+    
+    it('should be able to addData (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.addData(data, function(err) {
+            if (err) throw err;
+            assert.deepEqual(vtile.names(), ["world", "world2"]);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            done();
+        });
+    });
 
     it('should be able to setData (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data, function(err) {
+            if (err) throw err;
+            assert.deepEqual(vtile.names(), ["world", "world2"]);
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            done();
+        });
+    });
+    
+    it('should be able to addData gzip compressed (async)', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        assert.equal(vtile.painted(), false);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
+        vtile.addData(data, function(err) {
             if (err) throw err;
             assert.deepEqual(vtile.names(), ["world", "world2"]);
             assert.equal(vtile.empty(), false);
@@ -2321,15 +2400,47 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImage(new mapnik.Image(256,256)); });
         assert.throws(function() { vtile.addImage(new mapnik.Image(256,256), 12); });
         assert.throws(function() { vtile.addImage({}, 'asdf'); });
+        assert.throws(function() { vtile.addImage({}, 'asdf', function(err) {}); });
+        assert.throws(function() { vtile.addImage({}, 'asdf', function(err) {}); });
+        assert.throws(function() { vtile.addImage(new mapnik.Image(256,256), 12, function(err) {}); });
+        assert.throws(function() { vtile.addImageSync(); });
+        assert.throws(function() { vtile.addImageSync(null); });
+        assert.throws(function() { vtile.addImageSync('asdf'); });
+        assert.throws(function() { vtile.addImageSync({}); });
+        assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256)); });
+        assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256), 12); });
+        assert.throws(function() { vtile.addImageSync({}, 'asdf'); });
+        done();
+    });
+    
+    it('should fail to addImageBuffer due to bad input', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0);
+        assert.throws(function() { vtile.addImageBuffer(); });
+        assert.throws(function() { vtile.addImageBuffer(null); });
+        assert.throws(function() { vtile.addImageBuffer('asdf'); });
+        assert.throws(function() { vtile.addImageBuffer({}); });
+        assert.throws(function() { vtile.addImageBuffer(new Buffer('foo')); });
+        assert.throws(function() { vtile.addImageBuffer(new Buffer('foo'), 12); });
+        assert.throws(function() { vtile.addImageBuffer({}, 'asdf'); });
+        assert.throws(function() { vtile.addImageBuffer({}, 'asdf', function(err) {}); });
+        assert.throws(function() { vtile.addImageBuffer({}, 'asdf', function(err) {}); });
+        assert.throws(function() { vtile.addImageBuffer(new Buffer('foo'), 12, function(err) {}); });
+        assert.throws(function() { vtile.addImageBufferSync(); });
+        assert.throws(function() { vtile.addImageBufferSync(null); });
+        assert.throws(function() { vtile.addImageBufferSync('asdf'); });
+        assert.throws(function() { vtile.addImageBufferSync({}); });
+        assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo')); });
+        assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo'), 12); });
+        assert.throws(function() { vtile.addImageBufferSync({}, 'asdf'); });
         done();
     });
 
-    it('should be able to push an image tile directly into a vector tile layer with decoding', function(done) {
+    it('should be able to put an Image object into a vector tile layer', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
         // push image into a named vtile layer
-        vtile.addImage(im,'raster', {image_format:'jpeg'});
+        vtile.addImageSync(im,'raster', {image_format:'jpeg'});
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(),['raster']);
@@ -2349,6 +2460,90 @@ describe('mapnik.VectorTile ', function() {
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
+        });
+    });
+    
+    it('should be able to put an Image object into a vector tile layer async', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
+        var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
+        var im = new mapnik.Image.fromBytesSync(image_buffer);
+        // push image into a named vtile layer
+        vtile.addImage(im,'raster', {image_format:'jpeg'}, function (err) {
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.empty(), false);
+            assert.deepEqual(vtile.names(),['raster']);
+            var json_obj = vtile.toJSON();
+            assert.equal(json_obj[0].name,'raster');
+            assert.equal(json_obj[0].features[0].raster.length, 12983);
+            // now render out with fancy styling
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/data/vector_tile/raster_style.xml');
+            vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
+                if (err) throw err;
+                var actual = './test/data/vector_tile/tile-raster3.actual.png';
+                vtile_image.save(actual, 'png32');
+                var expected = './test/data/vector_tile/tile-raster3.expected.png';
+                if (!existsSync(expected) || process.env.UPDATE) {
+                    vtile_image.save(expected, 'png32');
+                }
+                assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
+                done();
+            });
+        });
+    });
+
+    it('should be able to push an image tile directly into a vector tile layer without decoding', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
+        var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
+        // push image into a named vtile layer
+        vtile.addImageBufferSync(image_buffer,'raster');
+        assert.equal(vtile.painted(), true);
+        assert.equal(vtile.empty(), false);
+        assert.deepEqual(vtile.names(),['raster']);
+        var json_obj = vtile.toJSON();
+        assert.equal(json_obj[0].name,'raster');
+        assert.equal(json_obj[0].features[0].raster.length, 12146);
+        // now render out with fancy styling
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/raster_style.xml');
+        vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
+            if (err) throw err;
+            var actual = './test/data/vector_tile/tile-raster4.actual.png';
+            vtile_image.save(actual, 'png32');
+            var expected = './test/data/vector_tile/tile-raster4.expected.png';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                vtile_image.save(expected, 'png32');
+            }
+            assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
+            done();
+        });
+    });
+
+    it('should be able to push an image tile directly into a vector tile layer without decoding -- async', function(done) {
+        var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
+        var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
+        // push image into a named vtile layer
+        vtile.addImageBuffer(image_buffer,'raster', function(err) {
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.empty(), false);
+            assert.deepEqual(vtile.names(),['raster']);
+            var json_obj = vtile.toJSON();
+            assert.equal(json_obj[0].name,'raster');
+            assert.equal(json_obj[0].features[0].raster.length, 12146);
+            // now render out with fancy styling
+            var map = new mapnik.Map(256, 256);
+            map.loadSync('./test/data/vector_tile/raster_style.xml');
+            vtile.render(map, new mapnik.Image(256, 256), {buffer_size:256}, function(err, vtile_image) {
+                if (err) throw err;
+                var actual = './test/data/vector_tile/tile-raster5.actual.png';
+                vtile_image.save(actual, 'png32');
+                var expected = './test/data/vector_tile/tile-raster5.expected.png';
+                if (!existsSync(expected) || process.env.UPDATE) {
+                    vtile_image.save(expected, 'png32');
+                }
+                assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
+                done();
+            });
         });
     });
 

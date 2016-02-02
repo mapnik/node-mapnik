@@ -272,6 +272,7 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "getData", getData);
     Nan::SetPrototypeMethod(lcons, "getDataSync", getDataSync);
     Nan::SetPrototypeMethod(lcons, "addData", addData);
+    Nan::SetPrototypeMethod(lcons, "addDataSync", addDataSync);
     Nan::SetPrototypeMethod(lcons, "composite", composite);
     Nan::SetPrototypeMethod(lcons, "compositeSync", compositeSync);
     Nan::SetPrototypeMethod(lcons, "query", query);
@@ -286,6 +287,9 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "toGeoJSONSync", toGeoJSONSync);
     Nan::SetPrototypeMethod(lcons, "addGeoJSON", addGeoJSON);
     Nan::SetPrototypeMethod(lcons, "addImage", addImage);
+    Nan::SetPrototypeMethod(lcons, "addImageSync", addImageSync);
+    Nan::SetPrototypeMethod(lcons, "addImageBuffer", addImageBuffer);
+    Nan::SetPrototypeMethod(lcons, "addImageBufferSync", addImageBufferSync);
 #if BOOST_VERSION >= 105600
     Nan::SetPrototypeMethod(lcons, "reportGeometrySimplicity", reportGeometrySimplicity);
     Nan::SetPrototypeMethod(lcons, "reportGeometrySimplicitySync", reportGeometrySimplicitySync);
@@ -2980,15 +2984,166 @@ NAN_METHOD(VectorTile::addGeoJSON)
     }
 }
 
-NAN_METHOD(VectorTile::addImage)
+/**
+ * Add an Image as a tile layer
+ *
+ * @memberof mapnik.VectorTile
+ * @name addImageSync
+ * @instance
+ * @param {mapnik.Image} image
+ * @param {string} name of the layer to be added
+ */
+NAN_METHOD(VectorTile::addImageSync)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.This());
+    info.GetReturnValue().Set(_addImageSync(info));
+}
+
+v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+    Nan::EscapableHandleScope scope;
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     if (info.Length() < 1 || !info[0]->IsObject())
     {
-        Nan::ThrowError("first argument must be a Buffer representing encoded image data");
-        return;
+        Nan::ThrowError("first argument must be an Image object");
+        return scope.Escape(Nan::Undefined());
     }
     if (info.Length() < 2 || !info[1]->IsString())
+    {
+        Nan::ThrowError("second argument must be a layer name (string)");
+        return scope.Escape(Nan::Undefined());
+    }
+    std::string layer_name = TOSTR(info[1]);
+    v8::Local<v8::Object> obj = info[0]->ToObject();
+    if (obj->IsNull() || 
+        obj->IsUndefined() || 
+        !Nan::New(Image::constructor)->HasInstance(obj))
+    {
+        Nan::ThrowError("first argument must be an Image object");
+        return scope.Escape(Nan::Undefined());
+    }
+    Image *im = Nan::ObjectWrap::Unwrap<Image>(obj);
+    if (im->get()->width() <= 0 || im->get()->height() <= 0)
+    {
+        Nan::ThrowError("Image width and height must be greater then zero");
+        return scope.Escape(Nan::Undefined());
+    }
+
+    std::string image_format = "webp";
+    mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
+    
+    if (info.Length() > 2) 
+    {
+        // options object
+        if (!info[2]->IsObject()) 
+        {
+            Nan::ThrowError("optional third argument must be an options object");
+            return scope.Escape(Nan::Undefined());
+        }
+
+        v8::Local<v8::Object> options = info[2]->ToObject();
+        if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string");
+                return scope.Escape(Nan::Undefined());
+            }
+            std::string image_scaling = TOSTR(param_val);
+            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            if (!method) 
+            {
+                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
+                return scope.Escape(Nan::Undefined());
+            }
+            scaling_method = *method;
+        }
+
+        if (options->Has(Nan::New("image_format").ToLocalChecked())) 
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
+            if (!param_val->IsString()) 
+            {
+                Nan::ThrowTypeError("option 'image_format' must be a string");
+                return scope.Escape(Nan::Undefined());
+            }
+            image_format = TOSTR(param_val);
+        }
+    }
+    mapnik::image_any im_copy = *im->get();
+    std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(mapnik::parameters());
+    mapnik::raster_ptr ras = std::make_shared<mapnik::raster>(d->get_tile()->extent(), im_copy, 1.0);
+    mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+    feature->set_raster(ras);
+    ds->push(feature);
+    ds->envelope(); // can be removed later, currently doesn't work with out this.
+    ds->set_envelope(d->get_tile()->extent());
+    try
+    {
+        // create map object
+        mapnik::Map map(d->tile_size(),d->tile_size(),"+init=epsg:3857");
+        mapnik::layer lyr(layer_name,"+init=epsg:3857");
+        lyr.set_datasource(ds);
+        map.add_layer(lyr);
+        
+        mapnik::vector_tile_impl::processor ren(map);
+        ren.set_scaling_method(scaling_method);
+        ren.set_image_format(image_format);
+        ren.update_tile(*d->get_tile());
+        info.GetReturnValue().Set(Nan::True());
+    }
+    catch (std::exception const& ex)
+    {
+        Nan::ThrowError(ex.what());
+        return scope.Escape(Nan::Undefined());
+    }
+    return scope.Escape(Nan::Undefined());
+}
+
+typedef struct
+{
+    uv_work_t request;
+    VectorTile* d;
+    Image* im;
+    std::string layer_name;
+    std::string image_format;
+    mapnik::scaling_method_e scaling_method;
+    bool error;
+    std::string error_name;
+    Nan::Persistent<v8::Function> cb;
+} vector_tile_add_image_baton_t;
+
+/**
+ * Add an Image as a tile layer
+ *
+ * @memberof mapnik.VectorTile
+ * @name addImageSync
+ * @instance
+ * @param {mapnik.Image} image
+ * @param {string} name of the layer to be added
+ */
+NAN_METHOD(VectorTile::addImage)
+{
+    // If last param is not a function assume sync
+    if (info.Length() < 2)
+    {
+        Nan::ThrowError("addImage requires at least two parameters: an Image and a layer name");
+        return;
+    }
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    if (!info[info.Length() - 1]->IsFunction())
+    {
+        info.GetReturnValue().Set(_addImageSync(info));
+        return;
+    }
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.This());
+    if (!info[0]->IsObject())
+    {
+        Nan::ThrowError("first argument must be an Image object");
+        return;
+    }
+    if (!info[1]->IsString())
     {
         Nan::ThrowError("second argument must be a layer name (string)");
         return;
@@ -3012,7 +3167,7 @@ NAN_METHOD(VectorTile::addImage)
     std::string image_format = "webp";
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
     
-    if (info.Length() > 2) 
+    if (info.Length() > 3) 
     {
         // options object
         if (!info[2]->IsObject()) 
@@ -3051,65 +3206,270 @@ NAN_METHOD(VectorTile::addImage)
             image_format = TOSTR(param_val);
         }
     }
-    mapnik::image_any im_copy = *im->get();
-    std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(mapnik::parameters());
-    mapnik::raster_ptr ras = std::make_shared<mapnik::raster>(d->get_tile()->extent(), im_copy, 1.0);
-    mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
-    mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-    feature->set_raster(ras);
-    ds->push(feature);
-    ds->envelope(); // can be removed later, currently doesn't work with out this.
-    ds->set_envelope(d->get_tile()->extent());
+    vector_tile_add_image_baton_t *closure = new vector_tile_add_image_baton_t();
+    closure->request.data = closure;
+    closure->d = d;
+    closure->im = im;
+    closure->scaling_method = scaling_method;
+    closure->image_format = image_format;
+    closure->layer_name = layer_name;
+    closure->error = false;
+    closure->cb.Reset(callback.As<v8::Function>());
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_AddImage, (uv_after_work_cb)EIO_AfterAddImage);
+    d->Ref();
+    im->_ref();
+    return;
+}
+
+void VectorTile::EIO_AddImage(uv_work_t* req)
+{
+    vector_tile_add_image_baton_t *closure = static_cast<vector_tile_add_image_baton_t *>(req->data);
+
     try
     {
+        mapnik::image_any im_copy = *closure->im->get();
+        std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(mapnik::parameters());
+        mapnik::raster_ptr ras = std::make_shared<mapnik::raster>(closure->d->get_tile()->extent(), im_copy, 1.0);
+        mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
+        mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+        feature->set_raster(ras);
+        ds->push(feature);
+        ds->envelope(); // can be removed later, currently doesn't work with out this.
+        ds->set_envelope(closure->d->get_tile()->extent());
         // create map object
-        mapnik::Map map(d->tile_size(),d->tile_size(),"+init=epsg:3857");
-        mapnik::layer lyr(layer_name,"+init=epsg:3857");
+        mapnik::Map map(closure->d->tile_size(),closure->d->tile_size(),"+init=epsg:3857");
+        mapnik::layer lyr(closure->layer_name,"+init=epsg:3857");
         lyr.set_datasource(ds);
         map.add_layer(lyr);
         
         mapnik::vector_tile_impl::processor ren(map);
-        ren.set_scaling_method(scaling_method);
-        ren.set_image_format(image_format);
-        ren.update_tile(*d->get_tile());
-        info.GetReturnValue().Set(Nan::True());
+        ren.set_scaling_method(closure->scaling_method);
+        ren.set_image_format(closure->image_format);
+        ren.update_tile(*closure->d->get_tile());
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterAddImage(uv_work_t* req)
+{
+    Nan::HandleScope scope;
+    vector_tile_add_image_baton_t *closure = static_cast<vector_tile_add_image_baton_t *>(req->data);
+    if (closure->error)
+    {
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+    else
+    {
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+
+    closure->d->Unref();
+    closure->im->_unref();
+    closure->cb.Reset();
+    delete closure;
+}
+
+/**
+ * Add raw image buffer as a new tile layer
+ *
+ * @memberof mapnik.VectorTile
+ * @name addImageBufferSync
+ * @instance
+ * @param {Buffer} raw data
+ * @param {string} name of the layer to be added
+ */
+NAN_METHOD(VectorTile::addImageBufferSync)
+{
+    info.GetReturnValue().Set(_addImageBufferSync(info));
+}
+
+v8::Local<v8::Value> VectorTile::_addImageBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+    Nan::EscapableHandleScope scope;
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    if (info.Length() < 1 || !info[0]->IsObject())
+    {
+        Nan::ThrowTypeError("first argument must be a buffer object");
+        return scope.Escape(Nan::Undefined());
+    }
+    if (info.Length() < 2 || !info[1]->IsString())
+    {
+        Nan::ThrowError("second argument must be a layer name (string)");
+        return scope.Escape(Nan::Undefined());
+    }
+    std::string layer_name = TOSTR(info[1]);
+    v8::Local<v8::Object> obj = info[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    {
+        Nan::ThrowTypeError("first arg must be a buffer object");
+        return scope.Escape(Nan::Undefined());
+    }
+    std::size_t buffer_size = node::Buffer::Length(obj);
+    if (buffer_size <= 0)
+    {
+        Nan::ThrowError("cannot accept empty buffer as protobuf");
+        return scope.Escape(Nan::Undefined());
+    }
+    try
+    {
+        add_image_buffer_as_tile_layer(*d->get_tile(), layer_name, node::Buffer::Data(obj), buffer_size); 
     }
     catch (std::exception const& ex)
     {
         Nan::ThrowError(ex.what());
+        return scope.Escape(Nan::Undefined());
+    }
+    return scope.Escape(Nan::Undefined());
+}
+
+typedef struct
+{
+    uv_work_t request;
+    VectorTile* d;
+    const char *data;
+    size_t dataLength;
+    std::string layer_name;
+    bool error;
+    std::string error_name;
+    Nan::Persistent<v8::Function> cb;
+    Nan::Persistent<v8::Object> buffer;
+} vector_tile_addimagebuffer_baton_t;
+
+
+/**
+ * Add an encoded image buffer as a layer
+ *
+ * @memberof mapnik.VectorTile
+ * @name addImageBuffer
+ * @instance
+ * @param {Buffer} raw data
+ * @param {string} name of the layer to be added
+ */
+NAN_METHOD(VectorTile::addImageBuffer)
+{
+    if (info.Length() < 3)
+    {
+        info.GetReturnValue().Set(_addImageBufferSync(info));
         return;
     }
+
+    // ensure callback is a function
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    if (!info[info.Length() - 1]->IsFunction())
+    {
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
+    }
+
+    if (info.Length() < 1 || !info[0]->IsObject())
+    {
+        Nan::ThrowTypeError("first argument must be a buffer object");
+        return;
+    }
+    if (info.Length() < 2 || !info[1]->IsString())
+    {
+        Nan::ThrowError("second argument must be a layer name (string)");
+        return;
+    }
+    std::string layer_name = TOSTR(info[1]);
+    v8::Local<v8::Object> obj = info[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    {
+        Nan::ThrowTypeError("first arg must be a buffer object");
+        return;
+    }
+
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+
+    vector_tile_addimagebuffer_baton_t *closure = new vector_tile_addimagebuffer_baton_t();
+    closure->request.data = closure;
+    closure->d = d;
+    closure->layer_name = layer_name;
+    closure->error = false;
+    closure->cb.Reset(callback.As<v8::Function>());
+    closure->buffer.Reset(obj.As<v8::Object>());
+    closure->data = node::Buffer::Data(obj);
+    closure->dataLength = node::Buffer::Length(obj);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_AddImageBuffer, (uv_after_work_cb)EIO_AfterAddImageBuffer);
+    d->Ref();
     return;
+}
+
+void VectorTile::EIO_AddImageBuffer(uv_work_t* req)
+{
+    vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
+
+    try
+    {
+        add_image_buffer_as_tile_layer(*closure->d->get_tile(), closure->layer_name, closure->data, closure->dataLength); 
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
+{
+    Nan::HandleScope scope;
+    vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
+    if (closure->error)
+    {
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+    else
+    {
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+
+    closure->d->Unref();
+    closure->cb.Reset();
+    closure->buffer.Reset();
+    delete closure;
 }
 
 /**
  * Add raw data to this tile as a Buffer
  *
  * @memberof mapnik.VectorTile
- * @name addData
+ * @name addDataSync
  * @instance
  * @param {Buffer} raw data
- * @param {string} name of the layer to be added
  */
-NAN_METHOD(VectorTile::addData)
+NAN_METHOD(VectorTile::addDataSync)
 {
+    info.GetReturnValue().Set(_addDataSync(info));
+}
+
+v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
+{
+    Nan::EscapableHandleScope scope;
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     if (info.Length() < 1 || !info[0]->IsObject())
     {
-        Nan::ThrowError("first argument must be a buffer object");
-        return;
+        Nan::ThrowTypeError("first argument must be a buffer object");
+        return scope.Escape(Nan::Undefined());
     }
-    v8::Local<v8::Object> obj = info[0].As<v8::Object>();
+    v8::Local<v8::Object> obj = info[0]->ToObject();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
     {
         Nan::ThrowTypeError("first arg must be a buffer object");
-        return;
+        return scope.Escape(Nan::Undefined());
     }
     std::size_t buffer_size = node::Buffer::Length(obj);
     if (buffer_size <= 0)
     {
         Nan::ThrowError("cannot accept empty buffer as protobuf");
-        return;
+        return scope.Escape(Nan::Undefined());
     }
     try
     {
@@ -3118,11 +3478,125 @@ NAN_METHOD(VectorTile::addData)
     catch (std::exception const& ex)
     {
         Nan::ThrowError(ex.what());
+        return scope.Escape(Nan::Undefined());
+    }
+    return scope.Escape(Nan::Undefined());
+}
+
+typedef struct
+{
+    uv_work_t request;
+    VectorTile* d;
+    const char *data;
+    size_t dataLength;
+    bool error;
+    std::string error_name;
+    Nan::Persistent<v8::Function> cb;
+    Nan::Persistent<v8::Object> buffer;
+} vector_tile_adddata_baton_t;
+
+
+/**
+ * Add new vector tile data to an existing vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name addData
+ * @instance
+ * @param {Buffer} raw data
+ */
+NAN_METHOD(VectorTile::addData)
+{
+    if (info.Length() == 1)
+    {
+        info.GetReturnValue().Set(_addDataSync(info));
         return;
     }
+
+    // ensure callback is a function
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    if (!info[info.Length() - 1]->IsFunction())
+    {
+        Nan::ThrowTypeError("last argument must be a callback function");
+        return;
+    }
+
+    if (info.Length() < 1 || !info[0]->IsObject())
+    {
+        Nan::ThrowTypeError("first argument must be a buffer object");
+        return;
+    }
+    v8::Local<v8::Object> obj = info[0]->ToObject();
+    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    {
+        Nan::ThrowTypeError("first arg must be a buffer object");
+        return;
+    }
+
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+
+    vector_tile_adddata_baton_t *closure = new vector_tile_adddata_baton_t();
+    closure->request.data = closure;
+    closure->d = d;
+    closure->error = false;
+    closure->cb.Reset(callback.As<v8::Function>());
+    closure->buffer.Reset(obj.As<v8::Object>());
+    closure->data = node::Buffer::Data(obj);
+    closure->dataLength = node::Buffer::Length(obj);
+    uv_queue_work(uv_default_loop(), &closure->request, EIO_AddData, (uv_after_work_cb)EIO_AfterAddData);
+    d->Ref();
     return;
 }
 
+void VectorTile::EIO_AddData(uv_work_t* req)
+{
+    vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
+
+    if (closure->dataLength <= 0)
+    {
+        closure->error = true;
+        closure->error_name = "cannot accept empty buffer as protobuf";
+        return;
+    }
+    try
+    {
+        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength); 
+    }
+    catch (std::exception const& ex)
+    {
+        closure->error = true;
+        closure->error_name = ex.what();
+    }
+}
+
+void VectorTile::EIO_AfterAddData(uv_work_t* req)
+{
+    Nan::HandleScope scope;
+    vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
+    if (closure->error)
+    {
+        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+    else
+    {
+        v8::Local<v8::Value> argv[1] = { Nan::Null() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    }
+
+    closure->d->Unref();
+    closure->cb.Reset();
+    closure->buffer.Reset();
+    delete closure;
+}
+
+/**
+ * Replace the data in this vector tile with new raw data
+ *
+ * @memberof mapnik.VectorTile
+ * @name setDataSync
+ * @instance
+ * @param {Buffer} raw data
+ */
 NAN_METHOD(VectorTile::setDataSync)
 {
     info.GetReturnValue().Set(_setDataSync(info));
@@ -3182,7 +3656,6 @@ typedef struct
  * @name setData
  * @instance
  * @param {Buffer} raw data
- * @param {string} name of the layer to be added
  */
 NAN_METHOD(VectorTile::setData)
 {
@@ -3230,6 +3703,13 @@ NAN_METHOD(VectorTile::setData)
 void VectorTile::EIO_SetData(uv_work_t* req)
 {
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
+    
+    if (closure->dataLength <= 0)
+    {
+        closure->error = true;
+        closure->error_name = "cannot accept empty buffer as protobuf";
+        return;
+    }
 
     try
     {
@@ -3238,12 +3718,8 @@ void VectorTile::EIO_SetData(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
-        // This code is pointless as there is no known way for a buffer to create an invalid string here
-        // if there was this would be a bug in node.
-        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
-        // LCOV_EXCL_END
     }
 }
 
@@ -3251,12 +3727,10 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 {
     Nan::HandleScope scope;
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
-    if (closure->error) {
-        // See note about exception in EIO_SetData
-        // LCOV_EXCL_START
+    if (closure->error)
+    {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        // LCOV_EXCL_END
     }
     else
     {

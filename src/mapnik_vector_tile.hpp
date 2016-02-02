@@ -90,6 +90,15 @@ public:
     static void after_to_geojson(uv_work_t* req);
     static NAN_METHOD(addGeoJSON);
     static NAN_METHOD(addImage);
+    static void EIO_AddImage(uv_work_t* req);
+    static void EIO_AfterAddImage(uv_work_t* req);
+    static v8::Local<v8::Value> _addImageSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static NAN_METHOD(addImageSync);
+    static NAN_METHOD(addImageBuffer);
+    static void EIO_AddImageBuffer(uv_work_t* req);
+    static void EIO_AfterAddImageBuffer(uv_work_t* req);
+    static v8::Local<v8::Value> _addImageBufferSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static NAN_METHOD(addImageBufferSync);
     static void EIO_RenderTile(uv_work_t* req);
     static void EIO_AfterRenderTile(uv_work_t* req);
     static NAN_METHOD(setData);
@@ -98,6 +107,10 @@ public:
     static v8::Local<v8::Value> _setDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(setDataSync);
     static NAN_METHOD(addData);
+    static void EIO_AddData(uv_work_t* req);
+    static void EIO_AfterAddData(uv_work_t* req);
+    static v8::Local<v8::Value> _addDataSync(Nan::NAN_METHOD_ARGS_TYPE info);
+    static NAN_METHOD(addDataSync);
     static NAN_METHOD(composite);
     static NAN_METHOD(compositeSync);
     static v8::Local<v8::Value> _compositeSync(Nan::NAN_METHOD_ARGS_TYPE info);
