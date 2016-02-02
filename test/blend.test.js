@@ -282,17 +282,6 @@ describe('mapnik.blend', function() {
         }); });
     });
     
-    it('blended png - encoder: miniz', function(done) {
-        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
-        mapnik.blend(images, {encoder:"miniz"}, function(err, result) {
-            if (err) throw err;
-            var actual = new mapnik.Image.fromBytesSync(result);
-            //actual.save('test/blend-fixtures/actual.png')
-            assert.equal(0,expected.compare(actual));
-            done();
-        });
-    });
-    
     it('blended png - one image', function(done) {
         // should be the same
         var expected = new mapnik.Image.open('test/blend-fixtures/1.png');
