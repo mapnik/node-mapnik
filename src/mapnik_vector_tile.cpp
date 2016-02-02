@@ -4682,6 +4682,7 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
+
 NAN_METHOD(VectorTile::clearSync)
 {
     info.GetReturnValue().Set(_clearSync(info));
