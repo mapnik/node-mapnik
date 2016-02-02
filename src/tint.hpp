@@ -16,9 +16,9 @@ static inline void rgb_to_hsl(unsigned red, unsigned green, unsigned blue,
     h = 0.0, s = 0.0, l = gamma / 2.0;
     if (delta > 0.0) {
         s = l > 0.5 ? delta / (2.0 - gamma) : delta / gamma;
-        if (max == r && max != g) h = (g - b) / delta + (g < b ? 6.0 : 0.0);
-        if (max == g && max != b) h = (b - r) / delta + 2.0;
-        if (max == b && max != r) h = (r - g) / delta + 4.0;
+        if (r >= b && r > g) h = (g - b) / delta + (g < b ? 6.0 : 0.0);
+        if (g >= r && g > b) h = (b - r) / delta + 2.0;
+        if (b >= g && b > r) h = (r - g) / delta + 4.0;
         h /= 6.0;
     }
 }
