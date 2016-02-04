@@ -94,11 +94,12 @@ class pbf_reader {
 #ifdef PROTOZERO_USE_BARE_POINTER_FOR_PACKED_FIXED
 
     template <typename T>
-    inline std::pair<const T*, const T*> packed_fixed() {
-        protozero_assert(tag() != 0 && "call next() before accessing field value");
-        auto len = get_len_and_skip();
-        protozero_assert(len % sizeof(T) == 0);
-        return std::make_pair(reinterpret_cast<const T*>(m_data-len), reinterpret_cast<const T*>(m_data));
+    using const_fixed_iterator = const T*;
+
+    template <typename T>
+    inline std::pair<const_fixed_iterator<T>, const_fixed_iterator<T>> create_fixed_iterator_pair(const char* first, const char* last) {
+        return std::make_pair(reinterpret_cast<const T*>(first),
+                              reinterpret_cast<const T*>(last));
     }
 
 #else
@@ -157,15 +158,20 @@ class pbf_reader {
     }; // class const_fixed_iterator
 
     template <typename T>
+    inline std::pair<const_fixed_iterator<T>, const_fixed_iterator<T>> create_fixed_iterator_pair(const char* first, const char* last) {
+        return std::make_pair(const_fixed_iterator<T>(first, last),
+                              const_fixed_iterator<T>(last, last));
+    }
+
+#endif
+
+    template <typename T>
     inline std::pair<const_fixed_iterator<T>, const_fixed_iterator<T>> packed_fixed() {
         protozero_assert(tag() != 0 && "call next() before accessing field value");
         auto len = get_len_and_skip();
         protozero_assert(len % sizeof(T) == 0);
-        return std::make_pair(const_fixed_iterator<T>(m_data-len, m_data),
-                              const_fixed_iterator<T>(m_data, m_data));
+        return create_fixed_iterator_pair<T>(m_data-len, m_data);
     }
-
-#endif
 
     template <typename T> inline T get_varint();
     template <typename T> inline T get_svarint();
@@ -935,7 +941,7 @@ void pbf_reader::skip() {
             skip_bytes(4);
             break;
         default:
-            throw unknown_pbf_wire_type_exception();
+            protozero_assert(false && "can not be here because next() should have thrown already");
     }
 }
 

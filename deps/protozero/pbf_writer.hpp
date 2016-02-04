@@ -49,9 +49,23 @@ namespace detail {
  */
 class pbf_writer {
 
+    // A pointer to a string buffer holding the data already written to the
+    // PBF message. For default constructed writers or writers that have been
+    // rolled back, this is a nullptr.
     std::string* m_data;
+
+    // A pointer to a parent writer object if this is a submessage. If this
+    // is a top-level writer, it is a nullptr.
     pbf_writer* m_parent_writer;
+
+    // This is usually 0. If there is an open submessage, this is set in the
+    // parent to the rollback position, ie. the last position before the
+    // submessage was started. This is the position where the header of the
+    // submessage starts.
     std::size_t m_rollback_pos = 0;
+
+    // This is usually 0. If there is an open submessage, this is set in the
+    // parent to the position where the data of the submessage is written to.
     std::size_t m_pos = 0;
 
     inline void add_varint(uint64_t value) {
@@ -185,14 +199,14 @@ class pbf_writer {
     }
 
     inline void close_submessage() {
-        protozero_assert(m_pos != 0);
         protozero_assert(m_data);
-        if (m_rollback_pos != size_is_known) {
-            if (m_data->size() - m_pos == 0) {
-                rollback_submessage();
-            } else {
-                commit_submessage();
-            }
+        if (m_pos == 0 || m_rollback_pos == size_is_known) {
+            return;
+        }
+        if (m_data->size() - m_pos == 0) {
+            rollback_submessage();
+        } else {
+            commit_submessage();
         }
     }
 
@@ -270,6 +284,13 @@ public:
     void reserve(std::size_t size) {
         protozero_assert(m_data);
         m_data->reserve(m_data->size() + size);
+    }
+
+    inline void rollback() {
+        protozero_assert(m_parent_writer && "you can't call rollback() on a pbf_writer without a parent");
+        protozero_assert(m_pos == 0 && "you can't call rollback() on a pbf_writer that has an open nested submessage");
+        m_parent_writer->rollback_submessage();
+        m_data = nullptr;
     }
 
     ///@{
@@ -723,19 +744,39 @@ public:
 
 namespace detail {
 
-    template <typename T>
-    class packed_field_fixed {
+    class packed_field {
+
+    protected:
 
         pbf_writer m_writer;
 
     public:
 
-        packed_field_fixed(pbf_writer& parent_writer, pbf_tag_type tag) :
+        packed_field(pbf_writer& parent_writer, pbf_tag_type tag) :
             m_writer(parent_writer, tag) {
         }
 
+        packed_field(pbf_writer& parent_writer, pbf_tag_type tag, std::size_t size) :
+            m_writer(parent_writer, tag, size) {
+        }
+
+        void rollback() {
+            m_writer.rollback();
+        }
+
+    }; // class packed_field
+
+    template <typename T>
+    class packed_field_fixed : public packed_field {
+
+    public:
+
+        packed_field_fixed(pbf_writer& parent_writer, pbf_tag_type tag) :
+            packed_field(parent_writer, tag) {
+        }
+
         packed_field_fixed(pbf_writer& parent_writer, pbf_tag_type tag, std::size_t size) :
-            m_writer(parent_writer, tag, size * sizeof(T)) {
+            packed_field(parent_writer, tag, size * sizeof(T)) {
         }
 
         void add_element(T value) {
@@ -745,14 +786,12 @@ namespace detail {
     }; // class packed_field_fixed
 
     template <typename T>
-    class packed_field_varint {
-
-        pbf_writer m_writer;
+    class packed_field_varint : public packed_field {
 
     public:
 
         packed_field_varint(pbf_writer& parent_writer, pbf_tag_type tag) :
-            m_writer(parent_writer, tag) {
+            packed_field(parent_writer, tag) {
         }
 
         void add_element(T value) {
@@ -762,14 +801,12 @@ namespace detail {
     }; // class packed_field_varint
 
     template <typename T>
-    class packed_field_svarint {
-
-        pbf_writer m_writer;
+    class packed_field_svarint : public packed_field {
 
     public:
 
         packed_field_svarint(pbf_writer& parent_writer, pbf_tag_type tag) :
-            m_writer(parent_writer, tag) {
+            packed_field(parent_writer, tag) {
         }
 
         void add_element(T value) {

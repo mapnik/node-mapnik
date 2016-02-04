@@ -26,8 +26,10 @@ namespace protozero {
 /**
  * The pbf_builder is used to write PBF formatted messages into a buffer. It
  * is based on the pbf_writer class and has all the same methods. The
- * difference is that whereever the pbf_writer class takes an integer tag,
- * this template class takes a tag of the template type T.
+ * difference is that while the pbf_writer class takes an integer tag,
+ * this template class takes a tag of the template type T. The idea is that
+ * T will be an enumeration value and this helps reduce the possibility of
+ * programming errors.
  *
  * Almost all methods in this class can throw an std::bad_alloc exception if
  * the std::string used as a buffer wants to resize.
