@@ -407,6 +407,7 @@ extern "C" {
         v8::Local<v8::Object> threading_mode = Nan::New<v8::Object>();
         NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "async", static_cast<unsigned>(std::launch::async))
         NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "deferred", static_cast<unsigned>(std::launch::deferred))
+        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "auto", static_cast<unsigned>(std::launch::async | std::launch::deferred))
         target->Set(Nan::New("threadingMode").ToLocalChecked(), threading_mode);
 
     }

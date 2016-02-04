@@ -593,9 +593,11 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
             threading_mode = static_cast<std::launch>(param_val->IntegerValue());
-            if (threading_mode != std::launch::async && threading_mode != std::launch::deferred)
+            if (threading_mode != std::launch::async && 
+                threading_mode != std::launch::deferred && 
+                threading_mode != (std::launch::async | std::launch::deferred))
             {
-                Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
+                Nan::ThrowTypeError("optional arg 'threading_mode' is invalid");
                 return scope.Escape(Nan::Undefined());
             }
         }
@@ -907,9 +909,11 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
             threading_mode = static_cast<std::launch>(param_val->IntegerValue());
-            if (threading_mode != std::launch::async && threading_mode != std::launch::deferred)
+            if (threading_mode != std::launch::async && 
+                threading_mode != std::launch::deferred &&
+                threading_mode != (std::launch::async | std::launch::deferred))
             {
-                Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
+                Nan::ThrowTypeError("optional arg 'threading_mode' is not a valid value");
                 return;
             }
         }
@@ -2851,7 +2855,6 @@ NAN_METHOD(VectorTile::addGeoJSON)
     bool multi_polygon_union = false;
     mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::positive_fill;
     bool process_all_rings = false;
-    std::launch threading_mode = std::launch::deferred;
 
     if (info.Length() > 2) 
     {
@@ -2913,21 +2916,6 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
         }
-        if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
-        {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
-            if (!param_val->IsNumber())
-            {
-                Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
-                return;
-            }
-            threading_mode = static_cast<std::launch>(param_val->IntegerValue());
-            if (threading_mode != std::launch::async && threading_mode != std::launch::deferred)
-            {
-                Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
-                return;
-            }
-        }
         if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
@@ -2973,7 +2961,6 @@ NAN_METHOD(VectorTile::addGeoJSON)
         ren.set_multi_polygon_union(multi_polygon_union);
         ren.set_fill_type(fill_type);
         ren.set_process_all_rings(process_all_rings);
-        ren.set_threading_mode(threading_mode);
         ren.update_tile(*d->get_tile());
         info.GetReturnValue().Set(Nan::True());
     }

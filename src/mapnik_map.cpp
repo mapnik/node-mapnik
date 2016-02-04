@@ -1898,10 +1898,12 @@ NAN_METHOD(Map::render)
                     return;
                 }
                 closure->threading_mode = static_cast<std::launch>(param_val->IntegerValue());
-                if (closure->threading_mode != std::launch::async && closure->threading_mode != std::launch::deferred)
+                if (closure->threading_mode != std::launch::async && 
+                    closure->threading_mode != std::launch::deferred &&
+                    closure->threading_mode != (std::launch::async | std::launch::deferred))
                 {
                     delete closure;
-                    Nan::ThrowTypeError("optional arg 'threading_mode' out of possible range");
+                    Nan::ThrowTypeError("optional arg 'threading_mode' value passed is invalid");
                     return;
                 }
             }

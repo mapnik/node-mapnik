@@ -169,6 +169,10 @@ describe('mapnik.VectorTile.composite', function() {
         assert.throws(function() { vtile1.composite([vtile2], {fill_type:99}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {process_all_rings:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {process_all_rings:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {threading_mode:null}); });
+        assert.throws(function() { vtile1.composite([vtile2], {threading_mode:null}, function(err, result) {}); });
+        assert.throws(function() { vtile1.compositeSync([vtile2], {threading_mode:999}); });
+        assert.throws(function() { vtile1.composite([vtile2], {threading_mode:999}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {reencode:null}); });
         assert.throws(function() { vtile1.composite([vtile2], {reencode:null}, function(err, result) {}); });
         assert.throws(function() { vtile1.compositeSync([vtile2], {simplify_distance:null}); });
@@ -468,6 +472,86 @@ describe('mapnik.VectorTile.composite', function() {
         // raw length of input buffers
         var opts = {image_format:"webp",image_scaling:"bilinear"};
         vtile2.composite(vtiles,opts, function(err) {
+            if (err) throw err;
+            vtile.composite(vtiles,opts);
+            assert.equal(vtile.getData().length,vtile2.getData().length);
+            var new_length = vtile.getData().length;
+            // raster2 is first in list after composite because it is in the same tile and can be
+            // simply copied. The others require reprojection and therefore must go through
+            // the processor.
+            assert.deepEqual(vtile.names(),['raster2','raster','lines-0-0-0','points-1-1-1']);
+            assert.equal(new_length,vtile.getData().length);
+            var json_result = vtile.toJSON();
+            assert.equal(json_result.length,4);
+            assert.equal(json_result[0].features.length,1);
+            assert.equal(json_result[1].features.length,1);
+            assert.equal(json_result[2].features.length,2);
+            assert.equal(json_result[3].features.length,1);
+            var map = new mapnik.Map(256,256);
+            map.loadSync(data_base +'/styles/all.xml');
+            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
+                if (err) throw err;
+                var expected_file = data_base +'/expected/2-1-1b.png';
+                //im.save(data_base +'/expected/2-1-1b.png');
+                assert.equal(0,compare_to_image(im,expected_file));
+                done();
+            });
+        });
+    });
+    
+    it('should render by overzooming+webp+biliear with threading mode auto', function(done) {
+        var vtile = new mapnik.VectorTile(2,1,1);
+        var vtile2 = new mapnik.VectorTile(2,1,1);
+        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster', 'jpeg'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2', 'png'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        // raw length of input buffers
+        var opts = {image_format:"webp",image_scaling:"bilinear"};
+        // until bug is fixed in std::future do not run this test on osx
+        if (process.platform == 'darwin') {
+            var opts = { threading_mode: mapnik.threadingMode.deferred };
+        } else {
+            var opts = { threading_mode: mapnik.threadingMode.auto };
+        }
+        vtile2.composite(vtiles, opts, function(err) {
+            if (err) throw err;
+            vtile.composite(vtiles,opts);
+            assert.equal(vtile.getData().length,vtile2.getData().length);
+            var new_length = vtile.getData().length;
+            // raster2 is first in list after composite because it is in the same tile and can be
+            // simply copied. The others require reprojection and therefore must go through
+            // the processor.
+            assert.deepEqual(vtile.names(),['raster2','raster','lines-0-0-0','points-1-1-1']);
+            assert.equal(new_length,vtile.getData().length);
+            var json_result = vtile.toJSON();
+            assert.equal(json_result.length,4);
+            assert.equal(json_result[0].features.length,1);
+            assert.equal(json_result[1].features.length,1);
+            assert.equal(json_result[2].features.length,2);
+            assert.equal(json_result[3].features.length,1);
+            var map = new mapnik.Map(256,256);
+            map.loadSync(data_base +'/styles/all.xml');
+            vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
+                if (err) throw err;
+                var expected_file = data_base +'/expected/2-1-1b.png';
+                //im.save(data_base +'/expected/2-1-1b.png');
+                assert.equal(0,compare_to_image(im,expected_file));
+                done();
+            });
+        });
+    });
+    
+    it('should render by overzooming+webp+biliear with threading mode async', function(done) {
+        var vtile = new mapnik.VectorTile(2,1,1);
+        var vtile2 = new mapnik.VectorTile(2,1,1);
+        var vtiles = [get_image_vtile([0,0,0],'cloudless_1_0_0.jpg','raster', 'jpeg'),get_image_vtile([2,1,1],'13-2411-3080.png','raster2', 'png'),get_tile_at('lines',[0,0,0]),get_tile_at('points',[1,1,1])];
+        // raw length of input buffers
+        var opts = {image_format:"webp",image_scaling:"bilinear"};
+        // until bug is fixed in std::future do not run this test on osx
+        if (process.platform == 'darwin') {
+            var opts = { threading_mode: mapnik.threadingMode.deferred };
+        } else {
+            var opts = { threading_mode: mapnik.threadingMode.async };
+        }
+        vtile2.composite(vtiles, opts, function(err) {
             if (err) throw err;
             vtile.composite(vtiles,opts);
             assert.equal(vtile.getData().length,vtile2.getData().length);

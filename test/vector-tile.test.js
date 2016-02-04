@@ -1840,6 +1840,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {simplify_distance:-0.5}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {variables:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {threading_mode:99}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {threading_mode:null}, function(err, vtile) {}); });
         map.render(vtile, {}, function(err, vtile) {
             assert.throws(function() { if (err) throw err; });
             done();
@@ -1875,6 +1876,80 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})),JSON.stringify(vt2.toJSON({decode_geometry:true})));
+            done();
+        });
+    });
+    
+    it('should render a vector_tile of the whole world with threading auto', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/map.xml');
+        map.srs = "+init=epsg:3857";
+        map.extent = vtile.extent();
+        // until bug is fixed in std::future do not run this test on osx
+        if (process.platform == 'darwin') {
+            var opts = { threading_mode: mapnik.threadingMode.deferred };
+        } else {
+            var opts = { threading_mode: mapnik.threadingMode.auto };
+        }
+
+        map.render(vtile, opts, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                assert.equal(vtile.reportGeometrySimplicity().length, 0);
+                assert.equal(vtile.reportGeometryValidity().length, 15); // Dataset not expected to be OGC valid
+            }
+            var expected = './test/data/vector_tile/tile_threading_auto.mvt';
+            var actual = './test/data/vector_tile/tile_threading_auto.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            assert.deepEqual(vtile.names(), ['world','nz']);
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(0,0,0);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(0,0,0);
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})),JSON.stringify(vt2.toJSON({decode_geometry:true})));
+            done();
+        });
+    });
+
+    it('should render a vector_tile of the whole world with threading async', function(done) {
+        var vtile = new mapnik.VectorTile(0, 0, 0);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/map.xml');
+        map.srs = "+init=epsg:3857";
+        map.extent = vtile.extent();
+        // until bug is fixed in std::future do not run this test on osx
+        if (process.platform == 'darwin') {
+            var opts = { threading_mode: mapnik.threadingMode.deferred };
+        } else {
+            var opts = { threading_mode: mapnik.threadingMode.async };
+        }
+
+        map.render(vtile, opts, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                assert.equal(vtile.reportGeometrySimplicity().length, 0);
+                assert.equal(vtile.reportGeometryValidity().length, 15); // Dataset not expected to be OGC valid
+            }
+            var expected = './test/data/vector_tile/tile_threading_async.mvt';
+            var actual = './test/data/vector_tile/tile_threading_async.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            assert.deepEqual(vtile.names(), ['world','nz']);
             var expected_data = fs.readFileSync(expected);
             fs.writeFileSync(actual, vtile.getData());
             var actual_data = fs.readFileSync(actual);
