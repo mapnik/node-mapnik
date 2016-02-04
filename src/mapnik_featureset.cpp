@@ -81,7 +81,7 @@ NAN_METHOD(Featureset::next)
             /* LCOV_EXCL_START */
             Nan::ThrowError(ex.what());
             return;
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
 
         if (fp) {

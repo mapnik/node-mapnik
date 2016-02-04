@@ -123,7 +123,7 @@ NAN_METHOD(Feature::fromJSON)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -224,7 +224,7 @@ NAN_METHOD(Feature::toJSON)
         /* LCOV_EXCL_START */
         Nan::ThrowError("Failed to generate GeoJSON");
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(json).ToLocalChecked());
 }

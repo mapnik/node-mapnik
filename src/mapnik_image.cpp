@@ -304,7 +304,7 @@ struct visitor_get_pixel
         /* LCOV_EXCL_START */
         Nan::EscapableHandleScope scope;
         return scope.Escape(Nan::Undefined());
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
 
     }
 
@@ -1468,7 +1468,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error("could not render to image") };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     else
     {
@@ -1809,7 +1809,7 @@ struct resize_visitor
         // Should be caught earlier so no test coverage should reach here.
         /* LCOV_EXCL_START */
         throw std::runtime_error("Can not resize null images");
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     
     void operator()(mapnik::image_gray8s &) const
@@ -2273,7 +2273,7 @@ void Image::EIO_Open(uv_work_t* req)
                 /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->error_name = "Failed to load: " + closure->filename;
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -2461,7 +2461,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         // LCOV_EXCL_START
         Nan::ThrowError(ex.what());
         return scope.Escape(Nan::Undefined());
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -2631,7 +2631,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
         // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = "Failed to load: " + closure->filename;
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -2809,7 +2809,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -2946,7 +2946,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         // LCOV_EXCL_START
         Nan::ThrowError(ex.what());
         return scope.Escape(Nan::Undefined());
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -2986,7 +2986,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
         /* LCOV_EXCL_START */
         Nan::ThrowTypeError("Failed to load from buffer");
         return scope.Escape(Nan::Undefined());
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     catch (std::exception const& ex)
     {
@@ -3064,7 +3064,7 @@ void Image::EIO_FromBytes(uv_work_t* req)
             /* LCOV_EXCL_START */
             closure->error = true;
             closure->error_name = "Failed to load from buffer";
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
     }
     catch (std::exception const& ex)

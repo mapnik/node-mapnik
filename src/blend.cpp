@@ -259,7 +259,7 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
             if (!WebPConfigInit(&config)) {
                 /* LCOV_EXCL_START */
                 baton->message = "WebPConfigInit failed: version mismatch";
-                /* LCOV_EXCL_END */ 
+                /* LCOV_EXCL_STOP */ 
             } else {
                 // see for more details: https://github.com/mapnik/mapnik/wiki/Image-IO#webp-output-options
                 config.quality = baton->quality;
@@ -329,7 +329,7 @@ void Work_Blend(uv_work_t* req) {
             /* LCOV_EXCL_START */
             baton->message = "Unknown image format";
             return;
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
 
         unsigned layer_width = image_reader->width();
@@ -342,7 +342,7 @@ void Work_Blend(uv_work_t* req) {
             /* LCOV_EXCL_START */
             baton->message = "zero width/height image encountered";
             return;
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
 
         int visibleWidth = (int)layer_width + image->x;

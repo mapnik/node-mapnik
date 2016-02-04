@@ -163,7 +163,7 @@ struct visitor_get_pixel_view
         /* LCOV_EXCL_START */
         Nan::EscapableHandleScope scope;
         return scope.Escape(Nan::Undefined());
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     v8::Local<v8::Value> operator() (mapnik::image_view_gray8 const& data)

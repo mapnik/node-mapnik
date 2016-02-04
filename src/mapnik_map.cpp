@@ -1981,7 +1981,7 @@ NAN_METHOD(Map::render)
         /* LCOV_EXCL_START */
         Nan::ThrowTypeError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 

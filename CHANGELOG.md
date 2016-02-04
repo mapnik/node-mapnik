@@ -14,7 +14,10 @@ Summary of changes:
  - `mapnik.VectorTile.addDataSync` now verifies buffers validity and internally updates v1 tiles to v2
  - `mapnik.VectorTile.setData` now verifies buffers validity and internally updates v1 tiles to v2
  - `mapnik.VectorTile.setDataSync` now verifies buffers validity and internally updates v1 tiles to v2
- - `mapnik.VectorTile.addImage` now takes a `mapnik.Image` object rather then a buffer, it also takes optional arguments image_scaling and image_format. 
+ - `mapnik.VectorTile.addImage` now takes a `mapnik.Image` object rather then a buffer, it also takes optional arguments image_scaling and image_format.
+ - `mapnik.VectorTile.addImageBuffer` replaces the old functionality of of `mapnik.VectorTile.addImage`
+ - Added `mapnik.VectorTile.addImageSync` and made `mapnik.VectorTile.addImage` accept a callback.
+ - Added `mapnik.VectorTile.addImageBufferSync` and made `mapnik.VectorTile.addImageBuffer` accept a callback.
  - `mapnik.VectorTile.height()` method is removed
  - `mapnik.VectorTile.width()` method is removed
  - `mapnik.VectorTile.parse()` method is removed

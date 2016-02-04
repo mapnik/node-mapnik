@@ -156,7 +156,7 @@ NAN_METHOD(MemoryDatasource::featureset)
             // currently.
             /* LCOV_EXCL_START */
             q.add_property_name(attr_info.get_name());
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
         mapnik::featureset_ptr fs = d->datasource_->features(q);
         if (fs)
@@ -169,7 +169,7 @@ NAN_METHOD(MemoryDatasource::featureset)
     // therefore it should be impossible to reach this point in the code.
     /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_END */
+    /* LCOV_EXCL_STOP */
 }
 
 NAN_METHOD(MemoryDatasource::add)

@@ -142,7 +142,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             /* LCOV_EXCL_START */
             Nan::ThrowError("Failed to generate GeoJSON");
             return scope.Escape(Nan::Undefined());
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
     }
     else
@@ -175,7 +175,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
                 /* LCOV_EXCL_START */
                 Nan::ThrowError("Failed to generate GeoJSON");
                 return scope.Escape(Nan::Undefined());
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -262,7 +262,7 @@ void Geometry::to_json(uv_work_t* req)
                 // LCOV_EXCL_START
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                // LCOV_EXCL_END
+                // LCOV_EXCL_STOP
             }
         }
         else
@@ -274,7 +274,7 @@ void Geometry::to_json(uv_work_t* req)
                 /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -285,7 +285,7 @@ void Geometry::to_json(uv_work_t* req)
         /* LCOV_EXCL_START */
         closure->error = true;
         closure->result = ex.what();
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -300,7 +300,7 @@ void Geometry::after_to_json(uv_work_t* req)
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     else
     {
@@ -354,7 +354,7 @@ NAN_METHOD(Geometry::toWKT)
         /* LCOV_EXCL_START */
         Nan::ThrowError("Failed to generate WKT");
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(wkt).ToLocalChecked());
 }

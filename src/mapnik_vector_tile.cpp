@@ -91,7 +91,7 @@ struct p2p_distance
         /* LCOV_EXCL_START */
         p2p_result p2p;
         return p2p;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     p2p_result operator() (mapnik::geometry::point<double> const& geom) const
@@ -231,7 +231,7 @@ struct p2p_distance
             }
         }
         return p2p;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     double x_;
@@ -325,7 +325,7 @@ VectorTile::VectorTile(int z,
 VectorTile::~VectorTile()
 { 
 }
-/* LCOV_EXCL_END */
+/* LCOV_EXCL_STOP */
 
 NAN_METHOD(VectorTile::New)
 {
@@ -1453,7 +1453,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
         // internally lonlat2merc in mapnik can never return false.
         /* LCOV_EXCL_START */
         throw std::runtime_error("could not reproject lon/lat to mercator");
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     mapnik::coord2d pt(x,y);
@@ -1479,7 +1479,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     {
                         /* LCOV_EXCL_START */
                         throw std::runtime_error("could not reproject lon/lat to mercator");
-                        /* LCOV_EXCL_END */
+                        /* LCOV_EXCL_STOP */
                     }
                     if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
@@ -1518,7 +1518,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                     {
                         /* LCOV_EXCL_START */
                         throw std::runtime_error("could not reproject lon/lat to mercator");
-                        /* LCOV_EXCL_END */
+                        /* LCOV_EXCL_STOP */
                     }
                     if (p2p.distance >= 0 && p2p.distance <= tolerance)
                     {
@@ -1741,7 +1741,7 @@ void VectorTile::_queryMany(queryMany_result & result,
         {
             /* LCOV_EXCL_START */
             throw std::runtime_error("could not reproject lon/lat to mercator");
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
         mapnik::coord2d pt(x,y);
         bbox.expand_to_include(pt);
@@ -1921,7 +1921,7 @@ struct geometry_type_name
     {
         // LCOV_EXCL_START
         return "Empty";
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 
     template <typename T>
@@ -1965,7 +1965,7 @@ struct geometry_type_name
     {
         // LCOV_EXCL_START
         return "GeometryCollection";
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 };
 
@@ -1984,7 +1984,7 @@ struct geometry_array_visitor
         // LCOV_EXCL_START
         Nan::EscapableHandleScope scope;
         return scope.Escape(Nan::New<v8::Array>());   
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
     
     template <typename T>
@@ -2007,7 +2007,7 @@ struct geometry_array_visitor
             // therefore no known tests reach this point
             // LCOV_EXCL_START
             return scope.Escape(Nan::New<v8::Array>());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
         std::uint32_t c = 0;
@@ -2028,7 +2028,7 @@ struct geometry_array_visitor
             // therefore no known tests reach this point
             // LCOV_EXCL_START
             return scope.Escape(Nan::New<v8::Array>());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
         std::uint32_t c = 0;
@@ -2049,7 +2049,7 @@ struct geometry_array_visitor
             // therefore no known tests reach this point
             // LCOV_EXCL_START
             return scope.Escape(Nan::New<v8::Array>());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
         std::uint32_t c = 0;
@@ -2070,7 +2070,7 @@ struct geometry_array_visitor
             // therefore no known tests reach this point
             // LCOV_EXCL_START
             return scope.Escape(Nan::New<v8::Array>());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
         std::uint32_t c = 0;
@@ -2091,7 +2091,7 @@ struct geometry_array_visitor
             // therefore no known tests reach this point
             // LCOV_EXCL_START
             return scope.Escape(Nan::New<v8::Array>());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(1 + geom.interior_rings.size());
         std::uint32_t c = 0;
@@ -2113,7 +2113,7 @@ struct geometry_array_visitor
             // therefore no known tests reach this point
             // LCOV_EXCL_START
             return scope.Escape(Nan::New<v8::Array>());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
         std::uint32_t c = 0;
@@ -2132,7 +2132,7 @@ struct geometry_array_visitor
         // LCOV_EXCL_START
         Nan::EscapableHandleScope scope;
         return scope.Escape(mapnik::util::apply_visitor((*this), geom));
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
     
     template <typename T>
@@ -2153,7 +2153,7 @@ struct geometry_array_visitor
             arr->Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);   
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 };
 
@@ -2464,7 +2464,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
             {
                 // LCOV_EXCL_START
                 throw std::runtime_error("Failed to generate GeoJSON geometry");
-                // LCOV_EXCL_END
+                // LCOV_EXCL_STOP
             }
             result += feature_str;
         }
@@ -2578,7 +2578,7 @@ bool write_geojson_layer_index(std::string & result,
     }
     // LCOV_EXCL_START
     return false;
-    // LCOV_EXCL_END
+    // LCOV_EXCL_STOP
 }
 
 bool write_geojson_layer_name(std::string & result,
@@ -2657,7 +2657,7 @@ v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info)
             // LCOV_EXCL_START
             Nan::ThrowTypeError("Layer could not be retrieved (should have not reached here)");
             return scope.Escape(Nan::Undefined());
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
     }
     return scope.Escape(Nan::New<v8::String>(result).ToLocalChecked());
@@ -2792,7 +2792,7 @@ void VectorTile::to_geojson(uv_work_t* req)
         // LCOV_EXCL_START
         closure->error = true;
         closure->result = ex.what();
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -2807,7 +2807,7 @@ void VectorTile::after_to_geojson(uv_work_t* req)
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
     else
     {
@@ -3859,7 +3859,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                 Nan::ThrowTypeError(s.str().c_str());
                 return scope.Escape(Nan::Undefined());
-                // LCOV_EXCL_END
+                // LCOV_EXCL_STOP
             }
             if (!compress)
             {
@@ -3881,7 +3881,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         // LCOV_EXCL_START
         Nan::ThrowTypeError(ex.what());
         return scope.Escape(Nan::Undefined());
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
     return scope.Escape(Nan::Undefined());
 }
@@ -4020,7 +4020,7 @@ void VectorTile::get_data(uv_work_t* req)
         // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -4036,7 +4036,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
     else if (!closure->data.empty())
     {
@@ -4061,7 +4061,7 @@ void VectorTile::after_get_data(uv_work_t* req)
             s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
             v8::Local<v8::Value> argv[1] = { Nan::Error(s.str().c_str()) };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-            // LCOV_EXCL_END
+            // LCOV_EXCL_STOP
         }
         else
         {
@@ -4753,7 +4753,7 @@ void VectorTile::EIO_Clear(uv_work_t* req)
         // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -4767,7 +4767,7 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        // LCOV_EXCL_END
+        // LCOV_EXCL_STOP
     }
     else
     {

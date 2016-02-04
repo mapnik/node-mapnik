@@ -139,7 +139,7 @@ NAN_METHOD(Datasource::New)
     // even if it is an empty or bad dataset the pointer will still exist
     /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_END */
+    /* LCOV_EXCL_STOP */
 }
 
 v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
@@ -188,7 +188,7 @@ NAN_METHOD(Datasource::extent)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
@@ -225,7 +225,7 @@ NAN_METHOD(Datasource::describe)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     info.GetReturnValue().Set(description);
@@ -256,7 +256,7 @@ NAN_METHOD(Datasource::featureset)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     if (fs)
@@ -266,7 +266,7 @@ NAN_METHOD(Datasource::featureset)
     // This should never be able to be reached
     /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_END */
+    /* LCOV_EXCL_STOP */
 }
 
 NAN_METHOD(Datasource::fields)
