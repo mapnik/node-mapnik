@@ -418,6 +418,12 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
+    it('should throw when x, y, or z are negative', function(done) {
+      assert.throws(function() { new mapnik.VectorTile(0,0,-1); });
+      assert.throws(function() { new mapnik.VectorTile(0,-1,0); });
+      assert.throws(function() { new mapnik.VectorTile(-1,0,0); });
+      done();
+    });
 
     it('should be able to create a vector tile from geojson - multipoint', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
