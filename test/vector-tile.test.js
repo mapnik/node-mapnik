@@ -662,6 +662,15 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { new mapnik.VectorTile(0,0,0,null); });
         assert.throws(function() { new mapnik.VectorTile(0,0,0,{tile_size:null}); });
         assert.throws(function() { new mapnik.VectorTile(0,0,0,{buffer_size:null}); });
+
+        // invalid range
+        assert.throws(function() { new mapnik.VectorTile(-1,0,0); });
+        assert.throws(function() { new mapnik.VectorTile(1,-1,0); });
+        assert.throws(function() { new mapnik.VectorTile(1,0,-1); });
+        assert.throws(function() { new mapnik.VectorTile(1,0,2); });
+        assert.throws(function() { new mapnik.VectorTile(1,2,0); });
+        assert.throws(function() { new mapnik.VectorTile(4,16,0); });
+        assert.throws(function() { new mapnik.VectorTile(4,0,16); });
     });
 
     it('should be initialized properly', function() {
@@ -1731,9 +1740,19 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.render(map, im); });
         assert.throws(function() { vtile.render(map, im, null, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, {}, function(e,i) {}); });
-        assert.throws(function() { vtile.render(map, im, {x:null}, function(e,i) {}); });
-        assert.throws(function() { vtile.render(map, im, {y:null}, function(e,i) {}); });
-        assert.throws(function() { vtile.render(map, im, {z:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:null, y:0, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:null, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:0, z:null}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {y:0, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:-1, y:0, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:-1, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:0, z:-1}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:1, y:0, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:1, z:0}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:0, y:2, z:1}, function(e,i) {}); });
+        assert.throws(function() { vtile.render(map, im, {x:2, y:0, z:1}, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, im, {buffer_size:null}, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, im, {scale:null}, function(e,i) {}); });
         assert.throws(function() { vtile.render(map, im, {scale_denominator:null}, function(e,i) {}); });

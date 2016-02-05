@@ -357,6 +357,17 @@ NAN_METHOD(VectorTile::New)
         Nan::ThrowTypeError("required parameters (z, x, and y) must be greater then or equal to zero");
         return;
     }
+    int max_at_zoom = pow(2,z);
+    if (x >= max_at_zoom)
+    {
+        Nan::ThrowTypeError("required parameter x is out of range of possible values based on z value");
+        return;
+    }
+    if (y >= max_at_zoom)
+    {
+        Nan::ThrowTypeError("required parameter y is out of range of possible values based on z value");
+        return;
+    }
 
     std::uint32_t tile_size = 4096;
     std::int32_t buffer_size = 128;
@@ -4199,6 +4210,9 @@ NAN_METHOD(VectorTile::render)
 
     if (info.Length() > 2)
     {
+        bool set_x = false;
+        bool set_y = false;
+        bool set_z = false;
         if (!info[2]->IsObject())
         {
             Nan::ThrowTypeError("optional third argument must be an options object");
@@ -4214,6 +4228,7 @@ NAN_METHOD(VectorTile::render)
                 return;
             }
             closure->z = bind_opt->IntegerValue();
+            set_z = true;
             closure->zxy_override = true;
         }
         if (options->Has(Nan::New("x").ToLocalChecked()))
@@ -4225,6 +4240,7 @@ NAN_METHOD(VectorTile::render)
                 return;
             }
             closure->x = bind_opt->IntegerValue();
+            set_x = true;
             closure->zxy_override = true;
         }
         if (options->Has(Nan::New("y").ToLocalChecked()))
@@ -4236,8 +4252,35 @@ NAN_METHOD(VectorTile::render)
                 return;
             }
             closure->y = bind_opt->IntegerValue();
+            set_y = true;
             closure->zxy_override = true;
         }
+
+        if (closure->zxy_override)
+        {
+            if (!set_z || !set_x || !set_y)
+            {
+                Nan::ThrowTypeError("orginal args 'z', 'x', and 'y' must all be used together");
+                return;
+            }
+            if (closure->x < 0 || closure->y < 0 || closure->z < 0)
+            {
+                Nan::ThrowTypeError("orginal args 'z', 'x', and 'y' can not be negative");
+                return;
+            }
+            int max_at_zoom = pow(2,closure->z);
+            if (closure->x >= max_at_zoom)
+            {
+                Nan::ThrowTypeError("required parameter x is out of range of possible values based on z value");
+                return;
+            }
+            if (closure->y >= max_at_zoom)
+            {
+                Nan::ThrowTypeError("required parameter y is out of range of possible values based on z value");
+                return;
+            }
+        }
+
         if (options->Has(Nan::New("buffer_size").ToLocalChecked()))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
