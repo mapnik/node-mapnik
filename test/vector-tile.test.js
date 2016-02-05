@@ -145,6 +145,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addGeoJSON(geo_str, 1); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", null); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {area_threshold:null}); });
+        assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {area_threshold:-1}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {strictly_simple:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {multi_polygon_union:null}); });
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {fill_type:null}); });
@@ -2562,6 +2563,17 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
             done();
         });
+    });
+
+    it('should fail if image object x or y are zero pixels', function(done) {
+      var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
+      var im_empty = new mapnik.Image(0,0);
+      var im_empty_y = new mapnik.Image(300,0);
+      var im_empty_x = new mapnik.Image(0,300);
+      assert.throws(function() { vtile.addImageSync(im_empty, 'nothing to see here'); });
+      assert.throws(function() { vtile.addImageSync(im_empty_y, 'x is the best'); });
+      assert.throws(function() { vtile.addImageSync(im_empty_y, 'y wins'); });
+      done();
     });
     
     it('should be able to put an Image object into a vector tile layer async', function(done) {
