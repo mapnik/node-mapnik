@@ -2493,7 +2493,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should fail to addImage due to bad input', function(done) {
+    it.only('should fail to addImage due to bad input', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0);
         assert.throws(function() { vtile.addImage(); });
         assert.throws(function() { vtile.addImage(null); });
@@ -2512,6 +2512,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256)); });
         assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256), 12); });
         assert.throws(function() { vtile.addImageSync({}, 'asdf'); });
+        assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256), 'optionsarenotanobject', null); });
         done();
     });
     

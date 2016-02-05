@@ -3116,7 +3116,7 @@ typedef struct
  * Add an Image as a tile layer
  *
  * @memberof mapnik.VectorTile
- * @name addImageSync
+ * @name addImage
  * @instance
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
