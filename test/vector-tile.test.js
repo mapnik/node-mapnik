@@ -1850,6 +1850,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {image_scaling:'foo'}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {image_format:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {area_threshold:null}, function(err, vtile) {}); });
+        assert.throws(function() { map.render(vtile, {area_threshold:-0.1}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {strictly_simple:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {multi_polygon_union:null}, function(err, vtile) {}); });
         assert.throws(function() { map.render(vtile, {fill_type:null}, function(err, vtile) {}); });
