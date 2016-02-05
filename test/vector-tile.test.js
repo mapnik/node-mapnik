@@ -2493,7 +2493,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it.only('should fail to addImage due to bad input', function(done) {
+    it('should fail to addImage due to bad input', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0);
         assert.throws(function() { vtile.addImage(); });
         assert.throws(function() { vtile.addImage(null); });
@@ -2505,6 +2505,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImage({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImage({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImage(new mapnik.Image(256,256), 12, function(err) {}); });
+        assert.throws(function() { vtile.addImage(new mapnik.Image(256,256), 'hoorah', null); });
         assert.throws(function() { vtile.addImageSync(); });
         assert.throws(function() { vtile.addImageSync(null); });
         assert.throws(function() { vtile.addImageSync('asdf'); });
@@ -2514,6 +2515,18 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageSync({}, 'asdf'); });
         assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256), 'optionsarenotanobject', null); });
         done();
+    });
+
+    it('should fail with invalid options for addImage & addImageSync', function(done) {
+      var vtile = new mapnik.VectorTile(1, 0, 0);
+      var im = new mapnik.Image(256,256);
+      assert.throws(function() { vtile.addImage(im, 'waka', {image_scaling: 10}); });
+      assert.throws(function() { vtile.addImage(im, 'waka', {image_scaling: 'wordsarehard'}); });
+      assert.throws(function() { vtile.addImage(im, 'waka', {image_format: 45}); });
+      assert.throws(function() { vtile.addImageSync(im, 'waka', {image_scaling: 10}); });
+      assert.throws(function() { vtile.addImageSync(im, 'waka', {image_scaling: 'wordsarehard'}); });
+      assert.throws(function() { vtile.addImageSync(im, 'waka', {image_format: 45}); });
+      done();
     });
     
     it('should fail to addImageBuffer due to bad input', function(done) {
