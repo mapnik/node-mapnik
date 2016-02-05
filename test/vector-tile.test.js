@@ -2538,6 +2538,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageBuffer(new Buffer('foo')); });
         assert.throws(function() { vtile.addImageBuffer(new Buffer('foo'), 12); });
         assert.throws(function() { vtile.addImageBuffer({}, 'asdf'); });
+        assert.throws(function() { vtile.addImageBuffer(new Buffer(0), 'waka', {}); });
         assert.throws(function() { vtile.addImageBuffer({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImageBuffer({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImageBuffer(new Buffer('foo'), 12, function(err) {}); });
@@ -2545,9 +2546,10 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageBufferSync(null); });
         assert.throws(function() { vtile.addImageBufferSync('asdf'); });
         assert.throws(function() { vtile.addImageBufferSync({}); });
+        assert.throws(function() { vtile.addImageBufferSync(new Buffer(0), 'waka'); });
         assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo')); });
         assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo'), 12); });
-        assert.throws(function() { vtile.addImageBufferSync({}, 'asdf'); });
+        assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
         done();
     });
 
