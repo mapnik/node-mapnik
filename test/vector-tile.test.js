@@ -598,12 +598,16 @@ describe('mapnik.VectorTile ', function() {
         assert.ok(Math.abs(coords3[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
         // not passing callback trigger sync method
         assert.equal(vtile.toGeoJSON('__array__'),json_array);
-        // ensure async method has same result
+        // ensure async method has same result, but chain together callbacks
+        // since we need to call done() at the end
         vtile.toGeoJSON('__all__',function(err,json_string) {
             assert.deepEqual(json_string,json_out);
             vtile.toGeoJSON('__array__',function(err,json_string) {
                 assert.deepEqual(json_string,json_array);
-                done();
+                vtile.toGeoJSON('layer-name', function(err, json_string) {
+                  assert(json_string.length > 0);
+                  done();
+                });
             });
         });
     });
@@ -811,6 +815,14 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(uncompressed2.length, 0);
             done();
         });
+    });
+
+    it('should return the correct bufferedExtent', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var extent = vtile.bufferedExtent();
+        var expectedExtent = [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
+        assert.deepEqual(extent, expectedExtent);
+        done();
     });
     
     it('should be able to getData with a RLE', function(done) {
@@ -1551,6 +1563,8 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(actual.features[0].properties.length,expected_geojson.features[0].properties.length);
         assert.equal(actual.features[0].properties.NAME,expected_geojson.features[0].properties.NAME);
         deepEqualTrunc(actual.features[0].geometry,expected_geojson.features[0].geometry);
+        
+        // 
         done();
     });
 
@@ -2505,6 +2519,8 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImage({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImage({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImage(new mapnik.Image(256,256), 12, function(err) {}); });
+        assert.throws(function() { vtile.addImage('not an object', 'waka', function(err) {}); });
+        assert.throws(function() { vtile.addImage(new mapnik.Image(0,0), 'waka', function(err) {}); });
         assert.throws(function() { vtile.addImage(new mapnik.Image(256,256), 'hoorah', null); });
         assert.throws(function() { vtile.addImageSync(); });
         assert.throws(function() { vtile.addImageSync(null); });
@@ -2517,12 +2533,13 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it('should fail with invalid options for addImage & addImageSync', function(done) {
+    it('should fail with invalid options object for addImage & addImageSync', function(done) {
       var vtile = new mapnik.VectorTile(1, 0, 0);
       var im = new mapnik.Image(256,256);
-      assert.throws(function() { vtile.addImage(im, 'waka', {image_scaling: 10}); });
-      assert.throws(function() { vtile.addImage(im, 'waka', {image_scaling: 'wordsarehard'}); });
-      assert.throws(function() { vtile.addImage(im, 'waka', {image_format: 45}); });
+      assert.throws(function() { vtile.addImage(im, 'waka', 'not an object', function(err) {}); });
+      assert.throws(function() { vtile.addImage(im, 'waka', {image_scaling: 10}, function(err) {}); });
+      assert.throws(function() { vtile.addImage(im, 'waka', {image_scaling: 'wordsarehard'}, function(err) {}); });
+      assert.throws(function() { vtile.addImage(im, 'waka', {image_format: 45}, function(err) {}); });
       assert.throws(function() { vtile.addImageSync(im, 'waka', {image_scaling: 10}); });
       assert.throws(function() { vtile.addImageSync(im, 'waka', {image_scaling: 'wordsarehard'}); });
       assert.throws(function() { vtile.addImageSync(im, 'waka', {image_format: 45}); });
@@ -2550,6 +2567,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo')); });
         assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo'), 12); });
         assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
+        assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
         done();
     });
 
@@ -2558,7 +2576,7 @@ describe('mapnik.VectorTile ', function() {
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
         // push image into a named vtile layer
-        vtile.addImageSync(im,'raster', {image_format:'jpeg'});
+        vtile.addImageSync(im,'raster', {image_format:'jpeg', image_scaling: 'bilinear'});
         assert.equal(vtile.painted(), true);
         assert.equal(vtile.empty(), false);
         assert.deepEqual(vtile.names(),['raster']);
@@ -2597,7 +2615,7 @@ describe('mapnik.VectorTile ', function() {
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
         // push image into a named vtile layer
-        vtile.addImage(im,'raster', {image_format:'jpeg'}, function (err) {
+        vtile.addImage(im,'raster', {image_format:'jpeg', scaling_method: 'bilinear'}, function (err) {
             assert.equal(vtile.painted(), true);
             assert.equal(vtile.empty(), false);
             assert.deepEqual(vtile.names(),['raster']);
