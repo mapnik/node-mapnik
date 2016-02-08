@@ -2530,7 +2530,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256), 12); });
         assert.throws(function() { vtile.addImageSync({}, 'asdf'); });
         assert.throws(function() { vtile.addImageSync(new mapnik.Image(256,256), 'optionsarenotanobject', null); });
-        done();
+        // invalid image type captures error in try/catch
+        vtile.addImage(new mapnik.Image(256,256), 'waka', {image_format: 'asdf'}, function(err) {
+            assert.equal(err.message, 'unknown file type: asdf');
+            done();
+        });
     });
 
     it('should fail with invalid options object for addImage & addImageSync', function(done) {
