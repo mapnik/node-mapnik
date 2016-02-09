@@ -1653,7 +1653,7 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it.only('should be able to clear data (sync)', function(done) {
+    it('should be able to clear data (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.equal(vtile.getData().length,_length);
