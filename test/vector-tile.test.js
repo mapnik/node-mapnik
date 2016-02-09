@@ -1237,12 +1237,14 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addData({}); }); // empty buffer is not valid
         assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
         assert.throws(function() { vtile.addData(new Buffer('foo')); });
+        assert.throws(function() { vtile.addData(new Buffer(0), 'not a function'); }); // last item must be a function
         assert.throws(function() { vtile.addDataSync(null); }); // empty buffer is not valid
         assert.throws(function() { vtile.addDataSync({}); }); // empty buffer is not valid
         assert.throws(function() { vtile.addDataSync(new Buffer(0)); }); // empty buffer is not valid
         assert.throws(function() { vtile.addDataSync(new Buffer('foo')); });
         assert.throws(function() { vtile.addData(null, function(err) {}); });
         assert.throws(function() { vtile.addData({}, function(err) {}); });
+        
         vtile.addData(new Buffer(0), function(err) {
             assert.throws(function() { if (err) throw err; }); 
             vtile.addData(new Buffer('foo'), function(err) {
@@ -1252,7 +1254,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should error out if we pass invalid data to addData', function(done) {
+    it('should error out if we pass invalid data to setData', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.setData(null); }); // empty buffer is not valid
