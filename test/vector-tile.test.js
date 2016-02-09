@@ -1155,6 +1155,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData(new Buffer('foo'), null); });
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
+        
+        // invalid .mvt
+        var badTile = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
+        assert.throws(function() { vtile.setData(badTile); });
+
         vtile.setData(new Buffer('foo'),function(err) {
             assert.throws(function() { if (err) throw err; });
             done();
