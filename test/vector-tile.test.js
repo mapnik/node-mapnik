@@ -817,11 +817,16 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should return the correct bufferedExtent', function(done) {
+    it.only('should return the correct bufferedExtent', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var extent = vtile.bufferedExtent();
-        var expectedExtent = [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
-        assert.deepEqual(extent, expectedExtent);
+        var expected = [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
+        // typically not different, but rounding can cause different values
+        // so we assert each value's difference is nominal
+        assert(Math.abs(extent[0] - expected[0]) < 1e-8);
+        assert(Math.abs(extent[1] - expected[1]) < 1e-8);
+        assert(Math.abs(extent[2] - expected[2]) < 1e-8);
+        assert(Math.abs(extent[3] - expected[3]) < 1e-8);
         done();
     });
     
