@@ -3320,8 +3320,12 @@ v8::Local<v8::Value> VectorTile::_addImageBufferSync(Nan::NAN_METHOD_ARGS_TYPE i
     }
     catch (std::exception const& ex)
     {
+        // no obvious way to get this to throw in JS under obvious conditions
+        // but keep the standard exeption cache in C++
+        // LCOV_EXCL_START
         Nan::ThrowError(ex.what());
         return scope.Escape(Nan::Undefined());
+        // LCOV_EXCL_STOP
     }
     return scope.Escape(Nan::Undefined());
 }
@@ -3409,6 +3413,7 @@ void VectorTile::EIO_AddImageBuffer(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        std::cout << "IMAGEBUFFER ASYNC CATCH STATEMENT";
         closure->error = true;
         closure->error_name = ex.what();
     }
@@ -3420,6 +3425,7 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
     vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
     if (closure->error)
     {
+        std::cout << "IMAGEBUFFER ASYNC CALLBACK ERROR";
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
