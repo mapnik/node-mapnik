@@ -31,7 +31,12 @@ describe('mapnik.VectorTile query polygon', function() {
         var invalidTile = new mapnik.VectorTile(0,0,0);
         invalidTile.setData(badTile); // bad geometry doesn't fail setData validation
         assert.throws(function() { invalidTile.query(1,1); });
-        done();
+
+        // test async query throws an error
+        invalidTile.query(1,1, function(err) {
+            assert.throws(function() { if(err) throw err; });
+            done();
+        });
     });
 
     it('query polygon', function(done) {
