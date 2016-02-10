@@ -16,13 +16,27 @@ describe('mapnik.VectorTile query polygon', function() {
         done();
     });
 
-    it('query fails due to bad parameters', function() {
+    it('query fails due to bad parameters', function(done) {
         assert.throws(function() { vtile.query(); });
         assert.throws(function() { vtile.query(1); });
         assert.throws(function() { vtile.query(1,'2'); });
         assert.throws(function() { vtile.query(1,2,null); });
         assert.throws(function() { vtile.query(1,2,{tolerance:null}); });
         assert.throws(function() { vtile.query(1,2,{layer:null}); });
+        done();
+    });
+
+    it('should fail when querying an invalid .mvt', function(done) {
+        var badTile = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile_bad_geom.mvt'));
+        var invalidTile = new mapnik.VectorTile(0,0,0);
+        invalidTile.setData(badTile); // bad geometry doesn't fail setData validation
+        assert.throws(function() { invalidTile.query(1,1); });
+
+        // test async query throws an error
+        invalidTile.query(1,1, function(err) {
+            assert.throws(function() { if(err) throw err; });
+            done();
+        });
     });
 
     it('query polygon', function(done) {
