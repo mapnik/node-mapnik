@@ -8,12 +8,12 @@ var exists = require('fs').existsSync || require('path').existsSync;
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik rendering ', function() {
-    it('should render async (blank)', function(done) {
+    it.only('should render async (blank)', function(done) {
         var map = new mapnik.Map(600, 400);
         assert.ok(map instanceof mapnik.Map);
         map.extent = map.extent;
         var im = new mapnik.Image(map.width, map.height);
-        map.render(im, {scale: 1}, function(err, image) {
+        map.render(im, {scale: 1, buffer_size: 1}, function(err, image) {
             assert.ok(image);
             assert.ok(!err);
             var buffer = im.encodeSync('png');
