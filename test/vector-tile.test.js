@@ -817,7 +817,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it.only('should return the correct bufferedExtent', function(done) {
+    it('should return the correct bufferedExtent', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var extent = vtile.bufferedExtent();
         var expected = [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
