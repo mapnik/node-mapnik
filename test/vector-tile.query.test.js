@@ -39,6 +39,18 @@ describe('mapnik.VectorTile query polygon', function() {
         });
     });
 
+    it('should return nothing when querying an image layer', function(done) {
+        var vtile2 = new mapnik.VectorTile(0,0,0, {tile_size:256});
+        var im = new mapnik.Image(256,256);
+        vtile2.addImage(im, 'foo');
+        assert.deepEqual(vtile2.query(0,0), []);
+        vtile2.query(0,0, function(err, features) {
+            assert.ifError(err);
+            assert.deepEqual(features, []);
+            done();
+        });
+    });
+
     it('query polygon', function(done) {
         check(vtile.query(139.6142578125,37.17782559332976,{tolerance:0}));
         vtile.query(139.6142578125,37.17782559332976,{tolerance:0}, function(err, features) {

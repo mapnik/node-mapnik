@@ -87,11 +87,8 @@ struct p2p_distance
 
     p2p_result operator() (mapnik::geometry::geometry_empty const& ) const
     {
-        // There is no current way that a geometry empty could be returned from a vector tile.
-        /* LCOV_EXCL_START */
         p2p_result p2p;
         return p2p;
-        /* LCOV_EXCL_STOP */
     }
 
     p2p_result operator() (mapnik::geometry::point<double> const& geom) const
@@ -1513,7 +1510,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
     else
     {
         protozero::pbf_reader item(d->tile_->get_reader());
-        while (item.next(3))
+        while (item.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
             protozero::pbf_reader layer_msg = item.get_message();
             auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
@@ -2259,7 +2256,7 @@ NAN_METHOD(VectorTile::toJSON)
         protozero::pbf_reader tile_msg = d->tile_->get_reader();
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(d->tile_->get_layers().size());
         std::size_t l_idx = 0;
-        while (tile_msg.next(3))
+        while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
             protozero::pbf_reader layer_msg = tile_msg.get_message();
             v8::Local<v8::Object> layer_obj = Nan::New<v8::Object>();
@@ -2272,58 +2269,66 @@ NAN_METHOD(VectorTile::toJSON)
             {
                 switch (layer_msg.tag())
                 {
-                    case 1: // name
+                    case mapnik::vector_tile_impl::Layer_Encoding::NAME:
                         layer_obj->Set(Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_msg.get_string()).ToLocalChecked());
                         break;
-                    case 2: // feature
+                    case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
                         layer_features.push_back(layer_msg.get_message());
                         break;
-                    case 3: // keys
+                    case mapnik::vector_tile_impl::Layer_Encoding::KEYS:
                         layer_keys.push_back(layer_msg.get_string());
                         break;
-                    case 4: // values
+                    case mapnik::vector_tile_impl::Layer_Encoding::VALUES:
                         val_msg = layer_msg.get_message();
                         while (val_msg.next()) 
                         {
                             switch(val_msg.tag())
                             {
-                                case 1:
+                                case mapnik::vector_tile_impl::Value_Encoding::STRING:
                                     layer_values.push_back(val_msg.get_string());
                                     break;
-                                case 2:
+                                case mapnik::vector_tile_impl::Value_Encoding::FLOAT:
                                     layer_values.push_back(val_msg.get_float());
                                     break;
-                                case 3:
+                                case mapnik::vector_tile_impl::Value_Encoding::DOUBLE:
                                     layer_values.push_back(val_msg.get_double());
                                     break;
-                                case 4:
+                                case mapnik::vector_tile_impl::Value_Encoding::INT:
                                     layer_values.push_back(val_msg.get_int64());
                                     break;
-                                case 5:
+                                case mapnik::vector_tile_impl::Value_Encoding::UINT:
+                                    // LCOV_EXCL_START
                                     layer_values.push_back(val_msg.get_uint64());
                                     break;
-                                case 6:
+                                    // LCOV_EXCL_STOP
+                                case mapnik::vector_tile_impl::Value_Encoding::SINT:
+                                    // LCOV_EXCL_START
                                     layer_values.push_back(val_msg.get_sint64());
                                     break;
-                                case 7:
+                                    // LCOV_EXCL_STOP
+                                case mapnik::vector_tile_impl::Value_Encoding::BOOL:
                                     layer_values.push_back(val_msg.get_bool());
                                     break;
                                 default:
+                                    // LCOV_EXCL_START
                                     val_msg.skip();
                                     break;
+                                    // LCOV_EXCL_STOP
                             }
                         }
                         break;
-                    case 5: // extent
+                    case mapnik::vector_tile_impl::Layer_Encoding::EXTENT:
                         layer_obj->Set(Nan::New("extent").ToLocalChecked(), Nan::New<v8::Integer>(layer_msg.get_uint32()));
                         break;
-                    case 15:
+                    case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
                         version = layer_msg.get_uint32();
                         layer_obj->Set(Nan::New("version").ToLocalChecked(), Nan::New<v8::Integer>(version));
                         break;
                     default:
+                        // LCOV_EXCL_START
                         layer_msg.skip();
                         break;
+                        // LCOV_EXCL_STOP
                 }
             }
             v8::Local<v8::Array> f_arr = Nan::New<v8::Array>(layer_features.size());
@@ -2341,23 +2346,23 @@ NAN_METHOD(VectorTile::toJSON)
                 {
                     switch (feature_msg.tag())
                     {
-                        case 1: // id
+                        case mapnik::vector_tile_impl::Feature_Encoding::ID: 
                             feature_obj->Set(Nan::New("id").ToLocalChecked(),Nan::New<v8::Number>(feature_msg.get_uint64()));
                             break;
-                        case 2: // tags
+                        case mapnik::vector_tile_impl::Feature_Encoding::TAGS:
                             tag_itr = feature_msg.get_packed_uint32();
                             has_tags = true;
                             break;
-                        case 3: // geometry type
+                        case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
                             geom_type_enum = feature_msg.get_enum();
                             has_geom_type = true;
                             feature_obj->Set(Nan::New("type").ToLocalChecked(),Nan::New<v8::Integer>(geom_type_enum));
                             break;
-                        case 4: // geometry
+                        case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
                             geom_itr = feature_msg.get_packed_uint32();
                             has_geom = true;
                             break;
-                        case 5: // raster
+                        case mapnik::vector_tile_impl::Feature_Encoding::RASTER:
                         {
                             auto im_buffer = feature_msg.get_data(); 
                             feature_obj->Set(Nan::New("raster").ToLocalChecked(),
@@ -2365,8 +2370,10 @@ NAN_METHOD(VectorTile::toJSON)
                             break;
                         }
                         default:
+                            // LCOV_EXCL_START
                             feature_msg.skip();
                             break;
+                            // LCOV_EXCL_STOP
                     }   
                 }
                 v8::Local<v8::Object> att_obj = Nan::New<v8::Object>();
@@ -2506,7 +2513,7 @@ void write_geojson_array(std::string & result,
     protozero::pbf_reader tile_msg = v->get_tile()->get_reader();
     result += "[";
     bool first = true;
-    while (tile_msg.next(3))
+    while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         if (first)
         {
@@ -2520,7 +2527,7 @@ void write_geojson_array(std::string & result,
         protozero::pbf_reader layer_msg(pair_data);
         protozero::pbf_reader name_msg(pair_data);
         std::string layer_name;
-        if (name_msg.next(1))
+        if (name_msg.next(mapnik::vector_tile_impl::Layer_Encoding::NAME))
         {
             layer_name = name_msg.get_string();
         }
@@ -2547,7 +2554,7 @@ void write_geojson_all(std::string & result,
     protozero::pbf_reader tile_msg = v->get_tile()->get_reader();
     result += "{\"type\":\"FeatureCollection\",\"features\":[";
     bool first = true;
-    while (tile_msg.next(3))
+    while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         protozero::pbf_reader layer_msg(tile_msg.get_message());
         std::string features;
@@ -4907,7 +4914,7 @@ void vector_tile_not_simple(VectorTile * v,
                             std::vector<not_simple_feature> & errors)
 {
     protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
-    while (tile_msg.next(3))
+    while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         protozero::pbf_reader layer_msg(tile_msg.get_message());
         layer_not_simple(layer_msg,
@@ -4939,7 +4946,7 @@ void vector_tile_not_valid(VectorTile * v,
                            std::vector<not_valid_feature> & errors)
 {
     protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
-    while (tile_msg.next(3))
+    while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         protozero::pbf_reader layer_msg(tile_msg.get_message());
         layer_not_valid(layer_msg,
