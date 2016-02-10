@@ -8,7 +8,7 @@ var exists = require('fs').existsSync || require('path').existsSync;
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 describe('mapnik rendering ', function() {
-    it.only('should render async (blank)', function(done) {
+    it('should render async (blank)', function(done) {
         var map = new mapnik.Map(600, 400);
         assert.ok(map instanceof mapnik.Map);
         map.extent = map.extent;
