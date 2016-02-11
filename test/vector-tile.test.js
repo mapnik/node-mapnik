@@ -421,7 +421,8 @@ describe('mapnik.VectorTile ', function() {
                 geometry_type: "MultiLineString",
                 id: 1,
                 properties: {
-                  name: "geojson data"
+                  name: "geojson data",
+                  "bool": true
                 },
                 type: 2
               }]
