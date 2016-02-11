@@ -35,12 +35,19 @@ Notable Changes in Mapnik v3.0.9-57-g9494bc1 include:
 
 ## 3.4.13
 
+ - BREAKING: shapefile index files must be regenerated if using the
+   node-mapnik binaries which now default to Mapnik `v3.0.9-48-gbb8cd10` (see `Notable Changes in Mapnik` below for details).
  - Upgraded to node-pre-gyp@0.6.19
  - Upgraded to mapnik-vector-tile@0.14.2
  - Binaries updated to use Mapnik v3.0.9-48-gbb8cd10 and mapnik-packaging@039aa0d
 
 Notable Changes in Mapnik v3.0.9-48-gbb8cd10 include:
 
+ - BREAKING: any `.index` files accompanying a `.shp` must now be regenerated otherwise
+   an error will be throw like `Error: invalid index file`. To avoid this error you can
+   either delete the existing `.index` files, or ideally run `shapeindex` (or [mapnik-shapeindex.js](https://github.com/mapnik/node-mapnik/blob/master/bin/mapnik-shapeindex.js)) to recreate the `.index`.
+   The trigger for this change was an optimization that required a new binary format for the shapefile indexes (https://github.com/mapnik/mapnik/pull/3217). It was a mistake of @springmeyer to bring this into node-mapnik minor release (I'm sorry).
+ - WARNING: index files generated with this newer Mapnik are invalid for older versions of Mapnik.
  - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9...v3.0.9-48-gbb8cd10
  - The `shapeindex` command now has a `--index-parts` option
  - Upgraded mapbox::variant@3ac6e46
