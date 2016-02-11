@@ -5022,9 +5022,13 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
     }
     catch (std::exception const& ex)
     {
+        // LCOV_EXCL_START
         Nan::ThrowError(ex.what());
+        // LCOV_EXCL_STOP
     }
+    // LCOV_EXCL_START
     return scope.Escape(Nan::Undefined());
+    // LCOV_EXCL_STOP
 }
 
 /**
@@ -5052,9 +5056,13 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
     }
     catch (std::exception const& ex)
     {
+        // LCOV_EXCL_START
         Nan::ThrowError(ex.what());
+        // LCOV_EXCL_STOP
     }
+    // LCOV_EXCL_START
     return scope.Escape(Nan::Undefined());
+    // LCOV_EXCL_STOP
 }
 
 /**
