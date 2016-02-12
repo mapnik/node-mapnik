@@ -2203,7 +2203,9 @@ struct json_value_visitor
 
     void operator() (uint64_t const& val)
     {
+        // LCOV_EXCL_START
         att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        // LCOV_EXCL_STOP
     }
 
     void operator() (double const& val)
@@ -4824,6 +4826,7 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
 
 #if BOOST_VERSION >= 105800
 
+// LCOV_EXCL_START
 struct not_simple_feature
 {
     not_simple_feature(std::string const& layer_, 
@@ -4833,6 +4836,7 @@ struct not_simple_feature
     std::string const layer;
     std::int64_t const feature_id;
 };
+// LCOV_EXCL_STOP
 
 struct not_valid_feature
 {
@@ -4902,9 +4906,13 @@ void layer_not_valid(protozero::pbf_reader const& layer_msg,
             std::string message;
             if (!mapnik::geometry::is_valid(feature->get_geometry(), message))
             {
+                // Right now we don't have an obvious way of bypassing our validation
+                // process in JS, so let's skip testing this line
+                // LCOV_EXCL_START
                 errors.emplace_back(message,
                                     ds.get_name(),
                                     feature->id());
+                // LCOV_EXCL_STOP
             }
         }
     }
