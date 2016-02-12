@@ -4879,7 +4879,11 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
         {
             if (!mapnik::geometry::is_simple(feature->get_geometry()))
             {
+                // Right now we don't have an obvious way of bypassing our validation
+                // process in JS, so let's skip testing this line
+                // LCOV_EXCL_START
                 errors.emplace_back(ds.get_name(), feature->id());
+                // LCOV_EXCL_STOP
             }
         }
     }
@@ -4910,13 +4914,9 @@ void layer_not_valid(protozero::pbf_reader const& layer_msg,
             std::string message;
             if (!mapnik::geometry::is_valid(feature->get_geometry(), message))
             {
-                // Right now we don't have an obvious way of bypassing our validation
-                // process in JS, so let's skip testing this line
-                // LCOV_EXCL_START
                 errors.emplace_back(message,
                                     ds.get_name(),
                                     feature->id());
-                // LCOV_EXCL_STOP
             }
         }
     }
