@@ -2437,8 +2437,10 @@ NAN_METHOD(VectorTile::toJSON)
     }
     catch (std::exception const& ex) 
     {
+        // LCOV_EXCL_START
         Nan::ThrowError(ex.what());
         return;
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -3422,9 +3424,10 @@ void VectorTile::EIO_AddImageBuffer(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
-        std::cout << "IMAGEBUFFER ASYNC CATCH STATEMENT";
+        // LCOV_EXCL_START
         closure->error = true;
         closure->error_name = ex.what();
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -3434,9 +3437,10 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
     vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
     if (closure->error)
     {
-        std::cout << "IMAGEBUFFER ASYNC CALLBACK ERROR";
+        // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        // LCOV_EXCL_STOP
     }
     else
     {
@@ -4942,10 +4946,12 @@ v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & err
     std::uint32_t idx = 0;
     for (auto const& error : errors)
     {
+        // LCOV_EXCL_START
         v8::Local<v8::Object> obj = Nan::New<v8::Object>();
         obj->Set(layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
         obj->Set(feature_id_key, Nan::New<v8::Number>(error.feature_id));
         array->Set(idx++, obj);
+        // LCOV_EXCL_STOP
     }
     return scope.Escape(array);
 }
@@ -5115,8 +5121,10 @@ void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // LCOV_EXCL_START
         closure->error = true;
         closure->err_msg = ex.what();
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -5126,8 +5134,10 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
     not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
     if (closure->error) 
     {
+        // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        // LCOV_EXCL_STOP
     }
     else
     {
@@ -5182,8 +5192,10 @@ void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
     }
     catch (std::exception const& ex)
     {
+        // LCOV_EXCL_START
         closure->error = true;
         closure->err_msg = ex.what();
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -5193,8 +5205,10 @@ void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     if (closure->error) 
     {
+        // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        // LCOV_EXCL_STOP
     }
     else
     {
