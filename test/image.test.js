@@ -897,6 +897,15 @@ describe('mapnik.Image ', function() {
     it('should use resize to offset', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.tif');
         im.premultiply();
+
+        // prepare sync call for testing
+        var syncresult = im.resize(50, 50, {
+            scaling_method:mapnik.imageScaling.near, 
+            filter_factor:1.0, 
+            offset_x:-25, 
+            offset_y:-25
+        });
+
         im.resize(50, 50, { 
                 scaling_method:mapnik.imageScaling.near, 
                 filter_factor:1.0, 
@@ -910,6 +919,11 @@ describe('mapnik.Image ', function() {
             }
             var im2 = new mapnik.Image.open(expected);
             assert.equal(0, result.compare(im2));
+
+            // test sync
+            assert.equal(0, syncresult.compare(im2));
+
+
             done();
         });
     });

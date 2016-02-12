@@ -74,6 +74,16 @@ describe('mapnik.VectorTile ', function() {
             var vtile = new mapnik.VectorTile(0,0,0);
             assert.throws(function() { vtile.reportGeometrySimplicity(null); });
         });
+
+        // this is not recommend, doing this purely to ensure we have test coverage
+        // it('successfully creates a not_simple_feature with a non-simple geometry', function(done) {
+        //     var vtile = new mapnik.VectorTile(0,0,0);
+        //     var gj_str = fs.readFileSync('./test/data/bowtie.geojson').toString('utf8');
+        //     vtile.addGeoJSON(gj_str, 'not-simple', {strictly_simple: false, fill_type: mapnik.polygonFillType.evenOdd});
+        //     var simple = vtile.reportGeometrySimplicity();
+        //     // some sort of assert
+        //     done();
+        // });
     } else {
         it('should fail when bad parameters are passed to reportGeometrySimplicity', function() {});
     }
@@ -394,7 +404,8 @@ describe('mapnik.VectorTile ', function() {
                 ]]]
               },
               "properties": {
-                "name": "geojson data"
+                "name": "geojson data",
+                "bool": true // test for boolean coverage
               }
             }
           ]
@@ -410,7 +421,8 @@ describe('mapnik.VectorTile ', function() {
                 geometry_type: "MultiLineString",
                 id: 1,
                 properties: {
-                  name: "geojson data"
+                  name: "geojson data",
+                  "bool": true
                 },
                 type: 2
               }]
