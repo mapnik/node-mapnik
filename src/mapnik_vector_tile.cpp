@@ -299,6 +299,9 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "empty", empty);
 
     // properties
+    ATTR(lcons, "x", get_tile_x, set_tile_x);
+    ATTR(lcons, "y", get_tile_y, set_tile_y);
+    ATTR(lcons, "z", get_tile_z, set_tile_z);
     ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
     
@@ -5223,6 +5226,24 @@ void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 
 #endif // BOOST_VERSION >= 1.58
 
+NAN_GETTER(VectorTile::get_tile_x)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->x()));
+}
+
+NAN_GETTER(VectorTile::get_tile_y)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->y()));
+}
+
+NAN_GETTER(VectorTile::get_tile_z)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->z()));
+}
+
 NAN_GETTER(VectorTile::get_tile_size)
 {
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -5235,6 +5256,63 @@ NAN_GETTER(VectorTile::get_buffer_size)
     info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->buffer_size()));
 }
 
+NAN_SETTER(VectorTile::set_tile_x)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    if (!value->IsNumber())
+    {
+        Nan::ThrowError("Must provide a number");
+    } 
+    else 
+    {
+        int val = value->IntegerValue();
+        if (val < 0)
+        {
+            Nan::ThrowError("tile x coordinate must be greater then or equal to zero");
+            return;
+        }
+        d->tile_->x(val);
+    }
+}
+
+NAN_SETTER(VectorTile::set_tile_y)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    if (!value->IsNumber())
+    {
+        Nan::ThrowError("Must provide a number");
+    } 
+    else 
+    {
+        int val = value->IntegerValue();
+        if (val < 0)
+        {
+            Nan::ThrowError("tile y coordinate must be greater then or equal to zero");
+            return;
+        }
+        d->tile_->y(val);
+    }
+}
+
+NAN_SETTER(VectorTile::set_tile_z)
+{
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    if (!value->IsNumber())
+    {
+        Nan::ThrowError("Must provide a number");
+    } 
+    else 
+    {
+        int val = value->IntegerValue();
+        if (val < 0)
+        {
+            Nan::ThrowError("tile z coordinate must be greater then or equal to zero");
+            return;
+        }
+        d->tile_->z(val);
+    }
+}
+
 NAN_SETTER(VectorTile::set_tile_size)
 {
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -5244,8 +5322,8 @@ NAN_SETTER(VectorTile::set_tile_size)
     } 
     else 
     {
-        double val = value->NumberValue();
-        if (val <= 0.0)
+        int val = value->IntegerValue();
+        if (val <= 0)
         {
             Nan::ThrowError("tile size must be greater then zero");
             return;
@@ -5263,8 +5341,8 @@ NAN_SETTER(VectorTile::set_buffer_size)
     } 
     else 
     {
-        double val = value->NumberValue();
-        if (static_cast<double>(d->tile_size()) + (2 * val) <= 0)
+        int val = value->IntegerValue();
+        if (static_cast<int>(d->tile_size()) + (2 * val) <= 0)
         {
             Nan::ThrowError("too large of a negative buffer for tilesize");
             return;

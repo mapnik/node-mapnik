@@ -136,6 +136,12 @@ public:
     static v8::Local<v8::Value> _reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info);
 #endif // BOOST_VERSION >= 105800
 
+    static NAN_GETTER(get_tile_x);
+    static NAN_SETTER(set_tile_x);
+    static NAN_GETTER(get_tile_y);
+    static NAN_SETTER(set_tile_y);
+    static NAN_GETTER(get_tile_z);
+    static NAN_SETTER(set_tile_z);
     static NAN_GETTER(get_tile_size);
     static NAN_SETTER(set_tile_size);
     static NAN_GETTER(get_buffer_size);

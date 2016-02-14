@@ -842,6 +842,72 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
     
+    it('should return the correct extent', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var extent = vtile.extent();
+        var expected = [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248];
+        // typically not different, but rounding can cause different values
+        // so we assert each value's difference is nominal
+        assert(Math.abs(extent[0] - expected[0]) < 1e-8);
+        assert(Math.abs(extent[1] - expected[1]) < 1e-8);
+        assert(Math.abs(extent[2] - expected[2]) < 1e-8);
+        assert(Math.abs(extent[3] - expected[3]) < 1e-8);
+        done();
+    });
+    
+    it('only should throw if you try to set x, y, and z with bad input', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.throws(function() { vtile.x = null; });
+        assert.throws(function() { vtile.x = '1'; });
+        assert.throws(function() { vtile.x = -1; });
+        assert.throws(function() { vtile.y = null; });
+        assert.throws(function() { vtile.y = '1'; });
+        assert.throws(function() { vtile.y = -1; });
+        assert.throws(function() { vtile.z = null; });
+        assert.throws(function() { vtile.z = '1'; });
+        assert.throws(function() { vtile.z = -1; });
+    });
+
+    it('should be able to change tile coordinates and it change the extent', function(done) {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        var extent = vtile.extent();
+        var expected = [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248];
+        // typically not different, but rounding can cause different values
+        // so we assert each value's difference is nominal
+        assert(Math.abs(extent[0] - expected[0]) < 1e-8);
+        assert(Math.abs(extent[1] - expected[1]) < 1e-8);
+        assert(Math.abs(extent[2] - expected[2]) < 1e-8);
+        assert(Math.abs(extent[3] - expected[3]) < 1e-8);
+        assert.equal(vtile.z, 9);
+        assert.equal(vtile.x, 112);
+        assert.equal(vtile.y, 195);
+        vtile.x = 0;
+        assert.equal(vtile.x, 0);
+        extent = vtile.extent();
+        var expected_x = [-20037508.342789244, 4696291.017841229, -19959236.825825226, 4774562.534805248];
+        assert(Math.abs(extent[0] - expected_x[0]) < 1e-8);
+        assert(Math.abs(extent[1] - expected_x[1]) < 1e-8);
+        assert(Math.abs(extent[2] - expected_x[2]) < 1e-8);
+        assert(Math.abs(extent[3] - expected_x[3]) < 1e-8);
+        vtile.y = 0;
+        assert.equal(vtile.y, 0);
+        extent = vtile.extent();
+        var expected_y = [-20037508.342789244, 19959236.825825218, -19959236.825825226, 20037508.342789277];
+        assert(Math.abs(extent[0] - expected_y[0]) < 1e-8);
+        assert(Math.abs(extent[1] - expected_y[1]) < 1e-8);
+        assert(Math.abs(extent[2] - expected_y[2]) < 1e-8);
+        assert(Math.abs(extent[3] - expected_y[3]) < 1e-8);
+        vtile.z = 0;
+        assert.equal(vtile.z, 0);
+        extent = vtile.extent();
+        var expected_z = [-20037508.342789244, -20037508.34278924, 20037508.342789244, 20037508.342789277];
+        assert(Math.abs(extent[0] - expected_z[0]) < 1e-8);
+        assert(Math.abs(extent[1] - expected_z[1]) < 1e-8);
+        assert(Math.abs(extent[2] - expected_z[2]) < 1e-8);
+        assert(Math.abs(extent[3] - expected_z[3]) < 1e-8);
+        done();
+    });
+    
     it('should be able to getData with a RLE', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
