@@ -253,8 +253,15 @@ Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
  * @param {number} z
  * @param {number} x
  * @param {number} y
+ * @property {number} x - horizontal axis position
+ * @property {number} y - vertical axis position
+ * @property {number} z - the zoom level
+ * @property {number} tileSize - the size of the tile
+ * @property {number} bufferSize - the size of the tile's buffer
  * @example
  * var vtile = new mapnik.VectorTile(9,112,195);
+ * console.log(vtile.x, vtile.y, vtile.z); // 9, 112, 195
+ * console.log(vtile.tileSize, vtile.bufferSize); // 4096, 128
  */
 void VectorTile::Initialize(v8::Local<v8::Object> target)
 {
@@ -3955,7 +3962,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 }
 
 /**
- * Get the data in this vector tile as a buffer
+ * Get the data in this vector tile as a buffer (synchronous)
  *
  * @memberof mapnik.VectorTile
  * @name getDataSync
@@ -3965,8 +3972,13 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
  * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
  * @returns {Buffer} raw data
+ * @example
+ * var data = vectorTile.getData({
+ *   compression: 'gzip',
+ *   level: 9,
+ *   strategy: 'FILTERED'
+ * });
  */
-
 NAN_METHOD(VectorTile::getDataSync)
 {
     info.GetReturnValue().Set(_getDataSync(info));
@@ -4113,7 +4125,26 @@ typedef struct
     Nan::Persistent<v8::Function> cb;
 } vector_tile_get_data_baton_t;
 
-
+/**
+ * Get the data in this vector tile as a buffer (asynchronous)
+ * @memberof mapnik.VectorTile
+ * @name getData
+ * @instance
+ * @param {Object} options
+ * @param {string} [options.compression=none] compression type can also be `gzip`
+ * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
+ * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
+ * @param {Function} callback
+ * @example
+ * vectorTile.getData({
+ *   compression: 'gzip',
+ *   level: 9,
+ *   strategy: 'FILTERED'
+ * }, function(err, data) {
+ *   if (err) throw err;
+ *   console.log(data); // buffer
+ * });
+ */
 NAN_METHOD(VectorTile::getData)
 {
     if (info.Length() == 0 || !info[info.Length()-1]->IsFunction())
@@ -4381,12 +4412,25 @@ struct baton_guard
 
 /**
  * Render this vector tile to a surface, like a {@link mapnik.Image}
- *
+ * DOCS TODO: better describe "render", what is a "surface"?
+ * DOCS TODO: are there defaults for the options values in this function?
+ * @name render
  * @memberof mapnik.VectorTile
- * @name getData
  * @instance
  * @param {mapnik.Map} map object
- * @param {mapnik.Image} renderable surface
+ * @param {mapnik.Image} renderable surface DOCS TODO: what is this really?
+ * @param {Object} [options]
+ * @param {number} [options.x] must be used with `y` and `z`
+ * @param {number} [options.y] must be used with `x` and `z`
+ * @param {number} [options.z] must be used with `x` and `y`
+ * @param {number} [options.buffer_size]
+ * @param {number} [options.scale]
+ * @param {number} [options.scale_denominator]
+ * @param {Object} [options.variables] DOCS TODO: what are these?
+ * @param {string} [options.renderer] must be `cairo` or `svg`
+ * @param {string|int} [options.layer] option required for grid rendering 
+ * and must be either a layer name (string) or layer index (integer)
+ * @param {array<string>} [options.fields] must be an array of strings
  * @param {Function} callback
  */
 NAN_METHOD(VectorTile::render)
@@ -4929,6 +4973,15 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Remove all data from this vector tile (synchronously)
+ * @name clearSync
+ * @memberof mapnik.VectorTile
+ * @instance
+ * @example
+ * vectorTile.clearSync();
+ * console.log(vectorTile.getData().length); // 0
+ */
 NAN_METHOD(VectorTile::clearSync)
 {
     info.GetReturnValue().Set(_clearSync(info));
@@ -4959,6 +5012,11 @@ typedef struct
  * @name clear
  * @instance
  * @param {Function} callback
+ * @example
+ * vectorTile.clear(function(err) {
+ *   if (err) throw err;
+ *   console.log(vectorTile.getData().length); // 0   
+ * });
  */
 NAN_METHOD(VectorTile::clear)
 {
@@ -5209,12 +5267,16 @@ struct not_valid_baton
 };
 
 /**
- * Count the number of geometries that are not OGC simple
+ * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometrySimplicitySync
  * @instance
- * @returns {number} number of features that are not simple 
+ * @returns {number} number of features that are not simple
+ * @example
+ * var simple = vectorTile.reportGeometrySimplicitySync();
+ * console.log(simple); // array of non-simple geometries and their layer info
+ * console.log(simple.length); // number
  */
 NAN_METHOD(VectorTile::reportGeometrySimplicitySync)
 {
@@ -5243,12 +5305,16 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
 }
 
 /**
- * Count the number of geometries that are not OGC valid
+ * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometryValiditySync
  * @instance
  * @returns {number} number of features that are not valid
+ * @example
+ * var valid = vectorTile.reportGeometryValiditySync();
+ * console.log(valid); // array of invalid geometries and their layer info
+ * console.log(valid.length); // number
  */
 NAN_METHOD(VectorTile::reportGeometryValiditySync)
 {
@@ -5277,12 +5343,18 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 }
 
 /**
- * Count the number of non OGC simple geometries
+ * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometrySimplicity
  * @instance
  * @param {Function} callback
+ * @example
+ * vectorTile.reportGeometrySimplicity(function(err, simple) {
+ *   if (err) throw err;
+ *   console.log(simple); // array of non-simple geometries and their layer info
+ *   console.log(simple.length); // number
+ * });
  */
 NAN_METHOD(VectorTile::reportGeometrySimplicity)
 {
@@ -5348,12 +5420,17 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 }
 
 /**
- * Count the number of non OGC valid geometries
+ * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometryValidity
  * @instance
  * @param {Function} callback
+ * @example
+ * vectorTile.reportGeometryValidity(function(err, valid) {
+ *   console.log(valid); // array of invalid geometries and their layer info
+ *   console.log(valid.length); // number    
+ * });
  */
 NAN_METHOD(VectorTile::reportGeometryValidity)
 {
