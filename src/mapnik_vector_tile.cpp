@@ -476,10 +476,48 @@ void _composite(VectorTile* target_vt,
 /**
  * Composite an array of vector tiles into one vector tile
  *
- * @memberof mapnik.VectorTile
  * @name compositeSync
+ * @memberof mapnik.VectorTile
  * @instance
  * @param {v8::Array<mapnik.VectorTile>} vector tiles
+ * @param {object} options
+ * @param {float} [options.scale_factor=1.0]
+ * @param {number} [options.offset_x=0]
+ * @param {number} [options.offset_y=0]
+ * @param {float} [options.area_threshold=0.1]
+ * @param {bool} [options.strictly_simple=true]
+ * @param {bool} [options.multi_polygon_union=false]
+ * @param {v8::Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive]
+ * @param {float} [options.scale_denominator=0.0]
+ * @param {bool} [options.reencode=false]
+ * @param {array} [options.max_extent=[minx,miny,maxx,maxy]]
+ * @param {float} [options.simplify_distance=0.0]
+ * @param {bool} [options.process_all_rings=false]
+ * @param {string} [options.image_format=webp]
+ * @param {string} [options.scaling_method=bilinear]
+ * @param {string} [options.threading_mode=deferred]
+ * @example
+ * var vectorTile1 = new mapnik.VectorTile(1,0,0);
+ * var vectorTile2 = new mapnik.VectorTile(0,1,0);
+ * var vectorTile3 = new mapnik.VectorTile(0,0,1);
+ * vectorTile3.compositeSync([vectorTile1, vectorTile2], {
+ *   scale_factor: 1.0,
+ *   offset_x: 0,
+ *   offset_y: 0,
+ *   area_threshold: 0.1,
+ *   strictly_simple: true,
+ *   multi_polygon_union: false,
+ *   fill_type: mapnik.polygonFillType.positive,
+ *   scale_denominator: 0.0,
+ *   reencode: false,
+ *   // max_extent: [minx,miny,maxx,maxy],
+ *   simplify_distance: 0.0,
+ *   process_all_rings: false,
+ *   image_format: 'webp',
+ *   scaling_method: 'bilinear',
+ *   threading_mode: 'deferred'   
+ * });
+ * 
  */
 NAN_METHOD(VectorTile::compositeSync)
 {
@@ -1177,7 +1215,11 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name extent
  * @instance
- * @param {v8::Array<number>} extent
+ * @returns {v8::Array<number>} array of extent in the form of [minx,miny,maxx,maxy]
+ * @example
+ * var vtile = new mapnik.VectorTile(9,112,195);
+ * var extent = vtile.extent();
+ * console.log(extent); // [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248]
  */
 NAN_METHOD(VectorTile::extent)
 {
@@ -1198,7 +1240,11 @@ NAN_METHOD(VectorTile::extent)
  * @memberof mapnik.VectorTile
  * @name bufferedExtent
  * @instance
- * @param {v8::Array<number>} extent
+ * @returns {v8::Array<number>} extent
+ * @example
+ * var vtile = new mapnik.VectorTile(9,112,195);
+ * var extent = vtile.bufferedExtent();
+ * console.log(extent); // [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
  */
 NAN_METHOD(VectorTile::bufferedExtent)
 {
@@ -1219,7 +1265,7 @@ NAN_METHOD(VectorTile::bufferedExtent)
  * @memberof mapnik.VectorTile
  * @name names
  * @instance
- * @param {v8::Array<string>} layer names
+ * @returns {v8::Array<string>} layer names
  */
 NAN_METHOD(VectorTile::names)
 {
@@ -1241,7 +1287,7 @@ NAN_METHOD(VectorTile::names)
  * @memberof mapnik.VectorTile
  * @name emptyLayers
  * @instance
- * @param {v8::Array<string>} layer names
+ * @returns {v8::Array<string>} layer names
  */
 NAN_METHOD(VectorTile::emptyLayers)
 {
@@ -1258,12 +1304,13 @@ NAN_METHOD(VectorTile::emptyLayers)
 }
 
 /**
- * Get the names of all of the painted layers in this vector tile
+ * Get the names of all of the painted layers in this vector tile.
+ * DOCS TODO: define what "painted" means
  *
  * @memberof mapnik.VectorTile
  * @name paintedLayers
  * @instance
- * @param {v8::Array<string>} layer names
+ * @returns {v8::Array<string>} layer names
  */
 NAN_METHOD(VectorTile::paintedLayers)
 {
@@ -1282,11 +1329,12 @@ NAN_METHOD(VectorTile::paintedLayers)
 /**
  * Return whether this vector tile is empty - whether it has no
  * layers and no features
+ * DOCS TODO: define what "empty" means
  *
  * @memberof mapnik.VectorTile
  * @name empty
  * @instance
- * @param {boolean} whether the layer is empty
+ * @returns {boolean} whether the layer is empty
  */
 NAN_METHOD(VectorTile::empty)
 {
@@ -1296,11 +1344,12 @@ NAN_METHOD(VectorTile::empty)
 
 /**
  * Get whether the vector tile has been painted
+ * DOCS TODO: define what "painted" means
  *
  * @memberof mapnik.VectorTile
  * @name painted
  * @instance
- * @param {boolean} painted
+ * @returns {boolean} painted
  */
 NAN_METHOD(VectorTile::painted)
 {
@@ -1330,9 +1379,22 @@ typedef struct
  * @instance
  * @param {number} longitude
  * @param {number} latitude
- * @param {Object} [options={tolerance:0}] tolerance: allow results that
- * are not exactly on this longitude, latitude position.
- * @param {Function} callback
+ * @param {Object} options
+ * @param {number} [options.tolerance=0] query offset for results within
+ * a distance from longitude/latitude position
+ * @param {string} options.layer query for any layer whos name matches
+ * @param {Function} callback(err, features)
+ * @example
+ * vectorTile.query(139.61, 37.17, {tolerance: 0}, function(err, features) {
+ *   if (err) throw err;
+ *   console.log(features); // array of objects
+ *   console.log(features.length) // 1
+ *   console.log(features[0].id()) // 89
+ *   console.log(features[0].geometry().type()); // 'Polygon'
+ *   console.log(features[0].distance); // 0
+ *   console.log(features[0].layer); // 'layer name'
+ *   DOCS TODO: what else is good to give as a hint for the user here?
+ * });
  */
 NAN_METHOD(VectorTile::query)
 {
@@ -1589,6 +1651,27 @@ typedef struct
     Nan::Persistent<v8::Function> cb;
 } vector_tile_queryMany_baton_t;
 
+/**
+ * Query a vector tile by multiple sets of latitude/longitude pairs. 
+ * Just like <mapnik.VectorTile.query> but with more points to search.
+ *
+ * @memberof mapnik.VectorTile
+ * @name queryMany
+ * @instance
+ * @param {v8::array<number>} latitude and longitude array pairs [[lat1,lng1], [lat2,lng2]]
+ * @param {Object} options
+ * @param {number} [options.tolerance=0] query offset for results within
+ * a distance from longitude/latitude position
+ * @param {string} options.layer query for any layer whos name matches
+ * @param {v8:Array<string>} list of field names 
+ * @param {Function} callback(err, features)
+ * @example
+ * vectorTile.query([[139.61, 37.17], [140.64, 38.1]], {tolerance: 0}, function(err, features) {
+ *   if (err) throw err;
+ *   console.log(features); // array of feature objects
+ *   DOCS TODO: where are feature objects documented?
+ * });
+ */
 NAN_METHOD(VectorTile::queryMany)
 {
     if (info.Length() < 2 || !info[0]->IsArray())
@@ -2230,6 +2313,10 @@ struct json_value_visitor
  * @instance
  * @returns {Object} json representation of this tile with name, extent,
  * and version properties
+ * @example
+ * var vectorTile = mapnik.VectorTile(0,0,0);
+ * var json = vectorTile.toJSON();
+ * console.log(json); // {name: 'name', extent: [], version: 2}
  */
 NAN_METHOD(VectorTile::toJSON)
 {
@@ -2507,7 +2594,16 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  * @memberof mapnik.VectorTile
  * @name toGeoJSONSync
  * @instance
+ * @param {Object} options
+ * @param {string | number} [layer=__all__] Can be a custom layer name, 
+ * __array__ of layer names, or __all__ for all layers
+ * @param {number} [index=0] Specify the layer index, cannot be greater
+ * than the number of layers in the vector tile
  * @returns {string} stringified GeoJSON of all the features in this tile.
+ * @example
+ * var geojson = vectorTile.toGeoJSONSync();
+ * console.log(geojson); // stringified GeoJSON
+ * console.log(JSON.parse(geojson)); // GeoJSON object
  */
 NAN_METHOD(VectorTile::toGeoJSONSync)
 {
@@ -2718,8 +2814,19 @@ struct to_geojson_baton
  * @memberof mapnik.VectorTile
  * @name toGeoJSON
  * @instance
+ * @param {Object} options
+ * @param {string | number} [layer=__all__] Can be a custom layer name, 
+ * __array__ of layer names, or __all__ for all layers. DOCS TODO: update this description
+ * @param {number} [index=0] Specify the layer index, cannot be greater
+ * than the number of layers in the vector tile DOCS TODO: update what index means
  * @param {Function} callback
  * @returns {string} stringified GeoJSON of all the features in this tile.
+ * @example
+ * vectorTile.toGeoJSON(function(err, geojson) {
+ *   if (err) throw err;
+ *   console.log(geojson); // stringified GeoJSON
+ *   console.log(JSON.parse(geojson)); // GeoJSON object
+ * });
  */
 NAN_METHOD(VectorTile::toGeoJSON)
 {
@@ -2856,6 +2963,18 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  * @instance
  * @param {string} geojson as a string
  * @param {string} name of the layer to be added
+ * @param {Object} options
+ * @param {number} [options.area_threshold=0.1] 
+ * @param {number} [options.simplify_distance=0.0] 
+ * @param {bool} [options.strictly_simple=true] 
+ * @param {bool} [options.multi_polygon_union=false] 
+ * @param {v8::Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive] 
+ * @param {} [options.process_all_rings=false]
+ * @example
+ * var geojson = { ... };
+ * var vectorTile = mapnik.VectorTile(0,0,0);
+ * vectorTile.addGeoJSON(JSON.stringify(geojson), 'layer-name', {});
+ * 
  */
 NAN_METHOD(VectorTile::addGeoJSON)
 {
@@ -2998,6 +3117,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 
 /**
  * Add an Image as a tile layer
+ * DOCS TODO: define "Image" more clearly
  *
  * @memberof mapnik.VectorTile
  * @name addImageSync
