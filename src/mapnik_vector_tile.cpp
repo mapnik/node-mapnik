@@ -3116,7 +3116,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 }
 
 /**
- * Add an Image as a tile layer
+ * Add a <mapnik.Image> as a tile layer (synchronous)
  * DOCS TODO: define "Image" more clearly
  *
  * @memberof mapnik.VectorTile
@@ -3124,6 +3124,19 @@ NAN_METHOD(VectorTile::addGeoJSON)
  * @instance
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
+ * @param {Object} options
+ * @param {string} [options.image_scaling=bilinear] can be any 
+ * of the <mapnik.imageScaling> methods
+ * @param {string} [options.image_format=webp]
+ * @example
+ * var vectorTile = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size:256
+ * });
+ * var im = new mapnik.Image(256, 256);
+ * vectorTile.addImageSync(im, 'layer-name', {
+ *   image_format: 'jpeg',
+ *   image_scaling: 'gaussian'
+ * });
  */
 NAN_METHOD(VectorTile::addImageSync)
 {
@@ -3247,13 +3260,30 @@ typedef struct
 } vector_tile_add_image_baton_t;
 
 /**
- * Add an Image as a tile layer
+ * Add a <mapnik.Image> as a tile layer (asynchronous)
+ * DOCS TODO: define "Image" more clearly
  *
  * @memberof mapnik.VectorTile
  * @name addImage
  * @instance
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
+ * @param {Object} options
+ * @param {string} [options.image_scaling=bilinear] can be any 
+ * of the <mapnik.imageScaling> methods
+ * @param {string} [options.image_format=webp]
+ * @example
+ * var vectorTile = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size:256
+ * });
+ * var im = new mapnik.Image(256, 256);
+ * vectorTile.addImage(im, 'layer-name', {
+ *   image_format: 'jpeg',
+ *   image_scaling: 'gaussian'
+ * }, function(err) {
+ *   if (err) throw err;
+ *   // your custom code using `vectorTile`  
+ * });
  */
 NAN_METHOD(VectorTile::addImage)
 {
@@ -3408,13 +3438,19 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
 }
 
 /**
- * Add raw image buffer as a new tile layer
+ * Add raw image buffer as a new tile layer (synchronous)
  *
  * @memberof mapnik.VectorTile
  * @name addImageBufferSync
  * @instance
  * @param {Buffer} raw data
  * @param {string} name of the layer to be added
+ * @example
+ * var vectorTile = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size: 256
+ * });
+ * var image_buffer = fs.readFileSync('./path/to/image.jpg');
+ * vectorTile.addImageBufferSync(image_buffer, 'layer-name');
  */
 NAN_METHOD(VectorTile::addImageBufferSync)
 {
@@ -3486,6 +3522,16 @@ typedef struct
  * @instance
  * @param {Buffer} raw data
  * @param {string} name of the layer to be added
+ * @param {Function} callback
+ * @example
+ * var vectorTile = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size: 256
+ * });
+ * var image_buffer = fs.readFileSync('./path/to/image.jpg'); // returns a buffer
+ * vectorTile.addImageBufferSync(image_buffer, 'layer-name', function(err) {
+ *   if (err) throw err;
+ *   // your custom code
+ * });
  */
 NAN_METHOD(VectorTile::addImageBuffer)
 {
@@ -3584,6 +3630,10 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  * @name addDataSync
  * @instance
  * @param {Buffer} raw data
+ * @example
+ * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
+ * vectorTile.addDataSync(data_buffer);
+ * // your custom code
  */
 NAN_METHOD(VectorTile::addDataSync)
 {
@@ -3643,6 +3693,12 @@ typedef struct
  * @name addData
  * @instance
  * @param {Buffer} raw data
+ * @param {Object} callback
+ * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
+ * vectorTile.addDataSync(data_buffer, function(err) {
+ *   if (err) throw err;
+ *   // your custom code
+ * });
  */
 NAN_METHOD(VectorTile::addData)
 {
@@ -3730,12 +3786,17 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
 }
 
 /**
- * Replace the data in this vector tile with new raw data
+ * Replace the data in this vector tile with new raw data (synchronous)
+ * DOCS TODO: what sort of validation happens here?
  *
  * @memberof mapnik.VectorTile
  * @name setDataSync
  * @instance
  * @param {Buffer} raw data
+ * @example
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vectorTile.setDataSync(data);
+ * // your custom code
  */
 NAN_METHOD(VectorTile::setDataSync)
 {
@@ -3796,6 +3857,15 @@ typedef struct
  * @name setData
  * @instance
  * @param {Buffer} raw data
+ * @param {Function} callback
+ * @example
+ * DOCS TODO: should we include a vectorTile = mapnik.VectorTile(0,0,0) instance
+ * in every example? When can we assume that's already been created?
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vectorTile.setDataSync(data, function(err) {
+ *   if (err) throw err;
+ *   // your custom code
+ * });
  */
 NAN_METHOD(VectorTile::setData)
 {
@@ -3890,6 +3960,10 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name getDataSync
  * @instance
+ * @param {Object} options
+ * @param {string} [options.compression=none] can also be `gzip`
+ * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
+ * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
  * @returns {Buffer} raw data
  */
 
