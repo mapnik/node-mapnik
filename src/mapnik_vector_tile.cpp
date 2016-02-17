@@ -1400,7 +1400,6 @@ typedef struct
  *   console.log(features[0].geometry().type()); // 'Polygon'
  *   console.log(features[0].distance); // 0
  *   console.log(features[0].layer); // 'layer name'
- *   DOCS TODO: what else is good to give as a hint for the user here?
  * });
  */
 NAN_METHOD(VectorTile::query)
@@ -1676,7 +1675,10 @@ typedef struct
  * vectorTile.query([[139.61, 37.17], [140.64, 38.1]], {tolerance: 0}, function(err, features) {
  *   if (err) throw err;
  *   console.log(features); // array of feature objects
- *   DOCS TODO: where are feature objects documented?
+ *   if (features.length) {
+ *     console.log(features[0].layer); // 'layer-name'
+ *     console.log(features[0].distance, features[0].x_hit, features[0].y_hit); // 0, 0, 0
+ *   }
  * });
  */
 NAN_METHOD(VectorTile::queryMany)
@@ -3268,14 +3270,13 @@ typedef struct
 
 /**
  * Add a <mapnik.Image> as a tile layer (asynchronous)
- * DOCS TODO: define "Image" more clearly
  *
  * @memberof mapnik.VectorTile
  * @name addImage
  * @instance
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
- * @param {Object} options
+ * @param {Object} [options={}]
  * @param {string} [options.image_scaling=bilinear] can be any 
  * of the <mapnik.imageScaling> methods
  * @param {string} [options.image_format=webp]
@@ -3866,8 +3867,6 @@ typedef struct
  * @param {Buffer} raw data
  * @param {Function} callback
  * @example
- * DOCS TODO: should we include a vectorTile = mapnik.VectorTile(0,0,0) instance
- * in every example? When can we assume that's already been created?
  * var data = fs.readFileSync('./path/to/data.mvt');
  * vectorTile.setDataSync(data, function(err) {
  *   if (err) throw err;
@@ -4419,7 +4418,7 @@ struct baton_guard
  * @instance
  * @param {mapnik.Map} map object
  * @param {mapnik.Image} renderable surface DOCS TODO: what is this really?
- * @param {Object} [options]
+ * @param {Object} [options={}]
  * @param {number} [options.x] must be used with `y` and `z`
  * @param {number} [options.y] must be used with `x` and `z`
  * @param {number} [options.z] must be used with `x` and `y`

@@ -404,10 +404,10 @@ struct visitor_get_pixel
  * var im = new mapnik.Image(256, 256);
  * var view = im.view(0, 0, 256, 256);
  * var pixel = view.getPixel(0, 0, {get_color:true});
- * assert.equal(pixel.r, 0);
- * assert.equal(pixel.g, 0);
- * assert.equal(pixel.b, 0);
- * assert.equal(pixel.a, 0);
+ * console.log(pixel.r); // 0
+ * console.log(pixel.g); // 0
+ * console.log(pixel.b); // 0
+ * console.log(pixel.a); // 0
  */
 NAN_METHOD(Image::getPixel)
 {
@@ -645,7 +645,7 @@ typedef struct {
  * var im = new mapnik.Image(5, 5);
  * im.filter("blur", function(err, im_res) {
  *   if (err) throw err;
- *   assert.equal(im_res.getPixel(0, 0), 1);
+ *   console.log(im_res.getPixel(0, 0)); // 1
  * });
  */
 NAN_METHOD(Image::filter)
@@ -809,7 +809,7 @@ typedef struct {
  * var im = new mapnik.Image(5, 5);
  * im.fill(1, function(err, im_res) {
  *   if (err) throw err;
- *   assert.equal(im_res.getPixel(0, 0), 1);
+ *   console.log(im_res.getPixel(0, 0)); // 1
  * });
  */
 NAN_METHOD(Image::fill)
@@ -933,9 +933,9 @@ void Image::EIO_AfterFill(uv_work_t* req)
  * @example
  * var im = new mapnik.Image(5,5);
  * im.fillSync(1);
- * assert.equal(im.getPixel(0, 0), 1);
+ * console.log(im.getPixel(0, 0)); // 1
  * im.clearSync();
- * assert.equal(im.getPixel(0, 0), 0);
+ * console.log(im.getPixel(0, 0)); // 0
  */
 NAN_METHOD(Image::clearSync)
 {
@@ -1293,7 +1293,7 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
  * @example
  * var im = new mapnik.Image(256, 256);
  * var view = im.view(0, 0, 256, 256);
- * assert.equal(view.isSolidSync(), true);
+ * console.log(view.isSolidSync()); // true
  */
 NAN_METHOD(Image::isSolidSync)
 {
