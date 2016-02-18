@@ -376,7 +376,7 @@ extern "C" {
         target->Set(Nan::New("imageScaling").ToLocalChecked(), image_scaling_types);
 
 /**
- * Constants representing fill types understood by Clipper during vector tile encoding (http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm).
+ * Constants representing fill types understood by [Clipper during vector tile encoding](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm).
  *
  * @name polygonFillType
  * @memberof mapnik
@@ -395,7 +395,7 @@ extern "C" {
         target->Set(Nan::New("polygonFillType").ToLocalChecked(), polygon_fill_types);
 
 /**
- * Constants representing std::async threading mode (aka launch policy - http://en.cppreference.com/w/cpp/thread/launch).
+ * Constants representing `std::async` threading mode (aka [launch policy](http://en.cppreference.com/w/cpp/thread/launch)).
  *
  * @name threadingMode
  * @memberof mapnik
