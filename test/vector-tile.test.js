@@ -701,6 +701,7 @@ describe('mapnik.VectorTile ', function() {
         assert.ok(vtile instanceof mapnik.VectorTile);
         assert.equal(vtile.tileSize, 4096);
         assert.equal(vtile.bufferSize, 128);
+        assert.equal(vtile.imageSize, 256);
         assert.equal(vtile.painted(), false);
         assert.equal(vtile.getData().toString(),"");
         if (hasBoostSimple) {
@@ -725,6 +726,21 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
+    it('should accept optional imageSize', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0,{image_size:512});
+        assert.equal(vtile.imageSize, 512);
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,{image_size:null});});
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,{image_size:0});});
+        assert.throws(function() { new mapnik.VectorTile(0,0,0,{image_size:-256});});
+        assert.throws(function() { vtile.imageSize = 0; });
+        assert.throws(function() { vtile.imageSize = -256; });
+        assert.throws(function() { vtile.imageSize = 'asdf'; });
+        assert.equal(vtile.imageSize, 512);
+        vtile.imageSize = 256;
+        assert.equal(vtile.imageSize, 256);
+        done();
+    });
+
     it('should accept optional bufferSize', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0,{buffer_size:18});
         assert.equal(vtile.bufferSize, 18);
@@ -740,7 +756,7 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it.skip('should be able to addData in reasonable time', function(done) {
+    it('should be able to addData in reasonable time', function(done) {
         var vtile = new mapnik.VectorTile(3,2,3);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with
@@ -2330,7 +2346,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });

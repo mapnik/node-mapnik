@@ -1993,6 +1993,14 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     try
     {
         mapnik::Map const& map = *closure->m->get();
+
+        // Update imageSize to the size of the map
+        std::uint32_t image_size = std::max(map.width(), map.height());
+        if (image_size == 0)
+        {
+            image_size = 256;
+        }
+        closure->d->image_size(image_size);
         
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_simplify_distance(closure->simplify_distance);

@@ -3668,6 +3668,7 @@ void Clipper::FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec)
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
   {
     OutRec* outRec = m_PolyOuts[i];
+    // unused variable `firstLeft`: is this a bug? (dane)
     //OutRec* firstLeft = ParseFirstLeft(outRec->FirstLeft);
     if (outRec->Pts && outRec->FirstLeft == OldOutRec)
       outRec->FirstLeft = NewOutRec;
@@ -3677,10 +3678,19 @@ void Clipper::FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec)
 
 void Clipper::JoinCommonEdges()
 {
+  Join* join = NULL;
+  Join* next_join = NULL;
   for (JoinList::size_type i = 0; i < m_Joins.size(); i++)
   {
-    Join* join = m_Joins[i];
-
+    join = m_Joins[i];
+    if (i == m_Joins.size() - 1)
+    {
+        next_join = NULL;
+    }
+    else
+    {
+        next_join = m_Joins[i+1];
+    }
     OutRec *outRec1 = GetOutRec(join->OutPt1->Idx);
     OutRec *outRec2 = GetOutRec(join->OutPt2->Idx);
 
@@ -3703,6 +3713,36 @@ void Clipper::JoinCommonEdges()
       //splitting one polygon into two.
       outRec1->Pts = join->OutPt1;
       outRec1->BottomPt = 0;
+      if (next_join &&
+          next_join->OutPt1->Pt.x == outRec2->Pts->Prev->Pt.x &&
+          next_join->OutPt1->Idx == outRec2->Idx)
+      {
+          OutPt * itr = outRec2->Pts->Prev;
+          bool canContinue = true;
+          do
+          {
+              if (next_join->OutPt1->Pt.x != itr->Pt.x)
+              {
+                  canContinue = false;
+                  break;
+              }
+              if (next_join->OutPt1->Pt.y == itr->Pt.y)
+              {
+                  break;
+              }
+              itr = itr->Prev;
+          }
+          while (outRec2->Pts->Prev != itr);
+ 
+          if (canContinue)
+          {
+              if ((outRec1->IsHole ^ m_ReverseOutput) == (Area(*outRec1) > 0))
+              {
+                ReversePolyPtLinks(outRec1->Pts);
+              }
+              continue;
+          }
+      }
       outRec2 = CreateOutRec();
       outRec2->Pts = join->OutPt2;
 
