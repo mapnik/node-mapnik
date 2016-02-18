@@ -250,9 +250,9 @@ Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
  *
  * @name mapnik.VectorTile
  * @class
- * @param {number} z
- * @param {number} x
- * @param {number} y
+ * @param {number} z - an integer zoom level
+ * @param {number} x - an integer x coordinate
+ * @param {number} y - an integer y coordinate
  * @property {number} x - horizontal axis position
  * @property {number} y - vertical axis position
  * @property {number} z - the zoom level
@@ -1247,11 +1247,11 @@ NAN_METHOD(VectorTile::extent)
  * @memberof mapnik.VectorTile
  * @name bufferedExtent
  * @instance
- * @returns {v8::Array<number>} extent
+ * @returns {Array<number>} extent - `[minx, miny, maxx, maxy]`
  * @example
  * var vtile = new mapnik.VectorTile(9,112,195);
  * var extent = vtile.bufferedExtent();
- * console.log(extent); // [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
+ * console.log(extent); // [-11273544.4277, 4693845.0329, -11190380.9409, 4777008.5197];
  */
 NAN_METHOD(VectorTile::bufferedExtent)
 {
@@ -1272,7 +1272,12 @@ NAN_METHOD(VectorTile::bufferedExtent)
  * @memberof mapnik.VectorTile
  * @name names
  * @instance
- * @returns {v8::Array<string>} layer names
+ * @returns {Array<string>} layer names
+ * @example
+ * var vectorTile = new mapnik.VectorTile(0,0,0);
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vectorTile.addDataSync(data);
+ * vectorTile.names(); // ['layer-name', 'another-layer']
  */
 NAN_METHOD(VectorTile::names)
 {
@@ -1294,7 +1299,7 @@ NAN_METHOD(VectorTile::names)
  * @memberof mapnik.VectorTile
  * @name emptyLayers
  * @instance
- * @returns {v8::Array<string>} layer names
+ * @returns {Array<string>} layer names
  */
 NAN_METHOD(VectorTile::emptyLayers)
 {
@@ -1317,7 +1322,7 @@ NAN_METHOD(VectorTile::emptyLayers)
  * @memberof mapnik.VectorTile
  * @name paintedLayers
  * @instance
- * @returns {v8::Array<string>} layer names
+ * @returns {Array<string>} layer names
  */
 NAN_METHOD(VectorTile::paintedLayers)
 {
@@ -1379,18 +1384,44 @@ typedef struct
 } vector_tile_query_baton_t;
 
 /**
- * Query a vector tile by longitude and latitude
+ * Query a vector tile by longitude and latitude and get an array of
+ * features in the vector tile that exist in relation to those coordinates.
+ *
+ * A note on `tolerance`: If you provide a positive value for tolerance you 
+ * are saying that you'd like features returned in the query results that might 
+ * not exactly intersect with a given lon/lat. The higher the tolerance the 
+ * slower the query will run because it will do more work by comparing your query 
+ * lon/lat against more potential features. However, this is an important parameter 
+ * because vector tile storage, by design, results in reduced precision of coordinates. 
+ * The amount of precision loss depends on the zoom level of a given vector tile 
+ * and how aggressively it was simplified during encoding. So if you want at 
+ * least one match - say the closest single feature to your query lon/lat - is is 
+ * not possible to know the smallest tolerance that will work without experimentation. 
+ * In general be prepared to provide a high tolerance (1-100) for low zoom levels 
+ * while you should be okay with a low tolerance (1-10) at higher zoom levels and 
+ * with vector tiles that are storing less simplified geometries. The units tolerance 
+ * should be expressed in depend on the coordinate system of the underlying data. 
+ * In the case of vector tiles this is spherical mercator so the units are meters. 
+ * For points any features will be returned that contain a point which is, by distance 
+ * in meters, not greater than the tolerance value. For lines any features will be 
+ * returned that have a segment which is, by distance in meters, not greater than 
+ * the tolerance value. For polygons tolerance is not supported which means that 
+ * your lon/lat must fall inside a feature's polygon otherwise that feature will 
+ * not be matched. DOCS TODO: Make this more concise or move to a blog post
  *
  * @memberof mapnik.VectorTile
  * @name query
  * @instance
- * @param {number} longitude
- * @param {number} latitude
- * @param {Object} options
- * @param {number} [options.tolerance=0] query offset for results within
- * a distance from longitude/latitude position
- * @param {string} options.layer query for any layer whos name matches
+ * @param {number} longitude - longitude
+ * @param {number} latitude - latitude
+ * @param {Object} [options]
+ * @param {number} [options.tolerance=0] include features a specific distance from the 
+ * lon/lat query in the response
+ * @param {string} [options.layer] layer - Pass a layer name to restrict 
+ * the query results to a single layer in the vector tile. Get all possible 
+ * layer names in the vector tile with {@link VectorTile#names} DOCS TODO: this link doesn't work
  * @param {Function} callback(err, features)
+ * @returns {Array<mapnik.Feature>} an array of {@link mapnik.Feature} objects
  * @example
  * vectorTile.query(139.61, 37.17, {tolerance: 0}, function(err, features) {
  *   if (err) throw err;
@@ -1664,10 +1695,10 @@ typedef struct
  * @memberof mapnik.VectorTile
  * @name queryMany
  * @instance
- * @param {v8::array<number>} latitude and longitude array pairs [[lat1,lng1], [lat2,lng2]]
- * @param {Object} options
- * @param {number} [options.tolerance=0] query offset for results within
- * a distance from longitude/latitude position
+ * @param {array<number>} latitude and longitude array pairs [[lat1,lng1], [lat2,lng2]]
+ * @param {Object} [options]
+ * @param {number} [options.tolerance=0] include features a specific distance from the 
+ * lon/lat query in the response
  * @param {string} options.layer query for any layer whos name matches
  * @param {v8:Array<string>} list of field names 
  * @param {Function} callback(err, features)
@@ -2598,21 +2629,18 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
 }
 
 /**
- * Get a [GeoJSON](http://geojson.org/) representation of this tile
+ * Syncronous version of {@link VectorTile#toGeoJSON}
  *
  * @memberof mapnik.VectorTile
  * @name toGeoJSONSync
  * @instance
- * @param {Object} options
- * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * __array__ of layer names, or __all__ for all layers
- * @param {number} [index=0] Specify the layer index, cannot be greater
- * than the number of layers in the vector tile
+ * @param {string | number} layer 
+ * @param {number} inded
  * @returns {string} stringified GeoJSON of all the features in this tile.
  * @example
  * var geojson = vectorTile.toGeoJSONSync();
- * console.log(geojson); // stringified GeoJSON
- * console.log(JSON.parse(geojson)); // GeoJSON object
+ * geojson // stringified GeoJSON
+ * JSON.parse(geojson); // GeoJSON object
  */
 NAN_METHOD(VectorTile::toGeoJSONSync)
 {
@@ -2823,9 +2851,8 @@ struct to_geojson_baton
  * @memberof mapnik.VectorTile
  * @name toGeoJSON
  * @instance
- * @param {Object} options
  * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * __array__ of layer names, or __all__ for all layers. DOCS TODO: update this description
+ * `__array__` of layer names, or `__all__` for all layers. DOCS TODO: update this description
  * @param {number} [index=0] Specify the layer index, cannot be greater
  * than the number of layers in the vector tile DOCS TODO: update what index means
  * @param {Function} callback
@@ -3125,7 +3152,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 }
 
 /**
- * Add a <mapnik.Image> as a tile layer (synchronous)
+ * Add a {@link mapnik.Image} as a tile layer (synchronous)
  * DOCS TODO: define "Image" more clearly
  *
  * @memberof mapnik.VectorTile
@@ -3637,7 +3664,7 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name addDataSync
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
  * @example
  * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
  * vectorTile.addDataSync(data_buffer);
@@ -3700,10 +3727,11 @@ typedef struct
  * @memberof mapnik.VectorTile
  * @name addData
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
  * @param {Object} callback
+ * @example
  * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
- * vectorTile.addDataSync(data_buffer, function(err) {
+ * vectorTile.addData(data_buffer, function(err) {
  *   if (err) throw err;
  *   // your custom code
  * });
@@ -3800,7 +3828,7 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name setDataSync
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
  * @example
  * var data = fs.readFileSync('./path/to/data.mvt');
  * vectorTile.setDataSync(data);
@@ -3864,11 +3892,11 @@ typedef struct
  * @memberof mapnik.VectorTile
  * @name setData
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
  * @param {Function} callback
  * @example
  * var data = fs.readFileSync('./path/to/data.mvt');
- * vectorTile.setDataSync(data, function(err) {
+ * vectorTile.setData(data, function(err) {
  *   if (err) throw err;
  *   // your custom code
  * });
@@ -3967,7 +3995,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  * @name getDataSync
  * @instance
  * @param {Object} options
- * @param {string} [options.compression=none] can also be `gzip`
+ * @param {string} [options.compression=none] - can also be `gzip`
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
  * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
  * @returns {Buffer} raw data
@@ -4411,26 +4439,48 @@ struct baton_guard
 
 /**
  * Render this vector tile to a surface, like a {@link mapnik.Image}
+ *
  * DOCS TODO: better describe "render", what is a "surface"?
  * DOCS TODO: are there defaults for the options values in this function?
  * @name render
  * @memberof mapnik.VectorTile
  * @instance
- * @param {mapnik.Map} map object
- * @param {mapnik.Image} renderable surface DOCS TODO: what is this really?
- * @param {Object} [options={}]
- * @param {number} [options.x] must be used with `y` and `z`
- * @param {number} [options.y] must be used with `x` and `z`
- * @param {number} [options.z] must be used with `x` and `y`
- * @param {number} [options.buffer_size]
- * @param {number} [options.scale]
- * @param {number} [options.scale_denominator]
- * @param {Object} [options.variables] DOCS TODO: what are these?
+ * @param {mapnik.Map} map - mapnik map object
+ * @param {mapnik.Image} surface - renderable surface object
+ * DOCS TODO: what is this really?
+ * @param {Object} [options]
+ * @param {number} [options.z] an integer zoom level. Must be used with `x` and `y`
+ * @param {number} [options.x] an integer x coordinate. Must be used with `y` and `z`.
+ * @param {number} [options.y] an integer y coordinate. Must be used with `x` and `z`
+ * @param {number} [options.buffer_size] the size of the tile's buffer DOCS TODO: buffer of image?
+ * @param {number} [options.scale] floating point scale factor size to used
+ * for rendering
+ * @param {number} [options.scale_denominator] An floating point `scale_denominator` 
+ * to be used by Mapnik when matching zoom filters. If provided this overrides the 
+ * auto-calculated scale_denominator that is based on the map dimensions and bbox. 
+ * Do not set this option unless you know what it means.
+ * @param {Object} [options.variables] Mapnik 3.x ONLY: A javascript object 
+ * containing key value pairs that should be passed into Mapnik as variables 
+ * for rendering and for datasource queries. For example if you passed 
+ * `vtile.render(map,image,{ variables : {zoom:1} },cb)` then the `@zoom`
+ * variable would be usable in Mapnik symbolizers like `line-width:"@zoom"`
+ * and as a token in Mapnik postgis sql sub-selects like 
+ * `(select * from table where some_field > @zoom)` as tmp
  * @param {string} [options.renderer] must be `cairo` or `svg`
- * @param {string|int} [options.layer] option required for grid rendering 
+ * @param {string|number} [options.layer] option required for grid rendering 
  * and must be either a layer name (string) or layer index (integer)
- * @param {array<string>} [options.fields] must be an array of strings
+ * @param {Array<string>} [options.fields] must be an array of strings
  * @param {Function} callback
+ * @example
+ * var vectorTile = new mapnik.VectorTile(0,0,0);
+ * var tileSize = vectorTile.tileSize;
+ * var map = new mapnik.Map(tileSize, tileSize);
+ * vectorTile.render(map, new mapnik.Image(256,256), function(err, image) {
+ *   if (err) throw err;   
+ *   // save the rendered image to an existing image file somewhere
+ *   // see mapnik.Image for available methods
+ *   image.save('./path/to/image/file.png', 'png32');
+ * });
  */
 NAN_METHOD(VectorTile::render)
 {
