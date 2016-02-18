@@ -482,50 +482,18 @@ void _composite(VectorTile* target_vt,
 }
 
 /**
- * Composite an array of vector tiles into one vector tile DOCS TODO define params
+ * Synchronous version of {@link VectorTile#composite}
  *
  * @name compositeSync
  * @memberof mapnik.VectorTile
  * @instance
  * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
- * @param {object} options
- * @param {float} [options.scale_factor=1.0]
- * @param {number} [options.offset_x=0]
- * @param {number} [options.offset_y=0]
- * @param {float} [options.area_threshold=0.1]
- * @param {bool} [options.strictly_simple=true]
- * @param {bool} [options.multi_polygon_union=false]
- * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive]
- * @param {float} [options.scale_denominator=0.0]
- * @param {bool} [options.reencode=false]
- * @param {Array<number>} [options.max_extent=minx,miny,maxx,maxy]
- * @param {float} [options.simplify_distance=0.0]
- * @param {bool} [options.process_all_rings=false]
- * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
- * @param {string} [options.scaling_method=bilinear]
- * @param {string} [options.threading_mode=deferred]
+ * @param {object} [options]
  * @example
- * var vectorTile1 = new mapnik.VectorTile(1,0,0);
- * var vectorTile2 = new mapnik.VectorTile(0,1,0);
- * // create a third tile to ingest data
- * var vectorTile3 = new mapnik.VectorTile(0,0,1);
- * vectorTile3.compositeSync([vectorTile1, vectorTile2], {
- *   scale_factor: 1.0,
- *   offset_x: 0,
- *   offset_y: 0,
- *   area_threshold: 0.1,
- *   strictly_simple: true,
- *   multi_polygon_union: false,
- *   fill_type: mapnik.polygonFillType.positive,
- *   scale_denominator: 0.0,
- *   reencode: false,
- *   // max_extent: [minx,miny,maxx,maxy],
- *   simplify_distance: 0.0,
- *   process_all_rings: false,
- *   image_format: 'webp',
- *   scaling_method: 'bilinear',
- *   threading_mode: 'deferred'   
- * });
+ * var vt1 = new mapnik.VectorTile(0,0,0);
+ * var vt2 = new mapnik.VectorTile(0,0,0);
+ * var options = { ... };
+ * vt1.compositeSync([vt2], options);
  * 
  */
 NAN_METHOD(VectorTile::compositeSync)
@@ -859,6 +827,64 @@ typedef struct
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
 
+/**
+ * Composite an array of vector tiles into one vector tile
+ *
+ * @name composite
+ * @memberof mapnik.VectorTile
+ * @instance
+ * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
+ * @param {object} [options]
+ * @param {float} [options.scale_factor=1.0]
+ * @param {number} [options.offset_x=0]
+ * @param {number} [options.offset_y=0]
+ * @param {float} [options.area_threshold=0.1] - used to discard small polygons. 
+ * If a value is greater than `0` it will trigger polygons with an area smaller 
+ * than the value to be discarded. Measured in grid integers, not spherical mercator
+ * coordinates.
+ * @param {bool} [options.strictly_simple=true] - ensure all geometry is valid according to
+ * OGC Simple definition
+ * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive]
+ * the fill type used in determining what are holes and what are outer rings. See the 
+ * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
+ * to learn more about fill types.
+ * @param {float} [options.scale_denominator=0.0]
+ * @param {bool} [options.reencode=false]
+ * @param {Array<number>} [options.max_extent=minx,miny,maxx,maxy]
+ * @param {float} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * geometries before encoding into vector tiles.simplification distance The 
+ * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
+ * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+ * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order is correct according to
+ * the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
+ * @param {string} [options.scaling_method=bilinear] - can be any 
+ * of the <mapnik.imageScaling> methods
+ * @param {string} [options.threading_mode=deferred]
+ * @param {Function} callback - `function(err)`
+ * @example
+ * var vt1 = new mapnik.VectorTile(0,0,0);
+ * var vt2 = new mapnik.VectorTile(0,0,0);
+ * var options = {
+ *   scale: 1.0,
+ *   offset_x: 0,
+ *   offset_y: 0,
+ *   area_threshold: 0.1,
+ *   strictly_simple: false,
+ *   multi_polygon_union: true,
+ *   fill_type: mapnik.polygonFillType.nonZero,
+ *   process_all_rings:false,
+ *   scale_denominator: 0.0,
+ *   reencode: true
+ * }
+ * // add vt2 to vt1 tile
+ * vt1.composite([vt2], options, function(err) {
+ *   if (err) throw err;
+ *   // your custom code with `vt1`
+ * });
+ * 
+ */
 NAN_METHOD(VectorTile::composite)
 {
     if ((info.Length() < 2) || !info[info.Length()-1]->IsFunction()) 
@@ -1323,8 +1349,8 @@ NAN_METHOD(VectorTile::emptyLayers)
 }
 
 /**
- * Get the names of all of the painted layers in this vector tile.
- * DOCS TODO: define what "painted" means
+ * Get the names of all of the painted layers in this vector tile. "Painted" is 
+ * a check to see if data exists in the source dataset in a tile.
  *
  * @memberof mapnik.VectorTile
  * @name paintedLayers
@@ -1370,8 +1396,8 @@ NAN_METHOD(VectorTile::empty)
 }
 
 /**
- * Get whether the vector tile has been painted
- * DOCS TODO: define what "painted" means
+ * Get whether the vector tile has been painted. "Painted" is 
+ * a check to see if data exists in the source dataset in a tile.
  *
  * @memberof mapnik.VectorTile
  * @name painted
@@ -3035,21 +3061,27 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  * @param {string} geojson as a string
  * @param {string} name of the layer to be added
  * @param {Object} options
- * @param {number} [options.area_threshold=0.1] DOCS TODO
- * @param {number} [options.simplify_distance=0.0] simplification distance DOCS TODO
+ * @param {number} [options.area_threshold=0.1] - used to discard small polygons. 
+ * If a value is greater than `0` it will trigger polygons with an area smaller 
+ * than the value to be discarded. Measured in grid integers, not spherical mercator
+ * coordinates.
+ * @param {number} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * geometries before encoding into vector tiles.simplification distance The 
+ * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
+ * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
  * @param {bool} [options.strictly_simple=true] ensure all geometry is valid according to
  * OGC Simple definition
- * @param {bool} [options.multi_polygon_union=false] union all multipolygons
- * @param {v8::Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive] 
+ * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive] 
  * the fill type used in determining what are holes and what are outer rings. See the 
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types.
- * @param {} [options.process_all_rings=false] DOCS TODO: what is this?
+ * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order is correct according to
+ * the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @example
  * var geojson = { ... };
  * var vt = mapnik.VectorTile(0,0,0);
  * vt.addGeoJSON(JSON.stringify(geojson), 'layer-name', {});
- * 
  */
 NAN_METHOD(VectorTile::addGeoJSON)
 {
@@ -3862,8 +3894,8 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
 }
 
 /**
- * Replace the data in this vector tile with new raw data (synchronous)
- * DOCS TODO: what sort of validation happens here?
+ * Replace the data in this vector tile with new raw data (synchronous). This function validates
+ * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
  *
  * @memberof mapnik.VectorTile
  * @name setDataSync
@@ -4489,7 +4521,7 @@ struct baton_guard
  * @param {number} [options.z] an integer zoom level. Must be used with `x` and `y`
  * @param {number} [options.x] an integer x coordinate. Must be used with `y` and `z`.
  * @param {number} [options.y] an integer y coordinate. Must be used with `x` and `z`
- * @param {number} [options.buffer_size] the size of the tile's buffer DOCS TODO: buffer of image?
+ * @param {number} [options.buffer_size] the size of the tile's buffer
  * @param {number} [options.scale] floating point scale factor size to used
  * for rendering
  * @param {number} [options.scale_denominator] An floating point `scale_denominator` 
