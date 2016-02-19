@@ -856,8 +856,8 @@ typedef struct
  * geometries before encoding into vector tiles.simplification distance The 
  * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
  * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
- * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order is correct according to
- * the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
  * @param {string} [options.scaling_method=bilinear] - can be any 
  * of the <mapnik.imageScaling> methods
@@ -2404,8 +2404,11 @@ struct json_value_visitor
  * @memberof mapnik.VectorTile
  * @name toJSON
  * @instance
+ * @param {Object} [options]
+ * @param {bool} [options.decode_geometry=false] return geometry as integers
+ * relative to the tile grid
  * @returns {Object} json representation of this tile with name, extent,
- * and version properties
+ * version, and feature properties
  * @example
  * var vt = mapnik.VectorTile(10,131,242);
  * var buffer = fs.readFileSync('./path/to/data.mvt');
@@ -3076,8 +3079,8 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  * the fill type used in determining what are holes and what are outer rings. See the 
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types.
- * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order is correct according to
- * the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @example
  * var geojson = { ... };
  * var vt = mapnik.VectorTile(0,0,0);
