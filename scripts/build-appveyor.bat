@@ -36,10 +36,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 :: our custom node.exe on PATH from a custom location
 :: and then pass `--prefix` to npm - but this is untested
 ECHO deleting node.exe programfiles x64
-IF EXIST "%ProgramFiles%\nodejs" ^
-    IF EXIST "%ProgramFiles%\nodejs\node.exe" ^
-        ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && ^
-        DEL /F "%ProgramFiles%\nodejs\node.exe"
+IF EXIST "%ProgramFiles%\nodejs" IF EXIST "%ProgramFiles%\nodejs\node.exe" ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && DEL /F "%ProgramFiles%\nodejs\node.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO copying node.exe to programfiles x64
 IF EXIST %ProgramFiles%\nodejs ECHO copying to "%ProgramFiles%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles%\nodejs\"
