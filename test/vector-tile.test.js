@@ -701,7 +701,6 @@ describe('mapnik.VectorTile ', function() {
         assert.ok(vtile instanceof mapnik.VectorTile);
         assert.equal(vtile.tileSize, 4096);
         assert.equal(vtile.bufferSize, 128);
-        assert.equal(vtile.imageSize, 256);
         assert.equal(vtile.painted(), false);
         assert.equal(vtile.getData().toString(),"");
         if (hasBoostSimple) {
@@ -723,21 +722,6 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.tileSize, 512);
         vtile.tileSize = 256;
         assert.equal(vtile.tileSize, 256);
-        done();
-    });
-
-    it('should accept optional imageSize', function(done) {
-        var vtile = new mapnik.VectorTile(0,0,0,{image_size:512});
-        assert.equal(vtile.imageSize, 512);
-        assert.throws(function() { new mapnik.VectorTile(0,0,0,{image_size:null});});
-        assert.throws(function() { new mapnik.VectorTile(0,0,0,{image_size:0});});
-        assert.throws(function() { new mapnik.VectorTile(0,0,0,{image_size:-256});});
-        assert.throws(function() { vtile.imageSize = 0; });
-        assert.throws(function() { vtile.imageSize = -256; });
-        assert.throws(function() { vtile.imageSize = 'asdf'; });
-        assert.equal(vtile.imageSize, 512);
-        vtile.imageSize = 256;
-        assert.equal(vtile.imageSize, 256);
         done();
     });
 

@@ -302,7 +302,6 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     ATTR(lcons, "x", get_tile_x, set_tile_x);
     ATTR(lcons, "y", get_tile_y, set_tile_y);
     ATTR(lcons, "z", get_tile_z, set_tile_z);
-    ATTR(lcons, "imageSize", get_image_size, set_image_size);
     ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
     
@@ -314,10 +313,9 @@ VectorTile::VectorTile(int z,
                        int x, 
                        int y, 
                        std::uint32_t tile_size,
-                       std::int32_t buffer_size,
-                       std::uint32_t image_size) :
+                       std::int32_t buffer_size) :
     Nan::ObjectWrap(),
-    tile_(std::make_shared<mapnik::vector_tile_impl::merc_tile>(x, y, z, tile_size, buffer_size, image_size))
+    tile_(std::make_shared<mapnik::vector_tile_impl::merc_tile>(x, y, z, tile_size, buffer_size))
 {
 }
 
@@ -373,7 +371,6 @@ NAN_METHOD(VectorTile::New)
 
     std::uint32_t tile_size = 4096;
     std::int32_t buffer_size = 128;
-    std::uint32_t image_size = 256;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() > 3)
     {
@@ -399,22 +396,6 @@ NAN_METHOD(VectorTile::New)
             }
             tile_size = tile_size_tmp;
         }
-        if (options->Has(Nan::New("image_size").ToLocalChecked()))
-        {
-            v8::Local<v8::Value> opt = options->Get(Nan::New("image_size").ToLocalChecked());
-            if (!opt->IsNumber())
-            {
-                Nan::ThrowTypeError("optional arg 'image_size' must be a number");
-                return;
-            }
-            int image_size_tmp = opt->IntegerValue();
-            if (image_size_tmp <= 0)
-            {
-                Nan::ThrowTypeError("optional arg 'image_size' must be greater then zero");
-                return;
-            }
-            image_size = image_size_tmp;
-        }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked()))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
@@ -432,7 +413,7 @@ NAN_METHOD(VectorTile::New)
         return;
     }
 
-    VectorTile* d = new VectorTile(z, x, y, tile_size, buffer_size, image_size);
+    VectorTile* d = new VectorTile(z, x, y, tile_size, buffer_size);
 
     d->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
@@ -5269,12 +5250,6 @@ NAN_GETTER(VectorTile::get_tile_size)
     info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->tile_size()));
 }
 
-NAN_GETTER(VectorTile::get_image_size)
-{
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->image_size()));
-}
-
 NAN_GETTER(VectorTile::get_buffer_size)
 {
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
@@ -5354,25 +5329,6 @@ NAN_SETTER(VectorTile::set_tile_size)
             return;
         }
         d->tile_->tile_size(val);
-    }
-}
-
-NAN_SETTER(VectorTile::set_image_size)
-{
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (!value->IsNumber())
-    {
-        Nan::ThrowError("Must provide a number");
-    } 
-    else 
-    {
-        int val = value->IntegerValue();
-        if (val <= 0)
-        {
-            Nan::ThrowError("image size must be greater then zero");
-            return;
-        }
-        d->tile_->image_size(val);
     }
 }
 

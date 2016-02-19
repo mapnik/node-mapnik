@@ -142,8 +142,6 @@ public:
     static NAN_SETTER(set_tile_y);
     static NAN_GETTER(get_tile_z);
     static NAN_SETTER(set_tile_z);
-    static NAN_GETTER(get_image_size);
-    static NAN_SETTER(set_image_size);
     static NAN_GETTER(get_tile_size);
     static NAN_SETTER(set_tile_size);
     static NAN_GETTER(get_buffer_size);
@@ -153,8 +151,7 @@ public:
                int x, 
                int y, 
                std::uint32_t tile_size,
-               std::int32_t buffer_size,
-               std::uint32_t image_size);
+               std::int32_t buffer_size);
 
     void clear() 
     {
@@ -169,16 +166,6 @@ public:
     void tile_size(std::uint32_t val)
     {
         tile_->tile_size(val);
-    }
-    
-    std::uint32_t image_size() const
-    {
-        return tile_->image_size();
-    }
-    
-    void image_size(std::uint32_t val)
-    {
-        tile_->image_size(val);
     }
     
     std::int32_t buffer_size() const
