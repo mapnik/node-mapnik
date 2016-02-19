@@ -49,12 +49,18 @@
 Nan::Persistent<v8::FunctionTemplate> Image::constructor;
 
 /**
+ * Create a new image object (surface) that can be used for rendering data to.
  * @name mapnik.Image
  * @class
- * @param {number} width
- * @param {number} height
- * @param {Object} options valid options are `premultiplied`, `painted`,
- * `type` and `initialize`.
+ * @param {number} width - width in pixels
+ * @param {number} height - height in pixels
+ * @param {Object} [options]
+ * @param {Object} [options.type=mapnik.imageType.rgb8] - a {@link mapnik.imageType} object
+ * @param {bool} [options.initialize=true]
+ * @param {bool} [options.premultiplied=false]
+ * @param {bool} [options.painted=false]
+ * @property {number} offset - offset number
+ * @property {number} scaling - scaling number
  * @throws {TypeError} if any argument is the wrong type, like if width
  * or height is not numeric.
  * @example
@@ -284,6 +290,13 @@ NAN_METHOD(Image::New)
  * @instance
  * @returns {number} Number of the image type
  * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image(256, 256, {
+ *   type: mapnik.imageType.gray8
+ * });
+ * var type = img.getType();
+ * var typeCheck = mapnik.imageType.gray8;
+ * console.log(type, typeCheck); // 1, 1
  */
 NAN_METHOD(Image::getType)
 {
@@ -395,19 +408,24 @@ struct visitor_get_pixel
  * @name getPixel
  * @instance
  * @memberof mapnik.Image
- * @param {number} x position within image from top left
- * @param {number} y position within image from top left
- * @param {Object} options the only valid option is `get_color`, which
- * should be a `boolean`.
- * @returns {number} color
+ * @param {number} x - position within image from top left
+ * @param {number} y - position within image from top left
+ * @param {Object} [options] the only valid option is `get_color`, which
+ * should be a `boolean`. If set, the return is an Object with `rgba` values
+ * instead of a pixel number.
+ * @returns {number|Object} color number or object of rgba values
  * @example
- * var im = new mapnik.Image(256, 256);
- * var view = im.view(0, 0, 256, 256);
- * var pixel = view.getPixel(0, 0, {get_color:true});
- * console.log(pixel.r); // 0
- * console.log(pixel.g); // 0
- * console.log(pixel.b); // 0
- * console.log(pixel.a); // 0
+ * // check for color after rendering image
+ * var img = new mapnik.Image(4, 4);
+ * var map = new mapnik.Map(4, 4);
+ * map.background = new mapnik.Color('green');
+ * map.render(img, {},function(err, img) {
+ *   console.log(img.painted()); // false
+ *   var pixel = img.getPixel(0,0);
+ *   var values = img.getPixel(0,0, {get_color: true});
+ *   console.log(pixel); // 4278222848
+ *   console.log(values); // { premultiplied: false, a: 255, b: 0, g: 128, r: 0 }
+ * });
  */
 NAN_METHOD(Image::getPixel)
 {
@@ -471,7 +489,12 @@ NAN_METHOD(Image::getPixel)
  * @memberof mapnik.Image
  * @param {number} x position within image from top left
  * @param {number} y position within image from top left
- * @param {Object|number} numeric or object representation of a color
+ * @param {Object|number} numeric or object representation of a color, typically used with {@link mapnik.Color}
+ * @example
+ * var gray = new mapnik.Image(256, 256);
+ * gray.setPixel(0,0,new mapnik.Color('white'));
+ * var pixel = gray.getPixel(0,0,{get_color:true});
+ * console.log(pixel); // { premultiplied: false, a: 255, b: 255, g: 255, r: 255 }
  */
 NAN_METHOD(Image::setPixel)
 {
@@ -529,9 +552,34 @@ NAN_METHOD(Image::setPixel)
  * @name compare
  * @instance
  * @memberof mapnik.Image
- * @param {mapnik.Image} other another image instance
- * @param {Object} [options={threshold:16,alpha:true}]
- * @returns {number} quantified visual difference between these two images
+ * @param {mapnik.Image} image - another {@link mapnik.Image} instance to compare to
+ * @param {Object} [options]
+ * @param {number} [options.threshold=16]
+ * @param {bool} [options.alpha=true]
+ * @throws when both images are not of the same size
+ * @returns {number} quantified visual difference between these two images in "number of
+ * pixels different" (i.e. `80` pixels are different);
+ * // start with the exact same images
+ * var img1 = new mapnik.Image(2,2);
+ * var img2 = new mapnik.Image(2,2);
+ * console.log(img1.compare(img2)); // 0 
+ * 
+ * // change 1 pixel in img2
+ * img2.setPixel(0,0, new mapnik.Color('green'));
+ * console.log(img1.compare(img2)); // 1 
+ * 
+ * // difference in color at first pixel
+ * img1.setPixel(0,0, new mapnik.Color('red'));
+ * console.log(img1.compare(img2)); // 1 
+ * 
+ * // two pixels different
+ * img2.setPixel(0,1, new mapnik.Color('red'));
+ * console.log(img1.compare(img2)); // 2 
+ * 
+ * // all pixels different
+ * img2.setPixel(1,1, new mapnik.Color('blue'));
+ * img2.setPixel(1,0, new mapnik.Color('blue'));
+ * console.log(img1.compare(img2)); // 4
  */
 NAN_METHOD(Image::compare)
 {
@@ -593,12 +641,17 @@ NAN_METHOD(Image::filterSync)
 }
 
 /**
- * Filter this image
+ * Apply a filter to this image. This changes all pixel values. (synchronous)
  *
  * @name filterSync
  * @instance
  * @memberof mapnik.Image
- * @param {string} filter
+ * @param {string} filter - can be `blur`, `emboss`, `sharpen`, 
+ * `sobel`, or `gray`.
+ * @example
+ * var img = new mapnik.Image(5, 5);
+ * img.filter('blur');
+ * // your custom code with `img` having blur applied
  */
 v8::Local<v8::Value> Image::_filterSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
@@ -634,18 +687,20 @@ typedef struct {
 } filter_image_baton_t;
 
 /**
- * Asynchronously filter this image.
+ * Apply a filter to this image. Changes all pixel values.
  *
  * @name filter
  * @instance
  * @memberof mapnik.Image
- * @param {string} filter
+ * @param {string} filter - can be `blur`, `emboss`, `sharpen`, 
+ * `sobel`, or `gray`.
  * @param {Function} callback
  * @example
- * var im = new mapnik.Image(5, 5);
- * im.filter("blur", function(err, im_res) {
+ * var img = new mapnik.Image(5, 5);
+ * img.filter('sobel', function(err, img) {
  *   if (err) throw err;
- *   console.log(im_res.getPixel(0, 0)); // 1
+ *   // your custom `img` with sobel filter
+ *   // https://en.wikipedia.org/wiki/Sobel_operator
  * });
  */
 NAN_METHOD(Image::filter)
@@ -713,19 +768,27 @@ void Image::EIO_AfterFilter(uv_work_t* req)
     delete closure;
 }
 
-NAN_METHOD(Image::fillSync)
-{
-    info.GetReturnValue().Set(_fillSync(info));
-}
 
 /**
- * Fill this image with a given color
+ * Fill this image with a given color. Changes all pixel values. (synchronous)
  *
  * @name fillSync
  * @instance
  * @memberof mapnik.Image
  * @param {mapnik.Color|number} color
+ * @example
+ * var img = new mapnik.Image(5,5);
+ * // blue pixels
+ * img.fillSync(new mapnik.Color('blue'));
+ * var colors = img.getPixel(0,0, {get_color: true});
+ * // blue value is filled
+ * console.log(colors.b); // 255
  */
+NAN_METHOD(Image::fillSync)
+{
+    info.GetReturnValue().Set(_fillSync(info));
+}
+
 v8::Local<v8::Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     if (info.Length() < 1 ) {
@@ -798,19 +861,24 @@ typedef struct {
 } fill_image_baton_t;
 
 /**
- * Asynchronously fill this image with a given color.
+ * Fill this image with a given color. Changes all pixel values.
  *
  * @name fill
  * @instance
  * @memberof mapnik.Image
  * @param {mapnik.Color|number} color
- * @param {Function} callback
+ * @param {Function} callback - `function(err, img)`
  * @example
- * var im = new mapnik.Image(5, 5);
- * im.fill(1, function(err, im_res) {
+ * var img = new mapnik.Image(5,5);
+ * img.fill(new mapnik.Color('blue'), function(err, img) {
  *   if (err) throw err;
- *   console.log(im_res.getPixel(0, 0)); // 1
+ *   var colors = img.getPixel(0,0, {get_color: true});
+ *   pixel is colored blue
+ *   console.log(color.b); // 255   
  * });
+ * 
+ * // or fill with rgb string
+ * img.fill('rgba(255,255,255,0)', function(err, img) { ... });
  */
 NAN_METHOD(Image::fill)
 {
@@ -925,17 +993,17 @@ void Image::EIO_AfterFill(uv_work_t* req)
 }
 
 /**
- * Make this image transparent.
+ * Make this image transparent. (synchronous)
  *
  * @name clearSync
  * @instance
  * @memberof mapnik.Image
  * @example
- * var im = new mapnik.Image(5,5);
- * im.fillSync(1);
- * console.log(im.getPixel(0, 0)); // 1
- * im.clearSync();
- * console.log(im.getPixel(0, 0)); // 0
+ * var img = new mapnik.Image(5,5);
+ * img.fillSync(1);
+ * console.log(img.getPixel(0, 0)); // 1
+ * img.clearSync();
+ * console.log(img.getPixel(0, 0)); // 0
  */
 NAN_METHOD(Image::clearSync)
 {
@@ -972,6 +1040,13 @@ typedef struct {
  * @instance
  * @param {Function} callback
  * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image(5,5);
+ * img.fillSync(1);
+ * console.log(img.getPixel(0, 0)); // 1
+ * img.clear(function(err, result) {
+ *   console.log(result.getPixel(0,0)); // 0
+ * });
  */
 NAN_METHOD(Image::clear)
 {
@@ -1030,6 +1105,21 @@ void Image::EIO_AfterClear(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * convert all grayscale values to alpha value DOCS TODO: better definition
+ *
+ * @name GrayScaleToAlpha
+ * @memberof mapnik.Image
+ * @instance
+ * @param {mapnik.Color} color
+ * @example
+ * var image = new mapnik.Image(2,2);
+ * image.fillSync(new mapnik.Color('rgba(0,0,0,255)'));
+ * console.log(image.getPixel(0,0, {get_color:true})); // { premultiplied: false, a: 255, b: 0, g: 0, r: 0 }
+ *
+ * image.setGrayScaleToAlpha();
+ * console.log(image.getPixel(0,0, {get_color:true})); // { premultiplied: false, a: 0, b: 255, g: 255, r: 255 }
+ */
 NAN_METHOD(Image::setGrayScaleToAlpha)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
@@ -1063,11 +1153,18 @@ typedef struct {
 
 /**
  * Determine whether the given image is premultiplied.
+ * https://en.wikipedia.org/wiki/Alpha_compositing
+ * DOCS TODO: define this better
  *
  * @name premultiplied
  * @instance
- * @returns {boolean} premultiplied true if the image is premultiplied
+ * @returns {boolean} premultiplied `true` if the image is premultiplied
  * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image(5,5);
+ * console.log(img.premultiplied()); // false
+ * img.premultiplySync()
+ * console.log(img.premultiplied()); // true
  */
 NAN_METHOD(Image::premultiplied)
 {
@@ -1077,11 +1174,15 @@ NAN_METHOD(Image::premultiplied)
 }
 
 /**
- * Premultiply the pixels in this image
+ * Premultiply the pixels in this image.
+ * DOCS TODO: define this
  *
  * @name premultiplySync
  * @instance
  * @memberof mapnik.Image
+ * var img = new mapnik.Image(5,5);
+ * img.premultiplySync();
+ * console.log(img.premultiplied()); // true
  */
 NAN_METHOD(Image::premultiplySync)
 {
@@ -1102,6 +1203,12 @@ v8::Local<v8::Value> Image::_premultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
  * @param {Function} callback
  * @instance
  * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image(5,5);
+ * img.premultiply(function(err, img) {
+ *   if (err) throw err;   
+ *   // your custom code with premultiplied img
+ * })
  */
 NAN_METHOD(Image::premultiply)
 {
@@ -1146,7 +1253,7 @@ void Image::EIO_AfterMultiply(uv_work_t* req)
 
 /**
  * Demultiply the pixels in this image. The opposite of
- * premultiplying
+ * premultiplying.
  *
  * @name demultiplySync
  * @instance
@@ -1291,8 +1398,8 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
  * @instance
  * @memberof mapnik.Image
  * @example
- * var im = new mapnik.Image(256, 256);
- * var view = im.view(0, 0, 256, 256);
+ * var img = new mapnik.Image(256, 256);
+ * var view = img.view(0, 0, 256, 256);
  * console.log(view.isSolidSync()); // true
  */
 NAN_METHOD(Image::isSolidSync)
