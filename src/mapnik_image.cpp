@@ -1433,7 +1433,7 @@ typedef struct {
 
 /**
  * Copy this image data so that changes can be made to a clone of it.
- *
+ * DOCS TODO: not EXACTLY sure what's going on here IRT to type param
  * @name copy
  * @param {number} type
  * @param {Object} [options={}]
@@ -1592,7 +1592,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
 
 /**
  * Copy this image data so that changes can be made to a clone of it.
- *
+ * DOCS TODO finish this
  * @name copySync
  * @param {number} type
  * @param {Object} [options={}]
@@ -1719,15 +1719,25 @@ typedef struct {
 } resize_image_baton_t;
 
 /**
- * Create a copy this image that is resized
+ * Resize this image (makes a copy)
  *
  * @name resize
- * @param {number} width
- * @param {number} height
- * @param {Object} [options={}]
- * @param {Function} callback
  * @instance
  * @memberof mapnik.Image
+ * @param {number} width - in pixels
+ * @param {number} height - in pixels
+ * @param {Object} [options={}]
+ * @param {number} [options.offset_x=0] - offset the image horizontally in pixels
+ * @param {number} [options.offset_y=0] - offset the image vertically in pixels
+ * @param {mapnik.imageScaling} [options.scaling_method=mapnik.imageScaling.near] - scaling method
+ * @param {number} [options.filter_factor=1.0]
+ * @param {Function} callback - `function(err, result)`
+ * @example
+ * var img = new mapnik.Image(4, 4, {type: mapnik.imageType.gray8});
+ * img.resize(8, 8, function(err, result) {
+ *   if (err) throw err;
+ *   // new image object as `result`
+ * });
  */
 NAN_METHOD(Image::resize)
 {    
@@ -2037,15 +2047,23 @@ void Image::EIO_AfterResize(uv_work_t* req)
 }
 
 /**
- * Make a resized copy of an image
+ * Resize this image (makes a copy). Synchronous version of {@link mapnik.Image.resize}.
  *
  * @name resizeSync
  * @param {number} width
  * @param {number} height
  * @param {Object} [options={}]
+ * @param {number} [options.offset_x=0] - offset the image horizontally in pixels
+ * @param {number} [options.offset_y=0] - offset the image vertically in pixels
+ * @param {mapnik.imageScaling} [options.scaling_method=mapnik.imageScaling.near] - scaling method
+ * @param {number} [options.filter_factor=1.0]
  * @returns {mapnik.Image} copy
  * @instance
  * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image(4, 4, {type: mapnik.imageType.gray8});
+ * var img2 = img.resizeSync(8, 8);
+ * // new copy as `img2`
  */
 NAN_METHOD(Image::resizeSync)
 {
@@ -2213,7 +2231,18 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     }
 }
 
-
+/**
+ * Check if this image is painted. "Painted" refers to if it has
+ * data or not.
+ *
+ * @name width
+ * @returns {number} width DOCS TODO: is this a bool or number?
+ * @instance
+ * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image(5,5);
+ * console.log(img.painted()); // false
+ */
 NAN_METHOD(Image::painted)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
