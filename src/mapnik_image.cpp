@@ -1,15 +1,14 @@
-
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>             // for image_any
+#include <mapnik/image_any.hpp>         // for image_any
 #include <mapnik/image_reader.hpp>      // for get_image_reader, etc
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
 #include <mapnik/image_copy.hpp>
 
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
-#include <mapnik/image_filter.hpp> // filter_visitor
+#include <mapnik/image_filter.hpp>      // filter_visitor
 #include <mapnik/image_scaling.hpp>
 
 #include <mapnik/marker.hpp>
@@ -405,6 +404,7 @@ struct visitor_get_pixel
 };
 
 /**
+ * Get a specific pixel and its value
  * @name getPixel
  * @instance
  * @memberof mapnik.Image
@@ -484,6 +484,7 @@ NAN_METHOD(Image::getPixel)
 }
 
 /**
+ * Set a pixels value
  * @name setPixel
  * @instance
  * @memberof mapnik.Image
@@ -558,7 +559,8 @@ NAN_METHOD(Image::setPixel)
  * @param {bool} [options.alpha=true]
  * @throws when both images are not of the same size
  * @returns {number} quantified visual difference between these two images in "number of
- * pixels different" (i.e. `80` pixels are different);
+ * pixels" (i.e. `80` pixels are different);
+ * @example
  * // start with the exact same images
  * var img1 = new mapnik.Image(2,2);
  * var img2 = new mapnik.Image(2,2);
@@ -635,11 +637,6 @@ NAN_METHOD(Image::compare)
     info.GetReturnValue().Set(Nan::New<v8::Integer>(difference));
 }
 
-NAN_METHOD(Image::filterSync)
-{
-    info.GetReturnValue().Set(_filterSync(info));
-}
-
 /**
  * Apply a filter to this image. This changes all pixel values. (synchronous)
  *
@@ -653,6 +650,11 @@ NAN_METHOD(Image::filterSync)
  * img.filter('blur');
  * // your custom code with `img` having blur applied
  */
+NAN_METHOD(Image::filterSync)
+{
+    info.GetReturnValue().Set(_filterSync(info));
+}
+
 v8::Local<v8::Value> Image::_filterSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     if (info.Length() < 1) {
@@ -694,7 +696,7 @@ typedef struct {
  * @memberof mapnik.Image
  * @param {string} filter - can be `blur`, `emboss`, `sharpen`, 
  * `sobel`, or `gray`.
- * @param {Function} callback
+ * @param {Function} callback - `function(err, img)`
  * @example
  * var img = new mapnik.Image(5, 5);
  * img.filter('sobel', function(err, img) {
@@ -1108,7 +1110,7 @@ void Image::EIO_AfterClear(uv_work_t* req)
 /**
  * convert all grayscale values to alpha value DOCS TODO: better definition
  *
- * @name GrayScaleToAlpha
+ * @name setGrayScaleToAlpha
  * @memberof mapnik.Image
  * @instance
  * @param {mapnik.Color} color
@@ -1157,9 +1159,9 @@ typedef struct {
  * DOCS TODO: define this better
  *
  * @name premultiplied
+ * @memberof mapnik.Image
  * @instance
  * @returns {boolean} premultiplied `true` if the image is premultiplied
- * @memberof mapnik.Image
  * @example
  * var img = new mapnik.Image(5,5);
  * console.log(img.premultiplied()); // false
@@ -1180,6 +1182,7 @@ NAN_METHOD(Image::premultiplied)
  * @name premultiplySync
  * @instance
  * @memberof mapnik.Image
+ * @example
  * var img = new mapnik.Image(5,5);
  * img.premultiplySync();
  * console.log(img.premultiplied()); // true
@@ -1200,9 +1203,9 @@ v8::Local<v8::Value> Image::_premultiplySync(Nan::NAN_METHOD_ARGS_TYPE info) {
  * Premultiply the pixels in this image, asynchronously
  *
  * @name premultiply
- * @param {Function} callback
- * @instance
  * @memberof mapnik.Image
+ * @instance
+ * @param {Function} callback
  * @example
  * var img = new mapnik.Image(5,5);
  * img.premultiply(function(err, img) {
@@ -1320,6 +1323,7 @@ typedef struct {
     bool result;
 } is_solid_image_baton_t;
 
+// DOCS TODO
 NAN_METHOD(Image::isSolid)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
@@ -1435,11 +1439,11 @@ typedef struct {
  * Copy this image data so that changes can be made to a clone of it.
  * DOCS TODO: not EXACTLY sure what's going on here IRT to type param
  * @name copy
+ * @instance
+ * @memberof mapnik.Image
  * @param {number} type
  * @param {Object} [options={}]
  * @param {Function} callback
- * @instance
- * @memberof mapnik.Image
  */
 NAN_METHOD(Image::copy)
 {
@@ -1594,11 +1598,11 @@ void Image::EIO_AfterCopy(uv_work_t* req)
  * Copy this image data so that changes can be made to a clone of it.
  * DOCS TODO finish this
  * @name copySync
+ * @instance
+ * @memberof mapnik.Image
  * @param {number} type
  * @param {Object} [options={}]
  * @returns {mapnik.Image} copy
- * @instance
- * @memberof mapnik.Image
  */
 NAN_METHOD(Image::copySync)
 {
@@ -2050,6 +2054,8 @@ void Image::EIO_AfterResize(uv_work_t* req)
  * Resize this image (makes a copy). Synchronous version of {@link mapnik.Image.resize}.
  *
  * @name resizeSync
+ * @instance
+ * @memberof mapnik.Image
  * @param {number} width
  * @param {number} height
  * @param {Object} [options={}]
@@ -2058,8 +2064,6 @@ void Image::EIO_AfterResize(uv_work_t* req)
  * @param {mapnik.imageScaling} [options.scaling_method=mapnik.imageScaling.near] - scaling method
  * @param {number} [options.filter_factor=1.0]
  * @returns {mapnik.Image} copy
- * @instance
- * @memberof mapnik.Image
  * @example
  * var img = new mapnik.Image(4, 4, {type: mapnik.imageType.gray8});
  * var img2 = img.resizeSync(8, 8);
@@ -2236,9 +2240,9 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
  * data or not.
  *
  * @name width
- * @returns {number} width DOCS TODO: is this a bool or number?
  * @instance
  * @memberof mapnik.Image
+ * @returns {number} width DOCS TODO: is this a bool or number?
  * @example
  * var img = new mapnik.Image(5,5);
  * console.log(img.painted()); // false
@@ -2250,12 +2254,15 @@ NAN_METHOD(Image::painted)
 }
 
 /**
- * Get this image's width
+ * Get this image's width in pixels
  *
  * @name width
- * @returns {number} width
  * @instance
  * @memberof mapnik.Image
+ * @returns {number} width
+ * @example
+ * var img = new mapnik.Image(4,4);
+ * console.log(img.width()); // 4
  */
 NAN_METHOD(Image::width)
 {
@@ -2264,12 +2271,15 @@ NAN_METHOD(Image::width)
 }
 
 /**
- * Get this image's height
+ * Get this image's height in pixels
  *
  * @name height
- * @returns {number} height
  * @instance
  * @memberof mapnik.Image
+ * @returns {number} height
+ * @example
+ * var img = new mapnik.Image(4,4);
+ * console.log(img.height()); // 4
  */
 NAN_METHOD(Image::height)
 {
@@ -2277,6 +2287,16 @@ NAN_METHOD(Image::height)
     info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
 
+/**
+ * Load in a pre-existing image as an image object DOCS TODO instance/static sync/async
+ * @name openSync
+ * @memberof mapnik.Image
+ * @instance
+ * @param {string} path - path to the image you want to load
+ * @returns {mapnik.Image} new image object based on existing image
+ * @example
+ * var img = new mapnik.Image.open('./path/to/image.jpg');
+ */
 NAN_METHOD(Image::openSync)
 {
     info.GetReturnValue().Set(_openSync(info));
@@ -2345,6 +2365,19 @@ typedef struct {
     Nan::Persistent<v8::Function> cb;
 } image_file_ptr_baton_t;
 
+/**
+ * Load in a pre-existing image as an image object
+ * @name open
+ * @memberof mapnik.Image
+ * @static
+ * @param {string} path - path to the image you want to load
+ * @param {Function} callback - 
+ * @example
+ * mapnik.Image.open('./path/to/image.jpg', function(err, img) {
+ *   if (err) throw err;
+ *   // img is now an Image object   
+ * });
+ */
 NAN_METHOD(Image::open)
 {
     if (info.Length() == 1) {
@@ -2441,13 +2474,39 @@ void Image::EIO_AfterOpen(uv_work_t* req)
     delete closure;
 }
 
-// Read from a Buffer
+/**
+ * Load image from an SVG buffer (synchronous)
+ * @name fromSVGBytesSync
+ * @memberof mapnik.Image
+ * @static
+ * @param {string} path - path to SVG image
+ * @param {Object} [options]
+ * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
+ * your SVG at 50% the original size.
+ * @returns {mapnik.Image} Image object
+ * @example
+ * var buffer = fs.readFileSync('./path/to/image.svg');
+ * var img = mapnik.Image.fromSVGBytesSync(buffer);
+ */
 NAN_METHOD(Image::fromSVGBytesSync)
 {
     info.GetReturnValue().Set(_fromSVGSync(false, info));
 }
 
-// Read from a file
+/**
+ * Create a new image from an SVG file (synchronous)
+ *
+ * @name fromSVGSync
+ * @param {string} filename
+ * @param {Object} [options]
+ * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
+ * your SVG at 50% the original size.
+ * @returns {mapnik.Image} image object
+ * @static
+ * @memberof mapnik.Image
+ * @example
+ * var img = mapnik.Image.fromSVG('./path/to/image.svg');
+ */
 NAN_METHOD(Image::fromSVGSync)
 {
     info.GetReturnValue().Set(_fromSVGSync(true, info));
@@ -2627,10 +2686,18 @@ typedef struct {
  * Create a new image from an SVG file
  *
  * @name fromSVG
- * @param {String} filename
+ * @param {string} filename
+ * @param {Object} [options]
+ * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
+ * your SVG at 50% the original size.
  * @param {Function} callback
  * @static
  * @memberof mapnik.Image
+ * @example
+ * mapnik.Image.fromSVG('./path/to/image.svg', {scale: 0.5}, function(err, img) {
+ *   if (err) throw err;
+ *   // new img object (at 50% scale)  
+ * });
  */
 NAN_METHOD(Image::fromSVG)
 {
@@ -2793,13 +2860,21 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
 }
 
 /**
- * Create a new image from an SVG file
- *
+ * Load image from an SVG buffer
  * @name fromSVGBytes
- * @param {String} filename
- * @param {Function} callback
- * @static
  * @memberof mapnik.Image
+ * @static
+ * @param {string} path - path to SVG image
+ * @param {Object} [options]
+ * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
+ * your SVG at 50% the original size.
+ * @param {Function} callback = `function(err, img)`
+ * @example
+ * var buffer = fs.readFileSync('./path/to/image.svg');
+ * mapnik.Image.fromSVGBytesSync(buffer, function(err, img) {
+ *   if (err) throw err;
+ *   // your custom code with `img`
+ * });
  */
 NAN_METHOD(Image::fromSVGBytes)
 {
@@ -2972,8 +3047,10 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
 }
 
 /**
- * Create an image of the existing buffer. BUFFER MUST LIVE AS LONG AS THE IMAGE. 
- * It is recommended that you do not use this method! Be warned!
+ * Create an image of the existing buffer. 
+ * 
+ * Note: the buffer must live as long as the image. 
+ * It is recommended that you do not use this method. Be warned!
  *
  * @name fromBufferSync
  * @param {number} width
@@ -2982,6 +3059,10 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
  * @returns {mapnik.Image} image object
  * @static
  * @memberof mapnik.Image
+ * @example
+ * var img = new mapnik.Image.open('./path/to/image.png');
+ * var buffer = img.data(); // returns data as buffer
+ * var img2 = mapnik.Image.fromBufferSync(img.width(), img.height(), buffer);
  */
 NAN_METHOD(Image::fromBufferSync)
 {
@@ -3086,6 +3167,18 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
     }
 }
 
+/**
+ * Create an image from a byte stream buffer. (synchronous)
+ *
+ * @name fromBytesSync
+ * @param {Buffer} buffer - image buffer
+ * @returns {mapnik.Image} image object
+ * @instance
+ * @memberof mapnik.Image
+ * @example
+ * var buffer = fs.readFileSync('./path/to/image.png');
+ * var img = new mapnik.Image.fromBytesSync(buffer);
+ */
 NAN_METHOD(Image::fromBytesSync)
 {
     info.GetReturnValue().Set(_fromBytesSync(info));
@@ -3132,13 +3225,19 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
 }
 
 /**
- * Create a new image from a buffer
+ * Create an image from a byte stream buffer. 
  *
  * @name fromBytes
- * @param {Buffer} buffer
- * @param {Function} callback
+ * @param {Buffer} buffer - image buffer
+ * @param {Function} callback - `function(err, img)`
  * @static
  * @memberof mapnik.Image
+ * @example
+ * var buffer = fs.readFileSync('./path/to/image.png');
+ * mapnik.Image.fromBytesSync(buffer, function(err, img) {
+ *   if (err) throw err;
+ *   // your custom code with `img` object   
+ * });
  */
 NAN_METHOD(Image::fromBytes)
 {
@@ -3233,16 +3332,20 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
 }
 
 /**
- * Encode this image into a buffer of encoded data
+ * Encode this image into a buffer of encoded data (synchronous)
  *
  * @name encodeSync
  * @param {string} [format=png] image format
- * @returns {Buffer} encoded image data
+ * @param {Object} [options]
+ * @param {mapnik.Palette} [options.palette] - mapnik.Palette object
+ * @returns {Buffer} buffer - encoded image data
  * @instance
  * @memberof mapnik.Image
  * @example
- * var fs = require('fs');
- * fs.writeFileSync('myimage.png', myImage.encodeSync('png'));
+ * var img = new mapnik.Image.open('./path/to/image.png');
+ * var buffer = img.encodeSync('png');
+ * // write buffer to a new file
+ * fs.writeFileSync('myimage.png', buffer);
  */
 NAN_METHOD(Image::encodeSync)
 {
@@ -3320,14 +3423,26 @@ typedef struct {
  *
  * @name encode
  * @param {string} [format=png] image format
- * @param {Function} callback
+ * @param {Object} [options]
+ * @param {mapnik.Palette} [options.palette] - mapnik.Palette object
+ * @param {Function} callback - `function(err, encoded)`
  * @returns {Buffer} encoded image data
  * @instance
  * @memberof mapnik.Image
  * @example
- * var fs = require('fs');
+ * var img = new mapnik.Image.open('./path/to/image.png');
  * myImage.encode('png', function(err, encoded) {
+ *   if (err) throw err;   
+ *   // write buffer to new file
  *   fs.writeFileSync('myimage.png', encoded);
+ * });
+ * 
+ * // encoding an image object with a mapnik.Palette
+ * var im = new mapnik.Image(256, 256);
+ * var pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
+ * im.encode('png', {palette: pal}, function(err, encode) {
+ *   if (err) throw err;
+ *   // your custom code with `encode` image buffer  
  * });
  */
 NAN_METHOD(Image::encode)
@@ -3445,6 +3560,13 @@ void Image::EIO_AfterEncode(uv_work_t* req)
  * @param {number} width
  * @param {number} height
  * @returns {mapnik.Image} an image constrained to this new view
+ * @example
+ * var img = new mapnik.Image(10, 10);
+ * // This function says "starting from the 0/0 pixel, grab 5 pixels along
+ * // the x-axis and 5 along the y-axis" which gives us a quarter of the original
+ * // 10x10 pixel image
+ * var img2 = img.view(0, 0, 5, 5);
+ * console.log(img.width(), img2.width()); // 10, 5
  */
 NAN_METHOD(Image::view)
 {
@@ -3472,7 +3594,7 @@ NAN_METHOD(Image::view)
  * @instance
  * @memberof mapnik.Image
  * @example
- * myImage.saveSync('foo.png');
+ * img.saveSync('foo.png');
  */
 NAN_METHOD(Image::saveSync)
 {
@@ -3539,6 +3661,11 @@ typedef struct {
  * @param {Function} callback
  * @instance
  * @memberof mapnik.Image
+ * @example
+ * img.save('image.png', 'png', function(err) {
+ *   if (err) throw err;
+ *   // your custom code   
+ * });
  */
 NAN_METHOD(Image::save)
 {
@@ -3643,10 +3770,30 @@ typedef struct {
  * a new image
  *
  * @name composite
- * @param {mapnik.Image} other
+ * @param {mapnik.Image} image - image to composite with
+ * @param {Object} [options]
+ * @param {mapnik.compositeOp} [options.comp_op] - compositing operation. Must be an integer
+ * value that relates to a compositing operation.
+ * @param {number} [options.opacity] - opacity must be a floating point number between 0-1
+ * @param {number} [options.dx]
+ * @param {number} [options.dy]
+ * @param {string} [options.image_filters] - a string of filter names
  * @param {Function} callback
  * @instance
  * @memberof mapnik.Image
+ * @example
+ * var img1 = new mapnik.Image.open('./path/to/image.png');
+ * var img2 = new mapnik.Image.open('./path/to/another-image.png');
+ * img1.composite(img2, {
+ *   comp_op: mapnik.compositeOp['multiply'],
+ *   dx: 0,
+ *   dy: 0,
+ *   opacity: 0.5,
+ *   image_filters: 'invert agg-stack-blur(10,10)'
+ * }, function(err, result) {
+ *   if (err) throw err;
+ *   // new image with `result`
+ * });
  */
 NAN_METHOD(Image::composite)
 {
