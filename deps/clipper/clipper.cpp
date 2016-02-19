@@ -48,6 +48,7 @@
 #include <ostream>
 #include <functional>
 #include <sstream>
+#include <iostream>
 
 namespace ClipperLib {
 
@@ -3714,34 +3715,15 @@ void Clipper::JoinCommonEdges()
       outRec1->Pts = join->OutPt1;
       outRec1->BottomPt = 0;
       if (next_join &&
+          next_join->OutPt1->Pt.y == outRec2->Pts->Prev->Pt.y &&
           next_join->OutPt1->Pt.x == outRec2->Pts->Prev->Pt.x &&
           next_join->OutPt1->Idx == outRec2->Idx)
       {
-          OutPt * itr = outRec2->Pts->Prev;
-          bool canContinue = true;
-          do
+          if ((outRec1->IsHole ^ m_ReverseOutput) == (Area(*outRec1) > 0))
           {
-              if (next_join->OutPt1->Pt.x != itr->Pt.x)
-              {
-                  canContinue = false;
-                  break;
-              }
-              if (next_join->OutPt1->Pt.y == itr->Pt.y)
-              {
-                  break;
-              }
-              itr = itr->Prev;
+            ReversePolyPtLinks(outRec1->Pts);
           }
-          while (outRec2->Pts->Prev != itr);
- 
-          if (canContinue)
-          {
-              if ((outRec1->IsHole ^ m_ReverseOutput) == (Area(*outRec1) > 0))
-              {
-                ReversePolyPtLinks(outRec1->Pts);
-              }
-              continue;
-          }
+          continue;
       }
       outRec2 = CreateOutRec();
       outRec2->Pts = join->OutPt2;
