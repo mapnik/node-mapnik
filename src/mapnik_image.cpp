@@ -557,7 +557,6 @@ NAN_METHOD(Image::setPixel)
  * @param {Object} [options]
  * @param {number} [options.threshold=16]
  * @param {bool} [options.alpha=true]
- * @throws when both images are not of the same size
  * @returns {number} quantified visual difference between these two images in "number of
  * pixels" (i.e. `80` pixels are different);
  * @example
@@ -1108,7 +1107,8 @@ void Image::EIO_AfterClear(uv_work_t* req)
 }
 
 /**
- * convert all grayscale values to alpha value DOCS TODO: better definition
+ * Convert all grayscale values to alpha values. Great for creating
+ * a mask layer based on alpha values.
  *
  * @name setGrayScaleToAlpha
  * @memberof mapnik.Image
@@ -1120,6 +1120,7 @@ void Image::EIO_AfterClear(uv_work_t* req)
  * console.log(image.getPixel(0,0, {get_color:true})); // { premultiplied: false, a: 255, b: 0, g: 0, r: 0 }
  *
  * image.setGrayScaleToAlpha();
+ * // turns a black pixel into a completely transparent mask
  * console.log(image.getPixel(0,0, {get_color:true})); // { premultiplied: false, a: 0, b: 255, g: 255, r: 255 }
  */
 NAN_METHOD(Image::setGrayScaleToAlpha)
@@ -1156,7 +1157,6 @@ typedef struct {
 /**
  * Determine whether the given image is premultiplied.
  * https://en.wikipedia.org/wiki/Alpha_compositing
- * DOCS TODO: define this better
  *
  * @name premultiplied
  * @memberof mapnik.Image
@@ -1177,7 +1177,6 @@ NAN_METHOD(Image::premultiplied)
 
 /**
  * Premultiply the pixels in this image.
- * DOCS TODO: define this
  *
  * @name premultiplySync
  * @instance
@@ -1323,7 +1322,20 @@ typedef struct {
     bool result;
 } is_solid_image_baton_t;
 
-// DOCS TODO
+/**
+ * Test if an image's pixels are all exactly the same
+ * @name isSolid
+ * @memberof mapnik.Image
+ * @instance
+ * @returns {bool} `true` means all pixels are exactly the same
+ * @example
+ * var img = new mapnik.Image(2,2);
+ * console.log(img.isSolid()); // true
+ * 
+ * // change a pixel
+ * img.setPixel(0,0, new mapnik.Color('green'));
+ * console.log(img.isSolid()); // false
+ */
 NAN_METHOD(Image::isSolid)
 {
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
@@ -1436,14 +1448,21 @@ typedef struct {
 } copy_image_baton_t;
 
 /**
- * Copy this image data so that changes can be made to a clone of it.
- * DOCS TODO: not EXACTLY sure what's going on here IRT to type param
+ * Copy an image into a new image by creating a clone
  * @name copy
  * @instance
  * @memberof mapnik.Image
- * @param {number} type
+ * @param {number} type - image type to clone into, can be any mapnik.imageType number
  * @param {Object} [options={}]
+ * @param {number} [options.scaling] - scale the image
+ * @param {number} [options.offset] - offset this image
  * @param {Function} callback
+ * @example
+ * var img = new mapnik.Image(4, 4, {type: mapnik.imageType.gray16});
+ * var img2 = img.copy(mapnik.imageType.gray8, function(err, img2) {
+ *   if (err) throw err;
+ *   // custom code with `img2` converted into gray8 type
+ * });
  */
 NAN_METHOD(Image::copy)
 {
@@ -1595,14 +1614,19 @@ void Image::EIO_AfterCopy(uv_work_t* req)
 }
 
 /**
- * Copy this image data so that changes can be made to a clone of it.
- * DOCS TODO finish this
+ * Copy an image into a new image by creating a clone
  * @name copySync
  * @instance
  * @memberof mapnik.Image
- * @param {number} type
+ * @param {number} type - image type to clone into, can be any mapnik.imageType number
  * @param {Object} [options={}]
+ * @param {number} [options.scaling] - scale the image
+ * @param {number} [options.offset] - offset this image
  * @returns {mapnik.Image} copy
+ * @example
+ * var img = new mapnik.Image(4, 4, {type: mapnik.imageType.gray16});
+ * var img2 = img.copy(mapnik.imageType.gray8);
+ * // custom code with `img2` as a gray8 type
  */
 NAN_METHOD(Image::copySync)
 {
@@ -2237,12 +2261,15 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
 /**
  * Check if this image is painted. "Painted" refers to if it has
- * data or not.
+ * data or not. An image created with `new mapnik.Image(4,4)` defaults to
+ * `false` since we loaded a new image without rendering and have no idea
+ * if it was painted or not. You can run `new mapnik.Image(4, 4, {painted: true})`
+ * to manually set the `painted` value.
  *
- * @name width
+ * @name painted
  * @instance
  * @memberof mapnik.Image
- * @returns {number} width DOCS TODO: is this a bool or number?
+ * @returns {bool} whether it is painted or not
  * @example
  * var img = new mapnik.Image(5,5);
  * console.log(img.painted()); // false
@@ -2288,7 +2315,7 @@ NAN_METHOD(Image::height)
 }
 
 /**
- * Load in a pre-existing image as an image object DOCS TODO instance/static sync/async
+ * Load in a pre-existing image as an image object
  * @name openSync
  * @memberof mapnik.Image
  * @instance
@@ -4031,6 +4058,10 @@ NAN_SETTER(Image::set_offset)
  * @name data
  * @instance
  * @memberof mapnik.Image
+ * @returns {Buffer} pixel data as a buffer
+ * @example
+ * var img = new mapnik.Image.open('./path/to/image.png');
+ * var buffr = img.data();
  */
 NAN_METHOD(Image::data)
 {
