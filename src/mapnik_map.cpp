@@ -503,7 +503,7 @@ NAN_METHOD(Map::registerFonts)
  * @memberof mapnik.Map
  * @instance
  * @name font
- * @returns {v8::Array<string>} fonts
+ * @returns {Array<string>} fonts
  */
 NAN_METHOD(Map::fonts)
 {
@@ -837,7 +837,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  * @memberof mapnik.Map
  * @instance
  * @name layers
- * @returns {v8::Array<mapnik.Layer>} layers
+ * @returns {Array<mapnik.Layer>} layers
  */
 NAN_METHOD(Map::layers)
 {

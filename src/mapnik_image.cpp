@@ -547,16 +547,21 @@ NAN_METHOD(Image::setPixel)
 }
 
 /**
- * Compare two images visually. This is useful for algorithms and tests that
- * confirm whether a certain image has changed significantly.
+ * Compare the pixels of one image to the pixels of another. Returns the number 
+ * of pixels that are different. So, if the images are identical then it returns `0`. 
+ * And if the images share no common pixels it returns the total number of pixels 
+ * in an image which is equivalent to `im.width()*im.height()`.
  *
  * @name compare
  * @instance
  * @memberof mapnik.Image
  * @param {mapnik.Image} image - another {@link mapnik.Image} instance to compare to
  * @param {Object} [options]
- * @param {number} [options.threshold=16]
- * @param {bool} [options.alpha=true]
+ * @param {number} [options.threshold=16] - A value that should be `0` or greater to 
+ * determine if the pixels match. Defaults to 16 which means that `rgba(0,0,0,0)` 
+ * would be considered the same as `rgba(15,15,15,0)`.
+ * @param {bool} [options.alpha=true] - `alpha` value, along with `rgb`, is considered 
+ * when comparing pixels
  * @returns {number} quantified visual difference between these two images in "number of
  * pixels" (i.e. `80` pixels are different);
  * @example

@@ -93,10 +93,10 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
 /**
  * Get the geometry type
  *
+ * @name type
  * @returns {string} type of geometry.
  * @memberof mapnik.Geometry
  * @instance
- * @name type
  */
 NAN_METHOD(Geometry::type)
 {
@@ -321,7 +321,7 @@ void Geometry::after_to_json(uv_work_t* req)
  * @name extent
  * @memberof mapnik.Geometry
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
 NAN_METHOD(Geometry::extent)
 {
