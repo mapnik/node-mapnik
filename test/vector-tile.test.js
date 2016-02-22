@@ -740,7 +740,7 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it('should be able to addData in reasonable time', function(done) {
+    it.skip('should be able to addData in reasonable time', function(done) {
         var vtile = new mapnik.VectorTile(3,2,3);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with

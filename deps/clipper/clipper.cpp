@@ -48,7 +48,6 @@
 #include <ostream>
 #include <functional>
 #include <sstream>
-#include <iostream>
 
 namespace ClipperLib {
 
@@ -3679,19 +3678,10 @@ void Clipper::FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec)
 
 void Clipper::JoinCommonEdges()
 {
-  Join* join = NULL;
-  Join* next_join = NULL;
   for (JoinList::size_type i = 0; i < m_Joins.size(); i++)
   {
-    join = m_Joins[i];
-    if (i == m_Joins.size() - 1)
-    {
-        next_join = NULL;
-    }
-    else
-    {
-        next_join = m_Joins[i+1];
-    }
+    Join* join = m_Joins[i];
+
     OutRec *outRec1 = GetOutRec(join->OutPt1->Idx);
     OutRec *outRec2 = GetOutRec(join->OutPt2->Idx);
 
@@ -3714,17 +3704,6 @@ void Clipper::JoinCommonEdges()
       //splitting one polygon into two.
       outRec1->Pts = join->OutPt1;
       outRec1->BottomPt = 0;
-      if (next_join &&
-          next_join->OutPt1->Pt.y == outRec2->Pts->Prev->Pt.y &&
-          next_join->OutPt1->Pt.x == outRec2->Pts->Prev->Pt.x &&
-          next_join->OutPt1->Idx == outRec2->Idx)
-      {
-          if ((outRec1->IsHole ^ m_ReverseOutput) == (Area(*outRec1) > 0))
-          {
-            ReversePolyPtLinks(outRec1->Pts);
-          }
-          continue;
-      }
       outRec2 = CreateOutRec();
       outRec2->Pts = join->OutPt2;
 
