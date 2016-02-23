@@ -245,16 +245,24 @@ detail::p2p_result path_to_point_distance(mapnik::geometry::geometry<double> con
 Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
 
 /**
- * A generator for the [Mapbox Vector Tile](https://www.mapbox.com/developers/vector-tiles/)
- * specification of compressed and simplified tiled vector data
+ * A tile generator built according to the [Mapbox Vector Tile](https://github.com/mapbox/vector-tile-spec)
+ * specification for compressed and simplified tiled vector data. 
+ * Learn more about vector tiles [here](https://www.mapbox.com/developers/vector-tiles/).
  *
  * @name mapnik.VectorTile
  * @class
- * @param {number} z
- * @param {number} x
- * @param {number} y
+ * @param {number} z - an integer zoom level
+ * @param {number} x - an integer x coordinate
+ * @param {number} y - an integer y coordinate
+ * @property {number} x - horizontal axis position
+ * @property {number} y - vertical axis position
+ * @property {number} z - the zoom level
+ * @property {number} tileSize - the size of the tile
+ * @property {number} bufferSize - the size of the tile's buffer
  * @example
- * var vtile = new mapnik.VectorTile(9,112,195);
+ * var vt = new mapnik.VectorTile(9,112,195);
+ * console.log(vt.x, vt.y, vt.z); // 9, 112, 195
+ * console.log(vt.tileSize, vt.bufferSize); // 4096, 128
  */
 void VectorTile::Initialize(v8::Local<v8::Object> target)
 {
@@ -474,12 +482,19 @@ void _composite(VectorTile* target_vt,
 }
 
 /**
- * Composite an array of vector tiles into one vector tile
+ * Synchronous version of {@link VectorTile#composite}
  *
- * @memberof mapnik.VectorTile
  * @name compositeSync
+ * @memberof mapnik.VectorTile
  * @instance
- * @param {v8::Array<mapnik.VectorTile>} vector tiles
+ * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
+ * @param {object} [options]
+ * @example
+ * var vt1 = new mapnik.VectorTile(0,0,0);
+ * var vt2 = new mapnik.VectorTile(0,0,0);
+ * var options = { ... };
+ * vt1.compositeSync([vt2], options);
+ * 
  */
 NAN_METHOD(VectorTile::compositeSync)
 {
@@ -812,6 +827,64 @@ typedef struct
     Nan::Persistent<v8::Function> cb;
 } vector_tile_composite_baton_t;
 
+/**
+ * Composite an array of vector tiles into one vector tile
+ *
+ * @name composite
+ * @memberof mapnik.VectorTile
+ * @instance
+ * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
+ * @param {object} [options]
+ * @param {float} [options.scale_factor=1.0]
+ * @param {number} [options.offset_x=0]
+ * @param {number} [options.offset_y=0]
+ * @param {float} [options.area_threshold=0.1] - used to discard small polygons. 
+ * If a value is greater than `0` it will trigger polygons with an area smaller 
+ * than the value to be discarded. Measured in grid integers, not spherical mercator
+ * coordinates.
+ * @param {bool} [options.strictly_simple=true] - ensure all geometry is valid according to
+ * OGC Simple definition
+ * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive]
+ * the fill type used in determining what are holes and what are outer rings. See the 
+ * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
+ * to learn more about fill types.
+ * @param {float} [options.scale_denominator=0.0]
+ * @param {bool} [options.reencode=false]
+ * @param {Array<number>} [options.max_extent=minx,miny,maxx,maxy]
+ * @param {float} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * geometries before encoding into vector tiles.simplification distance The 
+ * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
+ * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+ * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
+ * @param {string} [options.scaling_method=bilinear] - can be any 
+ * of the <mapnik.imageScaling> methods
+ * @param {string} [options.threading_mode=deferred]
+ * @param {Function} callback - `function(err)`
+ * @example
+ * var vt1 = new mapnik.VectorTile(0,0,0);
+ * var vt2 = new mapnik.VectorTile(0,0,0);
+ * var options = {
+ *   scale: 1.0,
+ *   offset_x: 0,
+ *   offset_y: 0,
+ *   area_threshold: 0.1,
+ *   strictly_simple: false,
+ *   multi_polygon_union: true,
+ *   fill_type: mapnik.polygonFillType.nonZero,
+ *   process_all_rings:false,
+ *   scale_denominator: 0.0,
+ *   reencode: true
+ * }
+ * // add vt2 to vt1 tile
+ * vt1.composite([vt2], options, function(err) {
+ *   if (err) throw err;
+ *   // your custom code with `vt1`
+ * });
+ * 
+ */
 NAN_METHOD(VectorTile::composite)
 {
     if ((info.Length() < 2) || !info[info.Length()-1]->IsFunction()) 
@@ -1177,7 +1250,11 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name extent
  * @instance
- * @param {v8::Array<number>} extent
+ * @returns {Array<number>} array of extent in the form of `[minx,miny,maxx,maxy]`
+ * @example
+ * var vt = new mapnik.VectorTile(9,112,195);
+ * var extent = vt.extent();
+ * console.log(extent); // [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248]
  */
 NAN_METHOD(VectorTile::extent)
 {
@@ -1198,7 +1275,11 @@ NAN_METHOD(VectorTile::extent)
  * @memberof mapnik.VectorTile
  * @name bufferedExtent
  * @instance
- * @param {v8::Array<number>} extent
+ * @returns {Array<number>} extent - `[minx, miny, maxx, maxy]`
+ * @example
+ * var vt = new mapnik.VectorTile(9,112,195);
+ * var extent = vt.bufferedExtent();
+ * console.log(extent); // [-11273544.4277, 4693845.0329, -11190380.9409, 4777008.5197];
  */
 NAN_METHOD(VectorTile::bufferedExtent)
 {
@@ -1219,7 +1300,12 @@ NAN_METHOD(VectorTile::bufferedExtent)
  * @memberof mapnik.VectorTile
  * @name names
  * @instance
- * @param {v8::Array<string>} layer names
+ * @returns {Array<string>} layer names
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vt.addDataSync(data);
+ * console.log(vt.names()); // ['layer-name', 'another-layer']
  */
 NAN_METHOD(VectorTile::names)
 {
@@ -1241,7 +1327,12 @@ NAN_METHOD(VectorTile::names)
  * @memberof mapnik.VectorTile
  * @name emptyLayers
  * @instance
- * @param {v8::Array<string>} layer names
+ * @returns {Array<string>} layer names
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var empty = vt.emptyLayers();
+ * // assumes you have added data to your tile
+ * console.log(empty); // ['layer-name', 'empty-layer']
  */
 NAN_METHOD(VectorTile::emptyLayers)
 {
@@ -1258,12 +1349,18 @@ NAN_METHOD(VectorTile::emptyLayers)
 }
 
 /**
- * Get the names of all of the painted layers in this vector tile
+ * Get the names of all of the painted layers in this vector tile. "Painted" is 
+ * a check to see if data exists in the source dataset in a tile.
  *
  * @memberof mapnik.VectorTile
  * @name paintedLayers
  * @instance
- * @param {v8::Array<string>} layer names
+ * @returns {Array<string>} layer names
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var painted = vt.paintedLayers();
+ * // assumes you have added data to your tile
+ * console.log(painted); // ['layer-name']
  */
 NAN_METHOD(VectorTile::paintedLayers)
 {
@@ -1286,7 +1383,11 @@ NAN_METHOD(VectorTile::paintedLayers)
  * @memberof mapnik.VectorTile
  * @name empty
  * @instance
- * @param {boolean} whether the layer is empty
+ * @returns {boolean} whether the layer is empty
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var empty = vt.empty();
+ * console.log(empty); // true
  */
 NAN_METHOD(VectorTile::empty)
 {
@@ -1295,12 +1396,17 @@ NAN_METHOD(VectorTile::empty)
 }
 
 /**
- * Get whether the vector tile has been painted
+ * Get whether the vector tile has been painted. "Painted" is 
+ * a check to see if data exists in the source dataset in a tile.
  *
  * @memberof mapnik.VectorTile
  * @name painted
  * @instance
- * @param {boolean} painted
+ * @returns {boolean} painted
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var painted = vt.painted();
+ * console.log(painted); // false
  */
 NAN_METHOD(VectorTile::painted)
 {
@@ -1323,16 +1429,54 @@ typedef struct
 } vector_tile_query_baton_t;
 
 /**
- * Query a vector tile by longitude and latitude
+ * Query a vector tile by longitude and latitude and get an array of
+ * features in the vector tile that exist in relation to those coordinates.
+ *
+ * A note on `tolerance`: If you provide a positive value for tolerance you 
+ * are saying that you'd like features returned in the query results that might 
+ * not exactly intersect with a given lon/lat. The higher the tolerance the 
+ * slower the query will run because it will do more work by comparing your query 
+ * lon/lat against more potential features. However, this is an important parameter 
+ * because vector tile storage, by design, results in reduced precision of coordinates. 
+ * The amount of precision loss depends on the zoom level of a given vector tile 
+ * and how aggressively it was simplified during encoding. So if you want at 
+ * least one match - say the closest single feature to your query lon/lat - is is 
+ * not possible to know the smallest tolerance that will work without experimentation. 
+ * In general be prepared to provide a high tolerance (1-100) for low zoom levels 
+ * while you should be okay with a low tolerance (1-10) at higher zoom levels and 
+ * with vector tiles that are storing less simplified geometries. The units tolerance 
+ * should be expressed in depend on the coordinate system of the underlying data. 
+ * In the case of vector tiles this is spherical mercator so the units are meters. 
+ * For points any features will be returned that contain a point which is, by distance 
+ * in meters, not greater than the tolerance value. For lines any features will be 
+ * returned that have a segment which is, by distance in meters, not greater than 
+ * the tolerance value. For polygons tolerance is not supported which means that 
+ * your lon/lat must fall inside a feature's polygon otherwise that feature will 
+ * not be matched.
  *
  * @memberof mapnik.VectorTile
  * @name query
  * @instance
- * @param {number} longitude
- * @param {number} latitude
- * @param {Object} [options={tolerance:0}] tolerance: allow results that
- * are not exactly on this longitude, latitude position.
- * @param {Function} callback
+ * @param {number} longitude - longitude
+ * @param {number} latitude - latitude
+ * @param {Object} [options]
+ * @param {number} [options.tolerance=0] include features a specific distance from the 
+ * lon/lat query in the response
+ * @param {string} [options.layer] layer - Pass a layer name to restrict 
+ * the query results to a single layer in the vector tile. Get all possible 
+ * layer names in the vector tile with {@link VectorTile#names}
+ * @param {Function} callback(err, features)
+ * @returns {Array<mapnik.Feature>} an array of {@link mapnik.Feature} objects
+ * @example
+ * vt.query(139.61, 37.17, {tolerance: 0}, function(err, features) {
+ *   if (err) throw err;
+ *   console.log(features); // array of objects
+ *   console.log(features.length) // 1
+ *   console.log(features[0].id()) // 89
+ *   console.log(features[0].geometry().type()); // 'Polygon'
+ *   console.log(features[0].distance); // 0
+ *   console.log(features[0].layer); // 'layer name'
+ * });
  */
 NAN_METHOD(VectorTile::query)
 {
@@ -1589,6 +1733,38 @@ typedef struct
     Nan::Persistent<v8::Function> cb;
 } vector_tile_queryMany_baton_t;
 
+/**
+ * Query a vector tile by multiple sets of latitude/longitude pairs. 
+ * Just like <mapnik.VectorTile.query> but with more points to search.
+ *
+ * @memberof mapnik.VectorTile
+ * @name queryMany
+ * @instance
+ * @param {array<number>} array - `longitude` and `latitude` array pairs [[lon1,lat1], [lon2,lat2]]
+ * @param {Object} options
+ * @param {number} [options.tolerance=0] include features a specific distance from the 
+ * lon/lat query in the response. Read more about tolerance at {@link VectorTile#query}.
+ * @param {string} options.layer - layer name
+ * @param {Array<string>} [options.fields] - array of field names
+ * @param {Function} [callback] - `function(err, results)`
+ * @returns {Object} The response has contains two main objects: `hits` and `features`. 
+ * The number of hits returned will correspond to the number of lon/lats queried and will 
+ * be returned in the order of the query. Each hit returns 1) a `distance` and a 2) `feature_id`. 
+ * The `distance` is number of meters the queried lon/lat is from the object in the vector tile. 
+ * The `feature_id` is the corresponding object in features object. 
+ * 
+ * The values for the query is contained in the features object. Use attributes() to extract a value.
+ * @example
+ * vt.queryMany([[139.61, 37.17], [140.64, 38.1]], {tolerance: 0}, function(err, results) {
+ *   if (err) throw err;
+ *   console.log(results.hits); // 
+ *   console.log(results.features); // array of feature objects
+ *   if (features.length) {
+ *     console.log(results.features[0].layer); // 'layer-name'
+ *     console.log(results.features[0].distance, features[0].x_hit, features[0].y_hit); // 0, 0, 0
+ *   }
+ * });
+ */
 NAN_METHOD(VectorTile::queryMany)
 {
     if (info.Length() < 2 || !info[0]->IsArray())
@@ -2228,8 +2404,23 @@ struct json_value_visitor
  * @memberof mapnik.VectorTile
  * @name toJSON
  * @instance
+ * @param {Object} [options]
+ * @param {bool} [options.decode_geometry=false] return geometry as integers
+ * relative to the tile grid
  * @returns {Object} json representation of this tile with name, extent,
- * and version properties
+ * version, and feature properties
+ * @example
+ * var vt = mapnik.VectorTile(10,131,242);
+ * var buffer = fs.readFileSync('./path/to/data.mvt');
+ * vt.setData(buffer);
+ * var json = vectorTile.toJSON();
+ * console.log(json); 
+ * // { 
+ * //   name: 'layer-name',
+ * //   extent: 4096, 
+ * //   version: 2,
+ * //   features: [ ... ] // array of objects
+ * // }
  */
 NAN_METHOD(VectorTile::toJSON)
 {
@@ -2502,12 +2693,18 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
 }
 
 /**
- * Get a [GeoJSON](http://geojson.org/) representation of this tile
+ * Syncronous version of {@link VectorTile#toGeoJSON}
  *
  * @memberof mapnik.VectorTile
  * @name toGeoJSONSync
  * @instance
+ * @param {string | number} layer 
+ * @param {number} inded
  * @returns {string} stringified GeoJSON of all the features in this tile.
+ * @example
+ * var geojson = vectorTile.toGeoJSONSync();
+ * geojson // stringified GeoJSON
+ * JSON.parse(geojson); // GeoJSON object
  */
 NAN_METHOD(VectorTile::toGeoJSONSync)
 {
@@ -2718,8 +2915,18 @@ struct to_geojson_baton
  * @memberof mapnik.VectorTile
  * @name toGeoJSON
  * @instance
- * @param {Function} callback
- * @returns {string} stringified GeoJSON of all the features in this tile.
+ * @param {string | number} [layer=__all__] Can be a custom layer name, 
+ * `__array__` of layer names, or `__all__` for all layers.
+ * @param {number} [index=0] Specify the layer index, cannot be greater
+ * than the number of layers in the vector tile
+ * @param {Function} callback - `function(err, geojson)`: a stringified 
+ * GeoJSON of all the features in this tile
+ * @example
+ * vectorTile.toGeoJSON(function(err, geojson) {
+ *   if (err) throw err;
+ *   console.log(geojson); // stringified GeoJSON
+ *   console.log(JSON.parse(geojson)); // GeoJSON object
+ * });
  */
 NAN_METHOD(VectorTile::toGeoJSON)
 {
@@ -2856,6 +3063,28 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  * @instance
  * @param {string} geojson as a string
  * @param {string} name of the layer to be added
+ * @param {Object} options
+ * @param {number} [options.area_threshold=0.1] - used to discard small polygons. 
+ * If a value is greater than `0` it will trigger polygons with an area smaller 
+ * than the value to be discarded. Measured in grid integers, not spherical mercator
+ * coordinates.
+ * @param {number} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * geometries before encoding into vector tiles.simplification distance The 
+ * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
+ * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+ * @param {bool} [options.strictly_simple=true] ensure all geometry is valid according to
+ * OGC Simple definition
+ * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive] 
+ * the fill type used in determining what are holes and what are outer rings. See the 
+ * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
+ * to learn more about fill types.
+ * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * @example
+ * var geojson = { ... };
+ * var vt = mapnik.VectorTile(0,0,0);
+ * vt.addGeoJSON(JSON.stringify(geojson), 'layer-name', {});
  */
 NAN_METHOD(VectorTile::addGeoJSON)
 {
@@ -2997,13 +3226,26 @@ NAN_METHOD(VectorTile::addGeoJSON)
 }
 
 /**
- * Add an Image as a tile layer
+ * Add a {@link mapnik.Image} as a tile layer (synchronous)
  *
  * @memberof mapnik.VectorTile
  * @name addImageSync
  * @instance
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
+ * @param {Object} options
+ * @param {string} [options.image_scaling=bilinear] can be any 
+ * of the <mapnik.imageScaling> methods
+ * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
+ * @example
+ * var vt = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size:256
+ * });
+ * var im = new mapnik.Image(256, 256);
+ * vt.addImageSync(im, 'layer-name', {
+ *   image_format: 'jpeg',
+ *   image_scaling: 'gaussian'
+ * });
  */
 NAN_METHOD(VectorTile::addImageSync)
 {
@@ -3127,13 +3369,29 @@ typedef struct
 } vector_tile_add_image_baton_t;
 
 /**
- * Add an Image as a tile layer
+ * Add a <mapnik.Image> as a tile layer (asynchronous)
  *
  * @memberof mapnik.VectorTile
  * @name addImage
  * @instance
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
+ * @param {Object} [options]
+ * @param {string} [options.image_scaling=bilinear] can be any 
+ * of the <mapnik.imageScaling> methods
+ * @param {string} [options.image_format=webp] other options include `jpeg`, `png`, `tiff`
+ * @example
+ * var vt = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size:256
+ * });
+ * var im = new mapnik.Image(256, 256);
+ * vt.addImage(im, 'layer-name', {
+ *   image_format: 'jpeg',
+ *   image_scaling: 'gaussian'
+ * }, function(err) {
+ *   if (err) throw err;
+ *   // your custom code using `vt`  
+ * });
  */
 NAN_METHOD(VectorTile::addImage)
 {
@@ -3288,13 +3546,19 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
 }
 
 /**
- * Add raw image buffer as a new tile layer
+ * Add raw image buffer as a new tile layer (synchronous)
  *
  * @memberof mapnik.VectorTile
  * @name addImageBufferSync
  * @instance
- * @param {Buffer} raw data
- * @param {string} name of the layer to be added
+ * @param {Buffer} buffer - raw data
+ * @param {string} name - name of the layer to be added
+ * @example
+ * var vt = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size: 256
+ * });
+ * var image_buffer = fs.readFileSync('./path/to/image.jpg');
+ * vt.addImageBufferSync(image_buffer, 'layer-name');
  */
 NAN_METHOD(VectorTile::addImageBufferSync)
 {
@@ -3364,8 +3628,18 @@ typedef struct
  * @memberof mapnik.VectorTile
  * @name addImageBuffer
  * @instance
- * @param {Buffer} raw data
- * @param {string} name of the layer to be added
+ * @param {Buffer} buffer - raw image data
+ * @param {string} name - name of the layer to be added
+ * @param {Function} callback
+ * @example
+ * var vt = new mapnik.VectorTile(1, 0, 0, {
+ *   tile_size: 256
+ * });
+ * var image_buffer = fs.readFileSync('./path/to/image.jpg'); // returns a buffer
+ * vt.addImageBufferSync(image_buffer, 'layer-name', function(err) {
+ *   if (err) throw err;
+ *   // your custom code
+ * });
  */
 NAN_METHOD(VectorTile::addImageBuffer)
 {
@@ -3463,7 +3737,12 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  * @memberof mapnik.VectorTile
  * @name addDataSync
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
+ * @example
+ * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
+ * // assumes you have created a vector tile object already
+ * vt.addDataSync(data_buffer);
+ * // your custom code
  */
 NAN_METHOD(VectorTile::addDataSync)
 {
@@ -3522,7 +3801,15 @@ typedef struct
  * @memberof mapnik.VectorTile
  * @name addData
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw vector data
+ * @param {Object} callback
+ * @example
+ * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
+ * var vt = new mapnik.VectorTile(9,112,195);
+ * vt.addData(data_buffer, function(err) {
+ *   if (err) throw err;
+ *   // your custom code
+ * });
  */
 NAN_METHOD(VectorTile::addData)
 {
@@ -3610,12 +3897,17 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
 }
 
 /**
- * Replace the data in this vector tile with new raw data
+ * Replace the data in this vector tile with new raw data (synchronous). This function validates
+ * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
  *
  * @memberof mapnik.VectorTile
  * @name setDataSync
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
+ * @example
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vectorTile.setDataSync(data);
+ * // your custom code
  */
 NAN_METHOD(VectorTile::setDataSync)
 {
@@ -3675,7 +3967,14 @@ typedef struct
  * @memberof mapnik.VectorTile
  * @name setData
  * @instance
- * @param {Buffer} raw data
+ * @param {Buffer} buffer - raw data
+ * @param {Function} callback
+ * @example
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vectorTile.setData(data, function(err) {
+ *   if (err) throw err;
+ *   // your custom code
+ * });
  */
 NAN_METHOD(VectorTile::setData)
 {
@@ -3765,14 +4064,23 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 }
 
 /**
- * Get the data in this vector tile as a buffer
+ * Get the data in this vector tile as a buffer (synchronous)
  *
  * @memberof mapnik.VectorTile
  * @name getDataSync
  * @instance
+ * @param {Object} [options]
+ * @param {string} [options.compression=none] - can also be `gzip`
+ * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
+ * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
  * @returns {Buffer} raw data
+ * @example
+ * var data = vt.getData({
+ *   compression: 'gzip',
+ *   level: 9,
+ *   strategy: 'FILTERED'
+ * });
  */
-
 NAN_METHOD(VectorTile::getDataSync)
 {
     info.GetReturnValue().Set(_getDataSync(info));
@@ -3919,7 +4227,26 @@ typedef struct
     Nan::Persistent<v8::Function> cb;
 } vector_tile_get_data_baton_t;
 
-
+/**
+ * Get the data in this vector tile as a buffer (asynchronous)
+ * @memberof mapnik.VectorTile
+ * @name getData
+ * @instance
+ * @param {Object} [options]
+ * @param {string} [options.compression=none] compression type can also be `gzip`
+ * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
+ * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
+ * @param {Function} callback
+ * @example
+ * vt.getData({
+ *   compression: 'gzip',
+ *   level: 9,
+ *   strategy: 'FILTERED'
+ * }, function(err, data) {
+ *   if (err) throw err;
+ *   console.log(data); // buffer
+ * });
+ */
 NAN_METHOD(VectorTile::getData)
 {
     if (info.Length() == 0 || !info[info.Length()-1]->IsFunction())
@@ -4186,14 +4513,46 @@ struct baton_guard
 };
 
 /**
- * Render this vector tile to a surface, like a {@link mapnik.Image}
+ * Render/write this vector tile to a surface/image, like a {@link mapnik.Image}
  *
+ * @name render
  * @memberof mapnik.VectorTile
- * @name getData
  * @instance
- * @param {mapnik.Map} map object
- * @param {mapnik.Image} renderable surface
+ * @param {mapnik.Map} map - mapnik map object
+ * @param {mapnik.Image} surface - renderable surface object
+ * @param {Object} [options]
+ * @param {number} [options.z] an integer zoom level. Must be used with `x` and `y`
+ * @param {number} [options.x] an integer x coordinate. Must be used with `y` and `z`.
+ * @param {number} [options.y] an integer y coordinate. Must be used with `x` and `z`
+ * @param {number} [options.buffer_size] the size of the tile's buffer
+ * @param {number} [options.scale] floating point scale factor size to used
+ * for rendering
+ * @param {number} [options.scale_denominator] An floating point `scale_denominator` 
+ * to be used by Mapnik when matching zoom filters. If provided this overrides the 
+ * auto-calculated scale_denominator that is based on the map dimensions and bbox. 
+ * Do not set this option unless you know what it means.
+ * @param {Object} [options.variables] Mapnik 3.x ONLY: A javascript object 
+ * containing key value pairs that should be passed into Mapnik as variables 
+ * for rendering and for datasource queries. For example if you passed 
+ * `vtile.render(map,image,{ variables : {zoom:1} },cb)` then the `@zoom`
+ * variable would be usable in Mapnik symbolizers like `line-width:"@zoom"`
+ * and as a token in Mapnik postgis sql sub-selects like 
+ * `(select * from table where some_field > @zoom)` as tmp
+ * @param {string} [options.renderer] must be `cairo` or `svg`
+ * @param {string|number} [options.layer] option required for grid rendering 
+ * and must be either a layer name (string) or layer index (integer)
+ * @param {Array<string>} [options.fields] must be an array of strings
  * @param {Function} callback
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var tileSize = vt.tileSize;
+ * var map = new mapnik.Map(tileSize, tileSize);
+ * vt.render(map, new mapnik.Image(256,256), function(err, image) {
+ *   if (err) throw err;   
+ *   // save the rendered image to an existing image file somewhere
+ *   // see mapnik.Image for available methods
+ *   image.save('./path/to/image/file.png', 'png32');
+ * });
  */
 NAN_METHOD(VectorTile::render)
 {
@@ -4735,6 +5094,15 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     delete closure;
 }
 
+/**
+ * Remove all data from this vector tile (synchronously)
+ * @name clearSync
+ * @memberof mapnik.VectorTile
+ * @instance
+ * @example
+ * vt.clearSync();
+ * console.log(vt.getData().length); // 0
+ */
 NAN_METHOD(VectorTile::clearSync)
 {
     info.GetReturnValue().Set(_clearSync(info));
@@ -4765,6 +5133,11 @@ typedef struct
  * @name clear
  * @instance
  * @param {Function} callback
+ * @example
+ * vt.clear(function(err) {
+ *   if (err) throw err;
+ *   console.log(vt.getData().length); // 0   
+ * });
  */
 NAN_METHOD(VectorTile::clear)
 {
@@ -5015,12 +5388,16 @@ struct not_valid_baton
 };
 
 /**
- * Count the number of geometries that are not OGC simple
+ * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometrySimplicitySync
  * @instance
- * @returns {number} number of features that are not simple 
+ * @returns {number} number of features that are not simple
+ * @example
+ * var simple = vectorTile.reportGeometrySimplicitySync();
+ * console.log(simple); // array of non-simple geometries and their layer info
+ * console.log(simple.length); // number
  */
 NAN_METHOD(VectorTile::reportGeometrySimplicitySync)
 {
@@ -5049,12 +5426,16 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
 }
 
 /**
- * Count the number of geometries that are not OGC valid
+ * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometryValiditySync
  * @instance
  * @returns {number} number of features that are not valid
+ * @example
+ * var valid = vectorTile.reportGeometryValiditySync();
+ * console.log(valid); // array of invalid geometries and their layer info
+ * console.log(valid.length); // number
  */
 NAN_METHOD(VectorTile::reportGeometryValiditySync)
 {
@@ -5083,12 +5464,18 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 }
 
 /**
- * Count the number of non OGC simple geometries
+ * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometrySimplicity
  * @instance
  * @param {Function} callback
+ * @example
+ * vectorTile.reportGeometrySimplicity(function(err, simple) {
+ *   if (err) throw err;
+ *   console.log(simple); // array of non-simple geometries and their layer info
+ *   console.log(simple.length); // number
+ * });
  */
 NAN_METHOD(VectorTile::reportGeometrySimplicity)
 {
@@ -5154,12 +5541,17 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 }
 
 /**
- * Count the number of non OGC valid geometries
+ * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometryValidity
  * @instance
  * @param {Function} callback
+ * @example
+ * vectorTile.reportGeometryValidity(function(err, valid) {
+ *   console.log(valid); // array of invalid geometries and their layer info
+ *   console.log(valid.length); // number    
+ * });
  */
 NAN_METHOD(VectorTile::reportGeometryValidity)
 {

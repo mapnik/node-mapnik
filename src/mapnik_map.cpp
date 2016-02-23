@@ -50,16 +50,44 @@
 Nan::Persistent<v8::FunctionTemplate> Map::constructor;
 
 /**
- * A map in mapnik is an object that combined data sources and styles in
+ * A map in mapnik is an object that combines data sources and styles in
  * a way that lets you produce styled cartographic output.
  *
  * @name mapnik.Map
  * @class
- * @param {number} width
- * @param {number} width
- * @param {string} projection as a proj4 code
+ * @param {int} width in pixels
+ * @param {int} height in pixels
+ * @param {string} [projection='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'] projection as a proj4 code
+ * typically used with '+init=epsg:3857'
+ * @property {string} src
+ * @property {number} width
+ * @property {number} height
+ * @property {number} bufferSize
+ * @property {Array<number>} extent - extent of the map as an array `[ minx, miny, maxx, maxy ]`
+ * @property {Array<number>} bufferedExtent - extent of the map's buffer `[ minx, miny, maxx, maxy ]`
+ * @property {Array<number>} maximumExtent - combination of extent and bufferedExtent `[ minx, miny, maxx, maxy ]`
+ * @property {mapnik.Color} background - background color as a {@link mapnik.Color} object
+ * @property {} parameters
+ * @property {} aspect_fix_mode
  * @example
  * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
+ * console.log(map);
+ * // { 
+ * //   aspect_fix_mode: 0,
+ * //   parameters: {},
+ * //   background: undefined,
+ * //   maximumExtent: undefined,
+ * //   bufferedExtent: [ NaN, NaN, NaN, NaN ],
+ * //   extent: 
+ * //   [ 1.7976931348623157e+308,
+ * //    1.7976931348623157e+308,
+ * //    -1.7976931348623157e+308,
+ * //    -1.7976931348623157e+308 ],
+ * //   bufferSize: 0,
+ * //   height: 400,
+ * //   width: 600,
+ * //   srs: '+init=epsg:3857' 
+ * // }
  */
 void Map::Initialize(v8::Local<v8::Object> target) {
 
@@ -409,6 +437,14 @@ NAN_SETTER(Map::set_prop)
     }
 }
 
+/**
+ * Load fonts from local or external source
+ * 
+ * @name loadFonts
+ * @memberof mapnik.Map
+ * @instance
+ * 
+ */
 NAN_METHOD(Map::loadFonts)
 {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
@@ -467,7 +503,7 @@ NAN_METHOD(Map::registerFonts)
  * @memberof mapnik.Map
  * @instance
  * @name font
- * @returns {v8::Array<string>} fonts
+ * @returns {Array<string>} fonts
  */
 NAN_METHOD(Map::fonts)
 {
@@ -801,7 +837,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  * @memberof mapnik.Map
  * @instance
  * @name layers
- * @returns {v8::Array<mapnik.Layer>} layers
+ * @returns {Array<mapnik.Layer>} layers
  */
 NAN_METHOD(Map::layers)
 {
@@ -1592,7 +1628,6 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                     return;
                 }
-
                 buffer_size = bind_opt->IntegerValue();
             }
 

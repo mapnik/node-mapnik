@@ -153,7 +153,7 @@ NAN_METHOD(Feature::id)
  * @name extent
  * @memberof mapnik.Feature
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
 NAN_METHOD(Feature::extent)
 {
