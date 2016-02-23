@@ -2028,7 +2028,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     try
     {
         mapnik::Map const& map = *closure->m->get();
-        
+
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_simplify_distance(closure->simplify_distance);
         ren.set_multi_polygon_union(closure->multi_polygon_union);

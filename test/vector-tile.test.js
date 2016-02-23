@@ -740,6 +740,21 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
+    it.skip('should be able to addData in reasonable time', function(done) {
+        var vtile = new mapnik.VectorTile(3,2,3);
+        // tile1 represents a "solid" vector tile with one layer
+        // that only encodes a single feature with a single path with
+        // a polygon box resulting from clipping a chunk out of
+        // a larger polygon fully outside the rendered/clipping extent
+        var data = fs.readFileSync("./test/data/vector_tile/3.2.3.mbs4.mvt");
+        vtile.addData(data, function(err) {
+            assert.equal(vtile.empty(), false);
+            assert.equal(vtile.painted(), true);
+            assert.equal(vtile.empty(), false);
+            done();
+        });
+    });
+
     it('should be able to setData/parse (sync)', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         // tile1 represents a "solid" vector tile with one layer
@@ -2315,7 +2330,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });

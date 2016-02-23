@@ -439,7 +439,7 @@ describe('mapnik.VectorTile query multipoint', function() {
         vtile = new mapnik.VectorTile(0,0,0);
         var coords = [
           [0.1,0.1],
-          [0.1001,0.1001],
+          [0.19,0.1],
           [20,20],
           [20.1,20.1],
           [0,0]
@@ -464,8 +464,8 @@ describe('mapnik.VectorTile query multipoint', function() {
     });
 
     it('query multipoint (pt @ 0.1,0.1)', function(done) {
-        check(vtile.query(0.1,0.1,{tolerance:2000}));
-        vtile.query(0.1,0.1,{tolerance:2000},function(err, features) {
+        check(vtile.query(0.1,0.1,{tolerance:10000}));
+        vtile.query(0.1,0.1,{tolerance:10000},function(err, features) {
             assert.ifError(err);
             check(features);
             done();
@@ -474,7 +474,7 @@ describe('mapnik.VectorTile query multipoint', function() {
             assert.equal(features.length,1);
             assert.equal(features[0].id(),1);
             assert.equal(features[0].geometry().type(),mapnik.Geometry.MultiPoint);
-            assert.ok(features[0].distance < 2000);
+            assert.ok(features[0].distance < 20000);
             assert.equal(features[0].layer,'layer-name');
         }
     });
