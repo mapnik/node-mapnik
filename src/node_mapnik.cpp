@@ -69,7 +69,8 @@ static NAN_METHOD(clearCache)
 }
 
 /**
- * Mapnik is the core of cartographic design and processing.
+ * Mapnik is the core of cartographic design and processing. `node-mapnik` provides a
+ * set of bindings to `mapnik` for node.js.
  *
  * @name mapnik
  * @class
