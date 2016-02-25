@@ -3630,7 +3630,7 @@ struct vector_tile_render_baton_t {
         request(),
         m(nullptr),
         d(nullptr),
-        surface(nullptr),
+        surface(),
         variables(),
         error_name(),
         cb(),
