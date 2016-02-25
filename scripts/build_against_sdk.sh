@@ -45,9 +45,10 @@ REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
 
-LOCAL_PACKAGE=$(realpath "$CURRENT_DIR/../../mapnik-packaging/osx/out/dist")
+LOCAL_PACKAGE="$CURRENT_DIR/../../mapnik-packaging/osx/out/dist"
 echo "looking for ${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}"
 if [ -f "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" ]; then
+    LOCAL_PACKAGE=$(realpath $LOCAL_PACKAGE)
     echo "copying over ${TARBALL_NAME}.${COMPRESSION}"
     cp "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" .
 else
