@@ -40,7 +40,7 @@
     }
   ],
   "dependencies": {
-    "mapnik-vector-tile": "git://github.com/mapbox/mapnik-vector-tile.git#v2_spec",
+    "mapnik-vector-tile": "1.0.0",
     "nan": "~2.2.0",
     "node-pre-gyp": "~0.6.19"
   },
