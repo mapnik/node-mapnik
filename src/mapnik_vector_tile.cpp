@@ -3599,7 +3599,7 @@ using surface_type = mapnik::util::variant
 
 struct deref_visitor
 {
-    void operator() (DummySurface) {} // no-op
+    void operator() (dummy_surface) {} // no-op
     template <typename SurfaceType>
     void operator() (SurfaceType * surface)
     {
