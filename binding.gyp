@@ -136,10 +136,10 @@
       ],
       'include_dirs': [
         './deps/clipper/',
-        './deps/',
         './node_modules/mapnik-vector-tile/src/',
         './src',
-        "<!(node -e \"require('nan')\")"
+        "<!(node -e \"require('nan')\")",
+        './node_modules/protozero/include/',
       ],
       'defines': [
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
