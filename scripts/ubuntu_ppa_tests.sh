@@ -5,7 +5,7 @@ sudo apt-add-repository --yes ppa:mapnik/v2.2.0
 sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
 sudo apt-add-repository --yes ppa:mapnik/nightly-trunk
 sudo apt-get update -qq
-sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
+sudo apt-get -qq install g++ gcc
 sudo apt-get -qq install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
 
 npm install --build-from-source

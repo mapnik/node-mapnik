@@ -1,5 +1,41 @@
 # Changelog
 
+## 3.5.0
+
+This is a major update and reflects a large number of changes added into node-mapnik due to update of the [Mapbox Vector Tile Specification](https://github.com/mapbox/vector-tile-spec). As part of this the [mapnik-vector-tile library](https://github.com/mapbox/mapnik-vector-tile) was updated to `1.0.0`. Therefore, a large number of interfaces changes have taken place around the `mapnik.VectorTile` object.
+
+It is important to know that the concept of `width` and `height` have been removed from `mapnik.VectorTile` objects. This is replaced by the concept of `tileSize`. While `width` and `height` were based on the concept of an Image size created from a vector tile, `tileSize` is directly related to the `extent` as defined in the `Layer` of a vector tile. For understanding what the `Layer` and `extent` is please see the [Vector Tile Specification](https://github.com/mapbox/vector-tile-spec/tree/master/2.1#41-layers). This also changed the `buffer_size` arguments that were commonly used in many Vector Tile methods, which was also based on the *Image size*. The vector tile object now contains a `bufferSize` which represents the buffer added to the layer extent in a tile.
+
+Internally, all methods now depend on V2 tiles, however, any V1 tiles that are loaded into a `mapnik.VectorTile` object will **automatically** be updated.
+
+Summary of changes:
+
+ - `mapnik.VectorTile.addData` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.addDataSync` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.setData` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.setDataSync` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.addImage` now takes a `mapnik.Image` object rather then a buffer, it also takes optional arguments image_scaling and image_format.
+ - `mapnik.VectorTile.addImageBuffer` replaces the old functionality of of `mapnik.VectorTile.addImage`
+ - Added `mapnik.VectorTile.addImageSync` and made `mapnik.VectorTile.addImage` accept a callback.
+ - Added `mapnik.VectorTile.addImageBufferSync` and made `mapnik.VectorTile.addImageBuffer` accept a callback.
+ - `mapnik.VectorTile.height()` method is removed
+ - `mapnik.VectorTile.width()` method is removed
+ - `mapnik.VectorTile.parse()` method is removed
+ - `mapnik.VectorTile.IsSolid()` method is removed
+ - `mapnik.shutdown()` is removed
+ - Removed the dependency on libprotobuf library
+ - Lowered memory requirements for vector tile creation and vector tile operations.
+ - Duplicate layer names in `mapnik.VectorTile` objects are no longer permitted.
+ - Added new `mapnik.VectorTile.extent()` method which returns the bounding box of a tile in EPSG:3857
+ - Added new `mapnik.VectorTile.bufferedExtent()` method which returns the bounding box including buffer of a tile in EPSG:3857
+ - Added new `mapnik.VectorTile.emptyLayers()` method which returns the name of layers which were not added to a tile during any tile rendering operation.
+ - Added new `mapnik.VectorTile.paintedLayers()` method which returns the name of layers which were considered painted during rendering or layers that contain data.
+ - Added new `mapnik.VetorTile.tileSize` property.
+ - Added new `mapnik.VetorTile.bufferSize` property.
+ - Updated many of the default configuration options on `mapnik.VectorTile` class methods
+ - Removed the concept of `path_multiplier` from the code entirely.
+ - Added optional arguments of `tile_size` and `buffer_size` to `mapnik.VectorTile` constructor.
+
 ## 3.4.17
 
  - Binaries updated to use v3.0.10 and mapnik-packaging@d6ae1fb

@@ -3668,6 +3668,7 @@ void Clipper::FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec)
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
   {
     OutRec* outRec = m_PolyOuts[i];
+    // unused variable `firstLeft`: is this a bug? (dane)
     //OutRec* firstLeft = ParseFirstLeft(outRec->FirstLeft);
     if (outRec->Pts && outRec->FirstLeft == OldOutRec)
       outRec->FirstLeft = NewOutRec;

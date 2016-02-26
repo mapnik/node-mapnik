@@ -44,7 +44,7 @@ static void get_fields(v8::Local<v8::Object> fields, mapnik::datasource_ptr ds)
         std::string const& name = attr_info.get_name();
         fields->Set(Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
         fields->Set(Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
