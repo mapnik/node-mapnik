@@ -97,7 +97,7 @@ An official release requires:
 
  - Updating the CHANGELOG.md
  - Publishing new binaries for a non-alpha version like `3.1.5`. So you'd want to merge your branch and then edit the `version` value in package json back to a decent value for release.
- - Create a github tag like `git tag 3.1.5 -m "v3.1.5"`
+ - Create a github tag like `git tag --annotate 3.1.5 -m "v3.1.5"`
  - Optional: Test mapnik-swoop again for your new tagged version
  - Ensure you have a clean checkout (no extra files in your check that are not known by git). You need to be careful, for instance, to avoid a large accidental file being packaged by npm. You can get a view of what npm will publish by running `make testpack`
  - Fully rebuild and ensure install from binary works: `make clean && npm install --fallback-to-build=false`
