@@ -36,6 +36,25 @@ Summary of changes:
  - Removed the concept of `path_multiplier` from the code entirely.
  - Added optional arguments of `tile_size` and `buffer_size` to `mapnik.VectorTile` constructor.
 
+## 3.4.17
+
+ - Binaries updated to use v3.0.10 and mapnik-packaging@d6ae1fb
+ - Upgraded to protozero v1.3.0
+ - Fixed invalid usage of `mapbox::variant` that was causing windows compiler crash
+
+Notable Changes in Mapnik v3.0.10 include:
+
+ - A shapefile index now is skipped instead of causing an error to be throw. The shapefile plugin will then
+   proceed by reading without using an index. It is advisable to regenerate the indexes to maintain
+   top performance.
+
+Notable changes in the Mapnik SDK include:
+
+ - sqlite 3100000->3110000
+ - libpng 1.6.20->1.6.21
+ - postgres 9.4.5->9.5.1
+ - sparsehash 2.0.2->2.0.3
+
 ## 3.4.16
 
  - Fixed `image.resize` behavior when scaling images with alpha (https://github.com/mapnik/node-mapnik/issues/585)
