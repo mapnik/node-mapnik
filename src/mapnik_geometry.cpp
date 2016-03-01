@@ -31,16 +31,27 @@ void Geometry::Initialize(v8::Local<v8::Object> target) {
     lcons->SetClassName(Nan::New("Geometry").ToLocalChecked());
 
     Nan::SetPrototypeMethod(lcons, "extent", extent);
+    Nan::SetPrototypeMethod(lcons, "type", type);
     Nan::SetPrototypeMethod(lcons, "toWKB", toWKB);
     Nan::SetPrototypeMethod(lcons, "toWKT", toWKT);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
     Nan::SetPrototypeMethod(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Point",mapnik::datasource_geometry_t::Point)
+                                "Unknown",mapnik::geometry::geometry_types::Unknown)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "LineString",mapnik::datasource_geometry_t::LineString)
+                                "Point",mapnik::geometry::geometry_types::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Polygon",mapnik::datasource_geometry_t::Polygon)
+                                "MultiPoint",mapnik::geometry::geometry_types::MultiPoint)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "LineString",mapnik::geometry::geometry_types::LineString)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "MultiLineString",mapnik::geometry::geometry_types::MultiLineString)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "Polygon",mapnik::geometry::geometry_types::Polygon)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "MultiPolygon",mapnik::geometry::geometry_types::MultiPolygon)
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+                                "GeometryCollection",mapnik::geometry::geometry_types::GeometryCollection)
     target->Set(Nan::New("Geometry").ToLocalChecked(), lcons->GetFunction());
     constructor.Reset(lcons);
 }
@@ -80,6 +91,21 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
 }
 
 /**
+ * Get the geometry type
+ *
+ * @name type
+ * @returns {string} type of geometry.
+ * @memberof mapnik.Geometry
+ * @instance
+ */
+NAN_METHOD(Geometry::type)
+{
+    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+    auto const& geom = g->feat_->get_geometry();
+    info.GetReturnValue().Set(Nan::New<v8::Integer>(mapnik::geometry::geometry_type(geom)));
+}
+
+/**
  * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
  * synchronously.
  *
@@ -116,7 +142,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             /* LCOV_EXCL_START */
             Nan::ThrowError("Failed to generate GeoJSON");
             return scope.Escape(Nan::Undefined());
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
     }
     else
@@ -149,7 +175,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
                 /* LCOV_EXCL_START */
                 Nan::ThrowError("Failed to generate GeoJSON");
                 return scope.Escape(Nan::Undefined());
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -236,7 +262,7 @@ void Geometry::to_json(uv_work_t* req)
                 // LCOV_EXCL_START
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                // LCOV_EXCL_END
+                // LCOV_EXCL_STOP
             }
         }
         else
@@ -248,7 +274,7 @@ void Geometry::to_json(uv_work_t* req)
                 /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -259,7 +285,7 @@ void Geometry::to_json(uv_work_t* req)
         /* LCOV_EXCL_START */
         closure->error = true;
         closure->result = ex.what();
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -274,7 +300,7 @@ void Geometry::after_to_json(uv_work_t* req)
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     else
     {
@@ -295,7 +321,7 @@ void Geometry::after_to_json(uv_work_t* req)
  * @name extent
  * @memberof mapnik.Geometry
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
 NAN_METHOD(Geometry::extent)
 {
@@ -328,7 +354,7 @@ NAN_METHOD(Geometry::toWKT)
         /* LCOV_EXCL_START */
         Nan::ThrowError("Failed to generate WKT");
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(wkt).ToLocalChecked());
 }

@@ -175,7 +175,7 @@ void Grid::EIO_Clear(uv_work_t* req)
         /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -191,7 +191,7 @@ void Grid::EIO_AfterClear(uv_work_t* req)
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     else
     {
@@ -435,7 +435,7 @@ NAN_METHOD(Grid::encodeSync)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -538,7 +538,7 @@ void Grid::EIO_Encode(uv_work_t* req)
         /* LCOV_EXCL_START */
         closure->error = true;
         closure->error_name = ex.what();
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -556,7 +556,7 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     } 
     else 
     {

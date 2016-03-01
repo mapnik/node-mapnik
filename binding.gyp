@@ -10,20 +10,6 @@
       'type': 'none',
       'actions': [
         {
-          'action_name': 'generate_protoc_files',
-          'inputs': [
-            './node_modules/mapnik-vector-tile/proto/'
-          ],
-          'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc',
-            '<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h'
-          ],
-          'action': [ 'protoc',
-            '-I<(RULE_INPUT_PATH)',
-            '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/',
-            '<(RULE_INPUT_PATH)/vector_tile.proto']
-        },
-        {
           'action_name': 'generate_setting',
           'inputs': [
             'gen_settings.py'
@@ -42,72 +28,8 @@
       ]
     },
     {
-      "target_name": "vector_tile",
-      'dependencies': [ 'make_vector_tile' ],
-      'hard_dependency': 1,
-      "type": "static_library",
-      "sources": [
-        "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
-      ],
-      "msvs_disabled_warnings": [
-        4267,
-        4018
-      ],
-      'include_dirs': [
-        '<(SHARED_INTERMEDIATE_DIR)/'
-      ],
-      'cflags_cc' : [
-          '-D_THREAD_SAFE',
-          '<!@(mapnik-config --cflags)', # assume protobuf headers are here
-          '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
-      ],
-      'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS':[
-            '-D_THREAD_SAFE',
-            '<!@(mapnik-config --cflags)', # assume protobuf headers are here
-            '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
-        ],
-        'GCC_ENABLE_CPP_RTTI': 'YES',
-        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-        'MACOSX_DEPLOYMENT_TARGET':'10.8',
-        'CLANG_CXX_LIBRARY': 'libc++',
-        'CLANG_CXX_LANGUAGE_STANDARD':'c++11',
-        'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
-      },
-      'direct_dependent_settings': {
-        'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/'
-        ],
-        'cflags_cc' : [
-            '-D_THREAD_SAFE'
-        ],
-        'xcode_settings': {
-          'OTHER_CPLUSPLUSFLAGS':[
-             '-D_THREAD_SAFE',
-          ],
-        },
-      },
-      'conditions': [
-        ['OS=="win"',
-          {
-            'include_dirs':[
-              '<!@(mapnik-config --includes)'
-            ],
-            'libraries': [
-              'libprotobuf-lite.lib'
-            ]
-          },
-          {
-            'libraries':[
-              '-lprotobuf-lite'
-            ],
-          }
-        ]
-      ]
-    },
-    {
       'target_name': '<(module_name)',
-      'dependencies': [ 'vector_tile', 'make_vector_tile' ],
+      'dependencies': [ 'make_vector_tile' ],
       'sources': [
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
@@ -136,10 +58,10 @@
       ],
       'include_dirs': [
         './deps/clipper/',
-        './deps/',
         './node_modules/mapnik-vector-tile/src/',
         './src',
-        "<!(node -e \"require('nan')\")"
+        "<!(node -e \"require('nan')\")",
+        './node_modules/protozero/include/',
       ],
       'defines': [
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
@@ -172,7 +94,6 @@
               'mapnik-wkt.lib',
               'mapnik-json.lib',
               '<!@(mapnik-config --dep-libs)',
-              'libprotobuf-lite.lib',
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
@@ -193,7 +114,6 @@
               '-lmapnik-wkt',
               '-lmapnik-json',
               '<!@(mapnik-config --ldflags)',
-              '-lprotobuf-lite',
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[

@@ -4,6 +4,7 @@ var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
+var os = require('os');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
@@ -96,7 +97,7 @@ describe('mapnik.Map', function() {
             map.extent = world;
             assert.deepEqual(map.extent,world);
         }
-        
+
         assert.equal(map.srs, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
         assert.throws(function() { map.srs = 100; });
         map.srs = '+init=epsg:3857';
@@ -114,8 +115,9 @@ describe('mapnik.Map', function() {
 
     it('should support scale methods', function() {
         var map = new mapnik.Map(4000, 4000);
-        assert.equal(map.scale(), -0.00025);
-        assert.equal(map.scaleDenominator(), -99392.40249399428);
+        map.zoomToBox([0,0,1,1]);
+        assert.equal(map.scale(), 0.00025);
+        assert.equal(map.scaleDenominator(), 99392.40249399428);
     });
 
     it('should fail to load a stylesheet async', function(done) {
@@ -193,7 +195,7 @@ describe('mapnik.Map', function() {
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {strict: 12 }); });
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {base: 12 }); });
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {base: '/DOESNOTEXIST' }); });
-        
+
         // Test loading a sample world map
         map.loadSync('./test/stylesheet.xml');
 
@@ -217,7 +219,7 @@ describe('mapnik.Map', function() {
         var layers2 = map.layers();
         assert.equal(layers2.length, 0);
     });
-    
+
     it('should load fromString sync', function() {
         var map = new mapnik.Map(4, 4);
         var s = '<Map>';
@@ -230,7 +232,7 @@ describe('mapnik.Map', function() {
 
         assert.equal(map.fromStringSync(s, {strict:false, base:''}),undefined);
     });
-    
+
     it('should not load fromString Sync', function() {
         var map = new mapnik.Map(4, 4);
         var s = '<xMap>';
@@ -250,7 +252,7 @@ describe('mapnik.Map', function() {
         // Test good parameters, bad string
         assert.throws(function() { map.fromStringSync(s, {strict:false, base:''}); });
     });
-    
+
     it('should not load fromString Async - bad string', function(done) {
         var map = new mapnik.Map(4, 4);
         var s = '<xMap>';
@@ -320,10 +322,11 @@ describe('mapnik.Map', function() {
         var layers = map.layers();
         // Test bad parameters
         assert.throws(function() { map.save(1); });
-        assert.throws(function() { map.save('./test/stylesheet_copy.xml', 2); });
-        map.save('./test/stylesheet_copy.xml');
+        assert.throws(function() { map.save('./test/stylesheet.xml', 2); });
+        var tmp_stylesheet = path.join(os.tmpdir(),'stylesheet_copy.xml');
+        map.save(tmp_stylesheet);
         var map2 = new mapnik.Map(600,400);
-        map2.loadSync('./test/stylesheet_copy.xml')
+        map2.loadSync(tmp_stylesheet)
         var layers2 = map2.layers();
 
         assert.equal(layers.length, layers2.length);
@@ -334,7 +337,7 @@ describe('mapnik.Map', function() {
         assert.equal(layers[0].datasource.parameters().type,layers2[0].datasource.parameters().type);
         assert.equal(layers[0].datasource.type, layers2[0].datasource.type);
 
-        fs.unlink('./test/stylesheet_copy.xml', function(err) {
+        fs.unlink(tmp_stylesheet, function(err) {
             if (err) throw err;
             done();
         });

@@ -118,8 +118,12 @@ NAN_METHOD(Feature::fromJSON)
     }
     catch (std::exception const& ex)
     {
+        // no way currently for any of the above code to throw,
+        // but we'll keep this try catch to protect against mapnik or v8 changing
+        /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -149,7 +153,7 @@ NAN_METHOD(Feature::id)
  * @name extent
  * @memberof mapnik.Feature
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
 NAN_METHOD(Feature::extent)
 {
@@ -220,7 +224,7 @@ NAN_METHOD(Feature::toJSON)
         /* LCOV_EXCL_START */
         Nan::ThrowError("Failed to generate GeoJSON");
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(json).ToLocalChecked());
 }

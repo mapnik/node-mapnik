@@ -8,10 +8,11 @@
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
-#include "vector_tile_processor.hpp"
-#include "vector_tile_backend_pbf.hpp"
 #include "mapnik_vector_tile.hpp"
 #include "object_to_container.hpp"
+
+// mapnik-vector-tile
+#include "vector_tile_processor.hpp"
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
@@ -24,6 +25,7 @@
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
 #endif
 #include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/image_any.hpp>
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
@@ -39,11 +41,8 @@
 // stl
 #include <exception>                    // for exception
 #include <iosfwd>                       // for ostringstream, ostream
-#include <iostream>                     // for clog
 #include <ostream>                      // for operator<<, basic_ostream, etc
 #include <sstream>                      // for basic_ostringstream, etc
-
-#include "vector_tile.pb.h"
 
 // boost
 #include <boost/optional/optional.hpp>  // for optional
@@ -51,16 +50,44 @@
 Nan::Persistent<v8::FunctionTemplate> Map::constructor;
 
 /**
- * A map in mapnik is an object that combined data sources and styles in
+ * A map in mapnik is an object that combines data sources and styles in
  * a way that lets you produce styled cartographic output.
  *
  * @name mapnik.Map
  * @class
- * @param {number} width
- * @param {number} width
- * @param {string} projection as a proj4 code
+ * @param {int} width in pixels
+ * @param {int} height in pixels
+ * @param {string} [projection='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'] projection as a proj4 code
+ * typically used with '+init=epsg:3857'
+ * @property {string} src
+ * @property {number} width
+ * @property {number} height
+ * @property {number} bufferSize
+ * @property {Array<number>} extent - extent of the map as an array `[ minx, miny, maxx, maxy ]`
+ * @property {Array<number>} bufferedExtent - extent of the map's buffer `[ minx, miny, maxx, maxy ]`
+ * @property {Array<number>} maximumExtent - combination of extent and bufferedExtent `[ minx, miny, maxx, maxy ]`
+ * @property {mapnik.Color} background - background color as a {@link mapnik.Color} object
+ * @property {} parameters
+ * @property {} aspect_fix_mode
  * @example
  * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
+ * console.log(map);
+ * // { 
+ * //   aspect_fix_mode: 0,
+ * //   parameters: {},
+ * //   background: undefined,
+ * //   maximumExtent: undefined,
+ * //   bufferedExtent: [ NaN, NaN, NaN, NaN ],
+ * //   extent: 
+ * //   [ 1.7976931348623157e+308,
+ * //    1.7976931348623157e+308,
+ * //    -1.7976931348623157e+308,
+ * //    -1.7976931348623157e+308 ],
+ * //   bufferSize: 0,
+ * //   height: 400,
+ * //   width: 600,
+ * //   srs: '+init=epsg:3857' 
+ * // }
  */
 void Map::Initialize(v8::Local<v8::Object> target) {
 
@@ -410,6 +437,14 @@ NAN_SETTER(Map::set_prop)
     }
 }
 
+/**
+ * Load fonts from local or external source
+ * 
+ * @name loadFonts
+ * @memberof mapnik.Map
+ * @instance
+ * 
+ */
 NAN_METHOD(Map::loadFonts)
 {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
@@ -468,7 +503,7 @@ NAN_METHOD(Map::registerFonts)
  * @memberof mapnik.Map
  * @instance
  * @name font
- * @returns {v8::Array<string>} fonts
+ * @returns {Array<string>} fonts
  */
 NAN_METHOD(Map::fonts)
 {
@@ -802,7 +837,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  * @memberof mapnik.Map
  * @instance
  * @name layers
- * @returns {v8::Array<mapnik.Layer>} layers
+ * @returns {Array<mapnik.Layer>} layers
  */
 NAN_METHOD(Map::layers)
 {
@@ -1508,8 +1543,6 @@ struct vector_tile_baton_t {
     Map *m;
     VectorTile *d;
     double area_threshold;
-    unsigned path_multiplier;
-    int buffer_size;
     double scale_factor;
     double scale_denominator;
     mapnik::attributes variables;
@@ -1523,25 +1556,25 @@ struct vector_tile_baton_t {
     bool multi_polygon_union;
     mapnik::vector_tile_impl::polygon_fill_type fill_type;
     bool process_all_rings;
+    std::launch threading_mode;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
         area_threshold(0.1),
-        path_multiplier(16),
-        buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
         variables(),
         offset_x(0),
         offset_y(0),
-        image_format("jpeg"),
-        scaling_method(mapnik::SCALING_NEAR),
+        image_format("webp"),
+        scaling_method(mapnik::SCALING_BILINEAR),
         simplify_distance(0.0),
         error(false),
-        strictly_simple(false),
-        multi_polygon_union(true),
-        fill_type(mapnik::vector_tile_impl::non_zero_fill),
-        process_all_rings(false) {}
+        strictly_simple(true),
+        multi_polygon_union(false),
+        fill_type(mapnik::vector_tile_impl::positive_fill),
+        process_all_rings(false),
+        threading_mode(std::launch::deferred) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1595,7 +1628,6 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                     return;
                 }
-
                 buffer_size = bind_opt->IntegerValue();
             }
 
@@ -1798,7 +1830,6 @@ NAN_METHOD(Map::render)
         {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
-            VectorTile * vector_tile_obj = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
 
             if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
             {
@@ -1842,6 +1873,12 @@ NAN_METHOD(Map::render)
                     return;
                 }
                 closure->area_threshold = param_val->NumberValue();
+                if (closure->area_threshold < 0.0)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'area_threshold' must not be a negative number");
+                    return;
+                }
             }
 
             if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) 
@@ -1886,16 +1923,24 @@ NAN_METHOD(Map::render)
                 }
             }
 
-            if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) 
+            if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
             {
-                v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
-                if (!param_val->IsNumber()) 
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+                if (!param_val->IsNumber())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
+                    Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
                     return;
                 }
-                closure->path_multiplier = param_val->IntegerValue();
+                closure->threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+                if (closure->threading_mode != std::launch::async && 
+                    closure->threading_mode != std::launch::deferred &&
+                    closure->threading_mode != (std::launch::async | std::launch::deferred))
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("optional arg 'threading_mode' value passed is invalid");
+                    return;
+                }
             }
 
             if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
@@ -1942,9 +1987,8 @@ NAN_METHOD(Map::render)
 
             closure->request.data = closure;
             closure->m = m;
-            closure->d = vector_tile_obj;
+            closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
             closure->d->_ref();
-            closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
             closure->offset_x = offset_x;
@@ -1974,7 +2018,7 @@ NAN_METHOD(Map::render)
         /* LCOV_EXCL_START */
         Nan::ThrowTypeError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -1983,40 +2027,24 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     try
     {
-        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-        vector_tile::Tile tiledata;
-        backend_type backend(tiledata,
-                             closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(closure->buffer_size);
-        renderer_type ren(backend,
-                          map,
-                          m_req,
-                          closure->scale_factor,
-                          closure->offset_x,
-                          closure->offset_y,
-                          closure->area_threshold,
-                          closure->strictly_simple,
-                          closure->image_format,
-                          closure->scaling_method);
+
+        mapnik::vector_tile_impl::processor ren(map);
         ren.set_simplify_distance(closure->simplify_distance);
         ren.set_multi_polygon_union(closure->multi_polygon_union);
         ren.set_fill_type(closure->fill_type);
         ren.set_process_all_rings(closure->process_all_rings);
-        ren.apply(closure->scale_denominator);
-        std::string new_message;
-        if (!tiledata.SerializeToString(&new_message))
-        {
-            /* LCOV_EXCL_START */
-            throw std::runtime_error("could not serialize new data for vt");
-            /* LCOV_EXCL_END */
-        }
-        if (!new_message.empty())
-        {
-            closure->d->buffer_.append(new_message.data(),new_message.size());
-        }
+        ren.set_scale_factor(closure->scale_factor);
+        ren.set_strictly_simple(closure->strictly_simple);
+        ren.set_image_format(closure->image_format);
+        ren.set_scaling_method(closure->scaling_method);
+        ren.set_area_threshold(closure->area_threshold);
+        ren.set_threading_mode(closure->threading_mode);
+
+        ren.update_tile(*closure->d->get_tile(),
+                        closure->scale_denominator,
+                        closure->offset_x,
+                        closure->offset_y);
     }
     catch (std::exception const& ex)
     {

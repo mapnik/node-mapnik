@@ -87,9 +87,9 @@ But the ideal way is to test a lot at once: enter mapnik-swoop.
 
 ### mapnik-swoop
 
-Head over to https://github.com/mapbox/mapnik-swoop and create a branch that points [the package.json](https://github.com/mapbox/mapnik-swoop/blob/master/package.json#L14) at your working node-mapnik version.
+Head over to https://github.com/mapbox/mapnik-swoop. Install it and run it [like so](https://github.com/mapbox/mapnik-swoop#installing) after ensuring that it is pointed at your upcoming node-mapnik version.
 
-Ensure that all tests are passing. Only ignore failing tests for dependencies if you can confirm with the downstream maintainers of the modules that those tests are okay to fail and unrelated to your node-mapnik changes. You can check [recent builds](https://travis-ci.org/mapbox/mapnik-swoop/builds) to see if all builds were green and passing before your change. If they were red and failing before then try to resolve those issues before testing your new node-mapnik version.
+Ensure that all tests are passing and no dupes are reported. Only ignore failing tests for dependencies if you can confirm with the downstream maintainers of the modules that those tests are okay to fail and unrelated to your node-mapnik changes. You can check [recent builds](https://travis-ci.org/mapbox/mapnik-swoop/builds) to see if all builds were green and passing before your change. If they were red and failing before then try to resolve those issues before testing your new node-mapnik version.
 
 **7)** Official release
 
@@ -97,7 +97,8 @@ An official release requires:
 
  - Updating the CHANGELOG.md
  - Publishing new binaries for a non-alpha version like `3.1.5`. So you'd want to merge your branch and then edit the `version` value in package json back to a decent value for release.
- - Create a github tag like `git tag 3.1.5 -m "v3.1.5"`
+ - Create a github tag like `git tag --annotate 3.1.5 -m "v3.1.5"`
+ - Push new tags `git push --tags`
  - Optional: Test mapnik-swoop again for your new tagged version
  - Ensure you have a clean checkout (no extra files in your check that are not known by git). You need to be careful, for instance, to avoid a large accidental file being packaged by npm. You can get a view of what npm will publish by running `make testpack`
  - Fully rebuild and ensure install from binary works: `make clean && npm install --fallback-to-build=false`
@@ -108,9 +109,12 @@ An official release requires:
 node-mapnik is documented with [JSDoc](http://usejsdoc.org/) comments embedded
 in the C++ code and formatted into HTML with [documentationjs](http://documentation.js.org/).
 
+API Documentation is versioned down to the **minor** patch, like `3.5`. Each version has its own directory called `/documentation`. Patch updates of `node-mapnik` should overwrite current API docs. Any new minor releases should generate a new directory.
+
 To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation/):
 
+* Regenerate/generate documentation depending on if you are updating a minor patch or creating a new one: `documentation build src/*.cpp -f html -o documentation/<version_number> --polyglot --github --name "Mapnik <version_number>"`. This should be done on your own branch.
+* Merge changes into `master`
 * Switch to the `gh-pages` branch: `git checkout gh-pages`
-* Regenerate documentation: `npm run docs`
-* Add the changed files in the `documentation` path
-* Commit the changes
+* merge changes from `master` into `gh-pages`
+* commit those changes and push to Github

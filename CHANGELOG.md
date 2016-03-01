@@ -1,5 +1,171 @@
 # Changelog
 
+## 3.5.2
+
+- Fixed bug in `mapnik-inspect.js` around using old `parse()` method on vector tiles, updated it to use `mapnik.VectorTile.info`
+
+## 3.5.1
+
+- Added the `mapnik.VectorTile.info` command that returns an object that inspects buffers and provides information about vector tiles.
+- Updated `mapnik-vector-tile` to `1.0.2`
+
+## 3.5.0
+
+This is a major update and reflects a large number of changes added into node-mapnik due to update of the [Mapbox Vector Tile Specification](https://github.com/mapbox/vector-tile-spec). As part of this the [mapnik-vector-tile library](https://github.com/mapbox/mapnik-vector-tile) was updated to `1.0.0`. Therefore, a large number of interfaces changes have taken place around the `mapnik.VectorTile` object.
+
+It is important to know that the concept of `width` and `height` have been removed from `mapnik.VectorTile` objects. This is replaced by the concept of `tileSize`. While `width` and `height` were based on the concept of an Image size created from a vector tile, `tileSize` is directly related to the `extent` as defined in the `Layer` of a vector tile. For understanding what the `Layer` and `extent` is please see the [Vector Tile Specification](https://github.com/mapbox/vector-tile-spec/tree/master/2.1#41-layers). This also changed the `buffer_size` arguments that were commonly used in many Vector Tile methods, which was also based on the *Image size*. The vector tile object now contains a `bufferSize` which represents the buffer added to the layer extent in a tile.
+
+Internally, all methods now depend on V2 tiles, however, any V1 tiles that are loaded into a `mapnik.VectorTile` object will **automatically** be updated.
+
+Summary of changes:
+
+ - `mapnik.VectorTile.addData` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.addDataSync` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.setData` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.setDataSync` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.addImage` now takes a `mapnik.Image` object rather then a buffer, it also takes optional arguments image_scaling and image_format.
+ - `mapnik.VectorTile.addImageBuffer` replaces the old functionality of of `mapnik.VectorTile.addImage`
+ - Added `mapnik.VectorTile.addImageSync` and made `mapnik.VectorTile.addImage` accept a callback.
+ - Added `mapnik.VectorTile.addImageBufferSync` and made `mapnik.VectorTile.addImageBuffer` accept a callback.
+ - `mapnik.VectorTile.height()` method is removed
+ - `mapnik.VectorTile.width()` method is removed
+ - `mapnik.VectorTile.parse()` method is removed
+ - `mapnik.VectorTile.IsSolid()` method is removed
+ - `mapnik.shutdown()` is removed
+ - Removed the dependency on libprotobuf library
+ - Lowered memory requirements for vector tile creation and vector tile operations.
+ - Duplicate layer names in `mapnik.VectorTile` objects are no longer permitted.
+ - Added new `mapnik.VectorTile.extent()` method which returns the bounding box of a tile in EPSG:3857
+ - Added new `mapnik.VectorTile.bufferedExtent()` method which returns the bounding box including buffer of a tile in EPSG:3857
+ - Added new `mapnik.VectorTile.emptyLayers()` method which returns the name of layers which were not added to a tile during any tile rendering operation.
+ - Added new `mapnik.VectorTile.paintedLayers()` method which returns the name of layers which were considered painted during rendering or layers that contain data.
+ - Added new `mapnik.VetorTile.tileSize` property.
+ - Added new `mapnik.VetorTile.bufferSize` property.
+ - Updated many of the default configuration options on `mapnik.VectorTile` class methods
+ - Removed the concept of `path_multiplier` from the code entirely.
+ - Added optional arguments of `tile_size` and `buffer_size` to `mapnik.VectorTile` constructor.
+
+## 3.4.17
+
+ - Binaries updated to use v3.0.10 and mapnik-packaging@d6ae1fb
+ - Upgraded to protozero v1.3.0
+ - Fixed invalid usage of `mapbox::variant` that was causing windows compiler crash
+
+Notable Changes in Mapnik v3.0.10 include:
+
+ - A shapefile index now is skipped instead of causing an error to be throw. The shapefile plugin will then
+   proceed by reading without using an index. It is advisable to regenerate the indexes to maintain
+   top performance.
+
+Notable changes in the Mapnik SDK include:
+
+ - sqlite 3100000->3110000
+ - libpng 1.6.20->1.6.21
+ - postgres 9.4.5->9.5.1
+ - sparsehash 2.0.2->2.0.3
+
+## 3.4.16
+
+ - Fixed `image.resize` behavior when scaling images with alpha (https://github.com/mapnik/node-mapnik/issues/585)
+ - Binaries updated to use v3.0.9-125-g5e30aee and mapnik-packaging@db696ed
+
+Notable Changes in Mapnik v3.0.9-125-g5e30aee include:
+
+ - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9-48-gbb8cd10...v3.0.9-125-g5e30aee
+ - Support for rendering `dash-array` in SVGs
+ - SVG parser is now stricter (fails is all input is not parsable)
+ - SVG parser now correctly handles optional separator `(,)` between multiple command parts
+ - Optimized parsing of `png` format string
+ - The `memory_datasource` now dynamically reports correct datasource type (vector or raster)
+ - Upgraded `mapbox::variant@272f91c`
+
+Notable changes in the Mapnik SDK include:
+
+ - none
+
+## 3.4.15
+
+ - `vtile.query` now returns WGS84 `x_hit` and `y_hit` values of the nearest point/vertex
+ - Upgraded to nan@2.2.0
+ - Upgraded to mapnik-vector-tile@0.14.4
+
+## 3.4.14
+
+ - Binaries updated to use Mapnik v3.0.9-57-g9494bc1 and mapnik-packaging@039aa0d
+
+Notable Changes in Mapnik v3.0.9-57-g9494bc1 include:
+
+ - Fixed parsing of SVG `PathElement` (https://github.com/mapnik/mapnik/issues/3225)
+
+## 3.4.13
+
+ - BREAKING: shapefile index files must be regenerated if using the
+   node-mapnik binaries which now default to Mapnik `v3.0.9-48-gbb8cd10` (see `Notable Changes in Mapnik` below for details).
+ - Upgraded to node-pre-gyp@0.6.19
+ - Upgraded to mapnik-vector-tile@0.14.2
+ - Binaries updated to use Mapnik v3.0.9-48-gbb8cd10 and mapnik-packaging@039aa0d
+
+Notable Changes in Mapnik v3.0.9-48-gbb8cd10 include:
+
+ - BREAKING: any `.index` files accompanying a `.shp` must now be regenerated otherwise
+   an error will be throw like `Error: invalid index file`. To avoid this error you can
+   either delete the existing `.index` files, or ideally run `shapeindex` (or [mapnik-shapeindex.js](https://github.com/mapnik/node-mapnik/blob/master/bin/mapnik-shapeindex.js)) to recreate the `.index`.
+   The trigger for this change was an optimization that required a new binary format for the shapefile indexes (https://github.com/mapnik/mapnik/pull/3217). It was a mistake of @springmeyer to bring this into node-mapnik minor release (I'm sorry).
+ - WARNING: index files generated with this newer Mapnik are invalid for older versions of Mapnik.
+ - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9...v3.0.9-48-gbb8cd10
+ - The `shapeindex` command now has a `--index-parts` option
+ - Upgraded mapbox::variant@3ac6e46
+ - JSON parsing now supports arbitrary (nested) attributes in `geometry`
+
+Notable changes in the Mapnik SDK include:
+
+ - Upgrade libpng 1.6.19 -> 1.6.20
+ - Upgrade webp 0.4.4 -> 0.5.0
+ - Upgrade sqlite3 3.9.2 -> 3.10.0
+
+## 3.4.12
+
+ - Exposed `image_scaling` and `image_format` in `vtile.composite`
+ - Binaries updated to use Mapnik v3.0.9-17-g75cb954 and mapnik-packaging@e29a81e
+
+Notable Changes in Mapnik 3.0.9-17-g75cb954 include:
+
+ - Support arbitrary (nested) attributes in JSON Geometry
+ - Fixed `shapeindex` to avoid creating an index for null shapes
+
+## 3.4.11
+
+ - Expose `mapnik.Geometry.type` https://github.com/mapnik/node-mapnik/issues/562
+ - Travis tests now run against `osx_image: xcode7`
+ - Appveyor tests now run against `nodejs_version: 5.1.0`
+ - Updated nan to `~2.1.0`
+ - Updated node-pre-gyp to `~0.6.16`
+ - Updated npm-windows-upgrade (https://github.com/mapnik/node-mapnik/issues/566)
+ - Binaries updated to use Mapnik v3.0.9 and mapnik-packaging@1aa9705
+
+Notable Changes in Mapnik 3.0.9 include:
+
+ - The `mapnik-index` command now has a `--validate-features` option
+ - CSV - change 'quote' auto-dection logic to handle mixed cases better
+ - Fixed `shapeindex` for 3dpoints (https://github.com/mapnik/mapnik/issues/3184)
+ - Fixed GeoJSON ordering (https://github.com/mapnik/mapnik/issues/3182)
+ - Fixed parsing of empty GeoJSON FeatureCollections (https://github.com/mapnik/mapnik/issues/3167)
+ - Invalid bbox is now instantiated with `std::numeric_limits<T>::max()` (https://github.com/mapnik/mapnik/commit/4d6a735f535c27561bb40567398aba19a88243d4)
+ - Fixed raster scaling/nodata handling (https://github.com/mapnik/mapnik/pull/3147)
+ - For more details see entries for https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#309
+
+Notable changes in the Mapnik SDK include:
+
+ - Upgrade harfbuzz 1.0.6 -> 1.1.2
+ - Upgrade pixman 0.32.6 -> 0.32.8
+ - Upgrade cairo 1.14.2 -> 1.14.4
+ - Upgrade libxml2 2.9.2 -> 2.9.3
+ - Upgrade postgres 9.4.0 -> 9.4.5
+ - Upgrade libpng 1.6.18 -> 1.6.19
+ - Upgrade icu_version 55.1 -> 56.1
+ - Upgrade icu_version2 55_1 -> 56_1  
+
+
 ## 3.4.10
 
  - Now bundling the `mapnik-index` command (https://github.com/mapnik/node-mapnik/pull/545)
@@ -22,7 +188,7 @@
  - Updated mapnik-vector-tile to `v0.14.1`
  - Binaries updated to use Mapnik v3.0.9-rc2 and mapnik-packaging@6f2f178
 
-Notable Changes in Mapnik 3.0.9/3.0.8 Include:
+Notable Changes in Mapnik 3.0.9-rc2/3.0.8 include:
 
  - Improved support for natural earth shapefiles
  - Improved CSV and JSON parsing and error handling
@@ -49,7 +215,7 @@ Notable changes in the Mapnik SDK include:
  - Updated to use a more recent version of the angus clipper library.
  - Binaries updated to use Mapnik v3.0.7 and mapnik-packaging@9606f72ef0
 
-Notable Changes in Mapnik 3.0.7 Include:
+Notable Changes in Mapnik 3.0.7 include:
 
  - Fixed bugs in the PostGIS `key_field_as_attribute` behavior
 
@@ -65,7 +231,7 @@ Notable changes in the Mapnik SDK include:
  - Added `strictlySimple` option when creating vector tiles.
  - Updated to use mapnik-vector-tile `0.12.0`
 
-Notable Changes in Mapnik 3.0.5 Include:
+Notable Changes in Mapnik 3.0.5 include:
  - PostGIS plugin: added `key_field_as_attribute` option. Defaults to `True` to preserve current behavior of having the `key_field` added both
    as an attribute and as the `feature.id` value. If `key_field_as_attribute=false` is passed then the attribute is discarded (https://github.com/mapnik/mapnik/issues/3115)
  - CSV plugin has been further optimized and has gained experimental support for on-disk indexes (https://github.com/mapnik/mapnik/issues/3089)
@@ -79,7 +245,7 @@ Notable Changes in Mapnik 3.0.5 Include:
    be used very carefully as the lifetime of the Image object is tied to that of the Buffer. If the 
    buffer object is garbage collect this could result in a segfault.
 
-Notable Changes in Mapnik 3.0.5 Include:
+Notable Changes in Mapnik 3.0.5 include:
 
  - `scale-hsla` image filter: parameters are no longer limited by interval \[0, 1\] (https://github.com/mapnik/mapnik/pull/3054)
  - Windows: Fixed SVG file loading from unicode paths

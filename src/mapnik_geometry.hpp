@@ -18,6 +18,7 @@ public:
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
     static v8::Local<v8::Value> NewInstance(mapnik::feature_ptr f);
+    static NAN_METHOD(type);
     static NAN_METHOD(extent);
     static NAN_METHOD(toWKB);
     static NAN_METHOD(toWKT);

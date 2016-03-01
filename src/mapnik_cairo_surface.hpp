@@ -44,7 +44,7 @@ public:
             // to reach this point with standard testing.
             /* LCOV_EXCL_START */
             return CAIRO_STATUS_WRITE_ERROR;
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
         i_stream* fin = reinterpret_cast<i_stream*>(closure);
         *fin << std::string((const char*)data,(size_t)length);

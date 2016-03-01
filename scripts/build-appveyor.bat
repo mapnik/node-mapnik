@@ -36,10 +36,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 :: our custom node.exe on PATH from a custom location
 :: and then pass `--prefix` to npm - but this is untested
 ECHO deleting node.exe programfiles x64
-IF EXIST "%ProgramFiles%\nodejs" ^
-    IF EXIST "%ProgramFiles%\nodejs\node.exe" ^
-        ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && ^
-        DEL /F "%ProgramFiles%\nodejs\node.exe"
+IF EXIST "%ProgramFiles%\nodejs" IF EXIST "%ProgramFiles%\nodejs\node.exe" ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && DEL /F "%ProgramFiles%\nodejs\node.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO copying node.exe to programfiles x64
 IF EXIST %ProgramFiles%\nodejs ECHO copying to "%ProgramFiles%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles%\nodejs\"
@@ -69,7 +66,7 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 ::upgrade npm to get consistent behaviour with older node versions
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm install -g npm-windows-upgrade
+CALL npm install -g npm-windows-upgrade@0.5.3
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm-windows-upgrade --version:3.3.2 --no-dns-check --no-prompt
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
@@ -145,7 +142,8 @@ CALL node_modules\.bin\node-pre-gyp package %TOOLSET_ARGS%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 CALL npm test
-SET ERRORLEVEL=0
+:: uncomment to allow build to work even if tests do not pass
+::SET ERRORLEVEL=0
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO APPVEYOR_REPO_COMMIT_MESSAGE^: %APPVEYOR_REPO_COMMIT_MESSAGE%

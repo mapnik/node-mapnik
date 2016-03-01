@@ -13,7 +13,7 @@ describe('mapnik rendering ', function() {
         assert.ok(map instanceof mapnik.Map);
         map.extent = map.extent;
         var im = new mapnik.Image(map.width, map.height);
-        map.render(im, {scale: 1}, function(err, image) {
+        map.render(im, {scale: 1, buffer_size: 1}, function(err, image) {
             assert.ok(image);
             assert.ok(!err);
             var buffer = im.encodeSync('png');
