@@ -123,6 +123,7 @@ public:
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
     static NAN_METHOD(empty);
+    static NAN_METHOD(info);
 #if BOOST_VERSION >= 105800
     static NAN_METHOD(reportGeometrySimplicity);
     static void EIO_ReportGeometrySimplicity(uv_work_t* req);
