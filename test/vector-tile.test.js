@@ -1217,7 +1217,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should error on bogus gzip data', function(done) {
+    it('setData should error on bogus gzip data', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var fake_gzip = new Buffer(30);
         fake_gzip.fill(0);
@@ -1230,7 +1230,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should error on bogus zlib data', function(done) {
+    it('setData should error on bogus zlib data', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var fake_zlib = new Buffer(30);
         fake_zlib.fill(0);
@@ -1241,6 +1241,70 @@ describe('mapnik.VectorTile ', function() {
             assert.ok(err);
             done();
         });
+    });
+    
+    it('info should throw with invalid use', function() {
+        assert.throws(function() { mapnik.VetorTile.info(); });
+        assert.throws(function() { mapnik.VetorTile.info(null); });
+        assert.throws(function() { mapnik.VetorTile.info({}); });
+    });
+
+    it('info should show error on bogus gzip data', function() {
+        var fake_gzip = new Buffer(30);
+        fake_gzip.fill(0);
+        fake_gzip[0] = 0x1F;
+        fake_gzip[1] = 0x8B;
+        var out = mapnik.VectorTile.info(fake_gzip);
+        assert(out.errors);
+        assert.equal(out.layers.length, 0);
+        assert.equal(out.tile_errors.length, 1);
+        assert.equal(out.tile_errors[0], 'Buffer is not encoded as a valid PBF');
+    });
+
+    it('info should show error on bogus zlib data', function() {
+        var fake_zlib = new Buffer(30);
+        fake_zlib.fill(0);
+        fake_zlib[0] = 0x78;
+        fake_zlib[1] = 0x9C;
+        var out = mapnik.VectorTile.info(fake_zlib);
+        assert(out.errors);
+        assert.equal(out.layers.length, 0);
+        assert.equal(out.tile_errors.length, 1);
+        assert.equal(out.tile_errors[0], 'Buffer is not encoded as a valid PBF');
+    });
+
+    it('info should show problems with invalid v2 tile', function() {
+        var badTile = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
+        var out = mapnik.VectorTile.info(badTile);
+        assert(out.errors);
+        assert.equal(out.layers.length, 23);
+        assert.equal(out.tile_errors, undefined);
+        assert.equal(out.layers[0].name, 'landuse');
+        assert.equal(out.layers[0].features, 140);
+        assert.equal(out.layers[0].point_features, 0);
+        assert.equal(out.layers[0].linestring_features, 2);
+        assert.equal(out.layers[0].polygon_features, 138);
+        assert.equal(out.layers[0].unknown_features, 0);
+        assert.equal(out.layers[0].raster_features, 0);
+        assert.equal(out.layers[0].version, 2);
+        assert.equal(out.layers[0].errors, undefined);
+        assert.equal(out.layers[4].name, 'barrier_line');
+        assert.equal(out.layers[4].features, 0);
+        assert.equal(out.layers[4].point_features, 0);
+        assert.equal(out.layers[4].linestring_features, 0);
+        assert.equal(out.layers[4].polygon_features, 0);
+        assert.equal(out.layers[4].unknown_features, 0);
+        assert.equal(out.layers[4].raster_features, 0);
+        assert.equal(out.layers[4].version, 2);
+        assert.equal(out.layers[4].errors.length, 1);
+        assert.equal(out.layers[4].errors[0], 'Vector Tile Layer message has no features');
+    });
+
+    it('should not have errors if we pass a valid vector tile to info', function() {
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
+        var out = mapnik.VectorTile.info(data);
+        assert.equal(out.errors, false);
+        assert.equal(out.layers.length, 2);
     });
 
     it('should error out if we pass invalid data to setData - 1', function(done) {

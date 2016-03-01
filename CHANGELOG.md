@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.5.2
+
+- Fixed bug in `mapnik-inspect.js` around using old `parse()` method on vector tiles, updated it to use `mapnik.VectorTile.info`
+
+## 3.5.1
+
+- Added the `mapnik.VectorTile.info` command that returns an object that inspects buffers and provides information about vector tiles.
+- Updated `mapnik-vector-tile` to `1.0.2`
+
 ## 3.5.0
 
 This is a major update and reflects a large number of changes added into node-mapnik due to update of the [Mapbox Vector Tile Specification](https://github.com/mapbox/vector-tile-spec). As part of this the [mapnik-vector-tile library](https://github.com/mapbox/mapnik-vector-tile) was updated to `1.0.0`. Therefore, a large number of interfaces changes have taken place around the `mapnik.VectorTile` object.
