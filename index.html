@@ -28,7 +28,7 @@
   	float: left;
   }
   .right {
-  	width: 23%;
+  	width: 21.5%;
   	float: right;
   }
   pre {
@@ -59,8 +59,33 @@
 		<p>Current version: <strong id="version">3.5.0</strong></p>
 		<h2>Installation</h2>
 		<p>Node Mapnik is registered in npm as a module. You can install it with the following command.</p>
-		<pre><code class="bash">npm install mapnik</code></pre>
+		<pre><code class="bash">npm install --save mapnik</code></pre>
 		<h2>Usage</h2>
+		<p>Add a shapefile datasource to a vector tile and render to an image:</p>
+<pre><code class="javascript">var mapnik = require('mapnik');
+var fs = require('fs');
+
+var map = new mapnik.Map(256, 256),
+	img = new mapnik.Image(256, 256),
+	data = fs.readFileSync('/path/to/data.shp'),
+	vectortile = new mapnik.VectorTile(0,0,0);
+
+// add shapefile to vector tile
+vectortile.addData(data, function(err) {
+	if (err) throw err;
+
+	// render data to an image
+	vectortile.render(map, image, function(err, image) {
+		if (err) throw err;
+
+		// save image
+		image.save('/path/to/newimage.png', 'png32');
+	});
+});
+</code></pre>
+<br>
+<p>Render a map from a stylesheet:</p>
+
 <pre><code class="javascript">var mapnik = require('mapnik');
 var fs = require('fs');
 
@@ -88,7 +113,7 @@ map.load('./test/stylesheet.xml', function(err,map) {
 		</div>
 
 		<div class="right">
-			<h2>API Reference</h2>
+			<h3>API Reference</h3>
 			<a class="btn btn-primary" href="/documentation/3.5">3.5 (latest)</a><br> 
 			<a class="btn btn-outline" href="/documentation/3.4">3.4</a>
 		</div>
