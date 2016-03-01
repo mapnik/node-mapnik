@@ -61,30 +61,7 @@
 		<p>Node Mapnik is registered in npm as a module. You can install it with the following command.</p>
 		<pre><code class="bash">npm install --save mapnik</code></pre>
 		<h2>Usage</h2>
-		<p>Add a shapefile datasource to a vector tile and render to an image:</p>
-<pre><code class="javascript">var mapnik = require('mapnik');
-var fs = require('fs');
-
-var map = new mapnik.Map(256, 256),
-	img = new mapnik.Image(256, 256),
-	data = fs.readFileSync('/path/to/data.shp'),
-	vectortile = new mapnik.VectorTile(0,0,0);
-
-// add shapefile to vector tile
-vectortile.addData(data, function(err) {
-	if (err) throw err;
-
-	// render data to an image
-	vectortile.render(map, image, function(err, image) {
-		if (err) throw err;
-
-		// save image
-		image.save('/path/to/newimage.png', 'png32');
-	});
-});
-</code></pre>
-<br>
-<p>Render a map from a stylesheet:</p>
+		<p>Render a map from a stylesheet:</p>
 
 <pre><code class="javascript">var mapnik = require('mapnik');
 var fs = require('fs');

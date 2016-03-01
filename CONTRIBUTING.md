@@ -108,9 +108,12 @@ An official release requires:
 node-mapnik is documented with [JSDoc](http://usejsdoc.org/) comments embedded
 in the C++ code and formatted into HTML with [documentationjs](http://documentation.js.org/).
 
+API Documentation is versioned down to the **minor** patch, like `3.5`. Each version has its own directory called `/documentation`. Patch updates of `node-mapnik` should overwrite current API docs. Any new minor releases should generate a new directory.
+
 To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation/):
 
+* Regenerate/generate documentation depending on if you are updating a minor patch or creating a new one: `documentation build src/*.cpp -f html -o documentation/<version_number> --polyglot --github --name "Mapnik <version_number>"`. This should be done on your own branch.
+* Merge changes into `master`
 * Switch to the `gh-pages` branch: `git checkout gh-pages`
-* Regenerate documentation: `npm run docs`
-* Add the changed files in the `documentation` path
-* Commit the changes
+* merge changes from `master` into `gh-pages`
+* commit those changes and push to Github
