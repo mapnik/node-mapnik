@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.2
+
+- Fixed bug in `mapnik-inspect.js` around using old `parse()` method on vector tiles, updated it to use `mapnik.VectorTile.info`
+
 ## 3.5.1
 
 - Added the `mapnik.VectorTile.info` command that returns an object that inspects buffers and provides information about vector tiles.
