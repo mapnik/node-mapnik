@@ -3,6 +3,8 @@
 ## 3.5.2
 
 - Fixed bug in `mapnik-inspect.js` around using old `parse()` method on vector tiles, updated it to use `mapnik.VectorTile.info`
+- Updated `mapnik-vector-tile` to `1.0.3` fixing issues with non valid vector tiles being created and linking issue in mapnik-vector-tile with latest mapnik library
+- Updated clipper library to fix bug mentioned in `mapnik-vector-tile`
 
 ## 3.5.1
 

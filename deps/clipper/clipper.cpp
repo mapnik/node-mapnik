@@ -3643,7 +3643,7 @@ void Clipper::FixupFirstLefts2(OutRec* InnerOutRec, OutRec* OuterOutRec)
   //It's possible that these polygons now wrap around other polygons, so check
   //every polygon that's also contained by OuterOutRec's FirstLeft container
   //(including 0) to see if they've become inner to the new inner polygon ...
-  OutRec* orfl = OuterOutRec->FirstLeft;
+  OutRec* orfl = ParseFirstLeft(OuterOutRec->FirstLeft);
   for (PolyOutList::size_type i = 0; i < m_PolyOuts.size(); ++i)
   {
     OutRec* outRec = m_PolyOuts[i];
@@ -3657,7 +3657,7 @@ void Clipper::FixupFirstLefts2(OutRec* InnerOutRec, OutRec* OuterOutRec)
       outRec->FirstLeft = InnerOutRec;
     else if (Poly2ContainsPoly1(outRec->Pts, OuterOutRec->Pts))
       outRec->FirstLeft = OuterOutRec;
-    else if (outRec->FirstLeft == InnerOutRec || outRec->FirstLeft == OuterOutRec)
+    else if (firstLeft == InnerOutRec || firstLeft == OuterOutRec)
       outRec->FirstLeft = orfl;
   }
 }
