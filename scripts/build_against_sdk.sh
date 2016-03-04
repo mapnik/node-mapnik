@@ -64,13 +64,16 @@ if [[ ! `which node` ]]; then
     exit 1
 fi
 
+export LDFLAGS=${LDFLAGS:-""}
+export CXXFLAGS=${CXXFLAGS:-""}
+
 if [[ $UNAME == 'Linux' ]]; then
-    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
+    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN ${LDFLAGS}'
 fi
 
 if [[ ${COVERAGE:-false} == true ]]; then
-    export LDFLAGS="--coverage $LDFLAGS"
-    export CXXFLAGS="--coverage $CXXFLAGS"
+    export LDFLAGS="--coverage ${LDFLAGS}"
+    export CXXFLAGS="--coverage ${CXXFLAGS}"
 fi
 
 cd ../
