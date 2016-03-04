@@ -81,11 +81,7 @@ npm install node-pre-gyp
 MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 # note: dangerous!
 rm -rf ${MODULE_PATH}
-if [[ ${DEBUG:-false} == true ]] || [[ ${COVERAGE:-false} == true ]]; then
-    npm install --build-from-source ${ARGS} --clang=1 --debug
-else
-    npm install --build-from-source ${ARGS} --clang=1
-fi
+npm install --build-from-source ${ARGS} --clang=1
 
 # copy mapnik-index
 cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}
