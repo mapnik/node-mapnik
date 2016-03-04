@@ -68,7 +68,7 @@ export LDFLAGS=${LDFLAGS:-""}
 export CXXFLAGS=${CXXFLAGS:-""}
 
 if [[ $UNAME == 'Linux' ]]; then
-    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN ${LDFLAGS}'
+    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN '${LDFLAGS}
 fi
 
 if [[ ${COVERAGE:-false} == true ]]; then
