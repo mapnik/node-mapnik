@@ -113,7 +113,7 @@ API Documentation is versioned down to the **minor** patch, like `3.5`. Each ver
 
 To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation/):
 
-* Regenerate/generate documentation depending on if you are updating a minor patch or creating a new one: `documentation build src/*.cpp -f html -o documentation/<version_number> --polyglot --github --name "Mapnik <version_number>"`. This should be done on your own branch.
+* Regenerate/generate documentation depending on if you are updating a minor patch or creating a new one: `documentation src/*.cpp --polyglot -f html -o documentation/<version>/ --github --name "Node Mapnik <version>"`. This should be done on your own branch.
 * Merge changes into `master`
 * Switch to the `gh-pages` branch: `git checkout gh-pages`
 * merge changes from `master` into `gh-pages`
