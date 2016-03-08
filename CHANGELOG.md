@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.3
+
+- No code changes: Just a rebuild of 3.5.2 but with debug binaries that can be installed with `npm install --debug`
+
 ## 3.5.2
 
 - Fixed bug in `mapnik-inspect.js` around using old `parse()` method on vector tiles, updated it to use `mapnik.VectorTile.info`
