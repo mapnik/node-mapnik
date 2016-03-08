@@ -2223,7 +2223,6 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
-                fs.writeFileSync('world_layer.geojson', vtile.toGeoJSON('world'));
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 14); // Dataset not expected to be OGC valid
             }
