@@ -4,13 +4,13 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
     "module_path": "./lib/binding/{node_abi}-{platform}-{arch}",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{module_name}/v{version}/",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
   },
   "bugs": {

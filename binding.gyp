@@ -1,8 +1,5 @@
 {
   'includes': [ 'common.gypi' ],
-  'variables': {
-    'coverage': 'false'
-  },
   'targets': [
     {
       'target_name': 'make_vector_tile',
@@ -71,17 +68,6 @@
           'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
       ],
       'conditions': [
-        ["coverage == 'true'", {
-            "cflags_cc": ["--coverage"],
-            "xcode_settings": {
-                "OTHER_CPLUSPLUSFLAGS":[
-                    "--coverage"
-                ],
-                'OTHER_LDFLAGS':[
-                    '--coverage'
-                ]
-            }
-        }],
         ['OS=="win"',
           {
             'include_dirs':[
