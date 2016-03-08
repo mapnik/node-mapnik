@@ -14,7 +14,7 @@ branches:
 env:
   global:
    - JOBS: "8"
-   - MAPNIK_GIT: v3.0.10
+   - MAPNIK_GIT=v3.0.10
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
 
@@ -32,7 +32,7 @@ matrix:
      - os: osx
        osx_image: xcode7
        compiler: clang
-       env: NODE_VERSION="4" COVERAGE=true # node abi 46
+       env: NODE_VERSION="4" COVERAGE=true NPM_FLAGS="--debug" # node abi 46
      # Linux
      - os: linux
        compiler: clang
@@ -42,7 +42,7 @@ matrix:
        env: NODE_VERSION="4" # node abi 46
      - os: linux
        compiler: clang
-       env: NODE_VERSION="0.12" # node abi 14
+       env: NODE_VERSION="0.10" NPM_FLAGS="--debug" # node abi 11
      - os: linux
        compiler: clang
        env: NODE_VERSION="0.10" # node abi 11
@@ -58,7 +58,7 @@ matrix:
      - os: osx
        osx_image: xcode7
        compiler: clang
-       env: NODE_VERSION="0.12" # node abi 14
+       env: NODE_VERSION="0.10" NPM_FLAGS="--debug" # node abi 11
      - os: osx
        osx_image: xcode7
        compiler: clang
@@ -86,11 +86,11 @@ install:
      else
        PYTHONUSERBASE=$(pwd)/mason_packages/.link easy_install --user cpp-coveralls;
      fi;
-     ./scripts/build_against_sdk.sh --coverage=true;
+     ./scripts/build_against_sdk.sh ${NPM_FLAGS};
    else
-     ./scripts/build_against_sdk.sh;
+     ./scripts/build_against_sdk.sh ${NPM_FLAGS};
    fi
- - node-pre-gyp package testpackage
+ - node-pre-gyp package testpackage ${NPM_FLAGS}
  - npm test
 
 before_script:
@@ -98,15 +98,15 @@ before_script:
       echo "publishing";
       if [[ ${COMMIT_MESSAGE} =~ "[publish binary]" ]]; then
         echo "publishing for the first time";
-        node-pre-gyp publish;
+        node-pre-gyp publish ${NPM_FLAGS};
       elif [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]]; then
         echo "republishing";
-        node-pre-gyp unpublish publish;
+        node-pre-gyp unpublish publish ${NPM_FLAGS};
       fi
    fi
 
 script:
- - if [[ ${COVERAGE} == true ]]; then ./mason_packages/.link/bin/cpp-coveralls --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp --exclude deps > /dev/null; fi;
+ - if [[ ${COVERAGE} == true ]]; then ./mason_packages/.link/bin/cpp-coveralls --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Debug/obj/gen --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp --exclude deps > /dev/null; fi;
  #- node --expose-gc bench/error/test_vt_abort2.js
  # ugh: always killed by travis
  #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js

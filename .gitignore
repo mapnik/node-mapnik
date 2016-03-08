@@ -8,6 +8,7 @@ src/*.*~
 npm-debug.log
 test/tmp
 test/data/vector_tile/*actual*
+test/data/vector_tile/pasted/*actual*
 *.7z
 node.exe*
 *.pdb
@@ -15,3 +16,4 @@ mapnik-sdk
 sdk
 foo
 iwyu.sh
+package

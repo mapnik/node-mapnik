@@ -13,7 +13,7 @@ if [[ ${MAPNIK_GIT:-unset} == "unset" ]]; then
     exit 1
 fi
 
-ARGS=""
+ARGS="$@"
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 mkdir -p $CURRENT_DIR/../sdk
 cd $CURRENT_DIR/../
@@ -21,10 +21,6 @@ export PATH=$(pwd)/node_modules/.bin:${PATH}
 cd sdk
 BUILD_DIR="$(pwd)"
 UNAME=$(uname -s);
-
-if [[ ${1:-false} != false ]]; then
-    ARGS=$1
-fi
 
 
 COMPRESSION="tar.bz2"
@@ -68,11 +64,16 @@ if [[ ! `which node` ]]; then
     exit 1
 fi
 
+export LDFLAGS=${LDFLAGS:-""}
+export CXXFLAGS=${CXXFLAGS:-""}
+
 if [[ $UNAME == 'Linux' ]]; then
-    readelf -d $MAPNIK_SDK/lib/libmapnik.so
-    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
-else
-    otool -L $MAPNIK_SDK/lib/libmapnik.dylib
+    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN '${LDFLAGS}
+fi
+
+if [[ ${COVERAGE:-false} == true ]]; then
+    export LDFLAGS="--coverage ${LDFLAGS}"
+    export CXXFLAGS="--coverage ${CXXFLAGS}"
 fi
 
 cd ../
@@ -81,7 +82,7 @@ MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 # note: dangerous!
 rm -rf ${MODULE_PATH}
 npm install --build-from-source ${ARGS} --clang=1
-npm ls
+
 # copy mapnik-index
 cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}
 # copy shapeindex

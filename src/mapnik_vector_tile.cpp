@@ -2695,13 +2695,13 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
 }
 
 /**
- * Syncronous version of {@link VectorTile#toGeoJSON}
+ * Syncronous version of {@link VectorTile}
  *
  * @memberof mapnik.VectorTile
  * @name toGeoJSONSync
  * @instance
- * @param {string | number} layer 
- * @param {number} inded
+ * @param {string | number} [layer=__all__] Can be a custom layer name, 
+ * `__array__` of layer names, `__all__` for all layers or an index. 
  * @returns {string} stringified GeoJSON of all the features in this tile.
  * @example
  * var geojson = vectorTile.toGeoJSONSync();
@@ -2918,9 +2918,7 @@ struct to_geojson_baton
  * @name toGeoJSON
  * @instance
  * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * `__array__` of layer names, or `__all__` for all layers.
- * @param {number} [index=0] Specify the layer index, cannot be greater
- * than the number of layers in the vector tile
+ * `__array__` of layer names, `__all__` for all layers or an index. 
  * @param {Function} callback - `function(err, geojson)`: a stringified 
  * GeoJSON of all the features in this tile
  * @example
@@ -5767,7 +5765,7 @@ typedef struct {
  * @name info
  * @param {Buffer} buffer - vector tile buffer
  * @returns {Object} json object with information about the vector tile buffer
- * @instance
+ * @static
  * @memberof mapnik.VectorTile
  * @example
  * var buffer = fs.readFileSync('./path/to/vtile.mvt');
