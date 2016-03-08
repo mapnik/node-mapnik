@@ -5765,7 +5765,7 @@ typedef struct {
  * @name info
  * @param {Buffer} buffer - vector tile buffer
  * @returns {Object} json object with information about the vector tile buffer
- * @instance
+ * @static
  * @memberof mapnik.VectorTile
  * @example
  * var buffer = fs.readFileSync('./path/to/vtile.mvt');
