@@ -2286,7 +2286,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.mvt';
             var actual = './test/data/vector_tile/tile0-simplify_distance.actual.mvt';
@@ -2317,7 +2317,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.mvt';
             var actual = './test/data/vector_tile/tile0-simple_and_distance.actual.mvt';
@@ -3421,4 +3421,22 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+    
+    it('pasted test 9 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile1 = new mapnik.VectorTile(0, 0, 0);
+        var vtile1_data = fs.readFileSync('./test/data/vector_tile/pasted/pasted9_tile0_0_0_0.mvt.mvt');
+        vtile1.setData(vtile1_data);
+        var vtile2 = new mapnik.VectorTile(0, 0, 0);
+        var vtile2_data = fs.readFileSync('./test/data/vector_tile/pasted/pasted9_tile1_0_0_0.mvt.mvt');
+        vtile2.setData(vtile2_data);
+        //fs.writeFileSync('pasted9_contour.geojson', vtile2.toGeoJSON('contour'));
+        //fs.writeFileSync('pasted9_hillshade.geojson', vtile2.toGeoJSON('hillshade'));
+        //fs.writeFileSync('pasted9_landcover.geojson', vtile2.toGeoJSON('landcover'));
+        var vtile = new mapnik.VectorTile(1,1,0,{buffer_size: 4096});
+        vtile.composite([vtile2], function(err) {
+            if (err) throw err;
+            done();
+        });
+    });
+    
 });
