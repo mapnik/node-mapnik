@@ -5270,11 +5270,97 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
     }
 }
 
+struct visitor_geom_valid
+{
+    std::vector<not_valid_feature> & errors;
+    std::int64_t feature_id;
+    std::string const& layer_name;
+    bool split_multi_features;
+
+    visitor_geom_valid(std::vector<not_valid_feature> & errors_,
+                       std::int64_t feature_id_,
+                       std::string const& layer_name_,
+                       bool split_multi_features_)
+        : errors(errors_),
+          feature_id(feature_id_),
+          layer_name(layer_name_),
+          split_multi_features(split_multi_features_) {}
+          
+    template <typename T> 
+    void operator() (T const& geom)
+    {
+        std::string message;
+        if (!mapnik::geometry::is_valid(geom, message))
+        {
+            errors.emplace_back(message,
+                                layer_name,
+                                feature_id);
+        }
+    }
+    
+    template <typename T> 
+    void operator() (mapnik::geometry::multi_line_string<T> const& geom)
+    {
+        if (split_multi_features)
+        {
+            for (auto const& ls : geom)
+            {
+                std::string message;
+                if (!mapnik::geometry::is_valid(ls, message))
+                {
+                    errors.emplace_back(message,
+                                        layer_name,
+                                        feature_id);
+                }
+            }
+        }
+        else
+        {
+            std::string message;
+            if (!mapnik::geometry::is_valid(geom, message))
+            {
+                errors.emplace_back(message,
+                                    layer_name,
+                                    feature_id);
+            }
+        }
+    }
+    
+    template <typename T> 
+    void operator() (mapnik::geometry::multi_polygon<T> const& geom)
+    {
+        if (split_multi_features)
+        {
+            for (auto const& poly : geom)
+            {
+                std::string message;
+                if (!mapnik::geometry::is_valid(poly, message))
+                {
+                    errors.emplace_back(message,
+                                        layer_name,
+                                        feature_id);
+                }
+            }
+        }
+        else
+        {
+            std::string message;
+            if (!mapnik::geometry::is_valid(geom, message))
+            {
+                errors.emplace_back(message,
+                                    layer_name,
+                                    feature_id);
+            }
+        }
+    }
+};
+
 void layer_not_valid(protozero::pbf_reader const& layer_msg,
                unsigned x,
                unsigned y,
                unsigned z,
-               std::vector<not_valid_feature> & errors)
+               std::vector<not_valid_feature> & errors,
+               bool split_multi_features = false)
 {
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
     mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
@@ -5292,13 +5378,9 @@ void layer_not_valid(protozero::pbf_reader const& layer_msg,
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
         {
-            std::string message;
-            if (!mapnik::geometry::is_valid(feature->get_geometry(), message))
-            {
-                errors.emplace_back(message,
-                                    ds.get_name(),
-                                    feature->id());
-            }
+            mapnik::util::apply_visitor(
+                    visitor_geom_valid(errors, feature->id(), ds.get_name(), split_multi_features), 
+                    feature->get_geometry());
         }
     }
 }
@@ -5338,7 +5420,8 @@ v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & err
 }
 
 void vector_tile_not_valid(VectorTile * v,
-                           std::vector<not_valid_feature> & errors)
+                           std::vector<not_valid_feature> & errors,
+                           bool split_multi_features = false)
 {
     protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
     while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
@@ -5348,7 +5431,8 @@ void vector_tile_not_valid(VectorTile * v,
                         v->get_tile()->x(),
                         v->get_tile()->y(),
                         v->get_tile()->z(),
-                        errors);
+                        errors,
+                        split_multi_features);
     }
 }
 
@@ -5387,6 +5471,7 @@ struct not_valid_baton
     uv_work_t request;
     VectorTile* v;
     bool error;
+    bool split_multi_features;
     std::vector<not_valid_feature> result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
@@ -5450,11 +5535,32 @@ NAN_METHOD(VectorTile::reportGeometryValiditySync)
 v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info)
 {
     Nan::EscapableHandleScope scope;
+    bool split_multi_features = false;
+    if (info.Length() >= 1)
+    {
+        if (!info[0]->IsObject())
+        {
+            Nan::ThrowError("The first argument must be an object");
+            return scope.Escape(Nan::Undefined());
+        }
+        v8::Local<v8::Object> options = info[0]->ToObject();
+
+        if (options->Has(Nan::New("split_multi_features").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("split_multi_features").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'split_multi_features' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            split_multi_features = param_val->BooleanValue();
+        }
+    }
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
         std::vector<not_valid_feature> errors;
-        vector_tile_not_valid(d, errors);
+        vector_tile_not_valid(d, errors, split_multi_features);
         return scope.Escape(make_not_valid_array(errors));
     }
     catch (std::exception const& ex)
@@ -5560,10 +5666,31 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
  */
 NAN_METHOD(VectorTile::reportGeometryValidity)
 {
-    if (info.Length() == 0)
+    if (info.Length() == 0 || (info.Length() == 1 && !info[0]->IsFunction()))
     {
         info.GetReturnValue().Set(_reportGeometryValiditySync(info));
         return;
+    }
+    bool split_multi_features = false;
+    if (info.Length() >= 2)
+    {
+        if (!info[0]->IsObject())
+        {
+            Nan::ThrowError("The first argument must be an object");
+            return;
+        }
+        v8::Local<v8::Object> options = info[0]->ToObject();
+
+        if (options->Has(Nan::New("split_multi_features").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("split_multi_features").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'split_multi_features' must be a boolean");
+                return;
+            }
+            split_multi_features = param_val->BooleanValue();
+        }
     }
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
@@ -5577,6 +5704,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
     closure->request.data = closure;
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
+    closure->split_multi_features = split_multi_features;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
     closure->v->Ref();
@@ -5588,7 +5716,7 @@ void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     try
     {
-        vector_tile_not_valid(closure->v, closure->result);
+        vector_tile_not_valid(closure->v, closure->result, closure->split_multi_features);
     }
     catch (std::exception const& ex)
     {

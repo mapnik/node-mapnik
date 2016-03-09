@@ -1,6 +1,12 @@
 # Changelog
 
-## 3.5.3
+## 3.5.4
+
+- Updated the angus clipper with several fixes that solve intersections issues within vetor tile polygons created when using strictly simple
+- Updated version of `mapnik-vector-tile` to `1.0.4` this solves a SEGFAULT that occurs in rare situations when encoding fails
+- Corrected some problems in the documentation
+
+## 3.5.3 (DEPRECATED - bad package sent to npm)
 
 - No code changes: Just a rebuild of 3.5.2 but with debug binaries that can be installed with `npm install --debug`
 

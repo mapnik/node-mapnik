@@ -2955,16 +2955,14 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
           (ePrev->Curr.x == horzEdge->Top.x) && (ePrev->WindDelta != 0))
         {
           IntPoint pt = horzEdge->Top;
-          OutPt* op = AddOutPt(ePrev, pt);
-          AddJoin(op, op1, pt); //StrictlySimple (type-3) join
+          AddOutPt(ePrev, pt);
         }
         TEdge* eNext = horzEdge->NextInAEL;
         if ((horzEdge->WindDelta != 0) && eNext && (eNext->OutIdx >= 0) &&
           (eNext->Curr.x == horzEdge->Top.x) && (eNext->WindDelta != 0))
         {
           IntPoint pt = horzEdge->Top;
-          OutPt* op = AddOutPt(eNext, pt);
-          AddJoin(op, op1, pt); //StrictlySimple (type-3) join
+          AddOutPt(eNext, pt);
         }
       }
       UpdateEdgeIntoAEL(horzEdge);
@@ -3138,94 +3136,24 @@ void Clipper::DoMaxima(TEdge *e)
     if (e->OutIdx >= 0)
     {
       AddOutPt(e, e->Top);
-      if (e->WindDelta != 0)
-      {
-          TEdge* ePrev = e->PrevInAEL;
-          while (ePrev)
-          {
-            if (e->Top == ePrev->Top)
-            {
-                ePrev = ePrev->PrevInAEL;
-                continue;
-            }
-            if (ePrev->Curr.x != e->Curr.x) break;
-            if ((ePrev->OutIdx >= 0) && (ePrev->WindDelta != 0))
-            {
-              IntPoint pt = e->Curr;
-              AddOutPt(ePrev, pt);
-            }
-            ePrev = ePrev->PrevInAEL;
-          }
-          TEdge* eNext = e->NextInAEL;
-          while (eNext)
-          {
-            if (e->Top == eNext->Top)
-            {
-                eNext = eNext->NextInAEL;
-                continue;
-            }
-            if (eNext->Curr.x != e->Curr.x) break;
-            if ((eNext->OutIdx >= 0) && (eNext->WindDelta != 0))
-            {
-              IntPoint pt = e->Curr;
-              AddOutPt(eNext, pt);
-            }
-            eNext = eNext->NextInAEL;
-          }
-      }
     }
     DeleteFromAEL(e);
     return;
   }
   
-  IntPoint pt = e->Top;
   TEdge* eNext = e->NextInAEL;
-  TEdge* ePrev = e->PrevInAEL;
-  if (e->WindDelta != 0)
+  while(eNext && eNext != eMaxPair)
   {
-      while (eNext)
-      {
-        if (pt == eNext->Top)
-        {
-            eNext = eNext->NextInAEL;
-            continue;
-        }
-        if (TopX(*eNext, pt.y) != pt.x)
-        {
-            eNext = 0;
-            break;
-        }
-        else if ((eNext->OutIdx >= 0) && (eNext->WindDelta != 0))
-        {
-            break;
-        }
-        eNext = eNext->NextInAEL;
-      }
-      while (ePrev)
-      {
-        if (pt == ePrev->Top)
-        {
-            ePrev = ePrev->PrevInAEL;
-            continue;
-        }
-        if (TopX(*ePrev, pt.y) != pt.x)
-        {
-            ePrev = 0;
-            break;
-        }
-        else if ((ePrev->OutIdx >= 0) && (ePrev->WindDelta != 0))
-        {
-            break;
-        }
-        ePrev = ePrev->PrevInAEL;
-      }
+    IntersectEdges(e, eNext, e->Top);
+    SwapPositionsInAEL(e, eNext);
+    eNext = e->NextInAEL;
   }
-  TEdge* eNext2 = e->NextInAEL;
-  while(eNext2 && eNext2 != eMaxPair)
+  eNext = eMaxPair->NextInAEL;
+  if (eNext && eNext->Curr.x == e->Top.x && eNext->Top != e->Top && eNext->OutIdx >= 0 && 
+      eNext->WindDelta != 0 &&  e->OutIdx >= 0 && e->WindDelta != 0)
   {
-    IntersectEdges(e, eNext2, e->Top);
-    SwapPositionsInAEL(e, eNext2);
-    eNext2 = e->NextInAEL;
+      IntPoint pt = e->Top;
+      AddOutPt(eNext, pt);
   }
 
   if(e->OutIdx == Unassigned && eMaxPair->OutIdx == Unassigned)
@@ -3236,14 +3164,6 @@ void Clipper::DoMaxima(TEdge *e)
   else if( e->OutIdx >= 0 && eMaxPair->OutIdx >= 0 )
   {
       AddLocalMaxPoly(e, eMaxPair, e->Top);
-      if (ePrev)
-      {
-        AddOutPt(ePrev, pt);
-      }
-      if (eNext)
-      {
-        AddOutPt(eNext, pt);
-      }
       DeleteFromAEL(e);
       DeleteFromAEL(eMaxPair);
   }
