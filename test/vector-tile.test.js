@@ -2254,8 +2254,10 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
+                var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true});
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
+                assert.equal(validityReport2.length, 12); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple_false.mvt';
             var actual = './test/data/vector_tile/tile0-strictly_simple_false.actual.mvt';
@@ -2347,8 +2349,10 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
+                var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true});
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 14); // Dataset not expected to be OGC valid
+                assert.equal(validityReport2.length, 0); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-mpu-false.mvt';
             var actual = './test/data/vector_tile/tile0-mpu-false.actual.mvt';
