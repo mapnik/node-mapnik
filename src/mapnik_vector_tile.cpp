@@ -5520,6 +5520,11 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometryValiditySync
+ * @param {object} [options]
+ * @param {bool} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
+ * Normally the validity of multipolygons and multilinestrings is done together against
+ * all the parts of the geometries. Changing this to true checks the validity of multipolygons
+ * and multilinestrings for each part they contain, rather then as a group.
  * @instance
  * @returns {number} number of features that are not valid
  * @example
@@ -5579,6 +5584,11 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
  *
  * @memberof mapnik.VectorTile
  * @name reportGeometrySimplicity
+ * @param {object} [options]
+ * @param {bool} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
+ * Normally the validity of multipolygons and multilinestrings is done together against
+ * all the parts of the geometries. Changing this to true checks the validity of multipolygons
+ * and multilinestrings for each part they contain, rather then as a group.
  * @instance
  * @param {Function} callback
  * @example

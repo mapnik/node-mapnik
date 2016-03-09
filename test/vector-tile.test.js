@@ -107,6 +107,15 @@ describe('mapnik.VectorTile ', function() {
         it('should fail when bad parameters are passed to reportGeometryValidity', function() {
             var vtile = new mapnik.VectorTile(0,0,0);
             assert.throws(function() { vtile.reportGeometryValidity(null); });
+            assert.throws(function() { vtile.reportGeometryValidity(1); });
+            assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}); });
+            assert.throws(function() { vtile.reportGeometryValidity({}, null); });
+            assert.throws(function() { vtile.reportGeometryValiditySync(null); });
+            assert.throws(function() { vtile.reportGeometryValiditySync(1); });
+            assert.throws(function() { vtile.reportGeometryValiditySync({split_multi_features:null}); });
+            assert.throws(function() { vtile.reportGeometryValidity(null, function() {}); });
+            assert.throws(function() { vtile.reportGeometryValidity(1, function() {}); });
+            assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}, function() {}); });
         });
     } else {
         it.skip('should fail when bad parameters are passed to reportGeometryValidity', function() {});
@@ -3433,12 +3442,15 @@ describe('mapnik.VectorTile ', function() {
         var vtile2 = new mapnik.VectorTile(0, 0, 0);
         var vtile2_data = fs.readFileSync('./test/data/vector_tile/pasted/pasted9_tile1_0_0_0.mvt.mvt');
         vtile2.setData(vtile2_data);
-        //fs.writeFileSync('pasted9_contour.geojson', vtile2.toGeoJSON('contour'));
-        //fs.writeFileSync('pasted9_hillshade.geojson', vtile2.toGeoJSON('hillshade'));
-        //fs.writeFileSync('pasted9_landcover.geojson', vtile2.toGeoJSON('landcover'));
         var vtile = new mapnik.VectorTile(1,1,0,{buffer_size: 4096});
-        vtile.composite([vtile2], function(err) {
+        vtile.composite([vtile1, vtile2], function(err) {
             if (err) throw err;
+            assert.deepEqual(vtile.names(), ['landuse', 'waterway', 'water', 'road', 'bridge',
+                                             'place_label', 'poi_label', 'road_label', 'waterway_label',
+                                             'landcover', 'hillshade', 'contour']);
+            assert.equal(vtile.reportGeometryValidity().length, 0);
+            assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
+            assert.equal(vtile.reportGeometrySimplicity().length, 6);
             done();
         });
     });
