@@ -3137,6 +3137,13 @@ void Clipper::DoMaxima(TEdge *e)
     return;
   }
   
+  TEdge* ePrev = e->PrevInAEL;
+  if (ePrev && ePrev->Curr.x == e->Top.x && ePrev->Top != e->Top && ePrev->OutIdx >= 0 && 
+      ePrev->WindDelta != 0 &&  e->OutIdx >= 0 && e->WindDelta != 0)
+  {
+      IntPoint pt = e->Top;
+      AddOutPt(ePrev, pt);
+  }
   TEdge* eNext = e->NextInAEL;
   while(eNext && eNext != eMaxPair)
   {
