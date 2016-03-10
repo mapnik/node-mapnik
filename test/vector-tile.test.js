@@ -1517,6 +1517,9 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.names(), ["world", "world2"]);
         var vtile2 = vtile.layer('world');
         assert.deepEqual(vtile2.names(), ["world"]);
+        var first = vtile.toGeoJSON('world');
+        var second = vtile2.toGeoJSON('world');
+        assert.equal(first, second);
     });
 
     it('should fail to extract one layer', function() {

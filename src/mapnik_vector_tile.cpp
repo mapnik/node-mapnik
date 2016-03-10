@@ -1372,10 +1372,23 @@ NAN_METHOD(VectorTile::layer)
         return;
     }
     protozero::pbf_reader layer_msg;
-    d->get_tile()->layer_reader(layer_name, layer_msg);
-    auto pair_data = layer_msg.get_data();
     VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
-    v->get_tile()->append_layer_buffer(pair_data.first, pair_data.second, layer_name);
+    protozero::pbf_reader tile_message(d->get_tile()->get_reader());
+    while (tile_message.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
+    {
+        auto data_pair = tile_message.get_data();
+        protozero::pbf_reader layer_message(data_pair);
+        if (!layer_message.next(mapnik::vector_tile_impl::Layer_Encoding::NAME))
+        {
+            continue;
+        }
+        std::string name = layer_message.get_string();
+        if (layer_name == name)
+        {
+            v->get_tile()->append_layer_buffer(data_pair.first, data_pair.second, layer_name);
+            break;
+        }
+    }
     v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
     v8::Local<v8::Object> vt_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
     info.GetReturnValue().Set(vt_obj);
