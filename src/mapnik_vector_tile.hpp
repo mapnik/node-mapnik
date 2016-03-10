@@ -81,6 +81,7 @@ public:
     static NAN_METHOD(extent);
     static NAN_METHOD(bufferedExtent);
     static NAN_METHOD(names);
+    static NAN_METHOD(layer);
     static NAN_METHOD(emptyLayers);
     static NAN_METHOD(paintedLayers);
     static v8::Local<v8::Value> _toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);

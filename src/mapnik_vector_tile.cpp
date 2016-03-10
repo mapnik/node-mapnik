@@ -285,6 +285,7 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "extent", extent);
     Nan::SetPrototypeMethod(lcons, "bufferedExtent", bufferedExtent);
     Nan::SetPrototypeMethod(lcons, "names", names);
+    Nan::SetPrototypeMethod(lcons, "layer", layer);
     Nan::SetPrototypeMethod(lcons, "emptyLayers", emptyLayers);
     Nan::SetPrototypeMethod(lcons, "paintedLayers", paintedLayers);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
@@ -342,6 +343,16 @@ NAN_METHOD(VectorTile::New)
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
+    }
+    
+    if (info[0]->IsExternal())
+    {
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
+        void* ptr = ext->Value();
+        VectorTile* v =  static_cast<VectorTile*>(ptr);
+        v->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
         return;
     }
 
@@ -1320,6 +1331,54 @@ NAN_METHOD(VectorTile::names)
         arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
     }
     info.GetReturnValue().Set(arr);
+    return;
+}
+
+/**
+ * Extract the layer by a given name to a new vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name layer
+ * @param {string} layer_name - name of layer
+ * @instance
+ * @returns {mapnik.VectorTile} mapnik VectorTile object
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vt.addDataSync(data);
+ * console.log(vt.names()); // ['layer-name', 'another-layer']
+ * var vt2 = vt.layer('layer-name');
+ * console.log(vt2.names()); // ['layer-name']
+ */
+NAN_METHOD(VectorTile::layer)
+{
+    if (info.Length() < 1) 
+    {
+        Nan::ThrowError("first argument must be either a layer name");
+        return;
+    }
+    v8::Local<v8::Value> layer_id = info[0];
+    std::string layer_name;
+    if (!layer_id->IsString())
+    {
+        Nan::ThrowTypeError("'layer' argument must be a layer name (string)");
+        return;
+    }
+    layer_name = TOSTR(layer_id);
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    if (!d->get_tile()->has_layer(layer_name))
+    {
+        Nan::ThrowTypeError("layer does not exist in vector tile");
+        return;
+    }
+    protozero::pbf_reader layer_msg;
+    d->get_tile()->layer_reader(layer_name, layer_msg);
+    auto pair_data = layer_msg.get_data();
+    VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
+    v->get_tile()->append_layer_buffer(pair_data.first, pair_data.second, layer_name);
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
+    v8::Local<v8::Object> vt_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+    info.GetReturnValue().Set(vt_obj);
     return;
 }
 

@@ -1508,6 +1508,27 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+
+    it('should be able to extract one layer', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setData(data);
+        assert.deepEqual(vtile.names(), ["world", "world2"]);
+        var vtile2 = vtile.layer('world');
+        assert.deepEqual(vtile2.names(), ["world"]);
+    });
+
+    it('should fail to extract one layer', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setData(data);
+        assert.deepEqual(vtile.names(), ["world", "world2"]);
+        assert.throws(function() { var vtile2 = vtile.layer(); });
+        assert.throws(function() { var vtile2 = vtile.layer({}); });
+        assert.throws(function() { var vtile2 = vtile.layer('fish'); });
+    });
     
     it('should be able to addData gzip compressed (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
