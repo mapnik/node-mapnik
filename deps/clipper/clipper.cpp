@@ -2050,14 +2050,6 @@ void Clipper::ClearJoins()
 }
 //------------------------------------------------------------------------------
 
-void Clipper::ClearSSJoins()
-{
-  for (JoinList::size_type i = 0; i < m_SSJoins.size(); i++)
-    delete m_SSJoins[i];
-  m_SSJoins.resize(0);
-}
-//------------------------------------------------------------------------------
-
 void Clipper::ClearGhostJoins()
 {
   for (JoinList::size_type i = 0; i < m_GhostJoins.size(); i++)
@@ -2073,16 +2065,6 @@ void Clipper::AddGhostJoin(OutPt *op, const IntPoint OffPt)
   j->OutPt2 = 0;
   j->OffPt = OffPt;
   m_GhostJoins.push_back(j);
-}
-//------------------------------------------------------------------------------
-
-void Clipper::AddSSJoin(OutPt *op1, OutPt *op2, const IntPoint OffPt)
-{
-  Join* j = new Join;
-  j->OutPt1 = op1;
-  j->OutPt2 = op2;
-  j->OffPt = OffPt;
-  m_SSJoins.push_back(j);
 }
 //------------------------------------------------------------------------------
 
@@ -3846,7 +3828,6 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
             op2b_next->Prev = op1b_prev;
             return true;
         }
-        bool reverse1 = (op1b->Pt.y > j->OffPt.y);
         
         // Second Op1 Prev and Op2 Next
         op2b = j->OutPt2->Next;
@@ -3864,124 +3845,6 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
             op2b_prev->Next = op1b_next;
             op1b_next->Prev = op2b_prev;
             return true;
-        }
-        bool reverse2 = (op2b->Pt.y > j->OffPt.y);
-        if (reverse1 == reverse2) return false;
-        // See if there was a situation where these 
-        // two were split into seperate polygons
-        // with a SS join
-        for (auto & sj : m_SSJoins)
-        {
-            if (!sj->OutPt1 || !sj->OutPt2) continue;
-            OutRec *sjOutRec1 = GetOutRec(sj->OutPt1->Idx);
-            OutRec *sjOutRec2 = GetOutRec(sj->OutPt2->Idx);
-            if (sjOutRec1->Idx == outRec1->Idx && sjOutRec2->Idx == outRec2->Idx)
-            {
-                // We a previous SS join that has the same ids, so we might need to make
-                // a different join type.
-                op1b = j->OutPt1->Next;
-                while (op1b != op1 && op1b != sj->OutPt1)
-                {
-                    op1b = op1b->Next;
-                }
-                if (op1b == op1) continue;
-                op2b = j->OutPt2->Next;
-                while (op2b != op2 && op2b != sj->OutPt2)
-                {
-                    op2b = op2b->Next;
-                }
-                if (op2b == op2) continue;
-                OutPt* op1b_next = op1b->Next;
-                OutPt* op2b_next = op2b->Next;
-                OutPt* op1_next = op1->Next;
-                OutPt* op2_next = op2->Next;
-                op2b->Next= op1b_next;
-                op1b->Next = op2b_next;
-                op2b_next->Prev = op1b;
-                op1b_next->Prev = op2b;
-                op2->Next= op1_next;
-                op1->Next = op2_next;
-                op2_next->Prev = op1;
-                op1_next->Prev = op2;
-                sj->OutPt1 = 0;
-                sj->OutPt2 = 0;
-            }
-            else if (sjOutRec1->Idx == outRec2->Idx && sjOutRec2->Idx == outRec1->Idx)
-            {
-                // We a previous SS join that has the same ids, so we might need to make
-                // a different join type.
-                op1b = j->OutPt1->Next;
-                while (op1b != op1 && op1b != sj->OutPt2)
-                {
-                    op1b = op1b->Next;
-                }
-                if (op1b == op1) continue;
-                op2b = j->OutPt2->Next;
-                while (op2b != op2 && op2b != sj->OutPt1)
-                {
-                    op2b = op2b->Next;
-                }
-                if (op2b == op2) continue;
-                OutPt* op1b_next = op1b->Next;
-                OutPt* op2b_next = op2b->Next;
-                OutPt* op1_next = op1->Next;
-                OutPt* op2_next = op2->Next;
-                op2b->Next= op1b_next;
-                op1b->Next = op2b_next;
-                op2b_next->Prev = op1b;
-                op1b_next->Prev = op2b;
-                op2->Next= op1_next;
-                op1->Next = op2_next;
-                op2_next->Prev = op1;
-                op1_next->Prev = op2;
-                sj->OutPt1 = 0;
-                sj->OutPt2 = 0;
-            }
-            else
-            {
-                continue;
-            }
-            // We still will return false here
-            // because if we returned true it would 
-            // continue and think these two polygons should be merged
-            bool holeState = (Area(j->OutPt1) > 0) && m_ReverseOutput;
-            if (outRec1->IsHole == holeState) // outRec1 is "parent"
-            {
-                outRec1->Pts = j->OutPt2;
-                outRec1->BottomPt = 0;
-                outRec2->Pts = 0;
-                outRec2->BottomPt = 0;
-                outRec2->Idx = outRec1->Idx;
-                outRec2->FirstLeft = outRec1;
-                outRec2->IsHole = outRec1->IsHole;
-                if (m_UsingPolyTree) FixupFirstLefts3(outRec2, outRec1);
-                OutRec * outRec3 = CreateOutRec();
-                outRec3->Pts = j->OutPt1;
-                UpdateOutPtIdxs(*outRec1);
-                UpdateOutPtIdxs(*outRec3);
-                outRec3->FirstLeft = outRec1->FirstLeft;
-                //fixup FirstLeft pointers that may need reassigning to OutRec3
-                if (m_UsingPolyTree) FixupFirstLefts1(outRec1, outRec3);
-            }
-            else
-            {
-                outRec2->Pts = j->OutPt1;
-                outRec2->BottomPt = 0;
-                outRec1->Pts = 0;
-                outRec1->BottomPt = 0;
-                outRec1->Idx = outRec2->Idx;
-                outRec1->FirstLeft = outRec2;
-                outRec1->IsHole = outRec2->IsHole;
-                if (m_UsingPolyTree) FixupFirstLefts3(outRec1, outRec2);
-                OutRec * outRec3 = CreateOutRec();
-                outRec3->Pts = j->OutPt2;
-                UpdateOutPtIdxs(*outRec2);
-                UpdateOutPtIdxs(*outRec3);
-                outRec3->FirstLeft = outRec2->FirstLeft;
-                //fixup FirstLeft pointers that may need reassigning to OutRec3
-                if (m_UsingPolyTree) FixupFirstLefts1(outRec2, outRec3);
-            }
-            return false;
         }
         return false;
     }
@@ -4005,7 +3868,6 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       op2b->Prev = op1b;
       j->OutPt1 = op1;
       j->OutPt2 = op1b;
-      AddSSJoin(op1, op1b, j->OffPt);
       return true;
     } else
     {
@@ -4017,7 +3879,6 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       op2b->Next = op1b;
       j->OutPt1 = op1;
       j->OutPt2 = op1b;
-      AddSSJoin(op1, op1b, j->OffPt);
       return true;
     }
   } 
@@ -4275,7 +4136,6 @@ void Clipper::JoinCommonEdges()
       if (m_UsingPolyTree) FixupFirstLefts3(outRec2, outRec1);
     }
   }
-  ClearSSJoins();
 }
 
 //------------------------------------------------------------------------------
