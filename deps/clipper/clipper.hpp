@@ -236,6 +236,7 @@ struct OutPt;
 struct OutRec;
 struct Join;
 
+typedef std::vector < OutPt*> OutPtList;
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
 typedef std::vector < Join* > JoinList;
@@ -282,6 +283,7 @@ protected:
   bool              m_PreserveCollinear;
   bool              m_HasOpenPaths;
   PolyOutList       m_PolyOuts;
+  OutPtList         m_OutPts;
   TEdge           *m_ActiveEdges;
 
   typedef std::priority_queue<cInt> ScanbeamList;
@@ -366,6 +368,7 @@ private:
   void SetHoleState(TEdge *e, OutRec *outrec);
   void DisposeIntersectNodes();
   bool FixupIntersectionOrder();
+  void FixupInteriorRings();
   void FixupOutPolygon(OutRec &outrec);
   void FixupOutPolyline(OutRec &outrec);
   bool IsHole(TEdge *e);
