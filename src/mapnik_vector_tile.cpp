@@ -2772,8 +2772,10 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  * @memberof mapnik.VectorTile
  * @name toGeoJSONSync
  * @instance
- * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * `__array__` of layer names, `__all__` for all layers or an index. 
+ * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
+ * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
+ * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
+ * `FeatureCollection` with all layers smooshed inside 
  * @returns {string} stringified GeoJSON of all the features in this tile.
  * @example
  * var geojson = vectorTile.toGeoJSONSync();
@@ -2989,8 +2991,10 @@ struct to_geojson_baton
  * @memberof mapnik.VectorTile
  * @name toGeoJSON
  * @instance
- * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * `__array__` of layer names, `__all__` for all layers or an index. 
+ * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
+ * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
+ * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
+ * `FeatureCollection` with all layers smooshed inside  
  * @param {Function} callback - `function(err, geojson)`: a stringified 
  * GeoJSON of all the features in this tile
  * @example
@@ -5970,7 +5974,8 @@ typedef struct {
 } vector_tile_info_baton_t;
 
 /**
- * Return an object containing information about a vector tile buffer. (synchronous)
+ * Return an object containing information about a vector tile buffer. Useful for
+ * debugging `.mvt` files with errors.
  *
  * @name info
  * @param {Buffer} buffer - vector tile buffer
@@ -5978,8 +5983,27 @@ typedef struct {
  * @static
  * @memberof mapnik.VectorTile
  * @example
- * var buffer = fs.readFileSync('./path/to/vtile.mvt');
+ * var buffer = fs.readFileSync('./path/to/tile.mvt');
  * var info = mapnik.VectorTile.info(buffer);
+ * console.log(info);
+ * // { layers: 
+ * //   [ { name: 'world',
+ * //      features: 1,
+ * //      point_features: 0,
+ * //      linestring_features: 0,
+ * //      polygon_features: 1,
+ * //      unknown_features: 0,
+ * //      raster_features: 0,
+ * //      version: 2 },
+ * //    { name: 'world2',
+ * //      features: 1,
+ * //      point_features: 0,
+ * //      linestring_features: 0,
+ * //      polygon_features: 1,
+ * //      unknown_features: 0,
+ * //      raster_features: 0,
+ * //      version: 2 } ],
+ * //    errors: false }
  */
 NAN_METHOD(VectorTile::info)
 {
