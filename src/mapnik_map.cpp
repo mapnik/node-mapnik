@@ -1266,13 +1266,13 @@ NAN_METHOD(Map::fromStringSync)
  *
  * @memberof mapnik.Map
  * @instance
- * @name fromStringSync
+ * @name fromString
  * @param {string} stylesheet contents
  * @param {Object} [options={}]
  * @param {Function} callback
  * @example
  * var fs = require('fs');
- * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {
+ * map.fromString(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {
  *   // details loaded
  * });
  */

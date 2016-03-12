@@ -285,6 +285,7 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "extent", extent);
     Nan::SetPrototypeMethod(lcons, "bufferedExtent", bufferedExtent);
     Nan::SetPrototypeMethod(lcons, "names", names);
+    Nan::SetPrototypeMethod(lcons, "layer", layer);
     Nan::SetPrototypeMethod(lcons, "emptyLayers", emptyLayers);
     Nan::SetPrototypeMethod(lcons, "paintedLayers", paintedLayers);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
@@ -342,6 +343,16 @@ NAN_METHOD(VectorTile::New)
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        return;
+    }
+    
+    if (info[0]->IsExternal())
+    {
+        v8::Local<v8::External> ext = info[0].As<v8::External>();
+        void* ptr = ext->Value();
+        VectorTile* v =  static_cast<VectorTile*>(ptr);
+        v->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
         return;
     }
 
@@ -1320,6 +1331,67 @@ NAN_METHOD(VectorTile::names)
         arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
     }
     info.GetReturnValue().Set(arr);
+    return;
+}
+
+/**
+ * Extract the layer by a given name to a new vector tile
+ *
+ * @memberof mapnik.VectorTile
+ * @name layer
+ * @param {string} layer_name - name of layer
+ * @instance
+ * @returns {mapnik.VectorTile} mapnik VectorTile object
+ * @example
+ * var vt = new mapnik.VectorTile(0,0,0);
+ * var data = fs.readFileSync('./path/to/data.mvt');
+ * vt.addDataSync(data);
+ * console.log(vt.names()); // ['layer-name', 'another-layer']
+ * var vt2 = vt.layer('layer-name');
+ * console.log(vt2.names()); // ['layer-name']
+ */
+NAN_METHOD(VectorTile::layer)
+{
+    if (info.Length() < 1) 
+    {
+        Nan::ThrowError("first argument must be either a layer name");
+        return;
+    }
+    v8::Local<v8::Value> layer_id = info[0];
+    std::string layer_name;
+    if (!layer_id->IsString())
+    {
+        Nan::ThrowTypeError("'layer' argument must be a layer name (string)");
+        return;
+    }
+    layer_name = TOSTR(layer_id);
+    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    if (!d->get_tile()->has_layer(layer_name))
+    {
+        Nan::ThrowTypeError("layer does not exist in vector tile");
+        return;
+    }
+    protozero::pbf_reader layer_msg;
+    VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
+    protozero::pbf_reader tile_message(d->get_tile()->get_reader());
+    while (tile_message.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
+    {
+        auto data_pair = tile_message.get_data();
+        protozero::pbf_reader layer_message(data_pair);
+        if (!layer_message.next(mapnik::vector_tile_impl::Layer_Encoding::NAME))
+        {
+            continue;
+        }
+        std::string name = layer_message.get_string();
+        if (layer_name == name)
+        {
+            v->get_tile()->append_layer_buffer(data_pair.first, data_pair.second, layer_name);
+            break;
+        }
+    }
+    v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
+    v8::Local<v8::Object> vt_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+    info.GetReturnValue().Set(vt_obj);
     return;
 }
 
@@ -2700,8 +2772,10 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  * @memberof mapnik.VectorTile
  * @name toGeoJSONSync
  * @instance
- * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * `__array__` of layer names, `__all__` for all layers or an index. 
+ * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
+ * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
+ * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
+ * `FeatureCollection` with all layers smooshed inside 
  * @returns {string} stringified GeoJSON of all the features in this tile.
  * @example
  * var geojson = vectorTile.toGeoJSONSync();
@@ -2917,8 +2991,10 @@ struct to_geojson_baton
  * @memberof mapnik.VectorTile
  * @name toGeoJSON
  * @instance
- * @param {string | number} [layer=__all__] Can be a custom layer name, 
- * `__array__` of layer names, `__all__` for all layers or an index. 
+ * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
+ * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
+ * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
+ * `FeatureCollection` with all layers smooshed inside  
  * @param {Function} callback - `function(err, geojson)`: a stringified 
  * GeoJSON of all the features in this tile
  * @example
@@ -5898,7 +5974,8 @@ typedef struct {
 } vector_tile_info_baton_t;
 
 /**
- * Return an object containing information about a vector tile buffer. (synchronous)
+ * Return an object containing information about a vector tile buffer. Useful for
+ * debugging `.mvt` files with errors.
  *
  * @name info
  * @param {Buffer} buffer - vector tile buffer
@@ -5906,8 +5983,27 @@ typedef struct {
  * @static
  * @memberof mapnik.VectorTile
  * @example
- * var buffer = fs.readFileSync('./path/to/vtile.mvt');
+ * var buffer = fs.readFileSync('./path/to/tile.mvt');
  * var info = mapnik.VectorTile.info(buffer);
+ * console.log(info);
+ * // { layers: 
+ * //   [ { name: 'world',
+ * //      features: 1,
+ * //      point_features: 0,
+ * //      linestring_features: 0,
+ * //      polygon_features: 1,
+ * //      unknown_features: 0,
+ * //      raster_features: 0,
+ * //      version: 2 },
+ * //    { name: 'world2',
+ * //      features: 1,
+ * //      point_features: 0,
+ * //      linestring_features: 0,
+ * //      polygon_features: 1,
+ * //      unknown_features: 0,
+ * //      raster_features: 0,
+ * //      version: 2 } ],
+ * //    errors: false }
  */
 NAN_METHOD(VectorTile::info)
 {

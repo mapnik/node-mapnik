@@ -1508,6 +1508,30 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+
+    it('should be able to extract one layer', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setData(data);
+        assert.deepEqual(vtile.names(), ["world", "world2"]);
+        var vtile2 = vtile.layer('world');
+        assert.deepEqual(vtile2.names(), ["world"]);
+        var first = vtile.toGeoJSON('world');
+        var second = vtile2.toGeoJSON('world');
+        assert.equal(first, second);
+    });
+
+    it('should fail to extract one layer', function() {
+        var vtile = new mapnik.VectorTile(9,112,195);
+        assert.equal(vtile.empty(), true);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile.setData(data);
+        assert.deepEqual(vtile.names(), ["world", "world2"]);
+        assert.throws(function() { var vtile2 = vtile.layer(); });
+        assert.throws(function() { var vtile2 = vtile.layer({}); });
+        assert.throws(function() { var vtile2 = vtile.layer('fish'); });
+    });
     
     it('should be able to addData gzip compressed (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
@@ -2266,7 +2290,7 @@ describe('mapnik.VectorTile ', function() {
                 var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true});
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
-                assert.equal(validityReport2.length, 12); // Dataset not expected to be OGC valid
+                assert.equal(validityReport2.length, 13); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple_false.mvt';
             var actual = './test/data/vector_tile/tile0-strictly_simple_false.actual.mvt';
@@ -2297,7 +2321,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.mvt';
             var actual = './test/data/vector_tile/tile0-simplify_distance.actual.mvt';
@@ -2328,7 +2352,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.mvt';
             var actual = './test/data/vector_tile/tile0-simple_and_distance.actual.mvt';
@@ -3451,6 +3475,96 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.reportGeometryValidity().length, 0);
             assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             assert.equal(vtile.reportGeometrySimplicity().length, 6);
+            done();
+        });
+    });
+
+    it('pasted test 10 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile = new mapnik.VectorTile(15,19589,17578, {buffer_size:8*16});
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/pasted/pasted10.xml');
+        map.render(vtile, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 0); // Dataset not expected to be OGC valid
+            }
+            assert(!vtile.empty());
+            var expected = './test/data/vector_tile/pasted/pasted10.mvt';
+            var actual = './test/data/vector_tile/pasted/pasted10.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(15,19589,17578, {buffer_size:8*16});
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(15,19589,17578, {buffer_size:8*16});
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            done();
+        });
+    });
+
+    it('pasted test 11 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile = new mapnik.VectorTile(13,4889,4395,{buffer_size:8*16});
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/pasted/pasted11.xml');
+        map.render(vtile, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 0); // Dataset not expected to be OGC valid
+            }
+            assert(!vtile.empty());
+            var expected = './test/data/vector_tile/pasted/pasted11.mvt';
+            var actual = './test/data/vector_tile/pasted/pasted11.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(13,4889,4395, {buffer_size:8*16});
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(13,4889,4395, {buffer_size:8*16});
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            done();
+        });
+    });
+
+    it('pasted test 12 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile = new mapnik.VectorTile(12,2433,2194,{buffer_size:8*16});
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/pasted/pasted12.xml');
+        map.render(vtile, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 0); // Dataset not expected to be OGC valid
+            }
+            assert(!vtile.empty());
+            var expected = './test/data/vector_tile/pasted/pasted12.mvt';
+            var actual = './test/data/vector_tile/pasted/pasted12.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(12,2433,2194, {buffer_size:8*16});
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(12,2433,2194, {buffer_size:8*16});
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });

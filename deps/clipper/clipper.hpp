@@ -236,6 +236,7 @@ struct OutPt;
 struct OutRec;
 struct Join;
 
+typedef std::vector < OutPt*> OutPtList;
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
 typedef std::vector < Join* > JoinList;
@@ -282,6 +283,7 @@ protected:
   bool              m_PreserveCollinear;
   bool              m_HasOpenPaths;
   PolyOutList       m_PolyOuts;
+  OutPtList         m_OutPts;
   TEdge           *m_ActiveEdges;
 
   typedef std::priority_queue<cInt> ScanbeamList;
@@ -320,7 +322,6 @@ protected:
 private:
   JoinList         m_Joins;
   JoinList         m_GhostJoins;
-  JoinList         m_SSJoins;
   IntersectList    m_IntersectList;
   ClipType         m_ClipType;
   typedef std::list<cInt> MaximaList;
@@ -366,6 +367,7 @@ private:
   void SetHoleState(TEdge *e, OutRec *outrec);
   void DisposeIntersectNodes();
   bool FixupIntersectionOrder();
+  void FixupInteriorRings();
   void FixupOutPolygon(OutRec &outrec);
   void FixupOutPolyline(OutRec &outrec);
   bool IsHole(TEdge *e);
@@ -374,9 +376,7 @@ private:
   void AddJoin(OutPt *op1, OutPt *op2, const IntPoint offPt);
   void ClearJoins();
   void ClearGhostJoins();
-  void ClearSSJoins();
   void AddGhostJoin(OutPt *op, const IntPoint offPt);
-  void AddSSJoin(OutPt *op1, OutPt *op2, const IntPoint offPt);
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
