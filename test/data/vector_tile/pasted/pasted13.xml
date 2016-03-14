@@ -7,7 +7,7 @@
         </Rule>
     </Style>
 
-    <Layer name="pasted" srs="+init=epsg:4326">
+    <Layer buffer-size="4" name="pasted" srs="+init=epsg:4326">
         <StyleName>style</StyleName>
         <Datasource>
             <Parameter name="file">pasted13.geojson</Parameter>
