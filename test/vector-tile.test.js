@@ -109,13 +109,16 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { vtile.reportGeometryValidity(null); });
             assert.throws(function() { vtile.reportGeometryValidity(1); });
             assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}); });
+            assert.throws(function() { vtile.reportGeometryValidity({lat_lon:null}); });
             assert.throws(function() { vtile.reportGeometryValidity({}, null); });
             assert.throws(function() { vtile.reportGeometryValiditySync(null); });
             assert.throws(function() { vtile.reportGeometryValiditySync(1); });
             assert.throws(function() { vtile.reportGeometryValiditySync({split_multi_features:null}); });
+            assert.throws(function() { vtile.reportGeometryValiditySync({lat_lon:null}); });
             assert.throws(function() { vtile.reportGeometryValidity(null, function() {}); });
             assert.throws(function() { vtile.reportGeometryValidity(1, function() {}); });
             assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}, function() {}); });
+            assert.throws(function() { vtile.reportGeometryValidity({lat_lon:null}, function() {}); });
         });
     } else {
         it.skip('should fail when bad parameters are passed to reportGeometryValidity', function() {});
@@ -2287,7 +2290,7 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
-                var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true});
+                var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true, lat_lon:true});
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
                 assert.equal(validityReport2.length, 13); // Dataset not expected to be OGC valid
