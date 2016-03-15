@@ -3208,7 +3208,14 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
       {
         UpdateEdgeIntoAEL(e);
         if (e->OutIdx >= 0)
+        {
           AddOutPt(e, e->Bot);
+          if (m_StrictSimple) 
+          {
+              m_Maxima.push_back(e->Top.x);
+              m_Maxima.push_back(e->Bot.x);
+          }
+        }
         AddEdgeToSEL(e);
       } 
       else
