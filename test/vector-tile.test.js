@@ -3652,7 +3652,6 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
-                fs.writeFileSync('test.geojson', vtile.toGeoJSON('pasted'));
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 0);
             }
@@ -3668,6 +3667,36 @@ describe('mapnik.VectorTile ', function() {
             var vt1 = new mapnik.VectorTile(8,154,136);
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(8,154,136);
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            done();
+        });
+    });
+    
+    it('pasted test 16 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile = new mapnik.VectorTile(11,1216,1093);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/pasted/pasted16.xml');
+        map.render(vtile, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 0);
+            }
+            assert(!vtile.empty());
+            var expected = './test/data/vector_tile/pasted/pasted16.mvt';
+            var actual = './test/data/vector_tile/pasted/pasted16.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(11,1216,1093);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(11,1216,1093);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
