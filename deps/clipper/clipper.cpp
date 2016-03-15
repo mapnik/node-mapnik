@@ -4484,7 +4484,7 @@ void Clipper::DoSimplePolygons()
             while (op != outrec->Pts);
         }
     }
-    std::sort(m_OutPts.begin(), m_OutPts.end(), SortOutPt);
+    std::stable_sort(m_OutPts.begin(), m_OutPts.end(), SortOutPt);
     std::list<OutPtIntersect> dupeRec;
     std::size_t count = 0;
     for (std::size_t i = 1; i < m_OutPts.size(); ++i)
