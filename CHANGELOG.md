@@ -116,6 +116,7 @@ Notable Changes in Mapnik v3.0.9-57-g9494bc1 include:
    node-mapnik binaries which now default to Mapnik `v3.0.9-48-gbb8cd10` (see `Notable Changes in Mapnik` below for details).
  - Upgraded to node-pre-gyp@0.6.19
  - Upgraded to mapnik-vector-tile@0.14.2
+   - Fixed premultiplication bug in raster encoding (#170)
  - Binaries updated to use Mapnik v3.0.9-48-gbb8cd10 and mapnik-packaging@039aa0d
 
 Notable Changes in Mapnik v3.0.9-48-gbb8cd10 include:
@@ -138,7 +139,9 @@ Notable changes in the Mapnik SDK include:
 
 ## 3.4.12
 
- - Exposed `image_scaling` and `image_format` in `vtile.composite`
+ - Exposed `image_scaling` and `image_format` in `vtile.composite` (https://github.com/mapnik/node-mapnik/pull/572)
+   - Default format is now `webp` encoding rather than `jpeg` (to support transparency)
+   - Default scaling is now `bilinear` rather than `near`
  - Binaries updated to use Mapnik v3.0.9-17-g75cb954 and mapnik-packaging@e29a81e
 
 Notable Changes in Mapnik 3.0.9-17-g75cb954 include:
