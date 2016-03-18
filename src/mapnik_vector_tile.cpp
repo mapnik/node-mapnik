@@ -5616,44 +5616,111 @@ struct visitor_geom_valid
     }
 };
 
-void layer_not_valid(protozero::pbf_reader const& layer_msg,
+void layer_not_valid(protozero::pbf_reader & layer_msg,
                unsigned x,
                unsigned y,
                unsigned z,
                std::vector<not_valid_feature> & errors,
                bool split_multi_features = false,
-               bool lat_lon = false)
+               bool lat_lon = false,
+               bool web_merc = false)
 {
-    mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
-    mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
-                                          std::numeric_limits<double>::lowest(),
-                                          std::numeric_limits<double>::max(),
-                                          std::numeric_limits<double>::max()));
-    mapnik::layer_descriptor ld = ds.get_descriptor();
-    for (auto const& item : ld.get_descriptors())
+    if (web_merc || lat_lon)
     {
-        q.add_property_name(item.get_name());
-    }
-    mapnik::featureset_ptr fs = ds.features(q);
-    if (fs)
-    {
-        mapnik::feature_ptr feature;
-        while ((feature = fs->next()))
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
+        mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
+                                              std::numeric_limits<double>::lowest(),
+                                              std::numeric_limits<double>::max(),
+                                              std::numeric_limits<double>::max()));
+        mapnik::layer_descriptor ld = ds.get_descriptor();
+        for (auto const& item : ld.get_descriptors())
         {
-            if (lat_lon)
+            q.add_property_name(item.get_name());
+        }
+        mapnik::featureset_ptr fs = ds.features(q);
+        if (fs)
+        {
+            mapnik::feature_ptr feature;
+            while ((feature = fs->next()))
             {
-                mapnik::projection wgs84("+init=epsg:4326",true);
-                mapnik::projection merc("+init=epsg:3857",true);
-                mapnik::proj_transform prj_trans(merc,wgs84);
-                unsigned int n_err = 0;
-                mapnik::util::apply_visitor(
-                        visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features), 
-                        mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
+                if (lat_lon)
+                {
+                    mapnik::projection wgs84("+init=epsg:4326",true);
+                    mapnik::projection merc("+init=epsg:3857",true);
+                    mapnik::proj_transform prj_trans(merc,wgs84);
+                    unsigned int n_err = 0;
+                    mapnik::util::apply_visitor(
+                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features), 
+                            mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
+                }
+                else
+                {
+                    mapnik::util::apply_visitor(
+                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features), 
+                            feature->get_geometry());
+                }
             }
-            else
+        }
+    }
+    else
+    {
+        std::vector<protozero::pbf_reader> layer_features;
+        std::uint32_t version = 1;
+        std::string layer_name;
+        while (layer_msg.next())
+        {
+            switch (layer_msg.tag())
             {
+                case mapnik::vector_tile_impl::Layer_Encoding::NAME:
+                    layer_name = layer_msg.get_string();
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
+                    layer_features.push_back(layer_msg.get_message());
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
+                    version = layer_msg.get_uint32();
+                    break;
+                default:
+                    layer_msg.skip();
+                    break;
+            }
+        }
+        for (auto feature_msg : layer_features)
+        {
+            std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+            bool has_geom = false;
+            bool has_geom_type = false;
+            std::int32_t geom_type_enum = 0;
+            std::uint64_t feature_id = 0;
+            while (feature_msg.next())
+            {
+                switch (feature_msg.tag())
+                {
+                    case mapnik::vector_tile_impl::Feature_Encoding::ID: 
+                        feature_id = feature_msg.get_uint64();
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
+                        geom_type_enum = feature_msg.get_enum();
+                        has_geom_type = true;
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
+                        geom_itr = feature_msg.get_packed_uint32();
+                        has_geom = true;
+                        break;
+                    default:
+                        feature_msg.skip();
+                        break;
+                }   
+            }
+            if (has_geom && has_geom_type)
+            {
+                // Decode the geometry first into an int64_t mapnik geometry
+                mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
+                mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+                mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0, 0, 1.0, 1.0);
+                feature->set_geometry(mapnik::vector_tile_impl::decode_geometry(geoms, geom_type_enum, version));
                 mapnik::util::apply_visitor(
-                        visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features), 
+                        visitor_geom_valid(errors, feature, layer_name, split_multi_features), 
                         feature->get_geometry());
             }
         }
@@ -5697,7 +5764,8 @@ v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & err
 void vector_tile_not_valid(VectorTile * v,
                            std::vector<not_valid_feature> & errors,
                            bool split_multi_features = false,
-                           bool lat_lon = false)
+                           bool lat_lon = false,
+                           bool web_merc = false)
 {
     protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
     while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
@@ -5709,7 +5777,8 @@ void vector_tile_not_valid(VectorTile * v,
                         v->get_tile()->z(),
                         errors,
                         split_multi_features,
-                        lat_lon);
+                        lat_lon,
+                        web_merc);
     }
 }
 
@@ -5752,6 +5821,7 @@ struct not_valid_baton
     bool error;
     bool split_multi_features;
     bool lat_lon;
+    bool web_merc;
     std::vector<not_valid_feature> result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
@@ -5805,7 +5875,8 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
  * Normally the validity of multipolygons and multilinestrings is done together against
  * all the parts of the geometries. Changing this to true checks the validity of multipolygons
  * and multilinestrings for each part they contain, rather then as a group.
- * @param {bool} [options.lat_lon=false] - If false results in EPSG:3857, if true in EPSG:4326
+ * @param {bool} [options.lat_lon=false] - If true results in EPSG:4326
+ * @param {bool} [options.web_merc=false] - If true results in EPSG:3857
  * @instance
  * @returns {number} number of features that are not valid
  * @example
@@ -5823,6 +5894,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
     Nan::EscapableHandleScope scope;
     bool split_multi_features = false;
     bool lat_lon = false;
+    bool web_merc = false;
     if (info.Length() >= 1)
     {
         if (!info[0]->IsObject())
@@ -5853,12 +5925,23 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
             }
             lat_lon = param_val->BooleanValue();
         }
+
+        if (options->Has(Nan::New("web_merc").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'web_merc' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            web_merc = param_val->BooleanValue();
+        }
     }
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
         std::vector<not_valid_feature> errors;
-        vector_tile_not_valid(d, errors, split_multi_features, lat_lon);
+        vector_tile_not_valid(d, errors, split_multi_features, lat_lon, web_merc);
         return scope.Escape(make_not_valid_array(errors));
     }
     catch (std::exception const& ex)
@@ -5959,7 +6042,8 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
  * Normally the validity of multipolygons and multilinestrings is done together against
  * all the parts of the geometries. Changing this to true checks the validity of multipolygons
  * and multilinestrings for each part they contain, rather then as a group.
- * @param {bool} [options.lat_lon=false] - If false results in EPSG:3857, if true in EPSG:4326
+ * @param {bool} [options.lat_lon=false] - If true results in EPSG:4326
+ * @param {bool} [options.web_merc=false] - If true results in EPSG:3857
  * @instance
  * @param {Function} callback
  * @example
@@ -5977,6 +6061,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
     }
     bool split_multi_features = false;
     bool lat_lon = false;
+    bool web_merc = false;
     if (info.Length() >= 2)
     {
         if (!info[0]->IsObject())
@@ -6007,6 +6092,17 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
             }
             lat_lon = param_val->BooleanValue();
         }
+
+        if (options->Has(Nan::New("web_merc").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'web_merc' must be a boolean");
+                return;
+            }
+            web_merc = param_val->BooleanValue();
+        }
     }
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
@@ -6022,6 +6118,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
     closure->error = false;
     closure->split_multi_features = split_multi_features;
     closure->lat_lon = lat_lon;
+    closure->web_merc = web_merc;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
     closure->v->Ref();
@@ -6033,7 +6130,7 @@ void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     try
     {
-        vector_tile_not_valid(closure->v, closure->result, closure->split_multi_features, closure->lat_lon);
+        vector_tile_not_valid(closure->v, closure->result, closure->split_multi_features, closure->lat_lon, closure->web_merc);
     }
     catch (std::exception const& ex)
     {

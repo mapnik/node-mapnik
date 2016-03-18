@@ -18,8 +18,6 @@ if (boost_version[0] > 1 || (boost_version[0] == 1 && boost_version[1] >= 58))
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 
-
-
 var trunc_6 = function(key, val) {
     return val.toFixed ? Number(val.toFixed(6)) : val;
 };
@@ -110,15 +108,18 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { vtile.reportGeometryValidity(1); });
             assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}); });
             assert.throws(function() { vtile.reportGeometryValidity({lat_lon:null}); });
+            assert.throws(function() { vtile.reportGeometryValidity({web_merc:null}); });
             assert.throws(function() { vtile.reportGeometryValidity({}, null); });
             assert.throws(function() { vtile.reportGeometryValiditySync(null); });
             assert.throws(function() { vtile.reportGeometryValiditySync(1); });
             assert.throws(function() { vtile.reportGeometryValiditySync({split_multi_features:null}); });
             assert.throws(function() { vtile.reportGeometryValiditySync({lat_lon:null}); });
+            assert.throws(function() { vtile.reportGeometryValiditySync({web_merc:null}); });
             assert.throws(function() { vtile.reportGeometryValidity(null, function() {}); });
             assert.throws(function() { vtile.reportGeometryValidity(1, function() {}); });
             assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}, function() {}); });
             assert.throws(function() { vtile.reportGeometryValidity({lat_lon:null}, function() {}); });
+            assert.throws(function() { vtile.reportGeometryValidity({web_merc:null}, function() {}); });
         });
     } else {
         it.skip('should fail when bad parameters are passed to reportGeometryValidity', function() {});
@@ -2179,7 +2180,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})),JSON.stringify(vt2.toJSON({decode_geometry:true})));
+            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})) == JSON.stringify(vt2.toJSON({decode_geometry:true})), true);
             done();
         });
     });
@@ -2217,7 +2218,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})),JSON.stringify(vt2.toJSON({decode_geometry:true})));
+            assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})) == JSON.stringify(vt2.toJSON({decode_geometry:true})), true);
             done();
         });
     });
@@ -2247,7 +2248,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2279,7 +2280,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2295,10 +2296,14 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
-                var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true, lat_lon:true});
+                var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true});
+                var validityReport3 = vtile.reportGeometryValidity({lat_lon:true});
+                var validityReport4 = vtile.reportGeometryValidity({web_merc:true});
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
-                assert.equal(validityReport2.length, 13); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 21); // Dataset not expected to be OGC valid
+                assert.equal(validityReport2.length, 14); // Dataset not expected to be OGC valid
+                assert.equal(validityReport3.length, 21); // Dataset not expected to be OGC valid
+                assert.equal(validityReport4.length, 20); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple_false.mvt';
             var actual = './test/data/vector_tile/tile0-strictly_simple_false.actual.mvt';
@@ -2344,7 +2349,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2376,7 +2381,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2409,7 +2414,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2473,7 +2478,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2505,7 +2510,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -2537,7 +2542,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -3712,6 +3717,7 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
+                fs.writeFileSync('test.geojson', vtile.toGeoJSON('pasted'));
                 assert.equal(simplicityReport.length, 0);
                 assert.equal(validityReport.length, 0);
             }
