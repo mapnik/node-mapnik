@@ -4493,6 +4493,7 @@ bool Clipper::FindIntersectLoop(std::unordered_multimap<int, OutPtIntersect> & d
                                 std::list<std::pair<const int, OutPtIntersect> > & iList,
                                 OutRec * outRec_parent,
                                 int idx_origin,
+                                int idx_prev,
                                 int idx_search)
 {
     auto range = dupeRec.equal_range(idx_search);
@@ -4500,11 +4501,11 @@ bool Clipper::FindIntersectLoop(std::unordered_multimap<int, OutPtIntersect> & d
     for (auto it = range.first; it != range.second; ++it)
     {
         OutRec * itRec = GetOutRec(it->second.op2->Idx);
-        if (itRec->Idx == idx_search)
+        if (itRec->Idx == idx_prev)
         {
             continue;
         }
-        if (itRec->Idx == idx_origin && (outRec_parent == itRec->FirstLeft || outRec_parent == ParseFirstLeft(itRec->FirstLeft)))
+        if (itRec->Idx == idx_origin && (outRec_parent == itRec || outRec_parent == ParseFirstLeft(itRec->FirstLeft)))
         {
             iList.emplace_front(idx_search, it->second);
             return true;
@@ -4514,11 +4515,12 @@ bool Clipper::FindIntersectLoop(std::unordered_multimap<int, OutPtIntersect> & d
     for (auto it = range.first; it != range.second; ++it)
     {
         OutRec * itRec = GetOutRec(it->second.op2->Idx);
-        if (itRec->Idx == idx_search || (outRec_parent == itRec->FirstLeft || outRec_parent != ParseFirstLeft(itRec->FirstLeft)))
+        if (itRec->Idx == idx_search || itRec->Idx == idx_prev || 
+            (outRec_parent != itRec && outRec_parent != ParseFirstLeft(itRec->FirstLeft)))
         {
             continue;
         }
-        if (FindIntersectLoop(dupeRec, iList, outRec_parent, idx_origin, itRec->Idx))
+        if (FindIntersectLoop(dupeRec, iList, outRec_parent, idx_origin, idx_search, itRec->Idx))
         {
             iList.emplace_front(idx_search, it->second);
             return true;
@@ -4602,8 +4604,8 @@ bool Clipper::FixIntersects(std::unordered_multimap<int, OutPtIntersect> & dupeR
         for (auto it = range.first; it != range.second; ++it)
         {
             OutRec * itRec = GetOutRec(it->second.op2->Idx);
-            if (itRec->IsHole && (outRec_parent == itRec->FirstLeft || outRec_parent == ParseFirstLeft(itRec->FirstLeft)) &&
-                FindIntersectLoop(dupeRec, iList, outRec_parent, outRec_origin->Idx, itRec->Idx))
+            if (itRec->IsHole && (outRec_parent == itRec || outRec_parent == ParseFirstLeft(itRec->FirstLeft)) &&
+                FindIntersectLoop(dupeRec, iList, outRec_parent, outRec_origin->Idx, outRec_search->Idx, itRec->Idx))
             {
                 found = true;
                 iList.emplace_front(outRec_search->Idx, it->second);

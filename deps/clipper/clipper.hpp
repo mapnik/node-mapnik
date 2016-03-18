@@ -383,6 +383,7 @@ private:
                          std::list<std::pair<const int, OutPtIntersect> > & iList,
                          OutRec * outRec_parent,
                          int idx_origin,
+                         int idx_prev,
                          int idx_search);
   bool FixIntersects(std::unordered_multimap<int, OutPtIntersect> & dupeRec,
                      OutPt * op_j,
