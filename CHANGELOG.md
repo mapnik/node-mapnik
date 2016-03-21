@@ -3,7 +3,7 @@
 ## 3.5.4
 
 - Updated the angus clipper with several fixes that solve intersections issues within vetor tile polygons created when using strictly simple
-- Updated version of `mapnik-vector-tile` to `1.0.4` this solves a SEGFAULT that occurs in rare situations when encoding fails
+- Updated version of `mapnik-vector-tile` to `1.0.5` this solves a SEGFAULT that occurs in rare situations when encoding fails
 - Corrected some problems in the documentation
 - Added a new optional arguments `split_multi_features` and `lat_lon` to `mapnik.VectorTile.reportGeometryValidity` and `mapnik.VectorTile.reportGeometryValiditySync` that enables validity checks against the parts of multi geometries individually.
 
