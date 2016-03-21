@@ -2662,9 +2662,13 @@ OutPt* Clipper::GetLastOutPt(TEdge *e)
 
 void Clipper::ProcessHorizontals()
 {
-  TEdge* horzEdge;
-  while (PopEdgeFromSEL(horzEdge))
-    ProcessHorizontal(horzEdge);
+    m_Maxima.sort();
+    TEdge* horzEdge;
+    while (PopEdgeFromSEL(horzEdge))
+    {
+        ProcessHorizontal(horzEdge);
+    }
+    m_Maxima.clear();
 }
 //------------------------------------------------------------------------------
 
@@ -3191,6 +3195,7 @@ void Clipper::DoMaxima(TEdge *e)
 void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
 {
   TEdge* e = m_ActiveEdges;
+  MaximaList next_maxima;
   while( e )
   {
     //1. process maxima, treating them as if they're 'bent' horizontal edges,
@@ -3205,7 +3210,11 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
 
     if(IsMaximaEdge)
     {
-      if (m_StrictSimple) m_Maxima.push_back(e->Top.x);
+      if (m_StrictSimple)
+      {
+          m_Maxima.push_back(e->Top.x);
+          next_maxima.push_back(e->Top.x);
+      }
       TEdge* ePrev = e->PrevInAEL;
       DoMaxima(e);
       if( !ePrev ) e = m_ActiveEdges;
@@ -3269,9 +3278,11 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
   }
 
   //3. Process horizontals at the Top of the scanbeam ...
-  m_Maxima.sort();
   ProcessHorizontals();
-  m_Maxima.clear();
+  if (m_StrictSimple && !next_maxima.empty())
+  {
+    m_Maxima.insert(m_Maxima.end(), next_maxima.begin(), next_maxima.end());
+  }
 
   //4. Promote intermediate vertices ...
   e = m_ActiveEdges;
@@ -4735,7 +4746,7 @@ bool Clipper::FixIntersects(std::unordered_multimap<int, OutPtIntersect> & dupeR
         }
         else
         {
-            FixupFirstLefts1(outRec_new, outRec_origin);
+            FixupFirstLefts1(outRec_origin, outRec_new);
         }
     }
     if (!move_list.empty())
