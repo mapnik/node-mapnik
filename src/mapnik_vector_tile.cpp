@@ -496,7 +496,7 @@ void _composite(VectorTile* target_vt,
 }
 
 /**
- * Synchronous version of {@link VectorTile#composite}
+ * Synchronous version of {@link #VectorTile.composite}
  *
  * @name compositeSync
  * @memberof VectorTile
@@ -3304,7 +3304,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
 }
 
 /**
- * Add a {@link mapnik.Image} as a tile layer (synchronous)
+ * Add a {@link Image} as a tile layer (synchronous)
  *
  * @memberof VectorTile
  * @instance
@@ -4596,7 +4596,7 @@ struct baton_guard
 };
 
 /**
- * Render/write this vector tile to a surface/image, like a {@link mapnik.Image}
+ * Render/write this vector tile to a surface/image, like a {@link Image}
  *
  * @name render
  * @memberof VectorTile
