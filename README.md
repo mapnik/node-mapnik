@@ -140,16 +140,15 @@ The **1.x** series require the Visual C++ Redistributable Packages for **Visual 
 
 To build from source you need:
 
- - Mapnik >= v3.x
- - Protobuf >= 2.3.0 (protoc and libprotobuf-lite)
+ - Mapnik >= v3.0.10
 
 Install Mapnik using the instructions at: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
 
-Confirm that the `mapnik-config` program is available and on your $PATH.
+Confirm that the `mapnik-config` program is available and on your `${PATH}`.
 
-Then run:
+Then run (within the cloned `node-mapnik` directory:
 
-    npm install mapnik --build-from-source
+    npm install --build-from-source
 
 ### Windows specific
 

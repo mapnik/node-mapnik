@@ -23,7 +23,7 @@ if (!exists(obj)) {
     process.exit(1);
 }
 
-var mapnik = require('mapnik');
+var mapnik = require('../');
 mapnik.register_default_input_plugins();
 
 var meta = function(ds) {

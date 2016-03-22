@@ -245,12 +245,13 @@ detail::p2p_result path_to_point_distance(mapnik::geometry::geometry<double> con
 Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
 
 /**
+ * **`mapnik.VectorTile`** 
+
  * A tile generator built according to the [Mapbox Vector Tile](https://github.com/mapbox/vector-tile-spec)
  * specification for compressed and simplified tiled vector data. 
  * Learn more about vector tiles [here](https://www.mapbox.com/developers/vector-tiles/).
  *
- * @name mapnik.VectorTile
- * @class
+ * @class VectorTile
  * @param {number} z - an integer zoom level
  * @param {number} x - an integer x coordinate
  * @param {number} y - an integer y coordinate
@@ -495,10 +496,11 @@ void _composite(VectorTile* target_vt,
 }
 
 /**
- * Synchronous version of {@link VectorTile#composite}
+ * Synchronous version of {@link #VectorTile.composite}
  *
  * @name compositeSync
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @instance
  * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
  * @param {object} [options]
@@ -844,7 +846,7 @@ typedef struct
  * Composite an array of vector tiles into one vector tile
  *
  * @name composite
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
  * @instance
  * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
  * @param {object} [options]
@@ -855,21 +857,21 @@ typedef struct
  * If a value is greater than `0` it will trigger polygons with an area smaller 
  * than the value to be discarded. Measured in grid integers, not spherical mercator
  * coordinates.
- * @param {bool} [options.strictly_simple=true] - ensure all geometry is valid according to
+ * @param {boolean} [options.strictly_simple=true] - ensure all geometry is valid according to
  * OGC Simple definition
- * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {boolean} [options.multi_polygon_union=false] - union all multipolygons
  * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive]
  * the fill type used in determining what are holes and what are outer rings. See the 
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types.
  * @param {float} [options.scale_denominator=0.0]
- * @param {bool} [options.reencode=false]
+ * @param {boolean} [options.reencode=false]
  * @param {Array<number>} [options.max_extent=minx,miny,maxx,maxy]
  * @param {float} [options.simplify_distance=0.0] - Simplification works to generalize 
  * geometries before encoding into vector tiles.simplification distance The 
  * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
  * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
- * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * @param {boolean} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
  * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
  * @param {string} [options.scaling_method=bilinear] - can be any 
@@ -1260,9 +1262,9 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
 /**
  * Get the extent of this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name extent
+ * @memberof VectorTile
  * @instance
+ * @name extent
  * @returns {Array<number>} array of extent in the form of `[minx,miny,maxx,maxy]`
  * @example
  * var vt = new mapnik.VectorTile(9,112,195);
@@ -1285,9 +1287,9 @@ NAN_METHOD(VectorTile::extent)
 /**
  * Get the extent including the buffer of this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name bufferedExtent
+ * @memberof VectorTile
  * @instance
+ * @name bufferedExtent
  * @returns {Array<number>} extent - `[minx, miny, maxx, maxy]`
  * @example
  * var vt = new mapnik.VectorTile(9,112,195);
@@ -1310,9 +1312,9 @@ NAN_METHOD(VectorTile::bufferedExtent)
 /**
  * Get the names of all of the layers in this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name names
+ * @memberof VectorTile
  * @instance
+ * @name names
  * @returns {Array<string>} layer names
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1337,10 +1339,10 @@ NAN_METHOD(VectorTile::names)
 /**
  * Extract the layer by a given name to a new vector tile
  *
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @name layer
  * @param {string} layer_name - name of layer
- * @instance
  * @returns {mapnik.VectorTile} mapnik VectorTile object
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1398,9 +1400,9 @@ NAN_METHOD(VectorTile::layer)
 /**
  * Get the names of all of the empty layers in this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name emptyLayers
+ * @memberof VectorTile
  * @instance
+ * @name emptyLayers
  * @returns {Array<string>} layer names
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1426,9 +1428,9 @@ NAN_METHOD(VectorTile::emptyLayers)
  * Get the names of all of the painted layers in this vector tile. "Painted" is 
  * a check to see if data exists in the source dataset in a tile.
  *
- * @memberof mapnik.VectorTile
- * @name paintedLayers
+ * @memberof VectorTile
  * @instance
+ * @name paintedLayers
  * @returns {Array<string>} layer names
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1454,9 +1456,9 @@ NAN_METHOD(VectorTile::paintedLayers)
  * Return whether this vector tile is empty - whether it has no
  * layers and no features
  *
- * @memberof mapnik.VectorTile
- * @name empty
+ * @memberof VectorTile
  * @instance
+ * @name empty
  * @returns {boolean} whether the layer is empty
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1473,9 +1475,9 @@ NAN_METHOD(VectorTile::empty)
  * Get whether the vector tile has been painted. "Painted" is 
  * a check to see if data exists in the source dataset in a tile.
  *
- * @memberof mapnik.VectorTile
- * @name painted
+ * @memberof VectorTile
  * @instance
+ * @name painted
  * @returns {boolean} painted
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1528,9 +1530,9 @@ typedef struct
  * your lon/lat must fall inside a feature's polygon otherwise that feature will 
  * not be matched.
  *
- * @memberof mapnik.VectorTile
- * @name query
+ * @memberof VectorTile
  * @instance
+ * @name query
  * @param {number} longitude - longitude
  * @param {number} latitude - latitude
  * @param {Object} [options]
@@ -1811,9 +1813,9 @@ typedef struct
  * Query a vector tile by multiple sets of latitude/longitude pairs. 
  * Just like <mapnik.VectorTile.query> but with more points to search.
  *
- * @memberof mapnik.VectorTile
- * @name queryMany
+ * @memberof VectorTile
  * @instance
+ * @name queryMany
  * @param {array<number>} array - `longitude` and `latitude` array pairs [[lon1,lat1], [lon2,lat2]]
  * @param {Object} options
  * @param {number} [options.tolerance=0] include features a specific distance from the 
@@ -2475,11 +2477,11 @@ struct json_value_visitor
 /**
  * Get a JSON representation of this tile
  *
- * @memberof mapnik.VectorTile
- * @name toJSON
+ * @memberof VectorTile
  * @instance
+ * @name toJSON
  * @param {Object} [options]
- * @param {bool} [options.decode_geometry=false] return geometry as integers
+ * @param {boolean} [options.decode_geometry=false] return geometry as integers
  * relative to the tile grid
  * @returns {Object} json representation of this tile with name, extent,
  * version, and feature properties
@@ -2769,9 +2771,9 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
 /**
  * Syncronous version of {@link VectorTile}
  *
- * @memberof mapnik.VectorTile
- * @name toGeoJSONSync
+ * @memberof VectorTile
  * @instance
+ * @name toGeoJSONSync
  * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
  * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
  * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
@@ -2988,9 +2990,9 @@ struct to_geojson_baton
 /**
  * Get a [GeoJSON](http://geojson.org/) representation of this tile
  *
- * @memberof mapnik.VectorTile
- * @name toGeoJSON
+ * @memberof VectorTile
  * @instance
+ * @name toGeoJSON
  * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
  * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
  * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
@@ -3134,28 +3136,28 @@ void VectorTile::after_to_geojson(uv_work_t* req)
 /**
  * Add features to this tile from a GeoJSON string
  *
- * @memberof mapnik.VectorTile
- * @name addGeoJSON
+ * @memberof VectorTile
  * @instance
+ * @name addGeoJSON
  * @param {string} geojson as a string
  * @param {string} name of the layer to be added
- * @param {Object} options
- * @param {number} [options.area_threshold=0.1] - used to discard small polygons. 
+ * @param {Object} [options]
+ * @param {number} [options.area_threshold=0.1] used to discard small polygons. 
  * If a value is greater than `0` it will trigger polygons with an area smaller 
  * than the value to be discarded. Measured in grid integers, not spherical mercator
  * coordinates.
- * @param {number} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * @param {number} [options.simplify_distance=0.0] Simplification works to generalize 
  * geometries before encoding into vector tiles.simplification distance The 
  * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
  * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
- * @param {bool} [options.strictly_simple=true] ensure all geometry is valid according to
+ * @param {boolean} [options.strictly_simple=true] ensure all geometry is valid according to
  * OGC Simple definition
- * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {boolean} [options.multi_polygon_union=false] union all multipolygons
  * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive] 
  * the fill type used in determining what are holes and what are outer rings. See the 
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types.
- * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * @param {boolean} [options.process_all_rings=false] if `true`, don't assume winding order and ring order of 
  * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @example
  * var geojson = { ... };
@@ -3302,11 +3304,11 @@ NAN_METHOD(VectorTile::addGeoJSON)
 }
 
 /**
- * Add a {@link mapnik.Image} as a tile layer (synchronous)
+ * Add a {@link Image} as a tile layer (synchronous)
  *
- * @memberof mapnik.VectorTile
- * @name addImageSync
+ * @memberof VectorTile
  * @instance
+ * @name addImageSync
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
  * @param {Object} options
@@ -3447,9 +3449,9 @@ typedef struct
 /**
  * Add a <mapnik.Image> as a tile layer (asynchronous)
  *
- * @memberof mapnik.VectorTile
- * @name addImage
+ * @memberof VectorTile
  * @instance
+ * @name addImage
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
  * @param {Object} [options]
@@ -3624,9 +3626,9 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
 /**
  * Add raw image buffer as a new tile layer (synchronous)
  *
- * @memberof mapnik.VectorTile
- * @name addImageBufferSync
+ * @memberof VectorTile
  * @instance
+ * @name addImageBufferSync
  * @param {Buffer} buffer - raw data
  * @param {string} name - name of the layer to be added
  * @example
@@ -3701,9 +3703,9 @@ typedef struct
 /**
  * Add an encoded image buffer as a layer
  *
- * @memberof mapnik.VectorTile
- * @name addImageBuffer
+ * @memberof VectorTile
  * @instance
+ * @name addImageBuffer
  * @param {Buffer} buffer - raw image data
  * @param {string} name - name of the layer to be added
  * @param {Function} callback
@@ -3810,9 +3812,9 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
 /**
  * Add raw data to this tile as a Buffer
  *
- * @memberof mapnik.VectorTile
- * @name addDataSync
+ * @memberof VectorTile
  * @instance
+ * @name addDataSync
  * @param {Buffer} buffer - raw data
  * @example
  * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
@@ -3874,9 +3876,9 @@ typedef struct
 /**
  * Add new vector tile data to an existing vector tile
  *
- * @memberof mapnik.VectorTile
- * @name addData
+ * @memberof VectorTile
  * @instance
+ * @name addData
  * @param {Buffer} buffer - raw vector data
  * @param {Object} callback
  * @example
@@ -3976,9 +3978,9 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  * Replace the data in this vector tile with new raw data (synchronous). This function validates
  * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
  *
- * @memberof mapnik.VectorTile
- * @name setDataSync
+ * @memberof VectorTile
  * @instance
+ * @name setDataSync
  * @param {Buffer} buffer - raw data
  * @example
  * var data = fs.readFileSync('./path/to/data.mvt');
@@ -4040,9 +4042,9 @@ typedef struct
 /**
  * Replace the data in this vector tile with new raw data
  *
- * @memberof mapnik.VectorTile
- * @name setData
+ * @memberof VectorTile
  * @instance
+ * @name setData
  * @param {Buffer} buffer - raw data
  * @param {Function} callback
  * @example
@@ -4142,9 +4144,9 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 /**
  * Get the data in this vector tile as a buffer (synchronous)
  *
- * @memberof mapnik.VectorTile
- * @name getDataSync
+ * @memberof VectorTile
  * @instance
+ * @name getDataSync
  * @param {Object} [options]
  * @param {string} [options.compression=none] - can also be `gzip`
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
@@ -4305,9 +4307,9 @@ typedef struct
 
 /**
  * Get the data in this vector tile as a buffer (asynchronous)
- * @memberof mapnik.VectorTile
- * @name getData
+ * @memberof VectorTile
  * @instance
+ * @name getData
  * @param {Object} [options]
  * @param {string} [options.compression=none] compression type can also be `gzip`
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
@@ -4594,10 +4596,10 @@ struct baton_guard
 };
 
 /**
- * Render/write this vector tile to a surface/image, like a {@link mapnik.Image}
+ * Render/write this vector tile to a surface/image, like a {@link Image}
  *
  * @name render
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
  * @instance
  * @param {mapnik.Map} map - mapnik map object
  * @param {mapnik.Image} surface - renderable surface object
@@ -5178,7 +5180,7 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 /**
  * Remove all data from this vector tile (synchronously)
  * @name clearSync
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
  * @instance
  * @example
  * vt.clearSync();
@@ -5210,9 +5212,9 @@ typedef struct
 /**
  * Remove all data from this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name clear
+ * @memberof VectorTile
  * @instance
+ * @name clear
  * @param {Function} callback
  * @example
  * vt.clear(function(err) {
@@ -5303,13 +5305,16 @@ struct not_valid_feature
 {
     not_valid_feature(std::string const& message_,
                       std::string const& layer_,
-                      std::int64_t feature_id_)
+                      std::int64_t feature_id_,
+                      std::string const& geojson_)
         : message(message_),
           layer(layer_),
-          feature_id(feature_id_) {}
+          feature_id(feature_id_),
+          geojson(geojson_) {}
     std::string const message;
     std::string const layer;
     std::int64_t const feature_id;
+    std::string const geojson;
 };
 
 void layer_not_simple(protozero::pbf_reader const& layer_msg,
@@ -5349,28 +5354,108 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
 struct visitor_geom_valid
 {
     std::vector<not_valid_feature> & errors;
-    std::int64_t feature_id;
+    mapnik::feature_ptr & feature;
     std::string const& layer_name;
     bool split_multi_features;
 
     visitor_geom_valid(std::vector<not_valid_feature> & errors_,
-                       std::int64_t feature_id_,
+                       mapnik::feature_ptr & feature_,
                        std::string const& layer_name_,
                        bool split_multi_features_)
         : errors(errors_),
-          feature_id(feature_id_),
+          feature(feature_),
           layer_name(layer_name_),
           split_multi_features(split_multi_features_) {}
+    
+    void operator() (mapnik::geometry::geometry_empty const&) {}
           
     template <typename T> 
-    void operator() (T const& geom)
+    void operator() (mapnik::geometry::point<T> const& geom)
     {
         std::string message;
         if (!mapnik::geometry::is_valid(geom, message))
         {
-            errors.emplace_back(message,
-                                layer_name,
-                                feature_id);
+            if (!mapnik::geometry::is_valid(geom, message))
+            {
+                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                std::string result;
+                std::string feature_str;
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                feature_new.set_data(feature->get_data());
+                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+                if (!mapnik::util::to_geojson(feature_str, feature_new))
+                {
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    // LCOV_EXCL_STOP
+                }
+                result += feature_str;
+                result += "]}";
+                errors.emplace_back(message,
+                                    layer_name,
+                                    feature->id(),
+                                    result);
+            }
+        }
+    }
+    
+    template <typename T> 
+    void operator() (mapnik::geometry::multi_point<T> const& geom)
+    {
+        std::string message;
+        if (!mapnik::geometry::is_valid(geom, message))
+        {
+            if (!mapnik::geometry::is_valid(geom, message))
+            {
+                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                std::string result;
+                std::string feature_str;
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                feature_new.set_data(feature->get_data());
+                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+                if (!mapnik::util::to_geojson(feature_str, feature_new))
+                {
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    // LCOV_EXCL_STOP
+                }
+                result += feature_str;
+                result += "]}";
+                errors.emplace_back(message,
+                                    layer_name,
+                                    feature->id(),
+                                    result);
+            }
+        }
+    }
+    
+    template <typename T> 
+    void operator() (mapnik::geometry::line_string<T> const& geom)
+    {
+        std::string message;
+        if (!mapnik::geometry::is_valid(geom, message))
+        {
+            if (!mapnik::geometry::is_valid(geom, message))
+            {
+                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                std::string result;
+                std::string feature_str;
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                feature_new.set_data(feature->get_data());
+                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+                if (!mapnik::util::to_geojson(feature_str, feature_new))
+                {
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    // LCOV_EXCL_STOP
+                }
+                result += feature_str;
+                result += "]}";
+                errors.emplace_back(message,
+                                    layer_name,
+                                    feature->id(),
+                                    result);
+            }
         }
     }
     
@@ -5384,9 +5469,24 @@ struct visitor_geom_valid
                 std::string message;
                 if (!mapnik::geometry::is_valid(ls, message))
                 {
+                    mapnik::feature_impl feature_new(feature->context(),feature->id());
+                    std::string result;
+                    std::string feature_str;
+                    result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                    feature_new.set_data(feature->get_data());
+                    feature_new.set_geometry(mapnik::geometry::geometry<T>(ls));
+                    if (!mapnik::util::to_geojson(feature_str, feature_new))
+                    {
+                        // LCOV_EXCL_START
+                        throw std::runtime_error("Failed to generate GeoJSON geometry");
+                        // LCOV_EXCL_STOP
+                    }
+                    result += feature_str;
+                    result += "]}";
                     errors.emplace_back(message,
                                         layer_name,
-                                        feature_id);
+                                        feature->id(),
+                                        result);
                 }
             }
         }
@@ -5395,9 +5495,54 @@ struct visitor_geom_valid
             std::string message;
             if (!mapnik::geometry::is_valid(geom, message))
             {
+                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                std::string result;
+                std::string feature_str;
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                feature_new.set_data(feature->get_data());
+                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+                if (!mapnik::util::to_geojson(feature_str, feature_new))
+                {
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    // LCOV_EXCL_STOP
+                }
+                result += feature_str;
+                result += "]}";
                 errors.emplace_back(message,
                                     layer_name,
-                                    feature_id);
+                                    feature->id(),
+                                    result);
+            }
+        }
+    }
+    
+    template <typename T> 
+    void operator() (mapnik::geometry::polygon<T> const& geom)
+    {
+        std::string message;
+        if (!mapnik::geometry::is_valid(geom, message))
+        {
+            if (!mapnik::geometry::is_valid(geom, message))
+            {
+                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                std::string result;
+                std::string feature_str;
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                feature_new.set_data(feature->get_data());
+                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+                if (!mapnik::util::to_geojson(feature_str, feature_new))
+                {
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    // LCOV_EXCL_STOP
+                }
+                result += feature_str;
+                result += "]}";
+                errors.emplace_back(message,
+                                    layer_name,
+                                    feature->id(),
+                                    result);
             }
         }
     }
@@ -5412,9 +5557,24 @@ struct visitor_geom_valid
                 std::string message;
                 if (!mapnik::geometry::is_valid(poly, message))
                 {
+                    mapnik::feature_impl feature_new(feature->context(),feature->id());
+                    std::string result;
+                    std::string feature_str;
+                    result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                    feature_new.set_data(feature->get_data());
+                    feature_new.set_geometry(mapnik::geometry::geometry<T>(poly));
+                    if (!mapnik::util::to_geojson(feature_str, feature_new))
+                    {
+                        // LCOV_EXCL_START
+                        throw std::runtime_error("Failed to generate GeoJSON geometry");
+                        // LCOV_EXCL_STOP
+                    }
+                    result += feature_str;
+                    result += "]}";
                     errors.emplace_back(message,
                                         layer_name,
-                                        feature_id);
+                                        feature->id(),
+                                        result);
                 }
             }
         }
@@ -5423,40 +5583,148 @@ struct visitor_geom_valid
             std::string message;
             if (!mapnik::geometry::is_valid(geom, message))
             {
+                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                std::string result;
+                std::string feature_str;
+                result += "{\"type\":\"FeatureCollection\",\"features\":[";
+                feature_new.set_data(feature->get_data());
+                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+                if (!mapnik::util::to_geojson(feature_str, feature_new))
+                {
+                    // LCOV_EXCL_START
+                    throw std::runtime_error("Failed to generate GeoJSON geometry");
+                    // LCOV_EXCL_STOP
+                }
+                result += feature_str;
+                result += "]}";
                 errors.emplace_back(message,
                                     layer_name,
-                                    feature_id);
+                                    feature->id(),
+                                    result);
             }
         }
     }
+    
+    template <typename T> 
+    void operator() (mapnik::geometry::geometry_collection<T> const& geom)
+    {
+        // This should never be able to be reached.
+        // LCOV_EXCL_START
+        for (auto const& g : geom)
+        {
+            mapnik::util::apply_visitor((*this), g);
+        }
+        // LCOV_EXCL_STOP
+    }
 };
 
-void layer_not_valid(protozero::pbf_reader const& layer_msg,
+void layer_not_valid(protozero::pbf_reader & layer_msg,
                unsigned x,
                unsigned y,
                unsigned z,
                std::vector<not_valid_feature> & errors,
-               bool split_multi_features = false)
+               bool split_multi_features = false,
+               bool lat_lon = false,
+               bool web_merc = false)
 {
-    mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
-    mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
-                                          std::numeric_limits<double>::lowest(),
-                                          std::numeric_limits<double>::max(),
-                                          std::numeric_limits<double>::max()));
-    mapnik::layer_descriptor ld = ds.get_descriptor();
-    for (auto const& item : ld.get_descriptors())
+    if (web_merc || lat_lon)
     {
-        q.add_property_name(item.get_name());
-    }
-    mapnik::featureset_ptr fs = ds.features(q);
-    if (fs)
-    {
-        mapnik::feature_ptr feature;
-        while ((feature = fs->next()))
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
+        mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
+                                              std::numeric_limits<double>::lowest(),
+                                              std::numeric_limits<double>::max(),
+                                              std::numeric_limits<double>::max()));
+        mapnik::layer_descriptor ld = ds.get_descriptor();
+        for (auto const& item : ld.get_descriptors())
         {
-            mapnik::util::apply_visitor(
-                    visitor_geom_valid(errors, feature->id(), ds.get_name(), split_multi_features), 
-                    feature->get_geometry());
+            q.add_property_name(item.get_name());
+        }
+        mapnik::featureset_ptr fs = ds.features(q);
+        if (fs)
+        {
+            mapnik::feature_ptr feature;
+            while ((feature = fs->next()))
+            {
+                if (lat_lon)
+                {
+                    mapnik::projection wgs84("+init=epsg:4326",true);
+                    mapnik::projection merc("+init=epsg:3857",true);
+                    mapnik::proj_transform prj_trans(merc,wgs84);
+                    unsigned int n_err = 0;
+                    mapnik::util::apply_visitor(
+                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features), 
+                            mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
+                }
+                else
+                {
+                    mapnik::util::apply_visitor(
+                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features), 
+                            feature->get_geometry());
+                }
+            }
+        }
+    }
+    else
+    {
+        std::vector<protozero::pbf_reader> layer_features;
+        std::uint32_t version = 1;
+        std::string layer_name;
+        while (layer_msg.next())
+        {
+            switch (layer_msg.tag())
+            {
+                case mapnik::vector_tile_impl::Layer_Encoding::NAME:
+                    layer_name = layer_msg.get_string();
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
+                    layer_features.push_back(layer_msg.get_message());
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
+                    version = layer_msg.get_uint32();
+                    break;
+                default:
+                    layer_msg.skip();
+                    break;
+            }
+        }
+        for (auto feature_msg : layer_features)
+        {
+            std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+            bool has_geom = false;
+            bool has_geom_type = false;
+            std::int32_t geom_type_enum = 0;
+            std::uint64_t feature_id = 0;
+            while (feature_msg.next())
+            {
+                switch (feature_msg.tag())
+                {
+                    case mapnik::vector_tile_impl::Feature_Encoding::ID: 
+                        feature_id = feature_msg.get_uint64();
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
+                        geom_type_enum = feature_msg.get_enum();
+                        has_geom_type = true;
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
+                        geom_itr = feature_msg.get_packed_uint32();
+                        has_geom = true;
+                        break;
+                    default:
+                        feature_msg.skip();
+                        break;
+                }   
+            }
+            if (has_geom && has_geom_type)
+            {
+                // Decode the geometry first into an int64_t mapnik geometry
+                mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
+                mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+                mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0, 0, 1.0, 1.0);
+                feature->set_geometry(mapnik::vector_tile_impl::decode_geometry(geoms, geom_type_enum, version));
+                mapnik::util::apply_visitor(
+                        visitor_geom_valid(errors, feature, layer_name, split_multi_features), 
+                        feature->get_geometry());
+            }
         }
     }
 }
@@ -5497,7 +5765,9 @@ v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & err
 
 void vector_tile_not_valid(VectorTile * v,
                            std::vector<not_valid_feature> & errors,
-                           bool split_multi_features = false)
+                           bool split_multi_features = false,
+                           bool lat_lon = false,
+                           bool web_merc = false)
 {
     protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
     while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
@@ -5508,7 +5778,9 @@ void vector_tile_not_valid(VectorTile * v,
                         v->get_tile()->y(),
                         v->get_tile()->z(),
                         errors,
-                        split_multi_features);
+                        split_multi_features,
+                        lat_lon,
+                        web_merc);
     }
 }
 
@@ -5519,6 +5791,7 @@ v8::Local<v8::Array> make_not_valid_array(std::vector<not_valid_feature> & error
     v8::Local<v8::String> layer_key = Nan::New<v8::String>("layer").ToLocalChecked();
     v8::Local<v8::String> feature_id_key = Nan::New<v8::String>("featureId").ToLocalChecked();
     v8::Local<v8::String> message_key = Nan::New<v8::String>("message").ToLocalChecked();
+    v8::Local<v8::String> geojson_key = Nan::New<v8::String>("geojson").ToLocalChecked();
     std::uint32_t idx = 0;
     for (auto const& error : errors)
     {
@@ -5526,6 +5799,7 @@ v8::Local<v8::Array> make_not_valid_array(std::vector<not_valid_feature> & error
         obj->Set(layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
         obj->Set(message_key, Nan::New<v8::String>(error.message).ToLocalChecked());
         obj->Set(feature_id_key, Nan::New<v8::Number>(error.feature_id));
+        obj->Set(geojson_key, Nan::New<v8::String>(error.geojson).ToLocalChecked());
         array->Set(idx++, obj);
     }
     return scope.Escape(array);
@@ -5548,6 +5822,8 @@ struct not_valid_baton
     VectorTile* v;
     bool error;
     bool split_multi_features;
+    bool lat_lon;
+    bool web_merc;
     std::vector<not_valid_feature> result;
     std::string err_msg;
     Nan::Persistent<v8::Function> cb;
@@ -5556,9 +5832,9 @@ struct not_valid_baton
 /**
  * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
- * @memberof mapnik.VectorTile
- * @name reportGeometrySimplicitySync
+ * @memberof VectorTile
  * @instance
+ * @name reportGeometrySimplicitySync
  * @returns {number} number of features that are not simple
  * @example
  * var simple = vectorTile.reportGeometrySimplicitySync();
@@ -5594,14 +5870,16 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
 /**
  * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @name reportGeometryValiditySync
  * @param {object} [options]
- * @param {bool} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
+ * @param {boolean} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
  * Normally the validity of multipolygons and multilinestrings is done together against
  * all the parts of the geometries. Changing this to true checks the validity of multipolygons
  * and multilinestrings for each part they contain, rather then as a group.
- * @instance
+ * @param {boolean} [options.lat_lon=false] - If true results in EPSG:4326
+ * @param {boolean} [options.web_merc=false] - If true results in EPSG:3857
  * @returns {number} number of features that are not valid
  * @example
  * var valid = vectorTile.reportGeometryValiditySync();
@@ -5617,6 +5895,8 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 {
     Nan::EscapableHandleScope scope;
     bool split_multi_features = false;
+    bool lat_lon = false;
+    bool web_merc = false;
     if (info.Length() >= 1)
     {
         if (!info[0]->IsObject())
@@ -5636,12 +5916,34 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
             }
             split_multi_features = param_val->BooleanValue();
         }
+
+        if (options->Has(Nan::New("lat_lon").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("lat_lon").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'lat_lon' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            lat_lon = param_val->BooleanValue();
+        }
+
+        if (options->Has(Nan::New("web_merc").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'web_merc' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            web_merc = param_val->BooleanValue();
+        }
     }
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     try
     {
         std::vector<not_valid_feature> errors;
-        vector_tile_not_valid(d, errors, split_multi_features);
+        vector_tile_not_valid(d, errors, split_multi_features, lat_lon, web_merc);
         return scope.Escape(make_not_valid_array(errors));
     }
     catch (std::exception const& ex)
@@ -5658,14 +5960,9 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 /**
  * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
- * @memberof mapnik.VectorTile
- * @name reportGeometrySimplicity
- * @param {object} [options]
- * @param {bool} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
- * Normally the validity of multipolygons and multilinestrings is done together against
- * all the parts of the geometries. Changing this to true checks the validity of multipolygons
- * and multilinestrings for each part they contain, rather then as a group.
+ * @memberof VectorTile
  * @instance
+ * @name reportGeometrySimplicity
  * @param {Function} callback
  * @example
  * vectorTile.reportGeometrySimplicity(function(err, simple) {
@@ -5740,9 +6037,16 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 /**
  * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
- * @memberof mapnik.VectorTile
- * @name reportGeometryValidity
+ * @memberof VectorTile
  * @instance
+ * @name reportGeometryValidity
+ * @param {object} [options]
+ * @param {boolean} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
+ * Normally the validity of multipolygons and multilinestrings is done together against
+ * all the parts of the geometries. Changing this to true checks the validity of multipolygons
+ * and multilinestrings for each part they contain, rather then as a group.
+ * @param {boolean} [options.lat_lon=false] - If true results in EPSG:4326
+ * @param {boolean} [options.web_merc=false] - If true results in EPSG:3857
  * @param {Function} callback
  * @example
  * vectorTile.reportGeometryValidity(function(err, valid) {
@@ -5758,6 +6062,8 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
         return;
     }
     bool split_multi_features = false;
+    bool lat_lon = false;
+    bool web_merc = false;
     if (info.Length() >= 2)
     {
         if (!info[0]->IsObject())
@@ -5777,6 +6083,28 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
             }
             split_multi_features = param_val->BooleanValue();
         }
+
+        if (options->Has(Nan::New("lat_lon").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("lat_lon").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'lat_lon' must be a boolean");
+                return;
+            }
+            lat_lon = param_val->BooleanValue();
+        }
+
+        if (options->Has(Nan::New("web_merc").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'web_merc' must be a boolean");
+                return;
+            }
+            web_merc = param_val->BooleanValue();
+        }
     }
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
@@ -5791,6 +6119,8 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
     closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     closure->error = false;
     closure->split_multi_features = split_multi_features;
+    closure->lat_lon = lat_lon;
+    closure->web_merc = web_merc;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
     closure->v->Ref();
@@ -5802,7 +6132,7 @@ void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     try
     {
-        vector_tile_not_valid(closure->v, closure->result, closure->split_multi_features);
+        vector_tile_not_valid(closure->v, closure->result, closure->split_multi_features, closure->lat_lon, closure->web_merc);
     }
     catch (std::exception const& ex)
     {
@@ -5981,7 +6311,8 @@ typedef struct {
  * @param {Buffer} buffer - vector tile buffer
  * @returns {Object} json object with information about the vector tile buffer
  * @static
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @example
  * var buffer = fs.readFileSync('./path/to/tile.mvt');
  * var info = mapnik.VectorTile.info(buffer);

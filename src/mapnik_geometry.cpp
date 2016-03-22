@@ -11,6 +11,8 @@
 Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
 
 /**
+ * **`mapnik.Geometry`**
+ * 
  * Geometry: a representation of geographical features in terms of
  * shape alone. This class provides many useful functions for conversion
  * to and from formats.
@@ -19,8 +21,7 @@ Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
  * part of a {@link mapnik.Feature} instance, which is often a part of
  * a {@link mapnik.Featureset} instance.
  *
- * @name mapnik.Geometry
- * @class
+ * @class Geometry
  */
 void Geometry::Initialize(v8::Local<v8::Object> target) {
 
@@ -95,7 +96,7 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
  *
  * @name type
  * @returns {string} type of geometry.
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  */
 NAN_METHOD(Geometry::type)
@@ -110,7 +111,7 @@ NAN_METHOD(Geometry::type)
  * synchronously.
  *
  * @returns {string} GeoJSON, string-encoded representation of this geometry.
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @name toJSONSync
  */
@@ -199,7 +200,7 @@ struct to_json_baton {
  * @param {Object} [options={}]. The only supported object is `transform`,
  * which should be a valid {@link mapnik.ProjTransform} object.
  * @param {Function} callback called with (err, result)
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @name toJSON
  */
@@ -319,7 +320,7 @@ void Geometry::after_to_json(uv_work_t* req)
  * Get the geometry's extent
  *
  * @name extent
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
@@ -339,7 +340,7 @@ NAN_METHOD(Geometry::extent)
  * Get the geometry's representation as [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text)
  *
  * @name toWKT
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @returns {string} wkt representation of this geometry
  */
@@ -363,7 +364,7 @@ NAN_METHOD(Geometry::toWKT)
  * Get the geometry's representation as Well-Known Binary
  *
  * @name toWKB
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @returns {string} wkb representation of this geometry
  */

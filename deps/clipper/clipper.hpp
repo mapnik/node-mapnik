@@ -58,6 +58,7 @@
 #include <ostream>
 #include <functional>
 #include <queue>
+#include <unordered_map>
 #if defined(CLIPPER_IMPL_INCLUDE)
 #include CLIPPER_IMPL_INCLUDE
 #endif
@@ -235,8 +236,8 @@ struct LocalMinimum;
 struct OutPt;
 struct OutRec;
 struct Join;
+struct OutPtIntersect;
 
-typedef std::vector < OutPt*> OutPtList;
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
 typedef std::vector < Join* > JoinList;
@@ -283,7 +284,6 @@ protected:
   bool              m_PreserveCollinear;
   bool              m_HasOpenPaths;
   PolyOutList       m_PolyOuts;
-  OutPtList         m_OutPts;
   TEdge           *m_ActiveEdges;
 
   typedef std::priority_queue<cInt> ScanbeamList;
@@ -367,7 +367,6 @@ private:
   void SetHoleState(TEdge *e, OutRec *outrec);
   void DisposeIntersectNodes();
   bool FixupIntersectionOrder();
-  void FixupInteriorRings();
   void FixupOutPolygon(OutRec &outrec);
   void FixupOutPolyline(OutRec &outrec);
   bool IsHole(TEdge *e);
@@ -380,6 +379,17 @@ private:
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
+  bool FindIntersectLoop(std::unordered_multimap<int, OutPtIntersect> & dupeRec,
+                         std::list<std::pair<const int, OutPtIntersect> > & iList,
+                         OutRec * outRec_parent,
+                         int idx_origin,
+                         int idx_prev,
+                         int idx_search);
+  bool FixIntersects(std::unordered_multimap<int, OutPtIntersect> & dupeRec,
+                     OutPt * op_j,
+                     OutPt * op_k,
+                     OutRec * outRec_j,
+                     OutRec * outRec_k);
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
   void FixupFirstLefts2(OutRec* InnerOutRec, OutRec* OuterOutRec);
   void FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec);
