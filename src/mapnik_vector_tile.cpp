@@ -245,12 +245,13 @@ detail::p2p_result path_to_point_distance(mapnik::geometry::geometry<double> con
 Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
 
 /**
+ * **`mapnik.VectorTile`** 
+
  * A tile generator built according to the [Mapbox Vector Tile](https://github.com/mapbox/vector-tile-spec)
  * specification for compressed and simplified tiled vector data. 
  * Learn more about vector tiles [here](https://www.mapbox.com/developers/vector-tiles/).
  *
- * @name mapnik.VectorTile
- * @class
+ * @class VectorTile
  * @param {number} z - an integer zoom level
  * @param {number} x - an integer x coordinate
  * @param {number} y - an integer y coordinate
@@ -495,10 +496,11 @@ void _composite(VectorTile* target_vt,
 }
 
 /**
- * Synchronous version of {@link VectorTile#composite}
+ * Synchronous version of {@link #VectorTile.composite}
  *
  * @name compositeSync
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @instance
  * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
  * @param {object} [options]
@@ -844,7 +846,7 @@ typedef struct
  * Composite an array of vector tiles into one vector tile
  *
  * @name composite
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
  * @instance
  * @param {Array<mapnik.VectorTile>} array - an array of vector tile objects
  * @param {object} [options]
@@ -855,21 +857,21 @@ typedef struct
  * If a value is greater than `0` it will trigger polygons with an area smaller 
  * than the value to be discarded. Measured in grid integers, not spherical mercator
  * coordinates.
- * @param {bool} [options.strictly_simple=true] - ensure all geometry is valid according to
+ * @param {boolean} [options.strictly_simple=true] - ensure all geometry is valid according to
  * OGC Simple definition
- * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {boolean} [options.multi_polygon_union=false] - union all multipolygons
  * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive]
  * the fill type used in determining what are holes and what are outer rings. See the 
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types.
  * @param {float} [options.scale_denominator=0.0]
- * @param {bool} [options.reencode=false]
+ * @param {boolean} [options.reencode=false]
  * @param {Array<number>} [options.max_extent=minx,miny,maxx,maxy]
  * @param {float} [options.simplify_distance=0.0] - Simplification works to generalize 
  * geometries before encoding into vector tiles.simplification distance The 
  * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
  * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
- * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * @param {boolean} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
  * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @param {string} [options.image_format=webp] or `jpeg`, `png`, `tiff`
  * @param {string} [options.scaling_method=bilinear] - can be any 
@@ -1260,9 +1262,9 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
 /**
  * Get the extent of this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name extent
+ * @memberof VectorTile
  * @instance
+ * @name extent
  * @returns {Array<number>} array of extent in the form of `[minx,miny,maxx,maxy]`
  * @example
  * var vt = new mapnik.VectorTile(9,112,195);
@@ -1285,9 +1287,9 @@ NAN_METHOD(VectorTile::extent)
 /**
  * Get the extent including the buffer of this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name bufferedExtent
+ * @memberof VectorTile
  * @instance
+ * @name bufferedExtent
  * @returns {Array<number>} extent - `[minx, miny, maxx, maxy]`
  * @example
  * var vt = new mapnik.VectorTile(9,112,195);
@@ -1310,9 +1312,9 @@ NAN_METHOD(VectorTile::bufferedExtent)
 /**
  * Get the names of all of the layers in this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name names
+ * @memberof VectorTile
  * @instance
+ * @name names
  * @returns {Array<string>} layer names
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1337,10 +1339,10 @@ NAN_METHOD(VectorTile::names)
 /**
  * Extract the layer by a given name to a new vector tile
  *
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @name layer
  * @param {string} layer_name - name of layer
- * @instance
  * @returns {mapnik.VectorTile} mapnik VectorTile object
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1398,9 +1400,9 @@ NAN_METHOD(VectorTile::layer)
 /**
  * Get the names of all of the empty layers in this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name emptyLayers
+ * @memberof VectorTile
  * @instance
+ * @name emptyLayers
  * @returns {Array<string>} layer names
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1426,9 +1428,9 @@ NAN_METHOD(VectorTile::emptyLayers)
  * Get the names of all of the painted layers in this vector tile. "Painted" is 
  * a check to see if data exists in the source dataset in a tile.
  *
- * @memberof mapnik.VectorTile
- * @name paintedLayers
+ * @memberof VectorTile
  * @instance
+ * @name paintedLayers
  * @returns {Array<string>} layer names
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1454,9 +1456,9 @@ NAN_METHOD(VectorTile::paintedLayers)
  * Return whether this vector tile is empty - whether it has no
  * layers and no features
  *
- * @memberof mapnik.VectorTile
- * @name empty
+ * @memberof VectorTile
  * @instance
+ * @name empty
  * @returns {boolean} whether the layer is empty
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1473,9 +1475,9 @@ NAN_METHOD(VectorTile::empty)
  * Get whether the vector tile has been painted. "Painted" is 
  * a check to see if data exists in the source dataset in a tile.
  *
- * @memberof mapnik.VectorTile
- * @name painted
+ * @memberof VectorTile
  * @instance
+ * @name painted
  * @returns {boolean} painted
  * @example
  * var vt = new mapnik.VectorTile(0,0,0);
@@ -1528,9 +1530,9 @@ typedef struct
  * your lon/lat must fall inside a feature's polygon otherwise that feature will 
  * not be matched.
  *
- * @memberof mapnik.VectorTile
- * @name query
+ * @memberof VectorTile
  * @instance
+ * @name query
  * @param {number} longitude - longitude
  * @param {number} latitude - latitude
  * @param {Object} [options]
@@ -1811,9 +1813,9 @@ typedef struct
  * Query a vector tile by multiple sets of latitude/longitude pairs. 
  * Just like <mapnik.VectorTile.query> but with more points to search.
  *
- * @memberof mapnik.VectorTile
- * @name queryMany
+ * @memberof VectorTile
  * @instance
+ * @name queryMany
  * @param {array<number>} array - `longitude` and `latitude` array pairs [[lon1,lat1], [lon2,lat2]]
  * @param {Object} options
  * @param {number} [options.tolerance=0] include features a specific distance from the 
@@ -2475,11 +2477,11 @@ struct json_value_visitor
 /**
  * Get a JSON representation of this tile
  *
- * @memberof mapnik.VectorTile
- * @name toJSON
+ * @memberof VectorTile
  * @instance
+ * @name toJSON
  * @param {Object} [options]
- * @param {bool} [options.decode_geometry=false] return geometry as integers
+ * @param {boolean} [options.decode_geometry=false] return geometry as integers
  * relative to the tile grid
  * @returns {Object} json representation of this tile with name, extent,
  * version, and feature properties
@@ -2769,9 +2771,9 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
 /**
  * Syncronous version of {@link VectorTile}
  *
- * @memberof mapnik.VectorTile
- * @name toGeoJSONSync
+ * @memberof VectorTile
  * @instance
+ * @name toGeoJSONSync
  * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
  * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
  * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
@@ -2988,9 +2990,9 @@ struct to_geojson_baton
 /**
  * Get a [GeoJSON](http://geojson.org/) representation of this tile
  *
- * @memberof mapnik.VectorTile
- * @name toGeoJSON
+ * @memberof VectorTile
  * @instance
+ * @name toGeoJSON
  * @param {string | number} [layer=__all__] Can be a zero-index integer representing 
  * a layer or the string keywords `__array__` or `__all__` to get all layers in the form 
  * of an array of GeoJSON `FeatureCollection`s or in the form of a single GeoJSON 
@@ -3134,28 +3136,28 @@ void VectorTile::after_to_geojson(uv_work_t* req)
 /**
  * Add features to this tile from a GeoJSON string
  *
- * @memberof mapnik.VectorTile
- * @name addGeoJSON
+ * @memberof VectorTile
  * @instance
+ * @name addGeoJSON
  * @param {string} geojson as a string
  * @param {string} name of the layer to be added
- * @param {Object} options
- * @param {number} [options.area_threshold=0.1] - used to discard small polygons. 
+ * @param {Object} [options]
+ * @param {number} [options.area_threshold=0.1] used to discard small polygons. 
  * If a value is greater than `0` it will trigger polygons with an area smaller 
  * than the value to be discarded. Measured in grid integers, not spherical mercator
  * coordinates.
- * @param {number} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * @param {number} [options.simplify_distance=0.0] Simplification works to generalize 
  * geometries before encoding into vector tiles.simplification distance The 
  * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
  * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
- * @param {bool} [options.strictly_simple=true] ensure all geometry is valid according to
+ * @param {boolean} [options.strictly_simple=true] ensure all geometry is valid according to
  * OGC Simple definition
- * @param {bool} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {boolean} [options.multi_polygon_union=false] union all multipolygons
  * @param {Object<mapnik.polygonFillType>} [options.fill_type=mapnik.polygonFillType.positive] 
  * the fill type used in determining what are holes and what are outer rings. See the 
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types.
- * @param {bool} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * @param {boolean} [options.process_all_rings=false] if `true`, don't assume winding order and ring order of 
  * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * @example
  * var geojson = { ... };
@@ -3302,11 +3304,11 @@ NAN_METHOD(VectorTile::addGeoJSON)
 }
 
 /**
- * Add a {@link mapnik.Image} as a tile layer (synchronous)
+ * Add a {@link Image} as a tile layer (synchronous)
  *
- * @memberof mapnik.VectorTile
- * @name addImageSync
+ * @memberof VectorTile
  * @instance
+ * @name addImageSync
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
  * @param {Object} options
@@ -3447,9 +3449,9 @@ typedef struct
 /**
  * Add a <mapnik.Image> as a tile layer (asynchronous)
  *
- * @memberof mapnik.VectorTile
- * @name addImage
+ * @memberof VectorTile
  * @instance
+ * @name addImage
  * @param {mapnik.Image} image
  * @param {string} name of the layer to be added
  * @param {Object} [options]
@@ -3624,9 +3626,9 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
 /**
  * Add raw image buffer as a new tile layer (synchronous)
  *
- * @memberof mapnik.VectorTile
- * @name addImageBufferSync
+ * @memberof VectorTile
  * @instance
+ * @name addImageBufferSync
  * @param {Buffer} buffer - raw data
  * @param {string} name - name of the layer to be added
  * @example
@@ -3701,9 +3703,9 @@ typedef struct
 /**
  * Add an encoded image buffer as a layer
  *
- * @memberof mapnik.VectorTile
- * @name addImageBuffer
+ * @memberof VectorTile
  * @instance
+ * @name addImageBuffer
  * @param {Buffer} buffer - raw image data
  * @param {string} name - name of the layer to be added
  * @param {Function} callback
@@ -3810,9 +3812,9 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
 /**
  * Add raw data to this tile as a Buffer
  *
- * @memberof mapnik.VectorTile
- * @name addDataSync
+ * @memberof VectorTile
  * @instance
+ * @name addDataSync
  * @param {Buffer} buffer - raw data
  * @example
  * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
@@ -3874,9 +3876,9 @@ typedef struct
 /**
  * Add new vector tile data to an existing vector tile
  *
- * @memberof mapnik.VectorTile
- * @name addData
+ * @memberof VectorTile
  * @instance
+ * @name addData
  * @param {Buffer} buffer - raw vector data
  * @param {Object} callback
  * @example
@@ -3976,9 +3978,9 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  * Replace the data in this vector tile with new raw data (synchronous). This function validates
  * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
  *
- * @memberof mapnik.VectorTile
- * @name setDataSync
+ * @memberof VectorTile
  * @instance
+ * @name setDataSync
  * @param {Buffer} buffer - raw data
  * @example
  * var data = fs.readFileSync('./path/to/data.mvt');
@@ -4040,9 +4042,9 @@ typedef struct
 /**
  * Replace the data in this vector tile with new raw data
  *
- * @memberof mapnik.VectorTile
- * @name setData
+ * @memberof VectorTile
  * @instance
+ * @name setData
  * @param {Buffer} buffer - raw data
  * @param {Function} callback
  * @example
@@ -4142,9 +4144,9 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
 /**
  * Get the data in this vector tile as a buffer (synchronous)
  *
- * @memberof mapnik.VectorTile
- * @name getDataSync
+ * @memberof VectorTile
  * @instance
+ * @name getDataSync
  * @param {Object} [options]
  * @param {string} [options.compression=none] - can also be `gzip`
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
@@ -4305,9 +4307,9 @@ typedef struct
 
 /**
  * Get the data in this vector tile as a buffer (asynchronous)
- * @memberof mapnik.VectorTile
- * @name getData
+ * @memberof VectorTile
  * @instance
+ * @name getData
  * @param {Object} [options]
  * @param {string} [options.compression=none] compression type can also be `gzip`
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
@@ -4594,10 +4596,10 @@ struct baton_guard
 };
 
 /**
- * Render/write this vector tile to a surface/image, like a {@link mapnik.Image}
+ * Render/write this vector tile to a surface/image, like a {@link Image}
  *
  * @name render
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
  * @instance
  * @param {mapnik.Map} map - mapnik map object
  * @param {mapnik.Image} surface - renderable surface object
@@ -5178,7 +5180,7 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 /**
  * Remove all data from this vector tile (synchronously)
  * @name clearSync
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
  * @instance
  * @example
  * vt.clearSync();
@@ -5210,9 +5212,9 @@ typedef struct
 /**
  * Remove all data from this vector tile
  *
- * @memberof mapnik.VectorTile
- * @name clear
+ * @memberof VectorTile
  * @instance
+ * @name clear
  * @param {Function} callback
  * @example
  * vt.clear(function(err) {
@@ -5830,9 +5832,9 @@ struct not_valid_baton
 /**
  * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
- * @memberof mapnik.VectorTile
- * @name reportGeometrySimplicitySync
+ * @memberof VectorTile
  * @instance
+ * @name reportGeometrySimplicitySync
  * @returns {number} number of features that are not simple
  * @example
  * var simple = vectorTile.reportGeometrySimplicitySync();
@@ -5868,16 +5870,16 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
 /**
  * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @name reportGeometryValiditySync
  * @param {object} [options]
- * @param {bool} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
+ * @param {boolean} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
  * Normally the validity of multipolygons and multilinestrings is done together against
  * all the parts of the geometries. Changing this to true checks the validity of multipolygons
  * and multilinestrings for each part they contain, rather then as a group.
- * @param {bool} [options.lat_lon=false] - If true results in EPSG:4326
- * @param {bool} [options.web_merc=false] - If true results in EPSG:3857
- * @instance
+ * @param {boolean} [options.lat_lon=false] - If true results in EPSG:4326
+ * @param {boolean} [options.web_merc=false] - If true results in EPSG:3857
  * @returns {number} number of features that are not valid
  * @example
  * var valid = vectorTile.reportGeometryValiditySync();
@@ -5958,9 +5960,9 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 /**
  * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
- * @memberof mapnik.VectorTile
- * @name reportGeometrySimplicity
+ * @memberof VectorTile
  * @instance
+ * @name reportGeometrySimplicity
  * @param {Function} callback
  * @example
  * vectorTile.reportGeometrySimplicity(function(err, simple) {
@@ -6035,16 +6037,16 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 /**
  * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @name reportGeometryValidity
  * @param {object} [options]
- * @param {bool} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
+ * @param {boolean} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
  * Normally the validity of multipolygons and multilinestrings is done together against
  * all the parts of the geometries. Changing this to true checks the validity of multipolygons
  * and multilinestrings for each part they contain, rather then as a group.
- * @param {bool} [options.lat_lon=false] - If true results in EPSG:4326
- * @param {bool} [options.web_merc=false] - If true results in EPSG:3857
- * @instance
+ * @param {boolean} [options.lat_lon=false] - If true results in EPSG:4326
+ * @param {boolean} [options.web_merc=false] - If true results in EPSG:3857
  * @param {Function} callback
  * @example
  * vectorTile.reportGeometryValidity(function(err, valid) {
@@ -6309,7 +6311,8 @@ typedef struct {
  * @param {Buffer} buffer - vector tile buffer
  * @returns {Object} json object with information about the vector tile buffer
  * @static
- * @memberof mapnik.VectorTile
+ * @memberof VectorTile
+ * @instance
  * @example
  * var buffer = fs.readFileSync('./path/to/tile.mvt');
  * var info = mapnik.VectorTile.info(buffer);

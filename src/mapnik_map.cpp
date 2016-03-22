@@ -50,11 +50,12 @@
 Nan::Persistent<v8::FunctionTemplate> Map::constructor;
 
 /**
+ * **`mapnik.Map`**
+ * 
  * A map in mapnik is an object that combines data sources and styles in
  * a way that lets you produce styled cartographic output.
  *
- * @name mapnik.Map
- * @class
+ * @class Map
  * @param {int} width in pixels
  * @param {int} height in pixels
  * @param {string} [projection='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'] projection as a proj4 code
@@ -441,7 +442,7 @@ NAN_SETTER(Map::set_prop)
  * Load fonts from local or external source
  * 
  * @name loadFonts
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * 
  */
@@ -500,7 +501,7 @@ NAN_METHOD(Map::registerFonts)
 
 /**
  * Get all of the fonts currently registered as part of this map
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name font
  * @returns {Array<string>} fonts
@@ -521,7 +522,7 @@ NAN_METHOD(Map::fonts)
 /**
  * Get all of the fonts currently registered as part of this map, as a mapping
  * from font to font file
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fontFiles
  * @returns {Object} fonts
@@ -540,7 +541,7 @@ NAN_METHOD(Map::fontFiles)
 
 /**
  * Get the currently-registered font directory, if any
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fontDirectory
  * @returns {string|undefined} fonts
@@ -559,7 +560,7 @@ NAN_METHOD(Map::fontDirectory)
 /**
  * Get the map's scale factor. This is the ratio between pixels and geographical
  * units like meters.
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name scale
  * @returns {number} scale
@@ -573,7 +574,7 @@ NAN_METHOD(Map::scale)
 /**
  * Get the map's scale denominator.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name scaleDenominator
  * @returns {number} scale denominator
@@ -834,7 +835,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
 /**
  * Get all of the currently-added layers in this map
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name layers
  * @returns {Array<mapnik.Layer>} layers
@@ -854,7 +855,7 @@ NAN_METHOD(Map::layers)
 /**
  * Add a new layer to this map
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name add_layer
  * @param {mapnik.Layer} new layer
@@ -879,7 +880,7 @@ NAN_METHOD(Map::add_layer) {
 /**
  * Get a layer out of this map, given a name or index
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name get_layer
  * @param {string|number} layer name or index
@@ -943,7 +944,7 @@ NAN_METHOD(Map::get_layer)
 /**
  * Remove all layers and styles from this map
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name clear
  */
@@ -957,7 +958,7 @@ NAN_METHOD(Map::clear)
 /**
  * Give this map new dimensions
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name resize
  * @param {number} width
@@ -997,7 +998,7 @@ typedef struct {
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name load
  * @param {string} stylesheet path
@@ -1108,7 +1109,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name loadSync
  * @param {string} stylesheet path
@@ -1186,7 +1187,7 @@ NAN_METHOD(Map::loadSync)
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet given as a string.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fromStringSync
  * @param {string} stylesheet contents
@@ -1264,7 +1265,7 @@ NAN_METHOD(Map::fromStringSync)
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet given as a string.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fromString
  * @param {string} stylesheet contents
@@ -1387,7 +1388,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  *
  * @instance
  * @name clone
- * @memberof mapnik.Map
+ * @memberof Map
  * @returns {mapnik.Map} clone
  */
 NAN_METHOD(Map::clone)

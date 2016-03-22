@@ -1,0 +1,246 @@
+@import url(fonts/source-sans-pro/source-sans-pro.css);
+@import url(fonts/source-code-pro/source-code-pro.css);
+
+* {
+  box-sizing:border-box;  
+  -moz-box-sizing:border-box; 
+  -webkit-box-sizing:border-box;
+}
+
+body {
+  margin: auto;
+  font-size: 16px;
+  position: relative;
+  line-height: 1.3em;
+}
+a {
+  text-decoration: none;
+  color: #388991;
+}
+a:hover {
+  text-decoration: underline;
+}
+table code,
+p code {
+  background: #f2f2f2;
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.cf:before,
+.cf:after {
+    content:" ";
+    display:table;
+}
+.cf:after {
+    clear:both;
+}
+.cf {
+    *zoom:1;
+}
+
+.toc-container {
+  display: none;
+}
+.content-container {}
+@media (min-width: 52em) {
+  .toc-container {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow-y: scroll;
+    width: 300px;
+    background: #f2f2f2;
+    padding: 1em;
+  }
+  .content-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    margin-left: 320px;
+  }
+}
+
+.search {
+  width: 100%;
+  padding: 10px;
+  font-size: 1em;
+}
+
+.toc a {
+  display: block;
+}
+.toc .class {
+  font-weight: 900;
+  border-bottom: 1px solid #c0c0c0;
+  font-size: 1.1em;
+  padding-bottom: 0.5em;
+  margin: 0.5em 0;
+}
+.toc a.hide {
+  display: none;
+}
+
+.content {
+  padding: 1em;
+}
+@media (min-width: 52em) {
+  .content {
+    max-width: 50em;
+    margin: auto;
+  }
+}
+
+.main {
+  margin-top: 3em;
+}
+.section-params {
+  font-weight: 100;
+}
+
+.gray {
+  color: #c5c5c5;
+}
+
+.github {
+  font-size: 0.7em;
+  float: right;
+}
+
+
+.documentation {
+  font-family: 'Source Code Pro', monospace;
+}
+
+.documentation .suppress-p-margin p {
+  margin:0;
+}
+
+.force-inline, .force-inline p {
+  display: inline;
+  color: #222;
+}
+
+.container-small {
+  max-width: 58rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.max-height-100 {
+  max-height: 100%;
+}
+
+.fade {
+  opacity:0.50;
+}
+
+.button-indent {
+  padding: .25rem 1.5rem;
+  font-size: 90%;
+}
+
+.section-indent {
+  border-left: 2px solid #eee;
+}
+
+.bg-cloudy {
+  background: #fafafa;
+}
+
+.force-inline * {
+  display:inline;
+}
+
+section:target h3 {
+  font-weight:700;
+}
+
+.documentation p {
+    font-family: 'Source Sans Pro', Helvetica, sans-serif;
+}
+
+.documentation td,
+.documentation th {
+    padding: .25rem .25rem;
+}
+
+h1:hover .anchorjs-link,
+h2:hover .anchorjs-link,
+h3:hover .anchorjs-link,
+h4:hover .anchorjs-link {
+  opacity: 1;
+}
+
+.collapsible .collapser {
+  display:none;
+}
+
+.collapsible:target .collapser {
+  display: block;
+}
+
+.collapsible section {
+  padding: 1em;
+  margin: 1em 0;
+  border: 1px solid #f2f2f2;
+  border-left: 3px solid #45ACB6;
+}
+.collapsible > a {
+  color: #75A21C;
+}
+
+.fix-3 {
+  width: 25%;
+  max-width: 244px;
+}
+
+@media (min-width: 52em) {
+  .fix-margin-3 {
+    margin-left: 25%;
+  }
+}
+
+pre {
+  border-radius: 3px;
+  padding: 0.5em;
+  background: #23241f;
+  color: #cdd4d5;
+  overflow-x: scroll;
+}
+code {}
+.table-wrapper {
+  overflow-x: scroll;
+}
+table.params {
+  font-size: 0.9em;
+  width: 100%;
+  border-collapse: collapse;
+}
+table.params th {
+  text-align: left;
+  padding: 5px;
+  background: #f2f2f2;
+}
+table td {
+  vertical-align: top;
+}
+table.params,
+table td,
+table th {
+  border: 1px solid #e5e5e5;
+}
+table td p {
+  margin: 0;
+}
+.param {}
+.param-description {
+  min-width: 50%;
+}
+
+.function {
+  margin: 0 0 1em;
+}
