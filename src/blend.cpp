@@ -438,11 +438,13 @@ void Work_AfterBlend(uv_work_t* req) {
 }
 
 /**
+ * **`mapnik.Blend`**
+ *
  * Composite multiple images on top of each other, with strong control
  * over how the images are combined, resampled, and blended.
  *
- * @name mapnik.blend
- * @param {v8::Array<Buffer>} buffers an array of buffers
+ * @name blend
+ * @param {Array<Buffer>} buffers an array of buffers
  * @param {Object} options can include width, height, `compression`,
  * `reencode`, palette, mode can be either `hextree` or `octree`, quality. JPEG & WebP quality
  * quality ranges from 0-100, PNG quality from 2-256. Compression varies by platform -

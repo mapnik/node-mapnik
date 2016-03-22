@@ -1,0 +1,8 @@
+{
+  "order": [ 
+    "mapnik",
+    "Map",
+    "VectorTile",
+    "Image"
+  ]
+}

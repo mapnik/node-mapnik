@@ -5,9 +5,11 @@
 Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
 
 /**
- * No constructor - Severity level is only available via mapnik.Logger static instance.
+ * **`mapnik.Logger`**
+ * 
+ * No constructor - Severity level is only available via `mapnik.Logger` static instance.
  *
- * @name mapnik.Logger
+ * @class Logger
  * @example
  * mapnik.Logger.setSeverity(mapnik.Logger.NONE);
  * var log = mapnik.Logger.get_severity();
@@ -51,7 +53,7 @@ NAN_METHOD(Logger::New){
 /**
  * Returns integer which represents severity level
  * @name get_severity
- * @memberof mapnik.Logger
+ * @memberof Logger
  * @static
  * @returns {number} severity level
  */
@@ -64,14 +66,9 @@ NAN_METHOD(Logger::get_severity){
  * Accepts level of severity as a mapnik constant
  *
  * Available security levels
- * ```
- * mapnik.Logger.DEBUG -> 0
- * mapnik.Logger.WARN -> 1
- * mapnik.Logger.ERROR (default) -> 2
- * mapnik.Logger.NONE -> 3
- * ```
+ *
  * @name set_severity
- * @memberof mapnik.Logger
+ * @memberof Logger
  * @static
  * @param {number} severity - severity level
  * @returns {number} severity level

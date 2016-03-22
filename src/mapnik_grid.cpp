@@ -15,11 +15,12 @@
 Nan::Persistent<v8::FunctionTemplate> Grid::constructor;
 
 /**
+ * **`mapnik.Grid`**
+ * 
  * Generator for [UTFGrid](https://www.mapbox.com/guides/an-open-platform)
  * representations of data.
  *
- * @name mapnik.Grid
- * @class
+ * @class Grid
  * @param {number} width
  * @param {number} height
  * @param {Object} [options={}] optional argument, which can have a 'key' property
@@ -211,7 +212,7 @@ NAN_METHOD(Grid::painted)
 
 /**
  * Get this grid's width
- * @memberof mapnik.Grid
+ * @memberof Grid
  * @instance
  * @name width
  * @returns {number} width
@@ -224,7 +225,7 @@ NAN_METHOD(Grid::width)
 
 /**
  * Get this grid's height
- * @memberof mapnik.Grid
+ * @memberof Grid
  * @instance
  * @name height
  * @returns {number} height
@@ -255,7 +256,7 @@ NAN_SETTER(Grid::set_key)
 
 /**
  * Add a field to this grid's output
- * @memberof mapnik.Grid
+ * @memberof Grid
  * @instance
  * @name addField
  * @param {string} field
@@ -282,7 +283,7 @@ NAN_METHOD(Grid::addField)
 
 /**
  * Get all of this grid's fields
- * @memberof mapnik.Grid
+ * @memberof Grid
  * @instance
  * @name addField
  * @returns {v8::Array<string>} fields
@@ -306,7 +307,7 @@ NAN_METHOD(Grid::fields)
 
 /**
  * Get a constrained view of this field given x, y, width, height parameters.
- * @memberof mapnik.Grid
+ * @memberof Grid
  * @instance
  * @name view
  * @param {number} x
@@ -334,7 +335,7 @@ NAN_METHOD(Grid::view)
 
 /**
  * Get a constrained view of this field given x, y, width, height parameters.
- * @memberof mapnik.Grid
+ * @memberof Grid
  * @instance
  * @name encodeSync
  * @param {Object} [options={ resolution: 4, features: false }]

@@ -73,7 +73,7 @@ static NAN_METHOD(clearCache)
  * set of bindings to `mapnik` for node.js.
  *
  * @name mapnik
- * @class
+ * @class mapnik
  * @property {string} version current version of mapnik
  * @property {string} module_path path to native mapnik binding
  * @property {Object} supports indicates which of the following are supported:
