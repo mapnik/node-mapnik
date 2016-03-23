@@ -232,6 +232,22 @@ NAN_METHOD(Datasource::describe)
     info.GetReturnValue().Set(description);
 }
 
+/**
+ * Get features from this dataset using an iterator.
+ *
+ * @name featureset
+ * @memberof Datasource
+ * @instance
+ * @returns {Object} an iterator with a `.next()` method that returns
+ * features from a dataset.
+ * @example
+ * var features = [];
+ * var featureset = ds.featureset();
+ * var feature;
+ * while ((feature = featureset.next())) {
+ *     features.push(feature);
+ * }
+ */
 NAN_METHOD(Datasource::featureset)
 {
     Datasource* ds = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
@@ -270,6 +286,30 @@ NAN_METHOD(Datasource::featureset)
     /* LCOV_EXCL_STOP */
 }
 
+
+/**
+ * Get only the fields metadata from a dataset.
+ *
+ * @name fields
+ * @memberof Datasource
+ * @instance
+ * @returns {Object} an object that maps from a field name to it type
+ * @example
+ * var fields = ds.fields();
+ * // {
+ * //     FIPS: 'String',
+ * //     ISO2: 'String',
+ * //     ISO3: 'String',
+ * //     UN: 'Number',
+ * //     NAME: 'String',
+ * //     AREA: 'Number',
+ * //     POP2005: 'Number',
+ * //     REGION: 'Number',
+ * //     SUBREGION: 'Number',
+ * //     LON: 'Number',
+ * //     LAT: 'Number'
+ * // }
+ */
 NAN_METHOD(Datasource::fields)
 {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());

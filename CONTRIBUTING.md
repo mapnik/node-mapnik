@@ -17,7 +17,7 @@ To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation
 
 * Clone the Node Mapnik Theme repository `git clone git@github.com:mapnik/node-mapnik-theme.git`
 * Make changes to JSDoc comments
-* Regenerate/generate documentation depending on if you are updating a minor patch or creating a new one: `documentation build src/*.cpp --polyglot -f html -o documentation/<version>/ --github --name "Node Mapnik <version>" -t /path/to/node-mapnik-theme`. This should be done on your own branch.
+* Regenerate/generate documentation depending on if you are updating a minor patch or creating a new one: `documentation build src/*.cpp --polyglot -f html -o documentation/<version>/ --github --name "Node Mapnik <version>" -t /path/to/node-mapnik-theme -c documentation/config.json`. This should be done on your own branch.
 * Merge changes into `master`
 * Switch to the `gh-pages` branch: `git checkout gh-pages`
 * merge changes from `master` into `gh-pages`
