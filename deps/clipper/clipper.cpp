@@ -685,8 +685,6 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
         if (Edge1.Bot.x > ip.x)
         {
             y1 = Round((ip.x + 0.5) / Edge1.Dx + by1);
-            if (ip.y >= Edge1.Bot.y && y1 < Edge1.Bot.y) y1 = Edge1.Bot.y;
-            else if (ip.y <= Edge1.Bot.y && y1 > Edge1.Bot.y) y1 = Edge1.Bot.y;
         }
         else if (Edge1.Bot.x < ip.x)
         {
