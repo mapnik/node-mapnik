@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.5
+
+- Fixed a situation where the clipper would get locked in an endless loop when creating vector tiles.
+
 ## 3.5.4
 
 - Updated the angus clipper with several fixes that solve intersections issues within vetor tile polygons created when using strictly simple
