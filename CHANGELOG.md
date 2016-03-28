@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.5.6
+
+- Another set of fixes for clipper where it would produce invalid polygons when creating vector tiles.
+- Fixed another endless loop in clipper around vector tile creation
+
 ## 3.5.5
 
 - Fixed a situation where the clipper would get locked in an endless loop when creating vector tiles.
