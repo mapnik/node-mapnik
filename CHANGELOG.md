@@ -18,6 +18,7 @@
 
 ## 3.5.3 (DEPRECATED - bad package sent to npm)
 
+- Stopped building node v0.12 binaries. Use node v4 or v5 instead if you need node-mapnik binaries.
 - No code changes: Just a rebuild of 3.5.2 but with debug binaries that can be installed with `npm install --debug`
 
 ## 3.5.2
