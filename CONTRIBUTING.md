@@ -16,8 +16,8 @@ API Documentation is versioned down to the **minor** patch, like `3.5`. Each ver
 To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation/):
 
 * Install documentationjs globally: `npm install documentation@4.x -g`
-  * Note: We rely on `npm ls` before publishing as a sanity check that the node-mapnik package is solid. Because of this we want to keep the documentationjs install outside the local tree, otherwise `npm ls` will error out. This is the reason we globally install.
-  * Note: The reason we don't include `documentation` as a dev dep is because it slows down travis installs as its fairly large.
+  * *Note: We rely on `npm ls` before publishing as a sanity check that the node-mapnik package is solid. Because of this we want to keep the documentationjs install outside the local tree, otherwise `npm ls` will error out. This is the reason we globally install.*
+  * *Note: We don't include `documentation` as a dev dependency because it slows down travis install due to its size.*
 * Type `make doc` (This should be done on your own branch).
 * Merge changes into `master`
 * Switch to the `gh-pages` branch: `git checkout gh-pages`
