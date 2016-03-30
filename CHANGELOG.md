@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.18
+
+ - Fixed decoding bug that assumed tags came before geometries in vector-tile layers
+
 ## 3.4.17
 
  - Binaries updated to use v3.0.10 and mapnik-packaging@d6ae1fb
