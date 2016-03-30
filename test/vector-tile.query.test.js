@@ -129,6 +129,37 @@ describe('mapnik.VectorTile query polygon (clipped)', function() {
     });
 });
 
+describe('mapnik.VectorTile query v2 tile', function() {
+    var vtile;
+    before(function(done) {
+        var pbf = require('fs').readFileSync(path.resolve(__dirname + '/data/vector_tile/6-32-21.mvt'));
+        vtile = new mapnik.VectorTile(6, 32, 21);
+        vtile.setData(pbf);
+        vtile.parse();
+        done();
+    });
+    // ensure querying clipped polygons works
+    it('query polygon', function(done) {
+        var json = vtile.toJSON();
+        assert.equal(30, json[0].features.length);
+        console.log('East London',json[0].features[0].properties.lef_name);
+        check(vtile.query(0.0604, 51.6376, { tolerance: 1e5 }));
+        vtile.query(0.0604, 51.6376, { tolerance: 1e5 }, function(err, features) {
+            assert.ifError(err);
+            check(features);
+            done();
+        });
+        function check(features) {
+            assert.equal(13, features.length);
+            assert.equal(features[0].distance,17108.659425593785);
+            assert.equal(features[0].layer,'chp_lef_label');
+            var feat_json = JSON.parse(features[0].toJSON());
+            assert.equal('East London',feat_json.properties.lef_name);
+            assert.equal(5,feat_json.id);
+        }
+    });
+});
+
 describe('mapnik.VectorTile query point', function() {
     var vtile;
     before(function(done) {
