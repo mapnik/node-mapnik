@@ -208,6 +208,8 @@ Notable changes in the Mapnik SDK include:
  - Added `simplify_distance`  option to `VectorTile.composite`. 
  - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
    clipping extent will be used for the operation. If provided the data will be restricted to this extent.
+     - Landed in https://github.com/mapnik/node-mapnik/commit/ef3b12a36f529a1a8fbb70f4ddd6a92e1bd22008
+     - Previously compositing was using a hardcoded global extent of `-20037508.34,-20037508.34,20037508.34,20037508.34` which meant that all vector tile data was being clipped to global extents. This was harmless in all cases except when data contained data outside of global extents intentionally in order to avoid rendering of lines and blurs being visible at tile boundaries.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.
