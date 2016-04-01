@@ -4,6 +4,9 @@ SET EL=0
 
 ECHO =========== %~f0 ===========
 
+SET MAPNIK_GIT=
+FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
+
 :: use 64 bit python if platform is 64 bit
 IF /I "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
 :: put 7z on path (needed for unpacking mapnik sdk)
