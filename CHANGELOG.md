@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.7
+
+- Fixed a situation where repeated holes on top of each other could result in self intersections in vector tile geometries
+- Improved the speed of vector tile creation by removing unrequired checks in clipper library
+- Fixed a situation where horizontals could result in invalid self intersections.
+
 ## 3.5.6
 
 - Another set of fixes for clipper where it would produce invalid polygons when creating vector tiles.
