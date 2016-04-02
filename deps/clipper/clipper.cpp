@@ -4029,10 +4029,18 @@ void Clipper::JoinCommonEdges()
     {
       //instead of joining two polygons, we've just created a new one by
       //splitting one polygon into two.
-      outRec1->Pts = join->OutPt1;
       outRec1->BottomPt = 0;
       outRec2 = CreateOutRec();
-      outRec2->Pts = join->OutPt2;
+      if (PointCount(join->OutPt1) > PointCount(join->OutPt2))
+      {
+          outRec1->Pts = join->OutPt1;
+          outRec2->Pts = join->OutPt2;
+      }
+      else
+      {
+          outRec1->Pts = join->OutPt2;
+          outRec2->Pts = join->OutPt1;
+      }
 
       //update all OutRec2.Pts Idx's ...
       UpdateOutPtIdxs(*outRec2);
@@ -4990,9 +4998,17 @@ void Clipper::DoSimplePolygons()
                             op2->Prev = op3;
                             op3->Next = op2;
 
-                            outrec->Pts = op;
                             OutRec* outrec2 = CreateOutRec();
-                            outrec2->Pts = op2;
+                            if (PointCount(op) > PointCount(op2))
+                            {
+                                outrec->Pts = op;
+                                outrec2->Pts = op2;
+                            }
+                            else
+                            {
+                                outrec->Pts = op2;
+                                outrec2->Pts = op;
+                            }
                             UpdateOutPtIdxs(*outrec);
                             UpdateOutPtIdxs(*outrec2);
                             if (Poly2ContainsPoly1(outrec2->Pts, outrec->Pts))
@@ -5054,9 +5070,9 @@ void Clipper::DoSimplePolygons()
                                 }
                                 if (!outrec->IsHole)
                                 {
-                                    OutPtIntersect intPt1 = { op, op2 };
-                                    OutPtIntersect intPt2 = { op2, op };
-                                    dupeRec.emplace(idx_j, intPt1);
+                                    OutPtIntersect intPt1 = { outrec->Pts, outrec2->Pts };
+                                    OutPtIntersect intPt2 = { outrec2->Pts, outrec->Pts };
+                                    dupeRec.emplace(outrec->Idx, intPt1);
                                     dupeRec.emplace(outrec2->Idx, intPt2);
                                 }
                             }
@@ -5121,9 +5137,9 @@ void Clipper::DoSimplePolygons()
                                 }
                                 if (!outrec2->IsHole)
                                 {
-                                    OutPtIntersect intPt1 = { op, op2 };
-                                    OutPtIntersect intPt2 = { op2, op };
-                                    dupeRec.emplace(idx_j, intPt1);
+                                    OutPtIntersect intPt1 = { outrec->Pts, outrec2->Pts };
+                                    OutPtIntersect intPt2 = { outrec2->Pts, outrec->Pts };
+                                    dupeRec.emplace(outrec->Idx, intPt1);
                                     dupeRec.emplace(outrec2->Idx, intPt2);
                                 }
                             }
@@ -5186,9 +5202,9 @@ void Clipper::DoSimplePolygons()
                                 }
                                 if (outrec2->IsHole)
                                 {
-                                    OutPtIntersect intPt1 = { op, op2 };
-                                    OutPtIntersect intPt2 = { op2, op };
-                                    dupeRec.emplace(idx_j, intPt1);
+                                    OutPtIntersect intPt1 = { outrec->Pts, outrec2->Pts };
+                                    OutPtIntersect intPt2 = { outrec2->Pts, outrec->Pts };
+                                    dupeRec.emplace(outrec->Idx, intPt1);
                                     dupeRec.emplace(outrec2->Idx, intPt2);
                                 }
                             }
