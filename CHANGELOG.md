@@ -2,6 +2,10 @@
 
 ## 3.4.18
 
+ - Update to mapnik-core 3.0.11 with a fix to unquoted strings
+
+## 3.4.18
+
  - Fixed decoding bug that assumed tags came before geometries in vector-tile layers
 
 ## 3.4.17
