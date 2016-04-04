@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.4.18
+## 3.4.19
 
  - Update to mapnik-core 3.0.11 with a fix to unquoted strings
 
