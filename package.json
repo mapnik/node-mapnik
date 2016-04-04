@@ -41,7 +41,7 @@
     }
   ],
   "dependencies": {
-    "mapnik-vector-tile": "1.0.5",
+    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/upgrade-opt-in",
     "nan": "~2.2.0",
     "node-pre-gyp": "~0.6.22",
     "protozero": "~1.3.0"
