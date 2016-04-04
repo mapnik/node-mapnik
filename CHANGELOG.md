@@ -74,6 +74,14 @@ Summary of changes:
  - Removed the concept of `path_multiplier` from the code entirely.
  - Added optional arguments of `tile_size` and `buffer_size` to `mapnik.VectorTile` constructor.
 
+## 3.4.19
+  
+ - Update to mapnik-core 3.0.11 with a fix to unquoted strings
+
+## 3.4.18
+
+ - Fixed decoding bug that assumed tags came before geometries in vector-tile layers
+
 ## 3.4.17
 
  - Binaries updated to use v3.0.10 and mapnik-packaging@d6ae1fb
