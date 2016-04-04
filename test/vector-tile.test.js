@@ -1400,12 +1400,20 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should return empty and have layer name', function() {
+    it('should not return empty and will have layer name', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
+        assert.deepEqual(vtile.names(), ['layer-name']);
+        assert.equal(vtile.empty(), false);
+    });
+
+    // re-enable when we can pass `setData(<buffer>,{upgrade:true})`
+    it.skip('should return empty and have no layer name when upgraded', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
         // a layer with only a name "layer-name" and no features
         // during v1 to v2 conversion this will be dropped, it is assumed
         // to be v1 because it has no version!
-        vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
         assert.deepEqual(vtile.names(), []);
         assert.equal(vtile.empty(), true);
     });

@@ -3848,9 +3848,10 @@ v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         Nan::ThrowError("cannot accept empty buffer as protobuf");
         return scope.Escape(Nan::Undefined());
     }
+    bool upgrade = false; // TODO - make option
     try
     {
-        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size); 
+        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, upgrade); 
     }
     catch (std::exception const& ex)
     {
@@ -3865,6 +3866,7 @@ typedef struct
     uv_work_t request;
     VectorTile* d;
     const char *data;
+    bool upgrade;
     size_t dataLength;
     bool error;
     std::string error_name;
@@ -3922,6 +3924,7 @@ NAN_METHOD(VectorTile::addData)
     vector_tile_adddata_baton_t *closure = new vector_tile_adddata_baton_t();
     closure->request.data = closure;
     closure->d = d;
+    closure->upgrade = false; // TODO - make option
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
     closure->buffer.Reset(obj.As<v8::Object>());
@@ -3944,7 +3947,7 @@ void VectorTile::EIO_AddData(uv_work_t* req)
     }
     try
     {
-        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength); 
+        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->upgrade); 
     }
     catch (std::exception const& ex)
     {
@@ -4013,10 +4016,11 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         Nan::ThrowError("cannot accept empty buffer as protobuf");
         return scope.Escape(Nan::Undefined());
     }
+    bool upgrade = false; // TODO - make option
     try
     {
         d->clear();
-        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size); 
+        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, upgrade); 
     }
     catch (std::exception const& ex)
     {
@@ -4031,6 +4035,7 @@ typedef struct
     uv_work_t request;
     VectorTile* d;
     const char *data;
+    bool upgrade;
     size_t dataLength;
     bool error;
     std::string error_name;
@@ -4086,6 +4091,7 @@ NAN_METHOD(VectorTile::setData)
 
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
+    closure->upgrade = false; // TODO - make option
     closure->d = d;
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
@@ -4111,7 +4117,7 @@ void VectorTile::EIO_SetData(uv_work_t* req)
     try
     {
         closure->d->clear();
-        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength); 
+        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->upgrade); 
     }
     catch (std::exception const& ex)
     {
