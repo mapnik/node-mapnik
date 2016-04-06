@@ -6,6 +6,7 @@
 - Improved the speed of vector tile creation by removing unrequired checks in clipper library
 - Fixed a situation in clipper where horizontals could result in invalid self intersections.
 - Prevent intersections outside the clipper from being processed after intersections inside the clipped area as this in very rare situations would cause an intersection.
+- Updated to mapnik `3.0.11`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3011).
 
 ## 3.5.6
 
