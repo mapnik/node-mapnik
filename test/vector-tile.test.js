@@ -3888,7 +3888,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
     
-    it.only('pasted test 23 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    it('pasted test 23 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(9,72,165);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted23.xml');

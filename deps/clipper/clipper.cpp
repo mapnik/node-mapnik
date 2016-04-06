@@ -489,19 +489,34 @@ int PointInPolygon (const IntPoint &pt, OutPt *op)
   OutPt* startOp = op;
   for(;;)
   {
+    if (op->Next->Pt.y == pt.y)
+    {
+        if ((op->Next->Pt.x == pt.x) || (op->Pt.y == pt.y && 
+          ((op->Next->Pt.x > pt.x) == (op->Pt.x < pt.x)))) return -1;
+    }
     if ((op->Pt.y < pt.y) != (op->Next->Pt.y < pt.y))
     {
-        double d = (double)(op->Pt.x - pt.x) * (op->Next->Pt.y - pt.y) - 
-          (double)(op->Next->Pt.x - pt.x) * (op->Pt.y - pt.y);
-        if (!d)
+      if (op->Pt.x >= pt.x)
+      {
+        if (op->Next->Pt.x > pt.x) result = 1 - result;
+        else
         {
-            return -1;
+          double d = (double)(op->Pt.x - pt.x) * (op->Next->Pt.y - pt.y) - 
+            (double)(op->Next->Pt.x - pt.x) * (op->Pt.y - pt.y);
+          if (!d) return -1;
+          if ((d > 0) == (op->Next->Pt.y > op->Pt.y)) result = 1 - result;
         }
-        else if ((d > 0) == (op->Next->Pt.y > op->Pt.y))
+      } else
+      {
+        if (op->Next->Pt.x > pt.x)
         {
-            result = 1 - result;
+          double d = (double)(op->Pt.x - pt.x) * (op->Next->Pt.y - pt.y) - 
+            (double)(op->Next->Pt.x - pt.x) * (op->Pt.y - pt.y);
+          if (!d) return -1;
+          if ((d > 0) == (op->Next->Pt.y > op->Pt.y)) result = 1 - result;
         }
-    }
+      }
+    } 
     op = op->Next;
     if (startOp == op) break;
   } 
