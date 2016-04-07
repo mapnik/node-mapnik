@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.8
+
+- Updated to mapnik-vector-tile `1.0.6` which includes a speedup on simplification for mapnik-vector-tile
+
 ## 3.5.7
 
 - Fixed a situation where repeated holes on top of each other could result in self intersections in vector tile geometries
