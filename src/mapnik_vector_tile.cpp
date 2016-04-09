@@ -3816,6 +3816,10 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  * @instance
  * @name addDataSync
  * @param {Buffer} buffer - raw data
+ * @param {object} [options]
+ * @param {boolean} [options.validate=false] - If true does validity checks mvt schema (not geometries)
+ * Will throw if anything invalid or unexpected is encountered in the data
+ * @param {boolean} [options.upgrade=false] - If true will upgrade v1 tiles to adhere to the v2 specification
  * @example
  * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
  * // assumes you have created a vector tile object already
@@ -3848,10 +3852,41 @@ v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         Nan::ThrowError("cannot accept empty buffer as protobuf");
         return scope.Escape(Nan::Undefined());
     }
-    bool upgrade = false; // TODO - make option
+    bool upgrade = false;
+    bool validate = false;
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    if (info.Length() > 1)
+    {
+        if (!info[1]->IsObject())
+        {
+            Nan::ThrowTypeError("second arg must be a options object");
+            return scope.Escape(Nan::Undefined());
+        }
+        options = info[1]->ToObject();
+        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'validate' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            validate = param_val->BooleanValue();
+        }
+        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            upgrade = param_val->BooleanValue();
+        }
+    }
     try
     {
-        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, upgrade); 
+        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, validate, upgrade);
     }
     catch (std::exception const& ex)
     {
@@ -3866,6 +3901,7 @@ typedef struct
     uv_work_t request;
     VectorTile* d;
     const char *data;
+    bool validate;
     bool upgrade;
     size_t dataLength;
     bool error;
@@ -3882,6 +3918,10 @@ typedef struct
  * @instance
  * @name addData
  * @param {Buffer} buffer - raw vector data
+ * @param {object} [options]
+ * @param {boolean} [options.validate=false] - If true does validity checks mvt schema (not geometries)
+ * Will throw if anything invalid or unexpected is encountered in the data
+ * @param {boolean} [options.upgrade=false] - If true will upgrade v1 tiles to adhere to the v2 specification
  * @param {Object} callback
  * @example
  * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
@@ -3893,17 +3933,11 @@ typedef struct
  */
 NAN_METHOD(VectorTile::addData)
 {
-    if (info.Length() == 1)
-    {
-        info.GetReturnValue().Set(_addDataSync(info));
-        return;
-    }
-
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
+        info.GetReturnValue().Set(_addDataSync(info));
         return;
     }
 
@@ -3919,12 +3953,46 @@ NAN_METHOD(VectorTile::addData)
         return;
     }
 
+    bool upgrade = false;
+    bool validate = false;
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    if (info.Length() > 1)
+    {
+        if (!info[1]->IsObject())
+        {
+            Nan::ThrowTypeError("second arg must be a options object");
+            return;
+        }
+        options = info[1]->ToObject();
+        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'validate' must be a boolean");
+                return;
+            }
+            validate = param_val->BooleanValue();
+        }
+        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
+                return;
+            }
+            upgrade = param_val->BooleanValue();
+        }
+    }
+
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
 
     vector_tile_adddata_baton_t *closure = new vector_tile_adddata_baton_t();
     closure->request.data = closure;
     closure->d = d;
-    closure->upgrade = false; // TODO - make option
+    closure->validate = validate;
+    closure->upgrade = upgrade;
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
     closure->buffer.Reset(obj.As<v8::Object>());
@@ -3947,7 +4015,7 @@ void VectorTile::EIO_AddData(uv_work_t* req)
     }
     try
     {
-        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->upgrade); 
+        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->validate, closure->upgrade);
     }
     catch (std::exception const& ex)
     {
@@ -3985,6 +4053,10 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  * @instance
  * @name setDataSync
  * @param {Buffer} buffer - raw data
+ * @param {object} [options]
+ * @param {boolean} [options.validate=false] - If true does validity checks mvt schema (not geometries)
+ * Will throw if anything invalid or unexpected is encountered in the data
+ * @param {boolean} [options.upgrade=false] - If true will upgrade v1 tiles to adhere to the v2 specification
  * @example
  * var data = fs.readFileSync('./path/to/data.mvt');
  * vectorTile.setDataSync(data);
@@ -4016,11 +4088,42 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         Nan::ThrowError("cannot accept empty buffer as protobuf");
         return scope.Escape(Nan::Undefined());
     }
-    bool upgrade = false; // TODO - make option
+    bool upgrade = false;
+    bool validate = false;
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    if (info.Length() > 1)
+    {
+        if (!info[1]->IsObject())
+        {
+            Nan::ThrowTypeError("second arg must be a options object");
+            return scope.Escape(Nan::Undefined());
+        }
+        options = info[1]->ToObject();
+        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'validate' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            validate = param_val->BooleanValue();
+        }
+        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            upgrade = param_val->BooleanValue();
+        }
+    }
     try
     {
         d->clear();
-        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, upgrade); 
+        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, validate, upgrade);
     }
     catch (std::exception const& ex)
     {
@@ -4035,6 +4138,7 @@ typedef struct
     uv_work_t request;
     VectorTile* d;
     const char *data;
+    bool validate;
     bool upgrade;
     size_t dataLength;
     bool error;
@@ -4051,6 +4155,10 @@ typedef struct
  * @instance
  * @name setData
  * @param {Buffer} buffer - raw data
+ * @param {object} [options]
+ * @param {boolean} [options.validate=false] - If true does validity checks mvt schema (not geometries)
+ * Will throw if anything invalid or unexpected is encountered in the data
+ * @param {boolean} [options.upgrade=false] - If true will upgrade v1 tiles to adhere to the v2 specification
  * @param {Function} callback
  * @example
  * var data = fs.readFileSync('./path/to/data.mvt');
@@ -4061,17 +4169,11 @@ typedef struct
  */
 NAN_METHOD(VectorTile::setData)
 {
-    if (info.Length() == 1)
-    {
-        info.GetReturnValue().Set(_setDataSync(info));
-        return;
-    }
-
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
+        info.GetReturnValue().Set(_setDataSync(info));
         return;
     }
 
@@ -4087,11 +4189,45 @@ NAN_METHOD(VectorTile::setData)
         return;
     }
 
+    bool upgrade = false;
+    bool validate = false;
+    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    if (info.Length() > 1)
+    {
+        if (!info[1]->IsObject())
+        {
+            Nan::ThrowTypeError("second arg must be a options object");
+            return;
+        }
+        options = info[1]->ToObject();
+        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'validate' must be a boolean");
+                return;
+            }
+            validate = param_val->BooleanValue();
+        }
+        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
+                return;
+            }
+            upgrade = param_val->BooleanValue();
+        }
+    }
+
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
 
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
-    closure->upgrade = false; // TODO - make option
+    closure->validate = validate;
+    closure->upgrade = upgrade;
     closure->d = d;
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
@@ -4117,7 +4253,7 @@ void VectorTile::EIO_SetData(uv_work_t* req)
     try
     {
         closure->d->clear();
-        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->upgrade); 
+        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->validate, closure->upgrade);
     }
     catch (std::exception const& ex)
     {
@@ -6386,19 +6522,24 @@ NAN_METHOD(VectorTile::info)
                 case mapnik::vector_tile_impl::Tile_Encoding::LAYERS:
                     {
                         v8::Local<v8::Object> layer_obj = Nan::New<v8::Object>();
-                        protozero::pbf_reader layer_msg = tile_msg.get_message();
                         std::uint64_t point_feature_count = 0;
                         std::uint64_t line_feature_count = 0;
                         std::uint64_t polygon_feature_count = 0;
                         std::uint64_t unknown_feature_count = 0;
                         std::uint64_t raster_feature_count = 0;
-                        std::string layer_name;
-                        std::uint32_t layer_version = 1;
+                        auto layer_data = tile_msg.get_data();
+                        protozero::pbf_reader layer_props_msg(layer_data);
+                        auto layer_info = mapnik::vector_tile_impl::get_layer_name_and_version(layer_props_msg);
+                        std::string const& layer_name = layer_info.first;
+                        std::uint32_t layer_version = layer_info.second;
                         std::set<mapnik::vector_tile_impl::validity_error> layer_errors;
+                        if (version > 2 || version < 1)
+                        {
+                            layer_errors.insert(mapnik::vector_tile_impl::LAYER_HAS_UNSUPPORTED_VERSION);
+                        }
+                        protozero::pbf_reader layer_msg(layer_data);
                         mapnik::vector_tile_impl::layer_is_valid(layer_msg, 
                                                                  layer_errors, 
-                                                                 layer_name, 
-                                                                 layer_version,
                                                                  point_feature_count,
                                                                  line_feature_count,
                                                                  polygon_feature_count,
