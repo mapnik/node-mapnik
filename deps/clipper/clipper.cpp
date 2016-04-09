@@ -3144,7 +3144,14 @@ void Clipper::ProcessIntersectList()
 
 bool IntersectListSort(IntersectNode* node1, IntersectNode* node2)
 {
-  return node2->Pt.y < node1->Pt.y;
+    if (node2->Pt.y != node1->Pt.y)
+    {
+        return node2->Pt.y < node1->Pt.y;
+    }
+    else
+    {
+        return (node2->Edge1->WindCnt2 + node2->Edge2->WindCnt2) > (node1->Edge1->WindCnt2 + node1->Edge2->WindCnt2);
+    }
 }
 //------------------------------------------------------------------------------
 

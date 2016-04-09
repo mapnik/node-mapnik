@@ -1,10 +1,16 @@
 # Changelog
 
+## 3.5.8
+
+- Updated to mapnik-vector-tile `1.0.6` which includes a speedup on simplification for mapnik-vector-tile
+
 ## 3.5.7
 
 - Fixed a situation where repeated holes on top of each other could result in self intersections in vector tile geometries
 - Improved the speed of vector tile creation by removing unrequired checks in clipper library
-- Fixed a situation where horizontals could result in invalid self intersections.
+- Fixed a situation in clipper where horizontals could result in invalid self intersections.
+- Prevent intersections outside the clipper from being processed after intersections inside the clipped area as this in very rare situations would cause an intersection.
+- Updated to mapnik `3.0.11`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3011).
 
 ## 3.5.6
 

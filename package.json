@@ -4,8 +4,8 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.5.7-noupgrade",
-  "mapnik_version":"3.0.10",
+  "version": "3.5.8",
+  "mapnik_version":"3.0.11",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -43,13 +43,9 @@
   "dependencies": {
     "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/upgrade-opt-in",
     "nan": "~2.2.0",
-    "node-pre-gyp": "~0.6.22",
+    "node-pre-gyp": "~0.6.25",
     "protozero": "~1.3.0"
   },
-  "bundledDependencies": [
-    "mapnik-vector-tile",
-    "node-pre-gyp"
-  ],
   "bin": {
     "mapnik-inspect.js": "./bin/mapnik-inspect.js",
     "mapnik-render.js": "./bin/mapnik-render.js",
@@ -58,6 +54,7 @@
   "scripts": {
     "prepublish": "npm ls",
     "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
+    "preinstall":"npm install node-pre-gyp",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation src/*.cpp --polyglot -o documentation -f html --github --name Mapnik"
   },
