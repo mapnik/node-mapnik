@@ -466,6 +466,10 @@ void _composite(VectorTile* target_vt,
     {
         map.set_maximum_extent(*max_extent);
     }
+    else
+    {
+        map.set_maximum_extent(target_vt->get_tile()->get_buffered_extent());
+    }
 
     std::vector<mapnik::vector_tile_impl::merc_tile_ptr> merc_vtiles;
     for (VectorTile* vt : vtiles)
