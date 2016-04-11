@@ -102,3 +102,7 @@ script:
  #- node --expose-gc bench/error/test_vt_abort2.js
  # ugh: always killed by travis
  #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js
+
+notifications:
+  slack:
+    secure: wLpScQaDoEsVe0Bu28b62FGZBfmX3s/NK8DWcuSxEFx80k8RKPNgnMg8htamG0zRSf5htF+X6jy2P0IeUvbeupIaJwqtXvHaJYtlMTmemG/xuXLTpLp6k6giT2mWm/lp+ykuaF/PvUcZWUhSf1zhS6vwIekrMYIcDYvNXjO8DNw=
