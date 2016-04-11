@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.5.8
+
+- Updated to mapnik-vector-tile `1.0.6` which includes a speedup on simplification for mapnik-vector-tile
+
+## 3.5.7
+
+- Fixed a situation where repeated holes on top of each other could result in self intersections in vector tile geometries
+- Improved the speed of vector tile creation by removing unrequired checks in clipper library
+- Fixed a situation in clipper where horizontals could result in invalid self intersections.
+- Prevent intersections outside the clipper from being processed after intersections inside the clipped area as this in very rare situations would cause an intersection.
+- Updated to mapnik `3.0.11`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3011).
+
 ## 3.5.6
 
 - Another set of fixes for clipper where it would produce invalid polygons when creating vector tiles.
@@ -67,6 +79,14 @@ Summary of changes:
  - Updated many of the default configuration options on `mapnik.VectorTile` class methods
  - Removed the concept of `path_multiplier` from the code entirely.
  - Added optional arguments of `tile_size` and `buffer_size` to `mapnik.VectorTile` constructor.
+
+## 3.4.19
+  
+ - Update to mapnik-core 3.0.11 with a fix to unquoted strings
+
+## 3.4.18
+
+ - Fixed decoding bug that assumed tags came before geometries in vector-tile layers
 
 ## 3.4.17
 
@@ -208,6 +228,8 @@ Notable changes in the Mapnik SDK include:
  - Added `simplify_distance`  option to `VectorTile.composite`. 
  - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
    clipping extent will be used for the operation. If provided the data will be restricted to this extent.
+     - Landed in https://github.com/mapnik/node-mapnik/commit/ef3b12a36f529a1a8fbb70f4ddd6a92e1bd22008
+     - Previously compositing was using a hardcoded global extent of `-20037508.34,-20037508.34,20037508.34,20037508.34` which meant that all vector tile data was being clipped to global extents. This was harmless in all cases except when data contained data outside of global extents intentionally in order to avoid rendering of lines and blurs being visible at tile boundaries.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.

@@ -4,6 +4,9 @@ SET EL=0
 
 ECHO =========== %~f0 ===========
 
+SET MAPNIK_GIT=
+FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
+
 :: use 64 bit python if platform is 64 bit
 IF /I "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
 :: put 7z on path (needed for unpacking mapnik sdk)
@@ -12,7 +15,7 @@ SET PATH=C:\Program Files\7-Zip;%PATH%
 :: TODO - dist/dev/ is intended for dev releases of mapnik
 :: We ideally want to get in the habit of only using Mapnik official releases
 :: which will be uploaded to dist/
-SET MAPNIK_SDK_URL=https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-%MAPNIK_GIT%-%platform%-%msvs_toolset%.0.7z
+SET MAPNIK_SDK_URL=https://mapnik.s3.amazonaws.com/dist/dev/mapnik-win-sdk-v%MAPNIK_GIT%-%platform%-%msvs_toolset%.0.7z
 ECHO fetching mapnik sdk^: %MAPNIK_SDK_URL%
 IF EXIST mapnik-sdk.7z (ECHO already downloaded) ELSE (powershell Invoke-WebRequest "${env:MAPNIK_SDK_URL}" -OutFile mapnik-sdk.7z)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR

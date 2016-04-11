@@ -8,15 +8,13 @@ On linux depends on node and:
     sudo apt-get install pkg-config build-essential zlib1g-dev
 '
 
-if [[ ${MAPNIK_GIT:-unset} == "unset" ]]; then
-    echo '${MAPNIK_GIT}' env variable must be defined - see .travis.yml
-    exit 1
-fi
+CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 
 ARGS="$@"
-CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 mkdir -p $CURRENT_DIR/../sdk
 cd $CURRENT_DIR/../
+
+export MAPNIK_GIT=v$(node -e "console.log(require('./package.json').mapnik_version)")
 export PATH=$(pwd)/node_modules/.bin:${PATH}
 cd sdk
 BUILD_DIR="$(pwd)"

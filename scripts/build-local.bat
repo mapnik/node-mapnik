@@ -10,7 +10,8 @@ ECHO =========== %~f0 ===========
 SET USE_LOCAL_MAPNIK_SDK=0
 
 SET APPVEYOR_REPO_COMMIT_MESSAGE=no commit message provided
-SET MAPNIK_GIT=v3.0.9-246-gd751731
+SET MAPNIK_GIT=
+FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
 SET nodejs_version=5.1.0
 SET platform=x64
 SET msvs_toolset=14
