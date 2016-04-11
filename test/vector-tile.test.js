@@ -1340,10 +1340,13 @@ describe('mapnik.VectorTile ', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         var tile_with_emptyness = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
         assert.throws(function() { vtile.setData(tile_with_emptyness,{validate:true}); });
-        assert.equal(vtile.empty(),true);
+        // tile will be partially parsed (when not upgrading) before validation error is throw
+        // so we check that not all the layers are added
+        assert.equal(vtile.names().length,3);
         // only fails with validation
-        vtile.setData(tile_with_emptyness,{validate:false});
-        assert.equal(vtile.empty(),false);
+        var vtile3 = new mapnik.VectorTile(0,0,0);
+        vtile3.setData(tile_with_emptyness,{validate:false});
+        assert.equal(vtile3.names().length,23);
         done();
     });
 
