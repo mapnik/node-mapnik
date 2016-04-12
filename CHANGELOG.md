@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.9
+
+- Updated to mapnik-vector-tile `1.1.0`
+- Automatic updating of vector tiles from v1 to v2 no longer takes place automatically when using `setData` and `addData`.
+- Validiation of vector tiles is now optional when using `setData` and `addData`
+
 ## 3.5.8
 
 - Updated to mapnik-vector-tile `1.0.6` which includes a speedup on simplification for mapnik-vector-tile
