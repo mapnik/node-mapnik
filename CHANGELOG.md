@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.10
+
+- Fix for a segfault in the vector tile clipping library
+
 ## 3.5.9
 
 - Updated to mapnik-vector-tile `1.1.0`
