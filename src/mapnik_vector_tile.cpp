@@ -2926,47 +2926,57 @@ v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
     VectorTile* v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     std::string result;
-    if (layer_id->IsString())
+    try
     {
-        std::string layer_name = TOSTR(layer_id);
-        if (layer_name == "__array__")
+        if (layer_id->IsString())
         {
-            write_geojson_array(result, v);
-        }
-        else if (layer_name == "__all__")
-        {
-            write_geojson_all(result, v);
-        }
-        else
-        {
-            if (!write_geojson_layer_name(result, layer_name, v))
+            std::string layer_name = TOSTR(layer_id);
+            if (layer_name == "__array__")
             {
-                std::string error_msg("Layer name '" + layer_name + "' not found");
-                Nan::ThrowTypeError(error_msg.c_str());
+                write_geojson_array(result, v);
+            }
+            else if (layer_name == "__all__")
+            {
+                write_geojson_all(result, v);
+            }
+            else
+            {
+                if (!write_geojson_layer_name(result, layer_name, v))
+                {
+                    std::string error_msg("Layer name '" + layer_name + "' not found");
+                    Nan::ThrowTypeError(error_msg.c_str());
+                    return scope.Escape(Nan::Undefined());
+                }
+            }
+        }
+        else if (layer_id->IsNumber())
+        {
+            int layer_idx = layer_id->IntegerValue();
+            if (layer_idx < 0)
+            {
+                Nan::ThrowTypeError("A layer index can not be negative");
                 return scope.Escape(Nan::Undefined());
+            }
+            else if (layer_idx >= static_cast<int>(v->get_tile()->get_layers().size()))
+            {
+                Nan::ThrowTypeError("Layer index exceeds the number of layers in the vector tile.");
+                return scope.Escape(Nan::Undefined());
+            }
+            if (!write_geojson_layer_index(result, layer_idx, v))
+            {
+                // LCOV_EXCL_START
+                Nan::ThrowTypeError("Layer could not be retrieved (should have not reached here)");
+                return scope.Escape(Nan::Undefined());
+                // LCOV_EXCL_STOP
             }
         }
     }
-    else if (layer_id->IsNumber())
+    catch (std::exception const& ex)
     {
-        int layer_idx = layer_id->IntegerValue();
-        if (layer_idx < 0)
-        {
-            Nan::ThrowTypeError("A layer index can not be negative");
-            return scope.Escape(Nan::Undefined());
-        }
-        else if (layer_idx >= static_cast<int>(v->get_tile()->get_layers().size()))
-        {
-            Nan::ThrowTypeError("Layer index exceeds the number of layers in the vector tile.");
-            return scope.Escape(Nan::Undefined());
-        }
-        if (!write_geojson_layer_index(result, layer_idx, v))
-        {
-            // LCOV_EXCL_START
-            Nan::ThrowTypeError("Layer could not be retrieved (should have not reached here)");
-            return scope.Escape(Nan::Undefined());
-            // LCOV_EXCL_STOP
-        }
+        // LCOV_EXCL_START
+        Nan::ThrowTypeError(ex.what());
+        return scope.Escape(Nan::Undefined());
+        // LCOV_EXCL_STOP
     }
     return scope.Escape(Nan::New<v8::String>(result).ToLocalChecked());
 }

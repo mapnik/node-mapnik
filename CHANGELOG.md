@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.5.11
+
+- Fix for numerical precision issue in mapnik vector tile where valid v2 vector tiles would be thrown as invalid
+- Added new exception handling for toGeoJSON
+
 ## 3.5.10
 
 - Fix for a segfault in the vector tile clipping library
