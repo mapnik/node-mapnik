@@ -802,11 +802,11 @@ describe('mapnik.VectorTile.composite', function() {
 
     it('should correctly composite again -- numerical precision issue in mapnik vector tile area calculation - 2', function() {
         // Original data.
-        var vt = new mapnik.VectorTile(15,6292,11868);
-        var vt_data = fs.readFileSync('./test/data/vector_tile/compositing/11868.mvt');
+        var vt = new mapnik.VectorTile(15,8816,12063);
+        var vt_data = fs.readFileSync('./test/data/vector_tile/compositing/12063.mvt');
         vt.setData(vt_data);
         // Tile data
-        var vtile = new mapnik.VectorTile(16,12585,23737, {buffer_size: 255*16});
+        var vtile = new mapnik.VectorTile(16,17632,24126, {buffer_size: 255*16});
         vtile.composite([vt]);
         assert(!vtile.empty());
         assert.doesNotThrow(function() {
