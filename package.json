@@ -41,7 +41,7 @@
     }
   ],
   "dependencies": {
-    "mapnik-vector-tile": "git://github.com/mapnik-vector-tile.git#clockwise_fix",
+    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/clockwise_fix",
     "nan": "~2.2.0",
     "node-pre-gyp": "~0.6.25",
     "protozero": "~1.3.0"
