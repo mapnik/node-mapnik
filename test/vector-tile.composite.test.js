@@ -800,4 +800,17 @@ describe('mapnik.VectorTile.composite', function() {
         });
     });
 
+    it('should correctly composite again -- numerical precision issue in mapnik vector tile area calculation', function() {
+        // Original data.
+        var vt = new mapnik.VectorTile(15,6292,11868);
+        var vt_data = fs.readFileSync('./test/data/vector_tile/compositing/11868.vector.pbf');
+        vt.setData(vt_data);
+        // Tile data
+        var vtile = new mapnik.VectorTile(16,12585,23737, {buffer_size: 255*16});
+        vtile.composite([vt]);
+        assert(!vtile.empty());
+        assert.doesNotThrow(function() {
+            vtile.toGeoJSON('wildoak');
+        });
+    });
 });
