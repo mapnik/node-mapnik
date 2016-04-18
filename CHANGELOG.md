@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.12
+
+- Fix performance regression when passing raster through vector tile (via upgrade to mapnik-vector-tile@1.1.2)
+
 ## 3.5.11
 
 - Fix for numerical precision issue in mapnik vector tile where valid v2 vector tiles would be thrown as invalid
@@ -13,7 +17,7 @@
 
 - Updated to mapnik-vector-tile `1.1.0`
 - Automatic updating of vector tiles from v1 to v2 no longer takes place automatically when using `setData` and `addData`.
-- Validiation of vector tiles is now optional when using `setData` and `addData`
+- Validation of vector tiles is now optional when using `setData` and `addData`
 
 ## 3.5.8
 
