@@ -81,7 +81,7 @@ static NAN_METHOD(clearCache)
  * @property {Object} versions diagnostic object with versions of
  * node, v8, boost, boost_number, mapnik, mapnik_number, mapnik_git_describe, cairo
  * @example
- * var mapnik = require('node-mapnik');
+ * var mapnik = require('mapnik');
  */
 extern "C" {
 

@@ -753,7 +753,7 @@ describe('mapnik.VectorTile ', function() {
         done();
     });
 
-    it.skip('should be able to addData in reasonable time', function(done) {
+    it('should be able to addData in reasonable time', function(done) {
         var vtile = new mapnik.VectorTile(3,2,3);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with
@@ -1330,15 +1330,24 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
         assert.throws(function() { vtile.setData(new Buffer('foo'), null); });
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
-        
-        // invalid .mvt
-        var badTile = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
-        assert.throws(function() { vtile.setData(badTile); });
-
         vtile.setData(new Buffer('foo'),function(err) {
             assert.throws(function() { if (err) throw err; });
             done();
         });
+    });
+
+    it('should error out if we validate tile with empty layers and features to setData - 1', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var tile_with_emptyness = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
+        assert.throws(function() { vtile.setData(tile_with_emptyness,{validate:true}); });
+        // tile will be partially parsed (when not upgrading) before validation error is throw
+        // so we check that not all the layers are added
+        assert.equal(vtile.names().length,3);
+        // only fails with validation
+        var vtile3 = new mapnik.VectorTile(0,0,0);
+        vtile3.setData(tile_with_emptyness,{validate:false});
+        assert.equal(vtile3.names().length,23);
+        done();
     });
 
     it('should error out if we pass invalid data to setData - 2', function(done) {
@@ -1400,12 +1409,19 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should return empty and have layer name', function() {
+    it('should not return empty and will have layer name', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
-        // a layer with only a name "layer-name" and no features
-        // during v1 to v2 conversion this will be dropped, it is assumed
-        // to be v1 because it has no version!
         vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
+        assert.deepEqual(vtile.names(), ['layer-name']);
+        assert.equal(vtile.empty(), false);
+    });
+
+    it('should return empty and have no layer name when upgraded', function() {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'),{upgrade:true});
+        // a layer with only a name "layer-name" and no features
+        // during v1 to v2 conversion this will be dropped
+        // note: this tile also lacks a version, but mapnik-vt defaults to assuming v1
         assert.deepEqual(vtile.names(), []);
         assert.equal(vtile.empty(), true);
     });
@@ -2317,7 +2333,7 @@ describe('mapnik.VectorTile ', function() {
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()),JSON.stringify(vt2.toJSON()));
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();
         });
     });
@@ -3852,6 +3868,66 @@ describe('mapnik.VectorTile ', function() {
             var vt1 = new mapnik.VectorTile(8,37,82);
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(8,37,82);
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            done();
+        });
+    });
+
+    it('pasted test 22 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile = new mapnik.VectorTile(9,72,167);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/pasted/pasted22.xml');
+        map.render(vtile, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 0);
+            }
+            assert(!vtile.empty());
+            var expected = './test/data/vector_tile/pasted/pasted22.mvt';
+            var actual = './test/data/vector_tile/pasted/pasted22.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(9,72,167);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(9,72,167);
+            vt2.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            done();
+        });
+    });
+    
+    it('pasted test 23 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+        var vtile = new mapnik.VectorTile(9,72,165);
+        var map = new mapnik.Map(256, 256);
+        map.loadSync('./test/data/vector_tile/pasted/pasted23.xml');
+        map.render(vtile, function(err, vtile) {
+            if (err) throw err;
+            if (hasBoostSimple) {
+                var simplicityReport = vtile.reportGeometrySimplicity();
+                var validityReport = vtile.reportGeometryValidity();
+                assert.equal(simplicityReport.length, 0);
+                assert.equal(validityReport.length, 0);
+            }
+            assert(!vtile.empty());
+            var expected = './test/data/vector_tile/pasted/pasted23.mvt';
+            var actual = './test/data/vector_tile/pasted/pasted23.actual.mvt';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                fs.writeFileSync(expected, vtile.getData());
+            }
+            var expected_data = fs.readFileSync(expected);
+            fs.writeFileSync(actual, vtile.getData());
+            var actual_data = fs.readFileSync(actual);
+            var vt1 = new mapnik.VectorTile(9,72,165);
+            vt1.setData(expected_data);
+            var vt2 = new mapnik.VectorTile(9,72,165);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
             done();

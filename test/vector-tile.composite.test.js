@@ -299,9 +299,9 @@ describe('mapnik.VectorTile.composite', function() {
         var world_clipping_extent = [-20037508.34,-20037508.34,20037508.34,20037508.34];
         vtile.composite([vtile2],{reencode:true});
         vtile1.composite([vtile2],{reencode:true,max_extent:world_clipping_extent});
-        assert.equal(vtile.getData().length,54780);
+        assert.equal(vtile.getData().length,54781);
         assert.deepEqual(vtile.names(),["water","admin"]);
-        assert.equal(vtile1.getData().length,54462);
+        assert.equal(vtile1.getData().length,54463);
         assert.deepEqual(vtile1.names(),["water","admin"]);
         var expected_file = data_base +'/expected/world-reencode.png';
         var expected_file2 = data_base +'/expected/world-reencode-max-extent.png';
@@ -313,14 +313,14 @@ describe('mapnik.VectorTile.composite', function() {
                 assert.equal(0,compare_to_image(im2,expected_file2));
                 vtile3.composite([vtile2],{reencode:true}, function(err) {
                     if (err) throw err;
-                    assert.equal(vtile3.getData().length,54780);
+                    assert.equal(vtile3.getData().length,54781);
                     assert.deepEqual(vtile3.names(),["water","admin"]);
                     vtile3.render(map,new mapnik.Image(256,256),function(err,im) {
                         if (err) throw err;
                         assert.equal(0,compare_to_image(im,expected_file));
                         vtile4.composite([vtile2],{reencode:true,max_extent:world_clipping_extent}, function(err) {
                             if (err) throw err;
-                            assert.equal(vtile4.getData().length,54462);
+                            assert.equal(vtile4.getData().length,54463);
                             assert.deepEqual(vtile4.names(),["water","admin"]);
                             assert.equal(0,compare_to_image(im2,expected_file2));
                             vtile4.render(map,new mapnik.Image(256,256),function(err,im) {
@@ -782,6 +782,22 @@ describe('mapnik.VectorTile.composite', function() {
         vt1.composite([vt2]);
         assert.deepEqual(vt1.names(),[]);
         done();
+    });
+
+    it('should correctly composite -- numerical precision issue in mapnik vector tile area calculation', function() {
+        // Original data.
+        var vt = new mapnik.VectorTile(16,10691,25084);
+        var vt_data = fs.readFileSync('./test/data/vector_tile/compositing/25084.vector.pbf');
+        var vt2 = new mapnik.VectorTile(16,10691,25084);
+        var vt_data2 = fs.readFileSync('./test/data/vector_tile/compositing/25084_2.vector.pbf');
+        vt.setData(vt_data);
+        // Tile data
+        var vtile = new mapnik.VectorTile(18,42764,100336, {buffer_size: 255*16});
+        vtile.composite([vt, vt2]);
+        assert(!vtile.empty());
+        assert.doesNotThrow(function() {
+            vtile.toGeoJSON('wildoak');
+        });
     });
 
 });
