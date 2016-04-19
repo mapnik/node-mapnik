@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.13
+
+- Updated to mapnik-vector-tile `1.2.0`, includes a fix for rare decoding situation in vector tiles where a tile would be incorrectly considered invalid.
+
 ## 3.5.12
 
 - Fix performance regression when passing raster through vector tile (via upgrade to mapnik-vector-tile@1.1.2)
