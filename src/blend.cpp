@@ -309,7 +309,7 @@ void Work_Blend(uv_work_t* req) {
     // to decode all images if there's an opaque one.
     Images::reverse_iterator rit = baton->images.rbegin();
     Images::reverse_iterator rend = baton->images.rend();
-    for (int index = (static_cast<int>(total) - 1); rit != rend; rit++, index--) {
+    for (int index = (static_cast<int>(total) - 1); rit != rend; ++rit, ++index) {
         // If an image that is higher than the current is opaque, stop all-together.
         if (!alpha) break;
 
