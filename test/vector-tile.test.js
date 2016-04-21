@@ -2350,7 +2350,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 17); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.mvt';
@@ -2382,7 +2382,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 20); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 17); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.mvt';
