@@ -35,7 +35,7 @@ void Feature::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "geometry", geometry);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
 
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromJSON",
                     Feature::fromJSON);
 

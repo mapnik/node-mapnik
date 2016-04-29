@@ -115,31 +115,31 @@ void Image::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "offset", get_offset, set_offset);
 
     // This *must* go after the ATTR setting
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "open",
                     Image::open);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromBytes",
                     Image::fromBytes);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "openSync",
                     Image::openSync);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromBytesSync",
                     Image::fromBytesSync);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromBufferSync",
                     Image::fromBufferSync);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromSVG",
                     Image::fromSVG);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromSVGSync",
                     Image::fromSVGSync);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromSVGBytes",
                     Image::fromSVGBytes);
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromSVGBytesSync",
                     Image::fromSVGBytesSync);
     target->Set(Nan::New("Image").ToLocalChecked(),lcons->GetFunction());
