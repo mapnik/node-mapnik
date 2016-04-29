@@ -315,7 +315,7 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
     
-    Nan::SetMethod(lcons->GetFunction()->ToObject(), "info", info);
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "info", info);
     
     target->Set(Nan::New("VectorTile").ToLocalChecked(),lcons->GetFunction());
     constructor.Reset(lcons);
