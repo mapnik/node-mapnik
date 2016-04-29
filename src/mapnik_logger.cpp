@@ -23,8 +23,8 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
 
     // Static methods
-    Nan::SetMethod(lcons->GetFunction(), "getSeverity", Logger::get_severity);
-    Nan::SetMethod(lcons->GetFunction(), "setSeverity", Logger::set_severity);
+    Nan::SetMethod(lcons->GetFunction()->ToObject(), "getSeverity", Logger::get_severity);
+    Nan::SetMethod(lcons->GetFunction()->ToObject(), "setSeverity", Logger::set_severity);
 
     // Constants
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"NONE",mapnik::logger::severity_type::none);
