@@ -38,7 +38,9 @@ p code {
 .cf {
     *zoom:1;
 }
-
+.title {
+  font-size: 1.5em;
+}
 .toc-container {
   display: none;
 }
