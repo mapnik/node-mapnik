@@ -3933,4 +3933,44 @@ describe('mapnik.VectorTile ', function() {
             done();
         });
     });
+
+    it.only('preserve spaces in values that are objects themselves', function(done) {
+        var vtile = new mapnik.VectorTile(0,0,0);
+        var geojson = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {
+                "object": {
+                  "name": "waka flocka"
+                },
+                "array": ["waka flocka"],
+                "name": "waka flocka"
+              },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [-90, -19.31114335506463],
+                    [-90, 71.1877539181316],
+                    [101.25, 71.1877539181316],
+                    [101.25, -19.31114335506463],
+                    [-90, -19.31114335506463]
+                  ]
+                ]
+              }
+            }
+          ]
+        };
+
+        vtile.addGeoJSON(JSON.stringify(geojson),'layer-name');
+        var gj = JSON.parse(vtile.toGeoJSONSync('layer-name'));
+        var props = gj.features[0].properties;
+        assert.equal(props.name, 'waka flocka', 'string preserves spaces');
+        // are objects & arrays always stored as strings? Do we always have to JSON parse twice?
+        assert.equal(JSON.parse(props.array)[0], 'waka flocka', 'array preserves spaces');
+        assert.equal(JSON.parse(props.object).name, 'waka flocka', 'object preserves spaces');
+        done();
+    })
 });
