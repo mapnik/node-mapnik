@@ -315,7 +315,7 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
     
-    Nan::SetMethod(lcons->GetFunction(), "info", info);
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "info", info);
     
     target->Set(Nan::New("VectorTile").ToLocalChecked(),lcons->GetFunction());
     constructor.Reset(lcons);
@@ -2679,8 +2679,8 @@ NAN_METHOD(VectorTile::toJSON)
                     if (decode_geometry)
                     {
                         // Decode the geometry first into an int64_t mapnik geometry
-                        mapnik::vector_tile_impl::GeometryPBF<std::int64_t> geoms(geom_itr, 0, 0, 1.0, 1.0);
-                        mapnik::geometry::geometry<std::int64_t> geom = mapnik::vector_tile_impl::decode_geometry(geoms, geom_type_enum, version);
+                        mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
+                        mapnik::geometry::geometry<std::int64_t> geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, geom_type_enum, version, 0, 0, 1.0, 1.0);
                         v8::Local<v8::Array> g_arr = geometry_to_array<std::int64_t>(geom);
                         feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
                         std::string geom_type = geometry_type_as_string(geom);
@@ -5875,8 +5875,8 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
                 // Decode the geometry first into an int64_t mapnik geometry
                 mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
                 mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-                mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0, 0, 1.0, 1.0);
-                feature->set_geometry(mapnik::vector_tile_impl::decode_geometry(geoms, geom_type_enum, version));
+                mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
+                feature->set_geometry(mapnik::vector_tile_impl::decode_geometry<double>(geoms, geom_type_enum, version, 0.0, 0.0, 1.0, 1.0));
                 mapnik::util::apply_visitor(
                         visitor_geom_valid(errors, feature, layer_name, split_multi_features), 
                         feature->get_geometry());

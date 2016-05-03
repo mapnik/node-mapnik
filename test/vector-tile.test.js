@@ -3509,7 +3509,7 @@ describe('mapnik.VectorTile ', function() {
                                              'landcover', 'hillshade', 'contour']);
             assert.equal(vtile.reportGeometryValidity().length, 0);
             assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
-            assert.equal(vtile.reportGeometrySimplicity().length, 6);
+            assert.equal(vtile.reportGeometrySimplicity().length, 4);
             done();
         });
     });

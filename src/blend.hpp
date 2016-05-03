@@ -87,10 +87,9 @@ struct BlendBaton {
         this->request.data = this;
     }
 
-    ~BlendBaton() {
-        for (Images::iterator cur = images.begin(); cur != images.end(); cur++) {
-            (*cur)->buffer.Reset();            
-        }
+    ~BlendBaton()
+    {
+        for (auto const& image : images) if (image) image->buffer.Reset();
         callback.Reset();
     }
 };

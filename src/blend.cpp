@@ -39,8 +39,8 @@ static bool hexToUInt32Color(char *hex, unsigned int & value) {
     // Return is the length of the string is less then six
     // otherwise the line after this could go to some other
     // pointer in memory, resulting in strange behaviours.
-    if (len_original < 6) return false; 
-    if (hex[0] == '#') hex++;
+    if (len_original < 6) return false;
+    if (hex[0] == '#') ++hex;
     std::size_t len = strlen(hex);
     if (len != 6 && len != 8) return false;
 
@@ -209,8 +209,8 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
     bool tinting = !image->tint.is_identity();
     bool set_alpha = !image->tint.is_alpha_identity();
     if (tinting || set_alpha) {
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
                 unsigned int const& source_pixel = source[sourcePos + x];
                 unsigned a = (source_pixel >> 24) & 0xff;
                 if (set_alpha) {
@@ -232,8 +232,8 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
             targetPos += baton->width;
         }
     } else {
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
                 Blend_CompositePixel(target[targetPos + x], source[sourcePos + x]);
             }
             sourcePos += image->width;
@@ -259,7 +259,7 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
             if (!WebPConfigInit(&config)) {
                 /* LCOV_EXCL_START */
                 baton->message = "WebPConfigInit failed: version mismatch";
-                /* LCOV_EXCL_STOP */ 
+                /* LCOV_EXCL_STOP */
             } else {
                 // see for more details: https://github.com/mapnik/mapnik/wiki/Image-IO#webp-output-options
                 config.quality = baton->quality;
@@ -298,10 +298,9 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
     }
 }
 
-void Work_Blend(uv_work_t* req) {
+void Work_Blend(uv_work_t* req)
+{
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
-
-    std::size_t total = baton->images.size();
     bool alpha = true;
     int size = 0;
 
@@ -309,11 +308,12 @@ void Work_Blend(uv_work_t* req) {
     // to decode all images if there's an opaque one.
     Images::reverse_iterator rit = baton->images.rbegin();
     Images::reverse_iterator rend = baton->images.rend();
-    for (int index = total - 1; rit != rend; rit++, index--) {
-        // If an image that is higher than the current is opaque, stop alltogether.
+    for (; rit != rend; ++rit)
+    {
+        // If an image that is higher than the current is opaque, stop all-together.
         if (!alpha) break;
-
-        BImage *image = &**rit;
+        auto image = *rit;
+        if (!image) continue;
         std::unique_ptr<mapnik::image_reader> image_reader;
         try {
             image_reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
@@ -389,7 +389,7 @@ void Work_Blend(uv_work_t* req) {
         image->width = layer_width;
         image->height = layer_height;
         image->im_ptr = std::move(im_ptr);
-        size++;
+        ++size;
 
     }
 
@@ -630,7 +630,7 @@ NAN_METHOD(Blend) {
         return;
     }
 
-    for (uint32_t i = 0; i < length; i++) {
+    for (uint32_t i = 0; i < length; ++i) {
         ImagePtr image = std::make_shared<BImage>();
         v8::Local<v8::Value> buffer = js_images->Get(i);
         if (node::Buffer::HasInstance(buffer)) {
