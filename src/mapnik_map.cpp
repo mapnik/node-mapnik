@@ -114,7 +114,6 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toXML", to_string);
     Nan::SetPrototypeMethod(lcons, "resize", resize);
 
-
     Nan::SetPrototypeMethod(lcons, "render", render);
     Nan::SetPrototypeMethod(lcons, "renderSync", renderSync);
     Nan::SetPrototypeMethod(lcons, "renderFile", renderFile);
@@ -1578,22 +1577,22 @@ struct vector_tile_baton_t {
         threading_mode(std::launch::deferred) {}
 };
 
-/*
+/**
  * Render a mapnik map to an image source
  * 
- * @memberof Map
  * @instance
  * @name render
+ * @memberof Map
  * @param {Object} object - a renderable mapnik object such as a `mapnik.Image`
  * @param {Object} [options]
  * @param {Number} [options.buffer_size=0] - size of the buffer in pixels of the rendered image
- * @param {Number} [options.scale] -
- * @param {Number} [options.scale_factor=1.0] -
+ * @param {Number} [options.scale=1]
+ * @param {Number} [options.scale_factor=1.0]
  * @param {Number} [options.scale_denominator=0.0] -
- * @param {Number} [options.offset_x=0] -
- * @param {Number} [options.offset_y=0] -
- * @param {Object} [options.variables] -
- * @param {String || Number} [options.layer] - must be either a layer string or layer index (integer)
+ * @param {Number} [options.offset_x=0]
+ * @param {Number} [options.offset_y=0]
+ * @param {Object} [options.variables]
+ * @param {String} [options.layer] - must be either a layer string or layer index (integer)
  * @param {String} [options.image_scaling] - must be a string and a valid scaling method (e.g 'bilinear') - see <mapnik.imageScaling> for available methods
  * @param {String} [options.image_format=webp] - can be `webp`, `jpeg`, or `png`
  * @param {Number} [options.area_threshold=0.0] - Used to discard small polygons. 
@@ -1603,7 +1602,7 @@ struct vector_tile_baton_t {
  * @param {Boolean} [options.strictly_simple=true] - ensure all geometry is valid according to
  * OGC Simple definition
  * @param {Boolean} [options.multi_polygon_union=false] - union all multipolygons
- * @param {Number} [options.fill_type=2] - defaults to "positive fill"
+ * @param {Number} [options.fill_type] - defaults to "positive fill"
  * @param {Number} [options.threading_mode] - defaults to `deferred`
  * @param {Number} [options.simplify_distance=0.0] - Simplification works to generalize 
  * geometries before encoding into vector tiles.simplification distance The 
