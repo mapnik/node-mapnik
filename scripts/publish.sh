@@ -20,6 +20,21 @@ else
     elif [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]]; then
         echo "Re-Publishing"
         ./node_modules/.bin/node-pre-gyp unpublish publish ${NPM_FLAGS}
+    elif [[ ${COMMIT_MESSAGE} =~ "[docs]" ]]; then
+        echo "Publishing docs"
+        
+        body='{
+        "request": {
+          "branch":"master"
+        }}'
+
+        curl -s -X POST \
+          -H "Content-Type: application/json" \
+          -H "Accept: application/json" \
+          -H "Travis-API-Version: 3" \
+          -H "Authorization: token $DOCS_TRAVIS_TOKEN" \
+          -d "$body" \
+          https://api.travis-ci.org/repo/mapnik%2Fdocumentation/requests
     else
         echo "Skipping publishing"
     fi;
