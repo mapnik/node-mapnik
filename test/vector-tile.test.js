@@ -1966,17 +1966,6 @@ describe('mapnik.VectorTile ', function() {
         });
     });
     
-    it('should render an empty vector', function(done) {
-        var vtile = new mapnik.VectorTile(9,9,9);
-        var map = new mapnik.Map(256, 256);
-        map.loadSync('./test/data/vector_tile/layers.xml');
-        map.render(vtile,{},function(err,vtile) {
-            assert.deepEqual(vtile.emptyLayers(), ['world', 'world2']);
-            assert.equal(vtile.empty(), true);
-            done();
-        });
-    });
-
     it('should fail to render due to bad arguments passed', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);

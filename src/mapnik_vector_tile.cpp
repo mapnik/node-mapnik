@@ -287,7 +287,6 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     Nan::SetPrototypeMethod(lcons, "bufferedExtent", bufferedExtent);
     Nan::SetPrototypeMethod(lcons, "names", names);
     Nan::SetPrototypeMethod(lcons, "layer", layer);
-    Nan::SetPrototypeMethod(lcons, "emptyLayers", emptyLayers);
     Nan::SetPrototypeMethod(lcons, "paintedLayers", paintedLayers);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
     Nan::SetPrototypeMethod(lcons, "toGeoJSON", toGeoJSON);
@@ -1398,33 +1397,6 @@ NAN_METHOD(VectorTile::layer)
     v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
     v8::Local<v8::Object> vt_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
     info.GetReturnValue().Set(vt_obj);
-    return;
-}
-
-/**
- * Get the names of all of the empty layers in this vector tile
- *
- * @memberof VectorTile
- * @instance
- * @name emptyLayers
- * @returns {Array<string>} layer names
- * @example
- * var vt = new mapnik.VectorTile(0,0,0);
- * var empty = vt.emptyLayers();
- * // assumes you have added data to your tile
- * console.log(empty); // ['layer-name', 'empty-layer']
- */
-NAN_METHOD(VectorTile::emptyLayers)
-{
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    std::set<std::string> const& names = d->tile_->get_empty_layers();
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(names.size());
-    unsigned idx = 0;
-    for (std::string const& name : names)
-    {
-        arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
-    }
-    info.GetReturnValue().Set(arr);
     return;
 }
 
