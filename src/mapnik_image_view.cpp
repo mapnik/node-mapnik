@@ -439,7 +439,6 @@ typedef struct {
     ImageView* im;
     std::string format;
     palette_ptr palette;
-    bool error;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     std::string result;
@@ -496,58 +495,56 @@ NAN_METHOD(ImageView::encode)
         return;
     }
 
-    encode_image_view_baton_t *closure = new encode_image_view_baton_t();
-    closure->request.data = closure;
-    closure->im = im;
-    closure->format = format;
-    closure->palette = palette;
-    closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
+    encode_image_view_baton_t *baton = new encode_image_view_baton_t();
+    baton->request.data = baton;
+    baton->im = im;
+    baton->format = format;
+    baton->palette = palette;
+    baton->cb.Reset(callback.As<v8::Function>());
+    uv_queue_work(uv_default_loop(), &baton->request, AsyncEncode, (uv_after_work_cb)AfterEncode);
     im->Ref();
     return;
 }
 
-void ImageView::EIO_Encode(uv_work_t* req)
+void ImageView::AsyncEncode(uv_work_t* req)
 {
-    encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
+    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
 
     try {
-        if (closure->palette.get())
+        if (baton->palette.get())
         {
-            closure->result = save_to_string(*(closure->im->this_), closure->format, *closure->palette);
+            baton->result = save_to_string(*(baton->im->this_), baton->format, *baton->palette);
         }
         else
         {
-            closure->result = save_to_string(*(closure->im->this_), closure->format);
+            baton->result = save_to_string(*(baton->im->this_), baton->format);
         }
     }
     catch (std::exception const& ex)
     {
-        closure->error = true;
-        closure->error_name = ex.what();
+        baton->error_name = ex.what();
     }
 }
 
-void ImageView::EIO_AfterEncode(uv_work_t* req)
+void ImageView::AfterEncode(uv_work_t* req)
 {
     Nan::HandleScope scope;
 
-    encode_image_view_baton_t *closure = static_cast<encode_image_view_baton_t *>(req->data);
+    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
 
-    if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+    if (!baton->error_name.empty()) {
+        v8::Local<v8::Value> argv[1] = { Nan::Error(baton->error_name.c_str()) };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 1, argv);
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->result.data(), closure->result.size()).ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)baton->result.data(), baton->result.size()).ToLocalChecked() };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 2, argv);
     }
 
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
+    baton->im->Unref();
+    baton->cb.Reset();
+    delete baton;
 }
 
 

@@ -28,8 +28,8 @@ public:
 
     static NAN_METHOD(encodeSync);
     static NAN_METHOD(encode);
-    static void EIO_Encode(uv_work_t* req);
-    static void EIO_AfterEncode(uv_work_t* req);
+    static void AsyncEncode(uv_work_t* req);
+    static void AfterEncode(uv_work_t* req);
 
     //static NAN_METHOD(view);
     static NAN_METHOD(width);
