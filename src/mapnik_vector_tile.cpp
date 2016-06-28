@@ -85,7 +85,7 @@ struct p2p_distance
      : x_(x),
        y_(y) {}
 
-    p2p_result operator() (mapnik::geometry::geometry_empty const& ) const
+    p2p_result operator() (mapnik::geometry::geometry_empty<double> const& ) const
     {
         p2p_result p2p;
         return p2p;
@@ -117,7 +117,7 @@ struct p2p_distance
     p2p_result operator() (mapnik::geometry::line_string<double> const& geom) const
     {
         p2p_result p2p;
-        std::size_t num_points = geom.num_points();
+        std::size_t num_points = geom.size();
         if (num_points > 1)
         {
             for (std::size_t i = 1; i < num_points; ++i)
@@ -153,7 +153,7 @@ struct p2p_distance
     p2p_result operator() (mapnik::geometry::polygon<double> const& geom) const
     {
         auto const& exterior = geom.exterior_ring;
-        std::size_t num_points = exterior.num_points();
+        std::size_t num_points = exterior.size();
         p2p_result p2p;
         if (num_points < 4)
         {
@@ -2188,7 +2188,8 @@ struct geometry_type_name
         return mapnik::util::apply_visitor(*this, geom);
     }
 
-    std::string operator() (mapnik::geometry::geometry_empty const& ) const
+    template <typename T>
+    std::string operator() (mapnik::geometry::geometry_empty<T> const& ) const
     {
         // LCOV_EXCL_START
         return "Empty";
@@ -2248,7 +2249,8 @@ static inline std::string geometry_type_as_string(T const& geom)
 
 struct geometry_array_visitor
 {
-    v8::Local<v8::Array> operator() (mapnik::geometry::geometry_empty const &)
+    template <typename T>
+    v8::Local<v8::Array> operator() (mapnik::geometry::geometry_empty<T> const &)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
@@ -5523,7 +5525,8 @@ struct visitor_geom_valid
           layer_name(layer_name_),
           split_multi_features(split_multi_features_) {}
     
-    void operator() (mapnik::geometry::geometry_empty const&) {}
+    template <typename T> 
+    void operator() (mapnik::geometry::geometry_empty<T> const&) {}
           
     template <typename T> 
     void operator() (mapnik::geometry::point<T> const& geom)
