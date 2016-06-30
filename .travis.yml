@@ -36,7 +36,7 @@ matrix:
      # Linux
      - os: linux
        compiler: clang
-       env: NODE_VERSION="6" PUBLISHABLE=true # node abi 48
+       env: NODE_VERSION="6" DOC_JOB=true PUBLISHABLE=true # node abi 48
      - os: linux
        compiler: clang
        env: NODE_VERSION="5" PUBLISHABLE=true # node abi 47

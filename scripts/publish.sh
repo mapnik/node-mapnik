@@ -20,22 +20,33 @@ else
     elif [[ ${COMMIT_MESSAGE} =~ "[republish binary]" ]]; then
         echo "Re-Publishing"
         ./node_modules/.bin/node-pre-gyp unpublish publish ${NPM_FLAGS}
-    elif [[ ${COMMIT_MESSAGE} =~ "[docs]" ]]; then
-        echo "Publishing docs"
-        
-        body='{
-        "request": {
-          "branch":"master"
-        }}'
-
-        curl -s -X POST \
-          -H "Content-Type: application/json" \
-          -H "Accept: application/json" \
-          -H "Travis-API-Version: 3" \
-          -H "Authorization: token $DOCS_TRAVIS_TOKEN" \
-          -d "$body" \
-          https://api.travis-ci.org/repo/mapnik%2Fdocumentation/requests
     else
         echo "Skipping publishing"
     fi;
+
+    # only publish docs from a single build environment which has DOC_JOB set
+    if [[ ${COMMIT_MESSAGE} =~ "[publish docs]" ]] && [[ ${DOC_JOB:-} == "true" ]]; then
+        echo "Publishing docs"
+        trigger_docs()
+    else
+        echo "Skipping publishing docs."
+    fi;
 fi
+
+trigger_docs() {
+  body="{
+    \"request\": {
+      \"message\": \"Triggered build: Mapnik core commit ${TRAVIS_COMMIT}\",
+      \"branch\":\"master\"
+    }
+  }
+  "
+
+  curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Travis-API-Version: 3" \
+    -H "Authorization: token ${TRAVIS_TRIGGER_TOKEN}" \
+    -d "$body" \
+    https://api.travis-ci.org/repo/mapnik%2Fdocumentation/requests
+}
