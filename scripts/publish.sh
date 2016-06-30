@@ -27,13 +27,13 @@ else
     # only publish docs from a single build environment which has DOC_JOB set
     if [[ ${COMMIT_MESSAGE} =~ "[publish docs]" ]] && [[ ${DOC_JOB:-} == "true" ]]; then
         echo "Publishing docs"
-        trigger_docs()
+        trigger_docs
     else
         echo "Skipping publishing docs."
     fi;
 fi
 
-trigger_docs() {
+trigger_docs () {
   body="{
     \"request\": {
       \"message\": \"Triggered build: Mapnik core commit ${TRAVIS_COMMIT}\",
