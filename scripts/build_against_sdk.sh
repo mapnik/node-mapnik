@@ -14,7 +14,7 @@ ARGS="$@"
 mkdir -p $CURRENT_DIR/../sdk
 cd $CURRENT_DIR/../
 
-export MAPNIK_GIT=${MAPNIK_GIT:-v$(node -e "console.log(require('./package.json').mapnik_version)")}
+export MAPNIK_GIT=${MAPNIK_GIT:-$(node -e "console.log(require('./package.json').mapnik_version)")}
 export PATH=$(pwd)/node_modules/.bin:${PATH}
 cd sdk
 BUILD_DIR="$(pwd)"
