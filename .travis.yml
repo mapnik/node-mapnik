@@ -82,12 +82,12 @@ before_install:
  - scripts/validate_tag.sh
  - export COVERAGE=${COVERAGE:-false}
  - if [[ $(uname -s) == 'Linux' ]]; then
-     git clone --depth 1 https://github.com/mapbox/mason.git ./.mason
-     export PATH=$(pwd)/.mason:${PATH}
-     mason install clang 3.8.0
-     export PATH=$(mason prefix clang 3.8.0)/bin:${PATH}
-     export CXX=clang++-3.8
-     export CC=clang-3.8
+     git clone --depth 1 https://github.com/mapbox/mason.git ./.mason;
+     export PATH=$(pwd)/.mason:${PATH};
+     mason install clang 3.8.0;
+     export PATH=$(mason prefix clang 3.8.0)/bin:${PATH};
+     export CXX=clang++-3.8;
+     export CC=clang-3.8;
      export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python2.7/site-packages;
    else
      export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages;
