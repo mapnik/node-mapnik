@@ -204,19 +204,43 @@ NAN_METHOD(Feature::attributes)
  */
 NAN_METHOD(Feature::properties)
 {
+    bool output_null_values = true; // default
+    if (info.Length() == 1)
+    {
+        if (!info[0]->IsBoolean())
+        {
+            Nan::ThrowTypeError("expects one optional argument: a boolean controlling how `null` values should be handled in output ");
+            return;
+        }
+        else
+        {
+            output_null_values = info[0]->BooleanValue();
+        }
+    }
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     v8::Local<v8::Object> feat = Nan::New<v8::Object>();
     mapnik::feature_ptr feature = fp->get();
     if (feature)
     {
-        mapnik::feature_kv_iterator2 itr(mapnik::value_not_null(),feature->begin(),feature->end());
-        mapnik::feature_kv_iterator2 end(mapnik::value_not_null(),feature->end(),feature->end());
-
-        for ( ; itr != end; ++itr)
+        if (output_null_values)
         {
-            feat->Set(Nan::New<v8::String>(std::get<0>(*itr)).ToLocalChecked(),
-                      mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
-                );
+            for (auto const& attr : *feature)
+            {
+                feat->Set(Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
+                          mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
+                    );
+            }
+        }
+        else
+        {
+            mapnik::feature_kv_iterator2 itr(mapnik::value_not_null(),feature->begin(),feature->end());
+            mapnik::feature_kv_iterator2 end(mapnik::value_not_null(),feature->end(),feature->end());
+            for ( ; itr != end; ++itr)
+            {
+                feat->Set(Nan::New<v8::String>(std::get<0>(*itr)).ToLocalChecked(),
+                          mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
+                    );
+            }
         }
     }
     info.GetReturnValue().Set(feat);
