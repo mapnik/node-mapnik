@@ -25,6 +25,7 @@ public:
     static NAN_METHOD(id);
     static NAN_METHOD(extent);
     static NAN_METHOD(attributes);
+    static NAN_METHOD(properties);
     static NAN_METHOD(geometry);
     static NAN_METHOD(toJSON);
 

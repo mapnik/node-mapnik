@@ -32,6 +32,7 @@ void Feature::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "id", id);
     Nan::SetPrototypeMethod(lcons, "extent", extent);
     Nan::SetPrototypeMethod(lcons, "attributes", attributes);
+    Nan::SetPrototypeMethod(lcons, "properties", properties);
     Nan::SetPrototypeMethod(lcons, "geometry", geometry);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
 
@@ -187,6 +188,34 @@ NAN_METHOD(Feature::attributes)
         {
             feat->Set(Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
                       mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
+                );
+        }
+    }
+    info.GetReturnValue().Set(feat);
+}
+
+/**
+ * Get the feature's properties as an object.
+ *
+ * @name properties
+ * @memberof Feature
+ * @instance
+ * @returns {Object} properties
+ */
+NAN_METHOD(Feature::properties)
+{
+    Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
+    v8::Local<v8::Object> feat = Nan::New<v8::Object>();
+    mapnik::feature_ptr feature = fp->get();
+    if (feature)
+    {
+        mapnik::feature_kv_iterator2 itr(mapnik::value_not_null(),feature->begin(),feature->end());
+        mapnik::feature_kv_iterator2 end(mapnik::value_not_null(),feature->end(),feature->end());
+
+        for ( ; itr != end; ++itr)
+        {
+            feat->Set(Nan::New<v8::String>(std::get<0>(*itr)).ToLocalChecked(),
+                      mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
                 );
         }
     }
