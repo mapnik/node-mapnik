@@ -14,7 +14,7 @@ Nan::Persistent<v8::FunctionTemplate> Feature::constructor;
 
 /**
  * **`mapnik.Feature`**
- * 
+ *
  * A single geographic feature, with geometry and properties. This is
  * typically derived from data by a datasource, but can be manually
  * created.
@@ -181,13 +181,14 @@ NAN_METHOD(Feature::attributes)
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     v8::Local<v8::Object> feat = Nan::New<v8::Object>();
     mapnik::feature_ptr feature = fp->get();
-    mapnik::feature_impl::iterator itr = feature->begin();
-    mapnik::feature_impl::iterator end = feature->end();
-    for ( ;itr!=end; ++itr)
+    if (feature)
     {
-        feat->Set(Nan::New<v8::String>(std::get<0>(*itr)).ToLocalChecked(), 
-                  mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
-        );
+        for (auto const& attr : *feature)
+        {
+            feat->Set(Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
+                      mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
+                );
+        }
     }
     info.GetReturnValue().Set(feat);
 }
@@ -228,4 +229,3 @@ NAN_METHOD(Feature::toJSON)
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(json).ToLocalChecked());
 }
-
