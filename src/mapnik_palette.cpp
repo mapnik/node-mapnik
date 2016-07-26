@@ -94,7 +94,7 @@ NAN_METHOD(Palette::ToString)
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     std::size_t length = colors.size();
-    const std::vector<unsigned>& alpha = p->alphaTable();
+    const std::vector<unsigned>& alpha = p->alpha_table();
     std::size_t alphaLength = alpha.size();
 
     std::ostringstream str("");
@@ -122,7 +122,7 @@ NAN_METHOD(Palette::ToBuffer)
 
     const std::vector<mapnik::rgb>& colors = p->palette();
     std::size_t length = colors.size();
-    const std::vector<unsigned>& alpha = p->alphaTable();
+    const std::vector<unsigned>& alpha = p->alpha_table();
     std::size_t alphaLength = alpha.size();
 
     char palette[256 * 4];
