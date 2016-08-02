@@ -1,4 +1,3 @@
-
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
@@ -21,7 +20,7 @@ Nan::Persistent<v8::FunctionTemplate> Datasource::constructor;
 
 /**
  * **`mapnik.Datasource`**
- * 
+ *
  * A Datasource object. This is the connector from Mapnik to any kind
  * of file, network, or database source of geographical data.
  *
@@ -103,7 +102,7 @@ NAN_METHOD(Datasource::New)
         v8::Local<v8::Value> name = names->Get(i)->ToString();
         v8::Local<v8::Value> value = options->Get(name);
         // TODO - don't treat everything as strings
-        params[TOSTR(name)] = TOSTR(value);
+        params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
         i++;
     }
 
