@@ -56,7 +56,7 @@ NAN_METHOD(Projection::New)
     }
 
     if (info.Length() <= 0 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("please provide a proj4 intialization string");
+        Nan::ThrowTypeError("please provide a proj4 initialization string");
         return;
     }
     bool lazy = false;

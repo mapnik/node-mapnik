@@ -1825,7 +1825,7 @@ NAN_METHOD(Image::resize)
     }
     else
     {
-        Nan::ThrowTypeError("resize requires a width and height paramter.");
+        Nan::ThrowTypeError("resize requires a width and height parameter.");
         return;
     }
     if (info.Length() >= 4)

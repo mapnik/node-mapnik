@@ -4880,12 +4880,12 @@ NAN_METHOD(VectorTile::render)
         {
             if (!set_z || !set_x || !set_y)
             {
-                Nan::ThrowTypeError("orginal args 'z', 'x', and 'y' must all be used together");
+                Nan::ThrowTypeError("original args 'z', 'x', and 'y' must all be used together");
                 return;
             }
             if (closure->x < 0 || closure->y < 0 || closure->z < 0)
             {
-                Nan::ThrowTypeError("orginal args 'z', 'x', and 'y' can not be negative");
+                Nan::ThrowTypeError("original args 'z', 'x', and 'y' can not be negative");
                 return;
             }
             int max_at_zoom = pow(2,closure->z);
