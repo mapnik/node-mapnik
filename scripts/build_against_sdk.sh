@@ -8,23 +8,17 @@ On linux depends on node and:
     sudo apt-get install pkg-config build-essential zlib1g-dev
 '
 
-if [[ ${MAPNIK_GIT:-unset} == "unset" ]]; then
-    echo '${MAPNIK_GIT}' env variable must be defined - see .travis.yml
-    exit 1
-fi
-
-ARGS=""
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
+
+ARGS="$@"
 mkdir -p $CURRENT_DIR/../sdk
 cd $CURRENT_DIR/../
+
+export MAPNIK_GIT=${MAPNIK_GIT:-$(node -e "console.log(require('./package.json').mapnik_version)")}
 export PATH=$(pwd)/node_modules/.bin:${PATH}
 cd sdk
 BUILD_DIR="$(pwd)"
 UNAME=$(uname -s);
-
-if [[ ${1:-false} != false ]]; then
-    ARGS=$1
-fi
 
 
 COMPRESSION="tar.bz2"
@@ -45,9 +39,10 @@ REMOTE_URI="${SDK_URI}/${TARBALL_NAME}.${COMPRESSION}"
 export MAPNIK_SDK=${BUILD_DIR}/${TARBALL_NAME}
 export PATH=${MAPNIK_SDK}/bin:${PATH}
 
-LOCAL_PACKAGE="$HOME/projects/mapnik-package-lto/osx/out/dist"
+LOCAL_PACKAGE="$CURRENT_DIR/../../mapnik-packaging/osx/out/dist"
 echo "looking for ${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}"
 if [ -f "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" ]; then
+    LOCAL_PACKAGE=$(realpath $LOCAL_PACKAGE)
     echo "copying over ${TARBALL_NAME}.${COMPRESSION}"
     cp "${LOCAL_PACKAGE}/${TARBALL_NAME}.${COMPRESSION}" .
 else
@@ -67,11 +62,16 @@ if [[ ! `which node` ]]; then
     exit 1
 fi
 
+export LDFLAGS=${LDFLAGS:-""}
+export CXXFLAGS=${CXXFLAGS:-""}
+
 if [[ $UNAME == 'Linux' ]]; then
-    readelf -d $MAPNIK_SDK/lib/libmapnik.so
-    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN'
-else
-    otool -L $MAPNIK_SDK/lib/libmapnik.dylib
+    export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN '${LDFLAGS}
+fi
+
+if [[ ${COVERAGE:-false} == true ]]; then
+    export LDFLAGS="--coverage ${LDFLAGS}"
+    export CXXFLAGS="--coverage ${CXXFLAGS}"
 fi
 
 cd ../
@@ -80,7 +80,7 @@ MODULE_PATH=$(node-pre-gyp reveal module_path ${ARGS})
 # note: dangerous!
 rm -rf ${MODULE_PATH}
 npm install --build-from-source ${ARGS} --clang=1
-npm ls
+
 # copy mapnik-index
 cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}
 # copy shapeindex

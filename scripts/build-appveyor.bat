@@ -4,6 +4,9 @@ SET EL=0
 
 ECHO =========== %~f0 ===========
 
+SET MAPNIK_GIT=
+FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
+
 :: use 64 bit python if platform is 64 bit
 IF /I "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
 :: put 7z on path (needed for unpacking mapnik sdk)
@@ -36,10 +39,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 :: our custom node.exe on PATH from a custom location
 :: and then pass `--prefix` to npm - but this is untested
 ECHO deleting node.exe programfiles x64
-IF EXIST "%ProgramFiles%\nodejs" ^
-    IF EXIST "%ProgramFiles%\nodejs\node.exe" ^
-        ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && ^
-        DEL /F "%ProgramFiles%\nodejs\node.exe"
+IF EXIST "%ProgramFiles%\nodejs" IF EXIST "%ProgramFiles%\nodejs\node.exe" ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && DEL /F "%ProgramFiles%\nodejs\node.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 ECHO copying node.exe to programfiles x64
 IF EXIST %ProgramFiles%\nodejs ECHO copying to "%ProgramFiles%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles%\nodejs\"
@@ -146,7 +146,6 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 CALL npm test
 :: uncomment to allow build to work even if tests do not pass
-::SET ERRORLEVEL=0
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO APPVEYOR_REPO_COMMIT_MESSAGE^: %APPVEYOR_REPO_COMMIT_MESSAGE%

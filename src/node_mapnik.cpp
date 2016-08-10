@@ -1,6 +1,6 @@
-
 // Vector Tile
-#include "vector_tile_processor.hpp"
+#include "vector_tile_config.hpp"
+
 // node-mapnik
 #include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"
@@ -38,12 +38,13 @@
 // boost
 #include <boost/version.hpp>
 
-#include "vector_tile.pb.h"
-
 // cairo
 #if defined(HAVE_CAIRO)
 #include <cairo.h>
 #endif
+
+// std
+#include <future>
 
 namespace node_mapnik {
 
@@ -67,18 +68,12 @@ static NAN_METHOD(clearCache)
     return;
 }
 
-static NAN_METHOD(shutdown)
-{
-    Nan::HandleScope scope;
-    google::protobuf::ShutdownProtobufLibrary();
-    return;
-}
-
 /**
- * Mapnik is the core of cartographic design and processing.
+ * Mapnik is the core of cartographic design and processing. `node-mapnik` provides a
+ * set of bindings to `mapnik` for node.js.
  *
  * @name mapnik
- * @class
+ * @class mapnik
  * @property {string} version current version of mapnik
  * @property {string} module_path path to native mapnik binding
  * @property {Object} supports indicates which of the following are supported:
@@ -86,14 +81,13 @@ static NAN_METHOD(shutdown)
  * @property {Object} versions diagnostic object with versions of
  * node, v8, boost, boost_number, mapnik, mapnik_number, mapnik_git_describe, cairo
  * @example
- * var mapnik = require('node-mapnik');
+ * var mapnik = require('mapnik');
  */
 extern "C" {
 
     static void InitMapnik (v8::Local<v8::Object> target)
     {
         Nan::HandleScope scope;
-        GOOGLE_PROTOBUF_VERIFY_VERSION;
 
         // module level functions
         Nan::SetMethod(target, "blend",node_mapnik::Blend);
@@ -111,7 +105,6 @@ extern "C" {
         Nan::SetMethod(target, "fontFiles", node_mapnik::available_font_files);
         Nan::SetMethod(target, "memoryFonts", node_mapnik::memory_fonts);
         Nan::SetMethod(target, "clearCache", clearCache);
-        Nan::SetMethod(target, "shutdown",shutdown);
 
         // Classes
         VectorTile::Initialize(target);
@@ -384,7 +377,7 @@ extern "C" {
         target->Set(Nan::New("imageScaling").ToLocalChecked(), image_scaling_types);
 
 /**
- * Image scaling type constants representing color and grayscale encodings.
+ * Constants representing fill types understood by [Clipper during vector tile encoding](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm).
  *
  * @name polygonFillType
  * @memberof mapnik
@@ -401,6 +394,22 @@ extern "C" {
         NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "positive", mapnik::vector_tile_impl::positive_fill)
         NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "negative", mapnik::vector_tile_impl::negative_fill)
         target->Set(Nan::New("polygonFillType").ToLocalChecked(), polygon_fill_types);
+
+/**
+ * Constants representing `std::async` threading mode (aka [launch policy](http://en.cppreference.com/w/cpp/thread/launch)).
+ *
+ * @name threadingMode
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} async
+ * @property {number} deferred
+ */
+        v8::Local<v8::Object> threading_mode = Nan::New<v8::Object>();
+        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "async", static_cast<unsigned>(std::launch::async))
+        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "deferred", static_cast<unsigned>(std::launch::deferred))
+        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "auto", static_cast<unsigned>(std::launch::async | std::launch::deferred))
+        target->Set(Nan::New("threadingMode").ToLocalChecked(), threading_mode);
 
     }
 }

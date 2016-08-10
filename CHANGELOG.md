@@ -1,5 +1,135 @@
 # Changelog
 
+## 3.5.13
+
+- Updated to mapnik-vector-tile `1.2.0`, includes a fix for rare decoding situation in vector tiles where a tile would be incorrectly considered invalid.
+
+## 3.5.12
+
+- Fix performance regression when passing raster through vector tile (via upgrade to mapnik-vector-tile@1.1.2)
+
+## 3.5.11
+
+- Fix for numerical precision issue in mapnik vector tile where valid v2 vector tiles would be thrown as invalid
+- Added new exception handling for toGeoJSON
+
+## 3.5.10
+
+- Fix for a segfault in the vector tile clipping library
+
+## 3.5.9
+
+- Updated to mapnik-vector-tile `1.1.0`
+- Automatic updating of vector tiles from v1 to v2 no longer takes place automatically when using `setData` and `addData`.
+- Validation of vector tiles is now optional when using `setData` and `addData`
+
+## 3.5.8
+
+- Updated to mapnik-vector-tile `1.0.6` which includes a speedup on simplification for mapnik-vector-tile
+
+## 3.5.7
+
+- Fixed a situation where repeated holes on top of each other could result in self intersections in vector tile geometries
+- Improved the speed of vector tile creation by removing unrequired checks in clipper library
+- Fixed a situation in clipper where horizontals could result in invalid self intersections.
+- Prevent intersections outside the clipper from being processed after intersections inside the clipped area as this in very rare situations would cause an intersection.
+- Updated to mapnik `3.0.11`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3011).
+
+## 3.5.6
+
+- Another set of fixes for clipper where it would produce invalid polygons when creating vector tiles.
+- Fixed another endless loop in clipper around vector tile creation
+
+## 3.5.5
+
+- Fixed a situation where the clipper would get locked in an endless loop when creating vector tiles.
+
+## 3.5.4
+
+- Updated the angus clipper with several fixes that solve intersections issues within vetor tile polygons created when using strictly simple
+- Updated version of `mapnik-vector-tile` to `1.0.5` this solves a SEGFAULT that occurs in rare situations when encoding fails
+- Corrected some problems in the documentation
+- Added a new optional arguments `split_multi_features` and `lat_lon` to `mapnik.VectorTile.reportGeometryValidity` and `mapnik.VectorTile.reportGeometryValiditySync` that enables validity checks against the parts of multi geometries individually.
+
+## 3.5.3 (DEPRECATED - bad package sent to npm)
+
+- Stopped building node v0.12 binaries. Use node v4 or v5 instead if you need node-mapnik binaries.
+- No code changes: Just a rebuild of 3.5.2 but with debug binaries that can be installed with `npm install --debug`
+
+## 3.5.2
+
+- Fixed bug in `mapnik-inspect.js` around using old `parse()` method on vector tiles, updated it to use `mapnik.VectorTile.info`
+- Updated `mapnik-vector-tile` to `1.0.3` fixing issues with non valid vector tiles being created and linking issue in mapnik-vector-tile with latest mapnik library
+- Updated clipper library to fix bug mentioned in `mapnik-vector-tile`
+
+## 3.5.1
+
+- Added the `mapnik.VectorTile.info` command that returns an object that inspects buffers and provides information about vector tiles.
+- Updated `mapnik-vector-tile` to `1.0.2`
+
+## 3.5.0
+
+This is a major update and reflects a large number of changes added into node-mapnik due to update of the [Mapbox Vector Tile Specification](https://github.com/mapbox/vector-tile-spec). As part of this the [mapnik-vector-tile library](https://github.com/mapbox/mapnik-vector-tile) was updated to `1.0.0`. Therefore, a large number of interfaces changes have taken place around the `mapnik.VectorTile` object.
+
+It is important to know that the concept of `width` and `height` have been removed from `mapnik.VectorTile` objects. This is replaced by the concept of `tileSize`. While `width` and `height` were based on the concept of an Image size created from a vector tile, `tileSize` is directly related to the `extent` as defined in the `Layer` of a vector tile. For understanding what the `Layer` and `extent` is please see the [Vector Tile Specification](https://github.com/mapbox/vector-tile-spec/tree/master/2.1#41-layers). This also changed the `buffer_size` arguments that were commonly used in many Vector Tile methods, which was also based on the *Image size*. The vector tile object now contains a `bufferSize` which represents the buffer added to the layer extent in a tile.
+
+Internally, all methods now depend on V2 tiles, however, any V1 tiles that are loaded into a `mapnik.VectorTile` object will **automatically** be updated.
+
+Summary of changes:
+
+ - `mapnik.VectorTile.addData` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.addDataSync` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.setData` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.setDataSync` now verifies buffers validity and internally updates v1 tiles to v2
+ - `mapnik.VectorTile.addImage` now takes a `mapnik.Image` object rather then a buffer, it also takes optional arguments image_scaling and image_format.
+ - `mapnik.VectorTile.addImageBuffer` replaces the old functionality of of `mapnik.VectorTile.addImage`
+ - Added `mapnik.VectorTile.addImageSync` and made `mapnik.VectorTile.addImage` accept a callback.
+ - Added `mapnik.VectorTile.addImageBufferSync` and made `mapnik.VectorTile.addImageBuffer` accept a callback.
+ - `mapnik.VectorTile.height()` method is removed
+ - `mapnik.VectorTile.width()` method is removed
+ - `mapnik.VectorTile.parse()` method is removed
+ - `mapnik.VectorTile.IsSolid()` method is removed
+ - `mapnik.shutdown()` is removed
+ - Removed the dependency on libprotobuf library
+ - Lowered memory requirements for vector tile creation and vector tile operations.
+ - Duplicate layer names in `mapnik.VectorTile` objects are no longer permitted.
+ - Added new `mapnik.VectorTile.extent()` method which returns the bounding box of a tile in EPSG:3857
+ - Added new `mapnik.VectorTile.bufferedExtent()` method which returns the bounding box including buffer of a tile in EPSG:3857
+ - Added new `mapnik.VectorTile.emptyLayers()` method which returns the name of layers which were not added to a tile during any tile rendering operation.
+ - Added new `mapnik.VectorTile.paintedLayers()` method which returns the name of layers which were considered painted during rendering or layers that contain data.
+ - Added new `mapnik.VetorTile.tileSize` property.
+ - Added new `mapnik.VetorTile.bufferSize` property.
+ - Updated many of the default configuration options on `mapnik.VectorTile` class methods
+ - Removed the concept of `path_multiplier` from the code entirely.
+ - Added optional arguments of `tile_size` and `buffer_size` to `mapnik.VectorTile` constructor.
+
+## 3.4.19
+  
+ - Update to mapnik-core 3.0.11 with a fix to unquoted strings
+
+## 3.4.18
+
+ - Fixed decoding bug that assumed tags came before geometries in vector-tile layers
+
+## 3.4.17
+
+ - Binaries updated to use v3.0.10 and mapnik-packaging@d6ae1fb
+ - Upgraded to protozero v1.3.0
+ - Fixed invalid usage of `mapbox::variant` that was causing windows compiler crash
+
+Notable Changes in Mapnik v3.0.10 include:
+
+ - A shapefile index now is skipped instead of causing an error to be throw. The shapefile plugin will then
+   proceed by reading without using an index. It is advisable to regenerate the indexes to maintain
+   top performance.
+
+Notable changes in the Mapnik SDK include:
+
+ - sqlite 3100000->3110000
+ - libpng 1.6.20->1.6.21
+ - postgres 9.4.5->9.5.1
+ - sparsehash 2.0.2->2.0.3
+
 ## 3.4.16
 
  - Fixed `image.resize` behavior when scaling images with alpha (https://github.com/mapnik/node-mapnik/issues/585)
@@ -35,12 +165,20 @@ Notable Changes in Mapnik v3.0.9-57-g9494bc1 include:
 
 ## 3.4.13
 
+ - BREAKING: shapefile index files must be regenerated if using the
+   node-mapnik binaries which now default to Mapnik `v3.0.9-48-gbb8cd10` (see `Notable Changes in Mapnik` below for details).
  - Upgraded to node-pre-gyp@0.6.19
  - Upgraded to mapnik-vector-tile@0.14.2
+   - Fixed premultiplication bug in raster encoding (#170)
  - Binaries updated to use Mapnik v3.0.9-48-gbb8cd10 and mapnik-packaging@039aa0d
 
 Notable Changes in Mapnik v3.0.9-48-gbb8cd10 include:
 
+ - BREAKING: any `.index` files accompanying a `.shp` must now be regenerated otherwise
+   an error will be throw like `Error: invalid index file`. To avoid this error you can
+   either delete the existing `.index` files, or ideally run `shapeindex` (or [mapnik-shapeindex.js](https://github.com/mapnik/node-mapnik/blob/master/bin/mapnik-shapeindex.js)) to recreate the `.index`.
+   The trigger for this change was an optimization that required a new binary format for the shapefile indexes (https://github.com/mapnik/mapnik/pull/3217). It was a mistake of @springmeyer to bring this into node-mapnik minor release (I'm sorry).
+ - WARNING: index files generated with this newer Mapnik are invalid for older versions of Mapnik.
  - Compare: https://github.com/mapnik/mapnik/compare/v3.0.9...v3.0.9-48-gbb8cd10
  - The `shapeindex` command now has a `--index-parts` option
  - Upgraded mapbox::variant@3ac6e46
@@ -54,7 +192,9 @@ Notable changes in the Mapnik SDK include:
 
 ## 3.4.12
 
- - Exposed `image_scaling` and `image_format` in `vtile.composite`
+ - Exposed `image_scaling` and `image_format` in `vtile.composite` (https://github.com/mapnik/node-mapnik/pull/572)
+   - Default format is now `webp` encoding rather than `jpeg` (to support transparency)
+   - Default scaling is now `bilinear` rather than `near`
  - Binaries updated to use Mapnik v3.0.9-17-g75cb954 and mapnik-packaging@e29a81e
 
 Notable Changes in Mapnik 3.0.9-17-g75cb954 include:
@@ -111,6 +251,8 @@ Notable changes in the Mapnik SDK include:
  - Added `simplify_distance`  option to `VectorTile.composite`. 
  - Added `max_extent` (bbox) option to `VectorTile.composite`. By default it is unset which means no
    clipping extent will be used for the operation. If provided the data will be restricted to this extent.
+     - Landed in https://github.com/mapnik/node-mapnik/commit/ef3b12a36f529a1a8fbb70f4ddd6a92e1bd22008
+     - Previously compositing was using a hardcoded global extent of `-20037508.34,-20037508.34,20037508.34,20037508.34` which meant that all vector tile data was being clipped to global extents. This was harmless in all cases except when data contained data outside of global extents intentionally in order to avoid rendering of lines and blurs being visible at tile boundaries.
  - Added `reencode` (boolean) option to `VectorTile.composite`. If `true` will trigger re-rendering
    even if the z/x/y of all tiles matches. If `false` (the default) then tiles will be concatenated for
    best performance.

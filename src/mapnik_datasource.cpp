@@ -1,4 +1,3 @@
-
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
@@ -20,11 +19,12 @@
 Nan::Persistent<v8::FunctionTemplate> Datasource::constructor;
 
 /**
+ * **`mapnik.Datasource`**
+ *
  * A Datasource object. This is the connector from Mapnik to any kind
  * of file, network, or database source of geographical data.
  *
- * @name mapnik.Datasource
- * @class
+ * @class Datasource
  */
 void Datasource::Initialize(v8::Local<v8::Object> target) {
 
@@ -102,7 +102,7 @@ NAN_METHOD(Datasource::New)
         v8::Local<v8::Value> name = names->Get(i)->ToString();
         v8::Local<v8::Value> value = options->Get(name);
         // TODO - don't treat everything as strings
-        params[TOSTR(name)] = TOSTR(value);
+        params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
         i++;
     }
 
@@ -139,7 +139,7 @@ NAN_METHOD(Datasource::New)
     // even if it is an empty or bad dataset the pointer will still exist
     /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_END */
+    /* LCOV_EXCL_STOP */
 }
 
 v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
@@ -167,9 +167,9 @@ NAN_METHOD(Datasource::parameters)
  * Get the Datasource's extent
  *
  * @name extent
- * @memberof mapnik.Datasource
+ * @memberof Datasource
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
 NAN_METHOD(Datasource::extent)
 {
@@ -188,7 +188,7 @@ NAN_METHOD(Datasource::extent)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
@@ -203,7 +203,7 @@ NAN_METHOD(Datasource::extent)
  * Describe the datasource's contents and type.
  *
  * @name describe
- * @memberof mapnik.Datasource
+ * @memberof Datasource
  * @instance
  * @returns {Object} description: an object with type, fields, encoding,
  * geometry_type, and proj4 code
@@ -225,12 +225,28 @@ NAN_METHOD(Datasource::describe)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     info.GetReturnValue().Set(description);
 }
 
+/**
+ * Get features from this dataset using an iterator.
+ *
+ * @name featureset
+ * @memberof Datasource
+ * @instance
+ * @returns {Object} an iterator with a `.next()` method that returns
+ * features from a dataset.
+ * @example
+ * var features = [];
+ * var featureset = ds.featureset();
+ * var feature;
+ * while ((feature = featureset.next())) {
+ *     features.push(feature);
+ * }
+ */
 NAN_METHOD(Datasource::featureset)
 {
     Datasource* ds = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
@@ -256,7 +272,7 @@ NAN_METHOD(Datasource::featureset)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     if (fs)
@@ -266,9 +282,33 @@ NAN_METHOD(Datasource::featureset)
     // This should never be able to be reached
     /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_END */
+    /* LCOV_EXCL_STOP */
 }
 
+
+/**
+ * Get only the fields metadata from a dataset.
+ *
+ * @name fields
+ * @memberof Datasource
+ * @instance
+ * @returns {Object} an object that maps from a field name to it type
+ * @example
+ * var fields = ds.fields();
+ * // {
+ * //     FIPS: 'String',
+ * //     ISO2: 'String',
+ * //     ISO3: 'String',
+ * //     UN: 'Number',
+ * //     NAME: 'String',
+ * //     AREA: 'Number',
+ * //     POP2005: 'Number',
+ * //     REGION: 'Number',
+ * //     SUBREGION: 'Number',
+ * //     LON: 'Number',
+ * //     LAT: 'Number'
+ * // }
+ */
 NAN_METHOD(Datasource::fields)
 {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());

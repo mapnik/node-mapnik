@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Node Mapnik</title>
+  <link href="http://mapnik.org/css/mapnik.css" type="text/css" rel="stylesheet" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js"></script>
+  <style>
+  section {
+  	padding: 3em 1em;
+  	margin-bottom: 2em;
+  }
+  .container {
+  	display: block;
+  	margin: auto;
+  	max-width: 50em;
+  	padding: 0 1em;
+  }
+  .header {
+  	width: 100%;
+  	background-image: linear-gradient( #9AD8DD, #45ACB6 );
+  	background-color: white;
+  	color: white;
+  	padding: 5em 0;
+  }
+  .left {
+  	width: 75%;
+  	float: left;
+  }
+  .right {
+  	width: 21.5%;
+  	float: right;
+  }
+  pre {
+  	padding: 0;
+  	width: 100%;
+  }
+  h2 {
+  	margin-top: 1.5em;
+  }
+  .footer {
+  	text-align: center;
+  }
+  </style>
+</head>
+<body>
+	<section class="header">
+		<div class="container clearfix">
+			<h1>Node Mapnik</h1>
+			<p>Provides a set of bindings to Mapnik for Node.js</p>
+			<a class="github-button" href="https://github.com/mapnik/node-mapnik" data-icon="octicon-star" data-style="mega" data-count-href="/mapnik/node-mapnik/stargazers" data-count-api="/repos/mapnik/node-mapnik#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star mapnik/node-mapnik on GitHub">Star</a>
+			<script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
+		</div>
+	</section>
+
+	<section class="container clearfix">
+		<div class="left">
+		<p>Node Mapnik is based on Mapnik, a C++ library created for rendering images and vector tiles from custom geographic data sources.</p>
+		<p>Current version: <strong id="version">3.5.0</strong></p>
+		<h2>Installation</h2>
+		<p>Node Mapnik is registered in npm as a module. You can install it with the following command.</p>
+		<pre><code class="bash">npm install --save mapnik</code></pre>
+		<h2>Usage</h2>
+		<p>Render a map from a stylesheet:</p>
+
+<pre><code class="javascript">var mapnik = require('mapnik');
+var fs = require('fs');
+
+// register fonts and datasource plugins
+mapnik.register_default_fonts();
+mapnik.register_default_input_plugins();
+
+var map = new mapnik.Map(256, 256);
+map.load('./test/stylesheet.xml', function(err,map) {
+    if (err) throw err;
+    map.zoomAll();
+    var im = new mapnik.Image(256, 256);
+    map.render(im, function(err,im) {
+      if (err) throw err;
+      im.encode('png', function(err,buffer) {
+          if (err) throw err;
+          fs.writeFile('map.png',buffer, function(err) {
+              if (err) throw err;
+              console.log('saved map image to map.png');
+          });
+      });
+    });
+});
+</code></pre>
+		</div>
+
+		<div class="right">
+			<h3>API Reference</h3>
+			<a class="btn btn-primary" href="/node-mapnik/documentation/3.5">3.5 (latest)</a><br> 
+			<a class="btn btn-outline" href="/node-mapnik/documentation/3.4">3.4</a>
+		</div>
+	</section>
+
+	<section class="footer">
+		<p>Copyright &copy; 2016 Artem Pavlenko | <a href="/">Mapnik.org</a></p>
+	</section>
+	<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

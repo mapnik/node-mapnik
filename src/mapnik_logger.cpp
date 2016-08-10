@@ -4,7 +4,17 @@
 
 Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
 
-// Sets up everything for the Logger object when the addon is initialized
+/**
+ * **`mapnik.Logger`**
+ * 
+ * No constructor - Severity level is only available via `mapnik.Logger` static instance.
+ *
+ * @class Logger
+ * @example
+ * mapnik.Logger.setSeverity(mapnik.Logger.NONE);
+ * var log = mapnik.Logger.get_severity();
+ * console.log(log); // 3
+ */
 void Logger::Initialize(v8::Local<v8::Object> target) {
     Nan::HandleScope scope;
 
@@ -13,8 +23,8 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
 
     // Static methods
-    Nan::SetMethod(lcons->GetFunction(), "getSeverity", Logger::get_severity);
-    Nan::SetMethod(lcons->GetFunction(), "setSeverity", Logger::set_severity);
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "getSeverity", Logger::get_severity);
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "setSeverity", Logger::set_severity);
 
     // Constants
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"NONE",mapnik::logger::severity_type::none);
@@ -40,11 +50,29 @@ NAN_METHOD(Logger::New){
     return;
 }
 
+/**
+ * Returns integer which represents severity level
+ * @name get_severity
+ * @memberof Logger
+ * @static
+ * @returns {number} severity level
+ */
 NAN_METHOD(Logger::get_severity){
     int severity = mapnik::logger::instance().get_severity();
     info.GetReturnValue().Set(Nan::New(severity));
 }
 
+/**
+ * Accepts level of severity as a mapnik constant
+ *
+ * Available security levels
+ *
+ * @name set_severity
+ * @memberof Logger
+ * @static
+ * @param {number} severity - severity level
+ * @returns {number} severity level
+ */
 NAN_METHOD(Logger::set_severity){
     if (info.Length() != 1 || !info[0]->IsNumber()) {
         Nan::ThrowTypeError("requires a severity level parameter");

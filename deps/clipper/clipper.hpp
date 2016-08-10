@@ -58,6 +58,7 @@
 #include <ostream>
 #include <functional>
 #include <queue>
+#include <unordered_map>
 #if defined(CLIPPER_IMPL_INCLUDE)
 #include CLIPPER_IMPL_INCLUDE
 #endif
@@ -235,6 +236,7 @@ struct LocalMinimum;
 struct OutPt;
 struct OutRec;
 struct Join;
+struct OutPtIntersect;
 
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
@@ -377,6 +379,19 @@ private:
   bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
+  bool FindIntersectLoop(std::unordered_multimap<int, OutPtIntersect> & dupeRec,
+                         std::list<std::pair<int, OutPtIntersect> > & iList,
+                         OutRec * outRec_parent,
+                         int idx_origin,
+                         int idx_prev,
+                         std::set<int> & visited,
+                         OutPt * orig_pt, 
+                         OutPt * prev_pt);
+  bool FixIntersects(std::unordered_multimap<int, OutPtIntersect> & dupeRec,
+                     OutPt * op_j,
+                     OutPt * op_k,
+                     OutRec * outRec_j,
+                     OutRec * outRec_k);
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
   void FixupFirstLefts2(OutRec* InnerOutRec, OutRec* OuterOutRec);
   void FixupFirstLefts3(OutRec* OldOutRec, OutRec* NewOutRec);

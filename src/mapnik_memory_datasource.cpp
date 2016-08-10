@@ -95,7 +95,7 @@ NAN_METHOD(MemoryDatasource::New)
         }
         else
         {
-            params[TOSTR(name)] = TOSTR(value);
+            params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
         }
         i++;
     }
@@ -134,7 +134,7 @@ NAN_METHOD(MemoryDatasource::describe)
 {
     MemoryDatasource* d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(info.Holder());
     v8::Local<v8::Object> description = Nan::New<v8::Object>();
-    if (d->datasource_) 
+    if (d->datasource_)
     {
         node_mapnik::describe_datasource(description,d->datasource_);
     }
@@ -156,7 +156,7 @@ NAN_METHOD(MemoryDatasource::featureset)
             // currently.
             /* LCOV_EXCL_START */
             q.add_property_name(attr_info.get_name());
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
         mapnik::featureset_ptr fs = d->datasource_->features(q);
         if (fs)
@@ -164,12 +164,12 @@ NAN_METHOD(MemoryDatasource::featureset)
             info.GetReturnValue().Set(Featureset::NewInstance(fs));
         }
     }
-    
+
     // Even if there is an empty query, a featureset is still created
     // therefore it should be impossible to reach this point in the code.
     /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_END */
+    /* LCOV_EXCL_STOP */
 }
 
 NAN_METHOD(MemoryDatasource::add)

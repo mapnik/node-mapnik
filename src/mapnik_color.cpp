@@ -11,15 +11,18 @@
 Nan::Persistent<v8::FunctionTemplate> Color::constructor;
 
 /**
- * @name mapnik.Color
- * @class
+ * **`mapnik.Color`**
+ *
+ * A `mapnik.Color` object used for handling and converting colors 
+ *
+ * @class Color
  * @param {string|number} value either an array of [r, g, b, a],
  * a color keyword, or a CSS color in rgba() form.
- * @param {number} green
- * @param {number} blue
- * @param {number} blue
- * @param {boolean} premultiplied
- * @throws {TypeError} if a rgb component is outside of the 0-255 range
+ * @param {number} r - red value between `0` and `255`
+ * @param {number} g - green value between `0` and `255`
+ * @param {number} b - blue value between `0` and `255`
+ * @param {boolean} pre - premultiplied, either `true` or `false`
+ * @throws {TypeError} if a `rgb` component is outside of the 0-255 range
  * @example
  * var c = new mapnik.Color('green');
  * var c = new mapnik.Color(0, 128, 0, 255);
@@ -229,7 +232,7 @@ NAN_SETTER(Color::set_prop)
  * Get whether this color is premultiplied
  *
  * @name get_premultiplied
- * @memberof mapnik.Color
+ * @memberof Color
  * @instance
  * @returns {boolean} premultiplied
  */
@@ -244,7 +247,7 @@ NAN_GETTER(Color::get_premultiplied)
  * Set whether this color should be premultiplied
  *
  * @name set_premultiplied
- * @memberof mapnik.Color
+ * @memberof Color
  * @instance
  * @param {boolean} premultiplied
  * @example
@@ -267,7 +270,7 @@ NAN_SETTER(Color::set_premultiplied)
  * Get this color's representation as a string
  *
  * @name toString
- * @memberof mapnik.Color
+ * @memberof Color
  * @instance
  * @returns {string} color as a string
  * @example
@@ -285,7 +288,7 @@ NAN_METHOD(Color::toString)
  * Get this color represented as a hexademical string
  *
  * @name hex
- * @memberof mapnik.Color
+ * @memberof Color
  * @instance
  * @returns {string} hex representation
  * @example

@@ -4,10 +4,11 @@
 Nan::Persistent<v8::FunctionTemplate> Featureset::constructor;
 
 /**
+ * **`mapnik.Featureset`**
+ * 
  * An iterator of {@link mapnik.Feature} objects.
  *
- * @name mapnik.Featureset
- * @class
+ * @class Featureset
  */
 void Featureset::Initialize(v8::Local<v8::Object> target) {
 
@@ -59,7 +60,7 @@ NAN_METHOD(Featureset::New)
  *
  * @name next
  * @instance
- * @memberof mapnik.Featureset
+ * @memberof Featureset
  * @returns {mapnik.Feature|null} next feature
  */
 NAN_METHOD(Featureset::next)
@@ -81,7 +82,7 @@ NAN_METHOD(Featureset::next)
             /* LCOV_EXCL_START */
             Nan::ThrowError(ex.what());
             return;
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
 
         if (fp) {

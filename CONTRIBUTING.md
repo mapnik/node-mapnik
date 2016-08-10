@@ -6,6 +6,12 @@ General guidelines for contributing to node-mapnik
 
 See the [Mapnik guide](https://github.com/mapnik/mapnik/blob/master/docs/contributing.md#coding-conventions).
 
+## Documentation
+
+Please update the inline documentation when adding/editing functionality. All documentation is generated dynamically with [documentationjs](http://documentation.js.org/). Node Mapnik docs are located at mapnik.org/documentation/node-mapnik/.
+
+To update documenation, include `[publish docs]` in your commit message, which will trigger a rebuild of the node-mapnik documentation in the [Mapnik documentation repo](https://github.com/mapnik/documentation/) and subsequently on mapnik.org. Only the `master` branch is used to generate docs, for the time being.
+
 ## Testing
 
 In order for any code to be pulled into master it must contain tests for **100%** of all lines. The only lines that are not required to be tested are those that cover extreme cases which can not be tested with regularity, such as race conditions. 
@@ -97,20 +103,9 @@ An official release requires:
 
  - Updating the CHANGELOG.md
  - Publishing new binaries for a non-alpha version like `3.1.5`. So you'd want to merge your branch and then edit the `version` value in package json back to a decent value for release.
- - Create a github tag like `git tag 3.1.5 -m "v3.1.5"`
+ - Create a github tag like `git tag --annotate 3.1.5 -m "v3.1.5"`
+ - Push new tags `git push --tags`
  - Optional: Test mapnik-swoop again for your new tagged version
  - Ensure you have a clean checkout (no extra files in your check that are not known by git). You need to be careful, for instance, to avoid a large accidental file being packaged by npm. You can get a view of what npm will publish by running `make testpack`
  - Fully rebuild and ensure install from binary works: `make clean && npm install --fallback-to-build=false`
  - Then publish the module to npm repositories by running `npm publish`
-
-### Documentation
-
-node-mapnik is documented with [JSDoc](http://usejsdoc.org/) comments embedded
-in the C++ code and formatted into HTML with [documentationjs](http://documentation.js.org/).
-
-To update the [hosted documentation](http://mapnik.org/node-mapnik/documentation/):
-
-* Switch to the `gh-pages` branch: `git checkout gh-pages`
-* Regenerate documentation: `npm run docs`
-* Add the changed files in the `documentation` path
-* Commit the changes

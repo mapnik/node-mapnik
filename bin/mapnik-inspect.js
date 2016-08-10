@@ -7,7 +7,7 @@ var exists = require('fs').existsSync || require('path').existsSync;
 var fs = require('fs');
 
 var usage = 'usage:';
-usage += '\n  mapnik-inspect.js <datasource> (.vector.pbf|.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
+usage += '\n  mapnik-inspect.js <datasource> (.vector.pbf|.mvt|.shp|.json|.geojson|.osm|.kml|.sqlite|.gml|.vrt|.csv)';
 usage += '\n  mapnik-inspect.js <stylesheet> (.xml)';
 usage += '\n  mapnik-inspect.js <projection> (.prj)';
 usage += '\n  mapnik-inspect.js <zipfile> (.zip)';
@@ -23,7 +23,7 @@ if (!exists(obj)) {
     process.exit(1);
 }
 
-var mapnik = require('mapnik');
+var mapnik = require('../');
 mapnik.register_default_input_plugins();
 
 var meta = function(ds) {
@@ -46,11 +46,8 @@ if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
     meta(opened);
 }
-else if (/.vector.pbf$/.test(obj)) {
-    var vt = new mapnik.VectorTile(0,0,0);
-    vt.setData(fs.readFileSync(obj));
-    vt.parse();
-    console.log(vt.toGeoJSON('__all__'));
+else if ((/.vector.pbf$/.test(obj)) || (/.mvt$/.test(obj))) {
+    console.log(mapnik.VectorTile.info(fs.readFileSync(obj)));
 }
 else if ((/.csv$/.test(obj)) ||
          (/.tsv$/.test(obj)) || // google refine output .tsv for tab-separated files

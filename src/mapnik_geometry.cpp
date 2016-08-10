@@ -11,6 +11,8 @@
 Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
 
 /**
+ * **`mapnik.Geometry`**
+ * 
  * Geometry: a representation of geographical features in terms of
  * shape alone. This class provides many useful functions for conversion
  * to and from formats.
@@ -19,8 +21,7 @@ Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
  * part of a {@link mapnik.Feature} instance, which is often a part of
  * a {@link mapnik.Featureset} instance.
  *
- * @name mapnik.Geometry
- * @class
+ * @class Geometry
  */
 void Geometry::Initialize(v8::Local<v8::Object> target) {
 
@@ -93,10 +94,10 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
 /**
  * Get the geometry type
  *
- * @returns {string} type of geometry.
- * @memberof mapnik.Geometry
- * @instance
  * @name type
+ * @returns {string} type of geometry.
+ * @memberof Geometry
+ * @instance
  */
 NAN_METHOD(Geometry::type)
 {
@@ -110,7 +111,7 @@ NAN_METHOD(Geometry::type)
  * synchronously.
  *
  * @returns {string} GeoJSON, string-encoded representation of this geometry.
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @name toJSONSync
  */
@@ -142,7 +143,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             /* LCOV_EXCL_START */
             Nan::ThrowError("Failed to generate GeoJSON");
             return scope.Escape(Nan::Undefined());
-            /* LCOV_EXCL_END */
+            /* LCOV_EXCL_STOP */
         }
     }
     else
@@ -175,7 +176,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
                 /* LCOV_EXCL_START */
                 Nan::ThrowError("Failed to generate GeoJSON");
                 return scope.Escape(Nan::Undefined());
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -199,7 +200,7 @@ struct to_json_baton {
  * @param {Object} [options={}]. The only supported object is `transform`,
  * which should be a valid {@link mapnik.ProjTransform} object.
  * @param {Function} callback called with (err, result)
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @name toJSON
  */
@@ -262,7 +263,7 @@ void Geometry::to_json(uv_work_t* req)
                 // LCOV_EXCL_START
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                // LCOV_EXCL_END
+                // LCOV_EXCL_STOP
             }
         }
         else
@@ -274,7 +275,7 @@ void Geometry::to_json(uv_work_t* req)
                 /* LCOV_EXCL_START */
                 closure->error = true;
                 closure->result = "Failed to generate GeoJSON";
-                /* LCOV_EXCL_END */
+                /* LCOV_EXCL_STOP */
             }
         }
     }
@@ -285,7 +286,7 @@ void Geometry::to_json(uv_work_t* req)
         /* LCOV_EXCL_START */
         closure->error = true;
         closure->result = ex.what();
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -300,7 +301,7 @@ void Geometry::after_to_json(uv_work_t* req)
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     else
     {
@@ -319,9 +320,9 @@ void Geometry::after_to_json(uv_work_t* req)
  * Get the geometry's extent
  *
  * @name extent
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
 NAN_METHOD(Geometry::extent)
 {
@@ -339,7 +340,7 @@ NAN_METHOD(Geometry::extent)
  * Get the geometry's representation as [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text)
  *
  * @name toWKT
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @returns {string} wkt representation of this geometry
  */
@@ -354,7 +355,7 @@ NAN_METHOD(Geometry::toWKT)
         /* LCOV_EXCL_START */
         Nan::ThrowError("Failed to generate WKT");
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(wkt).ToLocalChecked());
 }
@@ -363,7 +364,7 @@ NAN_METHOD(Geometry::toWKT)
  * Get the geometry's representation as Well-Known Binary
  *
  * @name toWKB
- * @memberof mapnik.Geometry
+ * @memberof Geometry
  * @instance
  * @returns {string} wkb representation of this geometry
  */

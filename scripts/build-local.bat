@@ -10,7 +10,8 @@ ECHO =========== %~f0 ===========
 SET USE_LOCAL_MAPNIK_SDK=0
 
 SET APPVEYOR_REPO_COMMIT_MESSAGE=no commit message provided
-SET MAPNIK_GIT=v3.0.9-rc2-37-g1b6ca8b
+SET MAPNIK_GIT=
+FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
 SET nodejs_version=5.1.0
 SET platform=x64
 SET msvs_toolset=14
@@ -34,7 +35,7 @@ IF %USE_LOCAL_MAPNIK_SDK% EQU 0 GOTO START_BUILD
 SET LOCAL_MAPNIK_SDK_DIR=%PKGDIR%\mapnik-%MAPNIKBRANCH%\mapnik-gyp\mapnik-sdk
 ECHO ----------- using local mapnik build !!!!!!!!!!!!!!!!!! && ECHO copying mapnik SDK...
 ECHO %LOCAL_MAPNIK_SDK_DIR%
-XCOPY /Q /S /E %LOCAL_MAPNIK_SDK_DIR%\*.* .\mapnik-sdk\
+XCOPY /Y /Q /S /E %LOCAL_MAPNIK_SDK_DIR%\*.* .\mapnik-sdk\
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 :START_BUILD

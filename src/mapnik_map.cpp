@@ -8,10 +8,11 @@
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
-#include "vector_tile_processor.hpp"
-#include "vector_tile_backend_pbf.hpp"
 #include "mapnik_vector_tile.hpp"
 #include "object_to_container.hpp"
+
+// mapnik-vector-tile
+#include "vector_tile_processor.hpp"
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
@@ -24,6 +25,7 @@
 #include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
 #endif
 #include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/image_any.hpp>
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
@@ -39,11 +41,8 @@
 // stl
 #include <exception>                    // for exception
 #include <iosfwd>                       // for ostringstream, ostream
-#include <iostream>                     // for clog
 #include <ostream>                      // for operator<<, basic_ostream, etc
 #include <sstream>                      // for basic_ostringstream, etc
-
-#include "vector_tile.pb.h"
 
 // boost
 #include <boost/optional/optional.hpp>  // for optional
@@ -51,16 +50,45 @@
 Nan::Persistent<v8::FunctionTemplate> Map::constructor;
 
 /**
- * A map in mapnik is an object that combined data sources and styles in
+ * **`mapnik.Map`**
+ *
+ * A map in mapnik is an object that combines data sources and styles in
  * a way that lets you produce styled cartographic output.
  *
- * @name mapnik.Map
- * @class
- * @param {number} width
- * @param {number} width
- * @param {string} projection as a proj4 code
+ * @class Map
+ * @param {int} width in pixels
+ * @param {int} height in pixels
+ * @param {string} [projection='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'] projection as a proj4 code
+ * typically used with '+init=epsg:3857'
+ * @property {string} src
+ * @property {number} width
+ * @property {number} height
+ * @property {number} bufferSize
+ * @property {Array<number>} extent - extent of the map as an array `[ minx, miny, maxx, maxy ]`
+ * @property {Array<number>} bufferedExtent - extent of the map's buffer `[ minx, miny, maxx, maxy ]`
+ * @property {Array<number>} maximumExtent - combination of extent and bufferedExtent `[ minx, miny, maxx, maxy ]`
+ * @property {mapnik.Color} background - background color as a {@link mapnik.Color} object
+ * @property {} parameters
+ * @property {} aspect_fix_mode
  * @example
  * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
+ * console.log(map);
+ * // {
+ * //   aspect_fix_mode: 0,
+ * //   parameters: {},
+ * //   background: undefined,
+ * //   maximumExtent: undefined,
+ * //   bufferedExtent: [ NaN, NaN, NaN, NaN ],
+ * //   extent:
+ * //   [ 1.7976931348623157e+308,
+ * //    1.7976931348623157e+308,
+ * //    -1.7976931348623157e+308,
+ * //    -1.7976931348623157e+308 ],
+ * //   bufferSize: 0,
+ * //   height: 400,
+ * //   width: 600,
+ * //   srs: '+init=epsg:3857'
+ * // }
  */
 void Map::Initialize(v8::Local<v8::Object> target) {
 
@@ -274,7 +302,7 @@ NAN_GETTER(Map::get_prop)
         else
             return;
     }
-    else //if (a == "parameters") 
+    else //if (a == "parameters")
     {
         v8::Local<v8::Object> ds = Nan::New<v8::Object>();
         mapnik::parameters const& params = m->map_->get_extra_parameters();
@@ -391,7 +419,7 @@ NAN_SETTER(Map::set_prop)
             v8::Local<v8::Value> name = names->Get(i)->ToString();
             v8::Local<v8::Value> a_value = obj->Get(name);
             if (a_value->IsString()) {
-                params[TOSTR(name)] = TOSTR(a_value);
+                params[TOSTR(name)] = const_cast<char const*>(TOSTR(a_value));
             } else if (a_value->IsNumber()) {
                 double num = a_value->NumberValue();
                 // todo - round
@@ -410,6 +438,14 @@ NAN_SETTER(Map::set_prop)
     }
 }
 
+/**
+ * Load fonts from local or external source
+ *
+ * @name loadFonts
+ * @memberof Map
+ * @instance
+ *
+ */
 NAN_METHOD(Map::loadFonts)
 {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
@@ -465,10 +501,10 @@ NAN_METHOD(Map::registerFonts)
 
 /**
  * Get all of the fonts currently registered as part of this map
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name font
- * @returns {v8::Array<string>} fonts
+ * @returns {Array<string>} fonts
  */
 NAN_METHOD(Map::fonts)
 {
@@ -486,7 +522,7 @@ NAN_METHOD(Map::fonts)
 /**
  * Get all of the fonts currently registered as part of this map, as a mapping
  * from font to font file
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fontFiles
  * @returns {Object} fonts
@@ -505,7 +541,7 @@ NAN_METHOD(Map::fontFiles)
 
 /**
  * Get the currently-registered font directory, if any
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fontDirectory
  * @returns {string|undefined} fonts
@@ -524,7 +560,7 @@ NAN_METHOD(Map::fontDirectory)
 /**
  * Get the map's scale factor. This is the ratio between pixels and geographical
  * units like meters.
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name scale
  * @returns {number} scale
@@ -538,7 +574,7 @@ NAN_METHOD(Map::scale)
 /**
  * Get the map's scale denominator.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name scaleDenominator
  * @returns {number} scale denominator
@@ -799,10 +835,10 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
 /**
  * Get all of the currently-added layers in this map
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name layers
- * @returns {v8::Array<mapnik.Layer>} layers
+ * @returns {Array<mapnik.Layer>} layers
  */
 NAN_METHOD(Map::layers)
 {
@@ -819,7 +855,7 @@ NAN_METHOD(Map::layers)
 /**
  * Add a new layer to this map
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name add_layer
  * @param {mapnik.Layer} new layer
@@ -844,7 +880,7 @@ NAN_METHOD(Map::add_layer) {
 /**
  * Get a layer out of this map, given a name or index
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name get_layer
  * @param {string|number} layer name or index
@@ -908,7 +944,7 @@ NAN_METHOD(Map::get_layer)
 /**
  * Remove all layers and styles from this map
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name clear
  */
@@ -922,7 +958,7 @@ NAN_METHOD(Map::clear)
 /**
  * Give this map new dimensions
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name resize
  * @param {number} width
@@ -962,7 +998,7 @@ typedef struct {
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name load
  * @param {string} stylesheet path
@@ -1073,7 +1109,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name loadSync
  * @param {string} stylesheet path
@@ -1151,7 +1187,7 @@ NAN_METHOD(Map::loadSync)
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet given as a string.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
  * @name fromStringSync
  * @param {string} stylesheet contents
@@ -1229,15 +1265,15 @@ NAN_METHOD(Map::fromStringSync)
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet given as a string.
  *
- * @memberof mapnik.Map
+ * @memberof Map
  * @instance
- * @name fromStringSync
+ * @name fromString
  * @param {string} stylesheet contents
  * @param {Object} [options={}]
  * @param {Function} callback
  * @example
  * var fs = require('fs');
- * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {
+ * map.fromString(fs.readFileSync('./style.xml', 'utf8'), function(err, res) {
  *   // details loaded
  * });
  */
@@ -1352,7 +1388,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  *
  * @instance
  * @name clone
- * @memberof mapnik.Map
+ * @memberof Map
  * @returns {mapnik.Map} clone
  */
 NAN_METHOD(Map::clone)
@@ -1429,8 +1465,8 @@ NAN_METHOD(Map::zoomToBox)
     {
         Nan::ThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
         return;
-    } 
-    else if (info[0]->IsNumber() && 
+    }
+    else if (info[0]->IsNumber() &&
                info[1]->IsNumber() &&
                info[2]->IsNumber() &&
                info[3]->IsNumber())
@@ -1508,8 +1544,6 @@ struct vector_tile_baton_t {
     Map *m;
     VectorTile *d;
     double area_threshold;
-    unsigned path_multiplier;
-    int buffer_size;
     double scale_factor;
     double scale_denominator;
     mapnik::attributes variables;
@@ -1523,12 +1557,11 @@ struct vector_tile_baton_t {
     bool multi_polygon_union;
     mapnik::vector_tile_impl::polygon_fill_type fill_type;
     bool process_all_rings;
+    std::launch threading_mode;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
     vector_tile_baton_t() :
         area_threshold(0.1),
-        path_multiplier(16),
-        buffer_size(0),
         scale_factor(1.0),
         scale_denominator(0.0),
         variables(),
@@ -1538,10 +1571,11 @@ struct vector_tile_baton_t {
         scaling_method(mapnik::SCALING_BILINEAR),
         simplify_distance(0.0),
         error(false),
-        strictly_simple(false),
-        multi_polygon_union(true),
-        fill_type(mapnik::vector_tile_impl::non_zero_fill),
-        process_all_rings(false) {}
+        strictly_simple(true),
+        multi_polygon_union(false),
+        fill_type(mapnik::vector_tile_impl::positive_fill),
+        process_all_rings(false),
+        threading_mode(std::launch::deferred) {}
 };
 
 NAN_METHOD(Map::render)
@@ -1595,7 +1629,6 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                     return;
                 }
-
                 buffer_size = bind_opt->IntegerValue();
             }
 
@@ -1794,16 +1827,15 @@ NAN_METHOD(Map::render)
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
         }
 #endif
-        else if (Nan::New(VectorTile::constructor)->HasInstance(obj)) 
+        else if (Nan::New(VectorTile::constructor)->HasInstance(obj))
         {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
-            VectorTile * vector_tile_obj = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
 
-            if (options->Has(Nan::New("image_scaling").ToLocalChecked())) 
+            if (options->Has(Nan::New("image_scaling").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
-                if (!param_val->IsString()) 
+                if (!param_val->IsString())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_scaling' must be a string");
@@ -1811,7 +1843,7 @@ NAN_METHOD(Map::render)
                 }
                 std::string image_scaling = TOSTR(param_val);
                 boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
-                if (!method) 
+                if (!method)
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
@@ -1820,10 +1852,10 @@ NAN_METHOD(Map::render)
                 closure->scaling_method = *method;
             }
 
-            if (options->Has(Nan::New("image_format").ToLocalChecked())) 
+            if (options->Has(Nan::New("image_format").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
-                if (!param_val->IsString()) 
+                if (!param_val->IsString())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_format' must be a string");
@@ -1832,22 +1864,28 @@ NAN_METHOD(Map::render)
                 closure->image_format = TOSTR(param_val);
             }
 
-            if (options->Has(Nan::New("area_threshold").ToLocalChecked())) 
+            if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
-                if (!param_val->IsNumber()) 
+                if (!param_val->IsNumber())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'area_threshold' must be a number");
                     return;
                 }
                 closure->area_threshold = param_val->NumberValue();
+                if (closure->area_threshold < 0.0)
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("option 'area_threshold' must not be a negative number");
+                    return;
+                }
             }
 
-            if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) 
+            if (options->Has(Nan::New("strictly_simple").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("strictly_simple").ToLocalChecked());
-                if (!param_val->IsBoolean()) 
+                if (!param_val->IsBoolean())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
@@ -1856,10 +1894,10 @@ NAN_METHOD(Map::render)
                 closure->strictly_simple = param_val->BooleanValue();
             }
 
-            if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked())) 
+            if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
-                if (!param_val->IsBoolean()) 
+                if (!param_val->IsBoolean())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
@@ -1868,10 +1906,10 @@ NAN_METHOD(Map::render)
                 closure->multi_polygon_union = param_val->BooleanValue();
             }
 
-            if (options->Has(Nan::New("fill_type").ToLocalChecked())) 
+            if (options->Has(Nan::New("fill_type").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("fill_type").ToLocalChecked());
-                if (!param_val->IsNumber()) 
+                if (!param_val->IsNumber())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'fill_type' must be an unsigned integer");
@@ -1886,22 +1924,30 @@ NAN_METHOD(Map::render)
                 }
             }
 
-            if (options->Has(Nan::New("path_multiplier").ToLocalChecked())) 
+            if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
             {
-                v8::Local<v8::Value> param_val = options->Get(Nan::New("path_multiplier").ToLocalChecked());
-                if (!param_val->IsNumber()) 
+                v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+                if (!param_val->IsNumber())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'path_multiplier' must be an unsigned integer");
+                    Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
                     return;
                 }
-                closure->path_multiplier = param_val->IntegerValue();
+                closure->threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+                if (closure->threading_mode != std::launch::async &&
+                    closure->threading_mode != std::launch::deferred &&
+                    closure->threading_mode != (std::launch::async | std::launch::deferred))
+                {
+                    delete closure;
+                    Nan::ThrowTypeError("optional arg 'threading_mode' value passed is invalid");
+                    return;
+                }
             }
 
-            if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) 
+            if (options->Has(Nan::New("simplify_distance").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
-                if (!param_val->IsNumber()) 
+                if (!param_val->IsNumber())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
@@ -1928,10 +1974,10 @@ NAN_METHOD(Map::render)
                 object_to_container(closure->variables,bind_opt->ToObject());
             }
 
-            if (options->Has(Nan::New("process_all_rings").ToLocalChecked())) 
+            if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
             {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
-                if (!param_val->IsBoolean()) 
+                if (!param_val->IsBoolean())
                 {
                     delete closure;
                     Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
@@ -1942,9 +1988,8 @@ NAN_METHOD(Map::render)
 
             closure->request.data = closure;
             closure->m = m;
-            closure->d = vector_tile_obj;
+            closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
             closure->d->_ref();
-            closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
             closure->offset_x = offset_x;
@@ -1958,8 +2003,8 @@ NAN_METHOD(Map::render)
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
-        } 
-        else 
+        }
+        else
         {
             Nan::ThrowTypeError("renderable mapnik object expected");
             return;
@@ -1974,7 +2019,7 @@ NAN_METHOD(Map::render)
         /* LCOV_EXCL_START */
         Nan::ThrowTypeError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -1983,40 +2028,24 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     try
     {
-        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-        vector_tile::Tile tiledata;
-        backend_type backend(tiledata,
-                             closure->path_multiplier);
         mapnik::Map const& map = *closure->m->get();
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(closure->buffer_size);
-        renderer_type ren(backend,
-                          map,
-                          m_req,
-                          closure->scale_factor,
-                          closure->offset_x,
-                          closure->offset_y,
-                          closure->area_threshold,
-                          closure->strictly_simple,
-                          closure->image_format,
-                          closure->scaling_method);
+
+        mapnik::vector_tile_impl::processor ren(map);
         ren.set_simplify_distance(closure->simplify_distance);
         ren.set_multi_polygon_union(closure->multi_polygon_union);
         ren.set_fill_type(closure->fill_type);
         ren.set_process_all_rings(closure->process_all_rings);
-        ren.apply(closure->scale_denominator);
-        std::string new_message;
-        if (!tiledata.SerializeToString(&new_message))
-        {
-            /* LCOV_EXCL_START */
-            throw std::runtime_error("could not serialize new data for vt");
-            /* LCOV_EXCL_END */
-        }
-        if (!new_message.empty())
-        {
-            closure->d->buffer_.append(new_message.data(),new_message.size());
-        }
+        ren.set_scale_factor(closure->scale_factor);
+        ren.set_strictly_simple(closure->strictly_simple);
+        ren.set_image_format(closure->image_format);
+        ren.set_scaling_method(closure->scaling_method);
+        ren.set_area_threshold(closure->area_threshold);
+        ren.set_threading_mode(closure->threading_mode);
+
+        ren.update_tile(*closure->d->get_tile(),
+                        closure->scale_denominator,
+                        closure->offset_x,
+                        closure->offset_y);
     }
     catch (std::exception const& ex)
     {
@@ -2031,12 +2060,12 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     closure->m->release();
 
-    if (closure->error) 
+    if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-    } 
-    else 
+    }
+    else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2115,18 +2144,18 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
 
 struct agg_renderer_visitor
 {
-    agg_renderer_visitor(mapnik::Map const& m, 
-                         mapnik::request const& req, 
+    agg_renderer_visitor(mapnik::Map const& m,
+                         mapnik::request const& req,
                          mapnik::attributes const& vars,
-                         double scale_factor, 
-                         unsigned offset_x, 
-                         unsigned offset_y, 
+                         double scale_factor,
+                         unsigned offset_x,
+                         unsigned offset_y,
                          double scale_denominator)
         : m_(m),
           req_(req),
           vars_(vars),
-          scale_factor_(scale_factor), 
-          offset_x_(offset_x), 
+          scale_factor_(scale_factor),
+          offset_x_(offset_x),
           offset_y_(offset_y),
           scale_denominator_(scale_denominator) {}
 
@@ -2135,7 +2164,7 @@ struct agg_renderer_visitor
         mapnik::agg_renderer<mapnik::image_rgba8> ren(m_,req_,vars_,pixmap,scale_factor_,offset_x_,offset_y_);
         ren.apply(scale_denominator_);
     }
-    
+
     template <typename T>
     void operator() (T &)
     {
@@ -2161,10 +2190,10 @@ void Map::EIO_RenderImage(uv_work_t* req)
         mapnik::Map const& map = *closure->m->map_;
         mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
         m_req.set_buffer_size(closure->buffer_size);
-        agg_renderer_visitor visit(map, 
-                                   m_req, 
-                                   closure->variables, 
-                                   closure->scale_factor, 
+        agg_renderer_visitor visit(map,
+                                   m_req,
+                                   closure->variables,
+                                   closure->scale_factor,
                                    closure->offset_x,
                                    closure->offset_y,
                                    closure->scale_denominator);
@@ -2438,9 +2467,9 @@ NAN_METHOD(Map::renderSync)
     double scale_denominator = 0.0;
     int buffer_size = 0;
 
-    if (info.Length() >= 1) 
+    if (info.Length() >= 1)
     {
-        if (!info[0]->IsObject()) 
+        if (!info[0]->IsObject())
         {
             Nan::ThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
             return;

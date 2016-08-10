@@ -48,7 +48,7 @@ NAN_METHOD(CairoSurface::New)
         im->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 
     if (info.Length() == 3)

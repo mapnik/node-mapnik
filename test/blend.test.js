@@ -340,8 +340,11 @@ describe('mapnik.blend', function() {
     });
     
     it('blended fails png with quality - paletted - hextree', function(done) {
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected-hex-palette-256-tiny.png');
         mapnik.blend(images_tiny, {quality:256, mode:"hextree"}, function(err, result) {
-            assert.throws(function() { if (err) throw err; });
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            assert.equal(0,expected.compare(actual));
             done();
         });
     });

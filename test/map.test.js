@@ -4,6 +4,7 @@ var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 var fs = require('fs');
+var os = require('os');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
@@ -321,10 +322,11 @@ describe('mapnik.Map', function() {
         var layers = map.layers();
         // Test bad parameters
         assert.throws(function() { map.save(1); });
-        assert.throws(function() { map.save('./test/stylesheet_copy.xml', 2); });
-        map.save('./test/stylesheet_copy.xml');
+        assert.throws(function() { map.save('./test/stylesheet.xml', 2); });
+        var tmp_stylesheet = path.join(os.tmpdir(),'stylesheet_copy.xml');
+        map.save(tmp_stylesheet);
         var map2 = new mapnik.Map(600,400);
-        map2.loadSync('./test/stylesheet_copy.xml')
+        map2.loadSync(tmp_stylesheet)
         var layers2 = map2.layers();
 
         assert.equal(layers.length, layers2.length);
@@ -335,7 +337,7 @@ describe('mapnik.Map', function() {
         assert.equal(layers[0].datasource.parameters().type,layers2[0].datasource.parameters().type);
         assert.equal(layers[0].datasource.type, layers2[0].datasource.type);
 
-        fs.unlink('./test/stylesheet_copy.xml', function(err) {
+        fs.unlink(tmp_stylesheet, function(err) {
             if (err) throw err;
             done();
         });

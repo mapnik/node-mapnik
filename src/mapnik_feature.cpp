@@ -1,4 +1,3 @@
-
 #include "utils.hpp"
 #include "mapnik_feature.hpp"
 #include "mapnik_geometry.hpp"
@@ -14,12 +13,13 @@
 Nan::Persistent<v8::FunctionTemplate> Feature::constructor;
 
 /**
+ * **`mapnik.Feature`**
+ *
  * A single geographic feature, with geometry and properties. This is
  * typically derived from data by a datasource, but can be manually
  * created.
  *
- * @name mapnik.Feature
- * @class
+ * @class Feature
  */
 void Feature::Initialize(v8::Local<v8::Object> target) {
 
@@ -35,7 +35,7 @@ void Feature::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "geometry", geometry);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
 
-    Nan::SetMethod(lcons->GetFunction(),
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromJSON",
                     Feature::fromJSON);
 
@@ -90,7 +90,7 @@ NAN_METHOD(Feature::New)
 }
 
 /**
- * @memberof mapnik.Feature
+ * @memberof Feature
  * @static
  * @name fromJSON
  * @param {string} geojson string
@@ -123,7 +123,7 @@ NAN_METHOD(Feature::fromJSON)
         /* LCOV_EXCL_START */
         Nan::ThrowError(ex.what());
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
 }
 
@@ -136,7 +136,7 @@ v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
 }
 
 /**
- * @memberof mapnik.Feature
+ * @memberof Feature
  * @name id
  * @instance
  * @returns {number} id the feature's internal id
@@ -151,9 +151,9 @@ NAN_METHOD(Feature::id)
  * Get the feature's extent
  *
  * @name extent
- * @memberof mapnik.Feature
+ * @memberof Feature
  * @instance
- * @returns {v8::Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
+ * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
 NAN_METHOD(Feature::extent)
 {
@@ -172,7 +172,7 @@ NAN_METHOD(Feature::extent)
  * Get the feature's attributes as an object.
  *
  * @name attributes
- * @memberof mapnik.Feature
+ * @memberof Feature
  * @instance
  * @returns {Object} attributes
  */
@@ -181,13 +181,14 @@ NAN_METHOD(Feature::attributes)
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     v8::Local<v8::Object> feat = Nan::New<v8::Object>();
     mapnik::feature_ptr feature = fp->get();
-    mapnik::feature_impl::iterator itr = feature->begin();
-    mapnik::feature_impl::iterator end = feature->end();
-    for ( ;itr!=end; ++itr)
+    if (feature)
     {
-        feat->Set(Nan::New<v8::String>(std::get<0>(*itr)).ToLocalChecked(), 
-                  mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(*itr))
-        );
+        for (auto const& attr : *feature)
+        {
+            feat->Set(Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
+                      mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
+                );
+        }
     }
     info.GetReturnValue().Set(feat);
 }
@@ -197,7 +198,7 @@ NAN_METHOD(Feature::attributes)
  * Get the feature's attributes as a Mapnik geometry.
  *
  * @name geometry
- * @memberof mapnik.Feature
+ * @memberof Feature
  * @instance
  * @returns {mapnik.Geometry} geometry
  */
@@ -212,7 +213,7 @@ NAN_METHOD(Feature::geometry)
  *
  * @instance
  * @name toJSON
- * @memberof mapnik.Feature
+ * @memberof Feature
  * @returns {string} geojson Feature object in stringified GeoJSON
  */
 NAN_METHOD(Feature::toJSON)
@@ -224,8 +225,7 @@ NAN_METHOD(Feature::toJSON)
         /* LCOV_EXCL_START */
         Nan::ThrowError("Failed to generate GeoJSON");
         return;
-        /* LCOV_EXCL_END */
+        /* LCOV_EXCL_STOP */
     }
     info.GetReturnValue().Set(Nan::New<v8::String>(json).ToLocalChecked());
 }
-
