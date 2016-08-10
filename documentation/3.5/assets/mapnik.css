@@ -97,6 +97,8 @@ p code {
 }
 
 .main {
+  border-top: 3px solid #0C9DC2;
+  padding-top: 1em;
   margin-top: 3em;
 }
 .section-params {
@@ -189,10 +191,15 @@ h4:hover .anchorjs-link {
   padding: 1em;
   margin: 1em 0;
   border: 1px solid #f2f2f2;
-  border-left: 3px solid #45ACB6;
+  border-left: 3px solid #f2f2f2;
 }
-.collapsible > a {
-  color: #75A21C;
+.collapsible .force-inline p,
+.collapsible .force-inline p a {
+  color: #999;
+}
+.collapsible > a code {
+  font-weight: 900;
+  color: #555;
 }
 
 .fix-3 {

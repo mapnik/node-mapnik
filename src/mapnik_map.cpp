@@ -114,7 +114,6 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toXML", to_string);
     Nan::SetPrototypeMethod(lcons, "resize", resize);
 
-
     Nan::SetPrototypeMethod(lcons, "render", render);
     Nan::SetPrototypeMethod(lcons, "renderSync", renderSync);
     Nan::SetPrototypeMethod(lcons, "renderFile", renderFile);
@@ -1578,6 +1577,52 @@ struct vector_tile_baton_t {
         threading_mode(std::launch::deferred) {}
 };
 
+/**
+ * Render a mapnik map to an image source
+ * 
+ * @instance
+ * @name render
+ * @memberof Map
+ * @param {Object} object - a renderable mapnik object such as a `mapnik.Image`
+ * @param {Object} [options]
+ * @param {Number} [options.buffer_size=0] - size of the buffer in pixels of the rendered image
+ * @param {Number} [options.scale=1]
+ * @param {Number} [options.scale_factor=1.0]
+ * @param {Number} [options.scale_denominator=0.0] -
+ * @param {Number} [options.offset_x=0]
+ * @param {Number} [options.offset_y=0]
+ * @param {Object} [options.variables]
+ * @param {String} [options.layer] - must be either a layer string or layer index (integer)
+ * @param {String} [options.image_scaling] - must be a string and a valid scaling method (e.g 'bilinear') - see <mapnik.imageScaling> for available methods
+ * @param {String} [options.image_format=webp] - can be `webp`, `jpeg`, or `png`
+ * @param {Number} [options.area_threshold=0.0] - Used to discard small polygons. 
+ * If a value is greater than `0` it will trigger polygons with an area smaller 
+ * than the value to be discarded. Measured in grid integers, not spherical mercator
+ * coordinates. Must be non-negative.
+ * @param {Boolean} [options.strictly_simple=true] - ensure all geometry is valid according to
+ * OGC Simple definition
+ * @param {Boolean} [options.multi_polygon_union=false] - union all multipolygons
+ * @param {Number} [options.fill_type] - defaults to "positive fill"
+ * @param {Number} [options.threading_mode] - defaults to `deferred`
+ * @param {Number} [options.simplify_distance=0.0] - Simplification works to generalize 
+ * geometries before encoding into vector tiles.simplification distance The 
+ * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
+ * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+ * @param {Boolean} [options.process_all_rings=false] - if `true`, don't assume winding order and ring order of 
+ * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * @param {Function} callback
+ * @example
+ * var map = new mapnik.Map(300, 300);
+ * // add data & styles to the map object here
+ * var im = new mapnik.Image(map.width, map.height);
+ * map.render(im, {scale: 1, buffer_size: 1}, function(err, image) {
+ *     if (err) throw err;
+ *     // image is a mapnik image object
+ *     var buffer = image.encodSync();
+ *     // name & save the image
+ * });
+ *
+ */
 NAN_METHOD(Map::render)
 {
     // ensure at least 2 args
