@@ -1,5 +1,23 @@
 #!/bin/bash
 
+trigger_docs () {
+  body="{
+    \"request\": {
+      \"message\": \"Triggered build: Mapnik core commit ${TRAVIS_COMMIT}\",
+      \"branch\":\"master\"
+    }
+  }
+  "
+
+  curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Travis-API-Version: 3" \
+    -H "Authorization: token ${TRAVIS_TRIGGER_TOKEN}" \
+    -d "$body" \
+    https://api.travis-ci.org/repo/mapnik%2Fdocumentation/requests
+}
+
 echo "dumping binary meta..."
 ./node_modules/.bin/node-pre-gyp reveal ${NPM_FLAGS}
 
@@ -27,21 +45,7 @@ else
     # only publish docs from a single build environment which has DOC_JOB set
     if [[ ${COMMIT_MESSAGE} =~ "[publish docs]" ]] && [[ ${DOC_JOB:-} == "true" ]]; then
         echo "Publishing docs"
-        body="{
-            \"request\": {
-              \"message\": \"Triggered build: Mapnik core commit ${TRAVIS_COMMIT}\",
-              \"branch\":\"master\"
-            }
-        }
-        "
-
-        curl -s -X POST \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            -H "Travis-API-Version: 3" \
-            -H "Authorization: token ${TRAVIS_TRIGGER_TOKEN}" \
-            -d "$body" \
-            https://api.travis-ci.org/repo/mapnik%2Fdocumentation/requests
+        trigger_docs
     else
         echo "Skipping publishing docs."
     fi;
