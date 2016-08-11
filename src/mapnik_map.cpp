@@ -1578,6 +1578,66 @@ struct vector_tile_baton_t {
         threading_mode(std::launch::deferred) {}
 };
 
+/**
+ * Renders a mapnik object (image tile, grid, vector tile) by passing in a renderable mapnik object.
+ *
+ * @instance
+ * @name render
+ * @memberof Map
+ * @param {mapnik.Image} renderable mapnik object
+ * @param {Object} [options={}]
+ * @param {Number} [buffer_size=0] size of the buffer on the image
+ * @param {Number} [scale=1.0] scale the image
+ * @param {Number} [scale_denominator=0.0] 
+ * @param {Number} [offset_x=0] pixel offset along the x-axis 
+ * @param {Number} [offset_y=0] pixel offset along the y-axis
+ * @param {String} [image_scaling] must be a valid scaling method (used when rendering a vector tile)
+ * @param {String} [image_format] must be a string and valid image format (used when rendering a vector tile)
+ * @param {Number} [area_threshold] used to discard small polygons by setting a minimum size (used when rendering a vector tile)
+ * @param {Boolean} [strictly_simple=] ensure all geometry is valid according to
+ * OGC Simple definition (used when rendering a vector tile)
+ * @param {Boolean} [multi_polygon_union] union all multipolygons (used when rendering a vector tile)
+ * @param {String} [fill_type] the fill type used in determining what are holes and what are outer rings. See the 
+ * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
+ * to learn more about fill types. (used when rendering a vector tile)
+ * @param {String} [threading_mode] (used when rendering a vector tile)
+ * @param {Number} [simplify_distance] Simplification works to generalize 
+ * geometries before encoding into vector tiles.simplification distance The 
+ * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
+ * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
+ * (used when rendering a vector tile)
+ * @param {Object} [variables] Mapnik 3.x ONLY: A javascript object 
+ * containing key value pairs that should be passed into Mapnik as variables 
+ * for rendering and for datasource queries. For example if you passed 
+ * `vtile.render(map,image,{ variables : {zoom:1} },cb)` then the `@zoom`
+ * variable would be usable in Mapnik symbolizers like `line-width:"@zoom"`
+ * and as a token in Mapnik postgis sql sub-selects like 
+ * `(select * from table where some_field > @zoom)` as tmp (used when rendering a vector tile)
+ * @param {Boolean} [process_all_rings] if `true`, don't assume winding order and ring order of 
+ * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
+ * (used when rendering a vector tile)
+ * @returns {mapnik.Map} rendered image tile
+ *
+ * @example
+ * // render data to an image object
+ * var map = new mapnik.Map(256, 256);
+ * map.loadSync('./path/to/stylesheet.xml');
+ * var image = new mapnik.Image(map.width, map.height);
+ * map.render(image, {}, function(err, image) {
+ *     if (err) throw err;
+ *     console.log(image) // => mapnik image object with data from xml
+ * });
+ *
+ * @example
+ * // render data to a vector tile object
+ * var map = new mapnik.Map(256, 256);
+ * map.loadSync('./path/to/stylesheet.xml');
+ * var vtile = new mapnik.VectorTile(9,112,195);
+ * map.render(vtile, {}, function(err, vtile) {
+ *     if (err) throw err;
+ *     console.log(vtile); // => vector tile object with data from xml 
+ * });
+ */
 NAN_METHOD(Map::render)
 {
     // ensure at least 2 args
