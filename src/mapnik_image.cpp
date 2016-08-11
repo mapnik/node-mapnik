@@ -3188,7 +3188,10 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
         Image* im = new Image(image_ptr);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+        v8::Local<v8::Value> image_instance = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
+        v8::Local<v8::Object> image_obj = image_instance->ToObject();
+        image_obj->Set(Nan::New("_buffer").ToLocalChecked(),obj);
+        return scope.Escape(image_instance);
     }
     catch (std::exception const& ex)
     {
