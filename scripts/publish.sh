@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trigger_docs () {
+function trigger_docs () {
   body="{
     \"request\": {
       \"message\": \"Triggered build: Mapnik core commit ${TRAVIS_COMMIT}\",
