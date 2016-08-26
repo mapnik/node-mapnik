@@ -30,7 +30,7 @@ describe('mapnik.Geometry ', function() {
         var expected_wkb = new Buffer('0104000000020000000101000000000000000000000000000000000000000101000000000000000000f03f000000000000f03f', 'hex');
         assert.deepEqual(geom.toWKB(),expected_wkb);
     });
-    
+
     it('should fail on toJSON due to bad parameters', function() {
         var feature = new mapnik.Feature(1);
         var point = {
@@ -71,5 +71,144 @@ describe('mapnik.Geometry ', function() {
         assert.throws(function() {
             var geom = s.geometry().toWKB();
         });
+    });
+
+    it('should return a type name for a Point', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'Point',
+                coordinates: [ 10, 15 ]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'Point');
+    });
+
+    it('should return a type name for a LineString', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'LineString',
+                coordinates: [[ 10, 15 ], [ 20, 30 ]]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'LineString');
+    });
+
+    it('should return a type name for a Polygon', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'Polygon',
+                coordinates: [[[ 10, 15 ], [ 20, 30 ], [ 40, 30 ], [ 10, 15 ]]]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'Polygon');
+    });
+
+    it('should return a type name for a MultiPoint', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'MultiPoint',
+                coordinates: [[ 10, 15 ], [ 20, 30 ]]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'MultiPoint');
+    });
+
+    it('should return a type name for a MultiLineString', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'MultiLineString',
+                coordinates: [[[ 10, 15 ], [ 20, 30 ]], [[ 40, 30 ], [ 10, 15 ]]]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'MultiLineString');
+    });
+
+    it('should return a type name for a MultiPolygon', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'MultiPolygon',
+                coordinates: [
+                    [[[ 10, 15 ], [ 20, 30 ], [ 40, 30 ], [ 10, 15 ]]],
+                    [[[ 40, 55 ], [ 60, 70 ], [ 80, 70 ], [ 40, 55 ]]]
+                ]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'MultiPolygon');
+    });
+
+    it('should return a type name for a GeometryCollection', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'GeometryCollection',
+                geometries: [
+                    {
+                        type: 'LineString',
+                        coordinates: [[ 10, 15 ], [ 20, 30 ]]
+                    },
+                    {
+                        type: 'Point',
+                        coordinates: [ 10, 15 ]
+                    }
+                ]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'GeometryCollection');
+    });
+
+    it('should return a type name for an unknown geometry', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'MultiPoint',
+                coordinates: [ 10, 15 ]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        assert.equal(geom.typeName(), 'Unknown');
+    });
+
+    it('should return a type name for a broken geometry', function() {
+        var input = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'Point',
+                coordinates: [ 10, 15 ]
+            }
+        };
+        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
+        var geom = f.geometry();
+        geom.type = function() { return 777; }
+        assert.equal(geom.typeName(), 'Unknown');
     });
 });
