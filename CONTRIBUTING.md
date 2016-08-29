@@ -10,7 +10,14 @@ See the [Mapnik guide](https://github.com/mapnik/mapnik/blob/master/docs/contrib
 
 Please update the inline documentation when adding/editing functionality. All documentation is generated dynamically with [documentationjs](http://documentation.js.org/). Node Mapnik docs are located at mapnik.org/documentation/node-mapnik/.
 
-To update documenation, include `[publish docs]` in your commit message, which will trigger a rebuild of the node-mapnik documentation in the [Mapnik documentation repo](https://github.com/mapnik/documentation/) and subsequently on mapnik.org. Only the `master` branch is used to generate docs, for the time being.
+All documentation is updated on a daily basis if there have been changes to the `master` branch. To view your documentation changes locally:
+
+```bash
+npm run docs
+python -m SimpleHTTPServer # localhost:8000/documentation/<version>
+```
+
+*Note: since mapnik.org has a specific theme for documentationjs, it will look different than viewing locally.*
 
 ## Testing
 
