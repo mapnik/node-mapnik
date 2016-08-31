@@ -51,6 +51,17 @@ matrix:
      - os: linux
        compiler: clang
        env: NODE_VERSION="0.10" PUBLISHABLE=true # node abi 11
+     # linux gcc5
+     - os: linux
+       compiler: gcc
+       env: NODE_VERSION="4" CXX="g++-5" PUBLISHABLE=false
+       addons:
+         apt:
+           sources:
+            - ubuntu-toolchain-r-test
+           packages:
+            - libstdc++-5-dev
+            - g++-5
      # OS X
      - os: osx
        osx_image: xcode7
@@ -80,7 +91,7 @@ matrix:
 before_install:
  - scripts/validate_tag.sh
  - export COVERAGE=${COVERAGE:-false}
- - if [[ $(uname -s) == 'Linux' ]]; then
+ - if [[ $(uname -s) == 'Linux' ]] && [[ ${CXX:-"notset"} == "notset" ]]; then
      git clone --depth 1 https://github.com/mapbox/mason.git ./.mason;
      export PATH=$(pwd)/.mason:${PATH};
      mason install clang 3.8.0;
