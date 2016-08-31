@@ -51,9 +51,10 @@ An example is `Arial Bold` where `Arial` is the Family Name and `Bold` is the St
 In CartoCSS this looks like:
 
 ```css
-    text-face-name: "Arial Bold";
-    text-name: [name];
+text-face-name: "Arial Bold";
+text-name: [name];
 ```
+
 
 And in Mapnik XML this looks like:
 
@@ -85,5 +86,4 @@ A common solution to this problem in software is to use a LRU cache. If this wer
   - Load in-memory on the map instance any needed fonts before rendering `map.loadFonts()`
   - Avoids them needing to be lazily cached globally during rendering (and avoids the mutex lock to make this threadsafe).
   - Drop the map level memory cache simply by discarding the map instance.
-
 
