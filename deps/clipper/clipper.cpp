@@ -704,6 +704,28 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
                 y1 = std::ceil(((ip.x - 0.5) / Edge1.Dx + by1) - 0.5);
             }
         }
+        else if (Edge1.Bot.y > ip.y)
+        {
+            if (Edge2.Bot.y >= Edge1.Bot.y)
+            {
+                y1 = Edge1.Bot.y;
+            }
+            else
+            {
+                y1 = Edge2.Bot.y;
+            }
+        }
+        else if (Edge1.Bot.y < ip.y)
+        {
+            if (Edge2.Bot.y <= Edge1.Bot.y)
+            {
+                y1 = Edge1.Bot.y;
+            }
+            else
+            {
+                y1 = Edge2.Bot.y;
+            }
+        }
         if (ip.y >= Edge1.Bot.y && y1 < Edge1.Bot.y) y1 = Edge1.Bot.y;
         else if (ip.y <= Edge1.Bot.y && y1 > Edge1.Bot.y) y1 = Edge1.Bot.y;
         if (Edge2.Bot.x > ip.x)
@@ -726,6 +748,28 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
             else
             {
                 y2 = std::ceil(((ip.x - 0.5) / Edge2.Dx + by2) - 0.5);
+            }
+        }
+        else if (Edge2.Bot.y > ip.y)
+        {
+            if (Edge1.Bot.y >= Edge2.Bot.y)
+            {
+                y2 = Edge2.Bot.y;
+            }
+            else
+            {
+                y2 = Edge1.Bot.y;
+            }
+        }
+        else if (Edge2.Bot.y < ip.y)
+        {
+            if (Edge1.Bot.y <= Edge2.Bot.y)
+            {
+                y2 = Edge2.Bot.y;
+            }
+            else
+            {
+                y2 = Edge1.Bot.y;
             }
         }
         if (ip.y >= Edge2.Bot.y && y2 < Edge2.Bot.y) y2 = Edge2.Bot.y;
@@ -754,6 +798,28 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
                 x1 = std::ceil(((ip.y - 0.5) * Edge1.Dx + bx1) - 0.5);
             }
         }
+        else if (Edge1.Bot.x > ip.x)
+        {
+            if (Edge2.Bot.x >= Edge1.Bot.x)
+            {
+                x1 = Edge1.Bot.x;
+            }
+            else
+            {
+                x1 = Edge2.Bot.x;
+            }
+        }
+        else if (Edge1.Bot.x < ip.x)
+        {
+            if (Edge2.Bot.x <= Edge1.Bot.x)
+            {
+                x1 = Edge1.Bot.x;
+            }
+            else
+            {
+                x1 = Edge2.Bot.x;
+            }
+        }
         if (ip.x >= Edge1.Bot.x && x1 < Edge1.Bot.x) x1 = Edge1.Bot.x;
         else if (ip.x <= Edge1.Bot.x && x1 > Edge1.Bot.x) x1 = Edge1.Bot.x;
         if (Edge2.Bot.y > ip.y)
@@ -776,6 +842,28 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
             else
             {
                 x2 = std::ceil(((ip.y - 0.5) * Edge2.Dx + bx2) - 0.5);
+            }
+        }
+        else if (Edge2.Bot.x > ip.x)
+        {
+            if (Edge1.Bot.x >= Edge2.Bot.x)
+            {
+                x2 = Edge2.Bot.x;
+            }
+            else
+            {
+                x2 = Edge1.Bot.x;
+            }
+        }
+        else if (Edge2.Bot.x < ip.x)
+        {
+            if (Edge1.Bot.x <= Edge2.Bot.x)
+            {
+                x2 = Edge2.Bot.x;
+            }
+            else
+            {
+                x2 = Edge1.Bot.x;
             }
         }
         if (ip.x >= Edge2.Bot.x && x2 < Edge2.Bot.x) x2 = Edge2.Bot.x;
@@ -3469,6 +3557,7 @@ int PointCount(OutPt *Pts)
     while (p != Pts);
     return result;
 }
+
 //------------------------------------------------------------------------------
 
 void Clipper::BuildResult(Paths &polys)
@@ -4643,7 +4732,7 @@ bool Clipper::FindIntersectLoop(std::unordered_multimap<int, OutPtIntersect> & d
     range = dupeRec.equal_range(idx_search);
     visited.insert(idx_search);
     // Check for connection through chain of other intersections
-    for (auto it = range.first; it != range.second; ++it)
+    for (auto it = range.first; it != range.second && it != dupeRec.end() && it->first == idx_search; ++it)
     {
         OutRec * itRec = GetOutRec(it->second.op2->Idx);
         if (visited.count(itRec->Idx) > 0 || 
@@ -4741,7 +4830,7 @@ bool Clipper::FixIntersects(std::unordered_multimap<int, OutPtIntersect> & dupeR
         std::set<int> visited;
         visited.insert(outRec_search->Idx);
         // Check for connection through chain of other intersections
-        for (auto it = range.first; it != range.second; ++it)
+        for (auto it = range.first; it != range.second && it != dupeRec.end() && it->first == outRec_search->Idx; ++it)
         {
             OutRec * itRec = GetOutRec(it->second.op2->Idx);
             if (itRec->Idx != outRec_search->Idx &&
