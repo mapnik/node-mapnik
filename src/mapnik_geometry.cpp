@@ -12,7 +12,7 @@ Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
 
 /**
  * **`mapnik.Geometry`**
- * 
+ *
  * Geometry: a representation of geographical features in terms of
  * shape alone. This class provides many useful functions for conversion
  * to and from formats.
@@ -379,3 +379,13 @@ NAN_METHOD(Geometry::toWKB)
     }
     info.GetReturnValue().Set(Nan::CopyBuffer(wkb->buffer(), wkb->size()).ToLocalChecked());
 }
+
+/**
+ * Get the geometry's representation as a GeoJSON type
+ *
+ * @name typeName
+ * @memberof Geometry
+ * @instance
+ * @returns {string} GeoJSON type representation of this geometry
+ */
+// Function exists in mapnik.js
