@@ -1707,7 +1707,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                                             d->tile_->y(),
                                             d->tile_->z());
             mapnik::featureset_ptr fs = ds->features_at_point(pt, tolerance);
-            if (fs)
+            if (fs && mapnik::is_valid(fs))
             {
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
@@ -1746,7 +1746,7 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
                                             d->tile_->y(),
                                             d->tile_->z());
             mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-            if (fs)
+            if (fs && mapnik::is_valid(fs))
             {
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
@@ -2045,7 +2045,7 @@ void VectorTile::_queryMany(queryMany_result & result,
     }
     mapnik::featureset_ptr fs = ds->features(q);
 
-    if (fs)
+    if (fs && mapnik::is_valid(fs))
     {
         mapnik::feature_ptr feature;
         unsigned idx = 0;
@@ -2742,7 +2742,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
     }
     mapnik::featureset_ptr fs = ds.features(q);
     bool first = true;
-    if (fs)
+    if (fs && mapnik::is_valid(fs))
     {
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
@@ -5490,7 +5490,7 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
         q.add_property_name(item.get_name());
     }
     mapnik::featureset_ptr fs = ds.features(q);
-    if (fs)
+    if (fs && mapnik::is_valid(fs))
     {
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
@@ -5796,7 +5796,7 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
             q.add_property_name(item.get_name());
         }
         mapnik::featureset_ptr fs = ds.features(q);
-        if (fs)
+        if (fs && mapnik::is_valid(fs))
         {
             mapnik::feature_ptr feature;
             while ((feature = fs->next()))
