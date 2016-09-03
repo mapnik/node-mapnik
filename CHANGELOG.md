@@ -2,6 +2,7 @@
 
 ## 3.5.14
 
+- Added `typeName()` to `mapnik.Geometry`. This returns the GeoJSON type name of a geometry (@davidtheclark).
 
 ## 3.5.13
 
