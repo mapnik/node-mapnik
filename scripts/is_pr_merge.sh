@@ -10,6 +10,7 @@ to merge between the origin and the upstream branch.
 
 For more details see: https://docs.travis-ci.com/user/pull-requests
 
+TODO: can ${TRAVIS_PULL_REQUEST} be used instead of the below git commands?
 '
 
 # Get the commit message via git log
