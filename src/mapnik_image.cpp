@@ -1444,7 +1444,7 @@ v8::Local<v8::Value> Image::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
 typedef struct {
     uv_work_t request;
     Image* im1;
-    std::shared_ptr<mapnik::image_any> im2;
+    image_ptr im2;
     mapnik::image_dtype type;  
     double offset;
     double scaling;
@@ -1720,13 +1720,13 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
 
     try
     {
-        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(
-                                               mapnik::image_copy(*(im->this_),
+        image_ptr imagep = std::make_shared<mapnik::image_any>(
+                                                       mapnik::image_copy(*(im->this_),
                                                                             type,
                                                                             offset,
                                                                             scaling)
-                                               );
-        Image* new_im = new Image(image_ptr);
+                                                    );
+        Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
@@ -1740,7 +1740,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
 typedef struct {
     uv_work_t request;
     Image* im1;
-    std::shared_ptr<mapnik::image_any> im2;
+    image_ptr im2;
     mapnik::scaling_method_e scaling_method;
     std::size_t size_x;
     std::size_t size_y;
@@ -2236,14 +2236,14 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         double offset = im->this_->get_offset();
         double scaling = im->this_->get_scaling();
 
-        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(width, 
+        image_ptr imagep = std::make_shared<mapnik::image_any>(width, 
                                                            height, 
                                                            im->this_->get_dtype(),
                                                            true,
                                                            true,
                                                            false);
-        image_ptr->set_offset(offset);
-        image_ptr->set_scaling(scaling);
+        imagep->set_offset(offset);
+        imagep->set_scaling(scaling);
         double image_ratio_x = static_cast<double>(width) / im_width; 
         double image_ratio_y = static_cast<double>(height) / im_height; 
         resize_visitor visit(*(im->this_),
@@ -2253,8 +2253,8 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                              filter_factor,
                              offset_x,
                              offset_y);
-        mapnik::util::apply_visitor(visit, *image_ptr);
-        Image* new_im = new Image(image_ptr);
+        mapnik::util::apply_visitor(visit, *imagep);
+        Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
@@ -2358,12 +2358,12 @@ v8::Local<v8::Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
             std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
             if (reader.get())
             {
-                std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(), reader->height()));
+                image_ptr imagep = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(), reader->height()));
                 if (!reader->has_alpha())
                 {
-                    mapnik::set_premultiplied_alpha(*image_ptr, true);
+                    mapnik::set_premultiplied_alpha(*imagep, true);
                 }
-                Image* im = new Image(image_ptr);
+                Image* im = new Image(imagep);
                 v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
                 return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
             }
@@ -2676,8 +2676,8 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
         mapnik::demultiply_alpha(im);
 
-        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im);
-        Image *im2 = new Image(image_ptr);
+        image_ptr imagep = std::make_shared<mapnik::image_any>(im);
+        Image *im2 = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im2);
         return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
     }
@@ -3185,8 +3185,8 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
     try
     {
         mapnik::image_rgba8 im_wrapper(width, height, reinterpret_cast<unsigned char*>(node::Buffer::Data(obj)), premultiplied, painted);
-        std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(im_wrapper);
-        Image* im = new Image(image_ptr);
+        image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
+        Image* im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         v8::Local<v8::Value> image_instance = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
         v8::Local<v8::Object> image_obj = image_instance->ToObject();
@@ -3240,8 +3240,8 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
         std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(node::Buffer::Data(obj),node::Buffer::Length(obj)));
         if (reader.get())
         {
-            std::shared_ptr<mapnik::image_any> image_ptr = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
-            Image* im = new Image(image_ptr);
+            image_ptr imagep = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
+            Image* im = new Image(imagep);
             v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
             return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
         }

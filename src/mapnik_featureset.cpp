@@ -92,11 +92,11 @@ NAN_METHOD(Featureset::next)
     return;
 }
 
-v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fs_ptr)
+v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp)
 {
     Nan::EscapableHandleScope scope;
     Featureset* fs = new Featureset();
-    fs->this_ = fs_ptr;
+    fs->this_ = fsp;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(fs);
     return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
