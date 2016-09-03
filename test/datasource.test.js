@@ -174,6 +174,50 @@ describe('mapnik.Datasource', function() {
         assert.equal(false, ds.add({}));
     });
 
+    it('test empty memory datasource', function() {
+        var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
+        var empty_fs = ds.featureset();
+        assert.equal(typeof(empty_fs),'undefined');
+        assert.equal(empty_fs, null);
+    });
+
+    it('test empty geojson datasource', function() {
+        var input = {
+          "type": "Feature",
+          "properties": {
+            "something": []
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [ 1, 1 ]
+          }
+        };
+        var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input) });
+        var fs = ds.featureset()
+        var feat = fs.next();
+        var feature = JSON.parse(feat.toJSON());
+        // pass invalid extent to filter all features out
+        // resulting in empty featureset that should be returned
+        // as a null object
+        var empty_fs = ds.featureset({extent:[-1,-1,0,0]});
+        assert.equal(typeof(empty_fs),'undefined');
+        assert.equal(empty_fs, null);
+    });
+
+    it('test empty geojson datasource due to invalid json string', function() {
+        var input = "{ \"type\": \"FeatureCollection\", \"features\": [{ \"oofda\" } ] }";
+        // from string will fail to parse
+        assert.throws(function() { new mapnik.Datasource({ type:'geojson', inline: inline, cache_features: false }); });
+        assert.throws(function() { new mapnik.Datasource({ type:'geojson', inline: fs.readFileSync('./test/data/parse.error.json').toString(), cache_features: false }); });
+    });
+
+    it('test empty geojson datasource due to invalid json file', function() {
+        var ds = new mapnik.Datasource({ type:'geojson', file: './test/data/parse.error.json', cache_features: false });
+        var empty_fs = ds.featureset();
+        assert.equal(typeof(empty_fs),'undefined');
+        assert.equal(empty_fs, null);
+    });
+
     it('test valid use of memory datasource', function() {
         var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         assert.equal(true, ds.add({ 'x': 0, 'y': 0 }));

@@ -217,7 +217,7 @@ describe('mapnik.Feature ', function() {
     it('should be able to get a featureset from Memory datasource', function() {
         var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         var fs0 = mem_datasource.featureset();
-        assert.equal(undefined, fs0.next());
+        assert.equal(undefined, fs0);
         mem_datasource.add({ 'x': 0, 'y': 0 });
         var fs1 = mem_datasource.featureset();
         assert.equal('{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[0,0]},"properties":{}}',
