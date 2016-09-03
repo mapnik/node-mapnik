@@ -22,6 +22,7 @@
 #include "mapnik_palette.hpp"
 #include "blend.hpp"
 #include "tint.hpp"
+#include "utils.hpp"
 
 #include <sstream>
 #include <cstring>
@@ -496,20 +497,20 @@ NAN_METHOD(Blend) {
 
         v8::Local<v8::Value> format_val = options->Get(Nan::New("format").ToLocalChecked());
         if (!format_val.IsEmpty() && format_val->IsString()) {
-            if (strcmp(*v8::String::Utf8Value(format_val), "jpeg") == 0 ||
-                    strcmp(*v8::String::Utf8Value(format_val), "jpg") == 0) {
+            std::string format_val_string = TOSTR(format_val);
+            if (format_val_string == "jpeg" || format_val_string == "jpg") {
                 baton->format = BLEND_FORMAT_JPEG;
                 if (baton->quality == 0) baton->quality = 85; // 85 is same default as mapnik core jpeg
                 else if (baton->quality < 0 || baton->quality > 100) {
                     Nan::ThrowTypeError("JPEG quality is range 0-100.");
                     return;
                 }
-            } else if (strcmp(*v8::String::Utf8Value(format_val), "png") == 0) {
+            } else if (format_val_string == "png") {
                 if (baton->quality == 1 || baton->quality > 256) {
                     Nan::ThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
                     return;
                 }
-            } else if (strcmp(*v8::String::Utf8Value(format_val), "webp") == 0) {
+            } else if (format_val_string == "webp") {
                 baton->format = BLEND_FORMAT_WEBP;
                 if (baton->quality == 0) baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
@@ -547,12 +548,11 @@ NAN_METHOD(Blend) {
 
         v8::Local<v8::Value> mode_val = options->Get(Nan::New("mode").ToLocalChecked());
         if (!mode_val.IsEmpty() && mode_val->IsString()) {
-            if (strcmp(*v8::String::Utf8Value(mode_val), "octree") == 0 ||
-                strcmp(*v8::String::Utf8Value(mode_val), "o") == 0) {
+            std::string mode_string = TOSTR(mode_val);
+            if (mode_string == "octree" || mode_string == "o") {
                 baton->mode = BLEND_MODE_OCTREE;
             }
-            else if (strcmp(*v8::String::Utf8Value(mode_val), "hextree") == 0 ||
-                strcmp(*v8::String::Utf8Value(mode_val), "h") == 0) {
+            else if (mode_string == "hextree" || mode_string == "h") {
                 baton->mode = BLEND_MODE_HEXTREE;
             }
         }
