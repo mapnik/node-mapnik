@@ -75,6 +75,7 @@
               '<!@(mapnik-config --dep-includes)'
             ],
             'defines': ['NOMINMAX','<!@(mapnik-config --defines)'],
+            'defines!': ["_HAS_EXCEPTIONS=0"],
             'libraries': [
               '<!@(mapnik-config --libs)',
               'mapnik-wkt.lib',
