@@ -2,34 +2,63 @@
 
 ## 3.5.14
 
+- Added support for node v6.x
+- Now persisting image buffer in `mapnik.Image.fromBufferSync` to prevent undefined behavior if buffer were to go out of scope (#677)
+- Upgraded to mapnik-vector-tile@1.2.2
+- Upgraded to protozero@1.4.2
 - Added `typeName()` to `mapnik.Geometry`. This returns the GeoJSON type name of a geometry (@davidtheclark).
+- Fixed potential unsigned integer overflow in `mapnik.blend`
+- Binaries compiled with clang-3.8 and now requiring >= GLIBCXX_3.4.20 from libstdc++ (https://github.com/mapnik/node-mapnik#depends)
+- Binaries updated to use mapnik `v3.0.12`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3012).
+- Binaries updated to use mapnik-packaging@7862fb9:
+ - icu 56.1
+ - boost 1.61.0
+ - sqlite 3140100
+ - freetype 2.6.5
+ - harfbuzz 1.3.0
+ - proj 4.9.2
+ - libpng 1.6.24
+ - libtiff 4.0.6
+ - webp 0.5.1
+ - jpeg-turbo 1.5.0
+ - libpq 9.4.5
+ - cairo 1.14.6
+  - pixman 0.34.0
+ - gdal 2.1.1
+  - expat 2.2.0
 
 ## 3.5.13
 
 - Updated to mapnik-vector-tile `1.2.0`, includes a fix for rare decoding situation in vector tiles where a tile would be incorrectly considered invalid.
+- Still using mapnik `v3.0.11`
 
 ## 3.5.12
 
 - Fix performance regression when passing raster through vector tile (via upgrade to mapnik-vector-tile@1.1.2)
+- Still using mapnik `v3.0.11`
 
 ## 3.5.11
 
 - Fix for numerical precision issue in mapnik vector tile where valid v2 vector tiles would be thrown as invalid
 - Added new exception handling for toGeoJSON
+- Still using mapnik `v3.0.11`
 
 ## 3.5.10
 
 - Fix for a segfault in the vector tile clipping library
+- Still using mapnik `v3.0.11`
 
 ## 3.5.9
 
 - Updated to mapnik-vector-tile `1.1.0`
 - Automatic updating of vector tiles from v1 to v2 no longer takes place automatically when using `setData` and `addData`.
 - Validation of vector tiles is now optional when using `setData` and `addData`
+- Still using mapnik `v3.0.11`
 
 ## 3.5.8
 
 - Updated to mapnik-vector-tile `1.0.6` which includes a speedup on simplification for mapnik-vector-tile
+- Still using mapnik `v3.0.11`
 
 ## 3.5.7
 
