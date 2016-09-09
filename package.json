@@ -41,10 +41,10 @@
     }
   ],
   "dependencies": {
-    "mapnik-vector-tile": "~1.2.1",
+    "mapnik-vector-tile": "~1.2.2",
     "nan": "~2.4.0",
-    "node-pre-gyp": "~0.6.26",
-    "protozero": "~1.3.0"
+    "node-pre-gyp": "~0.6.30",
+    "protozero": "~1.4.2"
   },
   "bin": {
     "mapnik-inspect.js": "./bin/mapnik-inspect.js",
