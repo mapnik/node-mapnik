@@ -1,3 +1,4 @@
+.gitattributes
 docs
 bench
 .gitignore
