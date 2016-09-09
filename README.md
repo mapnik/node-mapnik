@@ -86,7 +86,7 @@ If you are running Ubuntu older than 16.04 you can easily upgrade your libstdc++
 ```
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update -y
-sudo apt-get install -y libstdc++-5-dev ubuntu-toolchain-r PPA
+sudo apt-get install -y libstdc++-5-dev
 ```
 
 ## Troubleshooting
