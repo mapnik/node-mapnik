@@ -1382,8 +1382,8 @@ NAN_METHOD(VectorTile::layer)
     protozero::pbf_reader tile_message(d->get_tile()->get_reader());
     while (tile_message.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
-        auto data_pair = tile_message.get_data();
-        protozero::pbf_reader layer_message(data_pair);
+        auto data_view = tile_message.get_view();
+        protozero::pbf_reader layer_message(data_view);
         if (!layer_message.next(mapnik::vector_tile_impl::Layer_Encoding::NAME))
         {
             continue;
@@ -1391,7 +1391,7 @@ NAN_METHOD(VectorTile::layer)
         std::string name = layer_message.get_string();
         if (layer_name == name)
         {
-            v->get_tile()->append_layer_buffer(data_pair.first, data_pair.second, layer_name);
+            v->get_tile()->append_layer_buffer(data_view.data(), data_view.size(), layer_name);
             break;
         }
     }
@@ -2612,8 +2612,8 @@ NAN_METHOD(VectorTile::toJSON)
             for (auto feature_msg : layer_features)
             {
                 v8::Local<v8::Object> feature_obj = Nan::New<v8::Object>();
-                std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
-                std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> tag_itr;
+                mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
+                mapnik::vector_tile_impl::GeometryPBF::pbf_itr tag_itr;
                 bool has_geom = false;
                 bool has_geom_type = false;
                 bool has_tags = false;
@@ -2640,9 +2640,9 @@ NAN_METHOD(VectorTile::toJSON)
                             break;
                         case mapnik::vector_tile_impl::Feature_Encoding::RASTER:
                         {
-                            auto im_buffer = feature_msg.get_data(); 
+                            auto im_buffer = feature_msg.get_view();
                             feature_obj->Set(Nan::New("raster").ToLocalChecked(),
-                                             Nan::CopyBuffer(im_buffer.first, im_buffer.second).ToLocalChecked());
+                                             Nan::CopyBuffer(im_buffer.data(), im_buffer.size()).ToLocalChecked());
                             break;
                         }
                         default:
@@ -2655,10 +2655,10 @@ NAN_METHOD(VectorTile::toJSON)
                 v8::Local<v8::Object> att_obj = Nan::New<v8::Object>();
                 if (has_tags)
                 {
-                    for (auto _i = tag_itr.first; _i != tag_itr.second;)
+                    for (auto _i = tag_itr.begin(); _i != tag_itr.end();)
                     {
                         std::size_t key_name = *(_i++);
-                        if (_i == tag_itr.second)
+                        if (_i == tag_itr.end())
                         {
                             break;
                         }
@@ -2689,7 +2689,7 @@ NAN_METHOD(VectorTile::toJSON)
                     else
                     {
                         std::vector<std::uint32_t> geom_vec;
-                        for (auto _i = geom_itr.first; _i != geom_itr.second; ++_i)
+                        for (auto _i = geom_itr.begin(); _i != geom_itr.end(); ++_i)
                         {
                             geom_vec.push_back(*_i);
                         }
@@ -2809,9 +2809,9 @@ void write_geojson_array(std::string & result,
         {
             result += ",";
         }
-        auto pair_data = tile_msg.get_data();
-        protozero::pbf_reader layer_msg(pair_data);
-        protozero::pbf_reader name_msg(pair_data);
+        auto data_view = tile_msg.get_view();
+        protozero::pbf_reader layer_msg(data_view);
+        protozero::pbf_reader name_msg(data_view);
         std::string layer_name;
         if (name_msg.next(mapnik::vector_tile_impl::Layer_Encoding::NAME))
         {
@@ -5845,7 +5845,7 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
         }
         for (auto feature_msg : layer_features)
         {
-            std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+            mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
             bool has_geom = false;
             bool has_geom_type = false;
             std::int32_t geom_type_enum = 0;
@@ -6541,8 +6541,8 @@ NAN_METHOD(VectorTile::info)
                         std::uint64_t polygon_feature_count = 0;
                         std::uint64_t unknown_feature_count = 0;
                         std::uint64_t raster_feature_count = 0;
-                        auto layer_data = tile_msg.get_data();
-                        protozero::pbf_reader layer_props_msg(layer_data);
+                        auto layer_view = tile_msg.get_view();
+                        protozero::pbf_reader layer_props_msg(layer_view);
                         auto layer_info = mapnik::vector_tile_impl::get_layer_name_and_version(layer_props_msg);
                         std::string const& layer_name = layer_info.first;
                         std::uint32_t layer_version = layer_info.second;
@@ -6551,7 +6551,7 @@ NAN_METHOD(VectorTile::info)
                         {
                             layer_errors.insert(mapnik::vector_tile_impl::LAYER_HAS_UNSUPPORTED_VERSION);
                         }
-                        protozero::pbf_reader layer_msg(layer_data);
+                        protozero::pbf_reader layer_msg(layer_view);
                         mapnik::vector_tile_impl::layer_is_valid(layer_msg, 
                                                                  layer_errors, 
                                                                  point_feature_count,
