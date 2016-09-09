@@ -32,6 +32,11 @@ matrix:
        osx_image: xcode7
        compiler: clang
        env: NODE_VERSION="4" COVERAGE=true NPM_FLAGS="--debug" PUBLISHABLE=false # node abi 46
+     # Build against Mapnik and node via homebrew
+     - os: osx
+       osx_image: xcode7
+       compiler: clang
+       env: NODE_VERSION="6" HOMEBREW=true PUBLISHABLE=false
      # Linux
      - os: linux
        compiler: clang
@@ -102,7 +107,7 @@ before_install:
    else
      export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages;
    fi;
- - source ./scripts/install_node.sh ${NODE_VERSION}
+ - if [[ ${HOMEBREW:-false} != true ]]; then source ./scripts/install_node.sh ${NODE_VERSION}; else brew install node; fi;
  - export PATH=./node_modules/.bin/:$PATH
 
 install:
@@ -114,10 +119,8 @@ install:
      else
        PYTHONUSERBASE=$(pwd)/mason_packages/.link easy_install --user cpp-coveralls;
      fi;
-     ./scripts/build_against_sdk.sh ${NPM_FLAGS};
-   else
-     ./scripts/build_against_sdk.sh ${NPM_FLAGS};
    fi
+ - if [[ ${HOMEBREW:-false} != true ]]; then brew install mapnik && npm install --build-from-source ${NPM_FLAGS}; else ./scripts/build_against_sdk.sh ${NPM_FLAGS}; fi;
  - node-pre-gyp package testpackage ${NPM_FLAGS}
  - npm test
 
