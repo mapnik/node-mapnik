@@ -3148,7 +3148,8 @@ void VectorTile::after_to_geojson(uv_work_t* req)
 }
 
 /**
- * Add features to this tile from a GeoJSON string
+ * Add features to this tile from a GeoJSON string. GeoJSON coordinates must be in the WGS84 longitude & latitude CRS
+ * as specified in the [GeoJSON Specification](https://www.rfc-editor.org/rfc/rfc7946.txt).
  *
  * @memberof VectorTile
  * @instance
