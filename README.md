@@ -89,18 +89,6 @@ sudo apt-get update -y
 sudo apt-get install -y libstdc++-5-dev
 ```
 
-## Troubleshooting
-
-If you hit an error like:
-
-    Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.18' not found
-
-This means your Linux distributions libstdc++ library is too old (for example you are running Ubuntu Precise rather than Trusty). To work around this upgrade libstdc++:
-
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    sudo apt-get update -q
-    sudo apt-get install -y libstdc++6
-
 To upgrade libstdc++ on travis (without sudo) you can do:
 
 ```yaml
@@ -113,7 +101,7 @@ addons:
     sources:
      - ubuntu-toolchain-r-test
     packages:
-     - libstdc++6 # upgrade libstdc++ on linux to support C++11
+     - libstdc++-5-dev # upgrade libstdc++ on linux to support C++11
 ```
 
 
