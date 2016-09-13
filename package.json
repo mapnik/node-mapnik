@@ -34,12 +34,7 @@
     "Konstantin Käfer",
     "Blake Thompson"
   ],
-  "licenses": [
-    {
-      "type": "BSD",
-      "url": "https://github.com/mapnik/node-mapnik/blob/master/LICENSE.txt"
-    }
-  ],
+  "license": "BSD-3-Clause",
   "dependencies": {
     "mapnik-vector-tile": "~1.2.2",
     "nan": "~2.4.0",
