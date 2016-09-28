@@ -598,13 +598,72 @@ typedef struct {
     Nan::Persistent<v8::Function> cb;
 } query_map_baton_t;
 
-
+/**
+ * Query a `Mapnik#Map` object to retrieve layer and feature data based on an
+ * X and Y `Mapnik#Map` coordinates (use `Map#queryPoint` to query with geographic coordinates).
+ *
+ * @name queryMapPoint
+ * @memberof Map
+ * @instance
+ * @param {number} x - x coordinate
+ * @param {number} y - y coordinate
+ * @param {Object} [options]
+ * @param {String|number} [options.layer] - layer name (string) or index (positive integer, 0 index)
+ * to query. If left blank, will query all layers.
+ * @param {Function} callback
+ * @returns {Array} array - An array of `Featureset` objects and layer names, which each contain their own 
+ * `Feature` objects.
+ * @example
+ * // iterate over the first layer returned and get all attribute information for each feature
+ * map.queryMapPoint(10, 10, {layer: 0}, function(err, results) {
+ *   if (err) throw err;
+ *   console.log(results); // => [{"layer":"layer_name","featureset":{}}]
+ *   var featureset = results[0].featureset;
+ *   var attributes = [];
+ *   var feature;
+ *   while ((feature = featureset.next())) {
+ *     attributes.push(feature.attributes());
+ *   }
+ *   console.log(attributes); // => [{"attr_key": "attr_value"}, {...}, {...}]
+ * });
+ * 
+ */
 NAN_METHOD(Map::queryMapPoint)
 {
     abstractQueryPoint(info,false);
     return;
 }
 
+/**
+ * Query a `Mapnik#Map` object to retrieve layer and feature data based on geographic 
+ * coordinates of the source data (use `Map#queryMapPoint` to query with XY coordinates).
+ *
+ * @name queryPoint
+ * @memberof Map
+ * @instance
+ * @param {number} x - x geographic coordinate (CRS based on source data)
+ * @param {number} y - y geographic coordinate (CRS based on source data)
+ * @param {Object} [options]
+ * @param {String|number} [options.layer] - layer name (string) or index (positive integer, 0 index)
+ * to query. If left blank, will query all layers.
+ * @param {Function} callback
+ * @returns {Array} array - An array of `Featureset` objects and layer names, which each contain their own 
+ * `Feature` objects.
+ * @example
+ * // query based on web mercator coordinates
+ * map.queryMapPoint(-12957605.0331, 5518141.9452, {layer: 0}, function(err, results) {
+ *   if (err) throw err;
+ *   console.log(results); // => [{"layer":"layer_name","featureset":{}}]
+ *   var featureset = results[0].featureset;
+ *   var attributes = [];
+ *   var feature;
+ *   while ((feature = featureset.next())) {
+ *     attributes.push(feature.attributes());
+ *   }
+ *   console.log(attributes); // => [{"attr_key": "attr_value"}, {...}, {...}]
+ * });
+ * 
+ */
 NAN_METHOD(Map::queryPoint)
 {
     abstractQueryPoint(info,true);
