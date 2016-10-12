@@ -15,6 +15,24 @@
 
 namespace node_mapnik {
 
+/**
+ * Register all plugins available. This is not recommend in environments where high-performance is priority.
+ * Consider registering plugins on a per-need basis.
+ * 
+ * @memberof mapnik
+ * @name register_default_input_plugins
+ * @example
+ * var mapnik = require('mapnik');
+ * mapnik.register_default_input_plugins();
+ */
+
+/**
+ * List all plugins that are currently available.
+ *
+ * @memberof mapnik
+ * @name datasources
+ * @returns {Array<String>} list of plugins available to use
+ */
 static inline NAN_METHOD(available_input_plugins)
 {
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
@@ -26,6 +44,26 @@ static inline NAN_METHOD(available_input_plugins)
     info.GetReturnValue().Set(a);
 }
 
+/**
+ * Register a single datasource input plugin. The available plugins are:
+ *
+ * * `'csv.input'`
+ * * `'gdal.input'`
+ * * `'geojson.input'`
+ * * `'ogr.input'`
+ * * `'pgraster.input'`
+ * * `'postgis.input'`
+ * * `'raster.input'`
+ * * `'shape.input'`
+ * * `'sqlite.input'`
+ * * `'topojson.input'`
+ *
+ * @memberof mapnik
+ * @name registerDatasource
+ * @param {String} path to a datasource to register.
+ * @example
+ * mapnik.registerDatasource(path.join(mapnik.settings.paths.input_plugins, 'geojson.input'));
+ */
 static inline NAN_METHOD(register_datasource)
 {
     if (info.Length() != 1 || !info[0]->IsString())
@@ -45,6 +83,13 @@ static inline NAN_METHOD(register_datasource)
     info.GetReturnValue().Set(Nan::False());
 }
 
+/**
+ * Register multiple datasources.
+ *
+ * @memberof mapnik
+ * @name registerDatasources
+ * @param {Array<String>} list of paths to their respective datasources
+ */
 static inline NAN_METHOD(register_datasources)
 {
     if (info.Length() != 1 || !info[0]->IsString())
