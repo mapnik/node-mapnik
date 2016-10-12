@@ -72,6 +72,21 @@ static NAN_METHOD(clearCache)
  * Mapnik is the core of cartographic design and processing. `node-mapnik` provides a
  * set of bindings to `mapnik` for node.js.
  *
+ * ### Plugins
+ * 
+ * Node Mapnik relies on a set of datasource input plugins that must be configured prior to using the API.
+ * These plugins are either built into Mapnik, such as the "geojson" plugin
+ * or rely on exeternal dependencies, such as GDAL. All plugin methods exist on the `mapnik` 
+ * class level.
+ *
+ * Plugins are referenced based on the location of the bindings on your system. These paths are generated
+ * in the lib/binding/{build}/mapnik_settings.js file. These settings can be referenced by the `mapnik.settings` object. We recommend using the `require('path')`
+ * object when building these paths:
+ * 
+ * ```
+ * path.resolve(mapnik.settings.paths.input_plugins, 'geojson.input')
+ * ```
+ *
  * @name mapnik
  * @class mapnik
  * @property {string} version current version of mapnik
@@ -80,6 +95,22 @@ static NAN_METHOD(clearCache)
  * grid, svg, cairo, cairo_pdf, cairo_svg, png, jpeg, tiff, webp, proj4, threadsafe
  * @property {Object} versions diagnostic object with versions of
  * node, v8, boost, boost_number, mapnik, mapnik_number, mapnik_git_describe, cairo
+ * @property {Object} settings - object that defines local paths for particular plugins and addons. 
+ * 
+ * ```
+ * // mapnik.settings on OSX
+ * { 
+ *   paths: { 
+ *     fonts: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/mapnik/fonts',
+ *     input_plugins: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/mapnik/input' 
+ *   },
+ *   env: { 
+ *     ICU_DATA: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/icu',
+ *     GDAL_DATA: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/gdal',
+ *     PROJ_LIB: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/proj' 
+ *   }
+ * }
+ * ```
  * @example
  * var mapnik = require('mapnik');
  */

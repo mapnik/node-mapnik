@@ -16,44 +16,10 @@
 namespace node_mapnik {
 
 /**
- * Mapnik relies on a set of datasource input plugins that must be configured prior to using the API.
- * These plugins are either built into Mapnik, such as the "geojson" plugin
- * or rely on exeternal dependencies, such as GDAL. All plugin methods exist on the `mapnik` 
- * class level.
- *
- * Plugins are referenced based on the location of the bindings on your system. These paths are generated
- * in the lib/binding/{build}/mapnik_settings.js file. This file, depending on your system architecture
- * looks something like this:
- * 
- * ```
- * var path = require('path');
- * module.exports.paths = {
- *   'fonts': path.join(__dirname, 'mapnik/fonts'),
- *   'input_plugins': path.join(__dirname, 'mapnik/input')
- * };
- * module.exports.env = {
- *   'ICU_DATA': path.join(__dirname, 'share/mapnik/icu'),
- *   'GDAL_DATA': path.join(__dirname, 'share/mapnik/gdal'),
- *   'PROJ_LIB': path.join(__dirname, 'share/mapnik/proj')
- * };
- * ```
- *
- * These settings can be referenced by the `mapnik.settings` object. We recommend using the `require('path')`
- * module when building these paths. Here's what this looks like if you are needing the geojson input.
- * 
- * ```
- * path.resolve(mapnik.settings.paths.input_plugins, 'geojson.input')
- * ```
- * 
- * @class Plugins
- * 
- */
-
-/**
  * Register all plugins available. This is not recommend in environments where high-performance is priority.
  * Consider registering plugins on a per-need basis.
  * 
- * @memberof Plugins
+ * @memberof mapnik
  * @name register_default_input_plugins
  * @example
  * var mapnik = require('mapnik');
@@ -63,7 +29,7 @@ namespace node_mapnik {
 /**
  * List all plugins that are currently available.
  *
- * @memberof Plugins
+ * @memberof mapnik
  * @name datasources
  * @returns {Array<String>} list of plugins available to use
  */
@@ -92,7 +58,7 @@ static inline NAN_METHOD(available_input_plugins)
  * * `'sqlite.input'`
  * * `'topojson.input'`
  *
- * @memberof Plugins
+ * @memberof mapnik
  * @name registerDatasource
  * @param {String} path to a datasource to register.
  * @example
@@ -120,7 +86,7 @@ static inline NAN_METHOD(register_datasource)
 /**
  * Register multiple datasources.
  *
- * @memberof Plugins
+ * @memberof mapnik
  * @name registerDatasources
  * @param {Array<String>} list of paths to their respective datasources
  */
