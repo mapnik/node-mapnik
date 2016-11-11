@@ -48,8 +48,7 @@
         "src/mapnik_featureset.cpp",
         "src/mapnik_expression.cpp",
         "src/mapnik_cairo_surface.cpp",
-        "src/mapnik_vector_tile.cpp",
-        "deps/clipper/clipper.cpp"
+        "src/mapnik_vector_tile.cpp"
       ],
       "msvs_disabled_warnings": [
         4267
@@ -59,6 +58,7 @@
         './mason_packages/.link/include/',
         './mason_packages/.link/include/freetype2',
         './mason_packages/.link/include/cairo',
+        './deps/include/',
         './src',
         "<!(node -e \"require('nan')\")",
         # TODO: move these to mason packages once we have a minimal windows client for mason (@springmeyer)
