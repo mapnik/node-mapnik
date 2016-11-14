@@ -3979,6 +3979,7 @@ void Image::EIO_Composite(uv_work_t* req)
     {
         if (closure->filters.size() > 0)
         {
+            // TODO: expose passing custom scale_factor: https://github.com/mapnik/mapnik/commit/b830469d2d574ac575ff24713935378894f8bdc9
             mapnik::filter::filter_visitor<mapnik::image_any> visitor(*closure->im2->this_);
             for (mapnik::filter::filter_type const& filter_tag : closure->filters)
             {
