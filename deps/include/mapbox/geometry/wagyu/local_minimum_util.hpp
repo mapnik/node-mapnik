@@ -53,12 +53,7 @@ void start_list_on_local_maximum(edge_list<T>& edges) {
         prev_edge = edge;
         ++edge;
     }
-    if (edge != edges.end() && edge != edges.begin()) {
-        std::rotate(edges.begin(), edge, edges.end());
-    } else if (edges.begin()->top.y < prev_edge->bot.y) {
-        // This should only happen in lines not in rings
-        std::reverse(edges.begin(), edges.end());
-    }
+    std::rotate(edges.begin(), edge, edges.end());
 }
 
 template <typename T>

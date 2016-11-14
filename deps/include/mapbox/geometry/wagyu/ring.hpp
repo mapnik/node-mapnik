@@ -449,6 +449,21 @@ inline std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, t
 
 template <class charT, class traits, typename T>
 inline std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, traits>& out,
+                                                     const std::deque<ring<T>>& rings) {
+    out << "START RING DEQUE" << std::endl;
+    for (auto& r : rings) {
+        if (!r.points) {
+            continue;
+        }
+        out << " ring: " << r.ring_index << " - " << r << std::endl;
+        out << r;
+    }
+    out << "END RING DEQUE" << std::endl;
+    return out;
+}
+
+template <class charT, class traits, typename T>
+inline std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, traits>& out,
                                                      const hot_pixel_vector<T>& hp_vec) {
     out << "Hot Pixels: " << std::endl;
     for (auto& hp : hp_vec) {

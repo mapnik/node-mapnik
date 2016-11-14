@@ -68,7 +68,7 @@ bool execute_vatti(local_minimum_list<T>& minima_list,
                                      clip_fill_type);
 
     }
-    // std::clog << rings.all_rings << std::endl;
+    // std::clog << rings.rings << std::endl;
     // std::clog << output_as_polygon(rings.all_rings[0]);
     return true;
 }

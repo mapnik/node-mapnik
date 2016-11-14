@@ -107,5 +107,5 @@ module.exports.env = {
 " > ${MODULE_PATH}/mapnik_settings.js
 
 # cleanup
-rm -rf $BUILD_DIR
+#rm -rf $BUILD_DIR
 set +u +e
