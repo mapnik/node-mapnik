@@ -7,7 +7,7 @@ var assert = require('assert');
 var fs = require('fs');
 
 describe('mapnik.Image SVG', function() {
-    it('should throw with invalid usage', function() {
+    it('should throw with invalid usage', function(done) {
         assert.throws(function() { new mapnik.Image.fromSVGSync(); });
         assert.throws(function() { new mapnik.Image.fromSVG(); });
         assert.throws(function() { new mapnik.Image.fromSVGBytes(); });
@@ -54,6 +54,18 @@ describe('mapnik.Image SVG', function() {
           mapnik.Image.fromSVGBytes(new Buffer('asdf'), { scale: 'foo' }, function(err, res) {});
         }, /'scale' must be a number/);
         assert.throws(function() {
+          mapnik.Image.fromSVGBytes(undefined, { scale: 1 }, function(err, res) {});
+        }, /must provide a buffer argument/);
+        assert.throws(function() {
+          mapnik.Image.fromSVGBytes(null, { scale: 1 }, function(err, res) {});
+        }, /must provide a buffer argument/);
+        assert.throws(function() {
+          mapnik.Image.fromSVGBytes(Buffer(), { scale: 1 }, function(err, res) {});
+        }, /must start with number, buffer, array or string/);
+        assert.throws(function() {
+          mapnik.Image.fromSVGBytes(new Buffer(), { scale: 1 }, function(err, res) {});
+        }, /must start with number, buffer, array or string/);
+        assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', { scale: -1 });
         }, /'scale' must be a positive non zero number/);
         assert.throws(function() {
@@ -65,6 +77,16 @@ describe('mapnik.Image SVG', function() {
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.corrupt-svg.svg');
         }, /image created from svg must have a width and height greater then zero/);
+        mapnik.Image.fromSVGBytes(new Buffer('a'), { scale: 1 }, function(err, res) {
+            assert.ok(err);
+            assert.ok(err.message.match(/Unable to parse 'a'/));
+            mapnik.Image.fromSVGBytes(new Buffer(''), { scale: 1 }, function(err, res) {
+                assert.ok(err);
+                assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
+                done();
+            });
+        });
+
     });
 
     it('should err with async file w/o width or height', function(done) {
