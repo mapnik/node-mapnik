@@ -265,14 +265,18 @@ NAN_METHOD(Image::New)
             }
         }
         
-        Image* im = new Image(info[0]->IntegerValue(),
-                              info[1]->IntegerValue(),
-                              type,
-                              initialize,
-                              premultiplied,
-                              painted);
-        im->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        try {
+            Image* im = new Image(info[0]->IntegerValue(),
+                                  info[1]->IntegerValue(),
+                                  type,
+                                  initialize,
+                                  premultiplied,
+                                  painted);
+            im->Wrap(info.This());
+            info.GetReturnValue().Set(info.This());
+        } catch (std::exception const& ex) {
+            Nan::ThrowError(ex.what());
+        }
         return;
     }
     else
