@@ -60,12 +60,6 @@ describe('mapnik.Image SVG', function() {
           mapnik.Image.fromSVGBytes(null, { scale: 1 }, function(err, res) {});
         }, /must provide a buffer argument/);
         assert.throws(function() {
-          mapnik.Image.fromSVGBytes(Buffer(), { scale: 1 }, function(err, res) {});
-        }, /must start with number, buffer, array or string/);
-        assert.throws(function() {
-          mapnik.Image.fromSVGBytes(new Buffer(), { scale: 1 }, function(err, res) {});
-        }, /must start with number, buffer, array or string/);
-        assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', { scale: -1 });
         }, /'scale' must be a positive non zero number/);
         assert.throws(function() {
@@ -80,10 +74,18 @@ describe('mapnik.Image SVG', function() {
         mapnik.Image.fromSVGBytes(new Buffer('a'), { scale: 1 }, function(err, res) {
             assert.ok(err);
             assert.ok(err.message.match(/Unable to parse 'a'/));
-            mapnik.Image.fromSVGBytes(new Buffer(''), { scale: 1 }, function(err, res) {
+            var svgdata = "<svg width='1000000000000' height='1000000000000'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
+            var buffer = new Buffer(svgdata);
+            mapnik.Image.fromSVGBytes(buffer, { scale: 1 }, function(err, img) {
                 assert.ok(err);
                 assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
-                done();
+                var svgdata2 = "<svg width='100' height='100'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
+                var buffer2 = new Buffer(svgdata2);
+                mapnik.Image.fromSVGBytes(buffer2, { scale: 1000000 }, function(err, img) {
+                    assert.ok(err);
+                    assert.ok(err.message.match(/Invalid width for image dimensions requested/));
+                    done();
+                });
             });
         });
 
