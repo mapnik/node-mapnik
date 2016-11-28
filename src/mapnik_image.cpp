@@ -2520,6 +2520,9 @@ void Image::EIO_AfterOpen(uv_work_t* req)
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
+ * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
+ * rasterizing the SVG.
  * @returns {mapnik.Image} Image object
  * @example
  * var buffer = fs.readFileSync('./path/to/image.svg');
@@ -2538,6 +2541,9 @@ NAN_METHOD(Image::fromSVGBytesSync)
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
+ * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
+ * rasterizing the SVG.
  * @returns {mapnik.Image} image object
  * @static
  * @memberof Image
@@ -2753,6 +2759,9 @@ typedef struct {
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
+ * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
+ * rasterizing the SVG.
  * @param {Function} callback
  * @static
  * @memberof Image
@@ -2957,6 +2966,9 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
+ * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
+ * rasterizing the SVG.
  * @param {Function} callback = `function(err, img)`
  * @example
  * var buffer = fs.readFileSync('./path/to/image.svg');
