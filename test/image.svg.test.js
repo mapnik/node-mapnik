@@ -126,7 +126,7 @@ describe('mapnik.Image SVG', function() {
 
     if (process.platform === 'win32') {
         // skip on windows since appveyor does not have enough memory
-        it('allocates very large image', function(done) {});
+        it.skip('allocates very large image', function() {});
     } else {
         it('allocates very large image', function(done) {
             // 65535 is the max width/height in mapnik
