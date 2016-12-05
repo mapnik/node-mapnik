@@ -4,6 +4,7 @@ var mapnik = require('../');
 var assert = require('assert');
 var path = require('path');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
