@@ -29,7 +29,7 @@ function renderMap(stylesheet, image) {
     map.loadSync(stylesheet,{strict:true});
     map.zoomAll();
     map.renderFileSync(image);
-    child_process.exec('open ' + image);
+    child_process.exec('open', [image]);
 }
 
 if (path.extname(stylesheet).match(/.mml/i)) {
