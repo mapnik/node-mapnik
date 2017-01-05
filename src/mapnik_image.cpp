@@ -2385,12 +2385,13 @@ v8::Local<v8::Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
 typedef struct {
     uv_work_t request;
     image_ptr im;
-    const char *data;
-    size_t dataLength;
-    bool error;
     std::string error_name;
     Nan::Persistent<v8::Object> buffer;
     Nan::Persistent<v8::Function> cb;
+    bool premultiply;
+    const char *data;
+    size_t dataLength;
+    bool error;
 } image_mem_ptr_baton_t;
 
 typedef struct {
@@ -3302,6 +3303,8 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
  *
  * @name fromBytesSync
  * @param {Buffer} buffer - image buffer
+ * @param {Object} [options]
+ * @param {Boolean} [options.premultiply] - Default false, if true, then the image will be premultiplied before being returned
  * @returns {mapnik.Image} image object
  * @instance
  * @memberof Image
@@ -3399,6 +3402,28 @@ NAN_METHOD(Image::fromBytes)
         return;
     }
 
+    bool premultiply = false;
+    if (info.Length() >= 2)
+    {
+        if (info[1]->IsObject())
+        {
+            v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[1]);
+            if (options->Has(Nan::New("premultiply").ToLocalChecked()))
+            {
+                v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiply").ToLocalChecked());
+                if (!pre_val.IsEmpty() && pre_val->IsBoolean())
+                {
+                    premultiply = pre_val->BooleanValue();
+                }
+                else
+                {
+                    Nan::ThrowTypeError("premultiply option must be a boolean");
+                    return;
+                }
+            }
+        }
+    }
+
     image_mem_ptr_baton_t *closure = new image_mem_ptr_baton_t();
     closure->request.data = closure;
     closure->error = false;
@@ -3406,6 +3431,7 @@ NAN_METHOD(Image::fromBytes)
     closure->buffer.Reset(obj.As<v8::Object>());
     closure->data = node::Buffer::Data(obj);
     closure->dataLength = node::Buffer::Length(obj);
+    closure->premultiply = premultiply;
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterFromBytes);
     return;
 }
@@ -3420,6 +3446,9 @@ void Image::EIO_FromBytes(uv_work_t* req)
         if (reader.get())
         {
             closure->im = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
+            if (closure->premultiply) {
+                mapnik::premultiply_alpha(*closure->im);
+            }
         }
         else
         {
