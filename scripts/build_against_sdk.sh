@@ -8,6 +8,8 @@ On linux depends on node and:
     sudo apt-get install pkg-config build-essential zlib1g-dev
 '
 
+git submodule update --init
+
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 
 ARGS="$@"
