@@ -2389,6 +2389,7 @@ typedef struct {
     Nan::Persistent<v8::Object> buffer;
     Nan::Persistent<v8::Function> cb;
     bool premultiply;
+    std::uint32_t max_size;
     const char *data;
     size_t dataLength;
     bool error;
@@ -2474,7 +2475,7 @@ void Image::EIO_Open(uv_work_t* req)
             }
             else
             {
-                // The only way this is ever reached is if the reader factory in 
+                // The only way this is ever reached is if the reader factory in
                 // mapnik was not providing an image type it should. This should never
                 // be occuring so marking this out from coverage
                 /* LCOV_EXCL_START */
@@ -3303,8 +3304,6 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
  *
  * @name fromBytesSync
  * @param {Buffer} buffer - image buffer
- * @param {Object} [options]
- * @param {Boolean} [options.premultiply] - Default false, if true, then the image will be premultiplied before being returned
  * @returns {mapnik.Image} image object
  * @instance
  * @memberof Image
@@ -3342,7 +3341,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
             v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
             return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
         }
-        // The only way this is ever reached is if the reader factory in 
+        // The only way this is ever reached is if the reader factory in
         // mapnik was not providing an image type it should. This should never
         // be occuring so marking this out from coverage
         /* LCOV_EXCL_START */
@@ -3362,6 +3361,9 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
  *
  * @name fromBytes
  * @param {Buffer} buffer - image buffer
+ * @param {Object} [options]
+ * @param {Boolean} [options.premultiply] - Default false, if true, then the image will be premultiplied before being returned
+ * @param {Number} [options.max_size] - the maximum allowed size of the image dimensions. The default is 2048.
  * @param {Function} callback - `function(err, img)`
  * @static
  * @memberof Image
@@ -3403,6 +3405,7 @@ NAN_METHOD(Image::fromBytes)
     }
 
     bool premultiply = false;
+    std::uint32_t max_size = 2048;
     if (info.Length() >= 2)
     {
         if (info[1]->IsObject())
@@ -3410,14 +3413,32 @@ NAN_METHOD(Image::fromBytes)
             v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[1]);
             if (options->Has(Nan::New("premultiply").ToLocalChecked()))
             {
-                v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiply").ToLocalChecked());
-                if (!pre_val.IsEmpty() && pre_val->IsBoolean())
+                v8::Local<v8::Value> opt = options->Get(Nan::New("premultiply").ToLocalChecked());
+                if (!opt.IsEmpty() && opt->IsBoolean())
                 {
-                    premultiply = pre_val->BooleanValue();
+                    premultiply = opt->BooleanValue();
                 }
                 else
                 {
                     Nan::ThrowTypeError("premultiply option must be a boolean");
+                    return;
+                }
+            }
+            if (options->Has(Nan::New("max_size").ToLocalChecked()))
+            {
+                v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
+                if (opt->IsNumber())
+                {
+                    auto max_size_val = opt->IntegerValue();
+                    if (max_size_val < 0 || max_size_val > 65535) {
+                        Nan::ThrowTypeError("max_size must be a positive integer between 0 and 65535");
+                        return;
+                    }
+                    max_size = static_cast<std::uint32_t>(max_size_val);
+                }
+                else
+                {
+                    Nan::ThrowTypeError("max_size option must be a number");
                     return;
                 }
             }
@@ -3432,6 +3453,8 @@ NAN_METHOD(Image::fromBytes)
     closure->data = node::Buffer::Data(obj);
     closure->dataLength = node::Buffer::Length(obj);
     closure->premultiply = premultiply;
+    closure->max_size = max_size;
+    closure->im = nullptr;
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromBytes, (uv_after_work_cb)EIO_AfterFromBytes);
     return;
 }
@@ -3445,25 +3468,20 @@ void Image::EIO_FromBytes(uv_work_t* req)
         std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(closure->data,closure->dataLength));
         if (reader.get())
         {
-            closure->im = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
-            if (closure->premultiply) {
-                mapnik::premultiply_alpha(*closure->im);
+            if (reader->width() > closure->max_size || reader->height() > closure->max_size) {
+                std::stringstream s;
+                s << "image created from bytes must be " << closure->max_size << " pixels or fewer on each side";
+                closure->error_name = s.str();
+            } else {
+                closure->im = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
+                if (closure->premultiply) {
+                    mapnik::premultiply_alpha(*closure->im);
+                }
             }
-        }
-        else
-        {
-            // The only way this is ever reached is if the reader factory in 
-            // mapnik was not providing an image type it should. This should never
-            // be occuring so marking this out from coverage
-            /* LCOV_EXCL_START */
-            closure->error = true;
-            closure->error_name = "Failed to load from buffer";
-            /* LCOV_EXCL_STOP */
         }
     }
     catch (std::exception const& ex)
     {
-        closure->error = true;
         closure->error_name = ex.what();
     }
 }
@@ -3472,12 +3490,21 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
 {
     Nan::HandleScope scope;
     image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
-    if (closure->error || !closure->im)
+    if (!closure->error_name.empty())
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
-    else
+    else if (closure->im == nullptr)
+    {
+        /* LCOV_EXCL_START */
+        // The only way this is ever reached is if the reader factory in 
+        // mapnik was not providing an image type it should. This should never
+        // be occuring so marking this out from coverage
+        v8::Local<v8::Value> argv[1] = { Nan::Error("Failed to load from buffer") };
+        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        /* LCOV_EXCL_STOP */
+    } else
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);

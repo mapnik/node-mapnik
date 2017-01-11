@@ -1580,7 +1580,6 @@ describe('mapnik.Image ', function() {
 
     it('fromBytes can premultiply in async/threadpool', function(done) {
         var data = require('fs').readFileSync(__dirname + '/support/a.png');
-        var image = mapnik.Image.fromBytesSync(data);
         mapnik.Image.fromBytes(data, {premultiply:false}, function(err, im) {
             if (err) throw err;
             assert.ok(!im.premultiplied());
@@ -1589,6 +1588,16 @@ describe('mapnik.Image ', function() {
                 assert.ok(im.premultiplied());
                 done();
             });
+        });
+    });
+
+    it('fromBytes can limit max image size', function(done) {
+        var data = require('fs').readFileSync(__dirname + '/support/a.png');
+        mapnik.Image.fromBytes(data, {max_size:10, premultiply:false}, function(err, im) {
+            assert.ok(!im);
+            assert.ok(err);
+            assert.ok(err.message == 'image created from bytes must be 10 pixels or fewer on each side');
+            done();
         });
     });
 
