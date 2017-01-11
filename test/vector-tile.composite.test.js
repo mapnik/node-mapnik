@@ -301,7 +301,7 @@ describe('mapnik.VectorTile.composite', function() {
         vtile1.composite([vtile2],{reencode:true,max_extent:world_clipping_extent});
         assert.equal(vtile.getData().length,54784);
         assert.deepEqual(vtile.names(),["water","admin"]);
-        assert.equal(vtile1.getData().length,54526);
+        assert.equal(vtile1.getData().length,54524);
         assert.deepEqual(vtile1.names(),["water","admin"]);
         var expected_file = data_base +'/expected/world-reencode.png';
         var expected_file2 = data_base +'/expected/world-reencode-max-extent.png';
@@ -320,7 +320,7 @@ describe('mapnik.VectorTile.composite', function() {
                         assert.equal(0,compare_to_image(im,expected_file));
                         vtile4.composite([vtile2],{reencode:true,max_extent:world_clipping_extent}, function(err) {
                             if (err) throw err;
-                            assert.equal(vtile4.getData().length,54526);
+                            assert.equal(vtile4.getData().length,54524);
                             assert.deepEqual(vtile4.names(),["water","admin"]);
                             assert.equal(0,compare_to_image(im2,expected_file2));
                             vtile4.render(map,new mapnik.Image(256,256),function(err,im) {
