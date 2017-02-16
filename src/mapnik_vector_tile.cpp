@@ -1661,7 +1661,7 @@ void VectorTile::EIO_AfterQuery(uv_work_t* req)
     }
     else
     {
-        std::vector<query_result> result = closure->result;
+        std::vector<query_result> const& result = closure->result;
         v8::Local<v8::Array> arr = _queryResultToV8(result);
         v8::Local<v8::Value> argv[2] = { Nan::Null(), arr };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -1784,7 +1784,7 @@ bool VectorTile::_querySort(query_result const& a, query_result const& b)
 
 v8::Local<v8::Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>();
+    v8::Local<v8::Array> arr = Nan::New<v8::Array>(result.size());
     std::size_t i = 0;
     for (auto const& item : result)
     {
@@ -2112,8 +2112,8 @@ bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b)
 v8::Local<v8::Object> VectorTile::_queryManyResultToV8(queryMany_result const& result)
 {
     v8::Local<v8::Object> results = Nan::New<v8::Object>();
-    v8::Local<v8::Array> features = Nan::New<v8::Array>();
-    v8::Local<v8::Array> hits = Nan::New<v8::Array>();
+    v8::Local<v8::Array> features = Nan::New<v8::Array>(result.features.size());
+    v8::Local<v8::Array> hits = Nan::New<v8::Array>(result.hits.size());
     results->Set(Nan::New("hits").ToLocalChecked(), hits);
     results->Set(Nan::New("features").ToLocalChecked(), features);
 
