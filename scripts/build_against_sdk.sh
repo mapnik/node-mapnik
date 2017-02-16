@@ -63,7 +63,7 @@ if [[ ! `which node` ]]; then
 fi
 
 export LDFLAGS=${LDFLAGS:-""}
-export CXXFLAGS=${CXXFLAGS:-""}
+export CXXFLAGS="${CXXFLAGS:-""} -D_GLIBCXX_USE_CXX11_ABI=0"
 
 if [[ $UNAME == 'Linux' ]]; then
     export LDFLAGS='-Wl,-z,origin -Wl,-rpath=\$$ORIGIN '${LDFLAGS}
