@@ -321,9 +321,9 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     constructor.Reset(lcons);
 }
 
-VectorTile::VectorTile(int z, 
-                       int x, 
-                       int y, 
+VectorTile::VectorTile(std::uint64_t z, 
+                       std::uint64_t x, 
+                       std::uint64_t y, 
                        std::uint32_t tile_size,
                        std::int32_t buffer_size) :
     Nan::ObjectWrap(),
@@ -371,15 +371,15 @@ NAN_METHOD(VectorTile::New)
         return;
     }
     
-    int z = info[0]->IntegerValue();
-    int x = info[1]->IntegerValue();
-    int y = info[2]->IntegerValue();
+    std::int64_t z = info[0]->IntegerValue();
+    std::int64_t x = info[1]->IntegerValue();
+    std::int64_t y = info[2]->IntegerValue();
     if (z < 0 || x < 0 || y < 0)
     {
         Nan::ThrowTypeError("required parameters (z, x, and y) must be greater then or equal to zero");
         return;
     }
-    int max_at_zoom = pow(2,z);
+    std::int64_t max_at_zoom = pow(2,z);
     if (x >= max_at_zoom)
     {
         Nan::ThrowTypeError("required parameter x is out of range of possible values based on z value");
@@ -4692,9 +4692,9 @@ struct vector_tile_render_baton_t
     Nan::Persistent<v8::Function> cb;
     std::string result;
     std::size_t layer_idx;
-    int z;
-    int x;
-    int y;
+    std::int64_t z;
+    std::int64_t x;
+    std::int64_t y;
     unsigned width;
     unsigned height;
     int buffer_size;
@@ -4889,7 +4889,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("original args 'z', 'x', and 'y' can not be negative");
                 return;
             }
-            int max_at_zoom = pow(2,closure->z);
+            std::int64_t max_at_zoom = pow(2,closure->z);
             if (closure->x >= max_at_zoom)
             {
                 Nan::ThrowTypeError("required parameter x is out of range of possible values based on z value");

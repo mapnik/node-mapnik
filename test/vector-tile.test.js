@@ -707,6 +707,13 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { new mapnik.VectorTile(1,2,0); });
         assert.throws(function() { new mapnik.VectorTile(4,16,0); });
         assert.throws(function() { new mapnik.VectorTile(4,0,16); });
+
+    });
+    
+    it('should not throw when using higher zoom levels', function() {
+        assert.doesNotThrow(function() { new mapnik.VectorTile(28,0,0); });
+        assert.doesNotThrow(function() { new mapnik.VectorTile(35,0,0); });
+        assert.doesNotThrow(function() { new mapnik.VectorTile(45,0,0); });
     });
 
     it('should be initialized properly', function() {
