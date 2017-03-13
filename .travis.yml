@@ -1,136 +1,120 @@
-language: generic
+language: node_js
 
 sudo: false
 
-git:
-  depth: 10
-
-# don't re-build for tags so that [publish binary] is not re-run
-# https://github.com/travis-ci/travis-ci/issues/1532
-branches:
-  except:
-    - /^v[0-9]/
-
+# build options and AWS keys for publishing binaries
+# note: you'll need to generate your own keys for publishing a separate project
 env:
   global:
-   - JOBS: "8"
    - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
    - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
    - secure: "bvbvxQe4GXZoU1zxm6KylaUSuQuhUZKe1V4+iYM0Sde6hj6RtAUccCWT7mNacCe2I6uGVHHjVfd7wLovT5y7lyT5pzY3UtypxFwuvGxDHotH4hhTg4m8/7APdB4bf5YgBf5IC6pMUPpUloh6TsTIwYzEaJdp/52b31Qfx80FooqOGOrEqntiyvidWsdUmlrxWnpxCVndkZgwvD15Uc08DWyD8Hklor6cKW6d/3zVIFmy81uAvTQp5W5xXC47S/BYYIwz3GU0zx+CMWM1oFObSbkVMG3LXDurqyvzWf9+09ZtBlC2JW0AOt9atk7vnD115Ia1KaEWalMhb3AGwJx4M4hqonooWOx20NL5P0sqEUe94GBUwvvb295vFTbw9guSGYXL3cOeWTlh2Ol466vJUwBvfr4OQ6Qu401nb1sIIv4SoIT9xXSHbopoderRVQurrcl/wesR19hgzrQC9ytJ6QCS1xnnzKogflfMQDDayrCMwpiZ5gvMGheGNbAh661wL03YXiviMwG307+iwFk8zyw05g4nW5/v3S+OYq3QatUgk+ZDpX2JS2zX4D6Aj2QLzKtCrx9pNpngl8pN+drmac1nklUeQLANxyv8hQjJvs1a4utj7ed9CY7QEWkvfrUl7rZqXvzacKmGEWoTkZKru19pa0enLTThKQV6AOei3e4="
 
+# enable c++11/14 builds
 addons:
   apt:
-    sources:
-     - ubuntu-toolchain-r-test
-    packages:
-     - libstdc++-5-dev
-
-matrix:
-  include:
-     # Coverage
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="4" COVERAGE=true NPM_FLAGS="--debug" PUBLISHABLE=false # node abi 46
-     # Linux
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="6" PUBLISHABLE=true # node abi 48
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="5" PUBLISHABLE=true # node abi 47
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="4" PUBLISHABLE=true # node abi 46
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="4" NPM_FLAGS="--debug" PUBLISHABLE=true # node abi 46
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="0.10" NPM_FLAGS="--debug" PUBLISHABLE=true # node abi 11
-     - os: linux
-       compiler: clang
-       env: NODE_VERSION="0.10" PUBLISHABLE=true # node abi 11
-     # linux gcc5
-     - os: linux
-       compiler: gcc
-       env: NODE_VERSION="4" CXX="g++-5" PUBLISHABLE=false
-       addons:
-         apt:
-           sources:
-            - ubuntu-toolchain-r-test
-           packages:
-            - libstdc++-5-dev
-            - g++-5
-     # OS X
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="6" PUBLISHABLE=true # node abi 48
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="5" PUBLISHABLE=true # node abi 47
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="4" PUBLISHABLE=true # node abi 46
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="4" NPM_FLAGS="--debug" PUBLISHABLE=true # node abi 46
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="0.10" NPM_FLAGS="--debug" PUBLISHABLE=true # node abi 11
-     - os: osx
-       osx_image: xcode7
-       compiler: clang
-       env: NODE_VERSION="0.10" PUBLISHABLE=true # node abi 11
-
-before_install:
- - scripts/validate_tag.sh
- - export COVERAGE=${COVERAGE:-false}
- - if [[ $(uname -s) == 'Linux' ]] && [[ ${CXX:-"notset"} == "notset" ]]; then
-     mkdir mason && curl -sSfL https://github.com/mapbox/mason/archive/v0.7.0.tar.gz | tar --gunzip --extract --strip-components=1 --directory=./mason;
-     export PATH=$(pwd)/mason:${PATH};
-     mason install clang++ 3.9.1;
-     export PATH=$(mason prefix clang++ 3.9.1)/bin:${PATH};
-     export CXX=clang++-3.9;
-     export CC=clang-3.9;
-     export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python2.7/site-packages;
-   else
-     export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages;
-   fi;
- - source ./scripts/install_node.sh ${NODE_VERSION}
- - export PATH=./node_modules/.bin/:$PATH
+    sources: [ 'ubuntu-toolchain-r-test' ]
+    packages: [ 'libstdc++-4.9-dev' ]
 
 install:
- - COMMIT_MESSAGE=$(git log --format=%B --no-merges -n 1 | tr -d '\n')
- - echo ${COMMIT_MESSAGE}
- - if [[ ${COVERAGE} == true ]]; then
-     if [[ $(uname -s) == 'Linux' ]]; then
-       PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls;
-     else
-       PYTHONUSERBASE=$(pwd)/mason_packages/.link easy_install --user cpp-coveralls;
-     fi;
-     ./scripts/build_against_sdk.sh ${NPM_FLAGS};
-   else
-     ./scripts/build_against_sdk.sh ${NPM_FLAGS};
-   fi
- - node-pre-gyp package testpackage ${NPM_FLAGS}
- - npm test
+  # set up the environment by installing mason and clang++
+  - ./scripts/setup.sh --config local.env
+  # put mason and clang++ on PATH
+  - source local.env
+  - node -v
+  - which node
+  - clang++ -v
+  - which clang++
+  - make ${BUILDTYPE}
 
-before_script:
-- if [[ ${PUBLISHABLE} == true ]]; then
-    ./scripts/publish.sh;
-  fi;
-
+# run tests
 script:
- - if [[ ${COVERAGE} == true ]]; then ./mason_packages/.link/bin/cpp-coveralls --exclude __nvm --exclude node_modules --exclude tests --build-root build --gcov-options '\-lp' --exclude tools --exclude docs --exclude sdk --exclude build/Debug/obj/gen --exclude build/Release/obj/gen --exclude src/mapnik_featureset.hpp --exclude src/mapnik_logger.hpp --exclude src/mapnik_image_view.hpp --exclude src/mapnik_geometry.hpp --exclude deps > /dev/null; fi;
- #- node --expose-gc bench/error/test_vt_abort2.js
- # ugh: always killed by travis
- #- nice -n 19 node --expose-gc bench/error/test_vt_abort.js
+  - npm test
+  # after successful tests, publish binaries if specified in commit message
+  - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
+
+# the matrix allows you to specify different operating systems and environments to 
+# run your tests and build binaries
+matrix:
+  include:
+    # linux publishable node v4/release
+    - os: linux
+      env: BUILDTYPE=release
+      node_js: 4
+    # linux publishable node v4/debug
+    - os: linux
+      env: BUILDTYPE=debug
+      node_js: 4
+    # linux publishable node v6
+    - os: linux
+      env: BUILDTYPE=release
+      node_js: 6
+    # linux publishable node v6/debug
+    - os: linux
+      env: BUILDTYPE=debug
+      node_js: 6
+    # osx publishable node v4
+    - os: osx
+      osx_image: xcode8.2
+      env: BUILDTYPE=release
+      node_js: 4
+    # osx publishable node v6
+    - os: osx
+      osx_image: xcode8.2
+      env: BUILDTYPE=release
+      node_js: 6
+    # Sanitizer build node v4/Debug
+    - os: linux
+      env: BUILDTYPE=debug TOOLSET=asan
+      node_js: 4
+      # Overrides `install` to set up custom asan flags
+      install:
+        - ./scripts/setup.sh --config local.env
+        # put mason and clang++ on PATH
+        - source local.env
+        # Note: to build without stopping on errors remove the -fno-sanitize-recover=all flag
+        # You might want to do this if there are multiple errors and you want to see them all before fixing
+        - export CXXFLAGS="${MASON_SANITIZE_CXXFLAGS} -fno-sanitize-recover=all"
+        - export LDFLAGS="${MASON_SANITIZE_LDFLAGS}"
+        - make ${BUILDTYPE}
+      # Overrides `script` to disable asan LD_PRELOAD before publishing
+      script:
+        - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
+        - export ASAN_OPTIONS=fast_unwind_on_malloc=0:${ASAN_OPTIONS}
+        - npm test
+        - unset LD_PRELOAD
+        # after successful tests, publish binaries if specified in commit message
+        - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
+    # g++ build (default builds all use clang++)
+    - os: linux
+      env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"
+      node_js: 4
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - libstdc++-6-dev
+            - g++-6
+      # Overrides `install` to avoid initializing clang toolchain
+      install:
+        - make ${BUILDTYPE}
+      # Overrides `script` to disable publishing
+      script:
+        - npm test
+    # Coverage build
+    - os: linux
+      env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
+      node_js: 4
+      # Overrides `script` to publish coverage data to codecov
+      script:
+        - npm test
+        - mason install llvm-cov ${MASON_LLVM_RELEASE}
+        - mason link llvm-cov ${MASON_LLVM_RELEASE}
+        - which llvm-cov
+        - curl -S -f https://codecov.io/bash -o codecov
+        - chmod +x codecov
+        - ./codecov -x "llvm-cov gcov" -Z
 
 notifications:
   slack:

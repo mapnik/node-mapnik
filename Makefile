@@ -1,57 +1,43 @@
-#http://www.gnu.org/prep/standards/html_node/Standard-Targets.html#Standard-Targets
+MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.module_name)")
 
-all: build-all
+default: release
 
-./node_modules/node-pre-gyp:
-	npm install node-pre-gyp
-
-./node_modules: ./node_modules/node-pre-gyp
+node_modules:
+	# install deps but for now ignore our own install script
+	# so that we can run it directly in either debug or release
 	npm install --ignore-scripts
 
-./build:
-	./node_modules/.bin/node-pre-gyp configure --loglevel=error --clang=1
+release: node_modules
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error
+	@echo "run 'make clean' for full rebuild"
 
-build-all: ./node_modules ./build
-	./node_modules/.bin/node-pre-gyp build --loglevel=error --clang=1
+debug: node_modules
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --debug
+	@echo "run 'make clean' for full rebuild"
 
-debug: ./node_modules ./build
-	./node_modules/.bin/node-pre-gyp build --debug --clang=1
-
-coverage: ./node_modules ./build
-	./node_modules/.bin/node-pre-gyp build --debug --clang=1 --coverage=true
-
-verbose: ./node_modules
-	./node_modules/.bin/node-pre-gyp build --loglevel=verbose --clang=1
+coverage:
+	./scripts/coverage.sh
 
 clean:
-	@rm -rf ./build
-	rm -rf lib/binding/
-	rm ./test/tmp/*
-	echo > ./test/tmp/placeholder.txt
-	rm -rf ./node_modules/
-	rm -f ./*tgz
+	rm -rf lib/binding
+	rm -rf build
 
-grind:
-	valgrind --leak-check=full node node_modules/.bin/_mocha
+distclean: clean
+	rm -rf node_modules
 
-testpack:
-	rm -f ./*tgz
-	npm pack
-	tar -ztvf *tgz
-	rm -f ./*tgz
+xcode: node_modules
+	./node_modules/.bin/node-pre-gyp configure -- -f xcode
 
-rebuild:
-	@make clean
-	@make
+	@# If you need more targets, e.g. to run other npm scripts, duplicate the last line and change NPM_ARGUMENT
+	SCHEME_NAME="$(MODULE_NAME)" SCHEME_TYPE=library BLUEPRINT_NAME=$(MODULE_NAME) BUILDABLE_NAME=$(MODULE_NAME).node scripts/create_scheme.sh
+	SCHEME_NAME="npm test" SCHEME_TYPE=node BLUEPRINT_NAME=$(MODULE_NAME) BUILDABLE_NAME=$(MODULE_NAME).node NODE_ARGUMENT="`npm bin tape`/tape test/*.test.js" scripts/create_scheme.sh
 
-ifndef only
+	open build/binding.xcodeproj
+
+docs:
+	npm run docs
+
 test:
-	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec
-else
-test:
-	@PATH="./node_modules/mocha/bin:${PATH}" && NODE_PATH="./lib:$(NODE_PATH)" mocha -R spec test/${only}.test.js
-endif
+	npm test
 
-check: test
-
-.PHONY: test clean build
+.PHONY: test docs

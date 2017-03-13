@@ -2,7 +2,21 @@
   'includes': [ 'common.gypi' ],
   'targets': [
     {
+      'target_name': 'action_before_build',
+      'type': 'none',
+      'hard_dependency': 1,
+      'actions': [
+        {
+          'action_name': 'install_mason',
+          'inputs': ['./install_mason.sh'],
+          'outputs': ['./mason_packages'],
+          'action': ['./install_mason.sh']
+        }
+      ]
+    },
+    {
       'target_name': 'make_vector_tile',
+      'dependencies': [ 'action_before_build' ],
       'hard_dependency': 1,
       'type': 'none',
       'actions': [
@@ -27,6 +41,7 @@
     {
       'target_name': '<(module_name)',
       'dependencies': [ 'make_vector_tile' ],
+      'product_dir': '<(module_path)',
       'sources': [
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
@@ -55,9 +70,11 @@
       ],
       'include_dirs': [
         './deps/clipper/',
+        './mason_packages/.link/include/',
+        './mason_packages/.link/include/freetype2',
+        './mason_packages/.link/include/cairo',
         './src',
         "<!(node -e \"require('nan')\")",
-        "<!(node -e \"require('protozero')\")",
         "<!(node -e \"require('mapnik-vector-tile')\")"
       ],
       'defines': [
@@ -94,13 +111,17 @@
           {
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
-              '<!@(mapnik-config --cflags)'
+              '<!@(mapnik-config --cflags)',
+              '-D_GLIBCXX_USE_CXX11_ABI=0'
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
               '-lmapnik-wkt',
               '-lmapnik-json',
               '<!@(mapnik-config --ldflags)',
+            ],
+            'ldflags': [
+              '-Wl,-z,now',
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
@@ -121,17 +142,6 @@
             }
           },
         ]
-      ]
-    },
-    {
-      'target_name': 'action_after_build',
-      'type': 'none',
-      'dependencies': [ '<(module_name)' ],
-      'copies': [
-        {
-          'files': [ '<(PRODUCT_DIR)/<(module_name).node' ],
-          'destination': '<(module_path)'
-        }
       ]
     }
   ]
