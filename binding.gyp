@@ -78,7 +78,7 @@
         "<!(node -e \"require('mapnik-vector-tile')\")"
       ],
       'defines': [
-          'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
+          'MAPNIK_GIT_REVISION="<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --git-describe)"',
           'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
           'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
           'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
@@ -88,22 +88,22 @@
         ['OS=="win"',
           {
             'include_dirs':[
-              '<!@(mapnik-config --includes)',
-              '<!@(mapnik-config --dep-includes)'
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --includes)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --dep-includes)'
             ],
-            'defines': ['NOMINMAX','<!@(mapnik-config --defines)'],
+            'defines': ['NOMINMAX','<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --defines)'],
             'defines!': ["_HAS_EXCEPTIONS=0"],
             'libraries': [
-              '<!@(mapnik-config --libs)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --libs)',
               'mapnik-wkt.lib',
               'mapnik-json.lib',
-              '<!@(mapnik-config --dep-libs)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --dep-libs)',
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
               'VCLinkerTool': {
                 'AdditionalLibraryDirectories': [
-                  '<!@(mapnik-config --ldflags)'
+                  '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --ldflags)'
                 ],
               },
             }
@@ -111,24 +111,24 @@
           {
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
-              '<!@(mapnik-config --cflags)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --cflags)',
               '-D_GLIBCXX_USE_CXX11_ABI=0'
             ],
             'libraries':[
-              '<!@(mapnik-config --libs)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --libs)',
               '-lmapnik-wkt',
               '-lmapnik-json',
-              '<!@(mapnik-config --ldflags)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --ldflags)',
             ],
             'ldflags': [
               '-Wl,-z,now',
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                '<!@(mapnik-config --cflags)',
+                '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --cflags)',
               ],
               'OTHER_CFLAGS':[
-                '<!@(mapnik-config --cflags)'
+                '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --cflags)'
               ],
               'OTHER_LDFLAGS':[
                 '-Wl,-bind_at_load'
@@ -143,6 +143,20 @@
           },
         ]
       ]
-    }
+    },
+    {
+      'target_name': 'action_after_build',
+      'type': 'none',
+      'dependencies': [ '<(module_name)' ],
+      'hard_dependency': 1,
+      'actions': [
+        {
+          'action_name': 'postinstall',
+          'inputs': ['./scripts/postinstall.sh'],
+          'outputs': ['./lib/binding/mapnik'],
+          'action': ['./scripts/postinstall.sh']
+        }
+      ]
+    },
   ]
 }

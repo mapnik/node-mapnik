@@ -5,7 +5,7 @@
 var binary = require('node-pre-gyp'),
     path = require('path'),
     bindingPath = binary.find(path.resolve(__dirname, '..', 'package.json')),
-    program = path.join(path.dirname(bindingPath), 'mapnik-index'),
+    program = path.join(path.dirname(bindingPath), 'bin', 'mapnik-index'),
     spawn = require('child_process').spawn,
     fs = require('fs');
 
