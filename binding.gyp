@@ -40,7 +40,7 @@
     },
     {
       'target_name': '<(module_name)',
-      'dependencies': [ 'make_vector_tile' ],
+      'dependencies': [ 'action_before_build', 'make_vector_tile' ],
       'product_dir': '<(module_path)',
       'sources': [
         "src/mapnik_logger.cpp",
