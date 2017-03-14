@@ -14,7 +14,7 @@ if [ ! -d ./mason ]; then
     git clone --branch mapnik-3.0.13 --single-branch https://github.com/mapbox/mason.git
 fi
 
-if [ ! -d ./mason_packages ]; then
+if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
 
     # mapnik deps
     install jpeg_turbo 1.5.1 libjpeg
