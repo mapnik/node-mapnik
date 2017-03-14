@@ -2671,8 +2671,8 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         agg::scanline_u8 sl;
 
         double opacity = 1;
-        int svg_width = svg.width() * scale;
-        int svg_height = svg.height() * scale;
+        double svg_width = svg.width() * scale;
+        double svg_height = svg.height() * scale;
         
         if (svg_width <= 0 || svg_height <= 0)
         {
@@ -2680,7 +2680,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             return scope.Escape(Nan::Undefined());
         }
 
-        if (svg_width > static_cast<int>(max_size) || svg_height > static_cast<int>(max_size))
+        if (svg_width > static_cast<double>(max_size) || svg_height > static_cast<double>(max_size))
         {
             std::stringstream s;
             s << "image created from svg must be " << max_size << " pixels or fewer on each side";
@@ -2688,7 +2688,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             return scope.Escape(Nan::Undefined());
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
+        mapnik::image_rgba8 im(static_cast<int>(svg_width), static_cast<int>(svg_height), true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
