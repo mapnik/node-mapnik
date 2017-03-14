@@ -2,7 +2,10 @@ MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.mod
 
 default: release
 
-node_modules:
+mason_packages/.link/bin/mapnik-config:
+	./install_mason.sh
+
+node_modules: mason_packages/.link/bin/mapnik-config
 	# install deps but for now ignore our own install script
 	# so that we can run it directly in either debug or release
 	npm install --ignore-scripts
