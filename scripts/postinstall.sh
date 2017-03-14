@@ -15,9 +15,10 @@ cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
 # copy plugins
 cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}
 # copy share data
-#cp -r ${MAPNIK_SDK}/share/mapnik ${MODULE_PATH}/share/
-cp -r ${MAPNIK_SDK}/share/gdal ${MODULE_PATH}/share/
-cp -r ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
+mkdir -p ${MODULE_PATH}/share/gdal
+cp -r ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
+mkdir -p ${MODULE_PATH}/share/proj
+cp -r ${MAPNIK_SDK}/share/proj/*.* ${MODULE_PATH}/share/proj/
 mkdir -p ${MODULE_PATH}/share/icu
 cp -r ${MAPNIK_SDK}/share/icu/*dat ${MODULE_PATH}/share/icu/
 
