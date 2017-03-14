@@ -28,7 +28,9 @@ install:
   - make ${BUILDTYPE}
 
 # run tests
-script:
+# we use before_script rather than script to ensure fast failure (the script section continues even after an error)
+# https://docs.travis-ci.com/user/customizing-the-build#Breaking-the-Build
+before_script:
   - npm test
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
@@ -78,7 +80,7 @@ matrix:
         - export LDFLAGS="${MASON_SANITIZE_LDFLAGS}"
         - make ${BUILDTYPE}
       # Overrides `script` to disable asan LD_PRELOAD before publishing
-      script:
+      before_script:
         - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
         - export ASAN_OPTIONS=fast_unwind_on_malloc=0:${ASAN_OPTIONS}
         - npm test
@@ -100,14 +102,14 @@ matrix:
       install:
         - make ${BUILDTYPE}
       # Overrides `script` to disable publishing
-      script:
+      before_script:
         - npm test
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
       node_js: 4
       # Overrides `script` to publish coverage data to codecov
-      script:
+      before_script:
         - npm test
         - mason install llvm-cov ${MASON_LLVM_RELEASE}
         - mason link llvm-cov ${MASON_LLVM_RELEASE}
