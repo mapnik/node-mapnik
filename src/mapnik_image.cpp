@@ -202,12 +202,13 @@ NAN_METHOD(Image::New)
 
                     if (!init_val.IsEmpty() && init_val->IsNumber())
                     {
-                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
-                        if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+                        int int_val = init_val->IntegerValue();
+                        if (int_val >= mapnik::image_dtype::IMAGE_DTYPE_MAX || int_val < 0)
                         {
                             Nan::ThrowTypeError("Image 'type' must be a valid image type");
                             return;
                         }
+                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
                     }
                     else
                     {
@@ -3989,12 +3990,13 @@ NAN_METHOD(Image::composite)
                 Nan::ThrowTypeError("comp_op must be a mapnik.compositeOp value");
                 return;
             }
-            mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
-            if (mode > mapnik::composite_mode_e::divide || mode < 0)
+            int mode_int = opt->IntegerValue();
+            if (mode_int > static_cast<int>(mapnik::composite_mode_e::divide) || mode_int < 0)
             {
                 Nan::ThrowTypeError("Invalid comp_op value");
                 return;
             }
+            mode = static_cast<mapnik::composite_mode_e>(mode_int);
         }
 
         if (options->Has(Nan::New("opacity").ToLocalChecked()))
