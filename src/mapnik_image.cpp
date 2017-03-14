@@ -1870,12 +1870,13 @@ NAN_METHOD(Image::resize)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
-            if (scaling_method > mapnik::SCALING_BLACKMAN)
+            std::int64_t scaling_int = scaling_val->IntegerValue();
+            if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Nan::ThrowTypeError("Invalid scaling_method");
                 return;
             }
+            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_int);
         }
         else
         {
@@ -2196,12 +2197,13 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
-            if (scaling_method > mapnik::SCALING_BLACKMAN)
+            std::int64_t scaling_int = scaling_val->IntegerValue();
+            if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Nan::ThrowTypeError("Invalid scaling_method");
                 return scope.Escape(Nan::Undefined());
             }
+            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_int);
         }
         else
         {
