@@ -17,8 +17,7 @@ cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}
 # copy share data
 mkdir -p ${MODULE_PATH}/share/gdal
 cp -r ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
-mkdir -p ${MODULE_PATH}/share/proj
-cp -r ${MAPNIK_SDK}/share/proj/*.* ${MODULE_PATH}/share/proj/
+cp -r ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
 mkdir -p ${MODULE_PATH}/share/icu
 cp -r ${MAPNIK_SDK}/share/icu/*dat ${MODULE_PATH}/share/icu/
 
