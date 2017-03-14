@@ -2882,8 +2882,9 @@ void Image::EIO_FromSVG(uv_work_t* req)
         agg::scanline_u8 sl;
 
         double opacity = 1;
-        int svg_width = svg.width() * closure->scale;
-        int svg_height = svg.height() * closure->scale;
+
+        double svg_width = svg.width() * closure->scale;
+        double svg_height = svg.height() * closure->scale;
 
         if (svg_width <= 0 || svg_height <= 0)
         {
@@ -2892,7 +2893,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             return;
         }
 
-        if (svg_width > static_cast<int>(closure->max_size) || svg_height > static_cast<int>(closure->max_size))
+        if (svg_width > static_cast<double>(closure->max_size) || svg_height > static_cast<double>(closure->max_size))
         {
             closure->error = true;
             std::stringstream s;
@@ -2901,7 +2902,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
+        mapnik::image_rgba8 im(static_cast<int>(svg_width), static_cast<int>(svg_height), true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
