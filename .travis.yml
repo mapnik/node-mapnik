@@ -43,6 +43,10 @@ script:
 # run your tests and build binaries
 matrix:
   include:
+    # linux publishable node v0.10/release
+    - os: linux
+      env: BUILDTYPE=release
+      node_js: 0.10
     # linux publishable node v4/release
     - os: linux
       env: BUILDTYPE=release
@@ -59,6 +63,11 @@ matrix:
     - os: linux
       env: BUILDTYPE=debug
       node_js: 6
+    # osx publishable node v0.10
+    - os: osx
+      osx_image: xcode8.2
+      env: BUILDTYPE=release
+      node_js: 0.10
     # osx publishable node v4
     - os: osx
       osx_image: xcode8.2
