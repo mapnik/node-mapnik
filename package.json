@@ -12,7 +12,7 @@
     "module_path": "./lib/binding/",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
-    "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
+    "package_name": "{node_abi}-{platform}-{arch}-{configuration}-{toolset}.tar.gz"
   },
   "bugs": {
     "email": "dane@mapbox.com",
