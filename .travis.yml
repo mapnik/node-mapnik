@@ -35,6 +35,10 @@ before_script:
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
 
+# override script default (npm test) to do nothing (we test in before_script)
+script:
+  - true
+
 # the matrix allows you to specify different operating systems and environments to 
 # run your tests and build binaries
 matrix:
