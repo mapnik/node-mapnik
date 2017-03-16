@@ -8,14 +8,14 @@ mason_packages/.link/bin/mapnik-config:
 node_modules: mason_packages/.link/bin/mapnik-config
 	# install deps but for now ignore our own install script
 	# so that we can run it directly in either debug or release
-	npm install --ignore-scripts
+	npm install --ignore-scripts --clang
 
 release: node_modules
-	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
 debug: node_modules
-	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --debug
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --debug --clang
 	@echo "run 'make clean' for full rebuild"
 
 coverage:
