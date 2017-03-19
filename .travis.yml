@@ -80,7 +80,7 @@ matrix:
       node_js: 6
     # Sanitizer build node v4/Debug
     - os: linux
-      env: BUILDTYPE=debug TOOLSET=asan
+      env: BUILDTYPE=debug TOOLSET=-asan
       node_js: 4
       # Overrides `install` to set up custom asan flags
       install:
