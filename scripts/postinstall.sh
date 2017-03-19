@@ -13,7 +13,7 @@ cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}/bin/
 mkdir -p ${MODULE_PATH}/lib/
 cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
 # copy plugins
-cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}
+cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}/lib/
 # copy share data
 mkdir -p ${MODULE_PATH}/share/gdal
 cp -r ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
@@ -25,8 +25,8 @@ cp -r ${MAPNIK_SDK}/share/icu/*/*dat ${MODULE_PATH}/share/icu/
 echo "
 var path = require('path');
 module.exports.paths = {
-    'fonts': path.join(__dirname, 'mapnik/fonts'),
-    'input_plugins': path.join(__dirname, 'mapnik/input')
+    'fonts': path.join(__dirname, 'lib/mapnik/fonts'),
+    'input_plugins': path.join(__dirname, 'lib/mapnik/input')
 };
 module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
