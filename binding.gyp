@@ -104,7 +104,7 @@
               '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --libs)',
               '-lmapnik-wkt',
               '-lmapnik-json',
-              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --ldflags)',
+              '<!@(<(module_root_dir)/mason_packages/.link/bin/mapnik-config --dep-libs)',
             ],
             'ldflags': [
               '-Wl,-z,now',

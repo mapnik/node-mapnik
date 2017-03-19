@@ -10,8 +10,8 @@ function install() {
 
 ICU_VERSION="57.1"
 
-if [ ! -d ./mason/mason.sh ]; then
-    mkdir ./mason
+if [ ! -f ./mason/mason.sh ]; then
+    mkdir -p ./mason
     curl -sSfL https://github.com/mapbox/mason/archive/c62222a.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
