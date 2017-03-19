@@ -8,10 +8,11 @@ function install() {
     ./mason/mason link $1 $2
 }
 
-ICU_VERSION="55.1"
+ICU_VERSION="57.1"
 
-if [ ! -d ./mason ]; then
-    git clone --branch mapnik-3.0.13 --single-branch https://github.com/mapbox/mason.git
+if [ ! -d ./mason/mason.sh ]; then
+    mkdir ./mason
+    curl -sSfL https://github.com/mapbox/mason/archive/c62222a.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
 if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
@@ -29,7 +30,7 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     install boost 1.63.0
     install boost_libsystem 1.63.0
     install boost_libfilesystem 1.63.0
-    install boost_libregex_icu 1.63.0
+    install boost_libregex_icu57 1.63.0
     install freetype 2.7.1
     install harfbuzz 1.4.2-ft
 

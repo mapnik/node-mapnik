@@ -24,9 +24,11 @@ coverage:
 clean:
 	rm -rf lib/binding
 	rm -rf build
+	echo "run make distclean to also remove mason_packages and node_modules"
 
 distclean: clean
 	rm -rf node_modules
+	rm -rf mason_packages
 
 xcode: node_modules
 	./node_modules/.bin/node-pre-gyp configure -- -f xcode
