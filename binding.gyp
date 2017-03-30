@@ -141,13 +141,19 @@
       'type': 'none',
       'dependencies': [ '<(module_name)' ],
       'hard_dependency': 1,
-      'actions': [
-        {
-          'action_name': 'postinstall',
-          'inputs': ['./scripts/postinstall.sh'],
-          'outputs': ['./lib/binding/mapnik'],
-          'action': ['./scripts/postinstall.sh']
-        }
+      'conditions': [
+        ['OS!="win"',
+          {
+            'actions': [
+              {
+                'action_name': 'postinstall',
+                'inputs': ['./scripts/postinstall.sh'],
+                'outputs': ['./lib/binding/mapnik'],
+                'action': ['./scripts/postinstall.sh']
+              }
+            ]
+          }
+        ]
       ]
     },
   ]
