@@ -92,22 +92,24 @@ describe('mapnik.Image ', function() {
     });
 
     it('should throw with invalid binary read from buffer', function(done) {
-        assert.throws(function() { new mapnik.Image.fromBytesSync(); });
-        assert.throws(function() { new mapnik.Image.fromBytes(); });
-        assert.throws(function() { new mapnik.Image.fromBytes(null); });
-        assert.throws(function() { new mapnik.Image.fromBytes(null, function(err, result) {}); });
-        assert.throws(function() { new mapnik.Image.fromBytes({}); });
-        assert.throws(function() { new mapnik.Image.fromBytes({}, function(err, result) {}); });
-        assert.throws(function() { new mapnik.Image.fromBytesSync({}); });
-        assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0)); });
-        assert.throws(function() { new mapnik.Image.fromBytes(new Buffer(0), null); });
-        assert.throws(function() { new mapnik.Image.fromBytesSync(new Buffer(1024)); });
+        assert.throws(function() { mapnik.Image.fromBytesSync(); });
+        assert.throws(function() { mapnik.Image.fromBytes(); });
+        assert.throws(function() { mapnik.Image.fromBytes(null); });
+        assert.throws(function() { mapnik.Image.fromBytes(null, function(err, result) {}); });
+        assert.throws(function() { mapnik.Image.fromBytes({}); });
+        assert.throws(function() { mapnik.Image.fromBytes({}, function(err, result) {}); });
+        assert.throws(function() { mapnik.Image.fromBytesSync({}); });
+        assert.throws(function() { mapnik.Image.fromBytes(new Buffer(0)); });
+        assert.throws(function() { mapnik.Image.fromBytes(new Buffer(0),{premultiply:1},function(){}); });
+        assert.throws(function() { mapnik.Image.fromBytes(new Buffer(0), null); });
+        assert.throws(function() { mapnik.Image.fromBytesSync(new Buffer(1024)); });
         var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
-        assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
+        assert.throws(function() { mapnik.Image.fromBytesSync(buffer); });
         buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
-        assert.throws(function() { new mapnik.Image.fromBytesSync(buffer); });
-        var stuff = new mapnik.Image.fromBytes(buffer, function(err, result) {
+        assert.throws(function() { mapnik.Image.fromBytesSync(buffer); });
+        var stuff = mapnik.Image.fromBytes(buffer, function(err, result) {
             assert.throws(function() { if (err) throw err; });
+
             done();
         });
     });
@@ -1574,6 +1576,29 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':null}); });
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'premultiplied':null}); });
         assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'painted':null}); });
+    });
+
+    it('fromBytes can premultiply in async/threadpool', function(done) {
+        var data = require('fs').readFileSync(__dirname + '/support/a.png');
+        mapnik.Image.fromBytes(data, {premultiply:false}, function(err, im) {
+            if (err) throw err;
+            assert.ok(!im.premultiplied());
+            mapnik.Image.fromBytes(data, {premultiply:true}, function(err, im) {
+                if (err) throw err;
+                assert.ok(im.premultiplied());
+                done();
+            });
+        });
+    });
+
+    it('fromBytes can limit max image size', function(done) {
+        var data = require('fs').readFileSync(__dirname + '/support/a.png');
+        mapnik.Image.fromBytes(data, {max_size:10, premultiply:false}, function(err, im) {
+            assert.ok(!im);
+            assert.ok(err);
+            assert.ok(err.message == 'image created from bytes must be 10 pixels or fewer on each side');
+            done();
+        });
     });
 
     it('resizes consistently', function(done) {
