@@ -92,8 +92,8 @@ before_install:
  - scripts/validate_tag.sh
  - export COVERAGE=${COVERAGE:-false}
  - if [[ $(uname -s) == 'Linux' ]] && [[ ${CXX:-"notset"} == "notset" ]]; then
-     git clone --depth 1 https://github.com/mapbox/mason.git ./.mason;
-     export PATH=$(pwd)/.mason:${PATH};
+     mkdir mason && curl -sSfL https://github.com/mapbox/mason/archive/v0.7.0.tar.gz | tar --gunzip --extract --strip-components=1 --directory=./mason;
+     export PATH=$(pwd)/mason:${PATH};
      mason install clang++ 3.9.1;
      export PATH=$(mason prefix clang++ 3.9.1)/bin:${PATH};
      export CXX=clang++-3.9;

@@ -149,9 +149,9 @@ public:
     static NAN_GETTER(get_buffer_size);
     static NAN_SETTER(set_buffer_size);
 
-    VectorTile(int z, 
-               int x, 
-               int y, 
+    VectorTile(std::uint64_t z, 
+               std::uint64_t x, 
+               std::uint64_t y, 
                std::uint32_t tile_size,
                std::int32_t buffer_size);
 

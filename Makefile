@@ -6,8 +6,7 @@ all: build-all
 	npm install node-pre-gyp
 
 ./node_modules: ./node_modules/node-pre-gyp
-	npm install `node -e "console.log(Object.keys(require('./package.json').dependencies).join(' '))"` \
-	`node -e "console.log(Object.keys(require('./package.json').devDependencies).join(' '))"` --clang=1
+	npm install --ignore-scripts
 
 ./build:
 	./node_modules/.bin/node-pre-gyp configure --loglevel=error --clang=1
