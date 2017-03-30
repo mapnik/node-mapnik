@@ -36,7 +36,4 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
 
     # mapnik
     install mapnik 3.0.13
-
-    # node-mapnik deps
-    install protozero 1.5.1
 fi
