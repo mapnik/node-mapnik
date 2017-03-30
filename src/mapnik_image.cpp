@@ -202,12 +202,13 @@ NAN_METHOD(Image::New)
 
                     if (!init_val.IsEmpty() && init_val->IsNumber())
                     {
-                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
-                        if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
+                        int int_val = init_val->IntegerValue();
+                        if (int_val >= mapnik::image_dtype::IMAGE_DTYPE_MAX || int_val < 0)
                         {
                             Nan::ThrowTypeError("Image 'type' must be a valid image type");
                             return;
                         }
+                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
                     }
                     else
                     {
@@ -1869,12 +1870,13 @@ NAN_METHOD(Image::resize)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
-            if (scaling_method > mapnik::SCALING_BLACKMAN)
+            std::int64_t scaling_int = scaling_val->IntegerValue();
+            if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Nan::ThrowTypeError("Invalid scaling_method");
                 return;
             }
+            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_int);
         }
         else
         {
@@ -2195,12 +2197,13 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_val->IntegerValue());
-            if (scaling_method > mapnik::SCALING_BLACKMAN)
+            std::int64_t scaling_int = scaling_val->IntegerValue();
+            if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Nan::ThrowTypeError("Invalid scaling_method");
                 return scope.Escape(Nan::Undefined());
             }
+            scaling_method = static_cast<mapnik::scaling_method_e>(scaling_int);
         }
         else
         {
@@ -2672,8 +2675,8 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         agg::scanline_u8 sl;
 
         double opacity = 1;
-        int svg_width = svg.width() * scale;
-        int svg_height = svg.height() * scale;
+        double svg_width = svg.width() * scale;
+        double svg_height = svg.height() * scale;
         
         if (svg_width <= 0 || svg_height <= 0)
         {
@@ -2681,7 +2684,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             return scope.Escape(Nan::Undefined());
         }
 
-        if (svg_width > static_cast<int>(max_size) || svg_height > static_cast<int>(max_size))
+        if (svg_width > static_cast<double>(max_size) || svg_height > static_cast<double>(max_size))
         {
             std::stringstream s;
             s << "image created from svg must be " << max_size << " pixels or fewer on each side";
@@ -2689,7 +2692,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             return scope.Escape(Nan::Undefined());
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
+        mapnik::image_rgba8 im(static_cast<int>(svg_width), static_cast<int>(svg_height), true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -2883,8 +2886,9 @@ void Image::EIO_FromSVG(uv_work_t* req)
         agg::scanline_u8 sl;
 
         double opacity = 1;
-        int svg_width = svg.width() * closure->scale;
-        int svg_height = svg.height() * closure->scale;
+
+        double svg_width = svg.width() * closure->scale;
+        double svg_height = svg.height() * closure->scale;
 
         if (svg_width <= 0 || svg_height <= 0)
         {
@@ -2893,7 +2897,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             return;
         }
 
-        if (svg_width > static_cast<int>(closure->max_size) || svg_height > static_cast<int>(closure->max_size))
+        if (svg_width > static_cast<double>(closure->max_size) || svg_height > static_cast<double>(closure->max_size))
         {
             closure->error = true;
             std::stringstream s;
@@ -2902,7 +2906,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
+        mapnik::image_rgba8 im(static_cast<int>(svg_width), static_cast<int>(svg_height), true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -3098,9 +3102,9 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         agg::scanline_u8 sl;
 
         double opacity = 1;
-        int svg_width = svg.width() * closure->scale;
-        int svg_height = svg.height() * closure->scale;
-        
+        double svg_width = svg.width() * closure->scale;
+        double svg_height = svg.height() * closure->scale;
+
         if (svg_width <= 0 || svg_height <= 0)
         {
             closure->error = true;
@@ -3108,7 +3112,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             return;
         }
 
-        if (svg_width > static_cast<int>(closure->max_size) || svg_height > static_cast<int>(closure->max_size))
+        if (svg_width > static_cast<double>(closure->max_size) || svg_height > static_cast<double>(closure->max_size))
         {
             closure->error = true;
             std::stringstream s;
@@ -3117,7 +3121,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             return;
         }
 
-        mapnik::image_rgba8 im(svg_width, svg_height, true, true);
+        mapnik::image_rgba8 im(static_cast<int>(svg_width), static_cast<int>(svg_height), true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
@@ -4045,12 +4049,13 @@ NAN_METHOD(Image::composite)
                 Nan::ThrowTypeError("comp_op must be a mapnik.compositeOp value");
                 return;
             }
-            mode = static_cast<mapnik::composite_mode_e>(opt->IntegerValue());
-            if (mode > mapnik::composite_mode_e::divide || mode < 0)
+            int mode_int = opt->IntegerValue();
+            if (mode_int > static_cast<int>(mapnik::composite_mode_e::divide) || mode_int < 0)
             {
                 Nan::ThrowTypeError("Invalid comp_op value");
                 return;
             }
+            mode = static_cast<mapnik::composite_mode_e>(mode_int);
         }
 
         if (options->Has(Nan::New("opacity").ToLocalChecked()))

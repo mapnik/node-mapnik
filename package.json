@@ -4,15 +4,15 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.5.14",
+  "version": "3.5.14-testpublish",
   "mapnik_version":"v3.0.12",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
-    "module_path": "./lib/binding/{node_abi}-{platform}-{arch}",
+    "module_path": "./lib/binding/",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{module_name}/v{version}/{configuration}/",
-    "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
+    "remote_path": "./{module_name}/v{version}/",
+    "package_name": "{node_abi}-{platform}-{arch}-{configuration}{toolset}.tar.gz"
   },
   "bugs": {
     "email": "dane@mapbox.com",
@@ -37,10 +37,12 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "mapnik-vector-tile": "~1.2.2",
-    "nan": "~2.4.0",
-    "node-pre-gyp": "~0.6.30",
-    "protozero": "~1.4.2"
+    "nan": "~2.5.0",
+    "node-pre-gyp": "~0.6.30"
   },
+  "bundledDependencies": [
+      "node-pre-gyp"
+  ],
   "bin": {
     "mapnik-inspect.js": "./bin/mapnik-inspect.js",
     "mapnik-render.js": "./bin/mapnik-render.js",
@@ -49,7 +51,6 @@
   "scripts": {
     "prepublish": "npm ls",
     "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
-    "preinstall":"npm install node-pre-gyp",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
@@ -57,7 +58,7 @@
     "aws-sdk": "2.0.12",
     "jshint": "^2.5.10",
     "mocha": "2.x",
-    "sphericalmercator": "~1.0.2",
+    "@mapbox/sphericalmercator": "~1.0.2",
     "bytes": "~2.1.0"
   },
   "jshintConfig": {

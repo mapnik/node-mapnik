@@ -5,7 +5,7 @@
 var binary = require('node-pre-gyp'),
     path = require('path'),
     bindingPath = binary.find(path.resolve(__dirname, '..', 'package.json')),
-    shapeindex = path.join(path.dirname(bindingPath), 'shapeindex'),
+    shapeindex = path.join(path.dirname(bindingPath), 'bin', 'shapeindex'),
     spawn = require('child_process').spawn,
     fs = require('fs');
 

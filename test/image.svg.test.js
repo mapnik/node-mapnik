@@ -78,7 +78,7 @@ describe('mapnik.Image SVG', function() {
             var buffer = new Buffer(svgdata);
             mapnik.Image.fromSVGBytes(buffer, { scale: 1 }, function(err, img) {
                 assert.ok(err);
-                assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
+                assert.ok(err.message.match(/image created from svg must be 2048 pixels or fewer on each side/));
                 var svgdata2 = "<svg width='100' height='100'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
                 var buffer2 = new Buffer(svgdata2);
                 mapnik.Image.fromSVGBytes(buffer2, { scale: 1000000 }, function(err, img) {
