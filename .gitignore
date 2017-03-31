@@ -18,3 +18,5 @@ foo
 iwyu.sh
 package
 documentation
+mason/
+mason_packages/
