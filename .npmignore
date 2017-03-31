@@ -26,3 +26,5 @@ iwyu.sh
 documentation
 package
 __nvm
+mason
+mason_packages

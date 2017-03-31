@@ -54,12 +54,9 @@
         4267
       ],
       'include_dirs': [
-        './deps/clipper/',
         './mason_packages/.link/include/',
         './mason_packages/.link/include/freetype2',
         './mason_packages/.link/include/cairo',
-        './deps/wagyu/include',
-        './deps/geometry/include',
         './src',
         "<!(node -e \"require('nan')\")",
         # TODO: move these to mason packages once we have a minimal windows client for mason (@springmeyer)
@@ -69,10 +66,6 @@
       ],
       'defines': [
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
-          'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
-          'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
-          'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
-          'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
       ],
       'conditions': [
         ['OS=="win"',
