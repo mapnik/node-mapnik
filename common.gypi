@@ -15,7 +15,7 @@
         'cflags_cc!': [
           '-O3',
           '-Os',
-          '-DNDEBUG'
+          '-DNDEBUG',
         ],
         'xcode_settings': {
           'OTHER_CPLUSPLUSFLAGS!': [

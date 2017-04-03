@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.6.0
+
+- Updated to 1.3.0 of Mapnik Vector Tile
+- Removed Angus Clipper and replaced with Wagyu
+- Changed build system to use mason
+
 ## 3.5.14
 
 - Added support for node v6.x

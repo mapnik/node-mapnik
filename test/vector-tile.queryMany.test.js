@@ -261,6 +261,7 @@ describe('mapnik.VectorTile queryMany (distance <= tolerance)', function() {
         assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
         done();
     });
+
     it('Polygon - no features', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.addGeoJSON(JSON.stringify({

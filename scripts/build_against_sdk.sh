@@ -8,6 +8,8 @@ On linux depends on node and:
     sudo apt-get install pkg-config build-essential zlib1g-dev
 '
 
+git submodule update --init
+
 CURRENT_DIR="$( cd "$( dirname $BASH_SOURCE )" && pwd )"
 
 ARGS="$@"
@@ -107,5 +109,5 @@ module.exports.env = {
 " > ${MODULE_PATH}/mapnik_settings.js
 
 # cleanup
-rm -rf $BUILD_DIR
+#rm -rf $BUILD_DIR
 set +u +e
