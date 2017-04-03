@@ -1,3 +1,0 @@
-[submodule "deps/geometry"]
-	path = deps/geometry
-	url = https://github.com/mapbox/geometry.hpp.git
