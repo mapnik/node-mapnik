@@ -65,17 +65,17 @@ matrix:
       node_js: 6
     # osx publishable node v0.10
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: "0.10"
     # osx publishable node v4
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 4
     # osx publishable node v6
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 6
     # Sanitizer build node v4/Debug
