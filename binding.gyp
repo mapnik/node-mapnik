@@ -61,6 +61,9 @@
         "<!(node -e \"require('nan')\")",
         # TODO: move these to mason packages once we have a minimal windows client for mason (@springmeyer)
         # https://github.com/mapbox/mason/issues/396
+        "./deps/geometry/include/",
+        "./deps/wagyu/include/",
+        "<!(node -e \"require('protozero')\")",
         "<!(node -e \"require('mapnik-vector-tile')\")"
       ],
       'defines': [

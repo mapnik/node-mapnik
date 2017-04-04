@@ -39,9 +39,4 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # In the future we could pull from that version automatically if mason were to support knowing the right dep
     # versions to install automatically. Until then there is not much point since the deps are still hardcoded here.
     install mapnik 3.0.13-1
-
-    # node-mapnik deps
-    install protozero 1.5.1
-    install wagyu 0.4.2
-    install geometry 0.9.1
 fi
