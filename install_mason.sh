@@ -12,7 +12,7 @@ ICU_VERSION="57.1"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
-    curl -sSfL https://github.com/mapbox/mason/archive/0ba3b42.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
+    curl -sSfL https://github.com/mapbox/mason/archive/d1a9856.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
 if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
@@ -38,7 +38,7 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # NOTE: sync this version with the `mapnik_version` in package.json (which is used for windows builds)
     # In the future we could pull from that version automatically if mason were to support knowing the right dep
     # versions to install automatically. Until then there is not much point since the deps are still hardcoded here.
-    install mapnik 3.0.13
+    install mapnik 3.0.13-1
 
     # node-mapnik deps
     install protozero 1.5.1
