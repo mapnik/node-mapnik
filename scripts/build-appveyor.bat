@@ -4,6 +4,9 @@ SET EL=0
 
 ECHO =========== %~f0 ===========
 
+git submodule update --init
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
 SET MAPNIK_GIT=
 FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
 
@@ -69,9 +72,9 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 ::upgrade npm to get consistent behaviour with older node versions
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm install -g npm-windows-upgrade@0.5.3
+CALL npm install --global --production npm-windows-upgrade
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm-windows-upgrade --version:3.3.2 --no-dns-check --no-prompt
+CALL npm-windows-upgrade --npm-version latest --no-dns-check --no-prompt
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 
