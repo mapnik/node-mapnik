@@ -15,6 +15,7 @@
 - Fixed potential overflow in `Image.fromSVG`, refs #740
 - Fixed support for generating Vector Tiles at > z30, #730
 - Fixed invalid casts detected by address sanitizer, #739
+- Binaries updated to use mapnik `v3.0.13`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3013).
 
 ## 3.5.14
 
