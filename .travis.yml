@@ -72,12 +72,12 @@ matrix:
     - os: osx
       osx_image: xcode8.3
       env: BUILDTYPE=release
-      node_js: 4
+      node_js: "4.8.1" # Fixed at version until https://github.com/nodejs/node/issues/12244 is resolved by nodejs
     # osx publishable node v6
     - os: osx
       osx_image: xcode8.3
       env: BUILDTYPE=release
-      node_js: 6
+      node_js: "6.10.1" # Fixed at version until https://github.com/nodejs/node/issues/12244 is resolved by nodejs
     # Sanitizer build node v4/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=-asan
