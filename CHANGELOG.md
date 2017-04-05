@@ -15,7 +15,21 @@
 - Fixed potential overflow in `Image.fromSVG`, refs #740
 - Fixed support for generating Vector Tiles at > z30, #730
 - Fixed invalid casts detected by address sanitizer, #739
+- Binaries compiled with clang-3.9 and requiring at least GLIBCXX_3.4.21 from libstdc++ (https://github.com/mapnik/node-mapnik#depends)
 - Binaries updated to use mapnik `v3.0.13`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3013).
+- Dependency versions are visible in the `install_mason.sh` but are:
+  - jpeg_turbo 1.5.1
+  - libpng 1.6.28
+  - libtiff 4.0.7
+  - icu 57.1
+  - proj 4.9.3
+  - pixman 0.34.0
+  - cairo 1.14.8
+  - webp 0.6.0
+  - libgdal 2.1.3
+  - boost 1.63.0
+  - freetype 2.7.1
+  - harfbuzz 1.4.2
 
 ## 3.5.14
 
@@ -25,7 +39,7 @@
 - Upgraded to protozero@1.4.2
 - Added `typeName()` to `mapnik.Geometry`. This returns the GeoJSON type name of a geometry (@davidtheclark).
 - Fixed potential unsigned integer overflow in `mapnik.blend`
-- Binaries compiled with clang-3.8 and now requiring >= GLIBCXX_3.4.20 from libstdc++ (https://github.com/mapnik/node-mapnik#depends)
+- Binaries compiled with clang-3.8 and now requiring >= GLIBCXX_3.4.21 from libstdc++ (https://github.com/mapnik/node-mapnik#depends)
 - Binaries updated to use mapnik `v3.0.12`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3012).
 - Binaries updated to use mapnik-packaging@7862fb9:
  - icu 56.1
