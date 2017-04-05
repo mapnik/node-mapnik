@@ -5,6 +5,16 @@
 - Updated to 1.3.0 of Mapnik Vector Tile
 - Removed Angus Clipper and replaced with Wagyu
 - Changed build system to use mason
+- Added docs for Map#queryPoint and Map#queryMapPoint, #701
+- Added docs for plugins
+- Fixed potential abort due to unhandled error in Mapnik when passing invalid image dimensions
+- Now limiting size of image internally allocated for `image.fromSVGBytes` and `image.fromSVG`, #709
+  Default `max_size` is 2046x2046. Pass `max_size` option to customize.
+- Added `max_size` limitation + `premultiply` option to `Image.fromBytes`, #720
+- Optimized `VectorTile.query` to use fewer allocations
+- Fixed potential overflow in `Image.fromSVG`, refs #740
+- Fixed support for generating Vector Tiles at > z30, #730
+- Fixed invalid casts detected by address sanitizer, #739
 
 ## 3.5.14
 
