@@ -72,13 +72,13 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 OS|Node.js|C++ minimum requirements|OS versions
 ---|---|---|---
 Mac|v0.10.x, v4, v5, v6|C++11|Mac OS X > 10.10
-Linux|v0.10.x, v4, v5, v6|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.20 from libstdc++)
+Linux|v0.10.x, v4, v5, v6|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.21 from libstdc++)
 Windows|v0.10.x, v4, v5|C++11|See the [Windows requirements](https://github.com/mapnik/node-mapnik#windows-specific) section
 
 An installation error like below indicates your system does not have a modern enough libstdc++/gcc-base toolchain:
 
 ```
-Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.20 not found (required by /node_modules/osrm/lib/binding/osrm.node)
+Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.21 not found (required by /node_modules/osrm/lib/binding/osrm.node)
 ```
 
 If you are running Ubuntu older than 16.04 you can easily upgrade your libstdc++ version like:
