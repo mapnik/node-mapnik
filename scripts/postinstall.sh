@@ -26,7 +26,9 @@ echo "
 var path = require('path');
 module.exports.paths = {
     'fonts': path.join(__dirname, 'lib/mapnik/fonts'),
-    'input_plugins': path.join(__dirname, 'lib/mapnik/input')
+    'input_plugins': path.join(__dirname, 'lib/mapnik/input'),
+    'mapnik_index': path.join(__dirname, 'lib/binding/bin/mapnik-index'),
+    'shape_index': path.join(__dirname, 'lib/binding/bin/shapeindex')
 };
 module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
