@@ -7,8 +7,8 @@ Try{
 module.exports.paths = {
     'fonts': path.join(__dirname, 'mapnik/fonts'),
     'input_plugins': path.join(__dirname, 'mapnik/input'),
-    'mapnik_index': path.join(__dirname, 'lib/binding/bin/mapnik-index'),
-    'shape_index': path.join(__dirname, 'lib/binding/bin/shapeindex')
+    'mapnik_index': path.join(__dirname, 'mapnik/bin/mapnik-index'),
+    'shape_index': path.join(__dirname, 'mapnik/bin/shapeindex')
 };
 module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
