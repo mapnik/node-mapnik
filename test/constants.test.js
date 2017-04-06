@@ -11,8 +11,10 @@ describe('mapnik constants', function() {
         assert.ok(mapnik.settings.paths.fonts.length);
         //assert.ok(fs.statSync(mapnik.settings.paths.fonts));
         assert.ok(mapnik.settings.paths.input_plugins.length);
+        assert.ok(mapnik.settings.paths.mapnik_index.length);
+        assert.ok(mapnik.settings.paths.shape_index.length);
         assert.ok(fs.statSync(mapnik.settings.paths.input_plugins));
-
+        
         /* has version info */
         assert.ok(mapnik.versions);
         assert.ok(mapnik.versions.node);
