@@ -26,6 +26,8 @@ install:
   - clang++ -v
   - which clang++
   - make ${BUILDTYPE}
+  # Build should be standalone now, so remove mason deps
+  - rm -rf mason_packages
 
 # run tests
 # we use before_script rather than script to ensure fast failure (the script section continues even after an error)
