@@ -6,20 +6,20 @@ MODULE_PATH=./lib/binding
 MAPNIK_SDK=./mason_packages/.link
 
 mkdir -p ${MODULE_PATH}/bin/
-cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}/bin/
+cp -L ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}/bin/
 # copy shapeindex
-cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}/bin/
+cp -L ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}/bin/
 # copy lib
 mkdir -p ${MODULE_PATH}/lib/
-cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
+cp -L ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
 # copy plugins
-cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}/lib/
+cp -rL ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}/lib/
 # copy share data
 mkdir -p ${MODULE_PATH}/share/gdal
-cp -r ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
-cp -r ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
+cp -rL ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
+cp -rL ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
 mkdir -p ${MODULE_PATH}/share/icu
-cp -r ${MAPNIK_SDK}/share/icu/*/*dat ${MODULE_PATH}/share/icu/
+cp -rL ${MAPNIK_SDK}/share/icu/*/*dat ${MODULE_PATH}/share/icu/
 
 # generate new settings
 echo "
