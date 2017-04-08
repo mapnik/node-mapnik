@@ -6,20 +6,43 @@ MODULE_PATH=./lib/binding
 MAPNIK_SDK=./mason_packages/.link
 
 mkdir -p ${MODULE_PATH}/bin/
-cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}/bin/
-# copy shapeindex
-cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}/bin/
-# copy lib
-mkdir -p ${MODULE_PATH}/lib/
-cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
-# copy plugins
-cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}/lib/
-# copy share data
-mkdir -p ${MODULE_PATH}/share/gdal
-cp -r ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
-cp -r ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
-mkdir -p ${MODULE_PATH}/share/icu
-cp -r ${MAPNIK_SDK}/share/icu/*/*dat ${MODULE_PATH}/share/icu/
+
+# the below switch is used since on osx the default cp
+# resolves symlinks automatically with `cp -r`
+# whereas on linux we need to pass `cp -rL`. But the latter
+# command is not supported on OS X. We could upgrade coreutils
+# but ideally we don't depend on more dependencies
+if [[ $(uname -s) == 'Darwin' ]]; then
+    cp ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}/bin/
+    # copy shapeindex
+    cp ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}/bin/
+    # copy lib
+    mkdir -p ${MODULE_PATH}/lib/
+    cp ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
+    # copy plugins
+    cp -r ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}/lib/
+    # copy share data
+    mkdir -p ${MODULE_PATH}/share/gdal
+    cp -L ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
+    cp -r ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
+    mkdir -p ${MODULE_PATH}/share/icu
+    cp -L ${MAPNIK_SDK}/share/icu/*/*dat ${MODULE_PATH}/share/icu/
+else
+    cp -L ${MAPNIK_SDK}/bin/mapnik-index ${MODULE_PATH}/bin/
+    # copy shapeindex
+    cp -L ${MAPNIK_SDK}/bin/shapeindex ${MODULE_PATH}/bin/
+    # copy lib
+    mkdir -p ${MODULE_PATH}/lib/
+    cp -L ${MAPNIK_SDK}/lib/libmapnik.* ${MODULE_PATH}/lib/
+    # copy plugins
+    cp -rL ${MAPNIK_SDK}/lib/mapnik ${MODULE_PATH}/lib/
+    # copy share data
+    mkdir -p ${MODULE_PATH}/share/gdal
+    cp -rL ${MAPNIK_SDK}/share/gdal/*.* ${MODULE_PATH}/share/gdal/
+    cp -rL ${MAPNIK_SDK}/share/proj ${MODULE_PATH}/share/
+    mkdir -p ${MODULE_PATH}/share/icu
+    cp -rL ${MAPNIK_SDK}/share/icu/*/*dat ${MODULE_PATH}/share/icu/
+fi
 
 # generate new settings
 echo "
