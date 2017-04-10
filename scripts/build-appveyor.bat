@@ -73,7 +73,7 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 ::pin npm-windows-upgrade to 3.1.1 for node<4.0
 ::see: https://github.com/felixrieseberg/npm-windows-upgrade/releases/tag/v4.0.0
 SET NPM_WIN_UPGRADE_VERSION=
-SET NODE_MAJOR=%NODE_VERSION:~0,1%
+SET NODE_MAJOR=%nodejs_version:~0,1%
 ECHO node major version^: %NODE_MAJOR%
 IF %NODE_MAJOR% GTR 0 ECHO node version greater than zero
 IF %NODE_MAJOR% LSS 4 SET NPM_WIN_UPGRADE_VERSION=@3.1.1
