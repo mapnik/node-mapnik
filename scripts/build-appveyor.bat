@@ -39,7 +39,7 @@ IF %NODE_MAJOR% LSS 4 GOTO GET_MAPBOX_NODE
 
 SET NODEJS_ORG_ARCH_PATH=win-x86
 IF /I "%platform%"=="x64" SET NODEJS_ORG_ARCH_PATH=win-x64
-SET NODE_URL=https://nodejs.org/dist/v%nodejs_version%/%NODEJS_ORG_ARCH_PATH%/
+SET NODE_URL=https://nodejs.org/dist/v%nodejs_version%/%NODEJS_ORG_ARCH_PATH%/node.exe
 ECHO fetching node.exe^: %NODE_URL%
 powershell Invoke-WebRequest "${env:NODE_URL}" -OutFile node.exe
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
@@ -98,11 +98,13 @@ IF %NODE_MAJOR% LSS 4 ECHO node version less than four && SET NPM_WIN_UPGRADE_VE
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 SET NPM_WIN_UPGRADE_INSTALL_CMD=npm install --global --production npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
+where node
 ECHO calling %NPM_WIN_UPGRADE_INSTALL_CMD%
 CALL %NPM_WIN_UPGRADE_INSTALL_CMD%
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF %ERRORLEVEL% NEQ 0 ECHO could not install npm-windows-upgrade && GOTO ERROR
+ECHO upgrading to latest npm
 CALL npm-windows-upgrade --npm-version latest --no-dns-check --no-prompt
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF %ERRORLEVEL% NEQ 0 ECHO could not upgrade to latest npm && GOTO ERROR
 
 
 ECHO activating VS command prompt...
