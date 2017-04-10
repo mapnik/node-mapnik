@@ -93,7 +93,7 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 ::see: https://github.com/felixrieseberg/npm-windows-upgrade/releases/tag/v4.0.0
 SET NPM_WIN_UPGRADE_VERSION=
 IF %NODE_MAJOR% LSS 4 ECHO node version less than four && SET NPM_WIN_UPGRADE_VERSION=@3.1.1
-ECHO using npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
+::ECHO using npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
 
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
