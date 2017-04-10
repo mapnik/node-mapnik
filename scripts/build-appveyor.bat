@@ -30,6 +30,22 @@ ECHO extracting mapnik sdk
 IF EXIST mapnik-sdk (ECHO already extracted) ELSE (7z -y x mapnik-sdk.7z | %windir%\system32\FIND "ing archive")
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+
+SET NODE_MAJOR=%nodejs_version:~0,1%
+ECHO node major version^: %NODE_MAJOR%
+
+:: custom mapbox node.exe for node<4 only
+IF %NODE_MAJOR% LSS 4 GOTO GET MAPBOX_NODE
+
+SET NODEJS_ORG_ARCH_PATH=win-x86
+IF /I "%platform%"=="x64" SET NODEJS_ORG_ARCH_PATH=win-x64
+SET NODE_URL=https://nodejs.org/dist/v%nodejs_version%/%NODEJS_ORG_ARCH_PATH%/
+ECHO fetching node.exe^: %NODE_URL%
+powershell Invoke-WebRequest "${env:NODE_URL}" -OutFile node.exe
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+GOTO COPY_NODE_EXE
+
 :: replace installed node.exe with Mapbox node.exe
 :: so that the binaries based on Visual Studio 2015
 :: and built by https://travis-ci.org/mapbox/node-cpp11 are used
@@ -39,6 +55,8 @@ SET NODE_URL=https://mapbox.s3.amazonaws.com/node-cpp11/v%nodejs_version%/%ARCHP
 ECHO fetching node.exe^: %NODE_URL%
 powershell Invoke-WebRequest "${env:NODE_URL}" -OutFile node.exe
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+:COPY_NODE_EXE
 
 :: we replace the existing node.exe with our own
 :: we do this in place so that the npm path logic
@@ -73,9 +91,6 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 ::pin npm-windows-upgrade to 3.1.1 for node<4.0
 ::see: https://github.com/felixrieseberg/npm-windows-upgrade/releases/tag/v4.0.0
 SET NPM_WIN_UPGRADE_VERSION=
-SET NODE_MAJOR=%nodejs_version:~0,1%
-ECHO node major version^: %NODE_MAJOR%
-IF %NODE_MAJOR% GTR 0 ECHO node version greater than zero
 IF %NODE_MAJOR% LSS 4 ECHO node version less than four && SET NPM_WIN_UPGRADE_VERSION=@3.1.1
 ECHO using npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
 
