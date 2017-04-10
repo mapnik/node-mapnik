@@ -35,7 +35,7 @@ SET NODE_MAJOR=%nodejs_version:~0,1%
 ECHO node major version^: %NODE_MAJOR%
 
 :: custom mapbox node.exe for node<4 only
-IF %NODE_MAJOR% LSS 4 GOTO GET MAPBOX_NODE
+IF %NODE_MAJOR% LSS 4 GOTO GET_MAPBOX_NODE
 
 SET NODEJS_ORG_ARCH_PATH=win-x86
 IF /I "%platform%"=="x64" SET NODEJS_ORG_ARCH_PATH=win-x64
@@ -46,6 +46,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 GOTO COPY_NODE_EXE
 
+:GET_MAPBOX_NODE
 :: replace installed node.exe with Mapbox node.exe
 :: so that the binaries based on Visual Studio 2015
 :: and built by https://travis-ci.org/mapbox/node-cpp11 are used
