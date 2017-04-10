@@ -7,6 +7,10 @@ ECHO =========== %~f0 ===========
 git submodule update --init
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+WHERE node.exe >NUL
+IF %ERRORLEVEL% NEQ 0 ECHO node.exe not on path && GOTO ERROR
+
+
 SET MAPNIK_GIT=
 FOR /F "tokens=*" %%i in ('node -e "console.log(require(""./package.json"").mapnik_version)"') DO SET MAPNIK_GIT=%%i
 
@@ -41,18 +45,14 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 :: is preserved. The alternative might be to put
 :: our custom node.exe on PATH from a custom location
 :: and then pass `--prefix` to npm - but this is untested
-ECHO deleting node.exe programfiles x64
 IF EXIST "%ProgramFiles%\nodejs" IF EXIST "%ProgramFiles%\nodejs\node.exe" ECHO found "%ProgramFiles%\nodejs\node.exe", deleting... && DEL /F "%ProgramFiles%\nodejs\node.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-ECHO copying node.exe to programfiles x64
-IF EXIST %ProgramFiles%\nodejs ECHO copying to "%ProgramFiles%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles%\nodejs\"
+IF EXIST "%ProgramFiles%\nodejs" ECHO copying to "%ProgramFiles%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles%\nodejs\"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO deleting node.exe programfiles x86
 IF DEFINED ProgramFiles(x86) IF EXIST "%ProgramFiles(x86)%\nodejs" IF EXIST "%ProgramFiles(x86)%\nodejs\node.exe" ECHO "found %ProgramFiles(x86)%\nodejs\node.exe", deleting... && DEL /F "%ProgramFiles(x86)%\nodejs\node.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO copying node.exe to programfiles x86
 IF DEFINED ProgramFiles(x86) IF EXIST "%ProgramFiles(x86)%\nodejs" ECHO copying to "%ProgramFiles(x86)%\nodejs\node.exe" && COPY /Y node.exe "%ProgramFiles(x86)%\nodejs\"
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
@@ -70,9 +70,17 @@ ECHO clear out node-gyp binary cache to ensure vs 2015 binaries are linked
 IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFILE%\.node-gyp
 
 ::upgrade npm to get consistent behaviour with older node versions
+::pin npm-windows-upgrade to 3.1.1 for node<4.0
+::see: https://github.com/felixrieseberg/npm-windows-upgrade/releases/tag/v4.0.0
+SET NPM_WIN_UPGRADE_VERSION=
+SET NODE_MAJOR=%NODE_VERSION:~0,1%
+ECHO node major version^: %NODE_MAJOR%
+IF %NODE_MAJOR% GTR 0 ECHO node version greater than zero
+IF %NODE_MAJOR% LSS 4 SET NPM_WIN_UPGRADE_VERSION=@3.1.1
+
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm install --global --production npm-windows-upgrade
+CALL npm install --global --production npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm-windows-upgrade --npm-version latest --no-dns-check --no-prompt
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
