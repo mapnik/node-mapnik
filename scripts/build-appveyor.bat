@@ -76,7 +76,8 @@ SET NPM_WIN_UPGRADE_VERSION=
 SET NODE_MAJOR=%nodejs_version:~0,1%
 ECHO node major version^: %NODE_MAJOR%
 IF %NODE_MAJOR% GTR 0 ECHO node version greater than zero
-IF %NODE_MAJOR% LSS 4 SET NPM_WIN_UPGRADE_VERSION=@3.1.1
+IF %NODE_MAJOR% LSS 4 ECHO node version less than four && SET NPM_WIN_UPGRADE_VERSION=@3.1.1
+ECHO using npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
 
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
