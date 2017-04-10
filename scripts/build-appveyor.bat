@@ -86,7 +86,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 :: node version. So, we have to clear to ensure that the Visual Studio 2015
 :: binaries are used rather than the ones from joyent (which are built with Visual Studio 2013)
 ECHO clear out node-gyp binary cache to ensure vs 2015 binaries are linked
-IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFILE%\.node-gyp
+IF "%msvs_toolset%"=="14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFILE%\.node-gyp
 
 ::upgrade npm to get consistent behaviour with older node versions
 ::pin npm-windows-upgrade to 3.1.1 for node<4.0
@@ -94,10 +94,10 @@ IF "%msvs_toolset%" == "14" IF EXIST %USERPROFILE%\.node-gyp rd /s /q %USERPROFI
 SET NPM_WIN_UPGRADE_VERSION=
 IF %NODE_MAJOR% LSS 4 ECHO node version less than four && SET NPM_WIN_UPGRADE_VERSION=@3.1.1
 ::ECHO using npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
-
+SET NPM_WIN_UPGRADE_INSTALL_CMD=npm install --global --production npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm install --global --production npm-windows-upgrade%NPM_WIN_UPGRADE_VERSION%
+CALL %NPM_WIN_UPGRADE_INSTALL_CMD%
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL npm-windows-upgrade --npm-version latest --no-dns-check --no-prompt
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
