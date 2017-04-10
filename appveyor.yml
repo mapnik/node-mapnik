@@ -13,19 +13,35 @@ environment:
       platform: x86
       msvs_toolset: 14
       TOOLSET_ARGS: --dist-url=https://s3.amazonaws.com/mapbox/node-cpp11 --toolset=v140
-    - nodejs_version: 4.4.1
+    - nodejs_version: 4.8.2
       platform: x86
       msvs_toolset: 14
       TOOLSET_ARGS: --toolset=v140
-    - nodejs_version: 4.4.1
+    - nodejs_version: 4.8.2
       platform: x64
       msvs_toolset: 14
       TOOLSET_ARGS: --toolset=v140
-    - nodejs_version: 5.9.1
+    - nodejs_version: 5.12.0
       platform: x86
       msvs_toolset: 14
       TOOLSET_ARGS: --toolset=v140
-    - nodejs_version: 5.9.1
+    - nodejs_version: 5.12.0
+      platform: x64
+      msvs_toolset: 14
+      TOOLSET_ARGS: --toolset=v140
+    - nodejs_version: 6.10.2
+      platform: x86
+      msvs_toolset: 14
+      TOOLSET_ARGS: --toolset=v140
+    - nodejs_version: 6.10.2
+      platform: x64
+      msvs_toolset: 14
+      TOOLSET_ARGS: --toolset=v140
+    - nodejs_version: 7.8.0
+      platform: x86
+      msvs_toolset: 14
+      TOOLSET_ARGS: --toolset=v140
+    - nodejs_version: 7.8.0
       platform: x64
       msvs_toolset: 14
       TOOLSET_ARGS: --toolset=v140
