@@ -61,7 +61,7 @@ public:
     static NAN_METHOD(renderFileSync);
 
     static NAN_METHOD(save);
-    static NAN_METHOD(to_string);
+    static NAN_METHOD(toXML);
 
     static NAN_METHOD(clear);
     static NAN_METHOD(resize);

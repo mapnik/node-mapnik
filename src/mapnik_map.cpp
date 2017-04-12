@@ -111,7 +111,7 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "clone", clone);
     Nan::SetPrototypeMethod(lcons, "save", save);
     Nan::SetPrototypeMethod(lcons, "clear", clear);
-    Nan::SetPrototypeMethod(lcons, "toXML", to_string);
+    Nan::SetPrototypeMethod(lcons, "toXML", toXML);
     Nan::SetPrototypeMethod(lcons, "resize", resize);
 
 
@@ -1459,6 +1459,17 @@ NAN_METHOD(Map::clone)
     info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
 }
 
+/**
+ * Writes the map to an xml file
+ *
+ * @memberof Map
+ * @instance
+ * @name save
+ * @param {string} file path
+ * @example
+ * map.save("path/to/map.xml");
+ */
+
 NAN_METHOD(Map::save)
 {
     if (info.Length() != 1 || !info[0]->IsString())
@@ -1474,7 +1485,16 @@ NAN_METHOD(Map::save)
     return;
 }
 
-NAN_METHOD(Map::to_string)
+/**
+ * Converts the map to an XML string
+ *
+ * @memberof Map
+ * @instance
+ * @name toXML
+ * @example
+ * var xml = map.toXML();
+ */
+NAN_METHOD(Map::toXML)
 {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     bool explicit_defaults = false;
