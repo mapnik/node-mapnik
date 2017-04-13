@@ -2,6 +2,14 @@
 
 ## 3.6.0
 
+This release has major performance and stability improvements.
+
+The biggest change is the move to https://github.com/mapbox/wagyu for clipping polygons, which is faster and results in more robust results than the previous implementation based off the "clipper" http://www.angusj.com/delphi/clipper.php. The "clipper" was known to hang on very large polygons and could output self-intersecting polygons.
+
+The second largest change is the update of all major C/C++ dependencies. The changelogs for each are listed below. The highlights are 1) the performance improvements in webp 1.6.0, 2) the many crashes fixed in harfbuzz (https://github.com/behdad/harfbuzz/issues/139), and critical security bugs fixed in libpng, libjpeg, and libtiff.
+
+The third most important set of changes were to node-mapnik directly: for performance many functions now can premultiply as part of another async operation (to avoid needing an additional threadpool access for async premultiply - this matters under load when the threadpool may be full since access can block). And many functions that allocate images now protect from extreme allocation that could hang a machine and result in OOM. Additionally the address sanitizer caught several cases of undefined behavior.
+
 - Updated to 1.3.0 of Mapnik Vector Tile (https://github.com/mapbox/mapnik-vector-tile/blob/master/CHANGELOG.md#130)
 - Removed Angus Clipper and replaced with Wagyu v0.4.2 (https://github.com/mapbox/wagyu)
 - Upgraded to protozero@1.5.1
