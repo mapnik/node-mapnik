@@ -2,9 +2,11 @@
 
 ## 3.6.0
 
-- Updated to 1.3.0 of Mapnik Vector Tile
-- Removed Angus Clipper and replaced with Wagyu
-- Changed build system to use mason
+- Updated to 1.3.0 of Mapnik Vector Tile (https://github.com/mapbox/mapnik-vector-tile/blob/master/CHANGELOG.md#130)
+- Removed Angus Clipper and replaced with Wagyu v0.4.2 (https://github.com/mapbox/wagyu)
+- Upgraded to protozero@1.5.1
+- Upgraded to mapnik-vector-tile@1.3.0
+- Changed build system to use mason instead of mapnik-packaging
 - Added docs for Map#queryPoint and Map#queryMapPoint, #701
 - Added docs for plugins
 - Fixed potential abort due to unhandled error in Mapnik when passing invalid image dimensions
@@ -17,19 +19,19 @@
 - Fixed invalid casts detected by address sanitizer, #739
 - Binaries compiled with clang-3.9 and requiring at least GLIBCXX_3.4.21 from libstdc++ (https://github.com/mapnik/node-mapnik#depends)
 - Binaries updated to use mapnik `v3.0.13`, see [changelog](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3013).
-- Dependency versions are visible in the `install_mason.sh` but are:
-  - jpeg_turbo 1.5.1
-  - libpng 1.6.28
-  - libtiff 4.0.7
-  - icu 57.1
-  - proj 4.9.3
-  - pixman 0.34.0
-  - cairo 1.14.8
-  - webp 0.6.0
-  - libgdal 2.1.3
-  - boost 1.63.0
-  - freetype 2.7.1
-  - harfbuzz 1.4.2
+- Updated dependency versions (also visible in `install_mason.sh`):
+  - jpeg_turbo 1.5.1 (previously 1.5.0 | https://github.com/libjpeg-turbo/libjpeg-turbo/releases/tag/1.5.1)
+  - libpng 1.6.28 (previously 1.6.24 | http://www.libpng.org/pub/png/libpng.html)
+  - libtiff 4.0.7 (previously 4.0.6 | http://www.simplesystems.org/libtiff/v4.0.7.html)
+  - icu 57.1 (previously 56.1 | http://site.icu-project.org/download/57)
+  - proj 4.9.3 (previously 4.9.2 | https://github.com/OSGeo/proj.4/blob/18e6f047af7962a6da4ae3d6122034db4f8fe935/NEWS#L1)
+  - pixman 0.34.0 (no change)
+  - cairo 1.14.8 (previously 1.14.6 | https://www.cairographics.org/news/cairo-1.14.8/)
+  - webp 0.6.0 (previously 0.5.1 | https://chromium.googlesource.com/webm/libwebp/+/v0.6.0)
+  - libgdal 2.1.3 (previously 2.1.1 | https://trac.osgeo.org/gdal/wiki/Release/2.1.3-News)
+  - boost 1.63.0 (previously 1.61.0 | http://www.boost.org/users/history/version_1_63_0.html)
+  - freetype 2.7.1 (previously 2.6.5 | https://sourceforge.net/projects/freetype/files/freetype2/2.7.1/)
+  - harfbuzz 1.4.2 (previously 1.3.0 | https://github.com/behdad/harfbuzz/blob/8568588202dd718b089e43cd6d46f689c706f665/NEWS#L29)
 
 ## 3.5.14
 
