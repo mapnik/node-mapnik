@@ -11,6 +11,7 @@ usage += '\n  mapnik-inspect.js <datasource> (.vector.pbf|.mvt|.shp|.json|.geojs
 usage += '\n  mapnik-inspect.js <stylesheet> (.xml)';
 usage += '\n  mapnik-inspect.js <projection> (.prj)';
 usage += '\n  mapnik-inspect.js <zipfile> (.zip)';
+usage += '\n  mapnik-inspect.js <svg> (.svg) (will print png image to stdout)';
 
 var obj = process.argv[2];
 if (!obj) {
@@ -45,6 +46,17 @@ var meta = function(ds) {
 if (/.shp$/.test(obj)) {
     var opened = new mapnik.Datasource({type: 'shape', file: obj});
     meta(opened);
+}
+else if ((/.svg$/.test(obj))) {
+    mapnik.Image.fromSVGBytes(fs.readFileSync(obj),function(err,img) {
+        if (err) {
+            console.error(err.message);
+            process.exit(1);
+        }
+        var output="/tmp/mapnik-inspect.png";
+        img.save(output)
+        console.log("Saved image to "+output);
+    });
 }
 else if ((/.vector.pbf$/.test(obj)) || (/.mvt$/.test(obj))) {
     console.log(mapnik.VectorTile.info(fs.readFileSync(obj)));
