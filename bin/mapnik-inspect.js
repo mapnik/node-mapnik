@@ -54,7 +54,7 @@ else if ((/.svg$/.test(obj))) {
             process.exit(1);
         }
         var output="/tmp/mapnik-inspect.png";
-        img.save(output)
+        img.save(output);
         console.log("Saved image to "+output);
     });
 }
