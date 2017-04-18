@@ -124,6 +124,7 @@ SET ICU_DATA=%MAPNIK_SDK%\share\icu
 
 :: actually install deps + compile node-mapnik
 ECHO building node-mapnik
+:: --msvs_version=2015 is passed along to node-gyp here
 CALL npm install --build-from-source --msvs_version=2015 %TOOLSET_ARGS% --loglevel=http
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
@@ -141,18 +142,27 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 powershell scripts\build_against_sdk_03-write-mapnik.settings.ps1
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-CALL node_modules\.bin\node-pre-gyp package %TOOLSET_ARGS%
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
 CALL npm test
 :: uncomment to allow build to work even if tests do not pass
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO APPVEYOR_REPO_COMMIT_MESSAGE^: %APPVEYOR_REPO_COMMIT_MESSAGE%
 SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
-IF NOT "%CM%" == "%CM:[publish binary]=%" (ECHO publishing... && CALL node_modules\.bin\node-pre-gyp --msvs_version=2015 publish %TOOLSET_ARGS%) ELSE (ECHO not publishing)
+
+:: publish binaries to v140 path
+IF NOT "%CM%" == "%CM:[publish binary]=%" (ECHO publishing v140... && CALL node_modules\.bin\node-pre-gyp package publish --toolset=v140) ELSE (ECHO not publishing)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF NOT "%CM%" == "%CM:[republish binary]=%" (ECHO republishing ... && CALL node_modules\.bin\node-pre-gyp --msvs_version=2015 unpublish publish %TOOLSET_ARGS%) ELSE (ECHO not republishing)
+IF NOT "%CM%" == "%CM:[republish binary]=%" (ECHO republishing v140 ... && CALL node_modules\.bin\node-pre-gyp package unpublish publish --toolset=v140) ELSE (ECHO not republishing)
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+:: publish binaries to default path
+:: in the future this may change depending on:
+:: 1) what visual studio versions we support
+:: 2) how visual studio binaries are or are not compatible with each other
+:: more details: https://github.com/mapnik/node-mapnik/issues/756
+IF NOT "%CM%" == "%CM:[publish binary]=%" (ECHO publishing... && CALL node_modules\.bin\node-pre-gyp package publish) ELSE (ECHO not publishing)
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF NOT "%CM%" == "%CM:[republish binary]=%" (ECHO republishing ... && CALL node_modules\.bin\node-pre-gyp package unpublish publish) ELSE (ECHO not republishing)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 
