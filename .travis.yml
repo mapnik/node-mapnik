@@ -134,6 +134,10 @@ matrix:
         - chmod +x codecov
         - ./codecov -x "llvm-cov gcov" -Z
 
+# show binary size
+after_success:
+ - ls -lh $(./node_modules/.bin/node-pre-gyp --silent reveal module)
+
 notifications:
   slack:
     secure: wLpScQaDoEsVe0Bu28b62FGZBfmX3s/NK8DWcuSxEFx80k8RKPNgnMg8htamG0zRSf5htF+X6jy2P0IeUvbeupIaJwqtXvHaJYtlMTmemG/xuXLTpLp6k6giT2mWm/lp+ykuaF/PvUcZWUhSf1zhS6vwIekrMYIcDYvNXjO8DNw=
