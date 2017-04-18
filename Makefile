@@ -14,8 +14,15 @@ node_modules: mason_packages/.link/bin/mapnik-config
 	npm install --ignore-scripts --clang
 
 # NOTE: `-fno-omit-frame-pointer -gline-tables-only` are added per https://github.com/mapbox/cpp/blob/master/glossary.md#profiling-build
+
+ifneq (,$(findstring clang,$(CXX)))
+    PROFILING_FLAG += -gline-tables-only
+else
+    PROFILING_FLAG += -g
+endif
+
 release: node_modules
-	CXXFLAGS="-fno-omit-frame-pointer -gline-tables-only" PATH="./mason_packages/.link/bin/:${PATH}" V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
+	CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" PATH="./mason_packages/.link/bin/:${PATH}" V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
 debug: node_modules
