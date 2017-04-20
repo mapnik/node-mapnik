@@ -34,6 +34,10 @@ install:
 # https://docs.travis-ci.com/user/customizing-the-build#Breaking-the-Build
 before_script:
   - npm test
+  - echo "looking inside mapnik.node"
+  - nm lib/binding/mapnik.node | grep "GLIBCXX_3.4.2[0-9]" || true
+  - echo "looking inside libmapnik"
+  - nm lib/binding/lib/libmapnik* | grep "GLIBCXX_3.4.2[0-9]" || true
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
 
