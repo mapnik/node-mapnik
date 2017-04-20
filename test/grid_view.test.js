@@ -83,7 +83,7 @@ describe('mapnik.GridView ', function() {
         });
     });
 
-    it('should report grid base_mask value for pixel', function() {
+    it.skip('should report grid base_mask value for pixel', function() {
         var pixel = view.getPixel(0, 0);
         if (mapnik.versions.mapnik_number < 200100) {
             assert.equal(pixel, 0);
