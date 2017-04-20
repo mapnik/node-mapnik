@@ -83,7 +83,7 @@ describe('mapnik.GridView ', function() {
         });
     });
 
-    it.skip('should report grid base_mask value for pixel', function() {
+    it('should report grid base_mask value for pixel', function() {
         var pixel = view.getPixel(0, 0);
         if (mapnik.versions.mapnik_number < 200100) {
             assert.equal(pixel, 0);
@@ -93,7 +93,7 @@ describe('mapnik.GridView ', function() {
         }
     });
 
-    it.skip('should be painted after rendering', function(done) {
+    it('should be painted after rendering', function(done) {
         mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
