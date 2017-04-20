@@ -14,7 +14,7 @@ env:
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'libstdc++-4.8-dev' ]
+    packages: [ 'libstdc++-4.9-dev' ]
 
 install:
   # set up the environment by installing mason and clang++
