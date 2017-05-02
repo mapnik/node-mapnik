@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.6.1
+
+Updated for a fix associated with mapnik-vector-tile where images could be requested that would have a width or height of zero resulting
+in exceptions.
+
+- Updated to mapnik-vector-tile@1.3.0
+
 ## 3.6.0
 
 This release has major performance and stability improvements.

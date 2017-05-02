@@ -2068,6 +2068,35 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
+    it('should render an image with a large amount of overzooming', function(done) {
+        var data = fs.readFileSync("./test/data/images/14_2788_6533.webp");
+        var vtile = new mapnik.VectorTile(14,2788,6533);
+        vtile.addImageBufferSync(data, '_image'); 
+        var map = new mapnik.Map(256,256);
+        map.loadSync('./test/data/large_overzoom.xml');
+        var opts = { z: 24, x: 2855279, y: 6690105, scale: 1, buffer_size: 256 };
+        var img = new mapnik.Image(256,256);
+        vtile.render(map, img, opts, function(err, image) {
+            if (err) throw err;
+            var expected = './test/data/images/large_overzoom.expected.png';
+            var actual = './test/data/images/large_overzoom.actual.png';
+            if (!existsSync(expected) || process.env.UPDATE) {
+                image.save(expected, 'png32');
+            }
+            image.save(actual, 'png32');
+            var e = fs.readFileSync(expected);
+            var a = fs.readFileSync(actual);
+            if (mapnik.versions.mapnik_number >= 300000) {
+                assert.ok(Math.abs(e.length - a.length) < 100);
+            } else {
+                assert.equal(e.length,a.length);
+            }
+
+            done();
+        });
+
+    });
+
     it('should render expected results - with objectional arguments', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
