@@ -2243,7 +2243,12 @@ void Map::EIO_RenderGrid(uv_work_t* req)
             attributes.insert(join_field);
         }
 
-        mapnik::grid_renderer<mapnik::grid> ren(*closure->m->map_,
+        mapnik::Map const& map = *closure->m->map_;
+        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        m_req.set_buffer_size(closure->buffer_size);
+        mapnik::grid_renderer<mapnik::grid> ren(map,
+                                                m_req,
+                                                closure->variables,
                                                 *closure->g->get(),
                                                 closure->scale_factor,
                                                 closure->offset_x,
