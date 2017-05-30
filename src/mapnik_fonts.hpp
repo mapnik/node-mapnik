@@ -47,13 +47,13 @@ static inline NAN_METHOD(register_fonts)
 
                 bool recurse = recurse_opt->BooleanValue();
                 std::string path = TOSTR(info[0]);
-                found = mapnik::freetype_engine::register_fonts(path,recurse);
+                found = mapnik::freetype_engine::instance().register_fonts(path,recurse);
             }
         }
         else
         {
             std::string path = TOSTR(info[0]);
-            found = mapnik::freetype_engine::register_fonts(path);
+            found = mapnik::freetype_engine::instance().register_fonts(path);
         }
 
         info.GetReturnValue().Set(Nan::New(found));
@@ -70,7 +70,7 @@ static inline NAN_METHOD(register_fonts)
 
 static inline NAN_METHOD(available_font_faces)
 {
-    auto const& names = mapnik::freetype_engine::face_names();
+    auto const& names = mapnik::freetype_engine::instance().face_names();
     v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
@@ -81,7 +81,7 @@ static inline NAN_METHOD(available_font_faces)
 
 static inline NAN_METHOD(memory_fonts)
 {
-    auto const& font_cache = mapnik::freetype_engine::get_cache();
+    auto const& font_cache = mapnik::freetype_engine::instance().get_cache();
     v8::Local<v8::Array> a = Nan::New<v8::Array>(font_cache.size());
     unsigned i = 0;
     for (auto const& kv : font_cache)
@@ -93,7 +93,7 @@ static inline NAN_METHOD(memory_fonts)
 
 static inline NAN_METHOD(available_font_files)
 {
-    auto const& mapping = mapnik::freetype_engine::get_mapping();
+    auto const& mapping = mapnik::freetype_engine::instance().get_mapping();
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     for (auto const& kv : mapping)
     {
