@@ -3,7 +3,7 @@
     'default_configuration': 'Release',
     # the v140 refers to vs2015
     'msbuild_toolset':'v140',
-    'msvs_disabled_warnings': [ 4068,4244,4005,4506,4345,4804,4805,4661 ],
+    'msvs_disabled_warnings': [ 4503, 4068,4244,4005,4506,4345,4804,4805,4661 ],
     'cflags_cc' : [
       '-std=c++11',
     ],
