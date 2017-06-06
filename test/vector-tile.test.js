@@ -985,9 +985,11 @@ describe('mapnik.VectorTile ', function() {
             gzip.removeAllListeners();
             gzip=null;
             var compressed = vtile.getData({compression:'gzip', strategy:'RLE'});
-            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            // Substring used to remove gzip header
+            assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
             vtile.getData({compression:'gzip', strategy:'RLE'}, function (err, compressed) {
-                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                // Substring used to remove gzip header
+                assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
                 done();
             });
         });
@@ -1038,9 +1040,11 @@ describe('mapnik.VectorTile ', function() {
             gzip.removeAllListeners();
             gzip=null;
             var compressed = vtile.getData({compression:'gzip', strategy:'FILTERED'});
-            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            // Substring used to remove gzip header
+            assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
             vtile.getData({compression:'gzip', strategy:'FILTERED'}, function (err, compressed) {
-                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                // Substring used to remove gzip header
+                assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
                 done();
             });
         });
@@ -1091,9 +1095,11 @@ describe('mapnik.VectorTile ', function() {
             gzip.removeAllListeners();
             gzip=null;
             var compressed = vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'});
-            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            // Substring used to remove gzip header
+            assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
             vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'}, function (err, compressed) {
-                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                // Substring used to remove gzip header
+                assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
                 done();
             });
         });
@@ -1144,9 +1150,11 @@ describe('mapnik.VectorTile ', function() {
             gzip.removeAllListeners();
             gzip=null;
             var compressed = vtile.getData({compression:'gzip', strategy:'FIXED'});
-            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            // Substring used to remove gzip header
+            assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
             vtile.getData({compression:'gzip', strategy:'FIXED'}, function (err, compressed) {
-                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                // Substring is used to remove gzip header
+                assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
                 done();
             });
         });
@@ -1197,9 +1205,11 @@ describe('mapnik.VectorTile ', function() {
             gzip.removeAllListeners();
             gzip=null;
             var compressed = vtile.getData({compression:'gzip', strategy:'DEFAULT'});
-            assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+            // Substring used to remove gzip header
+            assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
             vtile.getData({compression:'gzip', strategy:'DEFAULT'}, function (err, compressed) {
-                assert.equal(buffer.toString('hex'), compressed.toString('hex'));
+                // Substring used to remove gzip header
+                assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
                 done();
             });
         });
