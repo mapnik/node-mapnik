@@ -56,6 +56,7 @@
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
+    "node-gyp": "^3.6.1",
     "aws-sdk": "2.0.12",
     "jshint": "^2.5.10",
     "mocha": "2.x",

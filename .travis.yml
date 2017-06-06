@@ -77,17 +77,17 @@ matrix:
     - os: osx
       osx_image: xcode8.3
       env: BUILDTYPE=release
-      node_js: "4.8.1" # Fixed at version until https://github.com/nodejs/node/issues/12244 is resolved by nodejs
+      node_js: 4
     # osx publishable node v6
     - os: osx
       osx_image: xcode8.3
       env: BUILDTYPE=release
-      node_js: "6.10.1" # Fixed at version until https://github.com/nodejs/node/issues/12244 is resolved by nodejs
+      node_js: 6
     # osx publishable node v7
     - os: osx
       osx_image: xcode8.2
       env: BUILDTYPE=release
-      node_js: "7.5.0" # Fixed at version until https://github.com/nodejs/node/issues/12244 is resolved by nodejs
+      node_js: 7
     # Sanitizer build node v4/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=-asan
