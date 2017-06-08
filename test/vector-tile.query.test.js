@@ -521,7 +521,7 @@ describe('mapnik.VectorTile query (distance <= tolerance)', function() {
             "type": "Feature",
             "geometry": {
               "type": "Polygon",
-              "coordinates": [ [-180,85], [180,-85], [-180,-85], [-180,85] ]
+              "coordinates": [[[-180,85], [180,-85], [-180,-85], [-180,85]]]
             },
             "properties": { "name": "A" }
           }]

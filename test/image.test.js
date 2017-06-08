@@ -1493,7 +1493,7 @@ describe('mapnik.Image ', function() {
     it('resize async should yield the same results as rendered image', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiply();
-        im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.5}, function(err, result) {
+        im.resize(50,50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.0}, function(err, result) {
             if (err) throw err;
             var map = new mapnik.Map(50,50);
             map.load('test/data/sat_map.xml', function(err, map) {
@@ -1513,7 +1513,7 @@ describe('mapnik.Image ', function() {
     it('resize sync should yield the same results as rendered image', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
         im.premultiply();
-        var result = im.resizeSync(50, 50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.5});
+        var result = im.resizeSync(50, 50, {scaling_method:mapnik.imageScaling.sinc, filter_factor:2.0});
         var map = new mapnik.Map(50,50);
         map.load('test/data/sat_map.xml', function(err, map) {
             if (err) throw err;
