@@ -2,10 +2,10 @@ MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.mod
 
 default: release
 
-deps/geometry:
+deps/geometry/include/mapbox/geometry.hpp:
 	git submodule update --init
 
-mason_packages/.link/bin/mapnik-config: deps/geometry
+mason_packages/.link/bin/mapnik-config: deps/geometry/include/mapbox/geometry.hpp
 	./install_mason.sh
 
 node_modules: mason_packages/.link/bin/mapnik-config
@@ -27,6 +27,8 @@ coverage:
 clean:
 	rm -rf lib/binding
 	rm -rf build
+	rm -rf mason
+	find test/ -name *actual* -exec rm {} \;
 	echo "run make distclean to also remove mason_packages and node_modules"
 
 distclean: clean
