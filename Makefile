@@ -2,10 +2,10 @@ MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.mod
 
 default: release
 
-deps/geometry:
+deps/geometry/include/mapbox/geometry.hpp:
 	git submodule update --init
 
-mason_packages/.link/bin/mapnik-config: deps/geometry
+mason_packages/.link/bin/mapnik-config: deps/geometry/include/mapbox/geometry.hpp
 	./install_mason.sh
 
 node_modules: mason_packages/.link/bin/mapnik-config
