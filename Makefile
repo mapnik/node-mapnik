@@ -27,6 +27,7 @@ coverage:
 clean:
 	rm -rf lib/binding
 	rm -rf build
+	find test/ -name *actual* -exec rm {} \;
 	echo "run make distclean to also remove mason_packages and node_modules"
 
 distclean: clean
