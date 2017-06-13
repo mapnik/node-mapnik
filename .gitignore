@@ -7,6 +7,7 @@ node_modules
 src/*.*~
 npm-debug.log
 test/tmp
+test/data/images/*actual*
 test/data/vector_tile/*actual*
 test/data/vector_tile/pasted/*actual*
 *.7z

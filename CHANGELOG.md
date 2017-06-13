@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.6.1
+
+Updated for a fix associated with mapnik-vector-tile where images could be requested that would have a width or height of zero resulting
+in exceptions. 
+
+Several fixes associated with different mapnik by updating to use 3.0.14. Please see mapnik change log for specifics. In
+general note worthy changes from mapnik include stricter geojson parsing, fixes for raster plugin, fixes to image scaling,
+changing the meaning of filter-factor, and improvements to the the TIFF decoder. 
+
+Due to changes in the mapnik core version during this update you should see some changes in the image rescaling of raster and gdal plugin source data. This will definitely change the expected output. This is due to fixes in long standing bugs in the mapnik library.
+
+- Updated to mapnik-vector-tile@1.4.0
+- Mapnik minimum version updated to 3.0.14. Does not work with mapnik 3.1.x currently.
+- Fixed tests around zlib compression and decompression when comparing to node's implementation
+- Fixes rare situation of seg faults during mapnik-vector-tile image processing.
+- Corrects the resolution of images in mapnik-vector-tile when using parameters from postgis plugin.
+
 ## 3.6.0
 
 This release has major performance and stability improvements.

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Map srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over" base="/Users/mthompson/src/api-maps/node_modules/mapbox-maps/node_modules/@mapbox/tilelive-vector/" maximum-extent="-20037508.34,-20037508.34,20037508.34,20037508.34">
+  <Parameters>
+    <Parameter name="bounds">-180,-85.0511,180,85.0511</Parameter>
+    <Parameter name="center">0,0,3</Parameter>
+    <Parameter name="format">png8:m=h</Parameter>
+    <Parameter name="maxzoom">22</Parameter>
+    <Parameter name="minzoom">0</Parameter>
+    <Parameter name="scale">1</Parameter>
+  </Parameters>
+  <Style name="_image" filter-mode="first" comp-op="screen">
+    <Rule>
+      <Filter>([mapnik::geometry_type]=3)</Filter>
+      <LineSymbolizer stroke="rgba(85,187,102,0.502)" stroke-width="0.5"/>
+      <PolygonSymbolizer fill="rgba(85,187,102,0.051)"/>
+    </Rule>
+    <Rule>
+      <Filter>([mapnik::geometry_type]=2)</Filter>
+      <LineSymbolizer stroke="rgba(85,187,102,0.502)" stroke-width="1"/>
+    </Rule>
+    <Rule>
+      <Filter>([mapnik::geometry_type]=1)</Filter>
+      <DotSymbolizer fill="rgba(85,187,102,0.502)" width="5"/>
+      <TextSymbolizer allow-overlap="true" dy="6" justify-alignment="left" face-name="Source Sans Pro Regular" size="12" fill="rgba(85,187,102,0.749)">[name]</TextSymbolizer>
+    </Rule>
+  </Style>
+  <Style name="_image-raster" filter-mode="first">
+    <Rule>
+      <ElseFilter/>
+      <RasterSymbolizer opacity="1"/>
+    </Rule>
+  </Style>
+  <Layer name="_image" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over">
+    <StyleName>_image</StyleName>
+    <StyleName>_image-raster</StyleName>
+  </Layer>
+  <Layer name="_image" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over">
+    <StyleName>_image</StyleName>
+  </Layer>
+</Map>

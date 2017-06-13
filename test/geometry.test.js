@@ -183,20 +183,6 @@ describe('mapnik.Geometry ', function() {
         assert.equal(geom.typeName(), 'GeometryCollection');
     });
 
-    it('should return a type name for an unknown geometry', function() {
-        var input = {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-                type: 'MultiPoint',
-                coordinates: [ 10, 15 ]
-            }
-        };
-        var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
-        var geom = f.geometry();
-        assert.equal(geom.typeName(), 'Unknown');
-    });
-
     it('should return a type name for a broken geometry', function() {
         var input = {
             type: 'Feature',
