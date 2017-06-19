@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.2
+
+Updated to 3.0.15 of mapnik. The full changelog for this release is located [here](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3015). 
+
 ## 3.6.1
 
 Updated for a fix associated with mapnik-vector-tile where images could be requested that would have a width or height of zero resulting
