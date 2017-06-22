@@ -48,6 +48,7 @@ public:
     static NAN_METHOD(fromBytes);
     static void EIO_FromBytes(uv_work_t* req);
     static void EIO_AfterFromBytes(uv_work_t* req);
+    static NAN_METHOD(parseSVGMetaBytesSync);
     static v8::Local<v8::Value> _fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(fromSVGSync);
     static NAN_METHOD(fromSVG);

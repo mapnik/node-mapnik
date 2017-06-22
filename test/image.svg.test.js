@@ -12,6 +12,9 @@ describe('mapnik.Image SVG', function() {
         assert.throws(function() { new mapnik.Image.fromSVG(); });
         assert.throws(function() { new mapnik.Image.fromSVGBytes(); });
         assert.throws(function() {
+          new mapnik.Image.fromSVGBytesSync(null);
+        }, /must provide a buffer argument/);
+        assert.throws(function() {
           new mapnik.Image.fromSVGBytesSync(1);
         }, /must provide a buffer argument/);
         assert.throws(function() {
