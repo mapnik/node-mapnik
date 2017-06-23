@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.0
+
+Adds `mapnik.Image.parseSVGMetaBytesSync` to allow users to get the width and height of an svg buffer by using `mapnik.Image`'s svg parsing logic.
+
 ## 3.6.2
 
 Updated to 3.0.15 of mapnik. The full changelog for this release is located [here](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3015). 
