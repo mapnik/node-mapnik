@@ -2525,7 +2525,7 @@ void Image::EIO_AfterOpen(uv_work_t* req)
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
- * @param {number} [options.max_size] - the maximum allowed size of the svg area at the provided scale. The default is 2048.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg area at the provided scale. The default is 4194304.
  * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
  * rasterizing the SVG.
  * @returns {mapnik.Image} Image object
@@ -2546,7 +2546,7 @@ NAN_METHOD(Image::fromSVGBytesSync)
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
- * @param {number} [options.max_size] - the maximum allowed size of the svg area at the provided scale. The default is 2048.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg area at the provided scale. The default is 4194304.
  * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
  * rasterizing the SVG.
  * @returns {mapnik.Image} image object
@@ -2578,7 +2578,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
 
 
     double scale = 1.0;
-    std::uint32_t max_size = 2048;
+    std::uint32_t max_size = 4194304;
     if (info.Length() >= 2) 
     {
         if (!info[1]->IsObject()) 
@@ -2765,7 +2765,7 @@ typedef struct {
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
- * @param {number} [options.max_size] - the maximum allowed size of the svg at the provided scale. The default is 2048.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg at the provided scale. The default is 4194304.
  * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
  * rasterizing the SVG.
  * @param {Function} callback
@@ -2798,7 +2798,7 @@ NAN_METHOD(Image::fromSVG)
     }
 
     double scale = 1.0;
-    std::uint32_t max_size = 2048;
+    std::uint32_t max_size = 4194304;
     if (info.Length() >= 3) 
     {
         if (!info[1]->IsObject()) 
@@ -2974,7 +2974,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
- * @param {number} [options.max_size] - the maximum allowed size of the svg at the provided scale. The default is 2048.
+ * @param {number} [options.max_size] - the maximum allowed size of the svg at the provided scale. The default is 4194304.
  * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
  * rasterizing the SVG.
  * @param {Function} callback = `function(err, img)`
@@ -3011,7 +3011,7 @@ NAN_METHOD(Image::fromSVGBytes)
     }
 
     double scale = 1.0;
-    std::uint32_t max_size = 2048;
+    std::uint32_t max_size = 4194304;
     if (info.Length() >= 3) 
     {
         if (!info[1]->IsObject()) 
@@ -3369,7 +3369,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
  * @param {Buffer} buffer - image buffer
  * @param {Object} [options]
  * @param {Boolean} [options.premultiply] - Default false, if true, then the image will be premultiplied before being returned
- * @param {Number} [options.max_size] - the maximum allowed size of the image dimensions. The default is 2048.
+ * @param {Number} [options.max_size] - the maximum allowed size of the image dimensions. The default is 4194304.
  * @param {Function} callback - `function(err, img)`
  * @static
  * @memberof Image
@@ -3411,7 +3411,7 @@ NAN_METHOD(Image::fromBytes)
     }
 
     bool premultiply = false;
-    std::uint32_t max_size = 2048;
+    std::uint32_t max_size = 4194304;
     if (info.Length() >= 2)
     {
         if (info[1]->IsObject())
