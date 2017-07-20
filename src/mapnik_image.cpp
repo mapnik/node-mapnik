@@ -2635,7 +2635,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
+        svg_parser p(svg, true);
         if (fromFile)
         {
             if (!p.parse(TOSTR(info[0])))
@@ -2869,7 +2869,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
+        svg_parser p(svg, true);
         if (!p.parse(closure->filename))
         {
             std::ostringstream errorMessage("");
@@ -3083,7 +3083,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
+        svg_parser p(svg, true);
 
         std::string svg_buffer(closure->data,closure->dataLength);
         if (!p.parse_from_string(svg_buffer))
