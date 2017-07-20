@@ -25,10 +25,10 @@ describe('mapnik.Image SVG', function() {
         }, /first argument is invalid, must be a Buffer/);
         assert.throws(function() {
           new mapnik.Image.fromSVGBytesSync(new Buffer('asdfasdf'));
-        }, /SVG parse error:\s+Unable to parse 'asdfasdf'/);
+        }, /Unable to parse 'asdfasdf'/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/SVG_DOES_NOT_EXIST.svg');
-        }, /SVG parse error:\s+Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/);
+        }, /Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', 256);
         }, /optional second arg must be an options object/);
@@ -149,7 +149,7 @@ describe('mapnik.Image SVG', function() {
         done();
       });
     });
-    
+
     it('should err with async file w/o width or height as Bytes', function(done) {
         var svgdata = "<svg width='0' height='0'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
         var buffer = new Buffer(svgdata);
@@ -164,7 +164,7 @@ describe('mapnik.Image SVG', function() {
     it('should err with async invalid buffer', function(done) {
       mapnik.Image.fromSVGBytes(new Buffer('asdfasdf'), function(err, svg) {
         assert.ok(err);
-        assert.ok(err.message.match(/SVG parse error:\s+Unable to parse 'asdfasdf'/));
+        assert.ok(err.message.match(/Unable to parse 'asdfasdf'/));
         assert.equal(svg, undefined);
         done();
       });
@@ -173,7 +173,7 @@ describe('mapnik.Image SVG', function() {
     it('should err with async non-existent file', function(done) {
       mapnik.Image.fromSVG('./test/data/SVG_DOES_NOT_EXIST.svg', function(err, svg) {
         assert.ok(err);
-        assert.ok(err.message.match(/SVG parse error:\s+Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/));
+        assert.ok(err.message.match(/Failed to load: \.\/test\/data\/SVG_DOES_NOT_EXIST\.svg/));
         assert.equal(svg, undefined);
         done();
       });
@@ -181,6 +181,7 @@ describe('mapnik.Image SVG', function() {
 
     it('should error with async file full of errors', function(done) {
       mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', function(err, svg) {
+        console.log(err);
         assert.ok(err);
         assert.ok(err.message.match(/SVG parse error:/));
         assert.equal(svg, undefined);
@@ -196,7 +197,7 @@ describe('mapnik.Image SVG', function() {
         assert.equal(img.height(), 256);
         assert.equal(img.encodeSync('png32').length, 17571);
     });
-    
+
     it('#fromSVGSync load from SVG file - 2', function() {
         var img = mapnik.Image.fromSVG('./test/data/vector_tile/tile0.expected-svg.svg');
         assert.ok(img);
