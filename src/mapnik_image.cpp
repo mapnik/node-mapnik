@@ -2631,7 +2631,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         {
             if (!p.parse(TOSTR(info[0])))
             {
-                std::ostringstream errorMessage("");
+                std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
@@ -2651,7 +2651,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
             if (!p.parse_from_string(svg_buffer))
             {
-                std::ostringstream errorMessage("");
+                std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
@@ -2861,7 +2861,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
         svg_parser p(svg, true);
         if (!p.parse(closure->filename))
         {
-            std::ostringstream errorMessage("");
+            std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
             for (auto const& error : p.err_handler().error_messages()) {
                 errorMessage <<  error << std::endl;
@@ -3076,7 +3076,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         std::string svg_buffer(closure->data,closure->dataLength);
         if (!p.parse_from_string(svg_buffer))
         {
-            std::ostringstream errorMessage("");
+            std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
             for (auto const& error : p.err_handler().error_messages()) {
                 errorMessage <<  error << std::endl;

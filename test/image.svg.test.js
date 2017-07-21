@@ -181,9 +181,8 @@ describe('mapnik.Image SVG', function() {
 
     it('should error with async file full of errors', function(done) {
       mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', function(err, svg) {
-        console.log(err);
         assert.ok(err);
-        assert.ok(err.message.match(/SVG parse error:/));
+        assert.ok(err.message.match(/Failed to load: .\/test\/data\/vector_tile\/errors.svg/));
         assert.equal(svg, undefined);
         done();
       });
