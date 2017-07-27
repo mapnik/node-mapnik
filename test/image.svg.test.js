@@ -90,6 +90,16 @@ describe('mapnik.Image SVG', function() {
         });
 
     });
+    // Parsing well-known unsupported elements and attributes: if `strict` option is `false` (default) then succeed returning parsing errors, else fail
+    it('strict:false', function(done) {
+        var buffer = fs.readFileSync('./test/data/images/san-marino.svg');
+        mapnik.Image.fromSVGBytes(buffer, {strict: false}, function(err, img) {
+            assert.ok(err);
+            // [Error: Unsupported:"font-size]
+            assert.ok(err.message.match(/Unsupported:\"font-size/));
+            done();
+         });
+    });
 
     it('blocks allocating a very large image', function(done) {
         // 65535 is the max width/height in mapnik
@@ -173,7 +183,7 @@ describe('mapnik.Image SVG', function() {
     it('should err with async non-existent file', function(done) {
       mapnik.Image.fromSVG('./test/data/SVG_DOES_NOT_EXIST.svg', function(err, svg) {
         assert.ok(err);
-        assert.ok(err.message.match(/Failed to load: \.\/test\/data\/SVG_DOES_NOT_EXIST\.svg/));
+        assert.ok(err.message.match(/Unable to open '.\/test\/data\/SVG_DOES_NOT_EXIST.svg'/));
         assert.equal(svg, undefined);
         done();
       });
@@ -182,7 +192,7 @@ describe('mapnik.Image SVG', function() {
     it('should error with async file full of errors', function(done) {
       mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', function(err, svg) {
         assert.ok(err);
-        assert.ok(err.message.match(/Failed to load: .\/test\/data\/vector_tile\/errors.svg/));
+        assert.ok(err.message.match(/SVG parse error:/));
         assert.equal(svg, undefined);
         done();
       });
