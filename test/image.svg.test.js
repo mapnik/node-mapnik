@@ -94,11 +94,27 @@ describe('mapnik.Image SVG', function() {
     it('strict:false', function(done) {
         var buffer = fs.readFileSync('./test/data/images/san-marino.svg');
         mapnik.Image.fromSVGBytes(buffer, {strict: false}, function(err, img) {
-            assert.ok(err);
-            // [Error: Unsupported:"font-size]
-            assert.ok(err.message.match(/Unsupported:\"font-size/));
-            done();
+          assert.ok(err);
+          // [Error: Unsupported:"text]
+          assert.ok(err.message.match(/Unsupported:\"text/));
+          done();
          });
+    });
+
+    it('strict:true', function(done) {
+        var buffer = fs.readFileSync('./test/data/images/san-marino.svg');
+      try {
+        mapnik.Image.fromSVGBytes(buffer, {strict: true}, function(err, img) {
+          assert.ok(err);
+          // [Error: Unsupported:"text]
+          assert.ok(err.message.match(/Unsupported:\"text/));
+          console.log("FAIL");
+          done();
+        });
+      } catch (err)
+      {
+        console.log("GOTCHA!");
+      }
     });
 
     it('blocks allocating a very large image', function(done) {

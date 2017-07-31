@@ -2640,15 +2640,16 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         svg_parser p(svg, strict);
         if (fromFile)
         {
-            if (!p.parse(TOSTR(info[0])))
+            p.parse(TOSTR(info[0]));
+            if (!p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
                 }
-                Nan::ThrowTypeError(errorMessage.str().c_str());
-                return scope.Escape(Nan::Undefined());
+                //Nan::ThrowTypeError(errorMessage.str().c_str());
+                //return scope.Escape(Nan::Undefined());
             }
         }
         else
@@ -2660,15 +2661,16 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 return scope.Escape(Nan::Undefined());
             }
             std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
-            if (!p.parse_from_string(svg_buffer))
+            p.parse_from_string(svg_buffer);
+            if (!p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
                 }
-                Nan::ThrowTypeError(errorMessage.str().c_str());
-                return scope.Escape(Nan::Undefined());
+                //Nan::ThrowTypeError(errorMessage.str().c_str());
+                //return scope.Escape(Nan::Undefined());
             }
         }
 
@@ -2884,7 +2886,8 @@ void Image::EIO_FromSVG(uv_work_t* req)
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
         svg_parser p(svg, closure->strict);
-        if (!p.parse(closure->filename))
+        p.parse(closure->filename);
+        if (!p.err_handler().error_messages().empty())
         {
             std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
@@ -2893,7 +2896,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             }
             closure->error = true;
             closure->error_name = errorMessage.str();
-            return;
+            //return;
         }
 
         double lox,loy,hix,hiy;
@@ -3001,7 +3004,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
  * @param {Function} callback = `function(err, img)`
  * @example
  * var buffer = fs.readFileSync('./path/to/image.svg');
- * mapnik.Image.fromSVGBytesSync(buffer, function(err, img) {
+ * mapnik.Image.fromSVGBytes(buffer, function(err, img) {
  *   if (err) throw err;
  *   // your custom code with `img`
  * });
@@ -3112,7 +3115,8 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         svg_parser p(svg, closure->strict);
 
         std::string svg_buffer(closure->data,closure->dataLength);
-        if (!p.parse_from_string(svg_buffer))
+        p.parse_from_string(svg_buffer);
+        if (!p.err_handler().error_messages().empty())
         {
             std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
@@ -3121,7 +3125,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             }
             closure->error = true;
             closure->error_name = errorMessage.str();
-            return;
+            //return;
         }
 
         double lox,loy,hix,hiy;
