@@ -108,12 +108,11 @@ describe('mapnik.Image SVG', function() {
           assert.ok(err);
           // [Error: Unsupported:"text]
           assert.ok(err.message.match(/Unsupported:\"text/));
-          console.log("FAIL");
           done();
         });
       } catch (err)
       {
-        console.log("GOTCHA!");
+        // currently we don't get here!
       }
     });
 
