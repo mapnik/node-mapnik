@@ -2648,8 +2648,8 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
                 }
-                //Nan::ThrowTypeError(errorMessage.str().c_str());
-                //return scope.Escape(Nan::Undefined());
+                Nan::ThrowTypeError(errorMessage.str().c_str());
+                return scope.Escape(Nan::Undefined());
             }
         }
         else
@@ -2669,8 +2669,8 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
                 }
-                //Nan::ThrowTypeError(errorMessage.str().c_str());
-                //return scope.Escape(Nan::Undefined());
+                Nan::ThrowTypeError(errorMessage.str().c_str());
+                return scope.Escape(Nan::Undefined());
             }
         }
 
@@ -3125,7 +3125,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
             }
             closure->error = true;
             closure->error_name = errorMessage.str();
-            //return;
+            return;
         }
 
         double lox,loy,hix,hiy;
