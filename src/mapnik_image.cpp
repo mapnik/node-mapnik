@@ -2896,7 +2896,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
             }
             closure->error = true;
             closure->error_name = errorMessage.str();
-            //return;
+            return;
         }
 
         double lox,loy,hix,hiy;
