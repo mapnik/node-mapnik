@@ -12,7 +12,7 @@ ICU_VERSION="57.1"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
-    curl -sSfL https://github.com/mapbox/mason/archive/e319a75b05838ca99bce1745f9d6c2fde1139b16.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
+    curl -sSfL https://github.com/mapbox/mason/archive/23fe28bc578667fc81f4d6e3479ab4ffb4702b77.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
 if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
