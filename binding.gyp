@@ -97,7 +97,6 @@
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
               '<!@(mapnik-config --cflags)',
-              '-D_GLIBCXX_USE_CXX11_ABI=0'
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
