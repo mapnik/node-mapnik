@@ -45,6 +45,7 @@
       "node-pre-gyp"
   ],
   "bin": {
+    "mapnik-index.js": "./bin/mapnik-index.js", 
     "mapnik-inspect.js": "./bin/mapnik-inspect.js",
     "mapnik-render.js": "./bin/mapnik-render.js",
     "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
