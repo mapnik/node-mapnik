@@ -13,6 +13,7 @@
         "src/mapnik_geometry.cpp",
         "src/mapnik_feature.cpp",
         "src/mapnik_image.cpp",
+        "src/mapnik_image_encode_chunked.cpp",
         "src/mapnik_image_view.cpp",
         "src/mapnik_grid.cpp",
         "src/mapnik_grid_view.cpp",

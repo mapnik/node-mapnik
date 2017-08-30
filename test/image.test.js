@@ -55,6 +55,11 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { im.encode('png', null, function(err, result) {}); });
         assert.throws(function() { im.encode(1, {}, function(err, result) {}); });
         assert.throws(function() { im.encode('png', {}, null); });
+        assert.throws(function() { im.encodeChunked('png', {palette:{}}, function(err, result) {}); });
+        assert.throws(function() { im.encodeChunked('png', {palette:null}, function(err, result) {}); });
+        assert.throws(function() { im.encodeChunked('png', null, function(err, result) {}); });
+        assert.throws(function() { im.encodeChunked(1, {}, function(err, result) {}); });
+        assert.throws(function() { im.encodeChunked('png', {}, null); });
         im.encode('foo', {}, function(err, result) {
             assert.throws(function() { if (err) throw err; });
             done();
@@ -144,6 +149,117 @@ describe('mapnik.Image ', function() {
         assert.equal(im2.height(), 256);
 
         assert.equal(im.encodeSync().length, im2.encodeSync().length);
+    });
+
+    it('should be able to encode by chunks', function(done) {
+        var im = new mapnik.Image(256, 256);
+        assert.ok(im instanceof mapnik.Image);
+
+        assert.equal(im.width(), 256);
+        assert.equal(im.height(), 256);
+
+        var actual_length = 0;
+        var chunk_count = 0;
+
+        im.encodeChunked('png32', {}, 1024, function(err, result) {
+            if (err) throw err;
+            if (result.length == 0) {
+                assert.equal(1, chunk_count);
+                assert.equal(im.encodeSync('png32').length, actual_length);
+                done();
+            } else {
+                chunk_count++;
+                actual_length += result.length;
+            }
+        });
+    });
+
+    it('should be able to encode by chunks - multiple chunks', function(done) {
+        var im = new mapnik.Image.openSync('./test/data/images/sat_image.png');
+        assert.ok(im instanceof mapnik.Image);
+
+        assert.equal(im.width(), 75);
+        assert.equal(im.height(), 75);
+
+        var actual_length = 0;
+        var chunk_count = 0;
+
+        im.encodeChunked('png32', {}, 1024, function(err, result) {
+            if (err) throw err;
+            if (result.length == 0) {
+                assert.equal(16, chunk_count);
+                assert.equal(im.encodeSync('png32').length, actual_length);
+                done();
+            } else {
+                chunk_count++;
+                actual_length += result.length;
+            }
+        });
+    });
+
+    it('chunked encoding should throw on bad chunk size argument', function() {
+        var im = new mapnik.Image(256, 256);
+        assert.ok(im instanceof mapnik.Image);
+
+        assert.equal(im.width(), 256);
+        assert.equal(im.height(), 256);
+
+        assert.throws(function() {
+            im.encodeChunked('png32', {}, 0, function(err, result) {
+            });
+        });
+    });
+
+    it('should be able to encode by chunks, chunk size is 1', function(done) {
+        var im = new mapnik.Image(256, 256);
+        assert.ok(im instanceof mapnik.Image);
+
+        assert.equal(im.width(), 256);
+        assert.equal(im.height(), 256);
+
+        var actual_length = 0;
+        var reference_length = im.encodeSync('png32').length;
+        var chunk_count = 0;
+
+        im.encodeChunked('png32', {}, 1, function(err, result) {
+            if (err) throw err;
+            if (result.length == 0) {
+                assert.equal(reference_length, chunk_count);
+                assert.equal(reference_length, actual_length);
+                done();
+            } else {
+                chunk_count++;
+                actual_length += result.length;
+            }
+        });
+    });
+
+    it('encode by chunks should encode with a palette', function(done) {
+        var im = new mapnik.Image.openSync('./test/data/images/sat_image.png');
+        var pal = new mapnik.Palette(new Buffer('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
+
+        var actual_length = 0;
+        var chunk_count = 0;
+
+        im.encodeChunked('png', {palette:pal}, 1024, function(err, result) {
+            if (err) throw err;
+            if (result.length == 0) {
+                assert.equal(1, chunk_count);
+                assert.equal(im.encodeSync('png', {palette:pal}).length, actual_length);
+                done();
+            } else {
+                chunk_count++;
+                actual_length += result.length;
+            }
+        });
+    });
+
+    it('chunked encoding should throw with invalid encoding format', function(done) {
+        var im = new mapnik.Image(256, 256);
+        im.encodeChunked('foo', {}, 1024, function(err, result) {
+            assert.ok(err);
+            done();
+        });
     });
 
     it('should be able to open via byte stream', function(done) {
