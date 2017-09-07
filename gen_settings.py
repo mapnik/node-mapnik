@@ -28,12 +28,12 @@ if __name__ == '__main__':
     if ip:
         settings_dict['input_plugins'] = ip
     else:
-        settings_dict['input_plugins'] = '\'%s\'' % os.popen("./mason_packages/.link/bin/mapnik-config --input-plugins").readline().strip()
+        settings_dict['input_plugins'] = '\'%s\'' % os.popen("mapnik-config --input-plugins").readline().strip()
     
     mf = os.environ.get('MAPNIK_FONTS')
     if mf:
         settings_dict['fonts'] = mf
     else:
-        settings_dict['fonts'] = '\'%s\'' % os.popen("./mason_packages/.link/bin/mapnik-config --fonts").readline().strip()
+        settings_dict['fonts'] = '\'%s\'' % os.popen("mapnik-config --fonts").readline().strip()
 
     write_mapnik_settings(**settings_dict)
