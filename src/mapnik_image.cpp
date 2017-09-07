@@ -3411,7 +3411,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
  * @memberof Image
  * @example
  * var buffer = fs.readFileSync('./path/to/image.png');
- * mapnik.Image.fromBytesSync(buffer, function(err, img) {
+ * mapnik.Image.fromBytes(buffer, function(err, img) {
  *   if (err) throw err;
  *   // your custom code with `img` object
  * });

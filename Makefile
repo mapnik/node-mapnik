@@ -5,21 +5,28 @@ default: release
 deps/geometry/include/mapbox/geometry.hpp:
 	git submodule update --init
 
-mason_packages/.link/bin/mapnik-config: deps/geometry/include/mapbox/geometry.hpp
-	./install_mason.sh
-
-node_modules: mason_packages/.link/bin/mapnik-config
-	# install deps but for now ignore our own install script
-	# so that we can run it directly in either debug or release
+node_modules:
 	npm install --ignore-scripts --clang
 
-release: node_modules
-	PATH="./mason_packages/.link/bin/:${PATH}" && V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
+mason_packages/.link/bin/mapnik-config:
+	./install_mason.sh
+
+pre_build_check:
+	mapnik-config -v |>/dev/null
+
+release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
-debug: node_modules
-	PATH="./mason_packages/.link/bin/:${PATH}" && V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --debug --clang
+debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --debug --clang
 	@echo "run 'make clean' for full rebuild"
+
+release: mason_packages/.link/bin/mapnik-config
+	PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
+
+debug: mason_packages/.link/bin/mapnik-config
+	PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
 
 coverage:
 	./scripts/coverage.sh
@@ -49,6 +56,7 @@ docs:
 
 test:
 	npm test
+check: test
 
 testpack:
 	rm -f ./*tgz

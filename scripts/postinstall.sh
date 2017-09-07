@@ -5,6 +5,25 @@ set -o pipefail
 MODULE_PATH=./lib/binding
 MAPNIK_SDK=./mason_packages/.link
 
+# Check if we are using Mason's mapnik
+if [[ ! "$(which mapnik-config)" -ef "$MAPNIK_SDK/bin/mapnik-config" ]]; then
+  echo "
+var path = require('path');
+module.exports.paths = {
+    'fonts':         '$(mapnik-config --fonts)',
+    'input_plugins': '$(mapnik-config --input-plugins)',
+    'mapnik_index':  '$(which mapnik-index)',
+    'shape_index':   '$(which shapeindex)'
+};
+module.exports.env = {
+    'ICU_DATA':      '$(mapnik-config --icu-data)',
+    'GDAL_DATA':     '$(mapnik-config --gdal-data)',
+    'PROJ_LIB':      '$(mapnik-config --proj-lib)'
+};
+" > ${MODULE_PATH}/mapnik_settings.js
+  exit 0;
+fi
+
 mkdir -p ${MODULE_PATH}/bin/
 
 # the below switch is used since on osx the default cp
