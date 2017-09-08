@@ -1727,11 +1727,11 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     try
     {
         image_ptr imagep = std::make_shared<mapnik::image_any>(
-                                                       mapnik::image_copy(*(im->this_),
-                                                                            type,
-                                                                            offset,
-                                                                            scaling)
-                                                    );
+            mapnik::image_copy(*(im->this_),
+                               type,
+                               offset,
+                               scaling)
+            );
         Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
         v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
@@ -3220,8 +3220,9 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->cb.Reset();

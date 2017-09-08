@@ -3,7 +3,7 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/memory_datasource.hpp>
-#include <mapnik/value_types.hpp>
+#include <mapnik/value/types.hpp>
 
 #include "mapnik_memory_datasource.hpp"
 #include "mapnik_featureset.hpp"

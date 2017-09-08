@@ -7,7 +7,7 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/json/feature_parser.hpp>
-#include <mapnik/value_types.hpp>
+#include <mapnik/value/types.hpp>
 #include <mapnik/util/feature_to_geojson.hpp>
 
 Nan::Persistent<v8::FunctionTemplate> Feature::constructor;

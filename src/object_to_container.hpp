@@ -4,7 +4,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/attribute.hpp>
 #include <mapnik/unicode.hpp>
-#include <mapnik/value_types.hpp>
+#include <mapnik/value/types.hpp>
 
 static inline void object_to_container(mapnik::attributes & cont, v8::Local<v8::Object> const& vars)
 {
