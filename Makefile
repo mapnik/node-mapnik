@@ -12,7 +12,9 @@ mason_packages/.link/bin/mapnik-config:
 	./install_mason.sh
 
 pre_build_check:
-	mapnik-config -v |>/dev/null
+	@node -e "console.log('\033[94mNOTICE: to build from source you need mapnik >=',require('./package.json').mapnik_version,'\033[0m');"
+	@echo "Looking for mapnik-config on your PATH..."
+	mapnik-config -v
 
 release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
 	V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
