@@ -2,31 +2,7 @@
   'includes': [ 'common.gypi' ],
   'targets': [
     {
-      'target_name': 'make_vector_tile',
-      'hard_dependency': 1,
-      'type': 'none',
-      'actions': [
-        {
-          'action_name': 'generate_setting',
-          'inputs': [
-            'gen_settings.py'
-          ],
-          'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js'
-          ],
-          'action': ['python', 'gen_settings.py', '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js']
-        }
-      ],
-      'copies': [
-        {
-          'files': [ '<(SHARED_INTERMEDIATE_DIR)/mapnik_settings.js' ],
-          'destination': '<(module_path)'
-        }
-      ]
-    },
-    {
       'target_name': '<(module_name)',
-      'dependencies': [ 'make_vector_tile' ],
       'product_dir': '<(module_path)',
       'sources': [
         "src/mapnik_logger.cpp",
@@ -97,7 +73,6 @@
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
               '<!@(mapnik-config --cflags)',
-              '-D_GLIBCXX_USE_CXX11_ABI=0'
             ],
             'libraries':[
               '<!@(mapnik-config --libs)',
