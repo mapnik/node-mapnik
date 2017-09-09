@@ -46,6 +46,7 @@ MemoryDatasource::~MemoryDatasource()
 
 NAN_METHOD(MemoryDatasource::New)
 {
+    std::clog << "WARNING: MemoryDatasource is deprecated and will be removed in node-mapnik >= 3.7.x\n";
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
