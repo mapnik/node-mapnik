@@ -58,6 +58,7 @@ docs:
 
 test:
 	npm test
+
 check: test
 
 testpack:

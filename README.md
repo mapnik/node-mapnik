@@ -71,9 +71,9 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 
 OS|Node.js|C++ minimum requirements|OS versions
 ---|---|---|---
-Mac|v0.10.x, v4, v5, v6|C++11|Mac OS X > 10.10
-Linux|v0.10.x, v4, v5, v6|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.21 from libstdc++)
-Windows|v0.10.x, v4, v5|C++11|See the [Windows requirements](https://github.com/mapnik/node-mapnik#windows-specific) section
+Mac|v0.10.x, v4, v6, v8|C++11|Mac OS X > 10.10
+Linux|v0.10.x, v4, v6, v8|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.21 from libstdc++)
+Windows|v0.10.x, v4, v6, v8|C++11|See the [Windows requirements](https://github.com/mapnik/node-mapnik#windows-specific) section
 
 An installation error like below indicates your system does not have a modern enough libstdc++/gcc-base toolchain:
 
@@ -115,7 +115,7 @@ Note: This will install the latest node-mapnik 3.x series, which is recommended.
 
 By default, binaries are provided for:
 
- - 64 bit OS X 10.9, 64 bit Linux (>= Ubuntu Trusty), and 64/32 bit Windows
+ - 64 bit OS X >= 10.10, 64 bit Linux (>= Ubuntu Trusty), and 64/32 bit Windows
  - several node versions:
    - [versions forLinux/Mac](<https://github.com/mapnik/node-mapnik/blob/master/.travis.yml#L19-L47>)
    - [versions for Windows](<https://github.com/mapnik/node-mapnik/blob/master/appveyor.yml#L9-L32>)
@@ -142,31 +142,38 @@ The **1.x** series require the Visual C++ Redistributable Packages for **Visual 
 
 ## Source Build
 
-### Using a local Mapnik installation
+There are two ways to build from source. These work on both OS X and Linux:
 
-To build from source you need:
+ - A) Against a binary package from Mapnik from [mason](https://github.com/mapbox/mason)
+ - B) Against an existing version of Mapnik on your system
 
- - Mapnik >= v3.0.10
+Using `A)` is recommended. You do not need to have Mapnik installed already, so this is the easiest and most predictable approach. When you use the route a binary package of Mapnik is download dynamically from [mason](https://github.com/mapbox/mason).
 
-Install Mapnik using the instructions at: https://github.com/mapnik/mapnik/wiki/Mapnik-Installation
+You can invoke this method simply by running:
 
-Confirm that the `mapnik-config` program is available and on your `${PATH}`.
+  make release
+
+Or, for debug builds:
+
+  make debug
+
+If you want to do a full rebuild do:
+
+  make distclean
+
+And then re-run the build:
+
+  make release
+
+Using `B)` is also possible, if you would like to build node-mapnik against an external, already installed Mapnik version.
+
+In this case you need to have a Mapnik version installed that is at least as recent as the `mapnik_version` property in the [`package.json`](./package.json) for the branch of node-mapnik you want to build.
+
+And you need to have the `mapnik-config` program is available and on your `${PATH}`.
 
 Then run (within the cloned `node-mapnik` directory:
 
-    npm install --build-from-source
-
-### Linux and OSX specific (Makefile)
-
-You can also build from source using the provided Makefile. In this case there are two main options: use mason to download Mapnik and its dependencies, or use your local Mapnik installation.
-
-To download and build against the latest Mapnik archive, use the the `release` or `debug` targets. For example:
-
-    make release
-
-To build against you local installation (requires `mapnik-config` to be in the `${PATH}`), you can use `release_base` and `debug_base` targers. For example:
-
-    make debug_base
+    make release_base
 
 
 ### Windows specific
@@ -188,4 +195,4 @@ To run the tests do:
 
 ## License
 
-  BSD, see LICENSE.txt
+BSD, see LICENSE.txt
