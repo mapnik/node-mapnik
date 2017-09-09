@@ -142,6 +142,8 @@ The **1.x** series require the Visual C++ Redistributable Packages for **Visual 
 
 ## Source Build
 
+### Using a local Mapnik installation
+
 To build from source you need:
 
  - Mapnik >= v3.0.10
@@ -153,6 +155,19 @@ Confirm that the `mapnik-config` program is available and on your `${PATH}`.
 Then run (within the cloned `node-mapnik` directory:
 
     npm install --build-from-source
+
+### Linux and OSX specific (Makefile)
+
+You can also build from source using the provided Makefile. In this case there are two main options: use mason to download Mapnik and its dependencies, or use your local Mapnik installation.
+
+To download and build against the latest Mapnik archive, use the the `release` or `debug` targets. For example:
+
+    make release
+
+To build against you local installation (requires `mapnik-config` to be in the `${PATH}`), you can use `release_base` and `debug_base` targers. For example:
+
+    make debug_base
+
 
 ### Windows specific
 
