@@ -15,12 +15,17 @@ module.exports.paths = {
     'mapnik_index':  '$(which mapnik-index)',
     'shape_index':   '$(which shapeindex)'
 };
-module.exports.env = {
-    'ICU_DATA':      '$(mapnik-config --icu-data)',
-    'GDAL_DATA':     '$(mapnik-config --gdal-data)',
-    'PROJ_LIB':      '$(mapnik-config --proj-lib)'
-};
 " > ${MODULE_PATH}/mapnik_settings.js
+# once https://github.com/mapnik/mapnik/pull/3759 is fixed
+# this can be enabled
+#  echo "
+#module.exports.env = {
+#    'ICU_DATA':      '$(mapnik-config --icu-data)',
+#    'GDAL_DATA':     '$(mapnik-config --gdal-data)',
+#    'PROJ_LIB':      '$(mapnik-config --proj-lib)'
+#};
+#" >> ${MODULE_PATH}/mapnik_settings.js
+
   exit 0;
 fi
 
