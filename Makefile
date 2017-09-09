@@ -25,10 +25,10 @@ debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modul
 	@echo "run 'make clean' for full rebuild"
 
 release: mason_packages/.link/bin/mapnik-config
-	PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
 
 debug: mason_packages/.link/bin/mapnik-config
-	PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
 
 coverage:
 	./scripts/coverage.sh
