@@ -157,7 +157,7 @@ struct p2p_distance
         bool inside = false;
         for (std::size_t ring_index = 0; ring_index < num_rings; ++ring_index)
         {
-            auto ring = poly[ring_index];
+            auto const& ring = poly[ring_index];
             auto num_points = ring.size();
             if (num_points < 4)
             {
