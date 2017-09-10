@@ -111,7 +111,9 @@ v8::Local<v8::Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     // copy new mapnik::layer into the shared_ptr
     l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(l);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Layer instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 NAN_GETTER(Layer::get_prop)
@@ -147,25 +149,25 @@ NAN_GETTER(Layer::get_prop)
         }
         return;
     }
-    else if (a == "minimum_scale_denominator") 
+    else if (a == "minimum_scale_denominator")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->minimum_scale_denominator()));   
+        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->minimum_scale_denominator()));
     }
-    else if (a == "maximum_scale_denominator") 
+    else if (a == "maximum_scale_denominator")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->maximum_scale_denominator()));   
+        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->maximum_scale_denominator()));
     }
-    else if (a == "queryable") 
+    else if (a == "queryable")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->queryable()));   
+        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->queryable()));
     }
-    else if (a == "clear_label_cache") 
+    else if (a == "clear_label_cache")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->clear_label_cache()));   
+        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->clear_label_cache()));
     }
-    else // if (a == "active") 
+    else // if (a == "active")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->active()));   
+        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->active()));
     }
 }
 
@@ -283,7 +285,7 @@ NAN_METHOD(Layer::describe)
 
     v8::Local<v8::Object> description = Nan::New<v8::Object>();
     mapnik::layer const& layer = *l->layer_;
-        
+
     description->Set(Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer.name()).ToLocalChecked());
 
     description->Set(Nan::New("srs").ToLocalChecked(), Nan::New<v8::String>(layer.srs()).ToLocalChecked());
