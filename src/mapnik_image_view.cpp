@@ -1,4 +1,3 @@
-
 // mapnik
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/image_view.hpp>        // for image_view, etc
@@ -99,7 +98,9 @@ v8::Local<v8::Value> ImageView::NewInstance(Image * JSImage ,
     ImageView* imv = new ImageView(JSImage);
     imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
     v8::Local<v8::Value> ext = Nan::New<v8::External>(imv);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new ImageView instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 typedef struct {
@@ -155,7 +156,7 @@ struct visitor_get_pixel_view
 {
     visitor_get_pixel_view(int x, int y)
         : x_(x), y_(y) {}
-    
+
     v8::Local<v8::Value> operator() (mapnik::image_view_null const& data)
     {
         // This should never be reached because the width and height of 0 for a null
@@ -200,7 +201,7 @@ struct visitor_get_pixel_view
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Uint32>(val));
     }
-    
+
     v8::Local<v8::Value> operator() (mapnik::image_view_gray32s const& data)
     {
         Nan::EscapableHandleScope scope;
@@ -246,7 +247,7 @@ struct visitor_get_pixel_view
   private:
     int x_;
     int y_;
-        
+
 };
 
 void ImageView::EIO_AfterIsSolid(uv_work_t* req)
@@ -585,5 +586,3 @@ NAN_METHOD(ImageView::save)
     }
     return;
 }
-
-

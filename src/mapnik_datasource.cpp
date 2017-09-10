@@ -147,7 +147,9 @@ v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Datasource instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 NAN_METHOD(Datasource::parameters)

@@ -114,7 +114,9 @@ NAN_METHOD(Feature::fromJSON)
         }
         Feature* feat = new Feature(f);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(feat);
-        info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
+        else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
     }
     catch (std::exception const& ex)
     {
@@ -132,7 +134,9 @@ v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
     Nan::EscapableHandleScope scope;
     Feature* f = new Feature(f_ptr);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(f);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 /**

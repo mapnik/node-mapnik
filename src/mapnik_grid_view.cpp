@@ -83,7 +83,9 @@ v8::Local<v8::Value> GridView::NewInstance(Grid * JSGrid,
     GridView* gv = new GridView(JSGrid);
     gv->this_ = std::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
     v8::Local<v8::Value> ext = Nan::New<v8::External>(gv);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new GridView instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 NAN_METHOD(GridView::width)
@@ -301,7 +303,7 @@ NAN_METHOD(GridView::encodeSync)
             }
 
             resolution = bind_opt->IntegerValue();
-            
+
             if (resolution == 0)
             {
                 Nan::ThrowTypeError("'resolution' can not be zero");

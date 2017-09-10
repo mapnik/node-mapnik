@@ -5,7 +5,7 @@ Nan::Persistent<v8::FunctionTemplate> Featureset::constructor;
 
 /**
  * **`mapnik.Featureset`**
- * 
+ *
  * An iterator of {@link mapnik.Feature} objects.
  *
  * @class Featureset
@@ -74,10 +74,10 @@ NAN_METHOD(Featureset::next)
         }
         catch (std::exception const& ex)
         {
-            // It is not immediately obvious how this could cause an exception, a check of featureset plugin 
+            // It is not immediately obvious how this could cause an exception, a check of featureset plugin
             // implementations resulted in no obvious way that an exception could be raised. Therefore, it
             // is not obvious currently what could raise this exception. However, since a plugin could possibly
-            // be developed outside of mapnik core plugins that could raise here we are probably best still 
+            // be developed outside of mapnik core plugins that could raise here we are probably best still
             // wrapping this in a try catch.
             /* LCOV_EXCL_START */
             Nan::ThrowError(ex.what());
@@ -98,5 +98,7 @@ v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp)
     Featureset* fs = new Featureset();
     fs->this_ = fsp;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(fs);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Featureset instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }

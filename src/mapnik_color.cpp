@@ -13,7 +13,7 @@ Nan::Persistent<v8::FunctionTemplate> Color::constructor;
 /**
  * **`mapnik.Color`**
  *
- * A `mapnik.Color` object used for handling and converting colors 
+ * A `mapnik.Color` object used for handling and converting colors
  *
  * @class Color
  * @param {string|number} value either an array of [r, g, b, a],
@@ -81,12 +81,12 @@ NAN_METHOD(Color::New)
     color_ptr c_p;
     try
     {
-        if (info.Length() == 1 && 
+        if (info.Length() == 1 &&
             info[0]->IsString())
         {
             c_p = std::make_shared<mapnik::color>(TOSTR(info[0]));
         }
-        else if (info.Length() == 2 && 
+        else if (info.Length() == 2 &&
                  info[0]->IsString() &&
                  info[1]->IsBoolean())
         {
@@ -95,7 +95,7 @@ NAN_METHOD(Color::New)
         else if (info.Length() == 3 &&
                  info[0]->IsNumber() &&
                  info[1]->IsNumber() &&
-                 info[2]->IsNumber()) 
+                 info[2]->IsNumber())
         {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
@@ -106,12 +106,12 @@ NAN_METHOD(Color::New)
                 return;
             }
             c_p = std::make_shared<mapnik::color>(r,g,b);
-        } 
+        }
         else if (info.Length() == 4 &&
                  info[0]->IsNumber() &&
                  info[1]->IsNumber() &&
                  info[2]->IsNumber() &&
-                 info[3]->IsBoolean()) 
+                 info[3]->IsBoolean())
         {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
@@ -122,12 +122,12 @@ NAN_METHOD(Color::New)
                 return;
             }
             c_p = std::make_shared<mapnik::color>(r,g,b,255,info[3]->BooleanValue());
-        } 
+        }
         else if (info.Length() == 4 &&
                  info[0]->IsNumber() &&
                  info[1]->IsNumber() &&
                  info[2]->IsNumber() &&
-                 info[3]->IsNumber()) 
+                 info[3]->IsNumber())
         {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
@@ -139,13 +139,13 @@ NAN_METHOD(Color::New)
                 return;
             }
             c_p = std::make_shared<mapnik::color>(r,g,b,a);
-        } 
+        }
         else if (info.Length() == 5 &&
                  info[0]->IsNumber() &&
                  info[1]->IsNumber() &&
                  info[2]->IsNumber() &&
                  info[3]->IsNumber() &&
-                 info[4]->IsBoolean()) 
+                 info[4]->IsBoolean())
         {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
@@ -157,8 +157,8 @@ NAN_METHOD(Color::New)
                 return;
             }
             c_p = std::make_shared<mapnik::color>(r,g,b,a,info[4]->BooleanValue());
-        } 
-        else 
+        }
+        else
         {
             Nan::ThrowTypeError("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values");
             return;
@@ -183,9 +183,10 @@ v8::Local<v8::Value> Color::NewInstance(mapnik::color const& color) {
     Color* c = new Color();
     c->this_ = std::make_shared<mapnik::color>(color);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(c);
-    return scope.Escape(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Color instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
-
 
 NAN_GETTER(Color::get_prop)
 {
