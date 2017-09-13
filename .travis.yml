@@ -33,6 +33,7 @@ install:
 # we use before_script rather than script to ensure fast failure (the script section continues even after an error)
 # https://docs.travis-ci.com/user/customizing-the-build#Breaking-the-Build
 before_script:
+  - source scripts/postgis/setup_and_run.sh
   - npm test
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
@@ -117,6 +118,7 @@ matrix:
         - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
         # TODO: re-enable detect_leaks=0 once we can build and test against an asan sanitized libc++
         - export ASAN_OPTIONS=fast_unwind_on_malloc=0:detect_leaks=0:${ASAN_OPTIONS}
+        - source scripts/postgis/setup_and_run.sh
         - npm test
         - unset LD_PRELOAD
         # after successful tests, publish binaries if specified in commit message
@@ -137,6 +139,7 @@ matrix:
         - make ${BUILDTYPE}
       # Overrides `script` to disable publishing
       before_script:
+        - source scripts/postgis/setup_and_run.sh
         - npm test
     # Coverage build
     - os: linux
@@ -144,6 +147,7 @@ matrix:
       node_js: 4
       # Overrides `script` to publish coverage data to codecov
       before_script:
+        - source scripts/postgis/setup_and_run.sh
         - npm test
         - mason install llvm-cov ${MASON_LLVM_RELEASE}
         - mason link llvm-cov ${MASON_LLVM_RELEASE}
