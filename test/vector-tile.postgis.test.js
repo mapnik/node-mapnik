@@ -57,7 +57,7 @@ describe('mapnik.VectorTile postgis.input', function() {
 
     it('passes variables to replace tokens in query', function(done) {
         if (!hasPostgisAvailable) {
-            this.skip('postgis not availabel');
+            this.skip('postgis not available');
         }
 
         spawn('psql', ['-q', '-f', './test/data/postgis-create-db-and-tables.sql', dbname])
