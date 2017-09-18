@@ -50,7 +50,7 @@
     "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
   },
   "scripts": {
-    "prepublish": "npm ls",
+    "prepublishOnly": "npm ls",
     "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
