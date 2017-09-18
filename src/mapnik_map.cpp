@@ -611,7 +611,7 @@ typedef struct {
  * @param {String|number} [options.layer] - layer name (string) or index (positive integer, 0 index)
  * to query. If left blank, will query all layers.
  * @param {Function} callback
- * @returns {Array} array - An array of `Featureset` objects and layer names, which each contain their own 
+ * @returns {Array} array - An array of `Featureset` objects and layer names, which each contain their own
  * `Feature` objects.
  * @example
  * // iterate over the first layer returned and get all attribute information for each feature
@@ -626,7 +626,7 @@ typedef struct {
  *   }
  *   console.log(attributes); // => [{"attr_key": "attr_value"}, {...}, {...}]
  * });
- * 
+ *
  */
 NAN_METHOD(Map::queryMapPoint)
 {
@@ -635,7 +635,7 @@ NAN_METHOD(Map::queryMapPoint)
 }
 
 /**
- * Query a `Mapnik#Map` object to retrieve layer and feature data based on geographic 
+ * Query a `Mapnik#Map` object to retrieve layer and feature data based on geographic
  * coordinates of the source data (use `Map#queryMapPoint` to query with XY coordinates).
  *
  * @name queryPoint
@@ -647,7 +647,7 @@ NAN_METHOD(Map::queryMapPoint)
  * @param {String|number} [options.layer] - layer name (string) or index (positive integer, 0 index)
  * to query. If left blank, will query all layers.
  * @param {Function} callback
- * @returns {Array} array - An array of `Featureset` objects and layer names, which each contain their own 
+ * @returns {Array} array - An array of `Featureset` objects and layer names, which each contain their own
  * `Feature` objects.
  * @example
  * // query based on web mercator coordinates
@@ -662,7 +662,7 @@ NAN_METHOD(Map::queryMapPoint)
  *   }
  *   console.log(attributes); // => [{"attr_key": "attr_value"}, {...}, {...}]
  * });
- * 
+ *
  */
 NAN_METHOD(Map::queryPoint)
 {
@@ -1456,7 +1456,9 @@ NAN_METHOD(Map::clone)
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(m2);
-    info.GetReturnValue().Set(Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Map instance");
+    else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
 }
 
 /**
@@ -1667,8 +1669,8 @@ struct vector_tile_baton_t {
  * @param {Object} [options={}]
  * @param {Number} [options.buffer_size=0] size of the buffer on the image
  * @param {Number} [options.scale=1.0] scale the image
- * @param {Number} [options.scale_denominator=0.0] 
- * @param {Number} [options.offset_x=0] pixel offset along the x-axis 
+ * @param {Number} [options.scale_denominator=0.0]
+ * @param {Number} [options.offset_x=0] pixel offset along the x-axis
  * @param {Number} [options.offset_y=0] pixel offset along the y-axis
  * @param {String} [options.image_scaling] must be a valid scaling method (used when rendering a vector tile)
  * @param {String} [options.image_format] must be a string and valid image format (used when rendering a vector tile)
@@ -1676,23 +1678,23 @@ struct vector_tile_baton_t {
  * @param {Boolean} [options.strictly_simple=] ensure all geometry is valid according to
  * OGC Simple definition (used when rendering a vector tile)
  * @param {Boolean} [options.multi_polygon_union] union all multipolygons (used when rendering a vector tile)
- * @param {String} [options.fill_type] the fill type used in determining what are holes and what are outer rings. See the 
+ * @param {String} [options.fill_type] the fill type used in determining what are holes and what are outer rings. See the
  * [Clipper documentation](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm)
  * to learn more about fill types. (used when rendering a vector tile)
  * @param {String} [options.threading_mode] (used when rendering a vector tile)
- * @param {Number} [options.simplify_distance] Simplification works to generalize 
- * geometries before encoding into vector tiles.simplification distance The 
+ * @param {Number} [options.simplify_distance] Simplification works to generalize
+ * geometries before encoding into vector tiles.simplification distance The
  * `simplify_distance` value works in integer space over a 4096 pixel grid and uses
  * the [Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm).
  * (used when rendering a vector tile)
- * @param {Object} [options.variables] Mapnik 3.x ONLY: A javascript object 
- * containing key value pairs that should be passed into Mapnik as variables 
- * for rendering and for datasource queries. For example if you passed 
+ * @param {Object} [options.variables] Mapnik 3.x ONLY: A javascript object
+ * containing key value pairs that should be passed into Mapnik as variables
+ * for rendering and for datasource queries. For example if you passed
  * `vtile.render(map,image,{ variables : {zoom:1} },cb)` then the `@zoom`
  * variable would be usable in Mapnik symbolizers like `line-width:"@zoom"`
- * and as a token in Mapnik postgis sql sub-selects like 
+ * and as a token in Mapnik postgis sql sub-selects like
  * `(select * from table where some_field > @zoom)` as tmp (used when rendering a vector tile)
- * @param {Boolean} [options.process_all_rings] if `true`, don't assume winding order and ring order of 
+ * @param {Boolean} [options.process_all_rings] if `true`, don't assume winding order and ring order of
  * polygons are correct according to the [`2.0` Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec)
  * (used when rendering a vector tile)
  * @returns {mapnik.Map} rendered image tile
@@ -1714,7 +1716,7 @@ struct vector_tile_baton_t {
  * var vtile = new mapnik.VectorTile(9,112,195);
  * map.render(vtile, {}, function(err, vtile) {
  *     if (err) throw err;
- *     console.log(vtile); // => vector tile object with data from xml 
+ *     console.log(vtile); // => vector tile object with data from xml
  * });
  */
 NAN_METHOD(Map::render)

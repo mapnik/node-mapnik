@@ -11,7 +11,6 @@ test
 benchmark
 configure
 Makefile
-scripts
 .travis.yml
 appveyor.yml
 examples

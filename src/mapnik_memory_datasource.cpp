@@ -46,6 +46,7 @@ MemoryDatasource::~MemoryDatasource()
 
 NAN_METHOD(MemoryDatasource::New)
 {
+    std::clog << "WARNING: MemoryDatasource is deprecated and will be removed in node-mapnik >= 3.7.x\n";
     if (!info.IsConstructCall())
     {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
@@ -112,7 +113,9 @@ v8::Local<v8::Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    return scope.Escape( Nan::New(constructor)->GetFunction()->NewInstance(1, &ext));
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new MemoryDatasource instance");
+    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 NAN_METHOD(MemoryDatasource::parameters)

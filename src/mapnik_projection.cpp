@@ -10,7 +10,7 @@ Nan::Persistent<v8::FunctionTemplate> Projection::constructor;
 
 /**
  * **`mapnik.Projection`**
- * 
+ *
  * A geographical projection: this class makes it possible to translate between
  * locations in different projections
  *
@@ -79,7 +79,7 @@ NAN_METHOD(Projection::New)
             lazy = lazy_opt->BooleanValue();
         }
     }
-            
+
     try
     {
         Projection* p = new Projection(TOSTR(info[0]), lazy);
