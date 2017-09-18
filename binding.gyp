@@ -24,7 +24,18 @@
         "src/mapnik_featureset.cpp",
         "src/mapnik_expression.cpp",
         "src/mapnik_cairo_surface.cpp",
-        "src/mapnik_vector_tile.cpp"
+        "src/mapnik_vector_tile.cpp",
+        "src/mapnik_vector_tile_add_image.cpp",
+        "src/mapnik_vector_tile_clear.cpp",
+        "src/mapnik_vector_tile_composite.cpp",
+        "src/mapnik_vector_tile_data.cpp",
+        "src/mapnik_vector_tile_geojson.cpp",
+        "src/mapnik_vector_tile_info.cpp",
+        "src/mapnik_vector_tile_json.cpp",
+        "src/mapnik_vector_tile_query.cpp",
+        "src/mapnik_vector_tile_render.cpp",
+        "src/mapnik_vector_tile_simple.cpp",
+        "src/mapnik_vector_tile_valid.cpp",
       ],
       "msvs_disabled_warnings": [
         4267
