@@ -32,6 +32,7 @@ The second largest change is the update of all major C/C++ dependencies. The cha
 
 The third most important set of changes were to node-mapnik directly: for performance many functions now can premultiply as part of another async operation (to avoid needing an additional threadpool access for async premultiply - this matters under load when the threadpool may be full since access can block). And many functions that allocate images now protect from extreme allocation that could hang a machine and result in OOM. Additionally the address sanitizer caught several cases of undefined behavior.
 
+- No longer installing node-pre-gyp in `preinstall` target, now bundling again as a bundledDep (https://github.com/mapbox/node-pre-gyp/issues/260).
 - Added support for node v7
 - Updated to 1.3.0 of Mapnik Vector Tile (https://github.com/mapbox/mapnik-vector-tile/blob/master/CHANGELOG.md#130)
 - Removed Angus Clipper and replaced with Wagyu v0.4.2 (https://github.com/mapbox/wagyu)
