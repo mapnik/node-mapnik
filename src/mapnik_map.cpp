@@ -2057,7 +2057,7 @@ NAN_METHOD(Map::render)
                     return;
                 }
                 closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val->IntegerValue());
-                if (closure->fill_type < 0 || closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+                if (closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
                 {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");

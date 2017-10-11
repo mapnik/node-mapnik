@@ -452,7 +452,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
             fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
-            if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+            if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
                 return scope.Escape(Nan::Undefined());
@@ -826,7 +826,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
             fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
-            if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+            if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
                 return;
@@ -3079,7 +3079,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
             fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
-            if (fill_type < 0 || fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+            if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
                 return;
