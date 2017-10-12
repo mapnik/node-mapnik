@@ -36,7 +36,7 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/make-strict-an-option-master",
+    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/master",
     "protozero": "1.5.1",
     "nan": "~2.5.0",
     "node-pre-gyp": "~0.6.30"
