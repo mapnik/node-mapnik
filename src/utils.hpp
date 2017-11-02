@@ -13,7 +13,7 @@
 
 // core types
 #include <mapnik/unicode.hpp>
-#include <mapnik/value_types.hpp>
+#include <mapnik/value/types.hpp>
 #include <mapnik/value.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>

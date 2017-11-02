@@ -3,7 +3,7 @@
 #include "mapnik_projection.hpp"
 
 #include <mapnik/datasource.hpp>
-#include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry/reprojection.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
@@ -88,7 +88,7 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     Nan::EscapableHandleScope scope;
     Geometry* g = new Geometry(f);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(g);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Geometry instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

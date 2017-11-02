@@ -7,7 +7,7 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/json/feature_parser.hpp>
-#include <mapnik/value_types.hpp>
+#include <mapnik/value/types.hpp>
 #include <mapnik/util/feature_to_geojson.hpp>
 
 Nan::Persistent<v8::FunctionTemplate> Feature::constructor;
@@ -114,7 +114,7 @@ NAN_METHOD(Feature::fromJSON)
         }
         Feature* feat = new Feature(f);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(feat);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
         else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
     }
@@ -134,7 +134,7 @@ v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
     Nan::EscapableHandleScope scope;
     Feature* f = new Feature(f_ptr);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(f);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

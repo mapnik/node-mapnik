@@ -16,7 +16,7 @@
 
 // mapnik
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
-#include <mapnik/box2d.hpp>             // for box2d
+#include <mapnik/geometry/box2d.hpp>             // for box2d
 #include <mapnik/color.hpp>             // for color
 #include <mapnik/attribute.hpp>        // for attributes
 #include <mapnik/featureset.hpp>        // for featureset_ptr
@@ -1456,7 +1456,7 @@ NAN_METHOD(Map::clone)
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(m2);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Map instance");
     else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
 }
@@ -2057,7 +2057,7 @@ NAN_METHOD(Map::render)
                     return;
                 }
                 closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val->IntegerValue());
-                if (closure->fill_type < 0 || closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+                if (closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
                 {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");

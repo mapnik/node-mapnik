@@ -1615,7 +1615,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
     {
         Image* im = new Image(closure->im2);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -1727,14 +1727,14 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     try
     {
         image_ptr imagep = std::make_shared<mapnik::image_any>(
-                                                       mapnik::image_copy(*(im->this_),
-                                                                            type,
-                                                                            offset,
-                                                                            scaling)
-                                                    );
+            mapnik::image_copy(*(im->this_),
+                               type,
+                               offset,
+                               scaling)
+            );
         Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -2080,7 +2080,7 @@ void Image::EIO_AfterResize(uv_work_t* req)
     {
         Image* im = new Image(closure->im2);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2267,7 +2267,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         mapnik::util::apply_visitor(visit, *imagep);
         Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -2378,7 +2378,7 @@ v8::Local<v8::Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 }
                 Image* im = new Image(imagep);
                 v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-                Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+                v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
                 if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
                 return scope.Escape(maybe_local.ToLocalChecked());
             }
@@ -2516,7 +2516,7 @@ void Image::EIO_AfterOpen(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2588,6 +2588,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
 
     double scale = 1.0;
     std::uint32_t max_size = 2048;
+    bool strict = false;
     if (info.Length() >= 2)
     {
         if (!info[1]->IsObject())
@@ -2616,15 +2617,25 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
             if (!opt->IsNumber())
             {
-                Nan::ThrowTypeError("max_size must be a positive integer");
+                Nan::ThrowTypeError("'max_size' must be a positive integer");
                 return scope.Escape(Nan::Undefined());
             }
             auto max_size_val = opt->IntegerValue();
             if (max_size_val < 0 || max_size_val > 65535) {
-                Nan::ThrowTypeError("max_size must be a positive integer between 0 and 65535");
+                Nan::ThrowTypeError("'max_size' must be a positive integer between 0 and 65535");
                 return scope.Escape(Nan::Undefined());
             }
             max_size = static_cast<std::uint32_t>(max_size_val);
+        }
+        if (options->Has(Nan::New("strict").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> opt = options->Get(Nan::New("strict").ToLocalChecked());
+            if (!opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("'strict' must be a boolean value");
+                return scope.Escape(Nan::Undefined());
+            }
+            strict = opt->BooleanValue();
         }
     }
 
@@ -2635,12 +2646,13 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
+        svg_parser p(svg, strict);
         if (fromFile)
         {
-            if (!p.parse(TOSTR(info[0])))
+            p.parse(TOSTR(info[0]));
+            if (!p.err_handler().error_messages().empty())
             {
-                std::ostringstream errorMessage("");
+                std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
@@ -2658,9 +2670,10 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 return scope.Escape(Nan::Undefined());
             }
             std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
-            if (!p.parse_from_string(svg_buffer))
+            p.parse_from_string(svg_buffer);
+            if (!p.err_handler().error_messages().empty())
             {
-                std::ostringstream errorMessage("");
+                std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
@@ -2725,7 +2738,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         image_ptr imagep = std::make_shared<mapnik::image_any>(im);
         Image *im2 = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im2);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -2748,6 +2761,7 @@ typedef struct {
     bool error;
     double scale;
     std::uint32_t max_size;
+    bool strict;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } svg_file_ptr_baton_t;
@@ -2760,6 +2774,7 @@ typedef struct {
     bool error;
     double scale;
     std::uint32_t max_size;
+    bool strict;
     std::string error_name;
     Nan::Persistent<v8::Object> buffer;
     Nan::Persistent<v8::Function> cb;
@@ -2807,6 +2822,7 @@ NAN_METHOD(Image::fromSVG)
 
     double scale = 1.0;
     std::uint32_t max_size = 2048;
+    bool strict = false;
     if (info.Length() >= 3)
     {
         if (!info[1]->IsObject())
@@ -2835,15 +2851,25 @@ NAN_METHOD(Image::fromSVG)
             v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
             if (!opt->IsNumber())
             {
-                Nan::ThrowTypeError("max_size must be a positive integer");
+                Nan::ThrowTypeError("'max_size' must be a positive integer");
                 return;
             }
             auto max_size_val = opt->IntegerValue();
             if (max_size_val < 0 || max_size_val > 65535) {
-                Nan::ThrowTypeError("max_size must be a positive integer between 0 and 65535");
+                Nan::ThrowTypeError("'max_size' must be a positive integer between 0 and 65535");
                 return;
             }
             max_size = static_cast<std::uint32_t>(max_size_val);
+        }
+        if (options->Has(Nan::New("strict").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> opt = options->Get(Nan::New("strict").ToLocalChecked());
+            if (!opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("'strict' must be a boolean value");
+                return;
+            }
+            strict = opt->BooleanValue();
         }
     }
 
@@ -2853,6 +2879,7 @@ NAN_METHOD(Image::fromSVG)
     closure->error = false;
     closure->scale = scale;
     closure->max_size = max_size;
+    closure->strict = strict;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVG, (uv_after_work_cb)EIO_AfterFromSVG);
     return;
@@ -2869,10 +2896,11 @@ void Image::EIO_FromSVG(uv_work_t* req)
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
-        if (!p.parse(closure->filename))
+        svg_parser p(svg, closure->strict);
+        p.parse(closure->filename);
+        if (!p.err_handler().error_messages().empty())
         {
-            std::ostringstream errorMessage("");
+            std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
             for (auto const& error : p.err_handler().error_messages()) {
                 errorMessage <<  error << std::endl;
@@ -2945,7 +2973,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
         // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
         // LCOV_EXCL_START
         closure->error = true;
-        closure->error_name = "Failed to load: " + closure->filename;
+        closure->error_name = ex.what();
         // LCOV_EXCL_STOP
     }
 }
@@ -2963,7 +2991,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
@@ -2982,12 +3010,13 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
  * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
+ * @param {boolean} [options.strict] - enable `strict` parsing mode e.g throw on unsupported element/attribute. The default is `false`.
  * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
  * rasterizing the SVG.
  * @param {Function} callback = `function(err, img)`
  * @example
  * var buffer = fs.readFileSync('./path/to/image.svg');
- * mapnik.Image.fromSVGBytesSync(buffer, function(err, img) {
+ * mapnik.Image.fromSVGBytes(buffer, function(err, img) {
  *   if (err) throw err;
  *   // your custom code with `img`
  * });
@@ -3019,6 +3048,7 @@ NAN_METHOD(Image::fromSVGBytes)
 
     double scale = 1.0;
     std::uint32_t max_size = 2048;
+    bool strict = true;
     if (info.Length() >= 3)
     {
         if (!info[1]->IsObject())
@@ -3047,15 +3077,25 @@ NAN_METHOD(Image::fromSVGBytes)
             v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
             if (!opt->IsNumber())
             {
-                Nan::ThrowTypeError("max_size must be a positive integer");
+                Nan::ThrowTypeError("'max_size' must be a positive integer");
                 return;
             }
             auto max_size_val = opt->IntegerValue();
             if (max_size_val < 0 || max_size_val > 65535) {
-                Nan::ThrowTypeError("max_size must be a positive integer between 0 and 65535");
+                Nan::ThrowTypeError("'max_size' must be a positive integer between 0 and 65535");
                 return;
             }
             max_size = static_cast<std::uint32_t>(max_size_val);
+        }
+        if (options->Has(Nan::New("strict").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> opt = options->Get(Nan::New("strict").ToLocalChecked());
+            if (!opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("'strict' must be a boolean value");
+                return;
+            }
+            strict = opt->BooleanValue();
         }
     }
 
@@ -3067,6 +3107,7 @@ NAN_METHOD(Image::fromSVGBytes)
     closure->data = node::Buffer::Data(obj);
     closure->scale = scale;
     closure->max_size = max_size;
+    closure->strict = strict;
     closure->dataLength = node::Buffer::Length(obj);
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVGBytes, (uv_after_work_cb)EIO_AfterFromSVGBytes);
     return;
@@ -3083,12 +3124,13 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
+        svg_parser p(svg, closure->strict);
 
         std::string svg_buffer(closure->data,closure->dataLength);
-        if (!p.parse_from_string(svg_buffer))
+        p.parse_from_string(svg_buffer);
+        if (!p.err_handler().error_messages().empty())
         {
-            std::ostringstream errorMessage("");
+            std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
             for (auto const& error : p.err_handler().error_messages()) {
                 errorMessage <<  error << std::endl;
@@ -3178,8 +3220,9 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        v8::Local<v8::Object> image_obj = Nan::New(constructor)->GetFunction()->NewInstance(1, &ext);
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), image_obj };
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->cb.Reset();
@@ -3296,7 +3339,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
         Image* im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Object> image_obj = maybe_local.ToLocalChecked()->ToObject();
         image_obj->Set(Nan::New("_buffer").ToLocalChecked(),obj);
@@ -3352,7 +3395,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
             image_ptr imagep = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
             Image* im = new Image(imagep);
             v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-            Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+            v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
             if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
             return scope.Escape(maybe_local.ToLocalChecked());
         }
@@ -3523,7 +3566,7 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);

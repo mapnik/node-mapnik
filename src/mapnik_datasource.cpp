@@ -5,7 +5,7 @@
 
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
-#include <mapnik/box2d.hpp>             // for box2d
+#include <mapnik/geometry/box2d.hpp>             // for box2d
 #include <mapnik/datasource.hpp>        // for datasource, datasource_ptr, etc
 #include <mapnik/datasource_cache.hpp>  // for datasource_cache
 #include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
@@ -147,7 +147,7 @@ v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Datasource instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

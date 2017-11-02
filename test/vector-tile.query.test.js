@@ -63,9 +63,9 @@ describe('mapnik.VectorTile query polygon', function() {
             assert.equal(JSON.parse(features[0].toJSON()).properties.NAME,'Japan');
             assert.equal(features[0].id(),89);
             assert.equal(features[0].geometry().type(),mapnik.Geometry.Polygon);
-            assert.equal(features[0].distance,0);
-            assert.equal(features[0].x_hit,0);
-            assert.equal(features[0].y_hit,0);
+            assert.equal(features[0].distance, 0);
+            assert.equal(features[0].x_hit, 139.6142578125);
+            assert.equal(features[0].y_hit, 37.17782559332976);
             assert.equal(features[0].layer,'world');
             assert.equal(JSON.parse(features[1].toJSON()).properties.NAME,'Japan');
             assert.equal(features[1].id(),89);
@@ -75,8 +75,7 @@ describe('mapnik.VectorTile query polygon', function() {
         }
     });
 
-    it('query polygon + tolerance (noop)', function(done) {
-        // tolerance only applies to points and lines currently in mapnik::hit_test
+    it('query polygon + tolerance', function(done) {
         check(vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000}));
         vtile.query(142.3388671875,39.52099229357195,{tolerance:100000000000000}, function(err, features) {
             assert.ifError(err);
@@ -84,7 +83,7 @@ describe('mapnik.VectorTile query polygon', function() {
             done();
         });
         function check(features) {
-            assert.equal(features.length,0);
+            assert.equal(features.length, 2);
         }
     });
     // restrict to single layer
@@ -663,4 +662,3 @@ describe('mapnik.VectorTile query xy single features', function() {
         done();
     });
 });
-
