@@ -1381,7 +1381,7 @@ NAN_METHOD(VectorTile::layer)
         }
     }
     v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
-    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Layer instance");
     else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
     return;
