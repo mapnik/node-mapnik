@@ -16,16 +16,17 @@ module.exports.paths = {
     'shape_index':   '$(which shapeindex)'
 };
 " > ${MODULE_PATH}/mapnik_settings.js
-# once https://github.com/mapnik/mapnik/pull/3759 is fixed
-# this can be enabled
-#  echo "
-#module.exports.env = {
-#    'ICU_DATA':      '$(mapnik-config --icu-data)',
-#    'GDAL_DATA':     '$(mapnik-config --gdal-data)',
-#    'PROJ_LIB':      '$(mapnik-config --proj-lib)'
-#};
-#" >> ${MODULE_PATH}/mapnik_settings.js
-
+else
+  # If we are using a source install of mapnik (rather than mason package)
+  # then we only dump the mapnik_settings.js and then exit without copying data
+  # Depends on mapnik >= v3.0.16 which includes https://github.com/mapnik/mapnik/pull/3759 is fixed
+  echo "
+module.exports.env = {
+    'ICU_DATA':      '$(mapnik-config --icu-data)',
+    'GDAL_DATA':     '$(mapnik-config --gdal-data)',
+    'PROJ_LIB':      '$(mapnik-config --proj-lib)'
+};
+" > ${MODULE_PATH}/mapnik_settings.js
   exit 0;
 fi
 
