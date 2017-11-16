@@ -4,8 +4,8 @@ set -eu
 set -o pipefail
 
 function install() {
-    ./mason/mason install $1 $2
-    ./mason/mason link $1 $2
+    mason install $1 $2
+    mason link $1 $2
 }
 
 ICU_VERSION="57.1"
