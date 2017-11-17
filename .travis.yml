@@ -73,6 +73,10 @@ matrix:
     - os: linux
       env: BUILDTYPE=release
       node_js: 8
+    # linux publishable node v9
+    - os: linux
+      env: BUILDTYPE=release
+      node_js: 8
     # osx publishable node v0.10
     - os: osx
       osx_image: xcode8.3
@@ -83,10 +87,20 @@ matrix:
       osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 4
+    # osx publishable node v4/debug
+    - os: osx
+      osx_image: xcode8.3
+      env: BUILDTYPE=debug
+      node_js: 4
     # osx publishable node v6
     - os: osx
       osx_image: xcode8.3
       env: BUILDTYPE=release
+      node_js: 6
+    # osx publishable node v6/debug
+    - os: osx
+      osx_image: xcode8.3
+      env: BUILDTYPE=debug
       node_js: 6
     # osx publishable node v7
     - os: osx
@@ -98,8 +112,36 @@ matrix:
       osx_image: xcode8.2
       env: BUILDTYPE=release
       node_js: 8
-    # Sanitizer build node v4/Debug
+    # osx publishable node v9
+    - os: osx
+      osx_image: xcode8.2
+      env: BUILDTYPE=release
+      node_js: 9
+    # Sanitizer build linux node v4/Debug
     - os: linux
+      env: BUILDTYPE=debug TOOLSET=-asan
+      node_js: 4
+      # Overrides `install` to set up custom asan flags
+      install:
+        - ./scripts/setup.sh --config local.env
+        # put mason and clang++ on PATH
+        - source local.env
+        # Note: to build without stopping on errors remove the -fno-sanitize-recover=all flag
+        # You might want to do this if there are multiple errors and you want to see them all before fixing
+        - export CXXFLAGS="${MASON_SANITIZE_CXXFLAGS} -fno-sanitize-recover=all"
+        - export LDFLAGS="${MASON_SANITIZE_LDFLAGS}"
+        - make ${BUILDTYPE}
+      # Overrides `script` to disable asan LD_PRELOAD before publishing
+      before_script:
+        - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
+        # TODO: re-enable detect_leaks=0 once we can build and test against an asan sanitized libc++
+        - export ASAN_OPTIONS=fast_unwind_on_malloc=0:detect_leaks=0:${ASAN_OPTIONS}
+        - npm test
+        - unset LD_PRELOAD
+        # after successful tests, publish binaries if specified in commit message
+        - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
+    # Sanitizer build osx node v4/Debug
+    - os: osx
       env: BUILDTYPE=debug TOOLSET=-asan
       node_js: 4
       # Overrides `install` to set up custom asan flags
