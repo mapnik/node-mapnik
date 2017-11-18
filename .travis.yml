@@ -104,17 +104,17 @@ matrix:
       node_js: 6
     # osx publishable node v7
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 7
     # osx publishable node v8
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 8
     # osx publishable node v9
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 9
     # Sanitizer build linux node v4/Debug
@@ -142,6 +142,7 @@ matrix:
         - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
     # Sanitizer build osx node v4/Debug
     - os: osx
+      osx_image: xcode8.3
       env: BUILDTYPE=debug TOOLSET=-asan
       node_js: 4
       # Overrides `install` to set up custom asan flags
