@@ -4,16 +4,14 @@ set -eu
 set -o pipefail
 
 function install() {
-    ./mason/mason install $1 $2
-    ./mason/mason link $1 $2
+    mason install $1 $2
+    mason link $1 $2
 }
 
 ICU_VERSION="57.1"
 
-if [ ! -f ./mason/mason.sh ]; then
-    mkdir -p ./mason
-    curl -sSfL https://github.com/mapbox/mason/archive/23fe28bc578667fc81f4d6e3479ab4ffb4702b77.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
-fi
+./scripts/setup.sh --config local.env
+source local.env
 
 if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
 
