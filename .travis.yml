@@ -157,11 +157,11 @@ matrix:
         - make ${BUILDTYPE}
       # Overrides `script` to disable asan LD_PRELOAD before publishing
       before_script:
-        - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
+        - export DYLD_INSERT_LIBRARIES=${MASON_LLVM_RT_PRELOAD}
         # TODO: re-enable detect_leaks=0 once we can build and test against an asan sanitized libc++
         - export ASAN_OPTIONS=fast_unwind_on_malloc=0:detect_leaks=0:${ASAN_OPTIONS}
-        - npm test
-        - unset LD_PRELOAD
+        - node ./node_modules/.bin/_mocha test/  --timeout 100000
+        - unset DYLD_INSERT_LIBRARIES
         # after successful tests, publish binaries if specified in commit message
         - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
     # g++ build (default builds all use clang++)
