@@ -4,8 +4,8 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.6.2-dev-v3.0.16",
-  "mapnik_version":"v3.0.16",
+  "version": "3.6.2-dev-v3.0.17",
+  "mapnik_version": "v3.0.16",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -42,7 +42,7 @@
     "node-pre-gyp": "~0.6.30"
   },
   "bundledDependencies": [
-      "node-pre-gyp"
+    "node-pre-gyp"
   ],
   "bin": {
     "mapnik-index.js": "./bin/mapnik-index.js",
