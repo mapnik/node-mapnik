@@ -33,6 +33,7 @@ install:
 # we use before_script rather than script to ensure fast failure (the script section continues even after an error)
 # https://docs.travis-ci.com/user/customizing-the-build#Breaking-the-Build
 before_script:
+  - ./scripts/check_glibcxx.sh
   - npm test
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
@@ -41,7 +42,7 @@ before_script:
 script:
   - true
 
-# the matrix allows you to specify different operating systems and environments to 
+# the matrix allows you to specify different operating systems and environments to
 # run your tests and build binaries
 matrix:
   include:
