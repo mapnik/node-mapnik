@@ -117,7 +117,7 @@ By default, binaries are provided for:
 
  - 64 bit OS X >= 10.10, 64 bit Linux (>= Ubuntu Trusty), and 64/32 bit Windows
  - several node versions:
-   - [versions forLinux/Mac](<https://github.com/mapnik/node-mapnik/blob/master/.travis.yml#L19-L47>)
+   - [versions for Linux/Mac](<https://github.com/mapnik/node-mapnik/blob/master/.travis.yml#L19-L47>)
    - [versions for Windows](<https://github.com/mapnik/node-mapnik/blob/master/appveyor.yml#L9-L32>)
 
 On those platforms no external dependencies are needed.
