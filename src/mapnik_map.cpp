@@ -71,7 +71,7 @@ Nan::Persistent<v8::FunctionTemplate> Map::constructor;
  * @property {} parameters
  * @property {} aspect_fix_mode
  * @example
- * var map = new mapnik.Map(25, 25, '+init=epsg:3857');
+ * var map = new mapnik.Map(600, 400, '+init=epsg:3857');
  * console.log(map);
  * // {
  * //   aspect_fix_mode: 0,
