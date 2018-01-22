@@ -28,7 +28,7 @@ describe('mapnik.Image SVG', function() {
         }, /SVG error: unable to parse "asdfasdf"/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/SVG_DOES_NOT_EXIST.svg');
-        }, /SVG error: unbale to open "\.\/test\/data\/SVG_DOES_NOT_EXIST\.svg"/);
+        }, /SVG error: unable to open "\.\/test\/data\/SVG_DOES_NOT_EXIST\.svg"/);
         assert.throws(function() {
           mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.expected-svg.svg', 256);
         }, /optional second arg must be an options object/);
@@ -173,7 +173,7 @@ describe('mapnik.Image SVG', function() {
     it('should err with async non-existent file', function(done) {
       mapnik.Image.fromSVG('./test/data/SVG_DOES_NOT_EXIST.svg', function(err, svg) {
         assert.ok(err);
-        assert.ok(err.message.match(/SVG error: unbale to open "\.\/test\/data\/SVG_DOES_NOT_EXIST\.svg"/));
+        assert.ok(err.message.match(/SVG error: unable to open "\.\/test\/data\/SVG_DOES_NOT_EXIST\.svg"/));
         assert.equal(svg, undefined);
         done();
       });

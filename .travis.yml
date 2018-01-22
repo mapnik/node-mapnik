@@ -33,6 +33,7 @@ install:
 # we use before_script rather than script to ensure fast failure (the script section continues even after an error)
 # https://docs.travis-ci.com/user/customizing-the-build#Breaking-the-Build
 before_script:
+  - ./scripts/check_glibcxx.sh
   - npm test
   # after successful tests, publish binaries if specified in commit message
   - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
@@ -41,7 +42,7 @@ before_script:
 script:
   - true
 
-# the matrix allows you to specify different operating systems and environments to 
+# the matrix allows you to specify different operating systems and environments to
 # run your tests and build binaries
 matrix:
   include:
@@ -104,17 +105,17 @@ matrix:
       node_js: 6
     # osx publishable node v7
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 7
     # osx publishable node v8
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 8
     # osx publishable node v9
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       env: BUILDTYPE=release
       node_js: 9
     # Sanitizer build linux node v4/Debug
@@ -142,6 +143,7 @@ matrix:
         - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
     # Sanitizer build osx node v4/Debug
     - os: osx
+      osx_image: xcode8.3
       env: BUILDTYPE=debug TOOLSET=-asan
       node_js: 4
       # Overrides `install` to set up custom asan flags
@@ -156,11 +158,11 @@ matrix:
         - make ${BUILDTYPE}
       # Overrides `script` to disable asan LD_PRELOAD before publishing
       before_script:
-        - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
+        - export DYLD_INSERT_LIBRARIES=${MASON_LLVM_RT_PRELOAD}
         # TODO: re-enable detect_leaks=0 once we can build and test against an asan sanitized libc++
         - export ASAN_OPTIONS=fast_unwind_on_malloc=0:detect_leaks=0:${ASAN_OPTIONS}
-        - npm test
-        - unset LD_PRELOAD
+        - node ./node_modules/.bin/_mocha test/  --timeout 100000
+        - unset DYLD_INSERT_LIBRARIES
         # after successful tests, publish binaries if specified in commit message
         - ./scripts/publish.sh --toolset=${TOOLSET:-} --debug=$([ "${BUILDTYPE}" == 'debug' ] && echo "true" || echo "false")
     # g++ build (default builds all use clang++)

@@ -10,7 +10,7 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 describe('mapnik.Datasource', function() {
-    
+
     it('should throw with invalid usage', function() {
         assert.throws(function() { mapnik.Datasource('foo'); });
         assert.throws(function() { mapnik.Datasource({ 'foo': 1 }); });
@@ -165,7 +165,7 @@ describe('mapnik.Datasource', function() {
 
         assert.deepEqual(ds.fields(), expected.fields);
     });
-    
+
     it('test invalid use of memory datasource', function() {
         var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
         assert.throws(function() { ds.add(); });
@@ -213,7 +213,10 @@ describe('mapnik.Datasource', function() {
     });
 
     it('test empty geojson datasource due to invalid json file', function() {
-        assert.throws(function() { new mapnik.Datasource({ type:'geojson', file: './test/data/parse.error.json', cache_features: false }); });
+        var ds = new mapnik.Datasource({ type:'geojson', file: './test/data/parse.error.json', cache_features: false });
+        var empty_fs = ds.featureset();
+        assert.equal(typeof(empty_fs),'undefined');
+        assert.equal(empty_fs, null);
     });
 
     it('test valid use of memory datasource', function() {
@@ -221,11 +224,11 @@ describe('mapnik.Datasource', function() {
         assert.equal(true, ds.add({ 'x': 0, 'y': 0 }));
         assert.equal(true, ds.add({ 'x': 0.23432, 'y': 0.234234 }));
         assert.equal(true, ds.add({ 'x': 1, 'y': 1 , 'properties': {'a':'b', 'c':1, 'd':0.23 }}));
-        var expected_describe = { 
+        var expected_describe = {
             type: 'vector',
             encoding: 'utf-8',
             fields: {},
-            geometry_type: 'collection' 
+            geometry_type: 'collection'
         };
         assert.deepEqual(expected_describe, ds.describe());
         // Currently descriptors can not be added to memory datasource so will always be empty object
