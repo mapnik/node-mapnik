@@ -77,7 +77,7 @@ matrix:
     # linux publishable node v9
     - os: linux
       env: BUILDTYPE=release
-      node_js: 8
+      node_js: 9
     # osx publishable node v0.10
     - os: osx
       osx_image: xcode8.3
