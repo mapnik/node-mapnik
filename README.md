@@ -72,7 +72,7 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 OS|Node.js|C++ minimum requirements|OS versions
 ---|---|---|---
 Mac|v0.10.x, v4, v6, v8|C++11|Mac OS X > 10.10
-Linux|v0.10.x, v4, v6, v8|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.21 from libstdc++)
+Linux|v0.10.x, v4, v6, v8|C++11|Ubuntu Linux > 14.04 (trusty) or Centos >= 7 or other Linux distributions with a libsdtdc++ recent enough to contain >= GLIBCXX_3.4.19 symbols.
 Windows|v0.10.x, v4, v6, v8|C++11|See the [Windows requirements](https://github.com/mapnik/node-mapnik#windows-specific) section
 
 An installation error like below indicates your system does not have a modern enough libstdc++/gcc-base toolchain:
