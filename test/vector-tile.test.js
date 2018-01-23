@@ -2493,7 +2493,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 1);
+                assert.equal(validityReport.length, 0);
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-mpu-true.mvt';
