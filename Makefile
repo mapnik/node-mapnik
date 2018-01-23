@@ -15,7 +15,7 @@ node_modules:
 	npm install --ignore-scripts --clang
 
 mason_packages/.link/bin/mapnik-config:
-	./install_mason.sh
+	./scripts/install_deps.sh
 
 pre_build_check:
 	@node -e "console.log('\033[94mNOTICE: to build from source you need mapnik >=',require('./package.json').mapnik_version,'\033[0m');"
