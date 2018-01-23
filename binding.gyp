@@ -1,5 +1,8 @@
 {
   'includes': [ 'common.gypi' ],
+  'variables': {
+      'ENABLE_GLIBC_WORKAROUND%':'false', # can be overriden by a command line variable because of the % sign
+  },
   'targets': [
     {
       'target_name': '<(module_name)',
@@ -46,6 +49,11 @@
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
       ],
       'conditions': [
+        ['ENABLE_GLIBC_WORKAROUND != "false"', {
+            'sources': [
+              "src/glibc_workaround.cpp"
+            ]
+        }],
         ['OS=="win"',
           {
             'include_dirs':[
