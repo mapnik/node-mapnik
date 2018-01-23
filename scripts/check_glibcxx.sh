@@ -7,9 +7,9 @@ shopt -s nullglob
 : '
 
 Ensure no GLIBCXX_3.4.2x symbols are present in the binary
-if ENABLE_GLIBC_WORKAROUND is set.
 
-If symbols >= 3.4.20 then it means the binaries would not run on ubuntu trusty without upgrading libstdc++
+If symbols >= 3.4.20 then it returns error code 1. This means
+the binaries would not run on ubuntu trusty without upgrading libstdc++
 
 '
 
@@ -22,9 +22,7 @@ function check() {
         echo "Success: GLIBCXX_3.4.2[0-9] symbols not present in binary (as expected)"
     else
         echo "$(cat /tmp/out.txt | c++filt)"
-        if [[ ${ENABLE_GLIBC_WORKAROUND:-false} == true ]]; then
-            FINAL_RETURN_CODE=1
-        fi
+        FINAL_RETURN_CODE=1
     fi
 }
 
