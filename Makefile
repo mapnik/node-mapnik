@@ -39,16 +39,32 @@ debug: mason_packages/.link/bin/mapnik-config
 coverage:
 	./scripts/coverage.sh
 
+tidy:
+	./scripts/clang-tidy.sh
+
+format:
+	./scripts/clang-format.sh
+
+sanitize:
+	./scripts/sanitize.sh
+
 clean:
 	rm -rf lib/binding
 	rm -rf build
 	rm -rf mason
+	# remove remains from running 'make coverage'
+	rm -f *.profraw
+	rm -f *.profdata
 	find test/ -name *actual* -exec rm {} \;
 	echo "run make distclean to also remove mason_packages and node_modules"
 
 distclean: clean
 	rm -rf node_modules
 	rm -rf mason_packages
+	# remove remains from running './scripts/setup.sh'
+	rm -rf .mason
+	rm -rf .toolchain
+	rm -f local.env
 
 xcode: node_modules
 	./node_modules/.bin/node-pre-gyp configure -- -f xcode
