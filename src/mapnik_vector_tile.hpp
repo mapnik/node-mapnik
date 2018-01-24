@@ -11,8 +11,8 @@
 #include "vector_tile_merc_tile.hpp"
 
 // std
-#include <string>
 #include <set>
+#include <string>
 #include <vector>
 
 // mapnik
@@ -21,41 +21,35 @@
 // boost
 #include <boost/version.hpp>
 
-struct query_lonlat 
-{
+struct query_lonlat {
     double lon;
     double lat;
 };
 
-struct query_result 
-{
+struct query_result {
     std::string layer;
     double distance;
     double x_hit;
     double y_hit;
     mapnik::feature_ptr feature;
-    explicit query_result() :
-     layer(),
-     distance(0),
-     x_hit(0),
-     y_hit(0) {}
+    explicit query_result() : layer(),
+                              distance(0),
+                              x_hit(0),
+                              y_hit(0) {}
 };
 
-struct query_hit 
-{
+struct query_hit {
     double distance;
     unsigned feature_id;
 };
 
-struct queryMany_result 
-{
-    std::map<unsigned,query_result> features;
-    std::map<unsigned,std::vector<query_hit> > hits;
+struct queryMany_result {
+    std::map<unsigned, query_result> features;
+    std::map<unsigned, std::vector<query_hit>> hits;
 };
 
-class VectorTile: public Nan::ObjectWrap
-{
-public:
+class VectorTile : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -73,7 +67,7 @@ public:
     static bool _querySort(query_result const& a, query_result const& b);
     static v8::Local<v8::Array> _queryResultToV8(std::vector<query_result> const& result);
     static NAN_METHOD(queryMany);
-    static void _queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
+    static void _queryMany(queryMany_result& result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);
     static bool _queryManySort(query_hit const& a, query_hit const& b);
     static v8::Local<v8::Object> _queryManyResultToV8(queryMany_result const& result);
     static void EIO_QueryMany(uv_work_t* req);
@@ -149,58 +143,49 @@ public:
     static NAN_GETTER(get_buffer_size);
     static NAN_SETTER(set_buffer_size);
 
-    VectorTile(std::uint64_t z, 
-               std::uint64_t x, 
-               std::uint64_t y, 
+    VectorTile(std::uint64_t z,
+               std::uint64_t x,
+               std::uint64_t y,
                std::uint32_t tile_size,
                std::int32_t buffer_size);
 
-    void clear() 
-    {
+    void clear() {
         tile_->clear();
     }
-    
-    std::uint32_t tile_size() const
-    {
+
+    std::uint32_t tile_size() const {
         return tile_->tile_size();
     }
-    
-    void tile_size(std::uint32_t val)
-    {
+
+    void tile_size(std::uint32_t val) {
         tile_->tile_size(val);
     }
-    
-    std::int32_t buffer_size() const
-    {
+
+    std::int32_t buffer_size() const {
         return tile_->buffer_size();
     }
-    
-    void buffer_size(std::int32_t val)
-    {
+
+    void buffer_size(std::int32_t val) {
         tile_->buffer_size(val);
     }
 
-    mapnik::vector_tile_impl::merc_tile_ptr & get_tile()
-    {
+    mapnik::vector_tile_impl::merc_tile_ptr& get_tile() {
         return tile_;
     }
 
-    mapnik::vector_tile_impl::merc_tile_ptr const& get_tile() const
-    {
+    mapnik::vector_tile_impl::merc_tile_ptr const& get_tile() const {
         return tile_;
     }
-    
-    void _ref()
-    { 
-        Ref(); 
-    }
-    
-    void _unref()
-    { 
-        Unref(); 
+
+    void _ref() {
+        Ref();
     }
 
-private:
+    void _unref() {
+        Unref();
+    }
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     ~VectorTile();
 };

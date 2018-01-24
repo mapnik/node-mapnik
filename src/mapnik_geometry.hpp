@@ -10,10 +10,8 @@
 // mapnik
 #include <mapnik/feature.hpp>
 
-
-
-class Geometry: public Nan::ObjectWrap {
-public:
+class Geometry : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -28,7 +26,8 @@ public:
     static void to_json(uv_work_t* req);
     static void after_to_json(uv_work_t* req);
     Geometry(mapnik::feature_ptr f);
-private:
+
+  private:
     ~Geometry();
     mapnik::feature_ptr feat_;
 };

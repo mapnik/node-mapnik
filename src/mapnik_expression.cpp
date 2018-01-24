@@ -1,17 +1,16 @@
-#include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
-#include "utils.hpp"
 #include "object_to_container.hpp"
+#include "utils.hpp"
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/attribute.hpp>
-#include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
+#include <mapnik/expression_string.hpp>
+#include <mapnik/version.hpp>
 
 // stl
-#include <exception>                    // for exception
+#include <exception> // for exception
 
 Nan::Persistent<v8::FunctionTemplate> Expression::constructor;
 
@@ -30,34 +29,27 @@ void Expression::Initialize(v8::Local<v8::Object> target) {
     constructor.Reset(lcons);
 }
 
-Expression::Expression() :
-    Nan::ObjectWrap(),
-    this_() {}
+Expression::Expression() : Nan::ObjectWrap(),
+                           this_() {}
 
-Expression::~Expression()
-{
+Expression::~Expression() {
 }
 
-NAN_METHOD(Expression::New)
-{
-    if (!info.IsConstructCall())
-    {
+NAN_METHOD(Expression::New) {
+    if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
     }
 
     mapnik::expression_ptr e_ptr;
-    try
-    {
+    try {
         if (info.Length() == 1 && info[0]->IsString()) {
             e_ptr = mapnik::parse_expression(TOSTR(info[0]));
         } else {
             Nan::ThrowTypeError("invalid arguments: accepts a single argument of string type");
             return;
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
@@ -68,14 +60,12 @@ NAN_METHOD(Expression::New)
     info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(Expression::toString)
-{
+NAN_METHOD(Expression::toString) {
     Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
     info.GetReturnValue().Set(Nan::New(mapnik::to_expression_string(*e->get())).ToLocalChecked());
 }
 
-NAN_METHOD(Expression::evaluate)
-{
+NAN_METHOD(Expression::evaluate) {
     if (info.Length() < 1) {
         Nan::ThrowError("requires a mapnik.Feature as an argument");
         return;
@@ -92,26 +82,22 @@ NAN_METHOD(Expression::evaluate)
     Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     mapnik::attributes vars;
-    if (info.Length() > 1)
-    {
-        if (!info[1]->IsObject())
-        {
+    if (info.Length() > 1) {
+        if (!info[1]->IsObject()) {
             Nan::ThrowTypeError("optional second argument must be an options object");
             return;
         }
         options = info[1]->ToObject();
 
-        if (options->Has(Nan::New("variables").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("variables").ToLocalChecked())) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
-            if (!bind_opt->IsObject())
-            {
+            if (!bind_opt->IsObject()) {
                 Nan::ThrowTypeError("optional arg 'variables' must be an object");
                 return;
             }
-            object_to_container(vars,bind_opt->ToObject());
+            object_to_container(vars, bind_opt->ToObject());
         }
     }
-    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::feature_impl,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
-    info.GetReturnValue().Set(mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj));
+    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::feature_impl, mapnik::value, mapnik::attributes>(*(f->get()), vars), *(e->get()));
+    info.GetReturnValue().Set(mapnik::util::apply_visitor(node_mapnik::value_converter(), value_obj));
 }

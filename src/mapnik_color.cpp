@@ -1,12 +1,12 @@
 #include "mapnik_color.hpp"
 
-#include "utils.hpp"                    // for ATTR, TOSTR
+#include "utils.hpp" // for ATTR, TOSTR
 
 // mapnik
-#include <mapnik/color.hpp>             // for color
+#include <mapnik/color.hpp> // for color
 
 // stl
-#include <exception>                    // for exception
+#include <exception> // for exception
 
 Nan::Persistent<v8::FunctionTemplate> Color::constructor;
 
@@ -52,24 +52,19 @@ void Color::Initialize(v8::Local<v8::Object> target) {
     constructor.Reset(lcons);
 }
 
-Color::Color() :
-    Nan::ObjectWrap(),
-    this_() {}
+Color::Color() : Nan::ObjectWrap(),
+                 this_() {}
 
-Color::~Color()
-{
+Color::~Color() {
 }
 
-NAN_METHOD(Color::New)
-{
-    if (!info.IsConstructCall())
-    {
+NAN_METHOD(Color::New) {
+    if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
     }
 
-    if (info[0]->IsExternal())
-    {
+    if (info[0]->IsExternal()) {
         v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
         Color* c = static_cast<Color*>(ptr);
@@ -79,95 +74,75 @@ NAN_METHOD(Color::New)
     }
 
     color_ptr c_p;
-    try
-    {
+    try {
         if (info.Length() == 1 &&
-            info[0]->IsString())
-        {
+            info[0]->IsString()) {
             c_p = std::make_shared<mapnik::color>(TOSTR(info[0]));
-        }
-        else if (info.Length() == 2 &&
-                 info[0]->IsString() &&
-                 info[1]->IsBoolean())
-        {
-            c_p = std::make_shared<mapnik::color>(TOSTR(info[0]),info[1]->BooleanValue());
-        }
-        else if (info.Length() == 3 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber())
-        {
+        } else if (info.Length() == 2 &&
+                   info[0]->IsString() &&
+                   info[1]->IsBoolean()) {
+            c_p = std::make_shared<mapnik::color>(TOSTR(info[0]), info[1]->BooleanValue());
+        } else if (info.Length() == 3 &&
+                   info[0]->IsNumber() &&
+                   info[1]->IsNumber() &&
+                   info[2]->IsNumber()) {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
             int b = info[2]->IntegerValue();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-            {
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
                 Nan::ThrowTypeError("color value out of range");
                 return;
             }
-            c_p = std::make_shared<mapnik::color>(r,g,b);
-        }
-        else if (info.Length() == 4 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber() &&
-                 info[3]->IsBoolean())
-        {
+            c_p = std::make_shared<mapnik::color>(r, g, b);
+        } else if (info.Length() == 4 &&
+                   info[0]->IsNumber() &&
+                   info[1]->IsNumber() &&
+                   info[2]->IsNumber() &&
+                   info[3]->IsBoolean()) {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
             int b = info[2]->IntegerValue();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-            {
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
                 Nan::ThrowTypeError("color value out of range");
                 return;
             }
-            c_p = std::make_shared<mapnik::color>(r,g,b,255,info[3]->BooleanValue());
-        }
-        else if (info.Length() == 4 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber() &&
-                 info[3]->IsNumber())
-        {
+            c_p = std::make_shared<mapnik::color>(r, g, b, 255, info[3]->BooleanValue());
+        } else if (info.Length() == 4 &&
+                   info[0]->IsNumber() &&
+                   info[1]->IsNumber() &&
+                   info[2]->IsNumber() &&
+                   info[3]->IsNumber()) {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
             int b = info[2]->IntegerValue();
             int a = info[3]->IntegerValue();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
-            {
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255) {
                 Nan::ThrowTypeError("color value out of range");
                 return;
             }
-            c_p = std::make_shared<mapnik::color>(r,g,b,a);
-        }
-        else if (info.Length() == 5 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber() &&
-                 info[3]->IsNumber() &&
-                 info[4]->IsBoolean())
-        {
+            c_p = std::make_shared<mapnik::color>(r, g, b, a);
+        } else if (info.Length() == 5 &&
+                   info[0]->IsNumber() &&
+                   info[1]->IsNumber() &&
+                   info[2]->IsNumber() &&
+                   info[3]->IsNumber() &&
+                   info[4]->IsBoolean()) {
             int r = info[0]->IntegerValue();
             int g = info[1]->IntegerValue();
             int b = info[2]->IntegerValue();
             int a = info[3]->IntegerValue();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
-            {
+            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255) {
                 Nan::ThrowTypeError("color value out of range");
                 return;
             }
-            c_p = std::make_shared<mapnik::color>(r,g,b,a,info[4]->BooleanValue());
-        }
-        else
-        {
+            c_p = std::make_shared<mapnik::color>(r, g, b, a, info[4]->BooleanValue());
+        } else {
             Nan::ThrowTypeError("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values");
             return;
         }
         // todo allow int,int,int and int,int,int,int contructor
 
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
@@ -188,8 +163,7 @@ v8::Local<v8::Value> Color::NewInstance(mapnik::color const& color) {
     return scope.Escape(maybe_local.ToLocalChecked());
 }
 
-NAN_GETTER(Color::get_prop)
-{
+NAN_GETTER(Color::get_prop) {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string a = TOSTR(property);
     if (a == "a")
@@ -202,18 +176,15 @@ NAN_GETTER(Color::get_prop)
         info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->blue()));
 }
 
-NAN_SETTER(Color::set_prop)
-{
+NAN_SETTER(Color::set_prop) {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string a = TOSTR(property);
-    if (!value->IsNumber())
-    {
+    if (!value->IsNumber()) {
         Nan::ThrowTypeError("color channel value must be an integer");
         return;
     }
     int val = value->IntegerValue();
-    if (val < 0 || val > 255)
-    {
+    if (val < 0 || val > 255) {
         Nan::ThrowTypeError("Value out of range for color channel");
         return;
     }
@@ -228,7 +199,6 @@ NAN_SETTER(Color::set_prop)
     }
 }
 
-
 /**
  * Get whether this color is premultiplied
  *
@@ -237,8 +207,7 @@ NAN_SETTER(Color::set_prop)
  * @instance
  * @returns {boolean} premultiplied
  */
-NAN_GETTER(Color::get_premultiplied)
-{
+NAN_GETTER(Color::get_premultiplied) {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::Boolean>(c->get()->get_premultiplied()));
     return;
@@ -256,11 +225,9 @@ NAN_GETTER(Color::get_premultiplied)
  * c.set_premultiplied(true);
  * @throws {TypeError} given a non-boolean argument
  */
-NAN_SETTER(Color::set_premultiplied)
-{
+NAN_SETTER(Color::set_premultiplied) {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    if (!value->IsBoolean())
-    {
+    if (!value->IsBoolean()) {
         Nan::ThrowTypeError("Value set to premultiplied must be a boolean");
         return;
     }
@@ -279,8 +246,7 @@ NAN_SETTER(Color::set_premultiplied)
  * green.toString()
  * // 'rgb(0,128,0)'
  */
-NAN_METHOD(Color::toString)
-{
+NAN_METHOD(Color::toString) {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::String>(c->get()->to_string()).ToLocalChecked());
 }
@@ -297,8 +263,7 @@ NAN_METHOD(Color::toString)
  * c.hex();
  * // '#008000'
  */
-NAN_METHOD(Color::hex)
-{
+NAN_METHOD(Color::hex) {
     Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
     std::string hex = c->get()->to_hex_string();
     info.GetReturnValue().Set(Nan::New<v8::String>(hex).ToLocalChecked());

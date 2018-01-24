@@ -10,12 +10,10 @@
 #include <mapnik/palette.hpp>
 #include <memory>
 
-
-
 typedef std::shared_ptr<mapnik::rgba_palette> palette_ptr;
 
-class Palette: public Nan::ObjectWrap {
-public:
+class Palette : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
 
     explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
@@ -26,7 +24,8 @@ public:
     static NAN_METHOD(ToBuffer);
 
     inline palette_ptr palette() { return palette_; }
-private:
+
+  private:
     ~Palette();
     palette_ptr palette_;
 };

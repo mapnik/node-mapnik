@@ -7,24 +7,25 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include <mapnik/image.hpp>        // for image_rgba8
+#include <mapnik/image.hpp> // for image_rgba8
 #include <mapnik/image_view_any.hpp>
 #include <memory>
 
 class Image;
-namespace mapnik { template <typename T> class image_view; }
-
-
+namespace mapnik {
+template <typename T>
+class image_view;
+}
 
 typedef std::shared_ptr<mapnik::image_view_any> image_view_ptr;
 
-class ImageView: public Nan::ObjectWrap {
-public:
+class ImageView : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(Image * JSImage,
-                             unsigned x,unsigned y, unsigned w, unsigned h);
+    static v8::Local<v8::Value> NewInstance(Image* JSImage,
+                                            unsigned x, unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);
     static NAN_METHOD(encode);
@@ -43,12 +44,12 @@ public:
     static NAN_METHOD(isSolidSync);
     static NAN_METHOD(getPixel);
 
-    ImageView(Image * JSImage);
+    ImageView(Image* JSImage);
 
-private:
+  private:
     ~ImageView();
     image_view_ptr this_;
-    Image * JSImage_;
+    Image* JSImage_;
 };
 
 #endif

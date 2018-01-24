@@ -12,10 +12,8 @@
 // mapnik
 #include <mapnik/expression.hpp>
 
-
-
-class Expression: public Nan::ObjectWrap {
-public:
+class Expression : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -25,7 +23,7 @@ public:
     Expression();
     inline mapnik::expression_ptr get() { return this_; }
 
-private:
+  private:
     ~Expression();
     mapnik::expression_ptr this_;
 };

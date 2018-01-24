@@ -1,13 +1,13 @@
 #include "mapnik_map.hpp"
+#include "mapnik_color.hpp"      // for Color, Color::constructor
+#include "mapnik_featureset.hpp" // for Featureset
 #include "utils.hpp"
-#include "mapnik_color.hpp"             // for Color, Color::constructor
-#include "mapnik_featureset.hpp"        // for Featureset
 #if defined(GRID_RENDERER)
-#include "mapnik_grid.hpp"              // for Grid, Grid::constructor
+#include "mapnik_grid.hpp" // for Grid, Grid::constructor
 #endif
-#include "mapnik_image.hpp"             // for Image, Image::constructor
-#include "mapnik_layer.hpp"             // for Layer, Layer::constructor
-#include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
+#include "mapnik_image.hpp"   // for Image, Image::constructor
+#include "mapnik_layer.hpp"   // for Layer, Layer::constructor
+#include "mapnik_palette.hpp" // for palette_ptr, Palette, etc
 #include "mapnik_vector_tile.hpp"
 #include "object_to_container.hpp"
 
@@ -15,37 +15,37 @@
 #include "vector_tile_processor.hpp"
 
 // mapnik
-#include <mapnik/agg_renderer.hpp>      // for agg_renderer
-#include <mapnik/box2d.hpp>             // for box2d
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/attribute.hpp>        // for attributes
-#include <mapnik/featureset.hpp>        // for featureset_ptr
+#include <mapnik/agg_renderer.hpp> // for agg_renderer
+#include <mapnik/attribute.hpp>    // for attributes
+#include <mapnik/box2d.hpp>        // for box2d
+#include <mapnik/color.hpp>        // for color
+#include <mapnik/featureset.hpp>   // for featureset_ptr
 #if defined(GRID_RENDERER)
-#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
-#include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
+#include <mapnik/grid/grid.hpp>          // for hit_grid, grid
+#include <mapnik/grid/grid_renderer.hpp> // for grid_renderer
 #endif
-#include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/image.hpp> // for image_rgba8
 #include <mapnik/image_any.hpp>
-#include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
-#include <mapnik/layer.hpp>             // for layer
-#include <mapnik/load_map.hpp>          // for load_map, load_map_string
-#include <mapnik/map.hpp>               // for Map, etc
-#include <mapnik/params.hpp>            // for parameters
-#include <mapnik/save_map.hpp>          // for save_map, etc
 #include <mapnik/image_scaling.hpp>
+#include <mapnik/image_util.hpp> // for save_to_file, guess_type, etc
+#include <mapnik/layer.hpp>      // for layer
+#include <mapnik/load_map.hpp>   // for load_map, load_map_string
+#include <mapnik/map.hpp>        // for Map, etc
+#include <mapnik/params.hpp>     // for parameters
 #include <mapnik/request.hpp>
+#include <mapnik/save_map.hpp> // for save_map, etc
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_io.hpp>
 #endif
 
 // stl
-#include <exception>                    // for exception
-#include <iosfwd>                       // for ostringstream, ostream
-#include <ostream>                      // for operator<<, basic_ostream, etc
-#include <sstream>                      // for basic_ostringstream, etc
+#include <exception> // for exception
+#include <iosfwd>    // for ostringstream, ostream
+#include <ostream>   // for operator<<, basic_ostream, etc
+#include <sstream>   // for basic_ostringstream, etc
 
 // boost
-#include <boost/optional/optional.hpp>  // for optional
+#include <boost/optional/optional.hpp> // for optional
 
 Nan::Persistent<v8::FunctionTemplate> Map::constructor;
 
@@ -114,7 +114,6 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toXML", toXML);
     Nan::SetPrototypeMethod(lcons, "resize", resize);
 
-
     Nan::SetPrototypeMethod(lcons, "render", render);
     Nan::SetPrototypeMethod(lcons, "renderSync", renderSync);
     Nan::SetPrototypeMethod(lcons, "renderFile", renderFile);
@@ -145,47 +144,43 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
 
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
+                                "ASPECT_GROW_BBOX", mapnik::Map::GROW_BBOX)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_GROW_CANVAS",mapnik::Map::GROW_CANVAS)
+                                "ASPECT_GROW_CANVAS", mapnik::Map::GROW_CANVAS)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_SHRINK_BBOX",mapnik::Map::SHRINK_BBOX)
+                                "ASPECT_SHRINK_BBOX", mapnik::Map::SHRINK_BBOX)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_SHRINK_CANVAS",mapnik::Map::SHRINK_CANVAS)
+                                "ASPECT_SHRINK_CANVAS", mapnik::Map::SHRINK_CANVAS)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_ADJUST_BBOX_WIDTH",mapnik::Map::ADJUST_BBOX_WIDTH)
+                                "ASPECT_ADJUST_BBOX_WIDTH", mapnik::Map::ADJUST_BBOX_WIDTH)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_ADJUST_BBOX_HEIGHT",mapnik::Map::ADJUST_BBOX_HEIGHT)
+                                "ASPECT_ADJUST_BBOX_HEIGHT", mapnik::Map::ADJUST_BBOX_HEIGHT)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
+                                "ASPECT_ADJUST_CANVAS_WIDTH", mapnik::Map::ADJUST_CANVAS_WIDTH)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
+                                "ASPECT_ADJUST_CANVAS_HEIGHT", mapnik::Map::ADJUST_CANVAS_HEIGHT)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "ASPECT_RESPECT",mapnik::Map::RESPECT)
-    target->Set(Nan::New("Map").ToLocalChecked(),lcons->GetFunction());
+                                "ASPECT_RESPECT", mapnik::Map::RESPECT)
+    target->Set(Nan::New("Map").ToLocalChecked(), lcons->GetFunction());
     constructor.Reset(lcons);
 }
 
-Map::Map(int width, int height) :
-    Nan::ObjectWrap(),
-    map_(std::make_shared<mapnik::Map>(width,height)),
-    in_use_(false) {}
+Map::Map(int width, int height) : Nan::ObjectWrap(),
+                                  map_(std::make_shared<mapnik::Map>(width, height)),
+                                  in_use_(false) {}
 
-Map::Map(int width, int height, std::string const& srs) :
-    Nan::ObjectWrap(),
-    map_(std::make_shared<mapnik::Map>(width,height,srs)),
-    in_use_(false) {}
+Map::Map(int width, int height, std::string const& srs) : Nan::ObjectWrap(),
+                                                          map_(std::make_shared<mapnik::Map>(width, height, srs)),
+                                                          in_use_(false) {}
 
-Map::Map() :
-    Nan::ObjectWrap(),
-    map_(),
-    in_use_(false) {}
+Map::Map() : Nan::ObjectWrap(),
+             map_(),
+             in_use_(false) {}
 
-Map::~Map() { }
+Map::~Map() {}
 
 bool Map::acquire() {
-    if (in_use_)
-    {
+    if (in_use_) {
         return false;
     }
     in_use_ = true;
@@ -196,46 +191,37 @@ void Map::release() {
     in_use_ = false;
 }
 
-NAN_METHOD(Map::New)
-{
-    if (!info.IsConstructCall())
-    {
+NAN_METHOD(Map::New) {
+    if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
     }
 
     // accept a reference or v8:External?
-    if (info[0]->IsExternal())
-    {
+    if (info[0]->IsExternal()) {
         v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
-        Map* m =  static_cast<Map*>(ptr);
+        Map* m = static_cast<Map*>(ptr);
         m->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
     }
 
-    if (info.Length() == 2)
-    {
-        if (!info[0]->IsNumber() || !info[1]->IsNumber())
-        {
+    if (info.Length() == 2) {
+        if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
             Nan::ThrowTypeError("'width' and 'height' must be integers");
             return;
         }
-        Map* m = new Map(info[0]->IntegerValue(),info[1]->IntegerValue());
+        Map* m = new Map(info[0]->IntegerValue(), info[1]->IntegerValue());
         m->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
-    }
-    else if (info.Length() == 3)
-    {
-        if (!info[0]->IsNumber() || !info[1]->IsNumber())
-        {
+    } else if (info.Length() == 3) {
+        if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
             Nan::ThrowTypeError("'width' and 'height' must be integers");
             return;
         }
-        if (!info[2]->IsString())
-        {
+        if (!info[2]->IsString()) {
             Nan::ThrowError("'srs' value must be a string");
             return;
         }
@@ -243,20 +229,17 @@ NAN_METHOD(Map::New)
         m->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
-    }
-    else
-    {
+    } else {
         Nan::ThrowError("please provide Map width and height and optional srs");
         return;
     }
     return;
 }
 
-NAN_GETTER(Map::get_prop)
-{
+NAN_GETTER(Map::get_prop) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
-    if(a == "extent") {
+    if (a == "extent") {
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
         mapnik::box2d<double> const& e = m->map_->get_current_extent();
         arr->Set(0, Nan::New<v8::Number>(e.minx()));
@@ -264,18 +247,16 @@ NAN_GETTER(Map::get_prop)
         arr->Set(2, Nan::New<v8::Number>(e.maxx()));
         arr->Set(3, Nan::New<v8::Number>(e.maxy()));
         info.GetReturnValue().Set(arr);
-    }
-    else if(a == "bufferedExtent") {
-        boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
+    } else if (a == "bufferedExtent") {
+        boost::optional<mapnik::box2d<double>> const& e = m->map_->get_buffered_extent();
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
         arr->Set(0, Nan::New<v8::Number>(e->minx()));
         arr->Set(1, Nan::New<v8::Number>(e->miny()));
         arr->Set(2, Nan::New<v8::Number>(e->maxx()));
         arr->Set(3, Nan::New<v8::Number>(e->maxy()));
         info.GetReturnValue().Set(arr);
-    }
-    else if(a == "maximumExtent") {
-        boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
+    } else if (a == "maximumExtent") {
+        boost::optional<mapnik::box2d<double>> const& e = m->map_->maximum_extent();
         if (!e)
             return;
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
@@ -284,16 +265,15 @@ NAN_GETTER(Map::get_prop)
         arr->Set(2, Nan::New<v8::Number>(e->maxx()));
         arr->Set(3, Nan::New<v8::Number>(e->maxy()));
         info.GetReturnValue().Set(arr);
-    }
-    else if(a == "aspect_fix_mode")
+    } else if (a == "aspect_fix_mode")
         info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->get_aspect_fix_mode()));
-    else if(a == "width")
+    else if (a == "width")
         info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->width()));
-    else if(a == "height")
+    else if (a == "height")
         info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->height()));
     else if (a == "srs")
         info.GetReturnValue().Set(Nan::New<v8::String>(m->map_->srs()).ToLocalChecked());
-    else if(a == "bufferSize")
+    else if (a == "bufferSize")
         info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->buffer_size()));
     else if (a == "background") {
         boost::optional<mapnik::color> c = m->map_->background();
@@ -301,26 +281,23 @@ NAN_GETTER(Map::get_prop)
             info.GetReturnValue().Set(Color::NewInstance(*c));
         else
             return;
-    }
-    else //if (a == "parameters")
+    } else //if (a == "parameters")
     {
         v8::Local<v8::Object> ds = Nan::New<v8::Object>();
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
-        for (; it != end; ++it)
-        {
+        for (; it != end; ++it) {
             node_mapnik::params_to_object(ds, it->first, it->second);
         }
         info.GetReturnValue().Set(ds);
     }
 }
 
-NAN_SETTER(Map::set_prop)
-{
+NAN_SETTER(Map::set_prop) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string a = TOSTR(property);
-    if(a == "extent" || a == "maximumExtent") {
+    if (a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
             Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
             return;
@@ -334,16 +311,14 @@ NAN_SETTER(Map::set_prop)
                 double miny = arr->Get(1)->NumberValue();
                 double maxx = arr->Get(2)->NumberValue();
                 double maxy = arr->Get(3)->NumberValue();
-                mapnik::box2d<double> box(minx,miny,maxx,maxy);
-                if(a == "extent")
+                mapnik::box2d<double> box(minx, miny, maxx, maxy);
+                if (a == "extent")
                     m->map_->zoom_to_box(box);
                 else
                     m->map_->set_maximum_extent(box);
             }
         }
-    }
-    else if (a == "aspect_fix_mode")
-    {
+    } else if (a == "aspect_fix_mode") {
         if (!value->IsNumber()) {
             Nan::ThrowError("'aspect_fix_mode' must be a constant (number)");
             return;
@@ -356,41 +331,35 @@ NAN_SETTER(Map::set_prop)
                 return;
             }
         }
-    }
-    else if (a == "srs")
-    {
+    } else if (a == "srs") {
         if (!value->IsString()) {
             Nan::ThrowError("'srs' must be a string");
             return;
         } else {
             m->map_->set_srs(TOSTR(value));
         }
-    }
-    else if (a == "bufferSize") {
+    } else if (a == "bufferSize") {
         if (!value->IsNumber()) {
             Nan::ThrowTypeError("Must provide an integer bufferSize");
             return;
         } else {
             m->map_->set_buffer_size(value->IntegerValue());
         }
-    }
-    else if (a == "width") {
+    } else if (a == "width") {
         if (!value->IsNumber()) {
             Nan::ThrowTypeError("Must provide an integer width");
             return;
         } else {
             m->map_->set_width(value->IntegerValue());
         }
-    }
-    else if (a == "height") {
+    } else if (a == "height") {
         if (!value->IsNumber()) {
             Nan::ThrowTypeError("Must provide an integer height");
             return;
         } else {
             m->map_->set_height(value->IntegerValue());
         }
-    }
-    else if (a == "background") {
+    } else if (a == "background") {
         if (!value->IsObject()) {
             Nan::ThrowTypeError("mapnik.Color expected");
             return;
@@ -401,10 +370,9 @@ NAN_SETTER(Map::set_prop)
             Nan::ThrowTypeError("mapnik.Color expected");
             return;
         }
-        Color *c = Nan::ObjectWrap::Unwrap<Color>(obj);
+        Color* c = Nan::ObjectWrap::Unwrap<Color>(obj);
         m->map_->set_background(*c->get());
-    }
-    else if (a == "parameters") {
+    } else if (a == "parameters") {
         if (!value->IsObject()) {
             Nan::ThrowTypeError("object expected for map.parameters");
             return;
@@ -446,49 +414,40 @@ NAN_SETTER(Map::set_prop)
  * @instance
  *
  */
-NAN_METHOD(Map::loadFonts)
-{
+NAN_METHOD(Map::loadFonts) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::Boolean>(m->map_->load_fonts()));
 }
 
-NAN_METHOD(Map::memoryFonts)
-{
+NAN_METHOD(Map::memoryFonts) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& font_cache = m->map_->get_font_memory_cache();
     v8::Local<v8::Array> a = Nan::New<v8::Array>(font_cache.size());
     unsigned i = 0;
-    for (auto const& kv : font_cache)
-    {
+    for (auto const& kv : font_cache) {
         a->Set(i++, Nan::New(kv.first).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
 
-NAN_METHOD(Map::registerFonts)
-{
+NAN_METHOD(Map::registerFonts) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    if (info.Length() == 0 || !info[0]->IsString())
-    {
+    if (info.Length() == 0 || !info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a directory of fonts");
         return;
     }
 
     bool recurse = false;
 
-    if (info.Length() >= 2)
-    {
-        if (!info[1]->IsObject())
-        {
+    if (info.Length() >= 2) {
+        if (!info[1]->IsObject()) {
             Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
             return;
         }
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (options->Has(Nan::New("recurse").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("recurse").ToLocalChecked())) {
             v8::Local<v8::Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
-            if (!recurse_opt->IsBoolean())
-            {
+            if (!recurse_opt->IsBoolean()) {
                 Nan::ThrowTypeError("'recurse' must be a Boolean");
                 return;
             }
@@ -496,7 +455,7 @@ NAN_METHOD(Map::registerFonts)
         }
     }
     std::string path = TOSTR(info[0]);
-    info.GetReturnValue().Set(Nan::New(m->map_->register_fonts(path,recurse)));
+    info.GetReturnValue().Set(Nan::New(m->map_->register_fonts(path, recurse)));
 }
 
 /**
@@ -506,14 +465,12 @@ NAN_METHOD(Map::registerFonts)
  * @name font
  * @returns {Array<string>} fonts
  */
-NAN_METHOD(Map::fonts)
-{
+NAN_METHOD(Map::fonts) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& mapping = m->map_->get_font_file_mapping();
     v8::Local<v8::Array> a = Nan::New<v8::Array>(mapping.size());
     unsigned i = 0;
-    for (auto const& kv : mapping)
-    {
+    for (auto const& kv : mapping) {
         a->Set(i++, Nan::New<v8::String>(kv.first).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
@@ -527,13 +484,11 @@ NAN_METHOD(Map::fonts)
  * @name fontFiles
  * @returns {Object} fonts
  */
-NAN_METHOD(Map::fontFiles)
-{
+NAN_METHOD(Map::fontFiles) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     auto const& mapping = m->map_->get_font_file_mapping();
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    for (auto const& kv : mapping)
-    {
+    for (auto const& kv : mapping) {
         obj->Set(Nan::New<v8::String>(kv.first).ToLocalChecked(), Nan::New<v8::String>(kv.second.second).ToLocalChecked());
     }
     info.GetReturnValue().Set(obj);
@@ -546,12 +501,10 @@ NAN_METHOD(Map::fontFiles)
  * @name fontDirectory
  * @returns {string|undefined} fonts
  */
-NAN_METHOD(Map::fontDirectory)
-{
+NAN_METHOD(Map::fontDirectory) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     boost::optional<std::string> const& fdir = m->map_->font_directory();
-    if (fdir)
-    {
+    if (fdir) {
         info.GetReturnValue().Set(Nan::New<v8::String>(*fdir).ToLocalChecked());
     }
     return;
@@ -565,8 +518,7 @@ NAN_METHOD(Map::fontDirectory)
  * @name scale
  * @returns {number} scale
  */
-NAN_METHOD(Map::scale)
-{
+NAN_METHOD(Map::scale) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::Number>(m->map_->scale()));
 }
@@ -579,16 +531,15 @@ NAN_METHOD(Map::scale)
  * @name scaleDenominator
  * @returns {number} scale denominator
  */
-NAN_METHOD(Map::scaleDenominator)
-{
+NAN_METHOD(Map::scaleDenominator) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::Number>(m->map_->scale_denominator()));
 }
 
 typedef struct {
     uv_work_t request;
-    Map *m;
-    std::map<std::string,mapnik::featureset_ptr> featuresets;
+    Map* m;
+    std::map<std::string, mapnik::featureset_ptr> featuresets;
     int layer_idx;
     bool geo_coords;
     double x;
@@ -628,9 +579,8 @@ typedef struct {
  * });
  *
  */
-NAN_METHOD(Map::queryMapPoint)
-{
-    abstractQueryPoint(info,false);
+NAN_METHOD(Map::queryMapPoint) {
+    abstractQueryPoint(info, false);
     return;
 }
 
@@ -664,29 +614,23 @@ NAN_METHOD(Map::queryMapPoint)
  * });
  *
  */
-NAN_METHOD(Map::queryPoint)
-{
-    abstractQueryPoint(info,true);
+NAN_METHOD(Map::queryPoint) {
+    abstractQueryPoint(info, true);
     return;
 }
 
-v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords)
-{
+v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords) {
     Nan::HandleScope scope;
-    if (info.Length() < 3)
-    {
+    if (info.Length() < 3) {
         Nan::ThrowError("requires at least three arguments, a x,y query and a callback");
         return Nan::Undefined();
     }
 
-    double x,y;
-    if (!info[0]->IsNumber() || !info[1]->IsNumber())
-    {
+    double x, y;
+    if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
         Nan::ThrowTypeError("x,y arguments must be numbers");
         return Nan::Undefined();
-    }
-    else
-    {
+    } else {
         x = info[0]->NumberValue();
         y = info[1]->NumberValue();
     }
@@ -696,8 +640,7 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     int layer_idx = -1;
 
-    if (info.Length() > 3)
-    {
+    if (info.Length() > 3) {
         // options object
         if (!info[2]->IsObject()) {
             Nan::ThrowTypeError("optional third argument must be an options object");
@@ -706,11 +649,10 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
 
         options = info[2]->ToObject();
 
-        if (options->Has(Nan::New("layer").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("layer").ToLocalChecked())) {
             std::vector<mapnik::layer> const& layers = m->map_->layers();
             v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
-            if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+            if (!(layer_id->IsString() || layer_id->IsNumber())) {
                 Nan::ThrowTypeError("'layer' option required for map query and must be either a layer name(string) or layer index (integer)");
                 return Nan::Undefined();
             }
@@ -719,26 +661,21 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
                 bool found = false;
                 unsigned int idx(0);
                 std::string layer_name = TOSTR(layer_id);
-                for (mapnik::layer const& lyr : layers)
-                {
-                    if (lyr.name() == layer_name)
-                    {
+                for (mapnik::layer const& lyr : layers) {
+                    if (lyr.name() == layer_name) {
                         found = true;
                         layer_idx = idx;
                         break;
                     }
                     ++idx;
                 }
-                if (!found)
-                {
+                if (!found) {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
                     Nan::ThrowTypeError(s.str().c_str());
                     return Nan::Undefined();
                 }
-            }
-            else if (layer_id->IsNumber())
-            {
+            } else if (layer_id->IsNumber()) {
                 layer_idx = layer_id->IntegerValue();
                 std::size_t layer_num = layers.size();
 
@@ -746,12 +683,9 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid"
                       << " must be a positive integer, ";
-                    if (layer_num > 0)
-                    {
+                    if (layer_num > 0) {
                         s << "only '" << layer_num << "' layers exist in map";
-                    }
-                    else
-                    {
+                    } else {
                         s << "no layers found in map";
                     }
                     Nan::ThrowTypeError(s.str().c_str());
@@ -759,12 +693,9 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
                 } else if (layer_idx >= static_cast<int>(layer_num)) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
-                    if (layer_num > 0)
-                    {
+                    if (layer_num > 0) {
                         s << "only '" << layer_num << "' layers exist in map";
-                    }
-                    else
-                    {
+                    } else {
                         s << "no layers found in map";
                     }
                     Nan::ThrowTypeError(s.str().c_str());
@@ -781,7 +712,7 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
         return Nan::Undefined();
     }
 
-    query_map_baton_t *closure = new query_map_baton_t();
+    query_map_baton_t* closure = new query_map_baton_t();
     closure->request.data = closure;
     closure->m = m;
     closure->x = x;
@@ -795,80 +726,63 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
     return Nan::Undefined();
 }
 
-void Map::EIO_QueryMap(uv_work_t* req)
-{
-    query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
+void Map::EIO_QueryMap(uv_work_t* req) {
+    query_map_baton_t* closure = static_cast<query_map_baton_t*>(req->data);
 
-    try
-    {
+    try {
         std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
-        if (closure->layer_idx >= 0)
-        {
+        if (closure->layer_idx >= 0) {
             mapnik::featureset_ptr fs;
-            if (closure->geo_coords)
-            {
+            if (closure->geo_coords) {
                 fs = closure->m->map_->query_point(closure->layer_idx,
                                                    closure->x,
                                                    closure->y);
-            }
-            else
-            {
+            } else {
                 fs = closure->m->map_->query_map_point(closure->layer_idx,
                                                        closure->x,
                                                        closure->y);
             }
             mapnik::layer const& lyr = layers[closure->layer_idx];
-            closure->featuresets.insert(std::make_pair(lyr.name(),fs));
-        }
-        else
-        {
+            closure->featuresets.insert(std::make_pair(lyr.name(), fs));
+        } else {
             // query all layers
             unsigned idx = 0;
-            for (mapnik::layer const& lyr : layers)
-            {
+            for (mapnik::layer const& lyr : layers) {
                 mapnik::featureset_ptr fs;
-                if (closure->geo_coords)
-                {
+                if (closure->geo_coords) {
                     fs = closure->m->map_->query_point(idx,
                                                        closure->x,
                                                        closure->y);
-                }
-                else
-                {
+                } else {
                     fs = closure->m->map_->query_map_point(idx,
                                                            closure->x,
                                                            closure->y);
                 }
-                closure->featuresets.insert(std::make_pair(lyr.name(),fs));
+                closure->featuresets.insert(std::make_pair(lyr.name(), fs));
                 ++idx;
             }
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterQueryMap(uv_work_t* req)
-{
+void Map::EIO_AfterQueryMap(uv_work_t* req) {
     Nan::HandleScope scope;
-    query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
+    query_map_baton_t* closure = static_cast<query_map_baton_t*>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         std::size_t num_result = closure->featuresets.size();
-        if (num_result >= 1)
-        {
+        if (num_result >= 1) {
             v8::Local<v8::Array> a = Nan::New<v8::Array>(num_result);
-            typedef std::map<std::string,mapnik::featureset_ptr> fs_itr;
+            typedef std::map<std::string, mapnik::featureset_ptr> fs_itr;
             fs_itr::const_iterator it = closure->featuresets.begin();
             fs_itr::const_iterator end = closure->featuresets.end();
             unsigned idx = 0;
-            for (; it != end; ++it)
-            {
+            for (; it != end; ++it) {
                 v8::Local<v8::Object> obj = Nan::New<v8::Object>();
                 obj->Set(Nan::New("layer").ToLocalChecked(), Nan::New<v8::String>(it->first).ToLocalChecked());
                 obj->Set(Nan::New("featureset").ToLocalChecked(), Featureset::NewInstance(it->second));
@@ -876,12 +790,10 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
                 ++idx;
             }
             closure->featuresets.clear();
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), a };
+            v8::Local<v8::Value> argv[2] = {Nan::Null(), a};
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
-        }
-        else
-        {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::Undefined() };
+        } else {
+            v8::Local<v8::Value> argv[2] = {Nan::Null(), Nan::Undefined()};
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
@@ -899,13 +811,11 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  * @name layers
  * @returns {Array<mapnik.Layer>} layers
  */
-NAN_METHOD(Map::layers)
-{
+NAN_METHOD(Map::layers) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
     v8::Local<v8::Array> a = Nan::New<v8::Array>(layers.size());
-    for (unsigned i = 0; i < layers.size(); ++i )
-    {
+    for (unsigned i = 0; i < layers.size(); ++i) {
         a->Set(i, Layer::NewInstance(layers[i]));
     }
     info.GetReturnValue().Set(a);
@@ -930,7 +840,7 @@ NAN_METHOD(Map::add_layer) {
         Nan::ThrowTypeError("mapnik.Layer expected");
         return;
     }
-    Layer *l = Nan::ObjectWrap::Unwrap<Layer>(obj);
+    Layer* l = Nan::ObjectWrap::Unwrap<Layer>(obj);
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     m->map_->add_layer(*l->get());
     return;
@@ -946,8 +856,7 @@ NAN_METHOD(Map::add_layer) {
  * @returns {mapnik.Layer} the layer
  * @throws {Error} if index is incorrect or layer is not found
  */
-NAN_METHOD(Map::get_layer)
-{
+NAN_METHOD(Map::get_layer) {
     if (info.Length() != 1) {
         Nan::ThrowError("Please provide layer name or index");
         return;
@@ -957,44 +866,34 @@ NAN_METHOD(Map::get_layer)
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
     v8::Local<v8::Value> layer = info[0];
-    if (layer->IsNumber())
-    {
+    if (layer->IsNumber()) {
         unsigned int index = info[0]->IntegerValue();
 
-        if (index < layers.size())
-        {
+        if (index < layers.size()) {
             info.GetReturnValue().Set(Layer::NewInstance(layers[index]));
             return;
-        }
-        else
-        {
+        } else {
             Nan::ThrowTypeError("invalid layer index");
             return;
         }
-    }
-    else if (layer->IsString())
-    {
+    } else if (layer->IsString()) {
         bool found = false;
         unsigned int idx(0);
         std::string layer_name = TOSTR(layer);
-        for ( mapnik::layer const& lyr : layers)
-        {
-            if (lyr.name() == layer_name)
-            {
+        for (mapnik::layer const& lyr : layers) {
+            if (lyr.name() == layer_name) {
                 found = true;
                 info.GetReturnValue().Set(Layer::NewInstance(layers[idx]));
                 return;
             }
             ++idx;
         }
-        if (!found)
-        {
+        if (!found) {
             std::ostringstream s;
             s << "Layer name '" << layer_name << "' not found";
             Nan::ThrowTypeError(s.str().c_str());
             return;
         }
-
     }
     Nan::ThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
     return;
@@ -1007,8 +906,7 @@ NAN_METHOD(Map::get_layer)
  * @instance
  * @name clear
  */
-NAN_METHOD(Map::clear)
-{
+NAN_METHOD(Map::clear) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     m->map_->remove_all();
     return;
@@ -1023,8 +921,7 @@ NAN_METHOD(Map::clear)
  * @param {number} width
  * @param {number} height
  */
-NAN_METHOD(Map::resize)
-{
+NAN_METHOD(Map::resize) {
     if (info.Length() != 2) {
         Nan::ThrowError("Please provide width and height");
         return;
@@ -1036,14 +933,13 @@ NAN_METHOD(Map::resize)
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    m->map_->resize(info[0]->IntegerValue(),info[1]->IntegerValue());
+    m->map_->resize(info[0]->IntegerValue(), info[1]->IntegerValue());
     return;
 }
 
-
 typedef struct {
     uv_work_t request;
-    Map *m;
+    Map* m;
     std::string stylesheet;
     std::string base_path;
     bool strict;
@@ -1051,7 +947,6 @@ typedef struct {
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } load_xml_baton_t;
-
 
 /**
  * Load styles, layers, and other information for this map from a Mapnik
@@ -1064,8 +959,7 @@ typedef struct {
  * @param {Object} [options={}]
  * @param {Function} callback
  */
-NAN_METHOD(Map::load)
-{
+NAN_METHOD(Map::load) {
     if (info.Length() < 2) {
         Nan::ThrowError("please provide a stylesheet path, options, and callback");
         return;
@@ -1079,7 +973,7 @@ NAN_METHOD(Map::load)
     }
 
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     if (!callback->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
@@ -1095,8 +989,7 @@ NAN_METHOD(Map::load)
 
     bool strict = false;
     v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-    if (options->Has(param))
-    {
+    if (options->Has(param)) {
         v8::Local<v8::Value> param_val = options->Get(param);
         if (!param_val->IsBoolean()) {
             Nan::ThrowTypeError("'strict' must be a Boolean");
@@ -1107,12 +1000,11 @@ NAN_METHOD(Map::load)
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
-    load_xml_baton_t *closure = new load_xml_baton_t();
+    load_xml_baton_t* closure = new load_xml_baton_t();
     closure->request.data = closure;
 
     param = Nan::New("base").ToLocalChecked();
-    if (options->Has(param))
-    {
+    if (options->Has(param)) {
         v8::Local<v8::Value> param_val = options->Get(param);
         if (!param_val->IsString()) {
             Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
@@ -1131,30 +1023,25 @@ NAN_METHOD(Map::load)
     return;
 }
 
-void Map::EIO_Load(uv_work_t* req)
-{
-    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
+void Map::EIO_Load(uv_work_t* req) {
+    load_xml_baton_t* closure = static_cast<load_xml_baton_t*>(req->data);
 
-    try
-    {
-        mapnik::load_map(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_path);
-    }
-    catch (std::exception const& ex)
-    {
+    try {
+        mapnik::load_map(*closure->m->map_, closure->stylesheet, closure->strict, closure->base_path);
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterLoad(uv_work_t* req)
-{
+void Map::EIO_AfterLoad(uv_work_t* req) {
     Nan::HandleScope scope;
-    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
+    load_xml_baton_t* closure = static_cast<load_xml_baton_t*>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->m->handle() };
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), closure->m->handle()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -1162,7 +1049,6 @@ void Map::EIO_AfterLoad(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
-
 
 /**
  * Load styles, layers, and other information for this map from a Mapnik
@@ -1176,8 +1062,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  * @example
  * map.loadSync('./style.xml');
  */
-NAN_METHOD(Map::loadSync)
-{
+NAN_METHOD(Map::loadSync) {
     if (!info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet");
         return;
@@ -1188,17 +1073,13 @@ NAN_METHOD(Map::loadSync)
     bool strict = false;
     std::string base_path;
 
-    if (info.Length() > 2)
-    {
+    if (info.Length() > 2) {
 
         Nan::ThrowError("only accepts two arguments: a path to a mapnik stylesheet and an optional options object");
         return;
-    }
-    else if (info.Length() == 2)
-    {
+    } else if (info.Length() == 2) {
         // ensure options object
-        if (!info[1]->IsObject())
-        {
+        if (!info[1]->IsObject()) {
             Nan::ThrowTypeError("options must be an object, eg {strict: true}");
             return;
         }
@@ -1206,11 +1087,9 @@ NAN_METHOD(Map::loadSync)
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-        if (options->Has(param))
-        {
+        if (options->Has(param)) {
             v8::Local<v8::Value> param_val = options->Get(param);
-            if (!param_val->IsBoolean())
-            {
+            if (!param_val->IsBoolean()) {
                 Nan::ThrowTypeError("'strict' must be a Boolean");
                 return;
             }
@@ -1218,11 +1097,9 @@ NAN_METHOD(Map::loadSync)
         }
 
         param = Nan::New("base").ToLocalChecked();
-        if (options->Has(param))
-        {
+        if (options->Has(param)) {
             v8::Local<v8::Value> param_val = options->Get(param);
-            if (!param_val->IsString())
-            {
+            if (!param_val->IsString()) {
                 Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
                 return;
             }
@@ -1230,12 +1107,9 @@ NAN_METHOD(Map::loadSync)
         }
     }
 
-    try
-    {
-        mapnik::load_map(*m->map_,stylesheet,strict,base_path);
-    }
-    catch (std::exception const& ex)
-    {
+    try {
+        mapnik::load_map(*m->map_, stylesheet, strict, base_path);
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
@@ -1255,8 +1129,7 @@ NAN_METHOD(Map::loadSync)
  * var fs = require('fs');
  * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));
  */
-NAN_METHOD(Map::fromStringSync)
-{
+NAN_METHOD(Map::fromStringSync) {
     if (info.Length() < 1) {
         Nan::ThrowError("Accepts 2 arguments: stylesheet string and an optional options");
         return;
@@ -1266,7 +1139,6 @@ NAN_METHOD(Map::fromStringSync)
         Nan::ThrowTypeError("first argument must be a mapnik stylesheet string");
         return;
     }
-
 
     // defaults
     bool strict = false;
@@ -1282,8 +1154,7 @@ NAN_METHOD(Map::fromStringSync)
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-        if (options->Has(param))
-        {
+        if (options->Has(param)) {
             v8::Local<v8::Value> param_val = options->Get(param);
             if (!param_val->IsBoolean()) {
                 Nan::ThrowTypeError("'strict' must be a Boolean");
@@ -1293,8 +1164,7 @@ NAN_METHOD(Map::fromStringSync)
         }
 
         param = Nan::New("base").ToLocalChecked();
-        if (options->Has(param))
-        {
+        if (options->Has(param)) {
             v8::Local<v8::Value> param_val = options->Get(param);
             if (!param_val->IsString()) {
                 Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
@@ -1308,12 +1178,9 @@ NAN_METHOD(Map::fromStringSync)
 
     std::string stylesheet = TOSTR(info[0]);
 
-    try
-    {
-        mapnik::load_map_string(*m->map_,stylesheet,strict,base_path);
-    }
-    catch (std::exception const& ex)
-    {
+    try {
+        mapnik::load_map_string(*m->map_, stylesheet, strict, base_path);
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
@@ -1336,33 +1203,28 @@ NAN_METHOD(Map::fromStringSync)
  *   // details loaded
  * });
  */
-NAN_METHOD(Map::fromString)
-{
-    if (info.Length() < 2)
-    {
+NAN_METHOD(Map::fromString) {
+    if (info.Length() < 2) {
         Nan::ThrowError("please provide a stylesheet string, options, and callback");
         return;
     }
 
     // ensure stylesheet path is a string
     v8::Local<v8::Value> stylesheet = info[0];
-    if (!stylesheet->IsString())
-    {
+    if (!stylesheet->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet string");
         return;
     }
 
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length()-1];
-    if (!info[info.Length()-1]->IsFunction())
-    {
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    if (!info[info.Length() - 1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
     }
 
     // ensure options object
-    if (!info[1]->IsObject())
-    {
+    if (!info[1]->IsObject()) {
         Nan::ThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
         return;
     }
@@ -1371,11 +1233,9 @@ NAN_METHOD(Map::fromString)
 
     bool strict = false;
     v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-    if (options->Has(param))
-    {
+    if (options->Has(param)) {
         v8::Local<v8::Value> param_val = options->Get(param);
-        if (!param_val->IsBoolean())
-        {
+        if (!param_val->IsBoolean()) {
             Nan::ThrowTypeError("'strict' must be a Boolean");
             return;
         }
@@ -1384,15 +1244,13 @@ NAN_METHOD(Map::fromString)
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
-    load_xml_baton_t *closure = new load_xml_baton_t();
+    load_xml_baton_t* closure = new load_xml_baton_t();
     closure->request.data = closure;
 
     param = Nan::New("base").ToLocalChecked();
-    if (options->Has(param))
-    {
+    if (options->Has(param)) {
         v8::Local<v8::Value> param_val = options->Get(param);
-        if (!param_val->IsString())
-        {
+        if (!param_val->IsString()) {
             Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
             return;
         }
@@ -1409,30 +1267,25 @@ NAN_METHOD(Map::fromString)
     return;
 }
 
-void Map::EIO_FromString(uv_work_t* req)
-{
-    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
+void Map::EIO_FromString(uv_work_t* req) {
+    load_xml_baton_t* closure = static_cast<load_xml_baton_t*>(req->data);
 
-    try
-    {
-        mapnik::load_map_string(*closure->m->map_,closure->stylesheet,closure->strict,closure->base_path);
-    }
-    catch (std::exception const& ex)
-    {
+    try {
+        mapnik::load_map_string(*closure->m->map_, closure->stylesheet, closure->strict, closure->base_path);
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterFromString(uv_work_t* req)
-{
+void Map::EIO_AfterFromString(uv_work_t* req) {
     Nan::HandleScope scope;
-    load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
+    load_xml_baton_t* closure = static_cast<load_xml_baton_t*>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->m->handle() };
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), closure->m->handle()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -1450,15 +1303,16 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  * @memberof Map
  * @returns {mapnik.Map} clone
  */
-NAN_METHOD(Map::clone)
-{
+NAN_METHOD(Map::clone) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(m2);
     Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Map instance");
-    else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
+    if (maybe_local.IsEmpty())
+        Nan::ThrowError("Could not create new Map instance");
+    else
+        info.GetReturnValue().Set(maybe_local.ToLocalChecked());
 }
 
 /**
@@ -1472,10 +1326,8 @@ NAN_METHOD(Map::clone)
  * map.save("path/to/map.xml");
  */
 
-NAN_METHOD(Map::save)
-{
-    if (info.Length() != 1 || !info[0]->IsString())
-    {
+NAN_METHOD(Map::save) {
+    if (info.Length() != 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to map.xml to save");
         return;
     }
@@ -1483,7 +1335,7 @@ NAN_METHOD(Map::save)
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::string filename = TOSTR(info[0]);
     bool explicit_defaults = false;
-    mapnik::save_map(*m->map_,filename,explicit_defaults);
+    mapnik::save_map(*m->map_, filename, explicit_defaults);
     return;
 }
 
@@ -1496,31 +1348,25 @@ NAN_METHOD(Map::save)
  * @example
  * var xml = map.toXML();
  */
-NAN_METHOD(Map::toXML)
-{
+NAN_METHOD(Map::toXML) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     bool explicit_defaults = false;
-    std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
+    std::string map_string = mapnik::save_map_to_string(*m->map_, explicit_defaults);
     info.GetReturnValue().Set(Nan::New<v8::String>(map_string).ToLocalChecked());
 }
 
-NAN_METHOD(Map::zoomAll)
-{
+NAN_METHOD(Map::zoomAll) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    try
-    {
+    try {
         m->map_->zoom_all();
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
     return;
 }
 
-NAN_METHOD(Map::zoomToBox)
-{
+NAN_METHOD(Map::zoomToBox) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
     double minx;
@@ -1528,10 +1374,8 @@ NAN_METHOD(Map::zoomToBox)
     double maxx;
     double maxy;
 
-    if (info.Length() == 1)
-    {
-        if (!info[0]->IsArray())
-        {
+    if (info.Length() == 1) {
+        if (!info[0]->IsArray()) {
             Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
             return;
         }
@@ -1541,37 +1385,31 @@ NAN_METHOD(Map::zoomToBox)
         maxx = a->Get(2)->NumberValue();
         maxy = a->Get(3)->NumberValue();
 
-    }
-    else if (info.Length() != 4)
-    {
+    } else if (info.Length() != 4) {
         Nan::ThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
         return;
-    }
-    else if (info[0]->IsNumber() &&
+    } else if (info[0]->IsNumber() &&
                info[1]->IsNumber() &&
                info[2]->IsNumber() &&
-               info[3]->IsNumber())
-    {
+               info[3]->IsNumber()) {
         minx = info[0]->NumberValue();
         miny = info[1]->NumberValue();
         maxx = info[2]->NumberValue();
         maxy = info[3]->NumberValue();
-    }
-    else
-    {
+    } else {
         Nan::ThrowError("If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers");
         return;
     }
 
-    mapnik::box2d<double> box(minx,miny,maxx,maxy);
+    mapnik::box2d<double> box(minx, miny, maxx, maxy);
     m->map_->zoom_to_box(box);
     return;
 }
 
 struct image_baton_t {
     uv_work_t request;
-    Map *m;
-    Image *im;
+    Map* m;
+    Image* im;
     int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
     double scale_denominator;
@@ -1581,22 +1419,21 @@ struct image_baton_t {
     bool error;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
-    image_baton_t() :
-      buffer_size(0),
-      scale_factor(1.0),
-      scale_denominator(0.0),
-      variables(),
-      offset_x(0),
-      offset_y(0),
-      error(false),
-      error_name() {}
+    image_baton_t() : buffer_size(0),
+                      scale_factor(1.0),
+                      scale_denominator(0.0),
+                      variables(),
+                      offset_x(0),
+                      offset_y(0),
+                      error(false),
+                      error_name() {}
 };
 
 #if defined(GRID_RENDERER)
 struct grid_baton_t {
     uv_work_t request;
-    Map *m;
-    Grid *g;
+    Map* m;
+    Grid* g;
     std::size_t layer_idx;
     int buffer_size; // TODO - no effect until mapnik::request is used
     double scale_factor;
@@ -1607,23 +1444,22 @@ struct grid_baton_t {
     bool error;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
-    grid_baton_t() :
-      layer_idx(-1),
-      buffer_size(0),
-      scale_factor(1.0),
-      scale_denominator(0.0),
-      variables(),
-      offset_x(0),
-      offset_y(0),
-      error(false),
-      error_name() {}
+    grid_baton_t() : layer_idx(-1),
+                     buffer_size(0),
+                     scale_factor(1.0),
+                     scale_denominator(0.0),
+                     variables(),
+                     offset_x(0),
+                     offset_y(0),
+                     error(false),
+                     error_name() {}
 };
 #endif
 
 struct vector_tile_baton_t {
     uv_work_t request;
-    Map *m;
-    VectorTile *d;
+    Map* m;
+    VectorTile* d;
     double area_threshold;
     double scale_factor;
     double scale_denominator;
@@ -1641,22 +1477,21 @@ struct vector_tile_baton_t {
     std::launch threading_mode;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
-    vector_tile_baton_t() :
-        area_threshold(0.1),
-        scale_factor(1.0),
-        scale_denominator(0.0),
-        variables(),
-        offset_x(0),
-        offset_y(0),
-        image_format("webp"),
-        scaling_method(mapnik::SCALING_BILINEAR),
-        simplify_distance(0.0),
-        error(false),
-        strictly_simple(true),
-        multi_polygon_union(false),
-        fill_type(mapnik::vector_tile_impl::positive_fill),
-        process_all_rings(false),
-        threading_mode(std::launch::deferred) {}
+    vector_tile_baton_t() : area_threshold(0.1),
+                            scale_factor(1.0),
+                            scale_denominator(0.0),
+                            variables(),
+                            offset_x(0),
+                            offset_y(0),
+                            image_format("webp"),
+                            scaling_method(mapnik::SCALING_BILINEAR),
+                            simplify_distance(0.0),
+                            error(false),
+                            strictly_simple(true),
+                            multi_polygon_union(false),
+                            fill_type(mapnik::vector_tile_impl::positive_fill),
+                            process_all_rings(false),
+                            threading_mode(std::launch::deferred) {}
 };
 
 /**
@@ -1719,8 +1554,7 @@ struct vector_tile_baton_t {
  *     console.log(vtile); // => vector tile object with data from xml
  * });
  */
-NAN_METHOD(Map::render)
-{
+NAN_METHOD(Map::render) {
     // ensure at least 2 args
     if (info.Length() < 2) {
         Nan::ThrowTypeError("requires at least two arguments, a renderable mapnik object, and a callback");
@@ -1734,15 +1568,14 @@ NAN_METHOD(Map::render)
     }
 
     // ensure function callback
-    if (!info[info.Length()-1]->IsFunction()) {
+    if (!info[info.Length() - 1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
 
-    try
-    {
+    try {
         // parse options
 
         // defaults
@@ -1818,7 +1651,7 @@ NAN_METHOD(Map::render)
 
         if (Nan::New(Image::constructor)->HasInstance(obj)) {
 
-            image_baton_t *closure = new image_baton_t();
+            image_baton_t* closure = new image_baton_t();
             closure->request.data = closure;
             closure->m = m;
             closure->im = Nan::ObjectWrap::Unwrap<Image>(obj);
@@ -1830,19 +1663,16 @@ NAN_METHOD(Map::render)
             closure->offset_y = offset_y;
             closure->error = false;
 
-            if (options->Has(Nan::New("variables").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("variables").ToLocalChecked())) {
                 v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
-                if (!bind_opt->IsObject())
-                {
+                if (!bind_opt->IsObject()) {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'variables' must be an object");
                     return;
                 }
-                object_to_container(closure->variables,bind_opt->ToObject());
+                object_to_container(closure->variables, bind_opt->ToObject());
             }
-            if (!m->acquire())
-            {
+            if (!m->acquire()) {
                 delete closure;
                 Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 return;
@@ -1854,7 +1684,7 @@ NAN_METHOD(Map::render)
 #if defined(GRID_RENDERER)
         else if (Nan::New(Grid::constructor)->HasInstance(obj)) {
 
-            Grid * g = Nan::ObjectWrap::Unwrap<Grid>(obj);
+            Grid* g = Nan::ObjectWrap::Unwrap<Grid>(obj);
 
             std::size_t layer_idx = 0;
 
@@ -1867,7 +1697,7 @@ NAN_METHOD(Map::render)
                 std::vector<mapnik::layer> const& layers = m->map_->layers();
 
                 v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
-                if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
+                if (!(layer_id->IsString() || layer_id->IsNumber())) {
                     Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
                     return;
                 }
@@ -1875,19 +1705,16 @@ NAN_METHOD(Map::render)
                 if (layer_id->IsString()) {
                     bool found = false;
                     unsigned int idx(0);
-                    std::string const & layer_name = TOSTR(layer_id);
-                    for (mapnik::layer const& lyr : layers)
-                    {
-                        if (lyr.name() == layer_name)
-                        {
+                    std::string const& layer_name = TOSTR(layer_id);
+                    for (mapnik::layer const& lyr : layers) {
+                        if (lyr.name() == layer_name) {
                             found = true;
                             layer_idx = idx;
                             break;
                         }
                         ++idx;
                     }
-                    if (!found)
-                    {
+                    if (!found) {
                         std::ostringstream s;
                         s << "Layer name '" << layer_name << "' not found";
                         Nan::ThrowTypeError(s.str().c_str());
@@ -1900,12 +1727,9 @@ NAN_METHOD(Map::render)
                     if (layer_idx >= layer_num) {
                         std::ostringstream s;
                         s << "Zero-based layer index '" << layer_idx << "' not valid, ";
-                        if (layer_num > 0)
-                        {
+                        if (layer_num > 0) {
                             s << "only '" << layer_num << "' layers exist in map";
-                        }
-                        else
-                        {
+                        } else {
                             s << "no layers found in map";
                         }
                         Nan::ThrowTypeError(s.str().c_str());
@@ -1926,25 +1750,23 @@ NAN_METHOD(Map::render)
                 unsigned int num_fields = a->Length();
                 while (i < num_fields) {
                     v8::Local<v8::Value> name = a->Get(i);
-                    if (name->IsString()){
+                    if (name->IsString()) {
                         g->get()->add_field(TOSTR(name));
                     }
                     i++;
                 }
             }
 
-            grid_baton_t *closure = new grid_baton_t();
+            grid_baton_t* closure = new grid_baton_t();
 
-            if (options->Has(Nan::New("variables").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("variables").ToLocalChecked())) {
                 v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
-                if (!bind_opt->IsObject())
-                {
+                if (!bind_opt->IsObject()) {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'variables' must be an object");
                     return;
                 }
-                object_to_container(closure->variables,bind_opt->ToObject());
+                object_to_container(closure->variables, bind_opt->ToObject());
             }
 
             closure->request.data = closure;
@@ -1958,8 +1780,7 @@ NAN_METHOD(Map::render)
             closure->offset_x = offset_x;
             closure->offset_y = offset_y;
             closure->error = false;
-            if (!m->acquire())
-            {
+            if (!m->acquire()) {
                 delete closure;
                 Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 return;
@@ -1968,24 +1789,20 @@ NAN_METHOD(Map::render)
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
         }
 #endif
-        else if (Nan::New(VectorTile::constructor)->HasInstance(obj))
-        {
+        else if (Nan::New(VectorTile::constructor)->HasInstance(obj)) {
 
-            vector_tile_baton_t *closure = new vector_tile_baton_t();
+            vector_tile_baton_t* closure = new vector_tile_baton_t();
 
-            if (options->Has(Nan::New("image_scaling").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("image_scaling").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
-                if (!param_val->IsString())
-                {
+                if (!param_val->IsString()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_scaling' must be a string");
                     return;
                 }
                 std::string image_scaling = TOSTR(param_val);
                 boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
-                if (!method)
-                {
+                if (!method) {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
                     return;
@@ -1993,11 +1810,9 @@ NAN_METHOD(Map::render)
                 closure->scaling_method = *method;
             }
 
-            if (options->Has(Nan::New("image_format").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("image_format").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
-                if (!param_val->IsString())
-                {
+                if (!param_val->IsString()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'image_format' must be a string");
                     return;
@@ -2005,29 +1820,24 @@ NAN_METHOD(Map::render)
                 closure->image_format = TOSTR(param_val);
             }
 
-            if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("area_threshold").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
-                if (!param_val->IsNumber())
-                {
+                if (!param_val->IsNumber()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'area_threshold' must be a number");
                     return;
                 }
                 closure->area_threshold = param_val->NumberValue();
-                if (closure->area_threshold < 0.0)
-                {
+                if (closure->area_threshold < 0.0) {
                     delete closure;
                     Nan::ThrowTypeError("option 'area_threshold' must not be a negative number");
                     return;
                 }
             }
 
-            if (options->Has(Nan::New("strictly_simple").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("strictly_simple").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("strictly_simple").ToLocalChecked());
-                if (!param_val->IsBoolean())
-                {
+                if (!param_val->IsBoolean()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
                     return;
@@ -2035,11 +1845,9 @@ NAN_METHOD(Map::render)
                 closure->strictly_simple = param_val->BooleanValue();
             }
 
-            if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
-                if (!param_val->IsBoolean())
-                {
+                if (!param_val->IsBoolean()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
                     return;
@@ -2047,29 +1855,24 @@ NAN_METHOD(Map::render)
                 closure->multi_polygon_union = param_val->BooleanValue();
             }
 
-            if (options->Has(Nan::New("fill_type").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("fill_type").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("fill_type").ToLocalChecked());
-                if (!param_val->IsNumber())
-                {
+                if (!param_val->IsNumber()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'fill_type' must be an unsigned integer");
                     return;
                 }
                 closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val->IntegerValue());
-                if (closure->fill_type < 0 || closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
-                {
+                if (closure->fill_type < 0 || closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max) {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
                     return;
                 }
             }
 
-            if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("threading_mode").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
-                if (!param_val->IsNumber())
-                {
+                if (!param_val->IsNumber()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
                     return;
@@ -2077,49 +1880,41 @@ NAN_METHOD(Map::render)
                 closure->threading_mode = static_cast<std::launch>(param_val->IntegerValue());
                 if (closure->threading_mode != std::launch::async &&
                     closure->threading_mode != std::launch::deferred &&
-                    closure->threading_mode != (std::launch::async | std::launch::deferred))
-                {
+                    closure->threading_mode != (std::launch::async | std::launch::deferred)) {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'threading_mode' value passed is invalid");
                     return;
                 }
             }
 
-            if (options->Has(Nan::New("simplify_distance").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("simplify_distance").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
-                if (!param_val->IsNumber())
-                {
+                if (!param_val->IsNumber()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                     return;
                 }
                 closure->simplify_distance = param_val->NumberValue();
-                if (closure->simplify_distance < 0)
-                {
+                if (closure->simplify_distance < 0) {
                     delete closure;
                     Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
                     return;
                 }
             }
 
-            if (options->Has(Nan::New("variables").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("variables").ToLocalChecked())) {
                 v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
-                if (!bind_opt->IsObject())
-                {
+                if (!bind_opt->IsObject()) {
                     delete closure;
                     Nan::ThrowTypeError("optional arg 'variables' must be an object");
                     return;
                 }
-                object_to_container(closure->variables,bind_opt->ToObject());
+                object_to_container(closure->variables, bind_opt->ToObject());
             }
 
-            if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
-            {
+            if (options->Has(Nan::New("process_all_rings").ToLocalChecked())) {
                 v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
-                if (!param_val->IsBoolean())
-                {
+                if (!param_val->IsBoolean()) {
                     delete closure;
                     Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
                     return;
@@ -2136,26 +1931,21 @@ NAN_METHOD(Map::render)
             closure->offset_x = offset_x;
             closure->offset_y = offset_y;
             closure->error = false;
-            if (!m->acquire())
-            {
+            if (!m->acquire()) {
                 delete closure;
                 Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
                 return;
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
-        }
-        else
-        {
+        } else {
             Nan::ThrowTypeError("renderable mapnik object expected");
             return;
         }
 
         m->Ref();
         return;
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         // I am not quite sure it is possible to put a test in to cover an exception here
         /* LCOV_EXCL_START */
         Nan::ThrowTypeError(ex.what());
@@ -2164,11 +1954,9 @@ NAN_METHOD(Map::render)
     }
 }
 
-void Map::EIO_RenderVectorTile(uv_work_t* req)
-{
-    vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
-    try
-    {
+void Map::EIO_RenderVectorTile(uv_work_t* req) {
+    vector_tile_baton_t* closure = static_cast<vector_tile_baton_t*>(req->data);
+    try {
         mapnik::Map const& map = *closure->m->get();
 
         mapnik::vector_tile_impl::processor ren(map);
@@ -2187,28 +1975,22 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
                         closure->scale_denominator,
                         closure->offset_x,
                         closure->offset_y);
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
-{
+void Map::EIO_AfterRenderVectorTile(uv_work_t* req) {
     Nan::HandleScope scope;
-    vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
+    vector_tile_baton_t* closure = static_cast<vector_tile_baton_t*>(req->data);
     closure->m->release();
 
-    if (closure->error)
-    {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+    if (closure->error) {
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-    }
-    else
-    {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
+    } else {
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), closure->d->handle()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -2219,29 +2001,25 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 }
 
 #if defined(GRID_RENDERER)
-void Map::EIO_RenderGrid(uv_work_t* req)
-{
+void Map::EIO_RenderGrid(uv_work_t* req) {
 
-    grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
+    grid_baton_t* closure = static_cast<grid_baton_t*>(req->data);
 
     std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
 
-    try
-    {
+    try {
         // copy property names
         std::set<std::string> attributes = closure->g->get()->get_fields();
 
         // todo - make this a static constant
         std::string known_id_key = "__id__";
-        if (attributes.find(known_id_key) != attributes.end())
-        {
+        if (attributes.find(known_id_key) != attributes.end()) {
             attributes.erase(known_id_key);
         }
 
         std::string join_field = closure->g->get()->get_key();
         if (known_id_key != join_field &&
-            attributes.find(join_field) == attributes.end())
-        {
+            attributes.find(join_field) == attributes.end()) {
             attributes.insert(join_field);
         }
 
@@ -2251,28 +2029,25 @@ void Map::EIO_RenderGrid(uv_work_t* req)
                                                 closure->offset_x,
                                                 closure->offset_y);
         mapnik::layer const& layer = layers[closure->layer_idx];
-        ren.apply(layer,attributes,closure->scale_denominator);
-    }
-    catch (std::exception const& ex)
-    {
+        ren.apply(layer, attributes, closure->scale_denominator);
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterRenderGrid(uv_work_t* req)
-{
+void Map::EIO_AfterRenderGrid(uv_work_t* req) {
     Nan::HandleScope scope;
-    grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
+    grid_baton_t* closure = static_cast<grid_baton_t*>(req->data);
     closure->m->release();
 
     if (closure->error) {
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->g->handle() };
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), closure->g->handle()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -2283,8 +2058,7 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
 }
 #endif
 
-struct agg_renderer_visitor
-{
+struct agg_renderer_visitor {
     agg_renderer_visitor(mapnik::Map const& m,
                          mapnik::request const& req,
                          mapnik::attributes const& vars,
@@ -2300,15 +2074,13 @@ struct agg_renderer_visitor
           offset_y_(offset_y),
           scale_denominator_(scale_denominator) {}
 
-    void operator() (mapnik::image_rgba8 & pixmap)
-    {
-        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_,req_,vars_,pixmap,scale_factor_,offset_x_,offset_y_);
+    void operator()(mapnik::image_rgba8& pixmap) {
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_, req_, vars_, pixmap, scale_factor_, offset_x_, offset_y_);
         ren.apply(scale_denominator_);
     }
 
     template <typename T>
-    void operator() (T &)
-    {
+    void operator()(T&) {
         throw std::runtime_error("This image type is not currently supported for rendering.");
     }
 
@@ -2322,14 +2094,12 @@ struct agg_renderer_visitor
     double scale_denominator_;
 };
 
-void Map::EIO_RenderImage(uv_work_t* req)
-{
-    image_baton_t *closure = static_cast<image_baton_t *>(req->data);
+void Map::EIO_RenderImage(uv_work_t* req) {
+    image_baton_t* closure = static_cast<image_baton_t*>(req->data);
 
-    try
-    {
+    try {
         mapnik::Map const& map = *closure->m->map_;
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        mapnik::request m_req(map.width(), map.height(), map.get_current_extent());
         m_req.set_buffer_size(closure->buffer_size);
         agg_renderer_visitor visit(map,
                                    m_req,
@@ -2339,25 +2109,22 @@ void Map::EIO_RenderImage(uv_work_t* req)
                                    closure->offset_y,
                                    closure->scale_denominator);
         mapnik::util::apply_visitor(visit, *closure->im->get());
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterRenderImage(uv_work_t* req)
-{
+void Map::EIO_AfterRenderImage(uv_work_t* req) {
     Nan::HandleScope scope;
-    image_baton_t *closure = static_cast<image_baton_t *>(req->data);
+    image_baton_t* closure = static_cast<image_baton_t*>(req->data);
     closure->m->release();
 
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), closure->im->handle()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
@@ -2369,7 +2136,7 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
 
 typedef struct {
     uv_work_t request;
-    Map *m;
+    Map* m;
     std::string format;
     std::string output;
     palette_ptr palette;
@@ -2383,8 +2150,7 @@ typedef struct {
     Nan::Persistent<v8::Function> cb;
 } render_file_baton_t;
 
-NAN_METHOD(Map::renderFile)
-{
+NAN_METHOD(Map::renderFile) {
     if (info.Length() < 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a file to save");
         return;
@@ -2397,7 +2163,7 @@ NAN_METHOD(Map::renderFile)
     palette_ptr palette;
     int buffer_size = 0;
 
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
 
     if (!callback->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
@@ -2408,8 +2174,7 @@ NAN_METHOD(Map::renderFile)
 
     if (!info[1]->IsFunction() && info[1]->IsObject()) {
         options = info[1]->ToObject();
-        if (options->Has(Nan::New("format").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("format").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
             if (!format_opt->IsString()) {
                 Nan::ThrowTypeError("'format' must be a String");
@@ -2419,8 +2184,7 @@ NAN_METHOD(Map::renderFile)
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("palette").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
@@ -2484,18 +2248,16 @@ NAN_METHOD(Map::renderFile)
         }
     }
 
-    render_file_baton_t *closure = new render_file_baton_t();
+    render_file_baton_t* closure = new render_file_baton_t();
 
-    if (options->Has(Nan::New("variables").ToLocalChecked()))
-    {
+    if (options->Has(Nan::New("variables").ToLocalChecked())) {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
-        if (!bind_opt->IsObject())
-        {
+        if (!bind_opt->IsObject()) {
             delete closure;
             Nan::ThrowTypeError("optional arg 'variables' must be an object");
             return;
         }
-        object_to_container(closure->variables,bind_opt->ToObject());
+        object_to_container(closure->variables, bind_opt->ToObject());
     }
 
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
@@ -2512,8 +2274,7 @@ NAN_METHOD(Map::renderFile)
         closure->use_cairo = false;
     }
 
-    if (!m->acquire())
-    {
+    if (!m->acquire()) {
         delete closure;
         Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
         return;
@@ -2535,90 +2296,76 @@ NAN_METHOD(Map::renderFile)
     m->Ref();
 
     return;
-
 }
 
-void Map::EIO_RenderFile(uv_work_t* req)
-{
-    render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
+void Map::EIO_RenderFile(uv_work_t* req) {
+    render_file_baton_t* closure = static_cast<render_file_baton_t*>(req->data);
 
-    try
-    {
-        if(closure->use_cairo)
-        {
+    try {
+        if (closure->use_cairo) {
 #if defined(HAVE_CAIRO)
             // https://github.com/mapnik/mapnik/issues/1930
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
+            mapnik::save_to_cairo_file(*closure->m->map_, closure->output, closure->format, closure->scale_factor, closure->scale_denominator);
 #else
 #endif
-        }
-        else
-        {
-            mapnik::image_rgba8 im(closure->m->map_->width(),closure->m->map_->height());
+        } else {
+            mapnik::image_rgba8 im(closure->m->map_->width(), closure->m->map_->height());
             mapnik::Map const& map = *closure->m->map_;
-            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+            mapnik::request m_req(map.width(), map.height(), map.get_current_extent());
             m_req.set_buffer_size(closure->buffer_size);
             mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
-                                                   m_req,
-                                                   closure->variables,
-                                                   im,
-                                                   closure->scale_factor);
+                                                          m_req,
+                                                          closure->variables,
+                                                          im,
+                                                          closure->scale_factor);
             ren.apply(closure->scale_denominator);
 
             if (closure->palette.get()) {
-                mapnik::save_to_file(im,closure->output,*closure->palette);
+                mapnik::save_to_file(im, closure->output, *closure->palette);
             } else {
-                mapnik::save_to_file(im,closure->output);
+                mapnik::save_to_file(im, closure->output);
             }
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         closure->error = true;
         closure->error_name = ex.what();
     }
 }
 
-void Map::EIO_AfterRenderFile(uv_work_t* req)
-{
+void Map::EIO_AfterRenderFile(uv_work_t* req) {
     Nan::HandleScope scope;
-    render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
+    render_file_baton_t* closure = static_cast<render_file_baton_t*>(req->data);
     closure->m->release();
 
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
+        v8::Local<v8::Value> argv[1] = {Nan::Null()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->m->Unref();
     closure->cb.Reset();
     delete closure;
-
 }
 
 // TODO - add support for grids
-NAN_METHOD(Map::renderSync)
-{
+NAN_METHOD(Map::renderSync) {
     std::string format = "png";
     palette_ptr palette;
     double scale_factor = 1.0;
     double scale_denominator = 0.0;
     int buffer_size = 0;
 
-    if (info.Length() >= 1)
-    {
-        if (!info[0]->IsObject())
-        {
+    if (info.Length() >= 1) {
+        if (!info[0]->IsObject()) {
             Nan::ThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
             return;
         }
 
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("format").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("format").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
             if (!format_opt->IsString()) {
                 Nan::ThrowTypeError("'format' must be a String");
@@ -2628,8 +2375,7 @@ NAN_METHOD(Map::renderSync)
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("palette").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
@@ -2674,35 +2420,29 @@ NAN_METHOD(Map::renderSync)
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    if (!m->acquire())
-    {
+    if (!m->acquire()) {
         Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
         return;
     }
     std::string s;
-    try
-    {
-        mapnik::image_rgba8 im(m->map_->width(),m->map_->height());
+    try {
+        mapnik::image_rgba8 im(m->map_->width(), m->map_->height());
         mapnik::Map const& map = *m->map_;
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+        mapnik::request m_req(map.width(), map.height(), map.get_current_extent());
         m_req.set_buffer_size(buffer_size);
         mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
-                                                   m_req,
-                                                   mapnik::attributes(),
-                                                   im,
-                                                   scale_factor);
+                                                      m_req,
+                                                      mapnik::attributes(),
+                                                      im,
+                                                      scale_factor);
         ren.apply(scale_denominator);
 
-        if (palette.get())
-        {
+        if (palette.get()) {
             s = save_to_string(im, format, *palette);
-        }
-        else {
+        } else {
             s = save_to_string(im, format);
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         m->release();
         Nan::ThrowError(ex.what());
         return;
@@ -2711,8 +2451,7 @@ NAN_METHOD(Map::renderSync)
     info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
 }
 
-NAN_METHOD(Map::renderFileSync)
-{
+NAN_METHOD(Map::renderFileSync) {
     if (info.Length() < 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("first argument must be a path to a file to save");
         return;
@@ -2730,15 +2469,14 @@ NAN_METHOD(Map::renderFileSync)
     std::string format = "png";
     palette_ptr palette;
 
-    if (info.Length() >= 2){
+    if (info.Length() >= 2) {
         if (!info[1]->IsObject()) {
             Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
             return;
         }
 
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (options->Has(Nan::New("format").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("format").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
             if (!format_opt->IsString()) {
                 Nan::ThrowTypeError("'format' must be a String");
@@ -2748,8 +2486,7 @@ NAN_METHOD(Map::renderFileSync)
             format = TOSTR(format_opt);
         }
 
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("palette").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
@@ -2805,19 +2542,16 @@ NAN_METHOD(Map::renderFileSync)
             return;
         }
     }
-    if (!m->acquire())
-    {
+    if (!m->acquire()) {
         Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
         return;
     }
 
-    try
-    {
+    try {
 
-        if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
-        {
+        if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
 #if defined(HAVE_CAIRO)
-            mapnik::save_to_cairo_file(*m->map_,output,format,scale_factor,scale_denominator);
+            mapnik::save_to_cairo_file(*m->map_, output, format, scale_factor, scale_denominator);
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
@@ -2825,32 +2559,26 @@ NAN_METHOD(Map::renderFileSync)
             Nan::ThrowError(s.str().c_str());
             return;
 #endif
-        }
-        else
-        {
-            mapnik::image_rgba8 im(m->map_->width(),m->map_->height());
+        } else {
+            mapnik::image_rgba8 im(m->map_->width(), m->map_->height());
             mapnik::Map const& map = *m->map_;
-            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+            mapnik::request m_req(map.width(), map.height(), map.get_current_extent());
             m_req.set_buffer_size(buffer_size);
             mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
-                                                   m_req,
-                                                   mapnik::attributes(),
-                                                   im,
-                                                   scale_factor);
+                                                          m_req,
+                                                          mapnik::attributes(),
+                                                          im,
+                                                          scale_factor);
 
             ren.apply(scale_denominator);
 
-            if (palette.get())
-            {
-                mapnik::save_to_file(im,output,*palette);
-            }
-            else {
-                mapnik::save_to_file(im,output);
+            if (palette.get()) {
+                mapnik::save_to_file(im, output, *palette);
+            } else {
+                mapnik::save_to_file(im, output);
             }
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         m->release();
         Nan::ThrowError(ex.what());
         return;

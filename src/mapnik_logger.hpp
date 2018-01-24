@@ -4,10 +4,12 @@
 #include <nan.h>
 
 //Forward declaration of mapnik logger
-namespace mapnik { class logger; }
+namespace mapnik {
+class logger;
+}
 
-class Logger: public Nan::ObjectWrap {
-public:
+class Logger : public Nan::ObjectWrap {
+  public:
     // V8 way of...
     static Nan::Persistent<v8::FunctionTemplate> constructor;
 
@@ -23,7 +25,7 @@ public:
     static NAN_METHOD(set_severity);
     static NAN_METHOD(evoke_error);
 
-private:
+  private:
     // Default Constructor
     Logger();
     // Deconstructor

@@ -12,12 +12,10 @@
 #include <mapnik/grid/grid.hpp>
 #include <memory>
 
-
-
 typedef std::shared_ptr<mapnik::grid> grid_ptr;
 
-class Grid: public Nan::ObjectWrap {
-public:
+class Grid : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -47,7 +45,7 @@ public:
     Grid(unsigned int width, unsigned int height, std::string const& key);
     inline grid_ptr get() { return this_; }
 
-private:
+  private:
     ~Grid();
     grid_ptr this_;
 };

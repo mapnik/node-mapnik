@@ -1,5 +1,5 @@
-#include "utils.hpp"
 #include "mapnik_logger.hpp"
+#include "utils.hpp"
 #include <mapnik/debug.hpp>
 
 Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
@@ -27,10 +27,10 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "setSeverity", Logger::set_severity);
 
     // Constants
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"NONE",mapnik::logger::severity_type::none);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"ERROR",mapnik::logger::severity_type::error);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"DEBUG",mapnik::logger::severity_type::debug);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"WARN",mapnik::logger::severity_type::warn);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(), "NONE", mapnik::logger::severity_type::none);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(), "ERROR", mapnik::logger::severity_type::error);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(), "DEBUG", mapnik::logger::severity_type::debug);
+    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(), "WARN", mapnik::logger::severity_type::warn);
 
     // What about booleans like:
     // ENABLE_STATS
@@ -40,12 +40,11 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     // DEBUG
 
     // Not sure if needed...
-    target->Set(Nan::New("Logger").ToLocalChecked(),lcons->GetFunction());
+    target->Set(Nan::New("Logger").ToLocalChecked(), lcons->GetFunction());
     constructor.Reset(lcons);
-
 }
 
-NAN_METHOD(Logger::New){
+NAN_METHOD(Logger::New) {
     Nan::ThrowError("a mapnik.Logger cannot be created directly - rather you should ....");
     return;
 }
@@ -57,7 +56,7 @@ NAN_METHOD(Logger::New){
  * @static
  * @returns {number} severity level
  */
-NAN_METHOD(Logger::get_severity){
+NAN_METHOD(Logger::get_severity) {
     int severity = mapnik::logger::instance().get_severity();
     info.GetReturnValue().Set(Nan::New(severity));
 }
@@ -73,7 +72,7 @@ NAN_METHOD(Logger::get_severity){
  * @param {number} severity - severity level
  * @returns {number} severity level
  */
-NAN_METHOD(Logger::set_severity){
+NAN_METHOD(Logger::set_severity) {
     if (info.Length() != 1 || !info[0]->IsNumber()) {
         Nan::ThrowTypeError("requires a severity level parameter");
         return;

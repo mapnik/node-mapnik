@@ -9,12 +9,12 @@
 
 #include <mapnik/datasource.hpp>
 
+namespace mapnik {
+class transcoder;
+}
 
-
-namespace mapnik { class transcoder; }
-
-class MemoryDatasource: public Nan::ObjectWrap {
-public:
+class MemoryDatasource : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -29,7 +29,7 @@ public:
     MemoryDatasource();
     inline mapnik::datasource_ptr get() { return datasource_; }
 
-private:
+  private:
     ~MemoryDatasource();
     mapnik::datasource_ptr datasource_;
     unsigned int feature_id_;

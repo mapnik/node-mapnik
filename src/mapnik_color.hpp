@@ -9,13 +9,13 @@
 
 #include <memory>
 
-
-
-namespace mapnik { class color; }
+namespace mapnik {
+class color;
+}
 typedef std::shared_ptr<mapnik::color> color_ptr;
 
-class Color: public Nan::ObjectWrap {
-public:
+class Color : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -30,7 +30,7 @@ public:
     Color();
     inline color_ptr get() { return this_; }
 
-private:
+  private:
     ~Color();
     color_ptr this_;
 };

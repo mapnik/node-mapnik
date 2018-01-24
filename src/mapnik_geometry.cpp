@@ -1,12 +1,12 @@
-#include "utils.hpp"
 #include "mapnik_geometry.hpp"
 #include "mapnik_projection.hpp"
+#include "utils.hpp"
 
 #include <mapnik/datasource.hpp>
 #include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
+#include <mapnik/util/geometry_to_wkt.hpp>
 
 Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
 
@@ -38,46 +38,40 @@ void Geometry::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
     Nan::SetPrototypeMethod(lcons, "toJSONSync", toJSONSync);
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Unknown",mapnik::geometry::geometry_types::Unknown)
+                                "Unknown", mapnik::geometry::geometry_types::Unknown)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Point",mapnik::geometry::geometry_types::Point)
+                                "Point", mapnik::geometry::geometry_types::Point)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "MultiPoint",mapnik::geometry::geometry_types::MultiPoint)
+                                "MultiPoint", mapnik::geometry::geometry_types::MultiPoint)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "LineString",mapnik::geometry::geometry_types::LineString)
+                                "LineString", mapnik::geometry::geometry_types::LineString)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "MultiLineString",mapnik::geometry::geometry_types::MultiLineString)
+                                "MultiLineString", mapnik::geometry::geometry_types::MultiLineString)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "Polygon",mapnik::geometry::geometry_types::Polygon)
+                                "Polygon", mapnik::geometry::geometry_types::Polygon)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "MultiPolygon",mapnik::geometry::geometry_types::MultiPolygon)
+                                "MultiPolygon", mapnik::geometry::geometry_types::MultiPolygon)
     NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
-                                "GeometryCollection",mapnik::geometry::geometry_types::GeometryCollection)
+                                "GeometryCollection", mapnik::geometry::geometry_types::GeometryCollection)
     target->Set(Nan::New("Geometry").ToLocalChecked(), lcons->GetFunction());
     constructor.Reset(lcons);
 }
 
-Geometry::Geometry(mapnik::feature_ptr f) :
-    Nan::ObjectWrap(),
-    feat_(f) {}
+Geometry::Geometry(mapnik::feature_ptr f) : Nan::ObjectWrap(),
+                                            feat_(f) {}
 
-Geometry::~Geometry()
-{
+Geometry::~Geometry() {
 }
 
-NAN_METHOD(Geometry::New)
-{
-    if (info[0]->IsExternal())
-    {
+NAN_METHOD(Geometry::New) {
+    if (info[0]->IsExternal()) {
         v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
-        Geometry* g =  static_cast<Geometry*>(ptr);
+        Geometry* g = static_cast<Geometry*>(ptr);
         g->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
-    }
-    else
-    {
+    } else {
         Nan::ThrowError("a mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance");
         return;
     }
@@ -101,8 +95,7 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
  * @memberof Geometry
  * @instance
  */
-NAN_METHOD(Geometry::type)
-{
+NAN_METHOD(Geometry::type) {
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     auto const& geom = g->feat_->get_geometry();
     info.GetReturnValue().Set(Nan::New<v8::Integer>(mapnik::geometry::geometry_type(geom)));
@@ -117,29 +110,25 @@ NAN_METHOD(Geometry::type)
  * @instance
  * @name toJSONSync
  */
-NAN_METHOD(Geometry::toJSONSync)
-{
+NAN_METHOD(Geometry::toJSONSync) {
     info.GetReturnValue().Set(_toJSONSync(info));
 }
 
-bool to_geojson_projected(std::string & json,
+bool to_geojson_projected(std::string& json,
                           mapnik::geometry::geometry<double> const& geom,
-                          mapnik::proj_transform const& prj_trans)
-{
+                          mapnik::proj_transform const& prj_trans) {
     unsigned int n_err = 0;
-    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom, prj_trans, n_err);
     if (n_err > 0) return false;
-    return mapnik::util::to_geojson(json,projected_geom);
+    return mapnik::util::to_geojson(json, projected_geom);
 }
 
 v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     std::string json;
-    if (info.Length() < 1)
-    {
-        if (!mapnik::util::to_geojson(json,g->feat_->get_geometry()))
-        {
+    if (info.Length() < 1) {
+        if (!mapnik::util::to_geojson(json, g->feat_->get_geometry())) {
             // Fairly certain this situation can never be reached but
             // leaving it none the less
             /* LCOV_EXCL_START */
@@ -147,16 +136,13 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             return scope.Escape(Nan::Undefined());
             /* LCOV_EXCL_STOP */
         }
-    }
-    else
-    {
+    } else {
         if (!info[0]->IsObject()) {
             Nan::ThrowTypeError("optional first arg must be an options object");
             return scope.Escape(Nan::Undefined());
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("transform").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("transform").ToLocalChecked())) {
             v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
             if (!bound_opt->IsObject()) {
                 Nan::ThrowTypeError("'transform' must be an object");
@@ -171,8 +157,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             ProjTransform* tr = Nan::ObjectWrap::Unwrap<ProjTransform>(obj);
             mapnik::proj_transform const& prj_trans = *tr->get();
             mapnik::geometry::geometry<double> const& geom = g->feat_->get_geometry();
-            if (!to_geojson_projected(json,geom,prj_trans))
-            {
+            if (!to_geojson_projected(json, geom, prj_trans)) {
                 // Fairly certain this situation can never be reached but
                 // leaving it none the less
                 /* LCOV_EXCL_START */
@@ -194,7 +179,6 @@ struct to_json_baton {
     Nan::Persistent<v8::Function> cb;
 };
 
-
 /**
  * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
  * asynchronously.
@@ -206,27 +190,24 @@ struct to_json_baton {
  * @instance
  * @name toJSON
  */
-NAN_METHOD(Geometry::toJSON)
-{
-    if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction()) {
+NAN_METHOD(Geometry::toJSON) {
+    if ((info.Length() < 1) || !info[info.Length() - 1]->IsFunction()) {
         info.GetReturnValue().Set(_toJSONSync(info));
         return;
     }
 
-    to_json_baton *closure = new to_json_baton();
+    to_json_baton* closure = new to_json_baton();
     closure->request.data = closure;
     closure->g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     closure->error = false;
     closure->tr = nullptr;
-    if (info.Length() > 1)
-    {
+    if (info.Length() > 1) {
         if (!info[0]->IsObject()) {
             Nan::ThrowTypeError("optional first arg must be an options object");
             return;
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("transform").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("transform").ToLocalChecked())) {
             v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
             if (!bound_opt->IsObject()) {
                 Nan::ThrowTypeError("'transform' must be an object");
@@ -242,24 +223,20 @@ NAN_METHOD(Geometry::toJSON)
             closure->tr->_ref();
         }
     }
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    v8::Local<v8::Value> callback = info[info.Length() - 1];
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, to_json, (uv_after_work_cb)after_to_json);
     closure->g->Ref();
     return;
 }
 
-void Geometry::to_json(uv_work_t* req)
-{
-    to_json_baton *closure = static_cast<to_json_baton *>(req->data);
-    try
-    {
-        if (closure->tr)
-        {
+void Geometry::to_json(uv_work_t* req) {
+    to_json_baton* closure = static_cast<to_json_baton*>(req->data);
+    try {
+        if (closure->tr) {
             mapnik::proj_transform const& prj_trans = *closure->tr->get();
             mapnik::geometry::geometry<double> const& geom = closure->g->feat_->get_geometry();
-            if (!to_geojson_projected(closure->result,geom,prj_trans))
-            {
+            if (!to_geojson_projected(closure->result, geom, prj_trans)) {
                 // Fairly certain this situation can never be reached but
                 // leaving it none the less
                 // LCOV_EXCL_START
@@ -267,11 +244,8 @@ void Geometry::to_json(uv_work_t* req)
                 closure->result = "Failed to generate GeoJSON";
                 // LCOV_EXCL_STOP
             }
-        }
-        else
-        {
-            if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->get_geometry()))
-            {
+        } else {
+            if (!mapnik::util::to_geojson(closure->result, closure->g->feat_->get_geometry())) {
                 // Fairly certain this situation can never be reached but
                 // leaving it none the less
                 /* LCOV_EXCL_START */
@@ -280,9 +254,7 @@ void Geometry::to_json(uv_work_t* req)
                 /* LCOV_EXCL_STOP */
             }
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
@@ -292,22 +264,18 @@ void Geometry::to_json(uv_work_t* req)
     }
 }
 
-void Geometry::after_to_json(uv_work_t* req)
-{
+void Geometry::after_to_json(uv_work_t* req) {
     Nan::HandleScope scope;
-    to_json_baton *closure = static_cast<to_json_baton *>(req->data);
-    if (closure->error)
-    {
+    to_json_baton* closure = static_cast<to_json_baton*>(req->data);
+    if (closure->error) {
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->result.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_STOP */
-    }
-    else
-    {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked() };
+    } else {
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->g->Unref();
@@ -326,8 +294,7 @@ void Geometry::after_to_json(uv_work_t* req)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
-NAN_METHOD(Geometry::extent)
-{
+NAN_METHOD(Geometry::extent) {
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
     mapnik::box2d<double> const& e = g->feat_->envelope();
@@ -346,12 +313,10 @@ NAN_METHOD(Geometry::extent)
  * @instance
  * @returns {string} wkt representation of this geometry
  */
-NAN_METHOD(Geometry::toWKT)
-{
+NAN_METHOD(Geometry::toWKT) {
     std::string wkt;
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
-    if (!mapnik::util::to_wkt(wkt, g->feat_->get_geometry()))
-    {
+    if (!mapnik::util::to_wkt(wkt, g->feat_->get_geometry())) {
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
@@ -370,12 +335,10 @@ NAN_METHOD(Geometry::toWKT)
  * @instance
  * @returns {string} wkb representation of this geometry
  */
-NAN_METHOD(Geometry::toWKB)
-{
+NAN_METHOD(Geometry::toWKB) {
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);
-    if (!wkb)
-    {
+    if (!wkb) {
         Nan::ThrowError("Failed to generate WKB - geometry likely null");
         return;
     }

@@ -1,16 +1,16 @@
 #include "mapnik_datasource.hpp"
+#include "ds_emitter.hpp"
 #include "mapnik_featureset.hpp"
 #include "utils.hpp"
-#include "ds_emitter.hpp"
 
 // mapnik
-#include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
-#include <mapnik/box2d.hpp>             // for box2d
-#include <mapnik/datasource.hpp>        // for datasource, datasource_ptr, etc
-#include <mapnik/datasource_cache.hpp>  // for datasource_cache
-#include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
-#include <mapnik/params.hpp>            // for parameters
-#include <mapnik/query.hpp>             // for query
+#include <mapnik/attribute_descriptor.hpp> // for attribute_descriptor
+#include <mapnik/box2d.hpp>                // for box2d
+#include <mapnik/datasource.hpp>           // for datasource, datasource_ptr, etc
+#include <mapnik/datasource_cache.hpp>     // for datasource_cache
+#include <mapnik/feature_layer_desc.hpp>   // for layer_descriptor
+#include <mapnik/params.hpp>               // for parameters
+#include <mapnik/query.hpp>                // for query
 
 // stl
 #include <exception>
@@ -45,34 +45,26 @@ void Datasource::Initialize(v8::Local<v8::Object> target) {
     constructor.Reset(lcons);
 }
 
-Datasource::Datasource() :
-    Nan::ObjectWrap(),
-    datasource_() {}
+Datasource::Datasource() : Nan::ObjectWrap(),
+                           datasource_() {}
 
-Datasource::~Datasource()
-{
+Datasource::~Datasource() {
 }
 
-NAN_METHOD(Datasource::New)
-{
-    if (!info.IsConstructCall())
-    {
+NAN_METHOD(Datasource::New) {
+    if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
     }
 
-    if (info[0]->IsExternal())
-    {
+    if (info[0]->IsExternal()) {
         v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
-        Datasource* d =  static_cast<Datasource*>(ptr);
-        if (d->datasource_->type() == mapnik::datasource::Raster)
-        {
+        Datasource* d = static_cast<Datasource*>(ptr);
+        if (d->datasource_->type() == mapnik::datasource::Raster) {
             info.This()->Set(Nan::New("type").ToLocalChecked(),
                              Nan::New("raster").ToLocalChecked());
-        }
-        else
-        {
+        } else {
             info.This()->Set(Nan::New("type").ToLocalChecked(),
                              Nan::New("vector").ToLocalChecked());
         }
@@ -80,14 +72,12 @@ NAN_METHOD(Datasource::New)
         info.GetReturnValue().Set(info.This());
         return;
     }
-    if (info.Length() != 1)
-    {
+    if (info.Length() != 1) {
         Nan::ThrowTypeError("accepts only one argument, an object of key:value datasource options");
         return;
     }
 
-    if (!info[0]->IsObject())
-    {
+    if (!info[0]->IsObject()) {
         Nan::ThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
         return;
     }
@@ -107,25 +97,18 @@ NAN_METHOD(Datasource::New)
     }
 
     mapnik::datasource_ptr ds;
-    try
-    {
+    try {
         ds = mapnik::datasource_cache::instance().create(params);
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
 
-    if (ds)
-    {
-        if (ds->type() == mapnik::datasource::Raster)
-        {
+    if (ds) {
+        if (ds->type() == mapnik::datasource::Raster) {
             info.This()->Set(Nan::New("type").ToLocalChecked(),
                              Nan::New("raster").ToLocalChecked());
-        }
-        else
-        {
+        } else {
             info.This()->Set(Nan::New("type").ToLocalChecked(),
                              Nan::New("vector").ToLocalChecked());
         }
@@ -152,14 +135,12 @@ v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     return scope.Escape(maybe_local.ToLocalChecked());
 }
 
-NAN_METHOD(Datasource::parameters)
-{
+NAN_METHOD(Datasource::parameters) {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.This());
     v8::Local<v8::Object> ds = Nan::New<v8::Object>();
     mapnik::parameters::const_iterator it = d->datasource_->params().begin();
     mapnik::parameters::const_iterator end = d->datasource_->params().end();
-    for (; it != end; ++it)
-    {
+    for (; it != end; ++it) {
         node_mapnik::params_to_object(ds, it->first, it->second);
     }
     info.GetReturnValue().Set(ds);
@@ -173,16 +154,12 @@ NAN_METHOD(Datasource::parameters)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
-NAN_METHOD(Datasource::extent)
-{
+NAN_METHOD(Datasource::extent) {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     mapnik::box2d<double> e;
-    try
-    {
+    try {
         e = d->datasource_->envelope();
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         // The only time this could possibly throw is situations
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
@@ -210,16 +187,12 @@ NAN_METHOD(Datasource::extent)
  * @returns {Object} description: an object with type, fields, encoding,
  * geometry_type, and proj4 code
  */
-NAN_METHOD(Datasource::describe)
-{
+NAN_METHOD(Datasource::describe) {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     v8::Local<v8::Object> description = Nan::New<v8::Object>();
-    try
-    {
-        node_mapnik::describe_datasource(description,d->datasource_);
-    }
-    catch (std::exception const& ex)
-    {
+    try {
+        node_mapnik::describe_datasource(description, d->datasource_);
+    } catch (std::exception const& ex) {
         // The only time this could possibly throw is situations
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
@@ -251,31 +224,25 @@ NAN_METHOD(Datasource::describe)
  *     features.push(feature);
  * }
  */
-NAN_METHOD(Datasource::featureset)
-{
+NAN_METHOD(Datasource::featureset) {
     Datasource* ds = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     mapnik::box2d<double> extent = ds->datasource_->envelope();
-    if (info.Length() > 0)
-    {
+    if (info.Length() > 0) {
         // options object
-        if (!info[0]->IsObject())
-        {
+        if (!info[0]->IsObject()) {
             Nan::ThrowTypeError("optional second argument must be an options object");
             return;
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("extent").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("extent").ToLocalChecked())) {
             v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());
-            if (!extent_opt->IsArray())
-            {
+            if (!extent_opt->IsArray()) {
                 Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
                 return;
             }
             v8::Local<v8::Array> bbox = extent_opt.As<v8::Array>();
             auto len = bbox->Length();
-            if (!(len == 4))
-            {
+            if (!(len == 4)) {
                 Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
                 return;
             }
@@ -283,31 +250,26 @@ NAN_METHOD(Datasource::featureset)
             v8::Local<v8::Value> miny = bbox->Get(1);
             v8::Local<v8::Value> maxx = bbox->Get(2);
             v8::Local<v8::Value> maxy = bbox->Get(3);
-            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
-            {
+            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber()) {
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                 return;
             }
-            extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                           maxx->NumberValue(),maxy->NumberValue());
+            extent = mapnik::box2d<double>(minx->NumberValue(), miny->NumberValue(),
+                                           maxx->NumberValue(), maxy->NumberValue());
         }
     }
 
     mapnik::featureset_ptr fs;
-    try
-    {
+    try {
         mapnik::query q(extent);
         mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
         auto const& desc = ld.get_descriptors();
-        for (auto const& attr_info : desc)
-        {
+        for (auto const& attr_info : desc) {
             q.add_property_name(attr_info.get_name());
         }
 
         fs = ds->datasource_->features(q);
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         // The only time this could possibly throw is situations
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
@@ -318,8 +280,7 @@ NAN_METHOD(Datasource::featureset)
         /* LCOV_EXCL_STOP */
     }
 
-    if (fs && mapnik::is_valid(fs))
-    {
+    if (fs && mapnik::is_valid(fs)) {
         info.GetReturnValue().Set(Featureset::NewInstance(fs));
     }
     // This should never be able to be reached
@@ -327,7 +288,6 @@ NAN_METHOD(Datasource::featureset)
     return;
     /* LCOV_EXCL_STOP */
 }
-
 
 /**
  * Get only the fields metadata from a dataset.
@@ -352,10 +312,9 @@ NAN_METHOD(Datasource::featureset)
  * //     LAT: 'Number'
  * // }
  */
-NAN_METHOD(Datasource::fields)
-{
+NAN_METHOD(Datasource::fields) {
     Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
     v8::Local<v8::Object> fields = Nan::New<v8::Object>();
-    node_mapnik::get_fields(fields,d->datasource_);
+    node_mapnik::get_fields(fields, d->datasource_);
     info.GetReturnValue().Set(fields);
 }

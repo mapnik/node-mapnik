@@ -1,7 +1,7 @@
 #include <mapnik/image.hpp>
-#include <mapnik/version.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/safe_cast.hpp>
+#include <mapnik/version.hpp>
 
 #include "zlib.h"
 
@@ -19,22 +19,19 @@
 #include <mapnik/webp_io.hpp>
 #endif
 
-#include "mapnik_palette.hpp"
 #include "blend.hpp"
+#include "mapnik_palette.hpp"
 #include "tint.hpp"
 #include "utils.hpp"
 
-#include <sstream>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <memory>
-
-
-
+#include <sstream>
 
 namespace node_mapnik {
 
-static bool hexToUInt32Color(char *hex, unsigned int & value) {
+static bool hexToUInt32Color(char* hex, unsigned int& value) {
     if (!hex) return false;
     std::size_t len_original = strlen(hex);
     // Return is the length of the string is less then six
@@ -69,16 +66,16 @@ NAN_METHOD(rgb2hsl) {
         Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
         return;
     }
-    unsigned r,g,b;
+    unsigned r, g, b;
     r = info[0]->IntegerValue();
     g = info[1]->IntegerValue();
     b = info[2]->IntegerValue();
     v8::Local<v8::Array> hsl = Nan::New<v8::Array>(3);
-    double h,s,l;
-    rgb_to_hsl(r,g,b,h,s,l);
-    hsl->Set(0,Nan::New<v8::Number>(h));
-    hsl->Set(1,Nan::New<v8::Number>(s));
-    hsl->Set(2,Nan::New<v8::Number>(l));
+    double h, s, l;
+    rgb_to_hsl(r, g, b, h, s, l);
+    hsl->Set(0, Nan::New<v8::Number>(h));
+    hsl->Set(1, Nan::New<v8::Number>(s));
+    hsl->Set(2, Nan::New<v8::Number>(l));
     info.GetReturnValue().Set(hsl);
 }
 
@@ -91,20 +88,20 @@ NAN_METHOD(hsl2rgb) {
         Nan::ThrowTypeError("Please pass hsl fractional values as three arguments");
         return;
     }
-    double h,s,l;
+    double h, s, l;
     h = info[0]->NumberValue();
     s = info[1]->NumberValue();
     l = info[2]->NumberValue();
     v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
-    unsigned r,g,b;
-    hsl_to_rgb(h,s,l,r,g,b);
-    rgb->Set(0,Nan::New<v8::Integer>(r));
-    rgb->Set(1,Nan::New<v8::Integer>(g));
-    rgb->Set(2,Nan::New<v8::Integer>(b));
+    unsigned r, g, b;
+    hsl_to_rgb(h, s, l, r, g, b);
+    rgb->Set(0, Nan::New<v8::Integer>(r));
+    rgb->Set(1, Nan::New<v8::Integer>(g));
+    rgb->Set(2, Nan::New<v8::Integer>(b));
     info.GetReturnValue().Set(rgb);
 }
 
-static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std::string & msg) {
+static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter& tinter, std::string& msg) {
     Nan::HandleScope scope;
     v8::Local<v8::Value> hue = tint->Get(Nan::New("h").ToLocalChecked());
     if (!hue.IsEmpty() && hue->IsArray()) {
@@ -173,14 +170,14 @@ static inline void Blend_CompositePixel(unsigned int& target, unsigned int const
     }
 }
 
-static inline void TintPixel(unsigned & r,
-                      unsigned & g,
-                      unsigned & b,
-                      Tinter const& tint) {
+static inline void TintPixel(unsigned& r,
+                             unsigned& g,
+                             unsigned& b,
+                             Tinter const& tint) {
     double h;
     double s;
     double l;
-    rgb_to_hsl(r,g,b,h,s,l);
+    rgb_to_hsl(r, g, b, h, s, l);
     double h2 = tint.h0 + (h * (tint.h1 - tint.h0));
     double s2 = tint.s0 + (s * (tint.s1 - tint.s0));
     double l2 = tint.l0 + (l * (tint.l1 - tint.l0));
@@ -190,12 +187,11 @@ static inline void TintPixel(unsigned & r,
     if (s2 < 0) s2 = 0;
     if (l2 > 1) l2 = 1;
     if (l2 < 0) l2 = 0;
-    hsl_to_rgb(h2,s2,l2,r,g,b);
+    hsl_to_rgb(h2, s2, l2, r, g, b);
 }
 
-
-static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *image) {
-    const unsigned int *source = image->im_ptr->data();
+static void Blend_Composite(unsigned int* target, BlendBaton* baton, BImage* image) {
+    const unsigned int* source = image->im_ptr->data();
 
     int sourceX = std::max(0, -image->x);
     int sourceY = std::max(0, -image->y);
@@ -215,16 +211,16 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
                 unsigned int const& source_pixel = source[sourcePos + x];
                 unsigned a = (source_pixel >> 24) & 0xff;
                 if (set_alpha) {
-                    double a2 = image->tint.a0 + (a/255.0 * (image->tint.a1 - image->tint.a0));
+                    double a2 = image->tint.a0 + (a / 255.0 * (image->tint.a1 - image->tint.a0));
                     if (a2 < 0) a2 = 0;
-                    a = static_cast<unsigned>(std::floor((a2 * 255.0)+.5));
+                    a = static_cast<unsigned>(std::floor((a2 * 255.0) + .5));
                     if (a > 255) a = 255;
                 }
                 unsigned r = source_pixel & 0xff;
-                unsigned g = (source_pixel >> 8 ) & 0xff;
+                unsigned g = (source_pixel >> 8) & 0xff;
                 unsigned b = (source_pixel >> 16) & 0xff;
                 if (a > 1 && tinting) {
-                    TintPixel(r,g,b,image->tint);
+                    TintPixel(r, g, b, image->tint);
                 }
                 unsigned int new_pixel = (a << 24) | (b << 16) | (g << 8) | (r);
                 Blend_CompositePixel(target[targetPos + x], new_pixel);
@@ -267,13 +263,13 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
                 if (baton->compression > 0) {
                     config.method = baton->compression;
                 }
-                mapnik::save_as_webp(baton->stream,image,config,alpha);
+                mapnik::save_as_webp(baton->stream, image, config, alpha);
             }
 #else
             baton->message = "Mapnik not built with webp support";
 #endif
         } else {
-            // Save as PNG.
+        // Save as PNG.
 #if defined(HAVE_PNG)
             mapnik::png_options opts;
             opts.compression = baton->compression;
@@ -299,8 +295,7 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
     }
 }
 
-void Work_Blend(uv_work_t* req)
-{
+void Work_Blend(uv_work_t* req) {
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
     bool alpha = true;
     int size = 0;
@@ -309,8 +304,7 @@ void Work_Blend(uv_work_t* req)
     // to decode all images if there's an opaque one.
     Images::reverse_iterator rit = baton->images.rbegin();
     Images::reverse_iterator rend = baton->images.rend();
-    for (; rit != rend; ++rit)
-    {
+    for (; rit != rend; ++rit) {
         // If an image that is higher than the current is opaque, stop all-together.
         if (!alpha) break;
         auto image = *rit;
@@ -363,17 +357,16 @@ void Work_Blend(uv_work_t* req)
         // Short-circuit when we're not reencoding.
         if (size == 0 && !layer_has_alpha && !baton->reencode &&
             image->x == 0 && image->y == 0 &&
-            (int)layer_width == baton->width && (int)layer_height == baton->height)
-        {
-            baton->stream.write((char *)image->data, image->dataLength);
+            (int)layer_width == baton->width && (int)layer_height == baton->height) {
+            baton->stream.write((char*)image->data, image->dataLength);
             return;
         }
 
         // allocate image for decoded pixels
-        std::unique_ptr<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
+        std::unique_ptr<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width, layer_height));
         // actually decode pixels now
         try {
-            image_reader->read(0,0,*im_ptr);
+            image_reader->read(0, 0, *im_ptr);
         } catch (std::exception const&) {
             baton->message = "Could not decode image";
             return;
@@ -391,7 +384,6 @@ void Work_Blend(uv_work_t* req)
         image->height = layer_height;
         image->im_ptr = std::move(im_ptr);
         ++size;
-
     }
 
     // Now blend images.
@@ -408,10 +400,8 @@ void Work_Blend(uv_work_t* req)
     if (alpha) {
         target.set(baton->matte);
     }
-    for (auto image_ptr : baton->images)
-    {
-        if (image_ptr && image_ptr->im_ptr.get())
-        {
+    for (auto image_ptr : baton->images) {
+        if (image_ptr && image_ptr->im_ptr.get()) {
             Blend_Composite(target.data(), baton, &*image_ptr);
         }
     }
@@ -426,13 +416,12 @@ void Work_AfterBlend(uv_work_t* req) {
         std::string result = baton->stream.str();
         v8::Local<v8::Value> argv[] = {
             Nan::Null(),
-            Nan::CopyBuffer((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
+            Nan::CopyBuffer((char*)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
     } else {
         v8::Local<v8::Value> argv[] = {
-            Nan::Error(baton->message.c_str())
-        };
+            Nan::Error(baton->message.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 1, argv);
     }
     delete baton;
@@ -500,7 +489,8 @@ NAN_METHOD(Blend) {
             std::string format_val_string = TOSTR(format_val);
             if (format_val_string == "jpeg" || format_val_string == "jpg") {
                 baton->format = BLEND_FORMAT_JPEG;
-                if (baton->quality == 0) baton->quality = 85; // 85 is same default as mapnik core jpeg
+                if (baton->quality == 0)
+                    baton->quality = 85; // 85 is same default as mapnik core jpeg
                 else if (baton->quality < 0 || baton->quality > 100) {
                     Nan::ThrowTypeError("JPEG quality is range 0-100.");
                     return;
@@ -512,7 +502,8 @@ NAN_METHOD(Blend) {
                 }
             } else if (format_val_string == "webp") {
                 baton->format = BLEND_FORMAT_WEBP;
-                if (baton->quality == 0) baton->quality = 80;
+                if (baton->quality == 0)
+                    baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
                     Nan::ThrowTypeError("WebP quality is range 0-100.");
                     return;
@@ -529,8 +520,7 @@ NAN_METHOD(Blend) {
 
         v8::Local<v8::Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            if (!hexToUInt32Color(*v8::String::Utf8Value(matte_val->ToString()), baton->matte))
-            {
+            if (!hexToUInt32Color(*v8::String::Utf8Value(matte_val->ToString()), baton->matte)) {
                 Nan::ThrowTypeError("Invalid batte provided.");
                 return;
             }
@@ -551,20 +541,16 @@ NAN_METHOD(Blend) {
             std::string mode_string = TOSTR(mode_val);
             if (mode_string == "octree" || mode_string == "o") {
                 baton->mode = BLEND_MODE_OCTREE;
-            }
-            else if (mode_string == "hextree" || mode_string == "h") {
+            } else if (mode_string == "hextree" || mode_string == "h") {
                 baton->mode = BLEND_MODE_HEXTREE;
             }
         }
 
         if (options->Has(Nan::New("compression").ToLocalChecked())) {
             v8::Local<v8::Value> compression_val = options->Get(Nan::New("compression").ToLocalChecked());
-            if (!compression_val.IsEmpty() && compression_val->IsNumber())
-            {
+            if (!compression_val.IsEmpty() && compression_val->IsNumber()) {
                 baton->compression = compression_val->Int32Value();
-            }
-            else
-            {
+            } else {
                 Nan::ThrowTypeError("Compression option must be a number");
                 return;
             }
@@ -599,8 +585,7 @@ NAN_METHOD(Blend) {
             // Directly pass through buffer if it's the only one.
             v8::Local<v8::Value> argv[] = {
                 Nan::Null(),
-                buffer
-            };
+                buffer};
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
             return;
         } else {
@@ -652,7 +637,7 @@ NAN_METHOD(Blend) {
                 if (!tint.IsEmpty()) {
                     baton->reencode = true;
                     std::string msg;
-                    parseTintOps(tint,image->tint,msg);
+                    parseTintOps(tint, image->tint, msg);
                     if (!msg.empty()) {
                         Nan::ThrowTypeError(msg.c_str());
                         return;
@@ -676,4 +661,4 @@ NAN_METHOD(Blend) {
     return;
 }
 
-}
+} // namespace node_mapnik

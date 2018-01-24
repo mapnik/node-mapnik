@@ -8,16 +8,16 @@
 #pragma GCC diagnostic pop
 
 // stl
-#include <string>
 #include <memory>
+#include <string>
 
-
-
-namespace mapnik { class layer; }
+namespace mapnik {
+class layer;
+}
 typedef std::shared_ptr<mapnik::layer> layer_ptr;
 
-class Layer: public Nan::ObjectWrap {
-public:
+class Layer : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -33,7 +33,7 @@ public:
     Layer();
     inline layer_ptr get() { return layer_; }
 
-private:
+  private:
     ~Layer();
     layer_ptr layer_;
 };
