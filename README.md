@@ -72,21 +72,21 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 OS|Node.js|C++ minimum requirements|OS versions
 ---|---|---|---
 Mac|v0.10.x, v4, v6, v8|C++11|Mac OS X > 10.10
-Linux|v0.10.x, v4, v6, v8|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.21 from libstdc++)
+Linux|v0.10.x, v4, v6, v8|C++11|Ubuntu Linux > 14.04 (trusty) or Centos >= 7 or other Linux distributions with a libstdc++ recent enough to contain >= GLIBCXX_3.4.19 symbols (libstdc++ that comes with at least g++ 4.8).
 Windows|v0.10.x, v4, v6, v8|C++11|See the [Windows requirements](https://github.com/mapnik/node-mapnik#windows-specific) section
 
 An installation error like below indicates your system does not have a modern enough libstdc++/gcc-base toolchain:
 
 ```
-Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.21 not found (required by /node_modules/osrm/lib/binding/osrm.node)
+Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.19 not found
 ```
 
-If you are running Ubuntu older than 16.04 you can easily upgrade your libstdc++ version like:
+If you are running Ubuntu older than 14.04 you can easily upgrade your libstdc++ version like:
 
 ```
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update -y
-sudo apt-get install -y libstdc++-5-dev
+sudo apt-get install -y libstdc++6
 ```
 
 To upgrade libstdc++ on travis (without sudo) you can do:
