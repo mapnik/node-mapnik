@@ -24,7 +24,7 @@ if [[ $(uname -s) == 'Darwin' ]]; then
     #   ==18464==ERROR: Interceptors are not working. This may be because AddressSanitizer is loaded too late (e.g. via dlopen).
     #
     DYLD_INSERT_LIBRARIES=${MASON_LLVM_RT_PRELOAD} \
-      node node_modules/.bin/tape test/*test.js
+      node node_modules/.bin/_mocha test/*test.js
 else
     LD_PRELOAD=${MASON_LLVM_RT_PRELOAD} \
       npm test
