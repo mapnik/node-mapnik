@@ -1,12 +1,12 @@
 // mapnik
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/image_view.hpp>        // for image_view, etc
-#include <mapnik/image_view_any.hpp>    // for image_view_any, etc
+#include <mapnik/color.hpp> // for color
 #include <mapnik/image_util.hpp>
+#include <mapnik/image_view.hpp>     // for image_view, etc
+#include <mapnik/image_view_any.hpp> // for image_view_any, etc
 
+#include "mapnik_color.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
-#include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
 #include "utils.hpp"
 
@@ -47,36 +47,30 @@ void ImageView::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "isSolidSync", isSolidSync);
     Nan::SetPrototypeMethod(lcons, "getPixel", getPixel);
 
-    target->Set(Nan::New("ImageView").ToLocalChecked(),lcons->GetFunction());
+    target->Set(Nan::New("ImageView").ToLocalChecked(), lcons->GetFunction());
     constructor.Reset(lcons);
 }
 
+ImageView::ImageView(Image* JSImage) : Nan::ObjectWrap(),
+                                       this_(),
+                                       JSImage_(JSImage) {
+    JSImage_->_ref();
+}
 
-ImageView::ImageView(Image * JSImage) :
-    Nan::ObjectWrap(),
-    this_(),
-    JSImage_(JSImage) {
-        JSImage_->_ref();
-    }
-
-ImageView::~ImageView()
-{
+ImageView::~ImageView() {
     JSImage_->_unref();
 }
 
-NAN_METHOD(ImageView::New)
-{
-    if (!info.IsConstructCall())
-    {
+NAN_METHOD(ImageView::New) {
+    if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
     }
 
-    if (info[0]->IsExternal())
-    {
+    if (info[0]->IsExternal()) {
         v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
-        ImageView* im =  static_cast<ImageView*>(ptr);
+        ImageView* im = static_cast<ImageView*>(ptr);
         im->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
@@ -87,16 +81,14 @@ NAN_METHOD(ImageView::New)
     return;
 }
 
-v8::Local<v8::Value> ImageView::NewInstance(Image * JSImage ,
-                             unsigned x,
-                             unsigned y,
-                             unsigned w,
-                             unsigned h
-    )
-{
+v8::Local<v8::Value> ImageView::NewInstance(Image* JSImage,
+                                            unsigned x,
+                                            unsigned y,
+                                            unsigned w,
+                                            unsigned h) {
     Nan::EscapableHandleScope scope;
     ImageView* imv = new ImageView(JSImage);
-    imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
+    imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()), x, y, w, h));
     v8::Local<v8::Value> ext = Nan::New<v8::External>(imv);
     Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new ImageView instance");
@@ -112,8 +104,7 @@ typedef struct {
     bool result;
 } is_solid_image_view_baton_t;
 
-NAN_METHOD(ImageView::isSolid)
-{
+NAN_METHOD(ImageView::isSolid) {
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
 
     if (info.Length() == 0) {
@@ -122,12 +113,12 @@ NAN_METHOD(ImageView::isSolid)
     }
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
+    if (!info[info.Length() - 1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
     }
 
-    is_solid_image_view_baton_t *closure = new is_solid_image_view_baton_t();
+    is_solid_image_view_baton_t* closure = new is_solid_image_view_baton_t();
     closure->request.data = closure;
     closure->im = im;
     closure->result = true;
@@ -138,27 +129,21 @@ NAN_METHOD(ImageView::isSolid)
     return;
 }
 
-void ImageView::EIO_IsSolid(uv_work_t* req)
-{
-    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0)
-    {
+void ImageView::EIO_IsSolid(uv_work_t* req) {
+    is_solid_image_view_baton_t* closure = static_cast<is_solid_image_view_baton_t*>(req->data);
+    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0) {
         closure->result = mapnik::is_solid(*(closure->im->this_));
-    }
-    else
-    {
+    } else {
         closure->error = true;
         closure->error_name = "image does not have valid dimensions";
     }
 }
 
-struct visitor_get_pixel_view
-{
+struct visitor_get_pixel_view {
     visitor_get_pixel_view(int x, int y)
         : x_(x), y_(y) {}
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_null const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_null const& data) {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
         /* LCOV_EXCL_START */
@@ -167,78 +152,67 @@ struct visitor_get_pixel_view
         /* LCOV_EXCL_STOP */
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray8 const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray8 const& data) {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Uint32>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray8s const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray8s const& data) {
         Nan::EscapableHandleScope scope;
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Int32>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray16 const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray16 const& data) {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Uint32>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray16s const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray16s const& data) {
         Nan::EscapableHandleScope scope;
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Int32>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray32 const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray32 const& data) {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Uint32>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray32s const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray32s const& data) {
         Nan::EscapableHandleScope scope;
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Int32>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray32f const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray32f const& data) {
         Nan::EscapableHandleScope scope;
         double val = mapnik::get_pixel<double>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray64 const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray64 const& data) {
         Nan::EscapableHandleScope scope;
         std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray64s const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray64s const& data) {
         Nan::EscapableHandleScope scope;
         std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray64f const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_gray64f const& data) {
         Nan::EscapableHandleScope scope;
         double val = mapnik::get_pixel<double>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Number>(val));
     }
 
-    v8::Local<v8::Value> operator() (mapnik::image_view_rgba8 const& data)
-    {
+    v8::Local<v8::Value> operator()(mapnik::image_view_rgba8 const& data) {
         Nan::EscapableHandleScope scope;
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
         return scope.Escape(Nan::New<v8::Number>(val));
@@ -247,30 +221,24 @@ struct visitor_get_pixel_view
   private:
     int x_;
     int y_;
-
 };
 
-void ImageView::EIO_AfterIsSolid(uv_work_t* req)
-{
+void ImageView::EIO_AfterIsSolid(uv_work_t* req) {
     Nan::HandleScope scope;
-    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
+    is_solid_image_view_baton_t* closure = static_cast<is_solid_image_view_baton_t*>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(closure->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-    }
-    else
-    {
-        if (closure->result)
-        {
-            v8::Local<v8::Value> argv[3] = { Nan::Null(),
-                                     Nan::New(closure->result),
-                                     mapnik::util::apply_visitor(visitor_get_pixel_view(0,0),*(closure->im->this_)),
+    } else {
+        if (closure->result) {
+            v8::Local<v8::Value> argv[3] = {
+                Nan::Null(),
+                Nan::New(closure->result),
+                mapnik::util::apply_visitor(visitor_get_pixel_view(0, 0), *(closure->im->this_)),
             };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
-        }
-        else
-        {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New(closure->result) };
+        } else {
+            v8::Local<v8::Value> argv[2] = {Nan::Null(), Nan::New(closure->result)};
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
@@ -279,30 +247,22 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
     delete closure;
 }
 
-
-NAN_METHOD(ImageView::isSolidSync)
-{
+NAN_METHOD(ImageView::isSolidSync) {
     info.GetReturnValue().Set(_isSolidSync(info));
 }
 
-v8::Local<v8::Value> ImageView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
-{
+v8::Local<v8::Value> ImageView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info) {
     Nan::EscapableHandleScope scope;
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    if (im->this_->width() > 0 && im->this_->height() > 0)
-    {
+    if (im->this_->width() > 0 && im->this_->height() > 0) {
         return scope.Escape(Nan::New<v8::Boolean>(mapnik::is_solid(*(im->this_))));
-    }
-    else
-    {
+    } else {
         Nan::ThrowTypeError("image does not have valid dimensions");
         return scope.Escape(Nan::Undefined());
     }
 }
 
-
-NAN_METHOD(ImageView::getPixel)
-{
+NAN_METHOD(ImageView::getPixel) {
     int x = 0;
     int y = 0;
     bool get_color = false;
@@ -324,7 +284,6 @@ NAN_METHOD(ImageView::getPixel)
             }
             get_color = bind_opt->BooleanValue();
         }
-
     }
 
     if (info.Length() >= 2) {
@@ -344,11 +303,8 @@ NAN_METHOD(ImageView::getPixel)
     }
 
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    if (x >= 0 && x < static_cast<int>(im->this_->width())
-        && y >=0 && y < static_cast<int>(im->this_->height()))
-    {
-        if (get_color)
-        {
+    if (x >= 0 && x < static_cast<int>(im->this_->width()) && y >= 0 && y < static_cast<int>(im->this_->height())) {
+        if (get_color) {
             mapnik::color val = mapnik::get_pixel<mapnik::color>(*im->this_, x, y);
             info.GetReturnValue().Set(Color::NewInstance(val));
         } else {
@@ -359,22 +315,17 @@ NAN_METHOD(ImageView::getPixel)
     return;
 }
 
-
-NAN_METHOD(ImageView::width)
-{
+NAN_METHOD(ImageView::width) {
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->width())));
 }
 
-NAN_METHOD(ImageView::height)
-{
+NAN_METHOD(ImageView::height) {
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
     info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->height())));
 }
 
-
-NAN_METHOD(ImageView::encodeSync)
-{
+NAN_METHOD(ImageView::encodeSync) {
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
 
     std::string format = "png";
@@ -398,8 +349,7 @@ NAN_METHOD(ImageView::encodeSync)
 
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("palette").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
@@ -418,18 +368,14 @@ NAN_METHOD(ImageView::encodeSync)
 
     try {
         std::string s;
-        if (palette.get())
-        {
+        if (palette.get()) {
             s = save_to_string(*(im->this_), format, *palette);
-        }
-        else {
+        } else {
             s = save_to_string(*(im->this_), format);
         }
 
-        info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(),s.size()).ToLocalChecked());
-    }
-    catch (std::exception const& ex)
-    {
+        info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
         return;
     }
@@ -445,16 +391,14 @@ typedef struct {
     std::string result;
 } encode_image_view_baton_t;
 
-
-NAN_METHOD(ImageView::encode)
-{
+NAN_METHOD(ImageView::encode) {
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
 
     std::string format = "png";
     palette_ptr palette;
 
     // accept custom format
-    if (info.Length() > 1){
+    if (info.Length() > 1) {
         if (!info[0]->IsString()) {
             Nan::ThrowTypeError("first arg, 'format' must be a string");
             return;
@@ -471,8 +415,7 @@ NAN_METHOD(ImageView::encode)
 
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
-        {
+        if (options->Has(Nan::New("palette").ToLocalChecked())) {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
@@ -491,12 +434,12 @@ NAN_METHOD(ImageView::encode)
 
     // ensure callback is a function
     v8::Local<v8::Value> callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
+    if (!info[info.Length() - 1]->IsFunction()) {
         Nan::ThrowTypeError("last argument must be a callback function");
         return;
     }
 
-    encode_image_view_baton_t *baton = new encode_image_view_baton_t();
+    encode_image_view_baton_t* baton = new encode_image_view_baton_t();
     baton->request.data = baton;
     baton->im = im;
     baton->format = format;
@@ -507,39 +450,30 @@ NAN_METHOD(ImageView::encode)
     return;
 }
 
-void ImageView::AsyncEncode(uv_work_t* req)
-{
-    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
+void ImageView::AsyncEncode(uv_work_t* req) {
+    encode_image_view_baton_t* baton = static_cast<encode_image_view_baton_t*>(req->data);
 
     try {
-        if (baton->palette.get())
-        {
+        if (baton->palette.get()) {
             baton->result = save_to_string(*(baton->im->this_), baton->format, *baton->palette);
-        }
-        else
-        {
+        } else {
             baton->result = save_to_string(*(baton->im->this_), baton->format);
         }
-    }
-    catch (std::exception const& ex)
-    {
+    } catch (std::exception const& ex) {
         baton->error_name = ex.what();
     }
 }
 
-void ImageView::AfterEncode(uv_work_t* req)
-{
+void ImageView::AfterEncode(uv_work_t* req) {
     Nan::HandleScope scope;
 
-    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
+    encode_image_view_baton_t* baton = static_cast<encode_image_view_baton_t*>(req->data);
 
     if (!baton->error_name.empty()) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(baton->error_name.c_str()) };
+        v8::Local<v8::Value> argv[1] = {Nan::Error(baton->error_name.c_str())};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 1, argv);
-    }
-    else
-    {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)baton->result.data(), baton->result.size()).ToLocalChecked() };
+    } else {
+        v8::Local<v8::Value> argv[2] = {Nan::Null(), Nan::CopyBuffer((char*)baton->result.data(), baton->result.size()).ToLocalChecked()};
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 2, argv);
     }
 
@@ -548,10 +482,8 @@ void ImageView::AfterEncode(uv_work_t* req)
     delete baton;
 }
 
-
-NAN_METHOD(ImageView::save)
-{
-    if (info.Length() == 0 || !info[0]->IsString()){
+NAN_METHOD(ImageView::save) {
+    if (info.Length() == 0 || !info[0]->IsString()) {
         Nan::ThrowTypeError("filename required");
         return;
     }
@@ -576,12 +508,9 @@ NAN_METHOD(ImageView::save)
     }
 
     ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    try
-    {
-        save_to_file(*im->this_,filename);
-    }
-    catch (std::exception const& ex)
-    {
+    try {
+        save_to_file(*im->this_, filename);
+    } catch (std::exception const& ex) {
         Nan::ThrowError(ex.what());
     }
     return;

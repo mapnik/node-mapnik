@@ -1,18 +1,18 @@
 #ifndef __NODE_MAPNIK_OBJECT_TO_CONTAINER__
 #define __NODE_MAPNIK_OBJECT_TO_CONTAINER__
 
-#include <mapnik/version.hpp>
+#include "utils.hpp"
 #include <mapnik/attribute.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/value_types.hpp>
+#include <mapnik/version.hpp>
 
-static inline void object_to_container(mapnik::attributes & cont, v8::Local<v8::Object> const& vars)
-{
+static inline void object_to_container(mapnik::attributes& cont, v8::Local<v8::Object> const& vars) {
     v8::Local<v8::Array> names = vars->GetPropertyNames();
     std::size_t a_length = names->Length();
     mapnik::transcoder tr("utf8");
     cont.reserve(a_length);
-    for(std::size_t i=0; i < a_length; ++i) {
+    for (std::size_t i = 0; i < a_length; ++i) {
         v8::Local<v8::Value> name = names->Get(i)->ToString();
         v8::Local<v8::Value> value = vars->Get(name);
         if (value->IsBoolean()) {

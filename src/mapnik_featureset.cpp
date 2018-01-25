@@ -24,27 +24,22 @@ void Featureset::Initialize(v8::Local<v8::Object> target) {
     constructor.Reset(lcons);
 }
 
-Featureset::Featureset() :
-    Nan::ObjectWrap(),
-    this_() {}
+Featureset::Featureset() : Nan::ObjectWrap(),
+                           this_() {}
 
-Featureset::~Featureset()
-{
+Featureset::~Featureset() {
 }
 
-NAN_METHOD(Featureset::New)
-{
-    if (!info.IsConstructCall())
-    {
+NAN_METHOD(Featureset::New) {
+    if (!info.IsConstructCall()) {
         Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
         return;
     }
 
-    if (info[0]->IsExternal())
-    {
+    if (info[0]->IsExternal()) {
         v8::Local<v8::External> ext = info[0].As<v8::External>();
         void* ptr = ext->Value();
-        Featureset* fs =  static_cast<Featureset*>(ptr);
+        Featureset* fs = static_cast<Featureset*>(ptr);
         fs->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
@@ -63,17 +58,13 @@ NAN_METHOD(Featureset::New)
  * @memberof Featureset
  * @returns {mapnik.Feature|null} next feature
  */
-NAN_METHOD(Featureset::next)
-{
+NAN_METHOD(Featureset::next) {
     Featureset* fs = Nan::ObjectWrap::Unwrap<Featureset>(info.Holder());
     if (fs->this_) {
         mapnik::feature_ptr fp;
-        try
-        {
+        try {
             fp = fs->this_->next();
-        }
-        catch (std::exception const& ex)
-        {
+        } catch (std::exception const& ex) {
             // It is not immediately obvious how this could cause an exception, a check of featureset plugin
             // implementations resulted in no obvious way that an exception could be raised. Therefore, it
             // is not obvious currently what could raise this exception. However, since a plugin could possibly
@@ -92,8 +83,7 @@ NAN_METHOD(Featureset::next)
     return;
 }
 
-v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp)
-{
+v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp) {
     Nan::EscapableHandleScope scope;
     Featureset* fs = new Featureset();
     fs->this_ = fsp;

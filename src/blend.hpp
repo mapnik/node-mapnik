@@ -8,27 +8,26 @@
 #pragma GCC diagnostic pop
 
 // stl
+#include "mapnik_palette.hpp"
+#include "tint.hpp"
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <memory>
-#include "mapnik_palette.hpp"
-#include "tint.hpp"
 
 namespace node_mapnik {
 
 struct BImage {
-    BImage() :
-        data(NULL),
-        dataLength(0),
-        x(0),
-        y(0),
-        width(0),
-        height(0),
-        tint(),
-        im_ptr(nullptr) {}
+    BImage() : data(NULL),
+               dataLength(0),
+               x(0),
+               y(0),
+               width(0),
+               height(0),
+               tint(),
+               im_ptr(nullptr) {}
     Nan::Persistent<v8::Object> buffer;
-    const char * data;
+    const char* data;
     size_t dataLength;
     int x;
     int y;
@@ -73,27 +72,25 @@ struct BlendBaton {
     AlphaMode mode;
     std::ostringstream stream;
 
-    BlendBaton() :
-        quality(0),
-        format(BLEND_FORMAT_PNG),
-        reencode(false),
-        width(0),
-        height(0),
-        matte(0),
-        compression(-1),
-        mode(BLEND_MODE_HEXTREE),
-        stream(std::ios::out | std::ios::binary)
-    {
+    BlendBaton() : quality(0),
+                   format(BLEND_FORMAT_PNG),
+                   reencode(false),
+                   width(0),
+                   height(0),
+                   matte(0),
+                   compression(-1),
+                   mode(BLEND_MODE_HEXTREE),
+                   stream(std::ios::out | std::ios::binary) {
         this->request.data = this;
     }
 
-    ~BlendBaton()
-    {
-        for (auto const& image : images) if (image) image->buffer.Reset();
+    ~BlendBaton() {
+        for (auto const& image : images)
+            if (image) image->buffer.Reset();
         callback.Reset();
     }
 };
 
-}
+} // namespace node_mapnik
 
 #endif // NODE_MAPNIK_BLEND_HPP

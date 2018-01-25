@@ -8,18 +8,17 @@
 #pragma GCC diagnostic pop
 
 // stl
-#include <string>
 #include <memory>
+#include <string>
 
-
-
-namespace mapnik { class Map; }
+namespace mapnik {
+class Map;
+}
 
 typedef std::shared_ptr<mapnik::Map> map_ptr;
 
-class Map: public Nan::ObjectWrap {
-public:
-
+class Map : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -93,7 +92,7 @@ public:
 
     inline map_ptr get() { return map_; }
 
-private:
+  private:
     ~Map();
     map_ptr map_;
     bool in_use_;

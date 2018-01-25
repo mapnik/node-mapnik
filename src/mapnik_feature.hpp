@@ -10,13 +10,11 @@
 #include <memory>
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
+#include <mapnik/version.hpp>
 
-
-
-class Feature: public Nan::ObjectWrap {
-public:
+class Feature : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -35,7 +33,7 @@ public:
     Feature(int id);
     inline mapnik::feature_ptr get() { return this_; }
 
-private:
+  private:
     ~Feature();
     mapnik::feature_ptr this_;
     mapnik::context_ptr ctx_;

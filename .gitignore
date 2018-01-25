@@ -21,3 +21,6 @@ package
 documentation
 mason/
 mason_packages/
+.mason
+local.env
+.toolchain

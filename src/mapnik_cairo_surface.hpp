@@ -7,8 +7,8 @@
 #include <nan.h>
 #pragma GCC diagnostic pop
 
-#include <string>
 #include <sstream>
+#include <string>
 
 // cairo
 #if defined(HAVE_CAIRO)
@@ -17,10 +17,8 @@
 #define cairo_status_t int
 #endif
 
-
-
-class CairoSurface: public Nan::ObjectWrap {
-public:
+class CairoSurface : public Nan::ObjectWrap {
+  public:
     typedef std::stringstream i_stream;
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
@@ -31,13 +29,11 @@ public:
     void _ref() { Ref(); }
     void _unref() { Unref(); }
     CairoSurface(std::string const& format, unsigned int width, unsigned int height);
-    static cairo_status_t write_callback(void *closure,
-                                         const unsigned char *data,
-                                         unsigned int length)
-    {
+    static cairo_status_t write_callback(void* closure,
+                                         const unsigned char* data,
+                                         unsigned int length) {
 #if defined(HAVE_CAIRO)
-        if (!closure)
-        {
+        if (!closure) {
             // Since the closure here is the passing of the std::stringstream "i_stream" of this
             // class it is unlikely that this could ever be reached unless something was very wrong
             // and went out of scope, aka it was improperly programmed. Therefore, it is not possible
@@ -47,7 +43,7 @@ public:
             /* LCOV_EXCL_STOP */
         }
         i_stream* fin = reinterpret_cast<i_stream*>(closure);
-        *fin << std::string((const char*)data,(size_t)length);
+        *fin << std::string((const char*)data, (size_t)length);
         return CAIRO_STATUS_SUCCESS;
 #else
         return 11; // CAIRO_STATUS_WRITE_ERROR
@@ -56,7 +52,8 @@ public:
     unsigned width() { return width_; }
     unsigned height() { return height_; }
     mutable i_stream ss_;
-private:
+
+  private:
     unsigned width_;
     unsigned height_;
     std::string format_;

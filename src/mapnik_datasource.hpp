@@ -9,14 +9,14 @@
 
 #include <memory>
 
-
-
-namespace mapnik { class datasource; }
+namespace mapnik {
+class datasource;
+}
 
 typedef std::shared_ptr<mapnik::datasource> datasource_ptr;
 
-class Datasource: public Nan::ObjectWrap {
-public:
+class Datasource : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -31,7 +31,7 @@ public:
     Datasource();
     inline datasource_ptr get() { return datasource_; }
 
-private:
+  private:
     ~Datasource();
     datasource_ptr datasource_;
 };

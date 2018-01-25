@@ -14,16 +14,15 @@
 
 class Grid;
 
-
 typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
-class GridView: public Nan::ObjectWrap {
-public:
+class GridView : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(Grid * JSGrid,
-                             unsigned x,unsigned y, unsigned w, unsigned h);
+    static v8::Local<v8::Value> NewInstance(Grid* JSGrid,
+                                            unsigned x, unsigned y, unsigned w, unsigned h);
 
     static NAN_METHOD(encodeSync);
     static NAN_METHOD(encode);
@@ -40,13 +39,13 @@ public:
     static NAN_METHOD(isSolidSync);
     static NAN_METHOD(getPixel);
 
-    GridView(Grid * JSGrid);
+    GridView(Grid* JSGrid);
     inline grid_view_ptr get() { return this_; }
 
-private:
+  private:
     ~GridView();
     grid_view_ptr this_;
-    Grid * JSGrid_;
+    Grid* JSGrid_;
 };
 
 #endif

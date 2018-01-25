@@ -8,18 +8,20 @@
 #pragma GCC diagnostic pop
 
 // stl
-#include <string>
 #include <memory>
+#include <string>
 
-namespace mapnik { class proj_transform; }
-namespace mapnik { class projection; }
-
-
+namespace mapnik {
+class proj_transform;
+}
+namespace mapnik {
+class projection;
+}
 
 typedef std::shared_ptr<mapnik::projection> proj_ptr;
 
-class Projection: public Nan::ObjectWrap {
-public:
+class Projection : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -31,15 +33,15 @@ public:
 
     inline proj_ptr get() { return projection_; }
 
-private:
+  private:
     ~Projection();
     proj_ptr projection_;
 };
 
 typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 
-class ProjTransform: public Nan::ObjectWrap {
-public:
+class ProjTransform : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -55,11 +57,9 @@ public:
     void _ref() { Ref(); }
     void _unref() { Unref(); }
 
-private:
+  private:
     ~ProjTransform();
     proj_tr_ptr this_;
 };
 
-
 #endif
-

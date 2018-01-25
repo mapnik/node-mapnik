@@ -10,12 +10,10 @@
 #include <mapnik/featureset.hpp>
 #include <memory>
 
-
-
 typedef mapnik::featureset_ptr fs_ptr;
 
-class Featureset: public Nan::ObjectWrap {
-public:
+class Featureset : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -24,7 +22,7 @@ public:
 
     Featureset();
 
-private:
+  private:
     ~Featureset();
     fs_ptr this_;
 };

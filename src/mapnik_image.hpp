@@ -9,17 +9,15 @@
 
 #include <memory>
 
-
-
-namespace mapnik { 
-    struct image_any; 
-    enum image_dtype : std::uint8_t;
-}
+namespace mapnik {
+struct image_any;
+enum image_dtype : std::uint8_t;
+} // namespace mapnik
 
 typedef std::shared_ptr<mapnik::image_any> image_ptr;
 
-class Image: public Nan::ObjectWrap {
-public:
+class Image : public Nan::ObjectWrap {
+  public:
     static Nan::Persistent<v8::FunctionTemplate> constructor;
     static void Initialize(v8::Local<v8::Object> target);
     static NAN_METHOD(New);
@@ -108,7 +106,7 @@ public:
     static v8::Local<v8::Value> _resizeSync(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(resizeSync);
     static NAN_METHOD(data);
-    
+
     static NAN_GETTER(get_scaling);
     static NAN_SETTER(set_scaling);
     static NAN_GETTER(get_offset);
@@ -121,7 +119,7 @@ public:
     Image(image_ptr this_);
     inline image_ptr get() { return this_; }
 
-private:
+  private:
     ~Image();
     image_ptr this_;
 };
