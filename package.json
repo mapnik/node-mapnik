@@ -5,7 +5,7 @@
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
   "version": "3.6.3",
-  "mapnik_version": "v3.0.17",
+  "mapnik_version": "v3.0.18",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
