@@ -2,6 +2,7 @@
   'includes': [ 'common.gypi' ],
   'variables': {
       'ENABLE_GLIBC_WORKAROUND%':'false', # can be overriden by a command line variable because of the % sign
+      'enable_sse%':'true' 
   },
   'targets': [
     {
@@ -112,7 +113,10 @@
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
             }
           },
-        ]
+        ],
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
       ]
     },
     {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.0.0-dev
+
+Updated to 3.0.18 of mapnik. See [here](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md).
+
+- Updated to mapnik-vector-tile@1.6.0
+- Removed windows support (https://github.com/mapnik/node-mapnik/issues/848)
+
 ## 3.6.2
 
 Updated to 3.0.15 of mapnik. The full changelog for this release is located [here](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md#3015). 

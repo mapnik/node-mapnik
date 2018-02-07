@@ -175,6 +175,13 @@ Then run (within the cloned `node-mapnik` directory:
 
     make release_base
 
+#### Note on SSE:
+
+By default node mapnik is built with SSE support. If you are building on a platform that is not `x86_64` you will need to disable feature by setting the environment variable `SSE_MATH=false`.
+
+```
+SSE_MATH=false make
+```
 
 ### Windows specific
 
