@@ -2762,7 +2762,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  * `FeatureCollection` with all layers smooshed inside
  * @returns {string} stringified GeoJSON of all the features in this tile.
  * @example
- * var geojson = vectorTile.toGeoJSONSync();
+ * var geojson = vectorTile.toGeoJSONSync('__all__');
  * geojson // stringified GeoJSON
  * JSON.parse(geojson); // GeoJSON object
  */
@@ -2992,7 +2992,7 @@ struct to_geojson_baton
  * @param {Function} callback - `function(err, geojson)`: a stringified
  * GeoJSON of all the features in this tile
  * @example
- * vectorTile.toGeoJSON(function(err, geojson) {
+ * vectorTile.toGeoJSON('__all__',function(err, geojson) {
  *   if (err) throw err;
  *   console.log(geojson); // stringified GeoJSON
  *   console.log(JSON.parse(geojson)); // GeoJSON object
