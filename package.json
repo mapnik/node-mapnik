@@ -4,8 +4,8 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "3.6.2",
-  "mapnik_version":"v3.0.15",
+  "version": "3.7.0-dev-98c26bc",
+  "mapnik_version": "98c26bc",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -36,27 +36,27 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "mapnik-vector-tile": "1.4.0",
+    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/master",
     "protozero": "1.5.1",
     "nan": "~2.5.0",
     "node-pre-gyp": "~0.6.30"
   },
   "bundledDependencies": [
-      "node-pre-gyp"
+    "node-pre-gyp"
   ],
   "bin": {
+    "mapnik-index.js": "./bin/mapnik-index.js",
     "mapnik-inspect.js": "./bin/mapnik-inspect.js",
     "mapnik-render.js": "./bin/mapnik-render.js",
     "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
   },
   "scripts": {
-    "prepublish": "npm ls",
+    "prepublishOnly": "npm ls",
     "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
-    "node-gyp": "^3.6.1",
     "aws-sdk": "2.0.12",
     "jshint": "^2.5.10",
     "mocha": "2.x",

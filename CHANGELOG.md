@@ -20,6 +20,7 @@ Due to changes in the mapnik core version during this update you should see some
 - Fixed tests around zlib compression and decompression when comparing to node's implementation
 - Fixes rare situation of seg faults during mapnik-vector-tile image processing.
 - Corrects the resolution of images in mapnik-vector-tile when using parameters from postgis plugin.
+- Updated to use `font_engine` `instance()` method explicitely, reflecting on changes brought by [3688](https://github.com/mapnik/mapnik/pull/3688)
 
 ## 3.6.0
 

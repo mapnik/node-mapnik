@@ -195,7 +195,8 @@ describe('mapnik.Map', function() {
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {strict: 12 }); });
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {base: 12 }); });
         assert.throws(function() { map.loadSync('./test/stylesheet.xml', {base: '/DOESNOTEXIST' }); });
-
+        // replace map with the new one
+        map = new mapnik.Map(600,400);
         // Test loading a sample world map
         map.loadSync('./test/stylesheet.xml');
 

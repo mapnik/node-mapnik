@@ -75,6 +75,12 @@ SET PROJ_LIB=%MAPNIK_SDK%\share\proj
 SET GDAL_DATA=%MAPNIK_SDK%\share\gdal
 SET ICU_DATA=%MAPNIK_SDK%\share\icu
 
+:: workaround node-gyp/request node v0.10.x breakage
+IF "%nodejs_version:~0,1%"=="0" npm install https://github.com/springmeyer/node-gyp/tarball/v3.x
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF "%nodejs_version:~0,1%"=="4" npm install node-gyp@4.x
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
 :: actually install deps + compile node-mapnik
 ECHO building node-mapnik
 :: --msvs_version=2015 is passed along to node-gyp here

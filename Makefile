@@ -2,24 +2,39 @@ MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.mod
 
 default: release
 
+ifneq (,$(findstring clang,$(CXX)))
+    PROFILING_FLAG += -gline-tables-only
+else
+    PROFILING_FLAG += -g
+endif
+
 deps/geometry/include/mapbox/geometry.hpp:
 	git submodule update --init
 
-mason_packages/.link/bin/mapnik-config: deps/geometry/include/mapbox/geometry.hpp
-	./install_mason.sh
-
-node_modules: mason_packages/.link/bin/mapnik-config
-	# install deps but for now ignore our own install script
-	# so that we can run it directly in either debug or release
+node_modules:
 	npm install --ignore-scripts --clang
 
-release: node_modules
-	PATH="./mason_packages/.link/bin/:${PATH}" && V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --clang
+mason_packages/.link/bin/mapnik-config:
+	./scripts/install_deps.sh
+
+pre_build_check:
+	@node -e "console.log('\033[94mNOTICE: to build from source you need mapnik >=',require('./package.json').mapnik_version,'\033[0m');"
+	@echo "Looking for mapnik-config on your PATH..."
+	mapnik-config -v
+
+release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
+	V=1 CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
-debug: node_modules
-	PATH="./mason_packages/.link/bin/:${PATH}" && V=1 ./node_modules/.bin/node-pre-gyp configure build --loglevel=error --debug --clang
+debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --loglevel=error --debug --clang
 	@echo "run 'make clean' for full rebuild"
+
+release: mason_packages/.link/bin/mapnik-config
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
+
+debug: mason_packages/.link/bin/mapnik-config
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="./mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
 
 coverage:
 	./scripts/coverage.sh
@@ -49,6 +64,8 @@ docs:
 
 test:
 	npm test
+
+check: test
 
 testpack:
 	rm -f ./*tgz
