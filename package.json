@@ -36,7 +36,7 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "mapnik-vector-tile": "1.4.0",
+    "mapnik-vector-tile": "1.6.0",
     "protozero": "1.5.1",
     "nan": "~2.8.0",
     "node-pre-gyp": "~0.6.30"
