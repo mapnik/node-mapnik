@@ -125,6 +125,9 @@ void Image::Initialize(v8::Local<v8::Object> target) {
                     "openSync",
                     Image::openSync);
     Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+                    "parseSVGMetaBytesSync",
+                    Image::parseSVGMetaBytesSync);
+    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
                     "fromBytesSync",
                     Image::fromBytesSync);
     Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
@@ -2526,11 +2529,77 @@ void Image::EIO_AfterOpen(uv_work_t* req)
 }
 
 /**
+ * parse metadata for an SVG from a buffer (synchronous)
+ * @name parseSVGMetaBytesSync
+ * @memberof Image
+ * @static
+ * @param {Buffer} buffer - buffer of SVG image
+ * @returns {Object} [metadata] - an object with width and height
+ * @example
+ * var buffer = fs.readFileSync('./path/to/image.svg');
+ * var metadata = mapnik.Image.parseSVGMetaBytesSync(buffer);
+ */
+NAN_METHOD(Image::parseSVGMetaBytesSync)
+{
+    if (info.Length() == 0 || !info[0]->IsObject()) {
+      Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
+      return;
+    }
+
+    v8::Local<v8::Object> obj = info[0]->ToObject();
+    if (!node::Buffer::HasInstance(obj)) {
+        Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
+        return;
+    }
+
+    try
+    {
+        using namespace mapnik::svg;
+        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
+        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
+        svg_path_adapter svg_path(stl_storage);
+        svg_converter_type svg(svg_path, marker_path->attributes());
+        svg_parser p(svg);
+
+        std::string svg_buffer(node::Buffer::Data(obj), node::Buffer::Length(obj));
+        if (!p.parse_from_string(svg_buffer))
+        {
+            std::ostringstream errorMessage("");
+            errorMessage << "SVG parse error:" << std::endl;
+            auto const& errors = p.error_messages();
+            for (auto error : errors) {
+                errorMessage <<  error << std::endl;
+            }
+            Nan::ThrowTypeError(errorMessage.str().c_str());
+            return;
+        }
+
+        v8::Local<v8::Object> meta = Nan::New<v8::Object>();
+        meta->Set(Nan::New("width").ToLocalChecked(),
+            Nan::New<v8::Int32>(static_cast<std::int32_t>(svg.width())));
+        meta->Set(Nan::New("height").ToLocalChecked(),
+            Nan::New<v8::Int32>(static_cast<std::int32_t>(svg.height())));
+        info.GetReturnValue().Set(meta);
+
+    }
+    catch (std::exception const& ex)
+    {
+        // There is currently no known way to make these operations throw an exception, however,
+        // since the underlying agg library does possibly have some operation that might throw
+        // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
+        // LCOV_EXCL_START
+        Nan::ThrowError(ex.what());
+        return;
+        // LCOV_EXCL_STOP
+    }
+}
+
+/**
  * Load image from an SVG buffer (synchronous)
  * @name fromSVGBytesSync
  * @memberof Image
  * @static
- * @param {string} path - path to SVG image
+ * @param {Buffer} buffer - buffer of SVG image
  * @param {Object} [options]
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
