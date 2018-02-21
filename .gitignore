@@ -16,8 +16,10 @@ node.exe*
 mapnik-sdk
 sdk
 foo
+local.env
 iwyu.sh
 package
 documentation
-mason/
+.mason/
+.toolchain/
 mason_packages/
