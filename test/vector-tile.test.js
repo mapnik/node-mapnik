@@ -906,7 +906,7 @@ describe('mapnik.VectorTile ', function() {
     it('should be able to change tile coordinates and it change the extent', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var extent = vtile.extent();
-        var expected = [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248];
+        var expected = [-11271098.442818949, 4696291.017841229, -11192826.925854929, 4774562.534805249];
         // typically not different, but rounding can cause different values
         // so we assert each value's difference is nominal
         assert(Math.abs(extent[0] - expected[0]) < 1e-8);
@@ -919,7 +919,7 @@ describe('mapnik.VectorTile ', function() {
         vtile.x = 0;
         assert.equal(vtile.x, 0);
         extent = vtile.extent();
-        var expected_x = [-20037508.342789244, 4696291.017841229, -19959236.825825226, 4774562.534805248];
+        var expected_x = [-20037508.342789244, 4696291.017841229, -19959236.82582522, 4774562.534805249];
         assert(Math.abs(extent[0] - expected_x[0]) < 1e-8);
         assert(Math.abs(extent[1] - expected_x[1]) < 1e-8);
         assert(Math.abs(extent[2] - expected_x[2]) < 1e-8);
@@ -927,7 +927,7 @@ describe('mapnik.VectorTile ', function() {
         vtile.y = 0;
         assert.equal(vtile.y, 0);
         extent = vtile.extent();
-        var expected_y = [-20037508.342789244, 19959236.825825218, -19959236.825825226, 20037508.342789277];
+        var expected_y = [-20037508.342789244, 19959236.82582522, -19959236.82582522, 20037508.342789244];
         assert(Math.abs(extent[0] - expected_y[0]) < 1e-8);
         assert(Math.abs(extent[1] - expected_y[1]) < 1e-8);
         assert(Math.abs(extent[2] - expected_y[2]) < 1e-8);
@@ -935,7 +935,7 @@ describe('mapnik.VectorTile ', function() {
         vtile.z = 0;
         assert.equal(vtile.z, 0);
         extent = vtile.extent();
-        var expected_z = [-20037508.342789244, -20037508.34278924, 20037508.342789244, 20037508.342789277];
+        var expected_z = [-20037508.342789244, -20037508.342789244, 20037508.342789244, 20037508.342789244];
         assert(Math.abs(extent[0] - expected_z[0]) < 1e-8);
         assert(Math.abs(extent[1] - expected_z[1]) < 1e-8);
         assert(Math.abs(extent[2] - expected_z[2]) < 1e-8);
