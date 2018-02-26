@@ -30,3 +30,4 @@ mason_packages
 deps/wagyu/tests
 deps/wagyu/docs
 deps/geometry/tests
+.toolchain
