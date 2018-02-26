@@ -5,7 +5,6 @@ Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 [![NPM](https://nodei.co/npm/mapnik.png?downloads=true&downloadRank=true)](https://nodei.co/npm/mapnik/)
 
 [![Build Status](https://secure.travis-ci.org/mapnik/node-mapnik.png)](https://travis-ci.org/mapnik/node-mapnik)
-[![Build status](https://ci.appveyor.com/api/projects/status/ju29v1vcpif2iww8?svg=true)](https://ci.appveyor.com/project/Mapbox/node-mapnik)
 [![Coverage Status](https://coveralls.io/repos/mapnik/node-mapnik/badge.svg)](https://coveralls.io/r/mapnik/node-mapnik)
 
 ## Usage
@@ -115,16 +114,15 @@ Note: This will install the latest node-mapnik 3.x series, which is recommended.
 
 By default, binaries are provided for:
 
- - 64 bit OS X >= 10.10, 64 bit Linux (>= Ubuntu Trusty), and 64/32 bit Windows
+ - 64 bit OS X >= 10.10, 64 bit Linux (>= Ubuntu Trusty)
  - several node versions:
    - [versions for Linux/Mac](<https://github.com/mapnik/node-mapnik/blob/master/.travis.yml#L19-L47>)
-   - [versions for Windows](<https://github.com/mapnik/node-mapnik/blob/master/appveyor.yml#L9-L32>)
 
 On those platforms no external dependencies are needed.
 
 Other platforms will fall back to a source compile: see [Source Build](#source-build) for details.
 
-Binaries started being provided at node-mapnik >= 1.4.2 for OSX and Linux and at 1.4.8 for Windows.
+Binaries started being provided at node-mapnik >= 1.4.2 for OSX and Linux and at 1.4.8 for Windows. After 3.6.2 no Windows binaries are provided.
 
 ### Windows specific
 
@@ -182,11 +180,6 @@ By default node mapnik is built with SSE support. If you are building on a platf
 ```
 SSE_MATH=false make
 ```
-
-### Windows specific
-
-Windows builds are maintained in https://github.com/mapbox/windows-builds
-
 
 ## Using node-mapnik from your node app
 
