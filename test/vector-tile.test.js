@@ -2400,18 +2400,26 @@ describe('mapnik.VectorTile ', function() {
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.mvt';
+            var expected_nosse = './test/data/vector_tile/tile0-simplify_distance.nosse.mvt';
             var actual = './test/data/vector_tile/tile0-simplify_distance.actual.mvt';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
+            if (!existsSync(expected_nosse)) {
+                fs.writeFileSync(expected_nosse, vtile.getData());
+            }
             var expected_data = fs.readFileSync(expected);
+            var expected_nosse_data = fs.readFileSync(expected_nosse);
             fs.writeFileSync(actual, vtile.getData());
             var actual_data = fs.readFileSync(actual);
             var vt1 = new mapnik.VectorTile(0,0,0);
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
-            vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            vt2.setData(expected_nosse_data);
+            var vt3 = new mapnik.VectorTile(0,0,0);
+            vt3.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt3.toJSON()) ||
+                         JSON.stringify(vt2.toJSON()) == JSON.stringify(vt3.toJSON()), true);
             done();
         });
     });
@@ -2432,18 +2440,26 @@ describe('mapnik.VectorTile ', function() {
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.mvt';
+            var expected_nosse = './test/data/vector_tile/tile0-simple_and_distance.nosse.mvt'
             var actual = './test/data/vector_tile/tile0-simple_and_distance.actual.mvt';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
+            if (!existsSync(expected_nosse)) {
+                fs.writeFileSync(expected_nosse, vtile.getData());
+            }
             var expected_data = fs.readFileSync(expected);
+            var expected_nosse_data = fs.readFileSync(expected_nosse);
             fs.writeFileSync(actual, vtile.getData());
             var actual_data = fs.readFileSync(actual);
             var vt1 = new mapnik.VectorTile(0,0,0);
             vt1.setData(expected_data);
             var vt2 = new mapnik.VectorTile(0,0,0);
-            vt2.setData(actual_data);
-            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
+            vt2.setData(expected_nosse_data);
+            var vt3 = new mapnik.VectorTile(0,0,0);
+            vt3.setData(actual_data);
+            assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt3.toJSON()) ||
+                         JSON.stringify(vt2.toJSON()) == JSON.stringify(vt3.toJSON()), true);
             done();
         });
     });
