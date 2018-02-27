@@ -2405,6 +2405,9 @@ describe('mapnik.VectorTile ', function() {
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
             }
+            if (!existsSync(expected_nosse)) {
+                fs.writeFileSync(expected_nosse, vtile.getData());
+            }
             var expected_data = fs.readFileSync(expected);
             var expected_nosse_data = fs.readFileSync(expected_nosse);
             fs.writeFileSync(actual, vtile.getData());
@@ -2441,6 +2444,9 @@ describe('mapnik.VectorTile ', function() {
             var actual = './test/data/vector_tile/tile0-simple_and_distance.actual.mvt';
             if (!existsSync(expected) || process.env.UPDATE) {
                 fs.writeFileSync(expected, vtile.getData());
+            }
+            if (!existsSync(expected_nosse)) {
+                fs.writeFileSync(expected_nosse, vtile.getData());
             }
             var expected_data = fs.readFileSync(expected);
             var expected_nosse_data = fs.readFileSync(expected_nosse);

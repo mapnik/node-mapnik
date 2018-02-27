@@ -1,5 +1,7 @@
 MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.module_name)")
 
+SSE_MATH ?= true
+
 default: release
 
 ifneq (,$(findstring clang,$(CXX)))
@@ -23,11 +25,11 @@ pre_build_check:
 	mapnik-config -v
 
 release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
-	V=1 CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --loglevel=error --clang
+	V=1 CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
 debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
-	V=1 ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --loglevel=error --debug --clang
+	V=1 ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --debug --clang
 	@echo "run 'make clean' for full rebuild"
 
 release: mason_packages/.link/bin/mapnik-config
