@@ -181,6 +181,11 @@ By default node mapnik is built with SSE support. If you are building on a platf
 SSE_MATH=false make
 ```
 
+### Building against Mapnik 3.0.x
+
+The `master` branch of node-mapnik is not compatible with `3.0.x` series of Mapnik. To build again Mapnik 3.0.x, use [`v3.0.x`](https://github.com/mapnik/node-mapnik/tree/v3.0.x) branch.
+
+
 ## Using node-mapnik from your node app
 
 To require node-mapnik as a dependency of another package put in your package.json:
