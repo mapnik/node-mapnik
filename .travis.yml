@@ -182,6 +182,13 @@ matrix:
       # Overrides `script` to disable publishing
       before_script:
         - npm test
+    # test building with out SSE_MATH enabled
+    - os: linux
+      env: BUILDTYPE=release SSE_MATH=false
+      node_js: 4
+      # Overrides `script` to disable publishing
+      before_script:
+        - npm test
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
