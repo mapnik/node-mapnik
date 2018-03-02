@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.1
+
+- Mapnik 3.7.0 was not properly published to npm with node-pre-gyp. Releasing again with fix.
+
 ## 3.7.0
 
 Updated to 3.0.18 of mapnik. See [here](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md).
