@@ -3,6 +3,7 @@
 ## 3.7.1
 
 - Mapnik 3.7.0 was not properly published to npm with node-pre-gyp. Releasing again with fix.
+- Fix to `SSE_MATH` flag during building
 
 ## 3.7.0
 
