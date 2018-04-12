@@ -36,5 +36,5 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # NOTE: sync this version with the `mapnik_version` in package.json (which is used for windows builds)
     # In the future we could pull from that version automatically if mason were to support knowing the right dep
     # versions to install automatically. Until then there is not much point since the deps are still hardcoded here.
-    install mapnik 3.0.18
+    install mapnik 3.0.20
 fi
