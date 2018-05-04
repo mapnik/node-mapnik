@@ -38,8 +38,8 @@
   "dependencies": {
     "mapnik-vector-tile": "2.0.0",
     "protozero": "1.5.1",
-    "nan": "~2.5.0",
-    "node-pre-gyp": "~0.6.30"
+    "nan": "~2.10.0",
+    "node-pre-gyp": "~0.10.0"
   },
   "bundledDependencies": [
     "node-pre-gyp"
