@@ -6,8 +6,6 @@ sudo: false
 # note: you'll need to generate your own keys for publishing a separate project
 env:
   global:
-   - secure: F42vcZEgWgCMDvQXlmyYmWwFo86fUjlJbsvXEwyliaMfasjCNsbmeILU61aScn8daiCGD+vRUaRlmv+XxUSS2G8FaoI8ZjwgMo2guMwthAQJ1ohTvf4bZI0JqVYKnnZpzhGPv2zD0DTdt31l30qn2GZnnGrF4yFpPU1HW2HcMuE=
-   - secure: WRWrn3KjCaevRo2htdvn26euALTZNCDtcSlQvtH6Bc7yLdhlH5apj+qSuWqlN59f1cprFH+5aQ2zmBkVmAV2DT4IbsfszMIR6k6EetuY6VOugo/qsPW2x/MQbpFgjCbl95bYty4eUH9Bcf70Pz/S+XVewABXHWikJiLUiZBbLyE=
    - secure: "bvbvxQe4GXZoU1zxm6KylaUSuQuhUZKe1V4+iYM0Sde6hj6RtAUccCWT7mNacCe2I6uGVHHjVfd7wLovT5y7lyT5pzY3UtypxFwuvGxDHotH4hhTg4m8/7APdB4bf5YgBf5IC6pMUPpUloh6TsTIwYzEaJdp/52b31Qfx80FooqOGOrEqntiyvidWsdUmlrxWnpxCVndkZgwvD15Uc08DWyD8Hklor6cKW6d/3zVIFmy81uAvTQp5W5xXC47S/BYYIwz3GU0zx+CMWM1oFObSbkVMG3LXDurqyvzWf9+09ZtBlC2JW0AOt9atk7vnD115Ia1KaEWalMhb3AGwJx4M4hqonooWOx20NL5P0sqEUe94GBUwvvb295vFTbw9guSGYXL3cOeWTlh2Ol466vJUwBvfr4OQ6Qu401nb1sIIv4SoIT9xXSHbopoderRVQurrcl/wesR19hgzrQC9ytJ6QCS1xnnzKogflfMQDDayrCMwpiZ5gvMGheGNbAh661wL03YXiviMwG307+iwFk8zyw05g4nW5/v3S+OYq3QatUgk+ZDpX2JS2zX4D6Aj2QLzKtCrx9pNpngl8pN+drmac1nklUeQLANxyv8hQjJvs1a4utj7ed9CY7QEWkvfrUl7rZqXvzacKmGEWoTkZKru19pa0enLTThKQV6AOei3e4="
 
 # enable c++11/14 builds
@@ -41,7 +39,7 @@ before_script:
 script:
   - true
 
-# the matrix allows you to specify different operating systems and environments to 
+# the matrix allows you to specify different operating systems and environments to
 # run your tests and build binaries
 matrix:
   include:
