@@ -2589,6 +2589,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
     double scale = 1.0;
     std::uint32_t max_size = 2048;
     bool strict = false;
+    bool throw_on_unhandled_elements = false;
     if (info.Length() >= 2)
     {
         if (!info[1]->IsObject())
@@ -2637,6 +2638,16 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             }
             strict = opt->BooleanValue();
         }
+        if (options->Has(Nan::New("throw_on_unhandled_elements").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> opt = options->Get(Nan::New("throw_on_unhandled_elements").ToLocalChecked());
+            if (!opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("'throw_on_unhandled_elements' must be a boolean value");
+                return scope.Escape(Nan::Undefined());
+            }
+            throw_on_unhandled_elements = opt->BooleanValue();
+        }
     }
 
     try
@@ -2650,7 +2661,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         if (fromFile)
         {
             p.parse(TOSTR(info[0]));
-            if (!p.err_handler().error_messages().empty())
+            if (throw_on_unhandled_elements && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
@@ -2671,7 +2682,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             }
             std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
             p.parse_from_string(svg_buffer);
-            if (!p.err_handler().error_messages().empty())
+            if (throw_on_unhandled_elements && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
@@ -2762,6 +2773,7 @@ typedef struct {
     double scale;
     std::uint32_t max_size;
     bool strict;
+    bool throw_on_unhandled_elements;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
 } svg_file_ptr_baton_t;
@@ -2775,6 +2787,7 @@ typedef struct {
     double scale;
     std::uint32_t max_size;
     bool strict;
+    bool throw_on_unhandled_elements;
     std::string error_name;
     Nan::Persistent<v8::Object> buffer;
     Nan::Persistent<v8::Function> cb;
@@ -2823,6 +2836,7 @@ NAN_METHOD(Image::fromSVG)
     double scale = 1.0;
     std::uint32_t max_size = 2048;
     bool strict = false;
+    bool throw_on_unhandled_elements = false;
     if (info.Length() >= 3)
     {
         if (!info[1]->IsObject())
@@ -2871,6 +2885,16 @@ NAN_METHOD(Image::fromSVG)
             }
             strict = opt->BooleanValue();
         }
+        if (options->Has(Nan::New("throw_on_unhandled_elements").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> opt = options->Get(Nan::New("throw_on_unhandled_elements").ToLocalChecked());
+            if (!opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("'throw_on_unhandled_elements' must be a boolean value");
+                return;
+            }
+            throw_on_unhandled_elements = opt->BooleanValue();
+        }
     }
 
     svg_file_ptr_baton_t *closure = new svg_file_ptr_baton_t();
@@ -2880,6 +2904,7 @@ NAN_METHOD(Image::fromSVG)
     closure->scale = scale;
     closure->max_size = max_size;
     closure->strict = strict;
+    closure->throw_on_unhandled_elements = throw_on_unhandled_elements;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVG, (uv_after_work_cb)EIO_AfterFromSVG);
     return;
@@ -2898,7 +2923,7 @@ void Image::EIO_FromSVG(uv_work_t* req)
         svg_converter_type svg(svg_path, marker_path->attributes());
         svg_parser p(svg, closure->strict);
         p.parse(closure->filename);
-        if (!p.err_handler().error_messages().empty())
+        if (closure->throw_on_unhandled_elements && !p.err_handler().error_messages().empty())
         {
             std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
@@ -3048,7 +3073,8 @@ NAN_METHOD(Image::fromSVGBytes)
 
     double scale = 1.0;
     std::uint32_t max_size = 2048;
-    bool strict = true;
+    bool strict = false;
+    bool throw_on_unhandled_elements = false;
     if (info.Length() >= 3)
     {
         if (!info[1]->IsObject())
@@ -3097,6 +3123,16 @@ NAN_METHOD(Image::fromSVGBytes)
             }
             strict = opt->BooleanValue();
         }
+        if (options->Has(Nan::New("throw_on_unhandled_elements").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> opt = options->Get(Nan::New("throw_on_unhandled_elements").ToLocalChecked());
+            if (!opt->IsBoolean())
+            {
+                Nan::ThrowTypeError("'throw_on_unhandled_elements' must be a boolean value");
+                return;
+            }
+            throw_on_unhandled_elements = opt->BooleanValue();
+        }
     }
 
     svg_mem_ptr_baton_t *closure = new svg_mem_ptr_baton_t();
@@ -3108,6 +3144,7 @@ NAN_METHOD(Image::fromSVGBytes)
     closure->scale = scale;
     closure->max_size = max_size;
     closure->strict = strict;
+    closure->throw_on_unhandled_elements = throw_on_unhandled_elements;
     closure->dataLength = node::Buffer::Length(obj);
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromSVGBytes, (uv_after_work_cb)EIO_AfterFromSVGBytes);
     return;
@@ -3128,7 +3165,7 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
 
         std::string svg_buffer(closure->data,closure->dataLength);
         p.parse_from_string(svg_buffer);
-        if (!p.err_handler().error_messages().empty())
+        if (closure->throw_on_unhandled_elements && !p.err_handler().error_messages().empty())
         {
             std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;

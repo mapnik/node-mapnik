@@ -180,7 +180,7 @@ describe('mapnik.Image SVG', function() {
     });
 
     it('should error with async file full of errors', function(done) {
-      mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', function(err, svg) {
+      mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', {throw_on_unhandled_elements:true}, function(err, svg) {
         assert.ok(err);
         assert.ok(err.message.match(/SVG parse error:/));
         assert.equal(svg, undefined);
