@@ -18,7 +18,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>
 
-#define TOSTR(obj) (*v8::String::Utf8Value((obj)->ToString()))
+#define TOSTR(obj) (*Nan::Utf8String(obj))
 
 #define FUNCTION_ARG(I, VAR)                                            \
     if (info.Length() <= (I) || !info[I]->IsFunction()) {               \

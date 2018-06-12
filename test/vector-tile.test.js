@@ -797,59 +797,59 @@ describe('mapnik.VectorTile ', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
         assert.throws(
-            function() { vtile.getDataSync(null); }, 
+            function() { vtile.getDataSync(null); }, null,
             "first arg must be a options object"
         );
         assert.throws(
-            function() { vtile.getData(null, function(err, out) {}); }, 
+            function() { vtile.getData(null, function(err, out) {}); }, null,
             "first arg must be a options object"
         );
         assert.throws(
-            function() { vtile.getDataSync({compression:null}); }, 
+            function() { vtile.getDataSync({compression:null}); }, null,
             "option 'compression' must be a string, either 'gzip', or 'none' (default)"
         );
         assert.throws(
-            function() { vtile.getData({compression:null}, function(err,out) {}); }, 
+            function() { vtile.getData({compression:null}, function(err,out) {}); }, null,
             "option 'compression' must be a string, either 'gzip', or 'none' (default)"
         );
         assert.throws(
-            function() { vtile.getDataSync({level:null}); }, 
+            function() { vtile.getDataSync({level:null}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
         assert.throws(
-            function() { vtile.getData({level:null}, function(err,out) {}); }, 
+            function() { vtile.getData({level:null}, function(err,out) {}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
         assert.throws(
-            function() { vtile.getDataSync({level:99}); }, 
+            function() { vtile.getDataSync({level:99}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
         assert.throws(
-            function() { vtile.getData({level:99}, function(err,out) {}); }, 
+            function() { vtile.getData({level:99}, function(err,out) {}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
         assert.throws(
-            function() { vtile.getDataSync({level:-1}); }, 
+            function() { vtile.getDataSync({level:-1}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
         assert.throws(
-            function() { vtile.getData({level:-1}, function(err,out) {}); }, 
+            function() { vtile.getData({level:-1}, function(err,out) {}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
         assert.throws(
-            function() { vtile.getDataSync({strategy:null}); }, 
+            function() { vtile.getDataSync({strategy:null}); }, null,
             "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
         );
         assert.throws(
-            function() { vtile.getData({strategy:null}, function(err,out) {}); }, 
+            function() { vtile.getData({strategy:null}, function(err,out) {}); }, null,
             "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
         );
         assert.throws(
-            function() { vtile.getDataSync({strategy:'FOO'}); }, 
+            function() { vtile.getDataSync({strategy:'FOO'}); }, null,
             "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
         );
         assert.throws(
-            function() { vtile.getData({strategy:'FOO'}, function(err,out) {}); }, 
+            function() { vtile.getData({strategy:'FOO'}, function(err,out) {}); }, null,
             "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT"
         );
     });
