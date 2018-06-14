@@ -23,3 +23,7 @@ documentation
 .mason/
 .toolchain/
 mason_packages/
+mason-postgis-config.env
+local-postgres/
+postgres.log
+local-unix-socket/

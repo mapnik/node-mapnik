@@ -2171,7 +2171,7 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
     {
         mapnik::Map const& map = *closure->m->get();
 
-        mapnik::vector_tile_impl::processor ren(map);
+        mapnik::vector_tile_impl::processor ren(map, closure->variables);
         ren.set_simplify_distance(closure->simplify_distance);
         ren.set_multi_polygon_union(closure->multi_polygon_union);
         ren.set_fill_type(closure->fill_type);

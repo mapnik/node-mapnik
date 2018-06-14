@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Map srs="+init=epsg:3857">
+  <Layer name="field_shapes" status="on" srs="+init=epsg:4326">
+    <Datasource>
+      <Parameter name="type">postgis</Parameter>
+      <Parameter name="host">localhost</Parameter>
+      <Parameter name="dbname">node-mapnik-tmp-postgis-test-db</Parameter>
+      <Parameter name="srid">4326</Parameter>
+      <Parameter name="geometry_field">geom</Parameter>
+      <Parameter name="table">
+  (SELECT gid, geom FROM test WHERE gid = @fieldid) as field_shapes
+      </Parameter>
+      <Parameter name="estimate_extent">false</Parameter>
+      <Parameter name="extent">-150,-85,150,85</Parameter>
+    </Datasource>
+  </Layer>
+</Map>
