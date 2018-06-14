@@ -2532,6 +2532,9 @@ void Image::EIO_AfterOpen(uv_work_t* req)
  * @static
  * @param {string} path - path to SVG image
  * @param {Object} [options]
+ * @param {number} [options.strict] - Throw on unhandled elements and invalid values in SVG. The default is `false`, which means that
+ * unhandled elements will be ignored and invalid values will be set to defaults (and may not render correctly). If `true` then all occurances
+ * of invalid value or unhandled elements will be collected and an error will be thrown reporting them all.
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
  * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
@@ -2553,6 +2556,9 @@ NAN_METHOD(Image::fromSVGBytesSync)
  * @name fromSVGSync
  * @param {string} filename
  * @param {Object} [options]
+ * @param {number} [options.strict] - Throw on unhandled elements and invalid values in SVG. The default is `false`, which means that
+ * unhandled elements will be ignored and invalid values will be set to defaults (and may not render correctly). If `true` then all occurances
+ * of invalid value or unhandled elements will be collected and an error will be thrown reporting them all.
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
  * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
@@ -2646,11 +2652,11 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg, strict);
+        svg_parser p(svg);
         if (fromFile)
         {
             p.parse(TOSTR(info[0]));
-            if (!p.err_handler().error_messages().empty())
+            if (strict && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
@@ -2671,7 +2677,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             }
             std::string svg_buffer(node::Buffer::Data(obj),node::Buffer::Length(obj));
             p.parse_from_string(svg_buffer);
-            if (!p.err_handler().error_messages().empty())
+            if (strict && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
                 errorMessage << "SVG parse error:" << std::endl;
@@ -2786,6 +2792,9 @@ typedef struct {
  * @name fromSVG
  * @param {string} filename
  * @param {Object} [options]
+ * @param {number} [options.strict] - Throw on unhandled elements and invalid values in SVG. The default is `false`, which means that
+ * unhandled elements will be ignored and invalid values will be set to defaults (and may not render correctly). If `true` then all occurances
+ * of invalid value or unhandled elements will be collected and an error will be thrown reporting them all.
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
  * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
@@ -2896,9 +2905,9 @@ void Image::EIO_FromSVG(uv_work_t* req)
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg, closure->strict);
+        svg_parser p(svg);
         p.parse(closure->filename);
-        if (!p.err_handler().error_messages().empty())
+        if (closure->strict && !p.err_handler().error_messages().empty())
         {
             std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
@@ -3007,10 +3016,12 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
  * @static
  * @param {string} path - path to SVG image
  * @param {Object} [options]
+ * @param {number} [options.strict] - Throw on unhandled elements and invalid values in SVG. The default is `false`, which means that
+ * unhandled elements will be ignored and invalid values will be set to defaults (and may not render correctly). If `true` then all occurances
+ * of invalid value or unhandled elements will be collected and an error will be thrown reporting them all.
  * @param {number} [options.scale] - scale the image. For example passing `0.5` as scale would render
  * your SVG at 50% the original size.
  * @param {number} [options.max_size] - the maximum allowed size of the svg dimensions * scale. The default is 2048.
- * @param {boolean} [options.strict] - enable `strict` parsing mode e.g throw on unsupported element/attribute. The default is `false`.
  * This option can be passed a smaller or larger size in order to control the final size of the image allocated for
  * rasterizing the SVG.
  * @param {Function} callback = `function(err, img)`
@@ -3048,7 +3059,7 @@ NAN_METHOD(Image::fromSVGBytes)
 
     double scale = 1.0;
     std::uint32_t max_size = 2048;
-    bool strict = true;
+    bool strict = false;
     if (info.Length() >= 3)
     {
         if (!info[1]->IsObject())
@@ -3124,11 +3135,11 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
         vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
         svg_path_adapter svg_path(stl_storage);
         svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg, closure->strict);
+        svg_parser p(svg);
 
         std::string svg_buffer(closure->data,closure->dataLength);
         p.parse_from_string(svg_buffer);
-        if (!p.err_handler().error_messages().empty())
+        if (closure->strict && !p.err_handler().error_messages().empty())
         {
             std::ostringstream errorMessage;
             errorMessage << "SVG parse error:" << std::endl;
