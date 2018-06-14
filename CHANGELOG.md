@@ -4,6 +4,16 @@
 - Pass variables to replace tokens in query (https://github.com/mapnik/node-mapnik/pull/809)
 - Changed SVG parsing behavior to respect strict mode, and default to off.
 
+
+## 3.7.2
+- Upgraded to Mapnik v3.0.20
+
+## 3.7.1
+
+- Mapnik 3.7.0 was not properly published to npm with node-pre-gyp. Releasing again with fix.
+- Fix to `SSE_MATH` flag during building
+
+
 ## 3.7.0
 
 Updated to 3.0.18 of mapnik. See [here](https://github.com/mapnik/mapnik/blob/master/CHANGELOG.md).
