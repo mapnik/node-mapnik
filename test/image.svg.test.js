@@ -179,13 +179,55 @@ describe('mapnik.Image SVG', function() {
       });
     });
 
-    it('should error with async file full of errors', function(done) {
-      mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', {throw_on_unhandled_elements:true}, function(err, svg) {
+    it('should not error with async in non-strict mode on svg with validation and parse errors', function(done) {
+      mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', {strict:false}, function(err, svg) {
+        assert.ok(!err);
+        assert.ok(svg);
+        done();
+      });
+    });
+
+    it('should error with async in strict mode on svg with validation and parse errors', function(done) {
+      mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', {strict:true}, function(err, svg) {
         assert.ok(err);
         assert.ok(err.message.match(/SVG parse error:/));
+        console.log(err.message)
         assert.equal(svg, undefined);
         done();
       });
+    });
+
+    it('should not error on svg with unhandled elements in non-strict mode', function() {
+        var svgdata = "<svg width='100' height='100'><g id='a'><text></text><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
+        var buffer = new Buffer(svgdata);
+        var img = mapnik.Image.fromSVGBytesSync(buffer,{strict:false});
+        assert.ok(img);
+        assert.ok(img instanceof mapnik.Image);
+        assert.equal(img.width(), 100);
+        assert.equal(img.height(), 100);
+        assert.equal(img.encodeSync("png").length, 1270);
+    });
+
+
+    //  test the mapnik core known unsupported elements: https://github.com/mapnik/mapnik/blob/634928fcbe780e8a5a355ddb3cd075ce2450adb4/src/svg/svg_parser.cpp#L106-L114
+    it('should error on svg with unhandled elements in strict mode', function() {
+        var svgdata = "<svg width='100' height='100'><g id='a'><unsupported></unsupported><text></text><symbol></symbol><image></image><marker></marker><view></view><switch></switch><a></a><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
+        var buffer = new Buffer(svgdata);
+        var error = false;
+        try {
+          var img = mapnik.Image.fromSVGBytesSync(buffer,{strict:true});
+          assert.ok(!img);
+        } catch (err) {
+          error = err;
+        }
+        assert.ok(error);
+        assert.ok(error.message.match(/<text> element is not supported/));
+        assert.ok(error.message.match(/<switch> element is not supported/));
+        assert.ok(error.message.match(/<symbol> element is not supported/));
+        assert.ok(error.message.match(/<marker> element is not supported/));
+        assert.ok(error.message.match(/<view> element is not supported/));
+        assert.ok(error.message.match(/<a> element is not supported/));
+        assert.ok(error.message.match(/<image> element is not supported/));
     });
 
     it('#fromSVGSync load from SVG file', function() {
