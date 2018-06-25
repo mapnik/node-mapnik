@@ -8,7 +8,7 @@
       <Parameter name="srid">4326</Parameter>
       <Parameter name="geometry_field">geom</Parameter>
       <Parameter name="table">
-  (SELECT gid, geom FROM test WHERE gid = @fieldid) as field_shapes
+  (SELECT gid, geom FROM test WHERE gid = !@fieldid!) as field_shapes
       </Parameter>
       <Parameter name="estimate_extent">false</Parameter>
       <Parameter name="extent">-150,-85,150,85</Parameter>
