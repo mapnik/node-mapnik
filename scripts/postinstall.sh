@@ -17,9 +17,6 @@ module.exports.paths = {
     'mapnik_index':  '$(which mapnik-index)',
     'shape_index':   '$(which shapeindex)'
 };
-" > ${MODULE_PATH}/mapnik_settings.js
-      # Depends on mapnik >= v3.0.16 which includes https://github.com/mapnik/mapnik/pull/3759 is fixed
-      echo "
 module.exports.env = {
     'ICU_DATA':      '$(mapnik-config --icu-data)',
     'GDAL_DATA':     '$(mapnik-config --gdal-data)',

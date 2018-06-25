@@ -155,6 +155,9 @@ matrix:
         - make ${BUILDTYPE}
       # Overrides `script` to disable publishing
       before_script:
+        # manually initialize mason (avoid sourcing local.env since we don't want to use clang++ here)
+        - ./scripts/setup.sh --config local.env
+        - export PATH=$(pwd)/.mason:${PATH}
         - source scripts/postgis/setup_and_run.sh
         - npm test
     # test building with out SSE_MATH enabled

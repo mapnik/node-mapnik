@@ -7,10 +7,10 @@ GDAL_VERSION="2.1.3"
 POSTGIS_VERSION="2.3.2-1"
 
 # do once: install stuff
-./mason/mason install libgdal ${GDAL_VERSION}
-GDAL_DATA_VALUE=$(./mason/mason prefix libgdal ${GDAL_VERSION})/share/gdal/
-./mason/mason install postgis ${POSTGIS_VERSION}
-./mason/mason link postgis ${POSTGIS_VERSION}
+mason install libgdal ${GDAL_VERSION}
+GDAL_DATA_VALUE=$(mason prefix libgdal ${GDAL_VERSION})/share/gdal/
+mason install postgis ${POSTGIS_VERSION}
+mason link postgis ${POSTGIS_VERSION}
 
 
 if [[ ! -d ${GDAL_DATA_VALUE} ]]; then
