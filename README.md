@@ -145,7 +145,7 @@ There are two ways to build from source. These work on both OS X and Linux:
  - A) Against a binary package from Mapnik from [mason](https://github.com/mapbox/mason)
  - B) Against an existing version of Mapnik on your system
 
-Using `A)` is recommended. You do not need to have Mapnik installed already, so this is the easiest and most predictable approach. When you use the route a binary package of Mapnik is download dynamically from [mason](https://github.com/mapbox/mason).
+Using `A)` is recommended. You do not need to have Mapnik installed already, so this is the easiest and most predictable approach. When you use the route a binary package of Mapnik is downloaded dynamically from [mason](https://github.com/mapbox/mason).
 
 You can invoke this method simply by running:
 
