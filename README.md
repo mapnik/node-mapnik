@@ -149,19 +149,19 @@ Using `A)` is recommended. You do not need to have Mapnik installed already, so 
 
 You can invoke this method simply by running:
 
-  make release
+  `make release`
 
 Or, for debug builds:
 
-  make debug
+  `make debug`
 
 If you want to do a full rebuild do:
 
-  make distclean
+  `make distclean`
 
 And then re-run the build:
 
-  make release
+  `make release`
 
 Using `B)` is also possible, if you would like to build node-mapnik against an external, already installed Mapnik version.
 
