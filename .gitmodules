@@ -4,3 +4,6 @@
 [submodule "deps/geometry"]
 	path = deps/geometry
 	url = https://github.com/mapbox/geometry.hpp.git
+[submodule "deps/protozero"]
+	path = deps/protozero
+	url = https://github.com/mapbox/protozero.git

@@ -1,9 +1,11 @@
 # Changelog
 
-## Future
+## 4.x
+- Upgraded to mapnik@a2f5969 (pre-release master)
+- Upgraded to protozero@1.6.2 (and also now pulling via submodule)
+- Upgraded to mapnik-vector-tile@2.1.1 (https://github.com/mapbox/mapnik-vector-tile/blob/master/CHANGELOG.md#211)
 - Pass variables to replace tokens in query (https://github.com/mapnik/node-mapnik/pull/809)
 - Changed SVG parsing behavior to respect strict mode, and default to off.
-
 
 ## 3.7.2
 - Upgraded to Mapnik v3.0.20
