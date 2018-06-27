@@ -4425,7 +4425,6 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                                                        },
                                                        out.release())
                                        .ToLocalChecked());
-                    return scope.Escape(Nan::CopyBuffer((char*)d->tile_->data(),raw_size).ToLocalChecked());
                 }
                 else
                 {
