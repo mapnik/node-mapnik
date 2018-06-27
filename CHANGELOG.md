@@ -1,6 +1,8 @@
 # Changelog
 
-## 4.x
+## 4.0.0
+
+- Stop bundling node-pre-gyp
 - Upgraded to mapnik@a2f5969 (pre-release master)
 - Upgraded to protozero@1.6.2 (and also now pulling via submodule)
 - Upgraded to mapnik-vector-tile@2.1.1 (https://github.com/mapbox/mapnik-vector-tile/blob/master/CHANGELOG.md#211)
