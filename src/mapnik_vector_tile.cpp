@@ -4418,8 +4418,10 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 if (release)
                 {
                     std::unique_ptr<std::string> out = d->tile_->release_buffer();
-                    return scope.Escape(Nan::NewBuffer(&((*out)[0]),
-                                                       out->size(),
+                    char * data = &((*out)[0]);
+                    std::size_t size = out->size();
+                    return scope.Escape(Nan::NewBuffer(data,
+                                                       size,
                                                        [](char*, void* hint) {
                                                            delete reinterpret_cast<std::string*>(hint);
                                                        },
@@ -4440,8 +4442,10 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                     // To keep the same behaviour as a non compression release, we want to clear the VT buffer
                     d->tile_->clear();
                 }
-                return scope.Escape(Nan::NewBuffer(&((*compressed)[0]),
-                                                   compressed->size(),
+                char * data = &((*compressed)[0]);
+                std::size_t size = compressed->size();
+                return scope.Escape(Nan::NewBuffer(data,
+                                                   size,
                                                    [](char*, void* hint) {
                                                        delete reinterpret_cast<std::string*>(hint);
                                                    },
@@ -4650,9 +4654,11 @@ void VectorTile::after_get_data(uv_work_t* req)
     }
     else if (!closure->data->empty())
     {
+        char * data = &((*(closure->data))[0]);
+        std::size_t size = closure->data->size();
         v8::Local<v8::Value> argv[2] = { Nan::Null(), 
-                                         Nan::NewBuffer(&((*(closure->data))[0]),
-                                                   closure->data->size(),
+                                         Nan::NewBuffer(data,
+                                                   size,
                                                    [](char*, void* hint) {
                                                        delete reinterpret_cast<std::string*>(hint);
                                                    },
@@ -4689,9 +4695,11 @@ void VectorTile::after_get_data(uv_work_t* req)
             if (closure->release)
             {
                 std::unique_ptr<std::string> out = closure->d->tile_->release_buffer();
+                char * data = &((*out)[0]);
+                std::size_t size = out->size();
                 v8::Local<v8::Value> argv[2] = { Nan::Null(), 
-                                                 Nan::NewBuffer(&((*out)[0]),
-                                                           out->size(),
+                                                 Nan::NewBuffer(data,
+                                                           size,
                                                            [](char*, void* hint) {
                                                                delete reinterpret_cast<std::string*>(hint);
                                                            },
