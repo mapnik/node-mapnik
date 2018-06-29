@@ -4417,16 +4417,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             {
                 if (release)
                 {
-                    std::unique_ptr<std::string> out = d->tile_->release_buffer();
-                    char * data = &((*out)[0]);
-                    std::size_t size = out->size();
-                    return scope.Escape(Nan::NewBuffer(data,
-                                                       size,
-                                                       [](char*, void* hint) {
-                                                           delete reinterpret_cast<std::string*>(hint);
-                                                       },
-                                                       out.release())
-                                       .ToLocalChecked());
+                    return scope.Escape(node_mapnik::NewBufferFrom(d->tile_->release_buffer()).ToLocalChecked());
                 }
                 else
                 {
@@ -4442,15 +4433,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                     // To keep the same behaviour as a non compression release, we want to clear the VT buffer
                     d->tile_->clear();
                 }
-                char * data = &((*compressed)[0]);
-                std::size_t size = compressed->size();
-                return scope.Escape(Nan::NewBuffer(data,
-                                                   size,
-                                                   [](char*, void* hint) {
-                                                       delete reinterpret_cast<std::string*>(hint);
-                                                   },
-                                                   compressed.release())
-                                   .ToLocalChecked());
+                return scope.Escape(node_mapnik::NewBufferFrom(std::move(compressed)).ToLocalChecked());
             }
         }
     }
@@ -4654,20 +4637,13 @@ void VectorTile::after_get_data(uv_work_t* req)
     }
     else if (!closure->data->empty())
     {
-        char * data = &((*(closure->data))[0]);
-        std::size_t size = closure->data->size();
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), 
-                                         Nan::NewBuffer(data,
-                                                   size,
-                                                   [](char*, void* hint) {
-                                                       delete reinterpret_cast<std::string*>(hint);
-                                                   },
-                                                   closure->data.release()).ToLocalChecked() };
         if (closure->release)
         {
             // To keep the same behaviour as a non compression release, we want to clear the VT buffer
             closure->d->tile_->clear();
         }
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), 
+                                         node_mapnik::NewBufferFrom(std::move(closure->data)).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     else
@@ -4694,16 +4670,8 @@ void VectorTile::after_get_data(uv_work_t* req)
         {
             if (closure->release)
             {
-                std::unique_ptr<std::string> out = closure->d->tile_->release_buffer();
-                char * data = &((*out)[0]);
-                std::size_t size = out->size();
                 v8::Local<v8::Value> argv[2] = { Nan::Null(), 
-                                                 Nan::NewBuffer(data,
-                                                           size,
-                                                           [](char*, void* hint) {
-                                                               delete reinterpret_cast<std::string*>(hint);
-                                                           },
-                                                           out.release()).ToLocalChecked() };
+                                                 node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()).ToLocalChecked() };
                 Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
             }
             else
