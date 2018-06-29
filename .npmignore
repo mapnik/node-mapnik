@@ -31,3 +31,9 @@ deps/wagyu/tests
 deps/wagyu/docs
 deps/geometry/tests
 .toolchain
+local-postgres
+deps/protozero/test
+.mason
+mason-postgis-config.env
+local.env
+postgres.log
