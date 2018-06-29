@@ -2,8 +2,10 @@
 
 ## 4.0.0
 
+- Added support for node v10
 - Stop bundling node-pre-gyp
 - Upgraded to mapnik@a2f5969 (pre-release master)
+  - See https://github.com/mapnik/mapnik/wiki/API-changes-between-v3.0-and-v3.1 for changes
 - Upgraded to protozero@1.6.2 (and also now pulling via submodule)
 - Upgraded to mapnik-vector-tile@2.1.1 (https://github.com/mapbox/mapnik-vector-tile/blob/master/CHANGELOG.md#211)
 - Pass variables to replace tokens in query (https://github.com/mapnik/node-mapnik/pull/809)
