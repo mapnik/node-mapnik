@@ -36,7 +36,7 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "mapnik-vector-tile": "https://github.com/mapbox/mapnik-vector-tile/tarball/release_buffer",
+    "mapnik-vector-tile": "2.2.0",
     "nan": "~2.10.0",
     "node-pre-gyp": "~0.10.0"
   },
