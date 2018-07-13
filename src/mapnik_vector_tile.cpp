@@ -4284,6 +4284,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  * @name getDataSync
  * @param {Object} [options]
  * @param {string} [options.compression=none] - can also be `gzip`
+ * @param {boolean} [options.release=false] releases VT buffer
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
  * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
  * @returns {Buffer} raw data
@@ -4305,6 +4306,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
 
     bool compress = false;
+    bool release = false;
     int level = Z_DEFAULT_COMPRESSION;
     int strategy = Z_DEFAULT_STRATEGY;
 
@@ -4330,7 +4332,16 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             compress = std::string("gzip") == (TOSTR(param_val->ToString()));
         }
-
+        if (options->Has(Nan::New<v8::String>("release").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("release").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowError("option 'release' must be a boolean");
+                return scope.Escape(Nan::Undefined());
+            }
+            release = param_val->BooleanValue();
+        }
         if (options->Has(Nan::New<v8::String>("level").ToLocalChecked()))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
@@ -4404,13 +4415,25 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             if (!compress)
             {
-                return scope.Escape(Nan::CopyBuffer((char*)d->tile_->data(),raw_size).ToLocalChecked());
+                if (release)
+                {
+                    return scope.Escape(node_mapnik::NewBufferFrom(d->tile_->release_buffer()).ToLocalChecked());
+                }
+                else
+                {
+                    return scope.Escape(Nan::CopyBuffer((char*)d->tile_->data(),raw_size).ToLocalChecked());
+                }
             }
             else
             {
-                std::string compressed;
-                mapnik::vector_tile_impl::zlib_compress(d->tile_->data(), raw_size, compressed, true, level, strategy);
-                return scope.Escape(Nan::CopyBuffer((char*)compressed.data(),compressed.size()).ToLocalChecked());
+                std::unique_ptr<std::string> compressed = std::make_unique<std::string>();
+                mapnik::vector_tile_impl::zlib_compress(d->tile_->data(), raw_size, *compressed, true, level, strategy);
+                if (release)
+                {
+                    // To keep the same behaviour as a non compression release, we want to clear the VT buffer
+                    d->tile_->clear();
+                }
+                return scope.Escape(node_mapnik::NewBufferFrom(std::move(compressed)).ToLocalChecked());
             }
         }
     }
@@ -4432,8 +4455,9 @@ typedef struct
     uv_work_t request;
     VectorTile* d;
     bool error;
-    std::string data;
+    std::unique_ptr<std::string> data;
     bool compress;
+    bool release;
     int level;
     int strategy;
     std::string error_name;
@@ -4447,6 +4471,7 @@ typedef struct
  * @name getData
  * @param {Object} [options]
  * @param {string} [options.compression=none] compression type can also be `gzip`
+ * @param {boolean} [options.release=false] releases VT buffer
  * @param {int} [options.level=0] a number `0` (no compression) to `9` (best compression)
  * @param {string} options.strategy must be `FILTERED`, `HUFFMAN_ONLY`, `RLE`, `FIXED`, `DEFAULT`
  * @param {Function} callback
@@ -4470,6 +4495,7 @@ NAN_METHOD(VectorTile::getData)
 
     v8::Local<v8::Value> callback = info[info.Length()-1];
     bool compress = false;
+    bool release = false;
     int level = Z_DEFAULT_COMPRESSION;
     int strategy = Z_DEFAULT_STRATEGY;
 
@@ -4495,7 +4521,16 @@ NAN_METHOD(VectorTile::getData)
             }
             compress = std::string("gzip") == (TOSTR(param_val->ToString()));
         }
-
+        if (options->Has(Nan::New<v8::String>("release").ToLocalChecked()))
+        {
+            v8::Local<v8::Value> param_val = options->Get(Nan::New("release").ToLocalChecked());
+            if (!param_val->IsBoolean())
+            {
+                Nan::ThrowTypeError("option 'release' must be a boolean");
+                return;
+            }
+            release = param_val->BooleanValue();
+        }
         if (options->Has(Nan::New("level").ToLocalChecked()))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
@@ -4552,6 +4587,8 @@ NAN_METHOD(VectorTile::getData)
     closure->request.data = closure;
     closure->d = d;
     closure->compress = compress;
+    closure->release = release;
+    closure->data = std::make_unique<std::string>();
     closure->level = level;
     closure->strategy = strategy;
     closure->error = false;
@@ -4569,7 +4606,7 @@ void VectorTile::get_data(uv_work_t* req)
         // compress if requested
         if (closure->compress)
         {
-            mapnik::vector_tile_impl::zlib_compress(closure->d->tile_->data(), closure->d->tile_->size(), closure->data, true, closure->level, closure->strategy);
+            mapnik::vector_tile_impl::zlib_compress(closure->d->tile_->data(), closure->d->tile_->size(), *(closure->data), true, closure->level, closure->strategy);
         }
     }
     catch (std::exception const& ex)
@@ -4598,9 +4635,15 @@ void VectorTile::after_get_data(uv_work_t* req)
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
-    else if (!closure->data.empty())
+    else if (!closure->data->empty())
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->data.data(),closure->data.size()).ToLocalChecked() };
+        if (closure->release)
+        {
+            // To keep the same behaviour as a non compression release, we want to clear the VT buffer
+            closure->d->tile_->clear();
+        }
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), 
+                                         node_mapnik::NewBufferFrom(std::move(closure->data)).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     else
@@ -4625,8 +4668,17 @@ void VectorTile::after_get_data(uv_work_t* req)
         }
         else
         {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->d->tile_->data(),raw_size).ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            if (closure->release)
+            {
+                v8::Local<v8::Value> argv[2] = { Nan::Null(), 
+                                                 node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()).ToLocalChecked() };
+                Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            }
+            else
+            {
+                v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->d->tile_->data(),raw_size).ToLocalChecked() };
+                Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            }
         }
     }
 

@@ -86,5 +86,21 @@ inline void params_to_object(v8::Local<v8::Object>& ds, std::string const& key, 
     ds->Set(Nan::New<v8::String>(key.c_str()).ToLocalChecked(), mapnik::util::apply_visitor(value_converter(), val));
 }
 
+inline Nan::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> && ptr)
+{
+    Nan::MaybeLocal<v8::Object> res = Nan::NewBuffer(
+            &(*ptr)[0],
+            ptr->size(),
+            [](char*, void* hint) {
+                delete static_cast<std::string*>(hint);
+            },
+            ptr.get());
+    if (!res.IsEmpty())
+    {
+        ptr.release();
+    }
+    return res;
+}
+
 } // end ns
 #endif

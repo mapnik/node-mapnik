@@ -813,6 +813,14 @@ describe('mapnik.VectorTile ', function() {
             "option 'compression' must be a string, either 'gzip', or 'none' (default)"
         );
         assert.throws(
+            function() { vtile.getDataSync({release:null}); }, null,
+            "option 'release' must be a boolean"
+        );
+        assert.throws(
+            function() { vtile.getData({release:null}, function(err,out) {}); }, null,
+            "option 'release' must be a boolean"
+        );
+        assert.throws(
             function() { vtile.getDataSync({level:null}); }, null,
             "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive"
         );
@@ -1216,6 +1224,46 @@ describe('mapnik.VectorTile ', function() {
 
         gzip.write(uncompressed);
         gzip.end();
+    });
+
+    it('should be able to getData with release', function(done) {
+        var vtile1 = new mapnik.VectorTile(9,112,195);
+        var vtile2 = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile1.setData(data);
+        vtile2.setData(data);
+        assert.equal(vtile1.empty(), false);
+        assert.equal(data, vtile1.getData().toString());
+        var data1 = vtile1.getData({release:true}).toString();
+        assert.equal(data, data1);
+        assert.equal(vtile1.empty(), true);
+        assert.equal(vtile2.empty(), false);
+        vtile2.getData({release:true}, function(err, buffer) {
+            if (err) throw err;
+            assert.equal(data, buffer.toString());
+            assert.equal(vtile2.empty(), true);
+            done();
+        });
+    });
+    
+    it('should be able to getData with release and compression', function(done) {
+        var vtile1 = new mapnik.VectorTile(9,112,195);
+        var vtile2 = new mapnik.VectorTile(9,112,195);
+        var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
+        vtile1.setData(data);
+        vtile2.setData(data);
+        assert.equal(vtile1.empty(), false);
+        var data_c = vtile1.getData({compression:'gzip'}).toString();
+        var data1 = vtile1.getData({release:true, compression:'gzip'}).toString();
+        assert.equal(data_c, data1);
+        assert.equal(vtile1.empty(), true);
+        assert.equal(vtile2.empty(), false);
+        vtile2.getData({release:true, compression:'gzip'}, function(err, buffer) {
+            if (err) throw err;
+            assert.equal(data_c, buffer.toString());
+            assert.equal(vtile2.empty(), true);
+            done();
+        });
     });
 
     it('should be able to setData/parse gzip compressed (sync)', function(done) {
