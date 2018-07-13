@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.1
+
+- Updated mapnik-vector-tile to fix strange clipping in vector tiles https://github.com/mapnik/node-mapnik/issues/892
+- Added ability to release the underlying buffer from a vector tile when using `getData` method so no memory is copied.
+
 ## 4.0.0
 
 - Added support for node v10
