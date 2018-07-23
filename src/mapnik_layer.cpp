@@ -211,6 +211,11 @@ NAN_SETTER(Layer::set_prop)
     }
     else if (a == "datasource")
     {
+        if (!value->IsObject())
+        {
+            Nan::ThrowTypeError("mapnik.Datasource, or mapnik.MemoryDatasource instance expected");
+            return;
+        }
         v8::Local<v8::Object> obj = value.As<v8::Object>();
         if (value->IsNull() || value->IsUndefined()) {
             Nan::ThrowTypeError("mapnik.Datasource, or mapnik.MemoryDatasource instance expected");

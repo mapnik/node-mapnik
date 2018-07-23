@@ -81,6 +81,11 @@ NAN_METHOD(Expression::evaluate)
         return;
     }
 
+    if (!info[0]->IsObject())
+    {
+        Nan::ThrowTypeError("first argument is invalid, must be a mapnik.Feature");
+        return;
+    }
     v8::Local<v8::Object> obj = info[0].As<v8::Object>();
     if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Feature::constructor)->HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a mapnik.Feature");
