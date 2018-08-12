@@ -105,10 +105,10 @@ addons:
 
 
 ## Installing
-
+### With npm
 Just do:
 
-    npm install
+    npm install mapnik
 
 Note: This will install the latest node-mapnik 3.x series, which is recommended. There is also an [1.x series](https://github.com/mapnik/node-mapnik/tree/1.x) which maintains API compatibility with Mapnik 2.3.x and 2.2.x and a [v0.7.x series](https://github.com/mapnik/node-mapnik/tree/v0.7.x) which is not recommended unless you need to support Mapnik 2.1 or older.
 
