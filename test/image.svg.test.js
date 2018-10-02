@@ -191,7 +191,6 @@ describe('mapnik.Image SVG', function() {
       mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', {strict:true}, function(err, svg) {
         assert.ok(err);
         assert.ok(err.message.match(/SVG parse error:/));
-        console.log(err.message)
         assert.equal(svg, undefined);
         done();
       });
