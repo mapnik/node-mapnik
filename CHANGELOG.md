@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.0.2
+- Update to mapnik@da69fdf66
+
 ## 4.0.1
 
 - Updated mapnik-vector-tile to fix strange clipping in vector tiles https://github.com/mapnik/node-mapnik/issues/892
@@ -361,7 +364,7 @@ Notable changes in the Mapnik SDK include:
  - Upgrade postgres 9.4.0 -> 9.4.5
  - Upgrade libpng 1.6.18 -> 1.6.19
  - Upgrade icu_version 55.1 -> 56.1
- - Upgrade icu_version2 55_1 -> 56_1  
+ - Upgrade icu_version2 55_1 -> 56_1
 
 
 ## 3.4.10
