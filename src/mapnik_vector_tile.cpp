@@ -247,7 +247,7 @@ Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
  * @property {number} bufferSize - the size of the tile's buffer
  * @example
  * var vt = new mapnik.VectorTile(9,112,195);
- * console.log(vt.x, vt.y, vt.z); // 9, 112, 195
+ * console.log(vt.z, vt.x, vt.y); // 9, 112, 195
  * console.log(vt.tileSize, vt.bufferSize); // 4096, 128
  */
 void VectorTile::Initialize(v8::Local<v8::Object> target)
