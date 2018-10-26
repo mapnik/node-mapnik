@@ -29,8 +29,11 @@ public:
     static NAN_METHOD(setPixel);
     static NAN_METHOD(encodeSync);
     static NAN_METHOD(encode);
+    static NAN_METHOD(encodeChunked);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
+    static void EIO_EncodeChunked(uv_work_t* req);
+    static void EIO_AfterEncodeChunked(uv_work_t* req, int status);
 
     static NAN_METHOD(setGrayScaleToAlpha);
     static NAN_METHOD(width);

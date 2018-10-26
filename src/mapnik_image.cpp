@@ -22,12 +22,12 @@
 #include <mapnik/svg/svg_renderer_agg.hpp>
 #include <mapnik/svg/svg_path_attributes.hpp>
 
-#include "mapnik_image.hpp"
+#include "mapnik_image_encode.hpp"
 #include "mapnik_image_view.hpp"
-#include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 
 #include "utils.hpp"
+#include "callback_streambuf.hpp"
 
 #include "agg_rasterizer_scanline_aa.h"
 #include "agg_basics.h"
@@ -82,6 +82,7 @@ void Image::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "setPixel", setPixel);
     Nan::SetPrototypeMethod(lcons, "encodeSync", encodeSync);
     Nan::SetPrototypeMethod(lcons, "encode", encode);
+    Nan::SetPrototypeMethod(lcons, "encodeChunked", encodeChunked);
     Nan::SetPrototypeMethod(lcons, "view", view);
     Nan::SetPrototypeMethod(lcons, "saveSync", saveSync);
     Nan::SetPrototypeMethod(lcons, "save", save);
@@ -3662,17 +3663,6 @@ NAN_METHOD(Image::encodeSync)
         return;
     }
 }
-
-typedef struct {
-    uv_work_t request;
-    Image* im;
-    std::string format;
-    palette_ptr palette;
-    bool error;
-    std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-    std::string result;
-} encode_image_baton_t;
 
 /**
  * Encode this image into a buffer of encoded data
