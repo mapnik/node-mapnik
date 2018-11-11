@@ -50,6 +50,7 @@ changing the meaning of filter-factor, and improvements to the the TIFF decoder.
 
 Due to changes in the mapnik core version during this update you should see some changes in the image rescaling of raster and gdal plugin source data. This will definitely change the expected output. This is due to fixes in long standing bugs in the mapnik library.
 
+- Now supporting node v8
 - Updated to mapnik-vector-tile@1.4.0
 - Mapnik minimum version updated to 3.0.14. Does not work with mapnik 3.1.x currently.
 - Fixed tests around zlib compression and decompression when comparing to node's implementation
