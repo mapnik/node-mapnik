@@ -183,7 +183,7 @@ SSE_MATH=false make
 
 ### Building against Mapnik 3.0.x
 
-The `master` branch of node-mapnik is not compatible with `3.0.x` series of Mapnik. To build again Mapnik 3.0.x, use [`v3.0.x`](https://github.com/mapnik/node-mapnik/tree/v3.0.x) branch.
+The `master` branch of node-mapnik is not compatible with `3.0.x` series of Mapnik. To build against Mapnik 3.0.x, use [`v3.0.x`](https://github.com/mapnik/node-mapnik/tree/v3.0.x) branch.
 
 
 ## Using node-mapnik from your node app
