@@ -1754,6 +1754,8 @@ typedef struct {
     std::size_t size_y;
     int offset_x;
     int offset_y;
+    int offset_width;
+    int offset_height;
     double filter_factor;
     Nan::Persistent<v8::Function> cb;
     bool error;
@@ -1771,6 +1773,8 @@ typedef struct {
  * @param {Object} [options={}]
  * @param {number} [options.offset_x=0] - offset the image horizontally in pixels
  * @param {number} [options.offset_y=0] - offset the image vertically in pixels
+ * @param {number} [options.offset_width] - the width from the start of the offset_x to use from source image
+ * @param {number} [options.offset_height] - the height from the start of the offset_y to use from source image
  * @param {mapnik.imageScaling} [options.scaling_method=mapnik.imageScaling.near] - scaling method
  * @param {number} [options.filter_factor=1.0]
  * @param {Function} callback - `function(err, result)`
@@ -1794,6 +1798,8 @@ NAN_METHOD(Image::resize)
     std::size_t height = 0;
     int offset_x = 0;
     int offset_y = 0;
+    int offset_width = im1->this_->width();
+    int offset_height = im1->this_->height();
     double filter_factor = 1.0;
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
@@ -1868,6 +1874,36 @@ NAN_METHOD(Image::resize)
         }
         offset_y = bind_opt->IntegerValue();
     }
+    if (options->Has(Nan::New("offset_width").ToLocalChecked()))
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_width").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_width' must be a number");
+            return;
+        }
+        offset_width = bind_opt->IntegerValue();
+        if (offset_width <= 0)
+        {
+            Nan::ThrowTypeError("optional arg 'offset_width' must be a integer greater then zero");
+            return;
+        }
+    }
+    if (options->Has(Nan::New("offset_height").ToLocalChecked()))
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_height").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_height' must be a number");
+            return;
+        }
+        offset_height = bind_opt->IntegerValue();
+        if (offset_height <= 0)
+        {
+            Nan::ThrowTypeError("optional arg 'offset_height' must be a integer greater then zero");
+            return;
+        }
+    }
     if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
     {
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
@@ -1909,6 +1945,8 @@ NAN_METHOD(Image::resize)
     closure->size_y = height;
     closure->offset_x = offset_x;
     closure->offset_y = offset_y;
+    closure->offset_width = offset_width;
+    closure->offset_height = offset_height;
     closure->filter_factor = filter_factor;
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
@@ -2041,16 +2079,14 @@ void Image::EIO_Resize(uv_work_t* req)
                                                            false);
         closure->im2->set_offset(offset);
         closure->im2->set_scaling(scaling);
-        int im_width = closure->im1->this_->width();
-        int im_height = closure->im1->this_->height();
-        if (im_width <= 0 || im_height <= 0)
+        if (closure->offset_width <= 0 || closure->offset_height <= 0)
         {
             closure->error = true;
             closure->error_name = "Image width or height is zero or less then zero.";
             return;
         }
-        double image_ratio_x = static_cast<double>(closure->size_x) / im_width;
-        double image_ratio_y = static_cast<double>(closure->size_y) / im_height;
+        double image_ratio_x = static_cast<double>(closure->size_x) / closure->offset_width;
+        double image_ratio_y = static_cast<double>(closure->size_y) / closure->offset_height;
         resize_visitor visit(*(closure->im1->this_),
                              closure->scaling_method,
                              image_ratio_x,
@@ -2101,6 +2137,8 @@ void Image::EIO_AfterResize(uv_work_t* req)
  * @param {Object} [options={}]
  * @param {number} [options.offset_x=0] - offset the image horizontally in pixels
  * @param {number} [options.offset_y=0] - offset the image vertically in pixels
+ * @param {number} [options.offset_width] - the width from the start of the offset_x to use from source image
+ * @param {number} [options.offset_height] - the height from the start of the offset_y to use from source image
  * @param {mapnik.imageScaling} [options.scaling_method=mapnik.imageScaling.near] - scaling method
  * @param {number} [options.filter_factor=1.0]
  * @returns {mapnik.Image} copy
@@ -2123,6 +2161,8 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     double filter_factor = 1.0;
     int offset_x = 0;
     int offset_y = 0;
+    int offset_width = im->this_->width();
+    int offset_height = im->this_->height();
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() >= 2)
@@ -2195,6 +2235,36 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         offset_y = bind_opt->IntegerValue();
     }
+    if (options->Has(Nan::New("offset_width").ToLocalChecked()))
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_width").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_width' must be a number");
+            return scope.Escape(Nan::Undefined());
+        }
+        offset_width = bind_opt->IntegerValue();
+        if (offset_width <= 0)
+        {
+            Nan::ThrowTypeError("optional arg 'offset_width' must be a integer greater then zero");
+            return scope.Escape(Nan::Undefined());
+        }
+    }
+    if (options->Has(Nan::New("offset_height").ToLocalChecked()))
+    {
+        v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_height").ToLocalChecked());
+        if (!bind_opt->IsNumber())
+        {
+            Nan::ThrowTypeError("optional arg 'offset_height' must be a number");
+            return scope.Escape(Nan::Undefined());
+        }
+        offset_height = bind_opt->IntegerValue();
+        if (offset_height <= 0)
+        {
+            Nan::ThrowTypeError("optional arg 'offset_height' must be a integer greater then zero");
+            return scope.Escape(Nan::Undefined());
+        }
+    }
 
     if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
     {
@@ -2235,9 +2305,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         Nan::ThrowTypeError("Can not resize a null image");
         return scope.Escape(Nan::Undefined());
     }
-    int im_width = im->this_->width();
-    int im_height = im->this_->height();
-    if (im_width <= 0 || im_height <= 0)
+    if (offset_width <= 0 || offset_height <= 0)
     {
         Nan::ThrowTypeError("Image width or height is zero or less then zero.");
         return scope.Escape(Nan::Undefined());
@@ -2255,8 +2323,8 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                                                            false);
         imagep->set_offset(offset);
         imagep->set_scaling(scaling);
-        double image_ratio_x = static_cast<double>(width) / im_width;
-        double image_ratio_y = static_cast<double>(height) / im_height;
+        double image_ratio_x = static_cast<double>(width) / offset_width;
+        double image_ratio_y = static_cast<double>(height) / offset_height;
         resize_visitor visit(*(im->this_),
                              scaling_method,
                              image_ratio_x,
