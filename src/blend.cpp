@@ -29,12 +29,9 @@
 #include <cstdlib>
 #include <memory>
 
-
-
-
 namespace node_mapnik {
 
-static bool hexToUInt32Color(char *hex, unsigned int & value) {
+static bool hexToUInt32Color(char *hex, std::uint32_t & value) {
     if (!hex) return false;
     std::size_t len_original = strlen(hex);
     // Return is the length of the string is less then six
@@ -45,7 +42,7 @@ static bool hexToUInt32Color(char *hex, unsigned int & value) {
     std::size_t len = strlen(hex);
     if (len != 6 && len != 8) return false;
 
-    unsigned int color = 0;
+    std::uint32_t color = 0;
     std::stringstream ss;
     ss << std::hex << hex;
     ss >> color;
@@ -69,7 +66,7 @@ NAN_METHOD(rgb2hsl) {
         Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
         return;
     }
-    unsigned r,g,b;
+    std::uint32_t r,g,b;
     r = info[0]->IntegerValue();
     g = info[1]->IntegerValue();
     b = info[2]->IntegerValue();
@@ -96,7 +93,7 @@ NAN_METHOD(hsl2rgb) {
     s = info[1]->NumberValue();
     l = info[2]->NumberValue();
     v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
-    unsigned r,g,b;
+    std::uint32_t r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
     rgb->Set(0,Nan::New<v8::Integer>(r));
     rgb->Set(1,Nan::New<v8::Integer>(g));
@@ -144,7 +141,7 @@ static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std
     }
 }
 
-static inline void Blend_CompositePixel(unsigned int& target, unsigned int const& source) {
+static inline void Blend_CompositePixel(std::uint32_t & target, std::uint32_t const& source) {
     if (source <= 0x00FFFFFF) {
         // Top pixel is fully transparent.
         // <do nothing>
@@ -173,10 +170,10 @@ static inline void Blend_CompositePixel(unsigned int& target, unsigned int const
     }
 }
 
-static inline void TintPixel(unsigned & r,
-                      unsigned & g,
-                      unsigned & b,
-                      Tinter const& tint) {
+static inline void TintPixel(std::uint32_t & r,
+                             std::uint32_t & g,
+                             std::uint32_t & b,
+                             Tinter const& tint) {
     double h;
     double s;
     double l;
@@ -194,8 +191,8 @@ static inline void TintPixel(unsigned & r,
 }
 
 
-static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *image) {
-    const unsigned int *source = image->im_ptr->data();
+static void Blend_Composite(std::uint32_t *target, BlendBaton *baton, BImage *image) {
+    const std::uint32_t *source = image->im_raw_ptr->data();
 
     int sourceX = std::max(0, -image->x);
     int sourceY = std::max(0, -image->y);
@@ -212,21 +209,21 @@ static void Blend_Composite(unsigned int *target, BlendBaton *baton, BImage *ima
     if (tinting || set_alpha) {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-                unsigned int const& source_pixel = source[sourcePos + x];
-                unsigned a = (source_pixel >> 24) & 0xff;
+                std::uint32_t const& source_pixel = source[sourcePos + x];
+                std::uint32_t a = (source_pixel >> 24) & 0xff;
                 if (set_alpha) {
                     double a2 = image->tint.a0 + (a/255.0 * (image->tint.a1 - image->tint.a0));
                     if (a2 < 0) a2 = 0;
-                    a = static_cast<unsigned>(std::floor((a2 * 255.0)+.5));
+                    a = static_cast<std::uint32_t>(std::floor((a2 * 255.0)+.5));
                     if (a > 255) a = 255;
                 }
-                unsigned r = source_pixel & 0xff;
-                unsigned g = (source_pixel >> 8 ) & 0xff;
-                unsigned b = (source_pixel >> 16) & 0xff;
+                std::uint32_t r = source_pixel & 0xff;
+                std::uint32_t g = (source_pixel >> 8 ) & 0xff;
+                std::uint32_t b = (source_pixel >> 16) & 0xff;
                 if (a > 1 && tinting) {
                     TintPixel(r,g,b,image->tint);
                 }
-                unsigned int new_pixel = (a << 24) | (b << 16) | (g << 8) | (r);
+                std::uint32_t new_pixel = (a << 24) | (b << 16) | (g << 8) | (r);
                 Blend_CompositePixel(target[targetPos + x], new_pixel);
             }
             sourcePos += image->width;
@@ -315,81 +312,106 @@ void Work_Blend(uv_work_t* req)
         if (!alpha) break;
         auto image = *rit;
         if (!image) continue;
-        std::unique_ptr<mapnik::image_reader> image_reader;
-        try {
-            image_reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
-        } catch (std::exception const& ex) {
-            baton->message = ex.what();
-            return;
+
+        if (image->im_obj) {
+            unsigned layer_width = image->im_obj->get()->width();
+            unsigned layer_height = image->im_obj->get()->height();
+            if (layer_width == 0 || layer_height == 0) {
+                baton->message = "zero width/height image encountered";
+                return;
+            }
+            int visibleWidth = (int)layer_width + image->x;
+            int visibleHeight = (int)layer_height + image->y;
+            // The first image that is in the viewport sets the width/height, if not user supplied.
+            if (baton->width <= 0) baton->width = std::max(0, visibleWidth);
+            if (baton->height <= 0) baton->height = std::max(0, visibleHeight);
+
+            // Skip images that are outside of the viewport.
+            if (visibleWidth <= 0 || visibleHeight <= 0 || image->x >= baton->width || image->y >= baton->height) {
+                // Remove this layer from the list of layers we consider blending.
+                continue;
+            }
+            image->width = layer_width;
+            image->height = layer_height;
+            image->im_raw_ptr = &image->im_obj->get()->get<mapnik::image_rgba8>();
+        } else {
+            std::unique_ptr<mapnik::image_reader> image_reader;
+            try {
+                image_reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image->data, image->dataLength));
+            } catch (std::exception const& ex) {
+                baton->message = ex.what();
+                return;
+            }
+
+            if (!image_reader || !image_reader.get()) {
+                // Not quite sure anymore how the pointer would not be returned
+                // from the reader and can't find a way to make this fail.
+                // So removing from coverage
+                /* LCOV_EXCL_START */
+                baton->message = "Unknown image format";
+                return;
+                /* LCOV_EXCL_STOP */
+            }
+
+            unsigned layer_width = image_reader->width();
+            unsigned layer_height = image_reader->height();
+            // Error out on invalid images.
+            if (layer_width == 0 || layer_height == 0) {
+                // No idea how to create a zero height or width image
+                // so removing from coverage, because I am fairly certain
+                // it is not possible in almost every image format.
+                /* LCOV_EXCL_START */
+                baton->message = "zero width/height image encountered";
+                return;
+                /* LCOV_EXCL_STOP */
+            }
+
+            int visibleWidth = (int)layer_width + image->x;
+            int visibleHeight = (int)layer_height + image->y;
+            // The first image that is in the viewport sets the width/height, if not user supplied.
+            if (baton->width <= 0) baton->width = std::max(0, visibleWidth);
+            if (baton->height <= 0) baton->height = std::max(0, visibleHeight);
+
+            // Skip images that are outside of the viewport.
+            if (visibleWidth <= 0 || visibleHeight <= 0 || image->x >= baton->width || image->y >= baton->height) {
+                // Remove this layer from the list of layers we consider blending.
+                continue;
+            }
+
+            bool layer_has_alpha = image_reader->has_alpha();
+
+            // Short-circuit when we're not reencoding.
+            if (size == 0 && !layer_has_alpha && !baton->reencode &&
+                image->x == 0 && image->y == 0 &&
+                (int)layer_width == baton->width && (int)layer_height == baton->height)
+            {
+                baton->stream.write((char *)image->data, image->dataLength);
+                return;
+            }
+
+            // allocate image for decoded pixels
+            std::unique_ptr<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
+            // actually decode pixels now
+            try {
+                image_reader->read(0,0,*im_ptr);
+            } catch (std::exception const&) {
+                baton->message = "Could not decode image";
+                return;
+            }
+
+            bool coversWidth = image->x <= 0 && visibleWidth >= baton->width;
+            bool coversHeight = image->y <= 0 && visibleHeight >= baton->height;
+            if (!layer_has_alpha && coversWidth && coversHeight && image->tint.is_alpha_identity()) {
+                // Skip decoding more layers.
+                alpha = false;
+            }
+
+            // Convenience aliases.
+            image->width = layer_width;
+            image->height = layer_height;
+            image->im_ptr = std::move(im_ptr);
+            image->im_raw_ptr = image->im_ptr.get();
         }
-
-        if (!image_reader || !image_reader.get()) {
-            // Not quite sure anymore how the pointer would not be returned
-            // from the reader and can't find a way to make this fail.
-            // So removing from coverage
-            /* LCOV_EXCL_START */
-            baton->message = "Unknown image format";
-            return;
-            /* LCOV_EXCL_STOP */
-        }
-
-        unsigned layer_width = image_reader->width();
-        unsigned layer_height = image_reader->height();
-        // Error out on invalid images.
-        if (layer_width == 0 || layer_height == 0) {
-            // No idea how to create a zero height or width image
-            // so removing from coverage, because I am fairly certain
-            // it is not possible in almost every image format.
-            /* LCOV_EXCL_START */
-            baton->message = "zero width/height image encountered";
-            return;
-            /* LCOV_EXCL_STOP */
-        }
-
-        int visibleWidth = (int)layer_width + image->x;
-        int visibleHeight = (int)layer_height + image->y;
-        // The first image that is in the viewport sets the width/height, if not user supplied.
-        if (baton->width <= 0) baton->width = std::max(0, visibleWidth);
-        if (baton->height <= 0) baton->height = std::max(0, visibleHeight);
-
-        // Skip images that are outside of the viewport.
-        if (visibleWidth <= 0 || visibleHeight <= 0 || image->x >= baton->width || image->y >= baton->height) {
-            // Remove this layer from the list of layers we consider blending.
-            continue;
-        }
-
-        bool layer_has_alpha = image_reader->has_alpha();
-
-        // Short-circuit when we're not reencoding.
-        if (size == 0 && !layer_has_alpha && !baton->reencode &&
-            image->x == 0 && image->y == 0 &&
-            (int)layer_width == baton->width && (int)layer_height == baton->height)
-        {
-            baton->stream.write((char *)image->data, image->dataLength);
-            return;
-        }
-
-        // allocate image for decoded pixels
-        std::unique_ptr<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
-        // actually decode pixels now
-        try {
-            image_reader->read(0,0,*im_ptr);
-        } catch (std::exception const&) {
-            baton->message = "Could not decode image";
-            return;
-        }
-
-        bool coversWidth = image->x <= 0 && visibleWidth >= baton->width;
-        bool coversHeight = image->y <= 0 && visibleHeight >= baton->height;
-        if (!layer_has_alpha && coversWidth && coversHeight && image->tint.is_alpha_identity()) {
-            // Skip decoding more layers.
-            alpha = false;
-        }
-
-        // Convenience aliases.
-        image->width = layer_width;
-        image->height = layer_height;
-        image->im_ptr = std::move(im_ptr);
         ++size;
 
     }
@@ -410,7 +432,7 @@ void Work_Blend(uv_work_t* req)
     }
     for (auto image_ptr : baton->images)
     {
-        if (image_ptr && image_ptr->im_ptr.get())
+        if (image_ptr && image_ptr->im_raw_ptr)
         {
             Blend_Composite(target.data(), baton, &*image_ptr);
         }
@@ -421,6 +443,12 @@ void Work_Blend(uv_work_t* req)
 void Work_AfterBlend(uv_work_t* req) {
     Nan::HandleScope scope;
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
+
+    for (auto im : baton->images) {
+        if (im->im_obj) {
+            im->im_obj->_unref();
+        }
+    }
 
     if (!baton->message.length()) {
         std::string result = baton->stream.str();
@@ -603,20 +631,6 @@ NAN_METHOD(Blend) {
             };
             Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
             return;
-        } else {
-            // Check whether the argument is a complex image with offsets etc.
-            // In that case, we don't throw but continue going through the blend
-            // process below.
-            bool valid = false;
-            if (buffer->IsObject()) {
-                v8::Local<v8::Object> props = buffer->ToObject();
-                valid = props->Has(Nan::New("buffer").ToLocalChecked()) &&
-                        node::Buffer::HasInstance(props->Get(Nan::New("buffer").ToLocalChecked()));
-            }
-            if (!valid) {
-                Nan::ThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
-                return;
-            }
         }
     }
 
@@ -637,38 +651,60 @@ NAN_METHOD(Blend) {
             image->buffer.Reset(buffer.As<v8::Object>());
         } else if (buffer->IsObject()) {
             v8::Local<v8::Object> props = buffer->ToObject();
-            if (props->Has(Nan::New("buffer").ToLocalChecked())) {
-                buffer = props->Get(Nan::New("buffer").ToLocalChecked());
-                if (node::Buffer::HasInstance(buffer)) {
-                    image->buffer.Reset(buffer.As<v8::Object>());
+            if (Nan::New(Image::constructor)->HasInstance(props)) {
+                Image * im = Nan::ObjectWrap::Unwrap<Image>(props);
+                if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
+                    image->im_obj = im;
                 }
-            }
-            image->x = props->Get(Nan::New("x").ToLocalChecked())->Int32Value();
-            image->y = props->Get(Nan::New("y").ToLocalChecked())->Int32Value();
+            } else {
+                if (props->Has(Nan::New("buffer").ToLocalChecked())) {
+                    buffer = props->Get(Nan::New("buffer").ToLocalChecked());
+                    if (node::Buffer::HasInstance(buffer)) {
+                        image->buffer.Reset(buffer.As<v8::Object>());
+                    } else if (buffer->IsObject()) {
+                        v8::Local<v8::Object> possible_im = buffer.As<v8::Object>();
+                        if (Nan::New(Image::constructor)->HasInstance(possible_im)) {
+                            Image * im = Nan::ObjectWrap::Unwrap<Image>(possible_im);
+                            if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
+                                image->im_obj = im;
+                            }
+                        }
+                    }
+                }
+                image->x = props->Get(Nan::New("x").ToLocalChecked())->Int32Value();
+                image->y = props->Get(Nan::New("y").ToLocalChecked())->Int32Value();
 
-            v8::Local<v8::Value> tint_val = props->Get(Nan::New("tint").ToLocalChecked());
-            if (!tint_val.IsEmpty() && tint_val->IsObject()) {
-                v8::Local<v8::Object> tint = tint_val->ToObject();
-                if (!tint.IsEmpty()) {
-                    baton->reencode = true;
-                    std::string msg;
-                    parseTintOps(tint,image->tint,msg);
-                    if (!msg.empty()) {
-                        Nan::ThrowTypeError(msg.c_str());
-                        return;
+                v8::Local<v8::Value> tint_val = props->Get(Nan::New("tint").ToLocalChecked());
+                if (!tint_val.IsEmpty() && tint_val->IsObject()) {
+                    v8::Local<v8::Object> tint = tint_val->ToObject();
+                    if (!tint.IsEmpty()) {
+                        baton->reencode = true;
+                        std::string msg;
+                        parseTintOps(tint,image->tint,msg);
+                        if (!msg.empty()) {
+                            Nan::ThrowTypeError(msg.c_str());
+                            return;
+                        }
                     }
                 }
             }
         }
 
-        if (image->buffer.IsEmpty()) {
-            Nan::ThrowTypeError("All elements must be Buffers or objects with a 'buffer' property.");
+        if (image->buffer.IsEmpty() && !image->im_obj) {
+            Nan::ThrowTypeError("All elements must be Buffers or RGBA Mapnik Image objects or objects with a 'buffer' property.");
             return;
         }
-
-        image->data = node::Buffer::Data(buffer);
-        image->dataLength = node::Buffer::Length(buffer);
+        if (!image->im_obj) {
+            image->data = node::Buffer::Data(buffer);
+            image->dataLength = node::Buffer::Length(buffer);
+        } 
         baton->images.push_back(image);
+    }
+
+    for (auto im : baton->images) {
+        if (im->im_obj) {
+            im->im_obj->_ref();
+        }
     }
 
     uv_queue_work(uv_default_loop(), &(baton.release())->request, Work_Blend, (uv_after_work_cb)Work_AfterBlend);

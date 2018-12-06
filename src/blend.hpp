@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include "mapnik_palette.hpp"
+#include "mapnik_image.hpp"
 #include "tint.hpp"
 
 namespace node_mapnik {
@@ -26,7 +27,9 @@ struct BImage {
         width(0),
         height(0),
         tint(),
-        im_ptr(nullptr) {}
+        im_ptr(nullptr),
+        im_raw_ptr(nullptr),
+        im_obj(nullptr) {}
     Nan::Persistent<v8::Object> buffer;
     const char * data;
     size_t dataLength;
@@ -35,6 +38,8 @@ struct BImage {
     int width, height;
     Tinter tint;
     std::unique_ptr<mapnik::image_rgba8> im_ptr;
+    mapnik::image_rgba8 * im_raw_ptr;
+    Image * im_obj;
 };
 
 typedef std::shared_ptr<BImage> ImagePtr;

@@ -91,6 +91,49 @@ describe('mapnik.blend', function() {
         });
     });
     
+    it('blended png - with mapnik Images', function(done) {
+        var input = [
+            new mapnik.Image.open('test/blend-fixtures/1.png'),
+            new mapnik.Image.open('test/blend-fixtures/2.png')
+        ];
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
+        mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+
+    it('blended png - objects with mapnik Images', function(done) {
+        var input = [{
+                buffer: new mapnik.Image.open('test/blend-fixtures/1.png')
+            },{
+                buffer: new mapnik.Image.open('test/blend-fixtures/2.png')
+            }];
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
+        mapnik.blend(input, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png - mapnik Images - BAD', function(done) {
+        var input = [
+            new mapnik.Image(0,0),
+            new mapnik.Image.open('test/blend-fixtures/2.png')
+        ];
+        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
+        mapnik.blend(input, function(err, result) {
+            assert.throws(function() { if (err) throw err; });
+            done();
+        });
+    });
+    
     it('blended png - objects - BAD fails', function() {
         var input = [{
                 buffer: null
@@ -159,6 +202,18 @@ describe('mapnik.blend', function() {
         });
     });
     
+    it('blended png - single objects failure 1 (Image Object)', function(done) {
+        var input = [{
+                buffer: new mapnik.Image.open('test/blend-fixtures/1a.png'),
+                x:-260,
+                y:-260
+        }];
+        mapnik.blend(input, {width:0, height:0}, function(err, result) {
+            assert.throws(function() {if (err) throw err; });
+            done();
+        });
+    });
+
     it('blended png - single objects failure 2', function(done) {
         var input = [{
                 buffer: fs.readFileSync('test/blend-fixtures/corrupt-1.png'),
@@ -286,6 +341,19 @@ describe('mapnik.blend', function() {
         // should be the same
         var expected = new mapnik.Image.open('test/blend-fixtures/1.png');
         mapnik.blend(images_one, function(err, result) {
+            if (err) throw err;
+            var actual = new mapnik.Image.fromBytesSync(result);
+            //actual.save('test/blend-fixtures/actual.png')
+            assert.equal(0,expected.compare(actual));
+            done();
+        });
+    });
+    
+    it('blended png - one mapnik image', function(done) {
+        // should be the same
+        var images = [ new mapnik.Image.open('test/blend-fixtures/1.png') ];
+        var expected = new mapnik.Image.open('test/blend-fixtures/1.png');
+        mapnik.blend(images, function(err, result) {
             if (err) throw err;
             var actual = new mapnik.Image.fromBytesSync(result);
             //actual.save('test/blend-fixtures/actual.png')
