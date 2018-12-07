@@ -4,8 +4,12 @@
 #include <cmath>
 #include <string>
 
-static inline void rgb_to_hsl(unsigned red, unsigned green, unsigned blue,
-             double & h, double & s, double & l) {
+static inline void rgb_to_hsl(std::uint32_t red,
+                              std::uint32_t green,
+                              std::uint32_t blue,
+                              double & h,
+                              double & s,
+                              double & l) {
     double r = red/255.0;
     double g = green/255.0;
     double b = blue/255.0;
@@ -33,18 +37,22 @@ static inline double hueToRGB(double m1, double m2, double h) {
     return m1;
 }
 
-static inline void hsl_to_rgb(double h, double s, double l,
-             unsigned & r, unsigned & g, unsigned & b) {
+static inline void hsl_to_rgb(double h,
+                              double s,
+                              double l,
+                              std::uint32_t & r,
+                              std::uint32_t & g,
+                              std::uint32_t & b) {
     if (!s) {
-        r = g = b = static_cast<unsigned>(std::floor((l * 255.0)+.5));
+        r = g = b = static_cast<std::uint32_t>(std::floor((l * 255.0)+.5));
     }
     else
     {
         double m2 = (l <= 0.5) ? l * (s + 1) : l + s - l * s;
         double m1 = l * 2.0 - m2;
-        r = static_cast<unsigned>(std::floor(hueToRGB(m1, m2, h + 0.33333) * 255.0)+.5);
-        g = static_cast<unsigned>(std::floor(hueToRGB(m1, m2, h) * 255.0)+.5);
-        b = static_cast<unsigned>(std::floor(hueToRGB(m1, m2, h - 0.33333) * 255.0)+.5);
+        r = static_cast<std::uint32_t>(std::floor(hueToRGB(m1, m2, h + 0.33333) * 255.0)+.5);
+        g = static_cast<std::uint32_t>(std::floor(hueToRGB(m1, m2, h) * 255.0)+.5);
+        b = static_cast<std::uint32_t>(std::floor(hueToRGB(m1, m2, h - 0.33333) * 255.0)+.5);
     }
 }
 
