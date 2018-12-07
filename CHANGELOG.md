@@ -1,7 +1,8 @@
 # Changelog
 
-## NEXT RELEASE
+## 4.1.0
 - Added `offset_width` and `offset_height` optional parameters to the `mapnik.Image.resize` and `mapnik.Image.resizeSync` methods.
+- Made `mapink.blend()` now accept `mapnik.Image` objects. 
 
 ## 4.0.2
 - Update to mapnik@da69fdf66
