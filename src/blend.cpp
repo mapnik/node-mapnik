@@ -655,6 +655,9 @@ NAN_METHOD(Blend) {
                 Image * im = Nan::ObjectWrap::Unwrap<Image>(props);
                 if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
                     image->im_obj = im;
+                } else {
+                    Nan::ThrowTypeError("Only mapnik.Image types that are rgba8 can be passed to blend");
+                    return;
                 }
             } else {
                 if (props->Has(Nan::New("buffer").ToLocalChecked())) {
@@ -667,6 +670,9 @@ NAN_METHOD(Blend) {
                             Image * im = Nan::ObjectWrap::Unwrap<Image>(possible_im);
                             if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
                                 image->im_obj = im;
+                            } else {
+                                Nan::ThrowTypeError("Only mapnik.Image types that are rgba8 can be passed to blend");
+                                return;
                             }
                         }
                     }

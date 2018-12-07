@@ -127,11 +127,27 @@ describe('mapnik.blend', function() {
             new mapnik.Image(0,0),
             new mapnik.Image.open('test/blend-fixtures/2.png')
         ];
-        var expected = new mapnik.Image.open('test/blend-fixtures/expected.png');
         mapnik.blend(input, function(err, result) {
             assert.throws(function() { if (err) throw err; });
             done();
         });
+    });
+    
+    it('blended png - mapnik Images - BAD non RGBA8 type', function() {
+        var input = [
+            new mapnik.Image(256,256, {type: mapnik.imageType.gray8}),
+            new mapnik.Image.open('test/blend-fixtures/2.png')
+        ];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {})});
+    });
+
+    it('blended png - objects with mapnik Images - BAD non RGBA8 type', function() {
+        var input = [{
+                buffer: new mapnik.Image(256, 256, {type: mapnik.imageType.gray8})
+            },{
+                buffer: new mapnik.Image.open('test/blend-fixtures/2.png')
+            }];
+        assert.throws(function() { mapnik.blend(input, function(err, result) {})});
     });
     
     it('blended png - objects - BAD fails', function() {
