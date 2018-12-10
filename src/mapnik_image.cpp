@@ -44,7 +44,6 @@
 #include <ostream>                      // for operator<<, basic_ostream
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>
-#include <iostream>
 
 Nan::Persistent<v8::FunctionTemplate> Image::constructor;
 
