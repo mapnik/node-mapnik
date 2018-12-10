@@ -1752,10 +1752,10 @@ typedef struct {
     mapnik::scaling_method_e scaling_method;
     std::size_t size_x;
     std::size_t size_y;
-    int offset_x;
-    int offset_y;
-    int offset_width;
-    int offset_height;
+    double offset_x;
+    double offset_y;
+    double offset_width;
+    double offset_height;
     double filter_factor;
     Nan::Persistent<v8::Function> cb;
     bool error;
@@ -1796,10 +1796,10 @@ NAN_METHOD(Image::resize)
     Image* im1 = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     std::size_t width = 0;
     std::size_t height = 0;
-    int offset_x = 0;
-    int offset_y = 0;
-    int offset_width = im1->this_->width();
-    int offset_height = im1->this_->height();
+    double offset_x = 0.0;
+    double offset_y = 0.0;
+    double offset_width = static_cast<double>(im1->this_->width());
+    double offset_height = static_cast<double>(im1->this_->height());
     double filter_factor = 1.0;
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
@@ -1862,7 +1862,7 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
             return;
         }
-        offset_x = bind_opt->IntegerValue();
+        offset_x = bind_opt->NumberValue();
     }
     if (options->Has(Nan::New("offset_y").ToLocalChecked()))
     {
@@ -1872,7 +1872,7 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
             return;
         }
-        offset_y = bind_opt->IntegerValue();
+        offset_y = bind_opt->NumberValue();
     }
     if (options->Has(Nan::New("offset_width").ToLocalChecked()))
     {
@@ -1882,8 +1882,8 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_width' must be a number");
             return;
         }
-        offset_width = bind_opt->IntegerValue();
-        if (offset_width <= 0)
+        offset_width = bind_opt->NumberValue();
+        if (offset_width <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_width' must be a integer greater then zero");
             return;
@@ -1897,8 +1897,8 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_height' must be a number");
             return;
         }
-        offset_height = bind_opt->IntegerValue();
-        if (offset_height <= 0)
+        offset_height = bind_opt->NumberValue();
+        if (offset_height <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_height' must be a integer greater then zero");
             return;
@@ -1963,8 +1963,8 @@ struct resize_visitor
                    double image_ratio_x,
                    double image_ratio_y,
                    double filter_factor,
-                   int offset_x,
-                   int offset_y) :
+                   double offset_x,
+                   double offset_y) :
         im1_(im1),
         scaling_method_(scaling_method),
         image_ratio_x_(image_ratio_x),
@@ -2085,15 +2085,18 @@ void Image::EIO_Resize(uv_work_t* req)
             closure->error_name = "Image width or height is zero or less then zero.";
             return;
         }
+
         double image_ratio_x = static_cast<double>(closure->size_x) / closure->offset_width;
         double image_ratio_y = static_cast<double>(closure->size_y) / closure->offset_height;
+        double corrected_offset_x = closure->offset_x * image_ratio_x;
+        double corrected_offset_y = closure->offset_y * image_ratio_y;
         resize_visitor visit(*(closure->im1->this_),
                              closure->scaling_method,
                              image_ratio_x,
                              image_ratio_y,
                              closure->filter_factor,
-                             closure->offset_x,
-                             closure->offset_y);
+                             corrected_offset_x,
+                             corrected_offset_y);
         mapnik::util::apply_visitor(visit, *(closure->im2));
     }
     catch (std::exception const& ex)
@@ -2159,10 +2162,10 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     std::size_t width = 0;
     std::size_t height = 0;
     double filter_factor = 1.0;
-    int offset_x = 0;
-    int offset_y = 0;
-    int offset_width = im->this_->width();
-    int offset_height = im->this_->height();
+    double offset_x = 0.0;
+    double offset_y = 0.0;
+    double offset_width = static_cast<double>(im->this_->width());
+    double offset_height = static_cast<double>(im->this_->height());
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_NEAR;
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
     if (info.Length() >= 2)
@@ -2223,7 +2226,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_x = bind_opt->IntegerValue();
+        offset_x = bind_opt->NumberValue();
     }
     if (options->Has(Nan::New("offset_y").ToLocalChecked()))
     {
@@ -2233,7 +2236,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_y = bind_opt->IntegerValue();
+        offset_y = bind_opt->NumberValue();
     }
     if (options->Has(Nan::New("offset_width").ToLocalChecked()))
     {
@@ -2243,8 +2246,8 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_width' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_width = bind_opt->IntegerValue();
-        if (offset_width <= 0)
+        offset_width = bind_opt->NumberValue();
+        if (offset_width <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_width' must be a integer greater then zero");
             return scope.Escape(Nan::Undefined());
@@ -2258,8 +2261,8 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_height' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_height = bind_opt->IntegerValue();
-        if (offset_height <= 0)
+        offset_height = bind_opt->NumberValue();
+        if (offset_height <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_height' must be a integer greater then zero");
             return scope.Escape(Nan::Undefined());
@@ -2325,13 +2328,15 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         imagep->set_scaling(scaling);
         double image_ratio_x = static_cast<double>(width) / offset_width;
         double image_ratio_y = static_cast<double>(height) / offset_height;
+        double corrected_offset_x = offset_x * image_ratio_x;
+        double corrected_offset_y = offset_y * image_ratio_y;
         resize_visitor visit(*(im->this_),
                              scaling_method,
                              image_ratio_x,
                              image_ratio_y,
                              filter_factor,
-                             offset_x,
-                             offset_y);
+                             corrected_offset_x,
+                             corrected_offset_y);
         mapnik::util::apply_visitor(visit, *imagep);
         Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);

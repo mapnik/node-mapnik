@@ -972,6 +972,30 @@ describe('mapnik.Image ', function() {
         });
     });
     
+    it('use resize with variety of offset settings', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image2.jpg');
+        im.premultiply();
+        var old_size = 512;
+        var new_size = 256;
+        im.resize(new_size, new_size, { 
+                scaling_method:mapnik.imageScaling.near, 
+                offset_x:128, 
+                offset_y:128,
+                offset_width: 256,
+                offset_height: 256
+                }, function(err, result) {
+            if (err) throw err;
+            result.demultiply();
+            var expected = 'test/data/images/sat_image2-expected-offset.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2));
+            done();
+        });
+    });
+    
     it('should resize with offset - 100x100', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.tif');
         im.premultiply();
