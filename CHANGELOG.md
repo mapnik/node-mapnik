@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.2.0
+- `mapnik.Image.resize` will now accept non premultiplied images and return them back as non premultiplied images
+
 ## 4.1.0
 - Added `offset_width` and `offset_height` optional parameters to the `mapnik.Image.resize` and `mapnik.Image.resizeSync` methods.
 - Made `mapink.blend()` now accept `mapnik.Image` objects. 
