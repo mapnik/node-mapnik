@@ -1958,7 +1958,7 @@ NAN_METHOD(Image::resize)
 struct resize_visitor
 {
 
-    resize_visitor(mapnik::image_any const& im1,
+    resize_visitor(mapnik::image_any & im1,
                    mapnik::scaling_method_e scaling_method,
                    double image_ratio_x,
                    double image_ratio_y,
@@ -1975,9 +1975,11 @@ struct resize_visitor
 
     void operator()(mapnik::image_rgba8 & im2) const
     {
+        bool remultiply = false;
         if (!im1_.get_premultiplied())
         {
-            throw std::runtime_error("RGBA8 images must be premultiplied prior to using resize");
+            remultiply = true;
+            mapnik::premultiply_alpha(im1_);
         }
         mapnik::scale_image_agg(im2,
                                 mapnik::util::get<mapnik::image_rgba8>(im1_),
@@ -1987,6 +1989,9 @@ struct resize_visitor
                                 offset_x_,
                                 offset_y_,
                                 filter_factor_);
+        if (remultiply) {
+            mapnik::demultiply_alpha(im2);
+        }
     }
 
     template <typename T>
@@ -2047,7 +2052,7 @@ struct resize_visitor
 
 
   private:
-    mapnik::image_any const & im1_;
+    mapnik::image_any & im1_;
     mapnik::scaling_method_e scaling_method_;
     double image_ratio_x_;
     double image_ratio_y_;

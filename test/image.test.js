@@ -892,10 +892,24 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im.resizeSync(4,4); });
     });
     
-    it('should fail to resize resize - not premultiplied rgba8', function(done) {
+    it('should resize - not premultiplied rgba8', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        assert(!im.premultiplied());
         im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
-            assert.throws(function() { if (err) throw err; });
+            if (err) throw err;
+            assert(!result.premultiplied());
+            done();
+        });
+    });
+
+    it('should resize - premultiplied rgba8', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        assert(!im.premultiplied());
+        im.premultiply();
+        assert(im.premultiplied());
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            if (err) throw err;
+            assert(result.premultiplied());
             done();
         });
     });
