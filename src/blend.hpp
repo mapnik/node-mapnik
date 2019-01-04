@@ -8,7 +8,6 @@
 #pragma GCC diagnostic pop
 
 // stl
-#include <sstream>
 #include <string>
 #include <vector>
 #include <memory>
@@ -76,7 +75,7 @@ struct BlendBaton {
     unsigned int matte;
     int compression;
     AlphaMode mode;
-    std::ostringstream stream;
+    std::unique_ptr<std::string> output_data;
 
     BlendBaton() :
         quality(0),
@@ -87,7 +86,7 @@ struct BlendBaton {
         matte(0),
         compression(-1),
         mode(BLEND_MODE_HEXTREE),
-        stream(std::ios::out | std::ios::binary)
+        output_data()
     {
         this->request.data = this;
     }
