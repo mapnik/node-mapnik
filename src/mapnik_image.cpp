@@ -3723,16 +3723,16 @@ NAN_METHOD(Image::encodeSync)
     }
 
     try {
-        std::string s;
+        std::unique_ptr<std::string> s;
         if (palette.get())
         {
-            s = save_to_string(*(im->this_), format, *palette);
+            s = std::make_unique<std::string>(save_to_string(*(im->this_), format, *palette));
         }
         else {
-            s = save_to_string(*(im->this_), format);
+            s = std::make_unique<std::string>(save_to_string(*(im->this_), format));
         }
 
-        info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
+        info.GetReturnValue().Set(node_mapnik::NewBufferFrom(std::move(s)).ToLocalChecked());
     }
     catch (std::exception const& ex)
     {
@@ -3749,7 +3749,7 @@ typedef struct {
     bool error;
     std::string error_name;
     Nan::Persistent<v8::Function> cb;
-    std::string result;
+    std::unique_ptr<std::string> result;
 } encode_image_baton_t;
 
 /**
@@ -3849,11 +3849,11 @@ void Image::EIO_Encode(uv_work_t* req)
     try {
         if (closure->palette.get())
         {
-            closure->result = save_to_string(*(closure->im->this_), closure->format, *closure->palette);
+            closure->result = std::make_unique<std::string>(save_to_string(*(closure->im->this_), closure->format, *closure->palette));
         }
         else
         {
-            closure->result = save_to_string(*(closure->im->this_), closure->format);
+            closure->result = std::make_unique<std::string>(save_to_string(*(closure->im->this_), closure->format));
         }
     }
     catch (std::exception const& ex)
@@ -3875,7 +3875,7 @@ void Image::EIO_AfterEncode(uv_work_t* req)
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->result.data(), closure->result.size()).ToLocalChecked() };
+        v8::Local<v8::Value> argv[2] = { Nan::Null(), node_mapnik::NewBufferFrom(std::move(closure->result)).ToLocalChecked() };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 

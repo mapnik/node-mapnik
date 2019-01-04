@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.2.1
+- Performance improvement in `mapnik.blend` and `mapnik.Image` methods by having it hold the event loop less time and copying less data into buffers
+
 ## 4.2.0
 - `mapnik.Image.resize` will now accept non premultiplied images and return them back as non premultiplied images
 

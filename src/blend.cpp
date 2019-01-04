@@ -242,10 +242,11 @@ static void Blend_Composite(std::uint32_t *target, BlendBaton *baton, BImage *im
 
 static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bool alpha) {
     try {
+        std::ostringstream stream(std::ios::out | std::ios::binary);
         if (baton->format == BLEND_FORMAT_JPEG) {
 #if defined(HAVE_JPEG)
             if (baton->quality == 0) baton->quality = 85;
-            mapnik::save_as_jpeg(baton->stream, baton->quality, image);
+            mapnik::save_as_jpeg(stream, baton->quality, image);
 #else
             baton->message = "Mapnik not built with jpeg support";
 #endif
@@ -264,7 +265,7 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
                 if (baton->compression > 0) {
                     config.method = baton->compression;
                 }
-                mapnik::save_as_webp(baton->stream,image,config,alpha);
+                mapnik::save_as_webp(stream,image,config,alpha);
             }
 #else
             baton->message = "Mapnik not built with webp support";
@@ -275,22 +276,23 @@ static void Blend_Encode(mapnik::image_rgba8 const& image, BlendBaton* baton, bo
             mapnik::png_options opts;
             opts.compression = baton->compression;
             if (baton->palette && baton->palette->valid()) {
-                mapnik::save_as_png8_pal(baton->stream, image, *baton->palette, opts);
+                mapnik::save_as_png8_pal(stream, image, *baton->palette, opts);
             } else if (baton->quality > 0) {
                 opts.colors = baton->quality;
                 // Paletted PNG.
                 if (alpha && baton->mode == BLEND_MODE_HEXTREE) {
-                    mapnik::save_as_png8_hex(baton->stream, image, opts);
+                    mapnik::save_as_png8_hex(stream, image, opts);
                 } else {
-                    mapnik::save_as_png8_oct(baton->stream, image, opts);
+                    mapnik::save_as_png8_oct(stream, image, opts);
                 }
             } else {
-                mapnik::save_as_png(baton->stream, image, opts);
+                mapnik::save_as_png(stream, image, opts);
             }
 #else
             baton->message = "Mapnik not built with png support";
 #endif
         }
+        baton->output_data = std::make_unique<std::string>(stream.str());
     } catch (const std::exception& ex) {
         baton->message = ex.what();
     }
@@ -385,7 +387,7 @@ void Work_Blend(uv_work_t* req)
                 image->x == 0 && image->y == 0 &&
                 (int)layer_width == baton->width && (int)layer_height == baton->height)
             {
-                baton->stream.write((char *)image->data, image->dataLength);
+                baton->output_data = std::make_unique<std::string>((char *)image->data, image->dataLength);
                 return;
             }
 
@@ -451,10 +453,9 @@ void Work_AfterBlend(uv_work_t* req) {
     }
 
     if (!baton->message.length()) {
-        std::string result = baton->stream.str();
         v8::Local<v8::Value> argv[] = {
             Nan::Null(),
-            Nan::CopyBuffer((char *)result.data(), mapnik::safe_cast<std::uint32_t>(result.length())).ToLocalChecked(),
+            NewBufferFrom(std::move(baton->output_data)).ToLocalChecked()
         };
         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
     } else {
