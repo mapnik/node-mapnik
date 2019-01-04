@@ -129,6 +129,7 @@ void Map::Initialize(v8::Local<v8::Object> target) {
 
     // layer access
     Nan::SetPrototypeMethod(lcons, "add_layer", add_layer);
+    Nan::SetPrototypeMethod(lcons, "remove_layer", remove_layer);
     Nan::SetPrototypeMethod(lcons, "get_layer", get_layer);
     Nan::SetPrototypeMethod(lcons, "layers", layers);
 
@@ -933,6 +934,25 @@ NAN_METHOD(Map::add_layer) {
     Layer *l = Nan::ObjectWrap::Unwrap<Layer>(obj);
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     m->map_->add_layer(*l->get());
+    return;
+}
+
+/**
+ * Remove layer from this map
+ *
+ * @memberof Map
+ * @instance
+ * @name remove_layer
+ * @param {mapnik.Layer} new layer
+ */
+NAN_METHOD(Map::remove_layer) {
+    if (!info[0]->IsNumber()) {
+        Nan::ThrowTypeError("index must be number");
+        return;
+    }
+
+    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    m->map_->remove_layer(info[0]->IntegerValue());
     return;
 }
 
