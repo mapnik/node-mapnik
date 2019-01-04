@@ -943,7 +943,7 @@ NAN_METHOD(Map::add_layer) {
  * @memberof Map
  * @instance
  * @name remove_layer
- * @param {mapnik.Layer} new layer
+ * @param {number} layer index
  */
 NAN_METHOD(Map::remove_layer) {
     if (!info[0]->IsNumber()) {
