@@ -387,6 +387,10 @@ describe('mapnik.Map', function() {
         assert.throws(function() { map.add_layer(null); });
         assert.throws(function() { map.add_layer({a:'foo'}); });
 
+        // Assert that remove_layer throws for bad layers
+        assert.throws(function() { map.remove_layer(null); });
+        assert.throws(function() { map.remove_layer('foo'); });
+
         // check for change, after adding to map
         // adding to map should release original layer
         // as a copy is made when added (I think)
@@ -399,6 +403,12 @@ describe('mapnik.Map', function() {
         assert.deepEqual(added.datasource.parameters(), options);
         assert.deepEqual(added.datasource.parameters(), new mapnik.Datasource(options).parameters());
 
+        // Assert that remove_layer removes the correct one
+        var layersBefore = map.layers();
+        map.remove_layer(1);
+        var layersAfter = map.layers();
+        layersBefore.splice(1, 1);
+        assert.deepEqual(layersBefore, layersAfter);
     });
 
 });
