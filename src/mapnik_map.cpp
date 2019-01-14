@@ -946,14 +946,27 @@ NAN_METHOD(Map::add_layer) {
  * @param {number} layer index
  */
 NAN_METHOD(Map::remove_layer) {
+    if (info.Length() != 1) {
+        Nan::ThrowError("Please provide layer index");
+        return;
+    }
+
     if (!info[0]->IsNumber()) {
         Nan::ThrowTypeError("index must be number");
         return;
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    m->map_->remove_layer(info[0]->IntegerValue());
-    return;
+    std::vector<mapnik::layer> const& layers = m->map_->layers();
+
+    unsigned int index = info[0]->IntegerValue();
+
+    if (index >= 0 && index < layers.size()) {
+        m->map_->remove_layer(index);
+        return;
+    }
+
+    Nan::ThrowTypeError("invalid layer index");
 }
 
 /**

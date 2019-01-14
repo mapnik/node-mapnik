@@ -388,8 +388,12 @@ describe('mapnik.Map', function() {
         assert.throws(function() { map.add_layer({a:'foo'}); });
 
         // Assert that remove_layer throws for bad layers
+        assert.throws(function() { map.remove_layer(); });
+        assert.throws(function() { map.remove_layer(0, 0); });
         assert.throws(function() { map.remove_layer(null); });
         assert.throws(function() { map.remove_layer('foo'); });
+        assert.throws(function() { map.remove_layer(5); });
+        assert.throws(function() { map.remove_layer(-1); });
 
         // check for change, after adding to map
         // adding to map should release original layer
