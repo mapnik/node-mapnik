@@ -847,12 +847,16 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im3.resize(99,99, null); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{offset_x:null}); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{offset_y:null}); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,99,{offset_width:null}); });
+        assert.throws(function() { var im2 = im3.resizeSync(99,99,{offset_height:null}); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{scaling_method:null}); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{filter_factor:null}); });
         assert.throws(function() { var im2 = im3.resizeSync(99,99,{scaling_method:999}); });
         assert.throws(function() { var im2 = im3.resize(99,99, null,function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{offset_x:null}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{offset_y:null}, function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,99,{offset_width:null}, function(err, result) {}); });
+        assert.throws(function() { var im2 = im3.resize(99,99,{offset_height:null}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{scaling_method:null}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{scaling_method:999}, function(err, result) {}); });
         assert.throws(function() { var im2 = im3.resize(99,99,{filter_factor:null}, function(err, result) {}); });
@@ -888,10 +892,24 @@ describe('mapnik.Image ', function() {
         assert.throws(function() { var im2 = im.resizeSync(4,4); });
     });
     
-    it('should fail to resize resize - not premultiplied rgba8', function(done) {
+    it('should resize - not premultiplied rgba8', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        assert(!im.premultiplied());
         im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
-            assert.throws(function() { if (err) throw err; });
+            if (err) throw err;
+            assert(!result.premultiplied());
+            done();
+        });
+    });
+
+    it('should resize - premultiplied rgba8', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.png');
+        assert(!im.premultiplied());
+        im.premultiply();
+        assert(im.premultiplied());
+        im.resize(100,100, {scaling_method:mapnik.imageScaling.near, filter_factor:1.0}, function(err, result) {
+            if (err) throw err;
+            assert(result.premultiplied());
             done();
         });
     });
@@ -930,6 +948,68 @@ describe('mapnik.Image ', function() {
         });
     });
     
+    it('should use resize to offset x,y, and width,height', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.tif');
+        im.premultiply();
+
+        // prepare sync call for testing
+        var syncresult = im.resize(50, 50, {
+            scaling_method:mapnik.imageScaling.near, 
+            filter_factor:1.0, 
+            offset_x:25, 
+            offset_y:25,
+            offset_width:50,
+            offset_height:50
+        });
+
+        im.resize(50, 50, { 
+                scaling_method:mapnik.imageScaling.near, 
+                filter_factor:1.0, 
+                offset_x:25, 
+                offset_y:25,
+                offset_width:50,
+                offset_height:50
+                }, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-multiple_offset.tif';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'tif');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2));
+
+            // test sync
+            assert.equal(0, syncresult.compare(im2));
+
+
+            done();
+        });
+    });
+    
+    it('use resize with variety of offset settings', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image2.jpg');
+        im.premultiply();
+        var old_size = 512;
+        var new_size = 256;
+        im.resize(new_size, new_size, { 
+                scaling_method:mapnik.imageScaling.near, 
+                offset_x:128, 
+                offset_y:128,
+                offset_width: 256,
+                offset_height: 256
+                }, function(err, result) {
+            if (err) throw err;
+            result.demultiply();
+            var expected = 'test/data/images/sat_image2-expected-offset.png';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'png');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2));
+            done();
+        });
+    });
+    
     it('should resize with offset - 100x100', function(done) {
         var im = new mapnik.Image.open('test/data/images/sat_image.tif');
         im.premultiply();
@@ -941,6 +1021,26 @@ describe('mapnik.Image ', function() {
                 }, function(err, result) {
             if (err) throw err;
             var expected = 'test/data/images/sat_image-expected-100x100-offset.tif';
+            if (!fs.existsSync(expected) || process.env.UPDATE ) {
+                result.save(expected, 'tif');
+            }
+            var im2 = new mapnik.Image.open(expected);
+            assert.equal(0, result.compare(im2));
+            done();
+        });
+    });
+    
+    it('should resize with offset_height and offset_width - 50x50', function(done) {
+        var im = new mapnik.Image.open('test/data/images/sat_image.tif');
+        im.premultiply();
+        im.resize(50, 50, { 
+                scaling_method:mapnik.imageScaling.near, 
+                filter_factor:1.0, 
+                offset_width:50, 
+                offset_height:50
+                }, function(err, result) {
+            if (err) throw err;
+            var expected = 'test/data/images/sat_image-expected-50x50-offset_wh.tif';
             if (!fs.existsSync(expected) || process.env.UPDATE ) {
                 result.save(expected, 'tif');
             }

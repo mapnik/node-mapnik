@@ -77,6 +77,7 @@ public:
     static void EIO_AfterQueryMap(uv_work_t* req);
 
     static NAN_METHOD(add_layer);
+    static NAN_METHOD(remove_layer);
     static NAN_METHOD(get_layer);
 
     static NAN_GETTER(get_prop);

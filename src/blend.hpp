@@ -8,11 +8,11 @@
 #pragma GCC diagnostic pop
 
 // stl
-#include <sstream>
 #include <string>
 #include <vector>
 #include <memory>
 #include "mapnik_palette.hpp"
+#include "mapnik_image.hpp"
 #include "tint.hpp"
 
 namespace node_mapnik {
@@ -26,7 +26,9 @@ struct BImage {
         width(0),
         height(0),
         tint(),
-        im_ptr(nullptr) {}
+        im_ptr(nullptr),
+        im_raw_ptr(nullptr),
+        im_obj(nullptr) {}
     Nan::Persistent<v8::Object> buffer;
     const char * data;
     size_t dataLength;
@@ -35,6 +37,8 @@ struct BImage {
     int width, height;
     Tinter tint;
     std::unique_ptr<mapnik::image_rgba8> im_ptr;
+    mapnik::image_rgba8 * im_raw_ptr;
+    Image * im_obj;
 };
 
 typedef std::shared_ptr<BImage> ImagePtr;
@@ -71,7 +75,7 @@ struct BlendBaton {
     unsigned int matte;
     int compression;
     AlphaMode mode;
-    std::ostringstream stream;
+    std::unique_ptr<std::string> output_data;
 
     BlendBaton() :
         quality(0),
@@ -82,7 +86,7 @@ struct BlendBaton {
         matte(0),
         compression(-1),
         mode(BLEND_MODE_HEXTREE),
-        stream(std::ios::out | std::ios::binary)
+        output_data()
     {
         this->request.data = this;
     }
