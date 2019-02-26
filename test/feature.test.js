@@ -390,6 +390,35 @@ describe('mapnik.Feature ', function() {
         assert.deepEqual(expected, f.geometry().toWKB());
         assert.deepEqual(expected, f.toWKB());
     });
+    
+    it('should round trip an empty geojson', function() {
+        var input = {};
+        var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input) });
+        var fs = ds.featureset()
+        var feat = fs.next();
+        var feature = JSON.parse(feat.toJSON());
+        assert.equal(input.type, feature.type);
+        assert.deepEqual(input.geometry, feature.geometry);
+        // expected that the array is stringified after https://github.com/mapnik/mapnik/issues/2678
+        input.properties.something = "[]";
+        assert.deepEqual(input.properties, feature.properties);
+    });
+    
+    it('should round trip an empty geojson', function() {
+        var input = {
+          "type": "FeatureCollection",
+          "features": []
+        };
+        var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input) });
+        var fs = ds.featureset()
+        var feat = fs.next();
+        var feature = JSON.parse(feat.toJSON());
+        assert.equal(input.type, feature.type);
+        assert.deepEqual(input.geometry, feature.geometry);
+        // expected that the array is stringified after https://github.com/mapnik/mapnik/issues/2678
+        input.properties.something = "[]";
+        assert.deepEqual(input.properties, feature.properties);
+    });
 
     it('should round trip a geojson property with an array', function() {
         var input = {
