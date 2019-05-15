@@ -315,7 +315,7 @@ NAN_METHOD(ImageView::getPixel)
             return;
         }
 
-        v8::Local<v8::Object> options = info[2]->ToObject();
+        v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (Nan::Has(options, Nan::New("get_color").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("get_color").ToLocalChecked());

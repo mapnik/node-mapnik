@@ -559,7 +559,7 @@ NAN_METHOD(Blend) {
 
         v8::Local<v8::Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            if (!hexToUInt32Color(*v8::String::Utf8Value(matte_val->ToString()), baton->matte))
+            if (!hexToUInt32Color(*v8::String::Utf8Value(matte_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()), baton->matte))
             {
                 Nan::ThrowTypeError("Invalid batte provided.");
                 return;
@@ -573,7 +573,7 @@ NAN_METHOD(Blend) {
 
         v8::Local<v8::Value> palette_val = options->Get(Nan::New("palette").ToLocalChecked());
         if (!palette_val.IsEmpty() && palette_val->IsObject()) {
-            baton->palette = Nan::ObjectWrap::Unwrap<Palette>(palette_val->ToObject())->palette();
+            baton->palette = Nan::ObjectWrap::Unwrap<Palette>(palette_val->ToObject(Nan::GetCurrentContext()).ToLocalChecked())->palette();
         }
 
         v8::Local<v8::Value> mode_val = options->Get(Nan::New("mode").ToLocalChecked());
@@ -653,7 +653,7 @@ NAN_METHOD(Blend) {
         if (node::Buffer::HasInstance(buffer)) {
             image->buffer.Reset(buffer.As<v8::Object>());
         } else if (buffer->IsObject()) {
-            v8::Local<v8::Object> props = buffer->ToObject();
+            v8::Local<v8::Object> props = buffer->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (Nan::New(Image::constructor)->HasInstance(props)) {
                 Image * im = Nan::ObjectWrap::Unwrap<Image>(props);
                 if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
@@ -685,7 +685,7 @@ NAN_METHOD(Blend) {
 
                 v8::Local<v8::Value> tint_val = props->Get(Nan::New("tint").ToLocalChecked());
                 if (!tint_val.IsEmpty() && tint_val->IsObject()) {
-                    v8::Local<v8::Object> tint = tint_val->ToObject();
+                    v8::Local<v8::Object> tint = tint_val->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
                     if (!tint.IsEmpty()) {
                         baton->reencode = true;
                         std::string msg;

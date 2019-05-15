@@ -99,7 +99,7 @@ NAN_METHOD(Datasource::New)
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        v8::Local<v8::Value> name = names->Get(i)->ToString();
+        v8::Local<v8::Value> name = names->Get(i)->ToString(Nan::GetCurrentContext()).ToLocalChecked();
         v8::Local<v8::Value> value = options->Get(name);
         // TODO - don't treat everything as strings
         params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
@@ -263,7 +263,7 @@ NAN_METHOD(Datasource::featureset)
             Nan::ThrowTypeError("optional second argument must be an options object");
             return;
         }
-        v8::Local<v8::Object> options = info[0]->ToObject();
+        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());

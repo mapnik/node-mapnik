@@ -411,13 +411,13 @@ NAN_SETTER(Map::set_prop)
             return;
         }
 
-        v8::Local<v8::Object> obj = value->ToObject();
+        v8::Local<v8::Object> obj = value->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         mapnik::parameters params;
         v8::Local<v8::Array> names = obj->GetPropertyNames();
         unsigned int i = 0;
         unsigned int a_length = names->Length();
         while (i < a_length) {
-            v8::Local<v8::Value> name = names->Get(i)->ToString();
+            v8::Local<v8::Value> name = names->Get(i)->ToString(Nan::GetCurrentContext()).ToLocalChecked();
             v8::Local<v8::Value> a_value = obj->Get(name);
             if (a_value->IsString()) {
                 params[TOSTR(name)] = const_cast<char const*>(TOSTR(a_value));
@@ -705,7 +705,7 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
             return Nan::Undefined();
         }
 
-        options = info[2]->ToObject();
+        options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
         {
@@ -1402,7 +1402,7 @@ NAN_METHOD(Map::fromString)
         return;
     }
 
-    v8::Local<v8::Object> options = info[1]->ToObject();
+    v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
     bool strict = false;
     v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
@@ -1798,7 +1798,7 @@ NAN_METHOD(Map::render)
                 return;
             }
 
-            options = info[1]->ToObject();
+            options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
             if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false)) {
                 v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
@@ -1850,7 +1850,7 @@ NAN_METHOD(Map::render)
             }
         }
 
-        v8::Local<v8::Object> obj = info[0]->ToObject();
+        v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (Nan::New(Image::constructor)->HasInstance(obj)) {
 
@@ -1874,7 +1874,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'variables' must be an object");
                     return;
                 }
-                object_to_container(closure->variables,bind_opt->ToObject());
+                object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
             }
             if (!m->acquire())
             {
@@ -1979,7 +1979,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'variables' must be an object");
                     return;
                 }
-                object_to_container(closure->variables,bind_opt->ToObject());
+                object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
             }
 
             closure->request.data = closure;
@@ -2147,7 +2147,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'variables' must be an object");
                     return;
                 }
-                object_to_container(closure->variables,bind_opt->ToObject());
+                object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
             }
 
             if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
@@ -2446,7 +2446,7 @@ NAN_METHOD(Map::renderFile)
     v8::Local<v8::Object> options = Nan::New<v8::Object>();
 
     if (!info[1]->IsFunction() && info[1]->IsObject()) {
-        options = info[1]->ToObject();
+        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("format").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
@@ -2466,7 +2466,7 @@ NAN_METHOD(Map::renderFile)
                 return;
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject();
+            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.Palette expected as second arg");
                 return;
@@ -2534,7 +2534,7 @@ NAN_METHOD(Map::renderFile)
             Nan::ThrowTypeError("optional arg 'variables' must be an object");
             return;
         }
-        object_to_container(closure->variables,bind_opt->ToObject());
+        object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
     }
 
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
@@ -2656,7 +2656,7 @@ NAN_METHOD(Map::renderSync)
             return;
         }
 
-        v8::Local<v8::Object> options = info[0]->ToObject();
+        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("format").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("format").ToLocalChecked());
@@ -2676,7 +2676,7 @@ NAN_METHOD(Map::renderSync)
                 return;
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject();
+            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.Palette expected as second arg");
                 return;
@@ -2796,7 +2796,7 @@ NAN_METHOD(Map::renderFileSync)
                 return;
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject();
+            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.Palette expected as second arg");
                 return;

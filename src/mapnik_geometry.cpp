@@ -154,7 +154,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             Nan::ThrowTypeError("optional first arg must be an options object");
             return scope.Escape(Nan::Undefined());
         }
-        v8::Local<v8::Object> options = info[0]->ToObject();
+        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
@@ -163,7 +163,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
                 return scope.Escape(Nan::Undefined());
             }
 
-            v8::Local<v8::Object> obj = bound_opt->ToObject();
+            v8::Local<v8::Object> obj = bound_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(ProjTransform::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.ProjTransform expected as first arg");
                 return scope.Escape(Nan::Undefined());
@@ -224,7 +224,7 @@ NAN_METHOD(Geometry::toJSON)
             Nan::ThrowTypeError("optional first arg must be an options object");
             return;
         }
-        v8::Local<v8::Object> options = info[0]->ToObject();
+        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
@@ -233,7 +233,7 @@ NAN_METHOD(Geometry::toJSON)
                 return;
             }
 
-            v8::Local<v8::Object> obj = bound_opt->ToObject();
+            v8::Local<v8::Object> obj = bound_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(ProjTransform::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.ProjTransform expected as first arg");
                 return;

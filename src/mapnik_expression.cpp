@@ -113,7 +113,7 @@ NAN_METHOD(Expression::evaluate)
                 Nan::ThrowTypeError("optional arg 'variables' must be an object");
                 return;
             }
-            object_to_container(vars,bind_opt->ToObject());
+            object_to_container(vars,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
         }
     }
     mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::feature_impl,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));

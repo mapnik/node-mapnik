@@ -80,7 +80,7 @@ NAN_METHOD(MemoryDatasource::New)
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        v8::Local<v8::Value> name = names->Get(i)->ToString();
+        v8::Local<v8::Value> name = names->Get(i)->ToString(Nan::GetCurrentContext()).ToLocalChecked();
         v8::Local<v8::Value> value = options->Get(name);
         if (value->IsUint32() || value->IsInt32())
         {
@@ -158,7 +158,7 @@ NAN_METHOD(MemoryDatasource::featureset)
                 Nan::ThrowTypeError("optional second argument must be an options object");
                 return;
             }
-            v8::Local<v8::Object> options = info[0]->ToObject();
+            v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
             {
                 v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());
@@ -248,13 +248,13 @@ NAN_METHOD(MemoryDatasource::add)
                 v8::Local<v8::Value> props = obj->Get(Nan::New("properties").ToLocalChecked());
                 if (props->IsObject())
                 {
-                    v8::Local<v8::Object> p_obj = props->ToObject();
+                    v8::Local<v8::Object> p_obj = props->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
                     v8::Local<v8::Array> names = p_obj->GetPropertyNames();
                     unsigned int i = 0;
                     unsigned int a_length = names->Length();
                     while (i < a_length)
                     {
-                        v8::Local<v8::Value> name = names->Get(i)->ToString();
+                        v8::Local<v8::Value> name = names->Get(i)->ToString(Nan::GetCurrentContext()).ToLocalChecked();
                         // if name in q.property_names() ?
                         v8::Local<v8::Value> value = p_obj->Get(name);
                         if (value->IsString()) {

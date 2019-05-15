@@ -445,7 +445,7 @@ NAN_METHOD(Image::getPixel)
             return;
         }
 
-        v8::Local<v8::Object> options = info[2]->ToObject();
+        v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (Nan::Has(options, Nan::New("get_color").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("get_color").ToLocalChecked());
@@ -534,7 +534,7 @@ NAN_METHOD(Image::setPixel)
     }
     else if (info[2]->IsObject())
     {
-        v8::Local<v8::Object> obj = info[2]->ToObject();
+        v8::Local<v8::Object> obj = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj))
         {
             Nan::ThrowTypeError("A numeric or color value is expected as third arg");
@@ -599,7 +599,7 @@ NAN_METHOD(Image::compare)
         Nan::ThrowTypeError("first argument should be a mapnik.Image");
         return;
     }
-    v8::Local<v8::Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
     if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Image::constructor)->HasInstance(obj)) {
         Nan::ThrowTypeError("mapnik.Image expected as first arg");
         return;
@@ -615,7 +615,7 @@ NAN_METHOD(Image::compare)
             return;
         }
 
-        v8::Local<v8::Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (Nan::Has(options, Nan::New("threshold").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("threshold").ToLocalChecked());
@@ -828,7 +828,7 @@ v8::Local<v8::Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         }
         else if (info[0]->IsObject())
         {
-            v8::Local<v8::Object> obj = info[0]->ToObject();
+            v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj))
             {
                 Nan::ThrowTypeError("A numeric or color value is expected");
@@ -919,7 +919,7 @@ NAN_METHOD(Image::fill)
     }
     else if (info[0]->IsObject())
     {
-        v8::Local<v8::Object> obj = info[0]->ToObject();
+        v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj))
         {
             delete closure;
@@ -1148,7 +1148,7 @@ NAN_METHOD(Image::setGrayScaleToAlpha)
             return;
         }
 
-        v8::Local<v8::Object> obj = info[0]->ToObject();
+        v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) {
             Nan::ThrowTypeError("mapnik.Color expected as first arg");
@@ -1509,7 +1509,7 @@ NAN_METHOD(Image::copy)
         }
         else if (info[0]->IsObject())
         {
-            options = info[0]->ToObject();
+            options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         }
         else
         {
@@ -1521,7 +1521,7 @@ NAN_METHOD(Image::copy)
     {
         if (info[1]->IsObject())
         {
-            options = info[1]->ToObject();
+            options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         }
         else
         {
@@ -1680,7 +1680,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         else if (info[0]->IsObject())
         {
-            options = info[0]->ToObject();
+            options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         }
         else
         {
@@ -1692,7 +1692,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     {
         if (info[1]->IsObject())
         {
-            options = info[1]->ToObject();
+            options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         }
         else
         {
@@ -1859,7 +1859,7 @@ NAN_METHOD(Image::resize)
     {
         if (info[2]->IsObject())
         {
-            options = info[2]->ToObject();
+            options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         }
         else
         {
@@ -2236,7 +2236,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     {
         if (info[2]->IsObject())
         {
-            options = info[2]->ToObject();
+            options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         }
         else
         {
@@ -2709,7 +2709,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             Nan::ThrowTypeError("optional second arg must be an options object");
             return scope.Escape(Nan::Undefined());
         }
-        v8::Local<v8::Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
@@ -2776,7 +2776,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         }
         else
         {
-            v8::Local<v8::Object> obj = info[0]->ToObject();
+            v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
             {
                 Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
@@ -2946,7 +2946,7 @@ NAN_METHOD(Image::fromSVG)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return;
         }
-        v8::Local<v8::Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
@@ -3159,7 +3159,7 @@ NAN_METHOD(Image::fromSVGBytes)
         return;
     }
 
-    v8::Local<v8::Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
         return;
@@ -3182,7 +3182,7 @@ NAN_METHOD(Image::fromSVGBytes)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return;
         }
-        v8::Local<v8::Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
@@ -3405,7 +3405,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         return scope.Escape(Nan::Undefined());
     }
 
-    v8::Local<v8::Object> obj = info[2]->ToObject();
+    v8::Local<v8::Object> obj = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("third argument is invalid, must be a Buffer");
         return scope.Escape(Nan::Undefined());
@@ -3475,7 +3475,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Object> image_obj = maybe_local.ToLocalChecked()->ToObject();
+        v8::Local<v8::Object> image_obj = maybe_local.ToLocalChecked()->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         image_obj->Set(Nan::New("_buffer").ToLocalChecked(),obj);
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -3515,7 +3515,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
         return scope.Escape(Nan::Undefined());
     }
 
-    v8::Local<v8::Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
         return scope.Escape(Nan::Undefined());
@@ -3583,7 +3583,7 @@ NAN_METHOD(Image::fromBytes)
         return;
     }
 
-    v8::Local<v8::Object> obj = info[0]->ToObject();
+    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
     if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj)) {
         Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
         return;
@@ -3757,7 +3757,7 @@ NAN_METHOD(Image::encodeSync)
             Nan::ThrowTypeError("optional second arg must be an options object");
             return;
         }
-        v8::Local<v8::Object> options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
@@ -3766,7 +3766,7 @@ NAN_METHOD(Image::encodeSync)
                 return;
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject();
+            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
             if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
                 Nan::ThrowTypeError("mapnik.Palette expected as second arg");
                 return;
