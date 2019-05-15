@@ -204,7 +204,7 @@ NAN_SETTER(Layer::set_prop)
             unsigned int i = 0;
             unsigned int a_length = arr->Length();
             while (i < a_length) {
-                l->layer_->add_style(TOSTR(arr->Get(i)));
+                l->layer_->add_style(TOSTR(Nan::Get(arr, i).ToLocalChecked()));
                 i++;
             }
         }

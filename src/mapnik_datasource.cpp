@@ -99,8 +99,8 @@ NAN_METHOD(Datasource::New)
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        v8::Local<v8::Value> name = names->Get(i)->ToString(Nan::GetCurrentContext()).ToLocalChecked();
-        v8::Local<v8::Value> value = options->Get(name);
+        v8::Local<v8::Value> name = Nan::Get(names, i).ToLocalChecked()->ToString(Nan::GetCurrentContext()).ToLocalChecked();
+        v8::Local<v8::Value> value = Nan::Get(options, name).ToLocalChecked();
         // TODO - don't treat everything as strings
         params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
         i++;
@@ -266,7 +266,7 @@ NAN_METHOD(Datasource::featureset)
         v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());
+            v8::Local<v8::Value> extent_opt = Nan::Get(options, Nan::New("extent").ToLocalChecked()).ToLocalChecked();
             if (!extent_opt->IsArray())
             {
                 Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
@@ -279,10 +279,10 @@ NAN_METHOD(Datasource::featureset)
                 Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
                 return;
             }
-            v8::Local<v8::Value> minx = bbox->Get(0);
-            v8::Local<v8::Value> miny = bbox->Get(1);
-            v8::Local<v8::Value> maxx = bbox->Get(2);
-            v8::Local<v8::Value> maxy = bbox->Get(3);
+            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
+            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
+            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
+            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
             if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
             {
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");

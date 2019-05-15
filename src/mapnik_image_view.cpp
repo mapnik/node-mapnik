@@ -318,7 +318,7 @@ NAN_METHOD(ImageView::getPixel)
         v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
         if (Nan::Has(options, Nan::New("get_color").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("get_color").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("get_color").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsBoolean()) {
                 Nan::ThrowTypeError("optional arg 'color' must be a boolean");
                 return;
@@ -400,8 +400,8 @@ NAN_METHOD(ImageView::encodeSync)
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
-        {
-            v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
+		{
+            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
                 return;
@@ -474,7 +474,7 @@ NAN_METHOD(ImageView::encode)
 
         if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
+            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");
                 return;

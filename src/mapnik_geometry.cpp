@@ -157,7 +157,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
+            v8::Local<v8::Value> bound_opt = Nan::Get(options, Nan::New("transform").ToLocalChecked()).ToLocalChecked();
             if (!bound_opt->IsObject()) {
                 Nan::ThrowTypeError("'transform' must be an object");
                 return scope.Escape(Nan::Undefined());
@@ -227,7 +227,7 @@ NAN_METHOD(Geometry::toJSON)
         v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
+            v8::Local<v8::Value> bound_opt = Nan::Get(options, Nan::New("transform").ToLocalChecked()).ToLocalChecked();
             if (!bound_opt->IsObject()) {
                 Nan::ThrowTypeError("'transform' must be an object");
                 return;

@@ -389,7 +389,7 @@ NAN_METHOD(VectorTile::New)
         options = info[3]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("tile_size").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> opt = options->Get(Nan::New("tile_size").ToLocalChecked());
+            v8::Local<v8::Value> opt = Nan::Get(options, Nan::New("tile_size").ToLocalChecked()).ToLocalChecked();
             if (!opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'tile_size' must be a number");
@@ -405,7 +405,7 @@ NAN_METHOD(VectorTile::New)
         }
         if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
+            v8::Local<v8::Value> opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
             if (!opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
@@ -551,7 +551,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
+            v8::Local<v8::Value> area_thres = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
             if (!area_thres->IsNumber())
             {
                 Nan::ThrowTypeError("option 'area_threshold' must be an floating point number");
@@ -566,7 +566,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
@@ -581,7 +581,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> strict_simp = options->Get(Nan::New("strictly_simple").ToLocalChecked());
+            v8::Local<v8::Value> strict_simp = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
             if (!strict_simp->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
@@ -591,7 +591,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+            v8::Local<v8::Value> mpu = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
             if (!mpu->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
@@ -601,7 +601,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
+            v8::Local<v8::Value> ft = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
             if (!ft->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
@@ -616,7 +616,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("threading_mode").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
@@ -633,7 +633,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
@@ -648,7 +648,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
@@ -663,7 +663,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_x").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
@@ -673,7 +673,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_y").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
@@ -683,7 +683,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("reencode").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
+            v8::Local<v8::Value> reencode_opt = Nan::Get(options, Nan::New("reencode").ToLocalChecked()).ToLocalChecked();
             if (!reencode_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("reencode value must be a boolean");
@@ -693,7 +693,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("max_extent").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
+            v8::Local<v8::Value> max_extent_opt = Nan::Get(options, Nan::New("max_extent").ToLocalChecked()).ToLocalChecked();
             if (!max_extent_opt->IsArray())
             {
                 Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
@@ -706,10 +706,10 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
                 return scope.Escape(Nan::Undefined());
             }
-            v8::Local<v8::Value> minx = bbox->Get(0);
-            v8::Local<v8::Value> miny = bbox->Get(1);
-            v8::Local<v8::Value> maxx = bbox->Get(2);
-            v8::Local<v8::Value> maxy = bbox->Get(3);
+            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
+            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
+            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
+            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
             if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
             {
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
@@ -720,7 +720,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
@@ -731,7 +731,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
         if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'image_scaling' must be a string");
@@ -749,7 +749,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
         if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'image_format' must be a string");
@@ -763,7 +763,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     vtiles_vec.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j)
     {
-        v8::Local<v8::Value> val = vtiles->Get(j);
+        v8::Local<v8::Value> val = Nan::Get(vtiles, j).ToLocalChecked();
         if (!val->IsObject())
         {
             Nan::ThrowTypeError("must provide an array of VectorTile objects");
@@ -940,7 +940,7 @@ NAN_METHOD(VectorTile::composite)
         v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
+            v8::Local<v8::Value> area_thres = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
             if (!area_thres->IsNumber())
             {
                 Nan::ThrowTypeError("option 'area_threshold' must be a number");
@@ -955,7 +955,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> strict_simp = options->Get(Nan::New("strictly_simple").ToLocalChecked());
+            v8::Local<v8::Value> strict_simp = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
             if (!strict_simp->IsBoolean())
             {
                 Nan::ThrowTypeError("strictly_simple value must be a boolean");
@@ -965,7 +965,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+            v8::Local<v8::Value> mpu = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
             if (!mpu->IsBoolean())
             {
                 Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
@@ -975,7 +975,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
+            v8::Local<v8::Value> ft = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
             if (!ft->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
@@ -990,7 +990,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("threading_mode").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
@@ -1007,7 +1007,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
@@ -1022,7 +1022,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
@@ -1037,7 +1037,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
@@ -1052,7 +1052,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_x").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
@@ -1062,7 +1062,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_y").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
@@ -1072,7 +1072,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("reencode").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
+            v8::Local<v8::Value> reencode_opt = Nan::Get(options, Nan::New("reencode").ToLocalChecked()).ToLocalChecked();
             if (!reencode_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("reencode value must be a boolean");
@@ -1082,7 +1082,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("max_extent").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
+            v8::Local<v8::Value> max_extent_opt = Nan::Get(options, Nan::New("max_extent").ToLocalChecked()).ToLocalChecked();
             if (!max_extent_opt->IsArray())
             {
                 Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
@@ -1095,10 +1095,10 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
                 return;
             }
-            v8::Local<v8::Value> minx = bbox->Get(0);
-            v8::Local<v8::Value> miny = bbox->Get(1);
-            v8::Local<v8::Value> maxx = bbox->Get(2);
-            v8::Local<v8::Value> maxy = bbox->Get(3);
+            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
+            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
+            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
+            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
             if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
             {
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
@@ -1109,7 +1109,7 @@ NAN_METHOD(VectorTile::composite)
         }
         if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean()) {
                 Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
                 return;
@@ -1119,7 +1119,7 @@ NAN_METHOD(VectorTile::composite)
 
         if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'image_scaling' must be a string");
@@ -1137,7 +1137,7 @@ NAN_METHOD(VectorTile::composite)
 
         if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'image_format' must be a string");
@@ -1170,7 +1170,7 @@ NAN_METHOD(VectorTile::composite)
     closure->vtiles.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j)
     {
-        v8::Local<v8::Value> val = vtiles->Get(j);
+        v8::Local<v8::Value> val = Nan::Get(vtiles, j).ToLocalChecked();
         if (!val->IsObject())
         {
             delete closure;
@@ -1565,7 +1565,7 @@ NAN_METHOD(VectorTile::query)
         options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("tolerance").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
+            v8::Local<v8::Value> tol = Nan::Get(options, Nan::New("tolerance").ToLocalChecked()).ToLocalChecked();
             if (!tol->IsNumber())
             {
                 Nan::ThrowTypeError("tolerance value must be a number");
@@ -1575,7 +1575,7 @@ NAN_METHOD(VectorTile::query)
         }
         if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
+            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
             if (!layer_id->IsString())
             {
                 Nan::ThrowTypeError("layer value must be a string");
@@ -1851,15 +1851,15 @@ NAN_METHOD(VectorTile::queryMany)
     query.reserve(queryArray->Length());
     for (uint32_t p = 0; p < queryArray->Length(); ++p)
     {
-        v8::Local<v8::Value> item = queryArray->Get(p);
+        v8::Local<v8::Value> item = Nan::Get(queryArray, p).ToLocalChecked();
         if (!item->IsArray())
         {
             Nan::ThrowError("non-array item encountered");
             return;
         }
         v8::Local<v8::Array> pair = v8::Local<v8::Array>::Cast(item);
-        v8::Local<v8::Value> lon = pair->Get(0);
-        v8::Local<v8::Value> lat = pair->Get(1);
+        v8::Local<v8::Value> lon = Nan::Get(pair, 0).ToLocalChecked();
+        v8::Local<v8::Value> lat = Nan::Get(pair, 1).ToLocalChecked();
         if (!lon->IsNumber() || !lat->IsNumber())
         {
             Nan::ThrowError("lng lat must be numbers");
@@ -1883,7 +1883,7 @@ NAN_METHOD(VectorTile::queryMany)
         options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("tolerance").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
+            v8::Local<v8::Value> tol = Nan::Get(options, Nan::New("tolerance").ToLocalChecked()).ToLocalChecked();
             if (!tol->IsNumber())
             {
                 Nan::ThrowTypeError("tolerance value must be a number");
@@ -1893,7 +1893,7 @@ NAN_METHOD(VectorTile::queryMany)
         }
         if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
+            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
             if (!layer_id->IsString())
             {
                 Nan::ThrowTypeError("layer value must be a string");
@@ -1903,7 +1903,7 @@ NAN_METHOD(VectorTile::queryMany)
         }
         if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("fields").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsArray())
             {
                 Nan::ThrowTypeError("option 'fields' must be an array of strings");
@@ -1915,7 +1915,7 @@ NAN_METHOD(VectorTile::queryMany)
             fields.reserve(num_fields);
             while (i < num_fields)
             {
-                v8::Local<v8::Value> name = a->Get(i);
+                v8::Local<v8::Value> name = Nan::Get(a, i).ToLocalChecked();
                 if (name->IsString())
                 {
                     fields.emplace_back(TOSTR(name));
@@ -2497,7 +2497,7 @@ NAN_METHOD(VectorTile::toJSON)
 
         if (Nan::Has(options, Nan::New("decode_geometry").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("decode_geometry").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("decode_geometry").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'decode_geometry' must be a boolean");
@@ -3197,7 +3197,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowError("option 'area_threshold' must be a number");
@@ -3212,7 +3212,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
         if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("strictly_simple").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'strictly_simple' must be a boolean");
@@ -3222,7 +3222,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
         if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
+            v8::Local<v8::Value> mpu = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
             if (!mpu->IsBoolean())
             {
                 Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
@@ -3232,7 +3232,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
         if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
+            v8::Local<v8::Value> ft = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
             if (!ft->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
@@ -3247,7 +3247,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
         if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
@@ -3262,7 +3262,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
         if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
@@ -3372,8 +3372,8 @@ v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
-            if (!param_val->IsString())
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
+            if (!param_val->IsString()) 
             {
                 Nan::ThrowTypeError("option 'image_scaling' must be a string");
                 return scope.Escape(Nan::Undefined());
@@ -3390,8 +3390,8 @@ v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
         if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
-            if (!param_val->IsString())
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
+            if (!param_val->IsString()) 
             {
                 Nan::ThrowTypeError("option 'image_format' must be a string");
                 return scope.Escape(Nan::Undefined());
@@ -3524,8 +3524,8 @@ NAN_METHOD(VectorTile::addImage)
         v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
-            if (!param_val->IsString())
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
+            if (!param_val->IsString()) 
             {
                 Nan::ThrowTypeError("option 'image_scaling' must be a string");
                 return;
@@ -3542,8 +3542,8 @@ NAN_METHOD(VectorTile::addImage)
 
         if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
-            if (!param_val->IsString())
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
+            if (!param_val->IsString()) 
             {
                 Nan::ThrowTypeError("option 'image_format' must be a string");
                 return;
@@ -3864,7 +3864,7 @@ v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'validate' must be a boolean");
@@ -3874,7 +3874,7 @@ v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'upgrade' must be a boolean");
@@ -3965,7 +3965,7 @@ NAN_METHOD(VectorTile::addData)
         options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'validate' must be a boolean");
@@ -3975,7 +3975,7 @@ NAN_METHOD(VectorTile::addData)
         }
         if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'upgrade' must be a boolean");
@@ -4101,7 +4101,7 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'validate' must be a boolean");
@@ -4111,7 +4111,7 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'upgrade' must be a boolean");
@@ -4202,7 +4202,7 @@ NAN_METHOD(VectorTile::setData)
         options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'validate' must be a boolean");
@@ -4212,7 +4212,7 @@ NAN_METHOD(VectorTile::setData)
         }
         if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'upgrade' must be a boolean");
@@ -4332,7 +4332,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
         if (Nan::Has(options, Nan::New<v8::String>("compression").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("compression").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
@@ -4342,7 +4342,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New<v8::String>("release").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("release").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("release").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'release' must be a boolean");
@@ -4352,7 +4352,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New<v8::String>("level").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("level").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
@@ -4367,7 +4367,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (Nan::Has(options, Nan::New<v8::String>("strategy").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strategy").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
@@ -4521,7 +4521,7 @@ NAN_METHOD(VectorTile::getData)
 
         if (Nan::Has(options, Nan::New("compression").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("compression").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
@@ -4531,7 +4531,7 @@ NAN_METHOD(VectorTile::getData)
         }
         if (Nan::Has(options, Nan::New("release").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("release").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("release").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowTypeError("option 'release' must be a boolean");
@@ -4541,7 +4541,7 @@ NAN_METHOD(VectorTile::getData)
         }
         if (Nan::Has(options, Nan::New("level").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("level").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsNumber())
             {
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
@@ -4556,7 +4556,7 @@ NAN_METHOD(VectorTile::getData)
         }
         if (Nan::Has(options, Nan::New("strategy").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strategy").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsString())
             {
                 Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
@@ -4890,7 +4890,7 @@ NAN_METHOD(VectorTile::render)
         options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         if (Nan::Has(options, Nan::New("z").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("z").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("z").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'z' must be a number");
@@ -4902,7 +4902,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (Nan::Has(options, Nan::New("x").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("x").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("x").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'x' must be a number");
@@ -4914,7 +4914,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (Nan::Has(options, Nan::New("y").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("y").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("y").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'y' must be a number");
@@ -4952,7 +4952,7 @@ NAN_METHOD(VectorTile::render)
 
         if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
@@ -4962,7 +4962,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
@@ -4972,7 +4972,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsNumber())
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
@@ -4982,7 +4982,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsObject())
             {
                 Nan::ThrowTypeError("optional arg 'variables' must be an object");
@@ -5008,7 +5008,7 @@ NAN_METHOD(VectorTile::render)
         closure->surface = c;
         if (Nan::Has(options, Nan::New("renderer").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> renderer = options->Get(Nan::New("renderer").ToLocalChecked());
+            v8::Local<v8::Value> renderer = Nan::Get(options, Nan::New("renderer").ToLocalChecked()).ToLocalChecked();
             if (!renderer->IsString() )
             {
                 Nan::ThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
@@ -5049,7 +5049,7 @@ NAN_METHOD(VectorTile::render)
         else
         {
             std::vector<mapnik::layer> const& layers = m->get()->layers();
-            v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
+            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
             if (layer_id->IsString())
             {
                 bool found = false;
@@ -5101,7 +5101,7 @@ NAN_METHOD(VectorTile::render)
         }
         if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("fields").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsArray())
             {
                 Nan::ThrowTypeError("option 'fields' must be an array of strings");
@@ -5112,7 +5112,7 @@ NAN_METHOD(VectorTile::render)
             unsigned int num_fields = a->Length();
             while (i < num_fields)
             {
-                v8::Local<v8::Value> name = a->Get(i);
+                v8::Local<v8::Value> name = Nan::Get(a, i).ToLocalChecked();
                 if (name->IsString())
                 {
                     g->get()->add_field(TOSTR(name));
@@ -6111,7 +6111,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 
         if (Nan::Has(options, Nan::New("split_multi_features").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("split_multi_features").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("split_multi_features").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'split_multi_features' must be a boolean");
@@ -6122,7 +6122,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 
         if (Nan::Has(options, Nan::New("lat_lon").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("lat_lon").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("lat_lon").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'lat_lon' must be a boolean");
@@ -6133,7 +6133,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
 
         if (Nan::Has(options, Nan::New("web_merc").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("web_merc").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'web_merc' must be a boolean");
@@ -6279,7 +6279,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
 
         if (Nan::Has(options, Nan::New("split_multi_features").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("split_multi_features").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("split_multi_features").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'split_multi_features' must be a boolean");
@@ -6290,7 +6290,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
 
         if (Nan::Has(options, Nan::New("lat_lon").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("lat_lon").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("lat_lon").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'lat_lon' must be a boolean");
@@ -6301,7 +6301,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
 
         if (Nan::Has(options, Nan::New("web_merc").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
+            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("web_merc").ToLocalChecked()).ToLocalChecked();
             if (!param_val->IsBoolean())
             {
                 Nan::ThrowError("option 'web_merc' must be a boolean");

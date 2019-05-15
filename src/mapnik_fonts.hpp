@@ -38,7 +38,7 @@ static inline NAN_METHOD(register_fonts)
             v8::Local<v8::Object> options = info[1].As<v8::Object>();
             if (Nan::Has(options, Nan::New("recurse").ToLocalChecked()).FromMaybe(false))
             {
-                v8::Local<v8::Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
+                v8::Local<v8::Value> recurse_opt = Nan::Get(options, Nan::New("recurse").ToLocalChecked()).ToLocalChecked();
                 if (!recurse_opt->IsBoolean())
                 {
                     Nan::ThrowTypeError("'recurse' must be a Boolean");
