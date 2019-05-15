@@ -196,7 +196,7 @@ NAN_METHOD(Image::New)
             if (info[2]->IsObject())
             {
                 v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[2]);
-                if (options->Has(Nan::New("type").ToLocalChecked()))
+                if (Nan::Has(options, Nan::New("type").ToLocalChecked()).FromMaybe(false))
                 {
                     v8::Local<v8::Value> init_val = options->Get(Nan::New("type").ToLocalChecked());
 
@@ -217,7 +217,7 @@ NAN_METHOD(Image::New)
                     }
                 }
 
-                if (options->Has(Nan::New("initialize").ToLocalChecked()))
+                if (Nan::Has(options, Nan::New("initialize").ToLocalChecked()).FromMaybe(false))
                 {
                     v8::Local<v8::Value> init_val = options->Get(Nan::New("initialize").ToLocalChecked());
                     if (!init_val.IsEmpty() && init_val->IsBoolean())
@@ -231,7 +231,7 @@ NAN_METHOD(Image::New)
                     }
                 }
 
-                if (options->Has(Nan::New("premultiplied").ToLocalChecked()))
+                if (Nan::Has(options, Nan::New("premultiplied").ToLocalChecked()).FromMaybe(false))
                 {
                     v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
                     if (!pre_val.IsEmpty() && pre_val->IsBoolean())
@@ -245,7 +245,7 @@ NAN_METHOD(Image::New)
                     }
                 }
 
-                if (options->Has(Nan::New("painted").ToLocalChecked()))
+                if (Nan::Has(options, Nan::New("painted").ToLocalChecked()).FromMaybe(false))
                 {
                     v8::Local<v8::Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
                     if (!painted_val.IsEmpty() && painted_val->IsBoolean())
@@ -447,7 +447,7 @@ NAN_METHOD(Image::getPixel)
 
         v8::Local<v8::Object> options = info[2]->ToObject();
 
-        if (options->Has(Nan::New("get_color").ToLocalChecked())) {
+        if (Nan::Has(options, Nan::New("get_color").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("get_color").ToLocalChecked());
             if (!bind_opt->IsBoolean()) {
                 Nan::ThrowTypeError("optional arg 'color' must be a boolean");
@@ -617,7 +617,7 @@ NAN_METHOD(Image::compare)
 
         v8::Local<v8::Object> options = info[1]->ToObject();
 
-        if (options->Has(Nan::New("threshold").ToLocalChecked())) {
+        if (Nan::Has(options, Nan::New("threshold").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("threshold").ToLocalChecked());
             if (!bind_opt->IsNumber()) {
                 Nan::ThrowTypeError("optional arg 'threshold' must be a number");
@@ -626,7 +626,7 @@ NAN_METHOD(Image::compare)
             threshold = Nan::To<int>(bind_opt).FromJust();
         }
 
-        if (options->Has(Nan::New("alpha").ToLocalChecked())) {
+        if (Nan::Has(options, Nan::New("alpha").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("alpha").ToLocalChecked());
             if (!bind_opt->IsBoolean()) {
                 Nan::ThrowTypeError("optional arg 'alpha' must be a boolean");
@@ -1530,7 +1530,7 @@ NAN_METHOD(Image::copy)
         }
     }
 
-    if (options->Has(Nan::New("scaling").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("scaling").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
         if (scaling_val->IsNumber())
@@ -1545,7 +1545,7 @@ NAN_METHOD(Image::copy)
         }
     }
 
-    if (options->Has(Nan::New("offset").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
         if (offset_val->IsNumber())
@@ -1701,7 +1701,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
     }
 
-    if (options->Has(Nan::New("scaling").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("scaling").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
         if (scaling_val->IsNumber())
@@ -1716,7 +1716,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
     }
 
-    if (options->Has(Nan::New("offset").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
         if (offset_val->IsNumber())
@@ -1867,7 +1867,7 @@ NAN_METHOD(Image::resize)
             return;
         }
     }
-    if (options->Has(Nan::New("offset_x").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -1877,7 +1877,7 @@ NAN_METHOD(Image::resize)
         }
         offset_x = Nan::To<double>(bind_opt).FromJust();
     }
-    if (options->Has(Nan::New("offset_y").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -1887,7 +1887,7 @@ NAN_METHOD(Image::resize)
         }
         offset_y = Nan::To<double>(bind_opt).FromJust();
     }
-    if (options->Has(Nan::New("offset_width").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_width").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_width").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -1902,7 +1902,7 @@ NAN_METHOD(Image::resize)
             return;
         }
     }
-    if (options->Has(Nan::New("offset_height").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_height").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_height").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -1917,7 +1917,7 @@ NAN_METHOD(Image::resize)
             return;
         }
     }
-    if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("scaling_method").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
@@ -1937,7 +1937,7 @@ NAN_METHOD(Image::resize)
         }
     }
 
-    if (options->Has(Nan::New("filter_factor").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("filter_factor").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
         if (ff_val->IsNumber())
@@ -2244,7 +2244,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             return scope.Escape(Nan::Undefined());
         }
     }
-    if (options->Has(Nan::New("offset_x").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -2254,7 +2254,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         offset_x = Nan::To<double>(bind_opt).FromJust();
     }
-    if (options->Has(Nan::New("offset_y").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -2264,7 +2264,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         offset_y = Nan::To<double>(bind_opt).FromJust();
     }
-    if (options->Has(Nan::New("offset_width").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_width").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_width").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -2279,7 +2279,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             return scope.Escape(Nan::Undefined());
         }
     }
-    if (options->Has(Nan::New("offset_height").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("offset_height").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_height").ToLocalChecked());
         if (!bind_opt->IsNumber())
@@ -2295,7 +2295,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
     }
 
-    if (options->Has(Nan::New("scaling_method").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("scaling_method").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
@@ -2315,7 +2315,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
     }
 
-    if (options->Has(Nan::New("filter_factor").ToLocalChecked()))
+    if (Nan::Has(options, Nan::New("filter_factor").ToLocalChecked()).FromMaybe(false))
     {
         v8::Local<v8::Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
         if (ff_val->IsNumber())
@@ -2710,7 +2710,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             return scope.Escape(Nan::Undefined());
         }
         v8::Local<v8::Object> options = info[1]->ToObject();
-        if (options->Has(Nan::New("scale").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!scale_opt->IsNumber())
@@ -2725,7 +2725,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("max_size").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("max_size").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
             if (!opt->IsNumber())
@@ -2740,7 +2740,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             }
             max_size = static_cast<std::uint32_t>(max_size_val);
         }
-        if (options->Has(Nan::New("strict").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strict").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("strict").ToLocalChecked());
             if (!opt->IsBoolean())
@@ -2947,7 +2947,7 @@ NAN_METHOD(Image::fromSVG)
             return;
         }
         v8::Local<v8::Object> options = info[1]->ToObject();
-        if (options->Has(Nan::New("scale").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!scale_opt->IsNumber())
@@ -2962,7 +2962,7 @@ NAN_METHOD(Image::fromSVG)
                 return;
             }
         }
-        if (options->Has(Nan::New("max_size").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("max_size").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
             if (!opt->IsNumber())
@@ -2977,7 +2977,7 @@ NAN_METHOD(Image::fromSVG)
             }
             max_size = static_cast<std::uint32_t>(max_size_val);
         }
-        if (options->Has(Nan::New("strict").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strict").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("strict").ToLocalChecked());
             if (!opt->IsBoolean())
@@ -3183,7 +3183,7 @@ NAN_METHOD(Image::fromSVGBytes)
             return;
         }
         v8::Local<v8::Object> options = info[1]->ToObject();
-        if (options->Has(Nan::New("scale").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> scale_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!scale_opt->IsNumber())
@@ -3198,7 +3198,7 @@ NAN_METHOD(Image::fromSVGBytes)
                 return;
             }
         }
-        if (options->Has(Nan::New("max_size").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("max_size").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
             if (!opt->IsNumber())
@@ -3213,7 +3213,7 @@ NAN_METHOD(Image::fromSVGBytes)
             }
             max_size = static_cast<std::uint32_t>(max_size_val);
         }
-        if (options->Has(Nan::New("strict").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strict").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("strict").ToLocalChecked());
             if (!opt->IsBoolean())
@@ -3426,13 +3426,13 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         if (info[3]->IsObject())
         {
             v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[3]);
-            if (options->Has(Nan::New("type").ToLocalChecked()))
+            if (Nan::Has(options, Nan::New("type").ToLocalChecked()).FromMaybe(false))
             {
                 Nan::ThrowTypeError("'type' option not supported (only rgba images currently viable)");
                 return scope.Escape(Nan::Undefined());
             }
 
-            if (options->Has(Nan::New("premultiplied").ToLocalChecked()))
+            if (Nan::Has(options, Nan::New("premultiplied").ToLocalChecked()).FromMaybe(false))
             {
                 v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
                 if (!pre_val.IsEmpty() && pre_val->IsBoolean())
@@ -3446,7 +3446,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 }
             }
 
-            if (options->Has(Nan::New("painted").ToLocalChecked()))
+            if (Nan::Has(options, Nan::New("painted").ToLocalChecked()).FromMaybe(false))
             {
                 v8::Local<v8::Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
                 if (!painted_val.IsEmpty() && painted_val->IsBoolean())
@@ -3603,7 +3603,7 @@ NAN_METHOD(Image::fromBytes)
         if (info[1]->IsObject())
         {
             v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(info[1]);
-            if (options->Has(Nan::New("premultiply").ToLocalChecked()))
+            if (Nan::Has(options, Nan::New("premultiply").ToLocalChecked()).FromMaybe(false))
             {
                 v8::Local<v8::Value> opt = options->Get(Nan::New("premultiply").ToLocalChecked());
                 if (!opt.IsEmpty() && opt->IsBoolean())
@@ -3616,7 +3616,7 @@ NAN_METHOD(Image::fromBytes)
                     return;
                 }
             }
-            if (options->Has(Nan::New("max_size").ToLocalChecked()))
+            if (Nan::Has(options, Nan::New("max_size").ToLocalChecked()).FromMaybe(false))
             {
                 v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
                 if (opt->IsNumber())
@@ -3758,7 +3758,7 @@ NAN_METHOD(Image::encodeSync)
             return;
         }
         v8::Local<v8::Object> options = info[1]->ToObject();
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
@@ -3857,7 +3857,7 @@ NAN_METHOD(Image::encode)
 
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
-        if (options->Has(Nan::New("palette").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> format_opt = options->Get(Nan::New("palette").ToLocalChecked());
             if (!format_opt->IsObject()) {
@@ -4240,7 +4240,7 @@ NAN_METHOD(Image::composite)
 
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
-        if (options->Has(Nan::New("comp_op").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("comp_op").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("comp_op").ToLocalChecked());
             if (!opt->IsNumber())
@@ -4257,7 +4257,7 @@ NAN_METHOD(Image::composite)
             mode = static_cast<mapnik::composite_mode_e>(mode_int);
         }
 
-        if (options->Has(Nan::New("opacity").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("opacity").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("opacity").ToLocalChecked());
             if (!opt->IsNumber()) {
@@ -4271,7 +4271,7 @@ NAN_METHOD(Image::composite)
             }
         }
 
-        if (options->Has(Nan::New("dx").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("dx").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("dx").ToLocalChecked());
             if (!opt->IsNumber()) {
@@ -4281,7 +4281,7 @@ NAN_METHOD(Image::composite)
             dx = Nan::To<int>(opt).FromJust();
         }
 
-        if (options->Has(Nan::New("dy").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("dy").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("dy").ToLocalChecked());
             if (!opt->IsNumber()) {
@@ -4291,7 +4291,7 @@ NAN_METHOD(Image::composite)
             dy = Nan::To<int>(opt).FromJust();
         }
 
-        if (options->Has(Nan::New("image_filters").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_filters").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("image_filters").ToLocalChecked());
             if (!opt->IsString()) {

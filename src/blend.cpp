@@ -587,7 +587,7 @@ NAN_METHOD(Blend) {
             }
         }
 
-        if (options->Has(Nan::New("compression").ToLocalChecked())) {
+        if (Nan::Has(options, Nan::New("compression").ToLocalChecked()).FromMaybe(false)) {
             v8::Local<v8::Value> compression_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!compression_val.IsEmpty() && compression_val->IsNumber())
             {
@@ -663,7 +663,7 @@ NAN_METHOD(Blend) {
                     return;
                 }
             } else {
-                if (props->Has(Nan::New("buffer").ToLocalChecked())) {
+                if (Nan::Has(props, Nan::New("buffer").ToLocalChecked()).FromMaybe(false)) {
                     buffer = props->Get(Nan::New("buffer").ToLocalChecked());
                     if (node::Buffer::HasInstance(buffer)) {
                         image->buffer.Reset(buffer.As<v8::Object>());

@@ -155,7 +155,7 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             return scope.Escape(Nan::Undefined());
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("transform").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
             if (!bound_opt->IsObject()) {
@@ -225,7 +225,7 @@ NAN_METHOD(Geometry::toJSON)
             return;
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("transform").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bound_opt = options->Get(Nan::New("transform").ToLocalChecked());
             if (!bound_opt->IsObject()) {

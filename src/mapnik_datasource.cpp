@@ -264,7 +264,7 @@ NAN_METHOD(Datasource::featureset)
             return;
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("extent").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());
             if (!extent_opt->IsArray())

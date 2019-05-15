@@ -68,7 +68,7 @@ NAN_METHOD(Projection::New)
             return;
         }
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (options->Has(Nan::New("lazy").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("lazy").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> lazy_opt = options->Get(Nan::New("lazy").ToLocalChecked());
             if (!lazy_opt->IsBoolean())

@@ -294,7 +294,7 @@ NAN_METHOD(GridView::encodeSync)
 
         v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
-        if (options->Has(Nan::New("resolution").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("resolution").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -312,7 +312,7 @@ NAN_METHOD(GridView::encodeSync)
             }
         }
 
-        if (options->Has(Nan::New("features").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("features").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
             if (!bind_opt->IsBoolean())
@@ -408,7 +408,7 @@ NAN_METHOD(GridView::encode)
 
         v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
-        if (options->Has(Nan::New("resolution").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("resolution").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("resolution").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -426,7 +426,7 @@ NAN_METHOD(GridView::encode)
             }
         }
 
-        if (options->Has(Nan::New("features").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("features").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("features").ToLocalChecked());
             if (!bind_opt->IsBoolean())

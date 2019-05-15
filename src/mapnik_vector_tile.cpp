@@ -387,7 +387,7 @@ NAN_METHOD(VectorTile::New)
             return;
         }
         options = info[3]->ToObject();
-        if (options->Has(Nan::New("tile_size").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("tile_size").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("tile_size").ToLocalChecked());
             if (!opt->IsNumber())
@@ -403,7 +403,7 @@ NAN_METHOD(VectorTile::New)
             }
             tile_size = tile_size_tmp;
         }
-        if (options->Has(Nan::New("buffer_size").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!opt->IsNumber())
@@ -549,7 +549,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             return scope.Escape(Nan::Undefined());
         }
         v8::Local<v8::Object> options = info[1]->ToObject();
-        if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
             if (!area_thres->IsNumber())
@@ -564,7 +564,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("simplify_distance").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -579,7 +579,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("strictly_simple").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> strict_simp = options->Get(Nan::New("strictly_simple").ToLocalChecked());
             if (!strict_simp->IsBoolean())
@@ -589,7 +589,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             strictly_simple = Nan::To<bool>(strict_simp).FromJust();
         }
-        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
             if (!mpu->IsBoolean())
@@ -599,7 +599,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             multi_polygon_union = Nan::To<bool>(mpu).FromJust();
         }
-        if (options->Has(Nan::New("fill_type").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
             if (!ft->IsNumber())
@@ -614,7 +614,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -631,7 +631,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("scale").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -646,7 +646,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -661,7 +661,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New("offset_x").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -671,7 +671,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             offset_x = Nan::To<int>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("offset_y").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -681,7 +681,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             offset_y = Nan::To<int>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("reencode").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("reencode").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
             if (!reencode_opt->IsBoolean())
@@ -691,7 +691,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             reencode = Nan::To<bool>(reencode_opt).FromJust();
         }
-        if (options->Has(Nan::New("max_extent").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("max_extent").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
             if (!max_extent_opt->IsArray())
@@ -718,7 +718,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             max_extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
                                                Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
         }
-        if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -729,7 +729,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             process_all_rings = Nan::To<bool>(param_val).FromJust();
         }
 
-        if (options->Has(Nan::New("image_scaling").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
             if (!param_val->IsString())
@@ -747,7 +747,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             scaling_method = *method;
         }
 
-        if (options->Has(Nan::New("image_format").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
             if (!param_val->IsString())
@@ -938,7 +938,7 @@ NAN_METHOD(VectorTile::composite)
             return;
         }
         v8::Local<v8::Object> options = info[1]->ToObject();
-        if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> area_thres = options->Get(Nan::New("area_threshold").ToLocalChecked());
             if (!area_thres->IsNumber())
@@ -953,7 +953,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-        if (options->Has(Nan::New("strictly_simple").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> strict_simp = options->Get(Nan::New("strictly_simple").ToLocalChecked());
             if (!strict_simp->IsBoolean())
@@ -963,7 +963,7 @@ NAN_METHOD(VectorTile::composite)
             }
             strictly_simple = Nan::To<bool>(strict_simp).FromJust();
         }
-        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
             if (!mpu->IsBoolean())
@@ -973,7 +973,7 @@ NAN_METHOD(VectorTile::composite)
             }
             multi_polygon_union = Nan::To<bool>(mpu).FromJust();
         }
-        if (options->Has(Nan::New("fill_type").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
             if (!ft->IsNumber())
@@ -988,7 +988,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-        if (options->Has(Nan::New("threading_mode").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("threading_mode").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -1005,7 +1005,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-        if (options->Has(Nan::New("simplify_distance").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -1020,7 +1020,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-        if (options->Has(Nan::New("scale").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -1035,7 +1035,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-        if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -1050,7 +1050,7 @@ NAN_METHOD(VectorTile::composite)
                 return;
             }
         }
-        if (options->Has(Nan::New("offset_x").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_x").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -1060,7 +1060,7 @@ NAN_METHOD(VectorTile::composite)
             }
             offset_x = Nan::To<int>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("offset_y").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("offset_y").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -1070,7 +1070,7 @@ NAN_METHOD(VectorTile::composite)
             }
             offset_y = Nan::To<int>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("reencode").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("reencode").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> reencode_opt = options->Get(Nan::New("reencode").ToLocalChecked());
             if (!reencode_opt->IsBoolean())
@@ -1080,7 +1080,7 @@ NAN_METHOD(VectorTile::composite)
             }
             reencode = Nan::To<bool>(reencode_opt).FromJust();
         }
-        if (options->Has(Nan::New("max_extent").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("max_extent").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> max_extent_opt = options->Get(Nan::New("max_extent").ToLocalChecked());
             if (!max_extent_opt->IsArray())
@@ -1107,7 +1107,7 @@ NAN_METHOD(VectorTile::composite)
             max_extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
                                                Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
         }
-        if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
             if (!param_val->IsBoolean()) {
@@ -1117,7 +1117,7 @@ NAN_METHOD(VectorTile::composite)
             process_all_rings = Nan::To<bool>(param_val).FromJust();
         }
 
-        if (options->Has(Nan::New("image_scaling").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
             if (!param_val->IsString())
@@ -1135,7 +1135,7 @@ NAN_METHOD(VectorTile::composite)
             scaling_method = *method;
         }
 
-        if (options->Has(Nan::New("image_format").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
             if (!param_val->IsString())
@@ -1563,7 +1563,7 @@ NAN_METHOD(VectorTile::query)
             return;
         }
         options = info[2]->ToObject();
-        if (options->Has(Nan::New("tolerance").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("tolerance").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
             if (!tol->IsNumber())
@@ -1573,7 +1573,7 @@ NAN_METHOD(VectorTile::query)
             }
             tolerance = Nan::To<double>(tol).FromJust();
         }
-        if (options->Has(Nan::New("layer").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
             if (!layer_id->IsString())
@@ -1881,7 +1881,7 @@ NAN_METHOD(VectorTile::queryMany)
             return;
         }
         options = info[1]->ToObject();
-        if (options->Has(Nan::New("tolerance").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("tolerance").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> tol = options->Get(Nan::New("tolerance").ToLocalChecked());
             if (!tol->IsNumber())
@@ -1891,7 +1891,7 @@ NAN_METHOD(VectorTile::queryMany)
             }
             tolerance = Nan::To<double>(tol).FromJust();
         }
-        if (options->Has(Nan::New("layer").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> layer_id = options->Get(Nan::New("layer").ToLocalChecked());
             if (!layer_id->IsString())
@@ -1901,7 +1901,7 @@ NAN_METHOD(VectorTile::queryMany)
             }
             layer_name = TOSTR(layer_id);
         }
-        if (options->Has(Nan::New("fields").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
             if (!param_val->IsArray())
@@ -2495,7 +2495,7 @@ NAN_METHOD(VectorTile::toJSON)
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
 
-        if (options->Has(Nan::New("decode_geometry").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("decode_geometry").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("decode_geometry").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -3195,7 +3195,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
         }
 
         options = info[2]->ToObject();
-        if (options->Has(Nan::New("area_threshold").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("area_threshold").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -3210,7 +3210,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
         }
-        if (options->Has(Nan::New("strictly_simple").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("strictly_simple").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -3220,7 +3220,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
             }
             strictly_simple = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> mpu = options->Get(Nan::New("multi_polygon_union").ToLocalChecked());
             if (!mpu->IsBoolean())
@@ -3230,7 +3230,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
             }
             multi_polygon_union = Nan::To<bool>(mpu).FromJust();
         }
-        if (options->Has(Nan::New("fill_type").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> ft = options->Get(Nan::New("fill_type").ToLocalChecked());
             if (!ft->IsNumber())
@@ -3245,7 +3245,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
         }
-        if (options->Has(Nan::New("simplify_distance").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("simplify_distance").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -3260,7 +3260,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 return;
             }
         }
-        if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("process_all_rings").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -3370,7 +3370,7 @@ v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
 
         v8::Local<v8::Object> options = info[2]->ToObject();
-        if (options->Has(Nan::New("image_scaling").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
             if (!param_val->IsString())
@@ -3388,7 +3388,7 @@ v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
             scaling_method = *method;
         }
 
-        if (options->Has(Nan::New("image_format").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
             if (!param_val->IsString())
@@ -3522,7 +3522,7 @@ NAN_METHOD(VectorTile::addImage)
         }
 
         v8::Local<v8::Object> options = info[2]->ToObject();
-        if (options->Has(Nan::New("image_scaling").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_scaling").ToLocalChecked());
             if (!param_val->IsString())
@@ -3540,7 +3540,7 @@ NAN_METHOD(VectorTile::addImage)
             scaling_method = *method;
         }
 
-        if (options->Has(Nan::New("image_format").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("image_format").ToLocalChecked());
             if (!param_val->IsString())
@@ -3862,7 +3862,7 @@ v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             return scope.Escape(Nan::Undefined());
         }
         options = info[1]->ToObject();
-        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -3872,7 +3872,7 @@ v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             validate = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -3963,7 +3963,7 @@ NAN_METHOD(VectorTile::addData)
             return;
         }
         options = info[1]->ToObject();
-        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -3973,7 +3973,7 @@ NAN_METHOD(VectorTile::addData)
             }
             validate = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4099,7 +4099,7 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             return scope.Escape(Nan::Undefined());
         }
         options = info[1]->ToObject();
-        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4109,7 +4109,7 @@ v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             validate = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4200,7 +4200,7 @@ NAN_METHOD(VectorTile::setData)
             return;
         }
         options = info[1]->ToObject();
-        if (options->Has(Nan::New<v8::String>("validate").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("validate").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4210,7 +4210,7 @@ NAN_METHOD(VectorTile::setData)
             }
             validate = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New<v8::String>("upgrade").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("upgrade").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4330,7 +4330,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
 
         options = info[0]->ToObject();
 
-        if (options->Has(Nan::New<v8::String>("compression").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("compression").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!param_val->IsString())
@@ -4340,7 +4340,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             compress = std::string("gzip") == (TOSTR(param_val->ToString()));
         }
-        if (options->Has(Nan::New<v8::String>("release").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("release").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("release").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4350,7 +4350,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
             }
             release = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New<v8::String>("level").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("level").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -4365,7 +4365,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 return scope.Escape(Nan::Undefined());
             }
         }
-        if (options->Has(Nan::New<v8::String>("strategy").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New<v8::String>("strategy").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
             if (!param_val->IsString())
@@ -4519,7 +4519,7 @@ NAN_METHOD(VectorTile::getData)
 
         options = info[0]->ToObject();
 
-        if (options->Has(Nan::New("compression").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("compression").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("compression").ToLocalChecked());
             if (!param_val->IsString())
@@ -4529,7 +4529,7 @@ NAN_METHOD(VectorTile::getData)
             }
             compress = std::string("gzip") == (TOSTR(param_val->ToString()));
         }
-        if (options->Has(Nan::New<v8::String>("release").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("release").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("release").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -4539,7 +4539,7 @@ NAN_METHOD(VectorTile::getData)
             }
             release = Nan::To<bool>(param_val).FromJust();
         }
-        if (options->Has(Nan::New("level").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("level").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("level").ToLocalChecked());
             if (!param_val->IsNumber())
@@ -4554,7 +4554,7 @@ NAN_METHOD(VectorTile::getData)
                 return;
             }
         }
-        if (options->Has(Nan::New("strategy").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("strategy").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("strategy").ToLocalChecked());
             if (!param_val->IsString())
@@ -4888,7 +4888,7 @@ NAN_METHOD(VectorTile::render)
             return;
         }
         options = info[2]->ToObject();
-        if (options->Has(Nan::New("z").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("z").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("z").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -4900,7 +4900,7 @@ NAN_METHOD(VectorTile::render)
             set_z = true;
             closure->zxy_override = true;
         }
-        if (options->Has(Nan::New("x").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("x").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("x").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -4912,7 +4912,7 @@ NAN_METHOD(VectorTile::render)
             set_x = true;
             closure->zxy_override = true;
         }
-        if (options->Has(Nan::New("y").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("y").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("y").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -4950,7 +4950,7 @@ NAN_METHOD(VectorTile::render)
             }
         }
 
-        if (options->Has(Nan::New("buffer_size").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -4960,7 +4960,7 @@ NAN_METHOD(VectorTile::render)
             }
             closure->buffer_size = Nan::To<int>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("scale").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -4970,7 +4970,7 @@ NAN_METHOD(VectorTile::render)
             }
             closure->scale_factor = Nan::To<double>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
             if (!bind_opt->IsNumber())
@@ -4980,7 +4980,7 @@ NAN_METHOD(VectorTile::render)
             }
             closure->scale_denominator = Nan::To<double>(bind_opt).FromJust();
         }
-        if (options->Has(Nan::New("variables").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
             if (!bind_opt->IsObject())
@@ -5006,7 +5006,7 @@ NAN_METHOD(VectorTile::render)
         closure->width = c->width();
         closure->height = c->height();
         closure->surface = c;
-        if (options->Has(Nan::New("renderer").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("renderer").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> renderer = options->Get(Nan::New("renderer").ToLocalChecked());
             if (!renderer->IsString() )
@@ -5041,7 +5041,7 @@ NAN_METHOD(VectorTile::render)
         std::size_t layer_idx = 0;
 
         // grid requires special options for now
-        if (!options->Has(Nan::New("layer").ToLocalChecked()))
+        if (!Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
         {
             Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
             return;
@@ -5099,7 +5099,7 @@ NAN_METHOD(VectorTile::render)
                 return;
             }
         }
-        if (options->Has(Nan::New("fields").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("fields").ToLocalChecked());
             if (!param_val->IsArray())
@@ -6109,7 +6109,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
 
-        if (options->Has(Nan::New("split_multi_features").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("split_multi_features").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("split_multi_features").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -6120,7 +6120,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
             split_multi_features = Nan::To<bool>(param_val).FromJust();
         }
 
-        if (options->Has(Nan::New("lat_lon").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("lat_lon").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("lat_lon").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -6131,7 +6131,7 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
             lat_lon = Nan::To<bool>(param_val).FromJust();
         }
 
-        if (options->Has(Nan::New("web_merc").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("web_merc").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -6277,7 +6277,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
         }
         v8::Local<v8::Object> options = info[0]->ToObject();
 
-        if (options->Has(Nan::New("split_multi_features").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("split_multi_features").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("split_multi_features").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -6288,7 +6288,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
             split_multi_features = Nan::To<bool>(param_val).FromJust();
         }
 
-        if (options->Has(Nan::New("lat_lon").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("lat_lon").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("lat_lon").ToLocalChecked());
             if (!param_val->IsBoolean())
@@ -6299,7 +6299,7 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
             lat_lon = Nan::To<bool>(param_val).FromJust();
         }
 
-        if (options->Has(Nan::New("web_merc").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("web_merc").ToLocalChecked()).FromMaybe(false))
         {
             v8::Local<v8::Value> param_val = options->Get(Nan::New("web_merc").ToLocalChecked());
             if (!param_val->IsBoolean())
