@@ -855,10 +855,11 @@ void Map::EIO_QueryMap(uv_work_t* req)
 void Map::EIO_AfterQueryMap(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         std::size_t num_result = closure->featuresets.size();
         if (num_result >= 1)
@@ -878,12 +879,12 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
             }
             closure->featuresets.clear();
             v8::Local<v8::Value> argv[2] = { Nan::Null(), a };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::Undefined() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
 
@@ -1182,13 +1183,14 @@ void Map::EIO_Load(uv_work_t* req)
 void Map::EIO_AfterLoad(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->m->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -1460,13 +1462,14 @@ void Map::EIO_FromString(uv_work_t* req)
 void Map::EIO_AfterFromString(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->m->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2230,18 +2233,19 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
 void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     closure->m->release();
 
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2295,6 +2299,8 @@ void Map::EIO_RenderGrid(uv_work_t* req)
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
+
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
     closure->m->release();
 
@@ -2302,10 +2308,10 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->g->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2382,15 +2388,16 @@ void Map::EIO_RenderImage(uv_work_t* req)
 void Map::EIO_AfterRenderImage(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
     closure->m->release();
 
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2614,15 +2621,16 @@ void Map::EIO_RenderFile(uv_work_t* req)
 void Map::EIO_AfterRenderFile(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
     closure->m->release();
 
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->m->Unref();

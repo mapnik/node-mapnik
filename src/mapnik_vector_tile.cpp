@@ -1227,17 +1227,18 @@ void VectorTile::EIO_Composite(uv_work_t* req)
 void VectorTile::EIO_AfterComposite(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
 
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     for (VectorTile* vt : closure->vtiles)
     {
@@ -1639,18 +1640,19 @@ void VectorTile::EIO_Query(uv_work_t* req)
 void VectorTile::EIO_AfterQuery(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         std::vector<query_result> const& result = closure->result;
         v8::Local<v8::Array> arr = _queryResultToV8(result);
         v8::Local<v8::Value> argv[2] = { Nan::Null(), arr };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->d->Unref();
@@ -2147,18 +2149,19 @@ void VectorTile::EIO_QueryMany(uv_work_t* req)
 void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         queryMany_result result = closure->result;
         v8::Local<v8::Object> obj = _queryManyResultToV8(result);
         v8::Local<v8::Value> argv[2] = { Nan::Null(), obj };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->d->Unref();
@@ -3105,6 +3108,7 @@ void VectorTile::to_geojson(uv_work_t* req)
 void VectorTile::after_to_geojson(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
     if (closure->error)
     {
@@ -3112,13 +3116,13 @@ void VectorTile::after_to_geojson(uv_work_t* req)
         // there is no easy way to test this path currently
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
@@ -3598,16 +3602,17 @@ void VectorTile::EIO_AddImage(uv_work_t* req)
 void VectorTile::EIO_AfterAddImage(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_add_image_baton_t *closure = static_cast<vector_tile_add_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -3782,18 +3787,19 @@ void VectorTile::EIO_AddImageBuffer(uv_work_t* req)
 void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
     if (closure->error)
     {
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -4020,16 +4026,17 @@ void VectorTile::EIO_AddData(uv_work_t* req)
 void VectorTile::EIO_AfterAddData(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -4258,16 +4265,17 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 void VectorTile::EIO_AfterSetData(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -4624,6 +4632,7 @@ void VectorTile::get_data(uv_work_t* req)
 void VectorTile::after_get_data(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
     if (closure->error)
     {
@@ -4632,7 +4641,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         // in test coverage.
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else if (!closure->data->empty())
@@ -4644,7 +4653,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         }
         v8::Local<v8::Value> argv[2] = { Nan::Null(), 
                                          node_mapnik::NewBufferFrom(std::move(closure->data)).ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     else
     {
@@ -4652,7 +4661,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         if (raw_size <= 0)
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::NewBuffer(0).ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
         else if (raw_size >= node::Buffer::kMaxLength)
         {
@@ -4663,7 +4672,7 @@ void VectorTile::after_get_data(uv_work_t* req)
             s << "Data is too large to convert to a node::Buffer ";
             s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
             v8::Local<v8::Value> argv[1] = { Nan::Error(s.str().c_str()) };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
             // LCOV_EXCL_STOP
         }
         else
@@ -4672,12 +4681,12 @@ void VectorTile::after_get_data(uv_work_t* req)
             {
                 v8::Local<v8::Value> argv[2] = { Nan::Null(), 
                                                  node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()).ToLocalChecked() };
-                Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+                async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
             }
             else
             {
                 v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->d->tile_->data(),raw_size).ToLocalChecked() };
-                Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+                async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
             }
         }
     }
@@ -5335,30 +5344,31 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         if (closure->surface.is<Image *>())
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<Image *>(closure->surface)->handle() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
 #if defined(GRID_RENDERER)
         else if (closure->surface.is<Grid *>())
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<Grid *>(closure->surface)->handle() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
 #endif
         else if (closure->surface.is<CairoSurface *>())
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
 
@@ -5460,19 +5470,20 @@ void VectorTile::EIO_Clear(uv_work_t* req)
 void VectorTile::EIO_AfterClear(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
     if (closure->error)
     {
         // No reason this should ever throw an exception, not currently testable.
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     closure->d->Unref();
     closure->cb.Reset();
@@ -6207,19 +6218,20 @@ void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
 void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
     if (closure->error)
     {
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
         v8::Local<v8::Array> array = make_not_simple_array(closure->result);
         v8::Local<v8::Value> argv[2] = { Nan::Null(), array };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
@@ -6338,19 +6350,20 @@ void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
 void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     if (closure->error)
     {
         // LCOV_EXCL_START
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
         v8::Local<v8::Array> array = make_not_valid_array(closure->result);
         v8::Local<v8::Value> argv[2] = { Nan::Null(), array };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();

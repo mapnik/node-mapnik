@@ -186,10 +186,11 @@ void GridView::EIO_IsSolid(uv_work_t* req)
 void GridView::EIO_AfterIsSolid(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     is_solid_grid_view_baton_t *closure = static_cast<is_solid_grid_view_baton_t *>(req->data);
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -199,14 +200,14 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
                                      Nan::New(closure->result),
                                      Nan::New<v8::Number>(closure->pixel),
             };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(),
                                      Nan::New(closure->result)
             };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->g->Unref();
@@ -484,6 +485,7 @@ void GridView::EIO_Encode(uv_work_t* req)
 void GridView::EIO_AfterEncode(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
 
     encode_grid_view_baton_t *closure = static_cast<encode_grid_view_baton_t *>(req->data);
 
@@ -492,7 +494,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         // so simply removing the following from coverage
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_STOP */
     }
     else
@@ -529,7 +531,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         json->Set(Nan::New("data").ToLocalChecked(), feature_data);
 
         v8::Local<v8::Value> argv[2] = { Nan::Null(), json };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->g->Unref();

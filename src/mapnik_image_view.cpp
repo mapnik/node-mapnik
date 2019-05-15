@@ -253,10 +253,11 @@ struct visitor_get_pixel_view
 void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -266,12 +267,12 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
                                      Nan::New(closure->result),
                                      mapnik::util::apply_visitor(visitor_get_pixel_view(0,0),*(closure->im->this_)),
             };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New(closure->result) };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->im->Unref();
@@ -530,17 +531,18 @@ void ImageView::AsyncEncode(uv_work_t* req)
 void ImageView::AfterEncode(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
 
     encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
 
     if (!baton->error_name.empty()) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(baton->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)baton->result.data(), baton->result.size()).ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 2, argv);
     }
 
     baton->im->Unref();

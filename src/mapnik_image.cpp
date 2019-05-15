@@ -764,16 +764,17 @@ void Image::EIO_Filter(uv_work_t* req)
 void Image::EIO_AfterFilter(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     filter_image_baton_t *closure = static_cast<filter_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im->Unref();
     closure->cb.Reset();
@@ -988,16 +989,17 @@ void Image::EIO_Fill(uv_work_t* req)
 void Image::EIO_AfterFill(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im->Unref();
     closure->cb.Reset();
@@ -1101,16 +1103,17 @@ void Image::EIO_Clear(uv_work_t* req)
 void Image::EIO_AfterClear(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     clear_image_baton_t *closure = static_cast<clear_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
     closure->im->Unref();
     closure->cb.Reset();
@@ -1256,9 +1259,10 @@ void Image::EIO_Premultiply(uv_work_t* req)
 void Image::EIO_AfterMultiply(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     image_op_baton_t *closure = static_cast<image_op_baton_t *>(req->data);
     v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
-    Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+    async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     closure->im->Unref();
     closure->cb.Reset();
     delete closure;
@@ -1390,10 +1394,11 @@ void Image::EIO_IsSolid(uv_work_t* req)
 void Image::EIO_AfterIsSolid(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -1403,12 +1408,12 @@ void Image::EIO_AfterIsSolid(uv_work_t* req)
                                      Nan::New(closure->result),
                                      mapnik::util::apply_visitor(visitor_get_pixel(0,0),*(closure->im->this_)),
             };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New(closure->result) };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->im->Unref();
@@ -1596,11 +1601,12 @@ void Image::EIO_Copy(uv_work_t* req)
 void Image::EIO_AfterCopy(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     copy_image_baton_t *closure = static_cast<copy_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else if (!closure->im2)
     {
@@ -1608,7 +1614,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
         // and simply removing it from coverage tests.
         /* LCOV_EXCL_START */
         v8::Local<v8::Value> argv[1] = { Nan::Error("could not render to image") };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_STOP */
     }
     else
@@ -1619,12 +1625,12 @@ void Image::EIO_AfterCopy(uv_work_t* req)
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+           async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->im1->Unref();
@@ -2121,11 +2127,12 @@ void Image::EIO_Resize(uv_work_t* req)
 void Image::EIO_AfterResize(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     resize_image_baton_t *closure = static_cast<resize_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -2135,12 +2142,12 @@ void Image::EIO_AfterResize(uv_work_t* req)
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->im1->Unref();
@@ -2598,11 +2605,12 @@ void Image::EIO_Open(uv_work_t* req)
 void Image::EIO_AfterOpen(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -2612,12 +2620,12 @@ void Image::EIO_AfterOpen(uv_work_t* req)
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->cb.Reset();
@@ -3089,11 +3097,12 @@ void Image::EIO_FromSVG(uv_work_t* req)
 void Image::EIO_AfterFromSVG(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     svg_file_ptr_baton_t *closure = static_cast<svg_file_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -3103,12 +3112,12 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->cb.Reset();
@@ -3327,11 +3336,12 @@ void Image::EIO_FromSVGBytes(uv_work_t* req)
 void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     svg_mem_ptr_baton_t *closure = static_cast<svg_mem_ptr_baton_t *>(req->data);
     if (closure->error || !closure->im)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
@@ -3341,12 +3351,12 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->cb.Reset();
@@ -3671,11 +3681,12 @@ void Image::EIO_FromBytes(uv_work_t* req)
 void Image::EIO_AfterFromBytes(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     image_mem_ptr_baton_t *closure = static_cast<image_mem_ptr_baton_t *>(req->data);
     if (!closure->error_name.empty())
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else if (closure->im == nullptr)
     {
@@ -3684,7 +3695,7 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
         // mapnik was not providing an image type it should. This should never
         // be occuring so marking this out from coverage
         v8::Local<v8::Value> argv[1] = { Nan::Error("Failed to load from buffer") };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         /* LCOV_EXCL_STOP */
     } else
     {
@@ -3694,12 +3705,12 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
         }
         else
         {
             v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
         }
     }
     closure->cb.Reset();
@@ -3908,17 +3919,18 @@ void Image::EIO_Encode(uv_work_t* req)
 void Image::EIO_AfterEncode(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
 
     encode_image_baton_t *closure = static_cast<encode_image_baton_t *>(req->data);
 
     if (closure->error) {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), node_mapnik::NewBufferFrom(std::move(closure->result)).ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->im->Unref();
@@ -4111,16 +4123,17 @@ void Image::EIO_Save(uv_work_t* req)
 void Image::EIO_AfterSave(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
     save_image_baton_t *closure = static_cast<save_image_baton_t *>(req->data);
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     else
     {
         v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     }
     closure->im->Unref();
     closure->cb.Reset();
@@ -4340,16 +4353,17 @@ void Image::EIO_Composite(uv_work_t* req)
 void Image::EIO_AfterComposite(uv_work_t* req)
 {
     Nan::HandleScope scope;
+    Nan::AsyncResource async_resource(__func__);
 
     composite_image_baton_t *closure = static_cast<composite_image_baton_t *>(req->data);
 
     if (closure->error)
     {
         v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
     } else {
         v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im1->handle() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
     }
 
     closure->im1->Unref();
