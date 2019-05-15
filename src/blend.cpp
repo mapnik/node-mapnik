@@ -559,7 +559,7 @@ NAN_METHOD(Blend) {
 
         v8::Local<v8::Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
         if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            if (!hexToUInt32Color(*v8::String::Utf8Value(matte_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()), baton->matte))
+            if (!hexToUInt32Color(TOSTR(matte_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()), baton->matte))
             {
                 Nan::ThrowTypeError("Invalid batte provided.");
                 return;
