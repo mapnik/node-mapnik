@@ -413,7 +413,7 @@ NAN_SETTER(Map::set_prop)
 
         v8::Local<v8::Object> obj = value->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
         mapnik::parameters params;
-        v8::Local<v8::Array> names = obj->GetPropertyNames();
+        v8::Local<v8::Array> names = Nan::GetPropertyNames(obj).ToLocalChecked();
         unsigned int i = 0;
         unsigned int a_length = names->Length();
         while (i < a_length) {

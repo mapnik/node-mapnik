@@ -95,7 +95,7 @@ NAN_METHOD(Datasource::New)
     v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
     mapnik::parameters params;
-    v8::Local<v8::Array> names = options->GetPropertyNames();
+    v8::Local<v8::Array> names = Nan::GetPropertyNames(options).ToLocalChecked();
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {

@@ -76,7 +76,7 @@ NAN_METHOD(MemoryDatasource::New)
     v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
     mapnik::parameters params;
-    v8::Local<v8::Array> names = options->GetPropertyNames();
+    v8::Local<v8::Array> names = Nan::GetPropertyNames(options).ToLocalChecked();
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
@@ -249,7 +249,7 @@ NAN_METHOD(MemoryDatasource::add)
                 if (props->IsObject())
                 {
                     v8::Local<v8::Object> p_obj = props->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-                    v8::Local<v8::Array> names = p_obj->GetPropertyNames();
+                    v8::Local<v8::Array> names = Nan::GetPropertyNames(p_obj).ToLocalChecked();
                     unsigned int i = 0;
                     unsigned int a_length = names->Length();
                     while (i < a_length)

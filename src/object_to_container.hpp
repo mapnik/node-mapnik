@@ -8,7 +8,7 @@
 
 static inline void object_to_container(mapnik::attributes & cont, v8::Local<v8::Object> const& vars)
 {
-    v8::Local<v8::Array> names = vars->GetPropertyNames();
+    v8::Local<v8::Array> names = Nan::GetPropertyNames(vars).ToLocalChecked();
     std::size_t a_length = names->Length();
     mapnik::transcoder tr("utf8");
     cont.reserve(a_length);
