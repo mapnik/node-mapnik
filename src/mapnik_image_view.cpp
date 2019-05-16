@@ -47,7 +47,7 @@ void ImageView::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "isSolidSync", isSolidSync);
     Nan::SetPrototypeMethod(lcons, "getPixel", getPixel);
 
-    target->Set(Nan::New("ImageView").ToLocalChecked(),lcons->GetFunction());
+    Nan::Set(target, Nan::New("ImageView").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -98,7 +98,7 @@ v8::Local<v8::Value> ImageView::NewInstance(Image * JSImage ,
     ImageView* imv = new ImageView(JSImage);
     imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
     v8::Local<v8::Value> ext = Nan::New<v8::External>(imv);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new ImageView instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

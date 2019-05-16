@@ -74,7 +74,7 @@ static inline NAN_METHOD(available_font_faces)
     v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
+        Nan::Set(a, i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -86,7 +86,7 @@ static inline NAN_METHOD(memory_fonts)
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        a->Set(i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
+        Nan::Set(a, i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -97,7 +97,7 @@ static inline NAN_METHOD(available_font_files)
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     for (auto const& kv : mapping)
     {
-        obj->Set(Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
+        Nan::Set(obj, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(obj);
 }

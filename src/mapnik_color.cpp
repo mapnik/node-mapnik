@@ -48,7 +48,7 @@ void Color::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "a", get_prop, set_prop);
     ATTR(lcons, "premultiplied", get_premultiplied, set_premultiplied);
 
-    target->Set(Nan::New("Color").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Color").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -183,7 +183,7 @@ v8::Local<v8::Value> Color::NewInstance(mapnik::color const& color) {
     Color* c = new Color();
     c->this_ = std::make_shared<mapnik::color>(color);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(c);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Color instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

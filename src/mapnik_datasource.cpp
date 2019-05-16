@@ -41,7 +41,7 @@ void Datasource::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "extent", extent);
     Nan::SetPrototypeMethod(lcons, "fields", fields);
 
-    target->Set(Nan::New("Datasource").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Datasource").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -68,12 +68,12 @@ NAN_METHOD(Datasource::New)
         Datasource* d =  static_cast<Datasource*>(ptr);
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("raster").ToLocalChecked());
         }
         else
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("vector").ToLocalChecked());
         }
         d->Wrap(info.This());
@@ -121,12 +121,12 @@ NAN_METHOD(Datasource::New)
     {
         if (ds->type() == mapnik::datasource::Raster)
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("raster").ToLocalChecked());
         }
         else
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("vector").ToLocalChecked());
         }
         Datasource* d = new Datasource();
@@ -147,7 +147,7 @@ v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Datasource instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
@@ -194,10 +194,10 @@ NAN_METHOD(Datasource::extent)
     }
 
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
-    a->Set(0, Nan::New<v8::Number>(e.minx()));
-    a->Set(1, Nan::New<v8::Number>(e.miny()));
-    a->Set(2, Nan::New<v8::Number>(e.maxx()));
-    a->Set(3, Nan::New<v8::Number>(e.maxy()));
+    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
+    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
+    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
+    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(a);
 }
 

@@ -13,7 +13,7 @@ void CairoSurface::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "width", width);
     Nan::SetPrototypeMethod(lcons, "height", height);
     Nan::SetPrototypeMethod(lcons, "getData", getData);
-    target->Set(Nan::New("CairoSurface").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("CairoSurface").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 

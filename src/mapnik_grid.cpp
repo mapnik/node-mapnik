@@ -48,8 +48,8 @@ void Grid::Initialize(v8::Local<v8::Object> target) {
     // properties
     ATTR(lcons, "key", get_key, set_key);
 
-    target->Set(Nan::New("Grid").ToLocalChecked(), lcons->GetFunction());
-    NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(lcons->GetFunction(), "base_mask", mapnik::grid::base_mask);
+    Nan::Set(target, Nan::New("Grid").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
+    NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(), "base_mask", mapnik::grid::base_mask);
 
     constructor.Reset(lcons);
 }
@@ -300,7 +300,7 @@ NAN_METHOD(Grid::fields)
     for (; itr != end; ++itr)
     {
         std::string name = *itr;
-        l->Set(idx, Nan::New<v8::String>(name).ToLocalChecked());
+        Nan::Set(l, idx, Nan::New<v8::String>(name).ToLocalChecked());
         ++idx;
     }
     info.GetReturnValue().Set(l);
@@ -402,7 +402,7 @@ NAN_METHOD(Grid::encodeSync)
         unsigned int i;
         for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
+            Nan::Set(keys_a, i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid const& grid_type = *g->get();
@@ -422,11 +422,11 @@ NAN_METHOD(Grid::encodeSync)
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
+            Nan::Set(grid_array, j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
-        json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
-        json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
-        json->Set(Nan::New("data").ToLocalChecked(), feature_data);
+        Nan::Set(json, Nan::New("grid").ToLocalChecked(), grid_array);
+        Nan::Set(json, Nan::New("keys").ToLocalChecked(), keys_a);
+        Nan::Set(json, Nan::New("data").ToLocalChecked(), feature_data);
         info.GetReturnValue().Set(json);
 
     }
@@ -569,7 +569,7 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         unsigned int i;
         for (it = closure->key_order.begin(), i = 0; it < closure->key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
+            Nan::Set(keys_a, i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid const& grid_type = *closure->g->get();
@@ -588,11 +588,11 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
+            Nan::Set(grid_array, j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
-        json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
-        json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
-        json->Set(Nan::New("data").ToLocalChecked(), feature_data);
+        Nan::Set(json, Nan::New("grid").ToLocalChecked(), grid_array);
+        Nan::Set(json, Nan::New("keys").ToLocalChecked(), keys_a);
+        Nan::Set(json, Nan::New("data").ToLocalChecked(), feature_data);
 
         v8::Local<v8::Value> argv[2] = { Nan::Null(), json };
         async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);

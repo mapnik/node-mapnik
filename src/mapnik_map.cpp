@@ -145,25 +145,25 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "parameters", get_prop, set_prop);
     ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
 
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_GROW_CANVAS",mapnik::Map::GROW_CANVAS)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_SHRINK_BBOX",mapnik::Map::SHRINK_BBOX)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_SHRINK_CANVAS",mapnik::Map::SHRINK_CANVAS)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_ADJUST_BBOX_WIDTH",mapnik::Map::ADJUST_BBOX_WIDTH)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_ADJUST_BBOX_HEIGHT",mapnik::Map::ADJUST_BBOX_HEIGHT)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "ASPECT_RESPECT",mapnik::Map::RESPECT)
-    target->Set(Nan::New("Map").ToLocalChecked(),lcons->GetFunction());
+    Nan::Set(target, Nan::New("Map").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -260,19 +260,19 @@ NAN_GETTER(Map::get_prop)
     if(a == "extent") {
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
         mapnik::box2d<double> const& e = m->map_->get_current_extent();
-        arr->Set(0, Nan::New<v8::Number>(e.minx()));
-        arr->Set(1, Nan::New<v8::Number>(e.miny()));
-        arr->Set(2, Nan::New<v8::Number>(e.maxx()));
-        arr->Set(3, Nan::New<v8::Number>(e.maxy()));
+        Nan::Set(arr, 0, Nan::New<v8::Number>(e.minx()));
+        Nan::Set(arr, 1, Nan::New<v8::Number>(e.miny()));
+        Nan::Set(arr, 2, Nan::New<v8::Number>(e.maxx()));
+        Nan::Set(arr, 3, Nan::New<v8::Number>(e.maxy()));
         info.GetReturnValue().Set(arr);
     }
     else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-        arr->Set(0, Nan::New<v8::Number>(e->minx()));
-        arr->Set(1, Nan::New<v8::Number>(e->miny()));
-        arr->Set(2, Nan::New<v8::Number>(e->maxx()));
-        arr->Set(3, Nan::New<v8::Number>(e->maxy()));
+        Nan::Set(arr, 0, Nan::New<v8::Number>(e->minx()));
+        Nan::Set(arr, 1, Nan::New<v8::Number>(e->miny()));
+        Nan::Set(arr, 2, Nan::New<v8::Number>(e->maxx()));
+        Nan::Set(arr, 3, Nan::New<v8::Number>(e->maxy()));
         info.GetReturnValue().Set(arr);
     }
     else if(a == "maximumExtent") {
@@ -280,10 +280,10 @@ NAN_GETTER(Map::get_prop)
         if (!e)
             return;
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-        arr->Set(0, Nan::New<v8::Number>(e->minx()));
-        arr->Set(1, Nan::New<v8::Number>(e->miny()));
-        arr->Set(2, Nan::New<v8::Number>(e->maxx()));
-        arr->Set(3, Nan::New<v8::Number>(e->maxy()));
+        Nan::Set(arr, 0, Nan::New<v8::Number>(e->minx()));
+        Nan::Set(arr, 1, Nan::New<v8::Number>(e->miny()));
+        Nan::Set(arr, 2, Nan::New<v8::Number>(e->maxx()));
+        Nan::Set(arr, 3, Nan::New<v8::Number>(e->maxy()));
         info.GetReturnValue().Set(arr);
     }
     else if(a == "aspect_fix_mode")
@@ -461,7 +461,7 @@ NAN_METHOD(Map::memoryFonts)
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        a->Set(i++, Nan::New(kv.first).ToLocalChecked());
+        Nan::Set(a, i++, Nan::New(kv.first).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -515,7 +515,7 @@ NAN_METHOD(Map::fonts)
     unsigned i = 0;
     for (auto const& kv : mapping)
     {
-        a->Set(i++, Nan::New<v8::String>(kv.first).ToLocalChecked());
+        Nan::Set(a, i++, Nan::New<v8::String>(kv.first).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -535,7 +535,7 @@ NAN_METHOD(Map::fontFiles)
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     for (auto const& kv : mapping)
     {
-        obj->Set(Nan::New<v8::String>(kv.first).ToLocalChecked(), Nan::New<v8::String>(kv.second.second).ToLocalChecked());
+        Nan::Set(obj, Nan::New<v8::String>(kv.first).ToLocalChecked(), Nan::New<v8::String>(kv.second.second).ToLocalChecked());
     }
     info.GetReturnValue().Set(obj);
 }
@@ -872,9 +872,9 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
             for (; it != end; ++it)
             {
                 v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-                obj->Set(Nan::New("layer").ToLocalChecked(), Nan::New<v8::String>(it->first).ToLocalChecked());
-                obj->Set(Nan::New("featureset").ToLocalChecked(), Featureset::NewInstance(it->second));
-                a->Set(idx, obj);
+                Nan::Set(obj, Nan::New("layer").ToLocalChecked(), Nan::New<v8::String>(it->first).ToLocalChecked());
+                Nan::Set(obj, Nan::New("featureset").ToLocalChecked(), Featureset::NewInstance(it->second));
+                Nan::Set(a, idx, obj);
                 ++idx;
             }
             closure->featuresets.clear();
@@ -908,7 +908,7 @@ NAN_METHOD(Map::layers)
     v8::Local<v8::Array> a = Nan::New<v8::Array>(layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
     {
-        a->Set(i, Layer::NewInstance(layers[i]));
+        Nan::Set(a, i, Layer::NewInstance(layers[i]));
     }
     info.GetReturnValue().Set(a);
 }
@@ -1492,7 +1492,7 @@ NAN_METHOD(Map::clone)
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(m2);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Map instance");
     else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
 }

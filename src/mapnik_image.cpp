@@ -115,34 +115,34 @@ void Image::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "offset", get_offset, set_offset);
 
     // This *must* go after the ATTR setting
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "open",
                     Image::open);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromBytes",
                     Image::fromBytes);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "openSync",
                     Image::openSync);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromBytesSync",
                     Image::fromBytesSync);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromBufferSync",
                     Image::fromBufferSync);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromSVG",
                     Image::fromSVG);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromSVGSync",
                     Image::fromSVGSync);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromSVGBytes",
                     Image::fromSVGBytes);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromSVGBytesSync",
                     Image::fromSVGBytesSync);
-    target->Set(Nan::New("Image").ToLocalChecked(),lcons->GetFunction());
+    Nan::Set(target, Nan::New("Image").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -1621,7 +1621,7 @@ void Image::EIO_AfterCopy(uv_work_t* req)
     {
         Image* im = new Image(closure->im2);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
@@ -1747,7 +1747,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
             );
         Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -2138,7 +2138,7 @@ void Image::EIO_AfterResize(uv_work_t* req)
     {
         Image* im = new Image(closure->im2);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
@@ -2366,7 +2366,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         mapnik::util::apply_visitor(visit, *imagep);
         Image* new_im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(new_im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -2477,7 +2477,7 @@ v8::Local<v8::Value> Image::_openSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 }
                 Image* im = new Image(imagep);
                 v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-                Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+                Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
                 if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
                 return scope.Escape(maybe_local.ToLocalChecked());
             }
@@ -2616,7 +2616,7 @@ void Image::EIO_AfterOpen(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
@@ -2851,7 +2851,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         image_ptr imagep = std::make_shared<mapnik::image_any>(im);
         Image *im2 = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im2);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         return scope.Escape(maybe_local.ToLocalChecked());
     }
@@ -3108,7 +3108,7 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
@@ -3347,7 +3347,7 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
@@ -3473,10 +3473,10 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
         Image* im = new Image(imagep);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
         v8::Local<v8::Object> image_obj = maybe_local.ToLocalChecked()->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        image_obj->Set(Nan::New("_buffer").ToLocalChecked(),obj);
+        Nan::Set(image_obj, Nan::New("_buffer").ToLocalChecked(),obj);
         return scope.Escape(maybe_local.ToLocalChecked());
     }
     catch (std::exception const& ex)
@@ -3529,7 +3529,7 @@ v8::Local<v8::Value> Image::_fromBytesSync(Nan::NAN_METHOD_ARGS_TYPE info)
             image_ptr imagep = std::make_shared<mapnik::image_any>(reader->read(0,0,reader->width(),reader->height()));
             Image* im = new Image(imagep);
             v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-            Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+            Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
             if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
             return scope.Escape(maybe_local.ToLocalChecked());
         }
@@ -3701,7 +3701,7 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
     {
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty())
         {
             v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };

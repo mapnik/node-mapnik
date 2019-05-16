@@ -37,23 +37,23 @@ void Geometry::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toWKT", toWKT);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
     Nan::SetPrototypeMethod(lcons, "toJSONSync", toJSONSync);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "Unknown",mapnik::geometry::geometry_types::Unknown)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "Point",mapnik::geometry::geometry_types::Point)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "MultiPoint",mapnik::geometry::geometry_types::MultiPoint)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "LineString",mapnik::geometry::geometry_types::LineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "MultiLineString",mapnik::geometry::geometry_types::MultiLineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "Polygon",mapnik::geometry::geometry_types::Polygon)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "MultiPolygon",mapnik::geometry::geometry_types::MultiPolygon)
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
                                 "GeometryCollection",mapnik::geometry::geometry_types::GeometryCollection)
-    target->Set(Nan::New("Geometry").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Geometry").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -88,7 +88,7 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
     Nan::EscapableHandleScope scope;
     Geometry* g = new Geometry(f);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(g);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Geometry instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
@@ -332,10 +332,10 @@ NAN_METHOD(Geometry::extent)
     Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
     mapnik::box2d<double> const& e = g->feat_->envelope();
-    a->Set(0, Nan::New<v8::Number>(e.minx()));
-    a->Set(1, Nan::New<v8::Number>(e.miny()));
-    a->Set(2, Nan::New<v8::Number>(e.maxx()));
-    a->Set(3, Nan::New<v8::Number>(e.maxy()));
+    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
+    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
+    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
+    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(a);
 }
 

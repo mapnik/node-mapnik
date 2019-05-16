@@ -73,9 +73,9 @@ NAN_METHOD(rgb2hsl) {
     v8::Local<v8::Array> hsl = Nan::New<v8::Array>(3);
     double h,s,l;
     rgb_to_hsl(r,g,b,h,s,l);
-    hsl->Set(0,Nan::New<v8::Number>(h));
-    hsl->Set(1,Nan::New<v8::Number>(s));
-    hsl->Set(2,Nan::New<v8::Number>(l));
+    Nan::Set(hsl,  0,Nan::New<v8::Number>(h));
+    Nan::Set(hsl,  1,Nan::New<v8::Number>(s));
+    Nan::Set(hsl,  2,Nan::New<v8::Number>(l));
     info.GetReturnValue().Set(hsl);
 }
 
@@ -95,9 +95,9 @@ NAN_METHOD(hsl2rgb) {
     v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
     std::uint32_t r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
-    rgb->Set(0,Nan::New<v8::Integer>(r));
-    rgb->Set(1,Nan::New<v8::Integer>(g));
-    rgb->Set(2,Nan::New<v8::Integer>(b));
+    Nan::Set(rgb,  0,Nan::New<v8::Integer>(r));
+    Nan::Set(rgb,  1,Nan::New<v8::Integer>(g));
+    Nan::Set(rgb,  2,Nan::New<v8::Integer>(b));
     info.GetReturnValue().Set(rgb);
 }
 

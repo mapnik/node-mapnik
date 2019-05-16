@@ -23,14 +23,14 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
 
     // Static methods
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "getSeverity", Logger::get_severity);
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "setSeverity", Logger::set_severity);
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "getSeverity", Logger::get_severity);
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "setSeverity", Logger::set_severity);
 
     // Constants
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"NONE",mapnik::logger::severity_type::none);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"ERROR",mapnik::logger::severity_type::error);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"DEBUG",mapnik::logger::severity_type::debug);
-    NODE_MAPNIK_DEFINE_CONSTANT(lcons->GetFunction(),"WARN",mapnik::logger::severity_type::warn);
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"NONE",mapnik::logger::severity_type::none);
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"ERROR",mapnik::logger::severity_type::error);
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"DEBUG",mapnik::logger::severity_type::debug);
+    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"WARN",mapnik::logger::severity_type::warn);
 
     // What about booleans like:
     // ENABLE_STATS
@@ -40,7 +40,7 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     // DEBUG
 
     // Not sure if needed...
-    target->Set(Nan::New("Logger").ToLocalChecked(),lcons->GetFunction());
+    Nan::Set(target, Nan::New("Logger").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 
 }

@@ -26,7 +26,7 @@ void Expression::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toString", toString);
     Nan::SetPrototypeMethod(lcons, "evaluate", evaluate);
 
-    target->Set(Nan::New("Expression").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Expression").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 

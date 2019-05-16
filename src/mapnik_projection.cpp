@@ -35,7 +35,7 @@ void Projection::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "forward", forward);
     Nan::SetPrototypeMethod(lcons, "inverse", inverse);
 
-    target->Set(Nan::New("Projection").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Projection").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -129,8 +129,8 @@ NAN_METHOD(Projection::forward)
                 double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
                 p->projection_->forward(x,y);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-                arr->Set(0, Nan::New(x));
-                arr->Set(1, Nan::New(y));
+                Nan::Set(arr, 0, Nan::New(x));
+                Nan::Set(arr, 1, Nan::New(y));
                 info.GetReturnValue().Set(arr);
             }
             else if (array_length == 4)
@@ -145,10 +145,10 @@ NAN_METHOD(Projection::forward)
                 p->projection_->forward(lrx,lry);
                 p->projection_->forward(llx,lly);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-                arr->Set(0, Nan::New(std::min(ulx,llx)));
-                arr->Set(1, Nan::New(std::min(lry,lly)));
-                arr->Set(2, Nan::New(std::max(urx,lrx)));
-                arr->Set(3, Nan::New(std::max(ury,uly)));
+                Nan::Set(arr, 0, Nan::New(std::min(ulx,llx)));
+                Nan::Set(arr, 1, Nan::New(std::min(lry,lly)));
+                Nan::Set(arr, 2, Nan::New(std::max(urx,lrx)));
+                Nan::Set(arr, 3, Nan::New(std::max(ury,uly)));
                 info.GetReturnValue().Set(arr);
             }
             else
@@ -195,8 +195,8 @@ NAN_METHOD(Projection::inverse)
                 double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
                 p->projection_->inverse(x,y);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-                arr->Set(0, Nan::New(x));
-                arr->Set(1, Nan::New(y));
+                Nan::Set(arr, 0, Nan::New(x));
+                Nan::Set(arr, 1, Nan::New(y));
                 info.GetReturnValue().Set(arr);
             }
             else if (array_length == 4)
@@ -208,10 +208,10 @@ NAN_METHOD(Projection::inverse)
                 p->projection_->inverse(minx,miny);
                 p->projection_->inverse(maxx,maxy);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-                arr->Set(0, Nan::New(minx));
-                arr->Set(1, Nan::New(miny));
-                arr->Set(2, Nan::New(maxx));
-                arr->Set(3, Nan::New(maxy));
+                Nan::Set(arr, 0, Nan::New(minx));
+                Nan::Set(arr, 1, Nan::New(miny));
+                Nan::Set(arr, 2, Nan::New(maxx));
+                Nan::Set(arr, 3, Nan::New(maxy));
                 info.GetReturnValue().Set(arr);
             }
             else
@@ -239,7 +239,7 @@ void ProjTransform::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "forward", forward);
     Nan::SetPrototypeMethod(lcons, "backward", backward);
 
-    target->Set(Nan::New("ProjTransform").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("ProjTransform").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -316,16 +316,14 @@ NAN_METHOD(ProjTransform::forward)
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << Nan::Get(a, 0).ToLocalChecked()->NumberValue(Nan::GetCurrentContext()).ToChecked()
-				  << "," << Nan::Get(a, 1).ToLocalChecked()->NumberValue(Nan::GetCurrentContext()).ToChecked()
-				  << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
+                  << x <<  "," << y << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
                 Nan::ThrowError(s.str().c_str());
                 return;
 
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-            arr->Set(0, Nan::New(x));
-            arr->Set(1, Nan::New(y));
+            Nan::Set(arr, 0, Nan::New(x));
+            Nan::Set(arr, 1, Nan::New(y));
             info.GetReturnValue().Set(arr);
         }
         else if (array_length == 4)
@@ -343,10 +341,10 @@ NAN_METHOD(ProjTransform::forward)
                 return;
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-            arr->Set(0, Nan::New(box.minx()));
-            arr->Set(1, Nan::New(box.miny()));
-            arr->Set(2, Nan::New(box.maxx()));
-            arr->Set(3, Nan::New(box.maxy()));
+            Nan::Set(arr, 0, Nan::New(box.minx()));
+            Nan::Set(arr, 1, Nan::New(box.miny()));
+            Nan::Set(arr, 2, Nan::New(box.maxx()));
+            Nan::Set(arr, 3, Nan::New(box.maxy()));
             info.GetReturnValue().Set(arr);
         }
         else
@@ -382,15 +380,13 @@ NAN_METHOD(ProjTransform::backward)
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << Nan::Get(a, 0).ToLocalChecked()->NumberValue(Nan::GetCurrentContext()).ToChecked()
-				  << "," << Nan::Get(a, 1).ToLocalChecked()->NumberValue(Nan::GetCurrentContext()).ToChecked()
-				  << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
+                  << x << "," << y << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
                 Nan::ThrowError(s.str().c_str());
                 return;
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-            arr->Set(0, Nan::New(x));
-            arr->Set(1, Nan::New(y));
+            Nan::Set(arr, 0, Nan::New(x));
+            Nan::Set(arr, 1, Nan::New(y));
             info.GetReturnValue().Set(arr);
         }
         else if (array_length == 4)
@@ -408,10 +404,10 @@ NAN_METHOD(ProjTransform::backward)
                 return;
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-            arr->Set(0, Nan::New(box.minx()));
-            arr->Set(1, Nan::New(box.miny()));
-            arr->Set(2, Nan::New(box.maxx()));
-            arr->Set(3, Nan::New(box.maxy()));
+            Nan::Set(arr, 0, Nan::New(box.minx()));
+            Nan::Set(arr, 1, Nan::New(box.miny()));
+            Nan::Set(arr, 2, Nan::New(box.maxx()));
+            Nan::Set(arr, 3, Nan::New(box.maxy()));
             info.GetReturnValue().Set(arr);
         }
         else

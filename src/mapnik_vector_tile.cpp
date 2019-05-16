@@ -300,9 +300,9 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
 
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(), "info", info);
-
-    target->Set(Nan::New("VectorTile").ToLocalChecked(),lcons->GetFunction());
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "info", info);
+    
+    Nan::Set(target, Nan::New("VectorTile").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -1266,10 +1266,10 @@ NAN_METHOD(VectorTile::extent)
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
     mapnik::box2d<double> const& e = d->tile_->extent();
-    arr->Set(0, Nan::New<v8::Number>(e.minx()));
-    arr->Set(1, Nan::New<v8::Number>(e.miny()));
-    arr->Set(2, Nan::New<v8::Number>(e.maxx()));
-    arr->Set(3, Nan::New<v8::Number>(e.maxy()));
+    Nan::Set(arr, 0, Nan::New<v8::Number>(e.minx()));
+    Nan::Set(arr, 1, Nan::New<v8::Number>(e.miny()));
+    Nan::Set(arr, 2, Nan::New<v8::Number>(e.maxx()));
+    Nan::Set(arr, 3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(arr);
     return;
 }
@@ -1291,10 +1291,10 @@ NAN_METHOD(VectorTile::bufferedExtent)
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
     v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
     mapnik::box2d<double> e = d->tile_->get_buffered_extent();
-    arr->Set(0, Nan::New<v8::Number>(e.minx()));
-    arr->Set(1, Nan::New<v8::Number>(e.miny()));
-    arr->Set(2, Nan::New<v8::Number>(e.maxx()));
-    arr->Set(3, Nan::New<v8::Number>(e.maxy()));
+    Nan::Set(arr, 0, Nan::New<v8::Number>(e.minx()));
+    Nan::Set(arr, 1, Nan::New<v8::Number>(e.miny()));
+    Nan::Set(arr, 2, Nan::New<v8::Number>(e.maxx()));
+    Nan::Set(arr, 3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(arr);
     return;
 }
@@ -1320,7 +1320,7 @@ NAN_METHOD(VectorTile::names)
     unsigned idx = 0;
     for (std::string const& name : names)
     {
-        arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
+        Nan::Set(arr, idx++,Nan::New<v8::String>(name).ToLocalChecked());
     }
     info.GetReturnValue().Set(arr);
     return;
@@ -1382,7 +1382,7 @@ NAN_METHOD(VectorTile::layer)
         }
     }
     v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Layer instance");
     else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
     return;
@@ -1409,7 +1409,7 @@ NAN_METHOD(VectorTile::emptyLayers)
     unsigned idx = 0;
     for (std::string const& name : names)
     {
-        arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
+        Nan::Set(arr, idx++,Nan::New<v8::String>(name).ToLocalChecked());
     }
     info.GetReturnValue().Set(arr);
     return;
@@ -1437,7 +1437,7 @@ NAN_METHOD(VectorTile::paintedLayers)
     unsigned idx = 0;
     for (std::string const& name : names)
     {
-        arr->Set(idx++,Nan::New<v8::String>(name).ToLocalChecked());
+        Nan::Set(arr, idx++,Nan::New<v8::String>(name).ToLocalChecked());
     }
     info.GetReturnValue().Set(arr);
     return;
@@ -1778,11 +1778,11 @@ v8::Local<v8::Array> VectorTile::_queryResultToV8(std::vector<query_result> cons
     {
         v8::Local<v8::Value> feat = Feature::NewInstance(item.feature);
         v8::Local<v8::Object> feat_obj = feat->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.layer).ToLocalChecked());
-        feat_obj->Set(Nan::New("distance").ToLocalChecked(),Nan::New<v8::Number>(item.distance));
-        feat_obj->Set(Nan::New("x_hit").ToLocalChecked(),Nan::New<v8::Number>(item.x_hit));
-        feat_obj->Set(Nan::New("y_hit").ToLocalChecked(),Nan::New<v8::Number>(item.y_hit));
-        arr->Set(i++,feat);
+        Nan::Set(feat_obj, Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.layer).ToLocalChecked());
+        Nan::Set(feat_obj, Nan::New("distance").ToLocalChecked(),Nan::New<v8::Number>(item.distance));
+        Nan::Set(feat_obj, Nan::New("x_hit").ToLocalChecked(),Nan::New<v8::Number>(item.x_hit));
+        Nan::Set(feat_obj, Nan::New("y_hit").ToLocalChecked(),Nan::New<v8::Number>(item.y_hit));
+        Nan::Set(arr, i++,feat);
     }
     return arr;
 }
@@ -2102,16 +2102,16 @@ v8::Local<v8::Object> VectorTile::_queryManyResultToV8(queryMany_result const& r
     v8::Local<v8::Object> results = Nan::New<v8::Object>();
     v8::Local<v8::Array> features = Nan::New<v8::Array>(result.features.size());
     v8::Local<v8::Array> hits = Nan::New<v8::Array>(result.hits.size());
-    results->Set(Nan::New("hits").ToLocalChecked(), hits);
-    results->Set(Nan::New("features").ToLocalChecked(), features);
+    Nan::Set(results, Nan::New("hits").ToLocalChecked(), hits);
+    Nan::Set(results, Nan::New("features").ToLocalChecked(), features);
 
     // result.features => features
     for (auto const& item : result.features)
     {
         v8::Local<v8::Value> feat = Feature::NewInstance(item.second.feature);
         v8::Local<v8::Object> feat_obj = feat->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        feat_obj->Set(Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.second.layer).ToLocalChecked());
-        features->Set(item.first, feat_obj);
+        Nan::Set(feat_obj, Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.second.layer).ToLocalChecked());
+        Nan::Set(features, item.first, feat_obj);
     }
 
     // result.hits => hits
@@ -2122,11 +2122,11 @@ v8::Local<v8::Object> VectorTile::_queryManyResultToV8(queryMany_result const& r
         for (auto const& h : hit.second)
         {
             v8::Local<v8::Object> hit_obj = Nan::New<v8::Object>();
-            hit_obj->Set(Nan::New("distance").ToLocalChecked(), Nan::New<v8::Number>(h.distance));
-            hit_obj->Set(Nan::New("feature_id").ToLocalChecked(), Nan::New<v8::Number>(h.feature_id));
-            point_hits->Set(i++, hit_obj);
+            Nan::Set(hit_obj, Nan::New("distance").ToLocalChecked(), Nan::New<v8::Number>(h.distance));
+            Nan::Set(hit_obj, Nan::New("feature_id").ToLocalChecked(), Nan::New<v8::Number>(h.feature_id));
+            Nan::Set(point_hits, i++, hit_obj);
         }
-        hits->Set(hit.first, point_hits);
+        Nan::Set(hits, hit.first, point_hits);
     }
 
     return results;
@@ -2252,8 +2252,8 @@ struct geometry_array_visitor
     {
         Nan::EscapableHandleScope scope;
         v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-        arr->Set(0, Nan::New<v8::Number>(geom.x));
-        arr->Set(1, Nan::New<v8::Number>(geom.y));
+        Nan::Set(arr, 0, Nan::New<v8::Number>(geom.x));
+        Nan::Set(arr, 1, Nan::New<v8::Number>(geom.y));
         return scope.Escape(arr);
     }
 
@@ -2273,7 +2273,7 @@ struct geometry_array_visitor
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            arr->Set(c++, (*this)(pt));
+            Nan::Set(arr, c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
@@ -2294,7 +2294,7 @@ struct geometry_array_visitor
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            arr->Set(c++, (*this)(pt));
+            Nan::Set(arr, c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
@@ -2315,7 +2315,7 @@ struct geometry_array_visitor
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            arr->Set(c++, (*this)(pt));
+            Nan::Set(arr, c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
@@ -2336,7 +2336,7 @@ struct geometry_array_visitor
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            arr->Set(c++, (*this)(pt));
+            Nan::Set(arr, c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
@@ -2350,7 +2350,7 @@ struct geometry_array_visitor
 
         for (auto const & ring : poly)
         {
-            arr->Set(index++, (*this)(ring));
+            Nan::Set(arr, index++, (*this)(ring));
         }
         return scope.Escape(arr);
     }
@@ -2371,7 +2371,7 @@ struct geometry_array_visitor
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            arr->Set(c++, (*this)(pt));
+            Nan::Set(arr, c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
@@ -2402,7 +2402,7 @@ struct geometry_array_visitor
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            arr->Set(c++, (*this)(pt));
+            Nan::Set(arr, c++, (*this)(pt));
         }
         return scope.Escape(arr);
         // LCOV_EXCL_STOP
@@ -2428,34 +2428,34 @@ struct json_value_visitor
 
     void operator() (std::string const& val)
     {
-        att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New(val).ToLocalChecked());
+        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New(val).ToLocalChecked());
     }
 
     void operator() (bool const& val)
     {
-        att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New<v8::Boolean>(val));
+        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Boolean>(val));
     }
 
     void operator() (int64_t const& val)
     {
-        att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
     }
 
     void operator() (uint64_t const& val)
     {
         // LCOV_EXCL_START
-        att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
         // LCOV_EXCL_STOP
     }
 
     void operator() (double const& val)
     {
-        att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
     }
 
     void operator() (float const& val)
     {
-        att_obj_->Set(Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
     }
 };
 
@@ -2527,7 +2527,7 @@ NAN_METHOD(VectorTile::toJSON)
                 switch (layer_msg.tag())
                 {
                     case mapnik::vector_tile_impl::Layer_Encoding::NAME:
-                        layer_obj->Set(Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_msg.get_string()).ToLocalChecked());
+                        Nan::Set(layer_obj, Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_msg.get_string()).ToLocalChecked());
                         break;
                     case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
                         layer_features.push_back(layer_msg.get_message());
@@ -2575,11 +2575,11 @@ NAN_METHOD(VectorTile::toJSON)
                         }
                         break;
                     case mapnik::vector_tile_impl::Layer_Encoding::EXTENT:
-                        layer_obj->Set(Nan::New("extent").ToLocalChecked(), Nan::New<v8::Integer>(layer_msg.get_uint32()));
+                        Nan::Set(layer_obj, Nan::New("extent").ToLocalChecked(), Nan::New<v8::Integer>(layer_msg.get_uint32()));
                         break;
                     case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
                         version = layer_msg.get_uint32();
-                        layer_obj->Set(Nan::New("version").ToLocalChecked(), Nan::New<v8::Integer>(version));
+                        Nan::Set(layer_obj, Nan::New("version").ToLocalChecked(), Nan::New<v8::Integer>(version));
                         break;
                     default:
                         // LCOV_EXCL_START
@@ -2604,7 +2604,7 @@ NAN_METHOD(VectorTile::toJSON)
                     switch (feature_msg.tag())
                     {
                         case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                            feature_obj->Set(Nan::New("id").ToLocalChecked(),Nan::New<v8::Number>(feature_msg.get_uint64()));
+                            Nan::Set(feature_obj, Nan::New("id").ToLocalChecked(),Nan::New<v8::Number>(feature_msg.get_uint64()));
                             break;
                         case mapnik::vector_tile_impl::Feature_Encoding::TAGS:
                             tag_itr = feature_msg.get_packed_uint32();
@@ -2613,7 +2613,7 @@ NAN_METHOD(VectorTile::toJSON)
                         case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
                             geom_type_enum = feature_msg.get_enum();
                             has_geom_type = true;
-                            feature_obj->Set(Nan::New("type").ToLocalChecked(),Nan::New<v8::Integer>(geom_type_enum));
+                            Nan::Set(feature_obj, Nan::New("type").ToLocalChecked(),Nan::New<v8::Integer>(geom_type_enum));
                             break;
                         case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
                             geom_itr = feature_msg.get_packed_uint32();
@@ -2622,7 +2622,7 @@ NAN_METHOD(VectorTile::toJSON)
                         case mapnik::vector_tile_impl::Feature_Encoding::RASTER:
                         {
                             auto im_buffer = feature_msg.get_view();
-                            feature_obj->Set(Nan::New("raster").ToLocalChecked(),
+                            Nan::Set(feature_obj, Nan::New("raster").ToLocalChecked(),
                                              Nan::CopyBuffer(im_buffer.data(), im_buffer.size()).ToLocalChecked());
                             break;
                         }
@@ -2654,7 +2654,7 @@ NAN_METHOD(VectorTile::toJSON)
                         }
                     }
                 }
-                feature_obj->Set(Nan::New("properties").ToLocalChecked(),att_obj);
+                Nan::Set(feature_obj, Nan::New("properties").ToLocalChecked(), att_obj);
                 if (has_geom && has_geom_type)
                 {
                     if (decode_geometry)
@@ -2663,9 +2663,9 @@ NAN_METHOD(VectorTile::toJSON)
                         mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
                         mapnik::geometry::geometry<std::int64_t> geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, geom_type_enum, version, 0, 0, 1.0, 1.0);
                         v8::Local<v8::Array> g_arr = geometry_to_array<std::int64_t>(geom);
-                        feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
+                        Nan::Set(feature_obj, Nan::New("geometry").ToLocalChecked(), g_arr);
                         std::string geom_type = geometry_type_as_string(geom);
-                        feature_obj->Set(Nan::New("geometry_type").ToLocalChecked(),Nan::New(geom_type).ToLocalChecked());
+                        Nan::Set(feature_obj, Nan::New("geometry_type").ToLocalChecked(), Nan::New(geom_type).ToLocalChecked());
                     }
                     else
                     {
@@ -2677,15 +2677,15 @@ NAN_METHOD(VectorTile::toJSON)
                         v8::Local<v8::Array> g_arr = Nan::New<v8::Array>(geom_vec.size());
                         for (std::size_t k = 0; k < geom_vec.size();++k)
                         {
-                            g_arr->Set(k,Nan::New<v8::Number>(geom_vec[k]));
+                            Nan::Set(g_arr, k, Nan::New<v8::Number>(geom_vec[k]));
                         }
-                        feature_obj->Set(Nan::New("geometry").ToLocalChecked(),g_arr);
+                        Nan::Set(feature_obj, Nan::New("geometry").ToLocalChecked(), g_arr);
                     }
                 }
-                f_arr->Set(f_idx++,feature_obj);
+                Nan::Set(f_arr, f_idx++, feature_obj);
             }
-            layer_obj->Set(Nan::New("features").ToLocalChecked(), f_arr);
-            arr->Set(l_idx++, layer_obj);
+            Nan::Set(layer_obj, Nan::New("features").ToLocalChecked(), f_arr);
+            Nan::Set(arr, l_idx++, layer_obj);
         }
         info.GetReturnValue().Set(arr);
         return;
@@ -5958,9 +5958,9 @@ v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & err
     {
         // LCOV_EXCL_START
         v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-        obj->Set(layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
-        obj->Set(feature_id_key, Nan::New<v8::Number>(error.feature_id));
-        array->Set(idx++, obj);
+        Nan::Set(obj, layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
+        Nan::Set(obj, feature_id_key, Nan::New<v8::Number>(error.feature_id));
+        Nan::Set(array, idx++, obj);
         // LCOV_EXCL_STOP
     }
     return scope.Escape(array);
@@ -5999,11 +5999,11 @@ v8::Local<v8::Array> make_not_valid_array(std::vector<not_valid_feature> & error
     for (auto const& error : errors)
     {
         v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-        obj->Set(layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
-        obj->Set(message_key, Nan::New<v8::String>(error.message).ToLocalChecked());
-        obj->Set(feature_id_key, Nan::New<v8::Number>(error.feature_id));
-        obj->Set(geojson_key, Nan::New<v8::String>(error.geojson).ToLocalChecked());
-        array->Set(idx++, obj);
+        Nan::Set(obj, layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
+        Nan::Set(obj, message_key, Nan::New<v8::String>(error.message).ToLocalChecked());
+        Nan::Set(obj, feature_id_key, Nan::New<v8::Number>(error.feature_id));
+        Nan::Set(obj, geojson_key, Nan::New<v8::String>(error.geojson).ToLocalChecked());
+        Nan::Set(array, idx++, obj);
     }
     return scope.Escape(array);
 }
@@ -6620,15 +6620,15 @@ NAN_METHOD(VectorTile::info)
                             {
                                 errors.insert(mapnik::vector_tile_impl::TILE_REPEATED_LAYER_NAMES);
                             }
-                            layer_obj->Set(Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_name).ToLocalChecked());
+                            Nan::Set(layer_obj, Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_name).ToLocalChecked());
                         }
-                        layer_obj->Set(Nan::New("features").ToLocalChecked(), Nan::New<v8::Number>(feature_count));
-                        layer_obj->Set(Nan::New("point_features").ToLocalChecked(), Nan::New<v8::Number>(point_feature_count));
-                        layer_obj->Set(Nan::New("linestring_features").ToLocalChecked(), Nan::New<v8::Number>(line_feature_count));
-                        layer_obj->Set(Nan::New("polygon_features").ToLocalChecked(), Nan::New<v8::Number>(polygon_feature_count));
-                        layer_obj->Set(Nan::New("unknown_features").ToLocalChecked(), Nan::New<v8::Number>(unknown_feature_count));
-                        layer_obj->Set(Nan::New("raster_features").ToLocalChecked(), Nan::New<v8::Number>(raster_feature_count));
-                        layer_obj->Set(Nan::New("version").ToLocalChecked(), Nan::New<v8::Number>(layer_version));
+                        Nan::Set(layer_obj, Nan::New("features").ToLocalChecked(), Nan::New<v8::Number>(feature_count));
+                        Nan::Set(layer_obj, Nan::New("point_features").ToLocalChecked(), Nan::New<v8::Number>(point_feature_count));
+                        Nan::Set(layer_obj, Nan::New("linestring_features").ToLocalChecked(), Nan::New<v8::Number>(line_feature_count));
+                        Nan::Set(layer_obj, Nan::New("polygon_features").ToLocalChecked(), Nan::New<v8::Number>(polygon_feature_count));
+                        Nan::Set(layer_obj, Nan::New("unknown_features").ToLocalChecked(), Nan::New<v8::Number>(unknown_feature_count));
+                        Nan::Set(layer_obj, Nan::New("raster_features").ToLocalChecked(), Nan::New<v8::Number>(raster_feature_count));
+                        Nan::Set(layer_obj, Nan::New("version").ToLocalChecked(), Nan::New<v8::Number>(layer_version));
                         if (!layer_errors.empty())
                         {
                             has_errors = true;
@@ -6636,9 +6636,9 @@ NAN_METHOD(VectorTile::info)
                             std::size_t i = 0;
                             for (auto const& e : layer_errors)
                             {
-                                err_arr->Set(i++, Nan::New<v8::String>(mapnik::vector_tile_impl::validity_error_to_string(e)).ToLocalChecked());
+                                Nan::Set(err_arr, i++, Nan::New<v8::String>(mapnik::vector_tile_impl::validity_error_to_string(e)).ToLocalChecked());
                             }
-                            layer_obj->Set(Nan::New("errors").ToLocalChecked(), err_arr);
+                            Nan::Set(layer_obj, Nan::New("errors").ToLocalChecked(), err_arr);
                         }
                         if (first_layer)
                         {
@@ -6652,7 +6652,7 @@ NAN_METHOD(VectorTile::info)
                             }
                         }
                         first_layer = false;
-                        layers->Set(layers_size++, layer_obj);
+                        Nan::Set(layers, layers_size++, layer_obj);
                     }
                     break;
                 default:
@@ -6666,18 +6666,18 @@ NAN_METHOD(VectorTile::info)
     {
         errors.insert(mapnik::vector_tile_impl::INVALID_PBF_BUFFER);
     }
-    out->Set(Nan::New("layers").ToLocalChecked(), layers);
+    Nan::Set(out, Nan::New("layers").ToLocalChecked(), layers);
     has_errors = has_errors || !errors.empty();
-    out->Set(Nan::New("errors").ToLocalChecked(),  Nan::New<v8::Boolean>(has_errors));
+    Nan::Set(out, Nan::New("errors").ToLocalChecked(),  Nan::New<v8::Boolean>(has_errors));
     if (!errors.empty())
     {
         v8::Local<v8::Array> err_arr = Nan::New<v8::Array>();
         std::size_t i = 0;
         for (auto const& e : errors)
         {
-            err_arr->Set(i++, Nan::New<v8::String>(mapnik::vector_tile_impl::validity_error_to_string(e)).ToLocalChecked());
+            Nan::Set(err_arr, i++, Nan::New<v8::String>(mapnik::vector_tile_impl::validity_error_to_string(e)).ToLocalChecked());
         }
-        out->Set(Nan::New("tile_errors").ToLocalChecked(), err_arr);
+        Nan::Set(out, Nan::New("tile_errors").ToLocalChecked(), err_arr);
     }
     info.GetReturnValue().Set(out);
     return;

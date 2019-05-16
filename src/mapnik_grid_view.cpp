@@ -31,7 +31,7 @@ void GridView::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "isSolidSync", isSolidSync);
     Nan::SetPrototypeMethod(lcons, "getPixel", getPixel);
 
-    target->Set(Nan::New("GridView").ToLocalChecked(),lcons->GetFunction());
+    Nan::Set(target, Nan::New("GridView").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -83,7 +83,7 @@ v8::Local<v8::Value> GridView::NewInstance(Grid * JSGrid,
     GridView* gv = new GridView(JSGrid);
     gv->this_ = std::make_shared<mapnik::grid_view>(JSGrid->get()->get_view(x,y,w,h));
     v8::Local<v8::Value> ext = Nan::New<v8::External>(gv);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new GridView instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
@@ -111,7 +111,7 @@ NAN_METHOD(GridView::fields)
     for (; itr != end; ++itr)
     {
         std::string name = *itr;
-        l->Set(idx, Nan::New<v8::String>(name).ToLocalChecked());
+        Nan::Set(l, idx, Nan::New<v8::String>(name).ToLocalChecked());
         ++idx;
     }
     info.GetReturnValue().Set(l);
@@ -337,7 +337,7 @@ NAN_METHOD(GridView::encodeSync)
         unsigned int i;
         for (it = key_order.begin(), i = 0; it != key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
+            Nan::Set(keys_a, i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid_view const& grid_type = *g->get();
@@ -357,11 +357,11 @@ NAN_METHOD(GridView::encodeSync)
         for (unsigned j=0;j<lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
+            Nan::Set(grid_array, j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
-        json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
-        json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
-        json->Set(Nan::New("data").ToLocalChecked(), feature_data);
+        Nan::Set(json, Nan::New("grid").ToLocalChecked(), grid_array);
+        Nan::Set(json, Nan::New("keys").ToLocalChecked(), keys_a);
+        Nan::Set(json, Nan::New("data").ToLocalChecked(), feature_data);
         info.GetReturnValue().Set(json);
 
     }
@@ -505,7 +505,7 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         unsigned int i;
         for (it = closure->key_order.begin(), i = 0; it != closure->key_order.end(); ++it, ++i)
         {
-            keys_a->Set(i, Nan::New<v8::String>(*it).ToLocalChecked());
+            Nan::Set(keys_a, i, Nan::New<v8::String>(*it).ToLocalChecked());
         }
 
         mapnik::grid_view const& grid_type = *(closure->g->get());
@@ -524,11 +524,11 @@ void GridView::EIO_AfterEncode(uv_work_t* req)
         for (unsigned j=0;j<closure->lines.size();++j)
         {
             node_mapnik::grid_line_type const & line = closure->lines[j];
-            grid_array->Set(j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
+            Nan::Set(grid_array, j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
         }
-        json->Set(Nan::New("grid").ToLocalChecked(), grid_array);
-        json->Set(Nan::New("keys").ToLocalChecked(), keys_a);
-        json->Set(Nan::New("data").ToLocalChecked(), feature_data);
+        Nan::Set(json, Nan::New("grid").ToLocalChecked(), grid_array);
+        Nan::Set(json, Nan::New("keys").ToLocalChecked(), keys_a);
+        Nan::Set(json, Nan::New("data").ToLocalChecked(), feature_data);
 
         v8::Local<v8::Value> argv[2] = { Nan::Null(), json };
         async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);

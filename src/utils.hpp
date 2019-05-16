@@ -31,12 +31,10 @@
     Nan::SetAccessor(t->InstanceTemplate(), Nan::New<v8::String>(name).ToLocalChecked(), get, set);
 
 #define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
-    (target)->Set(Nan::New<v8::String>(name).ToLocalChecked(),              \
-                  Nan::New<v8::Integer>(constant));                         \
+    Nan::Set((target), Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::Integer>(constant));
 
 #define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)      \
-    (target)->Set(Nan::New<v8::String>(name).ToLocalChecked(),              \
-                  Nan::New<v8::Number>(constant));                          \
+    Nan::Set((target), Nan::New<v8::String>(name).ToLocalChecked(),  Nan::New<v8::Number>(constant));
 
 
 
@@ -83,7 +81,7 @@ struct value_converter
 
 inline void params_to_object(v8::Local<v8::Object>& ds, std::string const& key, mapnik::value_holder const& val)
 {
-    ds->Set(Nan::New<v8::String>(key.c_str()).ToLocalChecked(), mapnik::util::apply_visitor(value_converter(), val));
+    Nan::Set(ds, Nan::New<v8::String>(key.c_str()).ToLocalChecked(), mapnik::util::apply_visitor(value_converter(), val));
 }
 
 inline Nan::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> && ptr)
