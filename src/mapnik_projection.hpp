@@ -52,8 +52,8 @@ public:
 
     inline proj_tr_ptr get() { return this_; }
 
-    void _ref() { Ref(); }
-    void _unref() { Unref(); }
+    using Nan::ObjectWrap::Ref;
+    using Nan::ObjectWrap::Unref;
 
 private:
     ~ProjTransform();

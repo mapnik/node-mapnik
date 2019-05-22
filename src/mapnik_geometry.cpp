@@ -239,7 +239,7 @@ NAN_METHOD(Geometry::toJSON)
                 return;
             }
             closure->tr = Nan::ObjectWrap::Unwrap<ProjTransform>(obj);
-            closure->tr->_ref();
+            closure->tr->Ref();
         }
     }
     v8::Local<v8::Value> callback = info[info.Length()-1];
@@ -312,7 +312,7 @@ void Geometry::after_to_json(uv_work_t* req)
     }
     closure->g->Unref();
     if (closure->tr) {
-        closure->tr->_unref();
+        closure->tr->Unref();
     }
     closure->cb.Reset();
     delete closure;

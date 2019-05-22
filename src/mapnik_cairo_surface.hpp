@@ -28,8 +28,10 @@ public:
     static NAN_METHOD(getData);
     static NAN_METHOD(width);
     static NAN_METHOD(height);
-    void _ref() { Ref(); }
-    void _unref() { Unref(); }
+
+    using Nan::ObjectWrap::Ref;
+    using Nan::ObjectWrap::Unref;
+
     CairoSurface(std::string const& format, unsigned int width, unsigned int height);
     static cairo_status_t write_callback(void *closure,
                                          const unsigned char *data,

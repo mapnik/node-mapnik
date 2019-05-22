@@ -40,12 +40,12 @@ GridView::GridView(Grid * JSGrid) :
     Nan::ObjectWrap(),
     this_(),
     JSGrid_(JSGrid) {
-        JSGrid_->_ref();
+        JSGrid_->Ref();
     }
 
 GridView::~GridView()
 {
-    JSGrid_->_unref();
+    JSGrid_->Unref();
 }
 
 NAN_METHOD(GridView::New)

@@ -448,7 +448,7 @@ void Work_AfterBlend(uv_work_t* req) {
 
     for (auto im : baton->images) {
         if (im->im_obj) {
-            im->im_obj->_unref();
+            im->im_obj->Unref();
         }
     }
 
@@ -710,7 +710,7 @@ NAN_METHOD(Blend) {
 
     for (auto im : baton->images) {
         if (im->im_obj) {
-            im->im_obj->_ref();
+            im->im_obj->Ref();
         }
     }
 

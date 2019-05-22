@@ -1855,7 +1855,7 @@ NAN_METHOD(Map::render)
             closure->request.data = closure;
             closure->m = m;
             closure->im = Nan::ObjectWrap::Unwrap<Image>(obj);
-            closure->im->_ref();
+            closure->im->Ref();
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
@@ -1983,7 +1983,7 @@ NAN_METHOD(Map::render)
             closure->request.data = closure;
             closure->m = m;
             closure->g = g;
-            closure->g->_ref();
+            closure->g->Ref();
             closure->layer_idx = layer_idx;
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
@@ -2163,7 +2163,7 @@ NAN_METHOD(Map::render)
             closure->request.data = closure;
             closure->m = m;
             closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
-            closure->d->_ref();
+            closure->d->Ref();
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
             closure->offset_x = offset_x;
@@ -2246,7 +2246,7 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     }
 
     closure->m->Unref();
-    closure->d->_unref();
+    closure->d->Unref();
     closure->cb.Reset();
     delete closure;
 }
@@ -2310,7 +2310,7 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     }
 
     closure->m->Unref();
-    closure->g->_unref();
+    closure->g->Unref();
     closure->cb.Reset();
     delete closure;
 }
@@ -2395,7 +2395,7 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
     }
 
     closure->m->Unref();
-    closure->im->_unref();
+    closure->im->Unref();
     closure->cb.Reset();
     delete closure;
 }

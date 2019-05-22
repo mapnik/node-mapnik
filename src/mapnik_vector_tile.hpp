@@ -190,15 +190,8 @@ public:
         return tile_;
     }
     
-    void _ref()
-    { 
-        Ref(); 
-    }
-    
-    void _unref()
-    { 
-        Unref(); 
-    }
+    using Nan::ObjectWrap::Ref;
+    using Nan::ObjectWrap::Unref;
 
 private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
