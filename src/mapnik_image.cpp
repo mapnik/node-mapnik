@@ -1616,9 +1616,16 @@ void Image::EIO_AfterCopy(uv_work_t* req)
         Image* im = new Image(closure->im2);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        if (maybe_local.IsEmpty())
+        {
+            v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        }
+        else
+        {
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        }
     }
     closure->im1->Unref();
     closure->cb.Reset();
@@ -2125,9 +2132,16 @@ void Image::EIO_AfterResize(uv_work_t* req)
         Image* im = new Image(closure->im2);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        if (maybe_local.IsEmpty())
+        {
+            v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        }
+        else
+        {
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        }
     }
     closure->im1->Unref();
     closure->cb.Reset();
@@ -2595,9 +2609,16 @@ void Image::EIO_AfterOpen(uv_work_t* req)
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        if (maybe_local.IsEmpty())
+        {
+            v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        }
+        else
+        {
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        }
     }
     closure->cb.Reset();
     delete closure;
@@ -3079,9 +3100,16 @@ void Image::EIO_AfterFromSVG(uv_work_t* req)
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        if (maybe_local.IsEmpty())
+        {
+            v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        }
+        else
+        {
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        }
     }
     closure->cb.Reset();
     delete closure;
@@ -3310,9 +3338,16 @@ void Image::EIO_AfterFromSVGBytes(uv_work_t* req)
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        if (maybe_local.IsEmpty())
+        {
+            v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        }
+        else
+        {
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        }
     }
     closure->cb.Reset();
     closure->buffer.Reset();
@@ -3656,9 +3691,16 @@ void Image::EIO_AfterFromBytes(uv_work_t* req)
         Image* im = new Image(closure->im);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(im);
         Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Image instance");
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
-        Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        if (maybe_local.IsEmpty())
+        {
+            v8::Local<v8::Value> argv[1] = { Nan::Error("Could not create new Image instance") };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        }
+        else
+        {
+            v8::Local<v8::Value> argv[2] = { Nan::Null(), maybe_local.ToLocalChecked() };
+            Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        }
     }
     closure->cb.Reset();
     closure->buffer.Reset();
