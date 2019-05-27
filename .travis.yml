@@ -76,6 +76,10 @@ matrix:
     - os: linux
       env: BUILDTYPE=release
       node_js: 10
+    # linux publishable node v12
+    - os: linux
+      env: BUILDTYPE=release
+      node_js: 12
     # osx publishable node v4
     - os: osx
       osx_image: xcode8.3
@@ -106,6 +110,11 @@ matrix:
       osx_image: xcode8.2
       env: BUILDTYPE=release
       node_js: 10
+    # osx publishable node v12
+    - os: osx
+      osx_image: xcode8.2
+      env: BUILDTYPE=release
+      node_js: 12
     # Sanitizer build node v4/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=-asan
