@@ -385,7 +385,7 @@ NAN_METHOD(Grid::encodeSync)
                 return;
             }
 
-            add_features = bind_opt->BooleanValue();
+            add_features = Nan::To<bool>(bind_opt).FromJust();
         }
     }
 
@@ -496,7 +496,7 @@ NAN_METHOD(Grid::encode)
                 return;
             }
 
-            add_features = bind_opt->BooleanValue();
+            add_features = Nan::To<bool>(bind_opt).FromJust();
         }
     }
 

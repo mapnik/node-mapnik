@@ -92,7 +92,7 @@ NAN_METHOD(MemoryDatasource::New)
         }
         else if (value->IsBoolean())
         {
-            params[TOSTR(name)] = value->BooleanValue();
+            params[TOSTR(name)] = Nan::To<bool>(value).FromJust();
         }
         else
         {

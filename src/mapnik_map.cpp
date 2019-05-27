@@ -431,7 +431,7 @@ NAN_SETTER(Map::set_prop)
                     params[TOSTR(name)] = dub_val;
                 }
             } else if (a_value->IsBoolean()) {
-                params[TOSTR(name)] = static_cast<mapnik::value_bool>(a_value->BooleanValue());
+                params[TOSTR(name)] = static_cast<mapnik::value_bool>(Nan::To<bool>(a_value).FromJust());
             }
             i++;
         }
@@ -493,7 +493,7 @@ NAN_METHOD(Map::registerFonts)
                 Nan::ThrowTypeError("'recurse' must be a Boolean");
                 return;
             }
-            recurse = recurse_opt->BooleanValue();
+            recurse = Nan::To<bool>(recurse_opt).FromJust();
         }
     }
     std::string path = TOSTR(info[0]);
@@ -1135,7 +1135,7 @@ NAN_METHOD(Map::load)
             Nan::ThrowTypeError("'strict' must be a Boolean");
             return;
         }
-        strict = param_val->BooleanValue();
+        strict = Nan::To<bool>(param_val).FromJust();
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
@@ -1247,7 +1247,7 @@ NAN_METHOD(Map::loadSync)
                 Nan::ThrowTypeError("'strict' must be a Boolean");
                 return;
             }
-            strict = param_val->BooleanValue();
+            strict = Nan::To<bool>(param_val).FromJust();
         }
 
         param = Nan::New("base").ToLocalChecked();
@@ -1322,7 +1322,7 @@ NAN_METHOD(Map::fromStringSync)
                 Nan::ThrowTypeError("'strict' must be a Boolean");
                 return;
             }
-            strict = param_val->BooleanValue();
+            strict = Nan::To<bool>(param_val).FromJust();
         }
 
         param = Nan::New("base").ToLocalChecked();
@@ -1412,7 +1412,7 @@ NAN_METHOD(Map::fromString)
             Nan::ThrowTypeError("'strict' must be a Boolean");
             return;
         }
-        strict = param_val->BooleanValue();
+        strict = Nan::To<bool>(param_val).FromJust();
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
@@ -2064,7 +2064,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
                     return;
                 }
-                closure->strictly_simple = param_val->BooleanValue();
+                closure->strictly_simple = Nan::To<bool>(param_val).FromJust();
             }
 
             if (options->Has(Nan::New("multi_polygon_union").ToLocalChecked()))
@@ -2076,7 +2076,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
                     return;
                 }
-                closure->multi_polygon_union = param_val->BooleanValue();
+                closure->multi_polygon_union = Nan::To<bool>(param_val).FromJust();
             }
 
             if (options->Has(Nan::New("fill_type").ToLocalChecked()))
@@ -2156,7 +2156,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
                     return;
                 }
-                closure->process_all_rings = param_val->BooleanValue();
+                closure->process_all_rings = Nan::To<bool>(param_val).FromJust();
             }
 
             closure->request.data = closure;

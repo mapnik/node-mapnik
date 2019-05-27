@@ -222,7 +222,7 @@ NAN_METHOD(Image::New)
                     v8::Local<v8::Value> init_val = options->Get(Nan::New("initialize").ToLocalChecked());
                     if (!init_val.IsEmpty() && init_val->IsBoolean())
                     {
-                        initialize = init_val->BooleanValue();
+                        initialize = Nan::To<bool>(init_val).FromJust();
                     }
                     else
                     {
@@ -236,7 +236,7 @@ NAN_METHOD(Image::New)
                     v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
                     if (!pre_val.IsEmpty() && pre_val->IsBoolean())
                     {
-                        premultiplied = pre_val->BooleanValue();
+                        premultiplied = Nan::To<bool>(pre_val).FromJust();
                     }
                     else
                     {
@@ -250,7 +250,7 @@ NAN_METHOD(Image::New)
                     v8::Local<v8::Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
                     if (!painted_val.IsEmpty() && painted_val->IsBoolean())
                     {
-                        painted = painted_val->BooleanValue();
+                        painted = Nan::To<bool>(painted_val).FromJust();
                     }
                     else
                     {
@@ -453,7 +453,7 @@ NAN_METHOD(Image::getPixel)
                 Nan::ThrowTypeError("optional arg 'color' must be a boolean");
                 return;
             }
-            get_color = bind_opt->BooleanValue();
+            get_color = Nan::To<bool>(bind_opt).FromJust();
         }
 
     }
@@ -632,7 +632,7 @@ NAN_METHOD(Image::compare)
                 Nan::ThrowTypeError("optional arg 'alpha' must be a boolean");
                 return;
             }
-            alpha = bind_opt->BooleanValue();
+            alpha = Nan::To<bool>(bind_opt).FromJust();
         }
 
     }
@@ -2740,7 +2740,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 Nan::ThrowTypeError("'strict' must be a boolean value");
                 return scope.Escape(Nan::Undefined());
             }
-            strict = opt->BooleanValue();
+            strict = Nan::To<bool>(opt).FromJust();
         }
     }
 
@@ -2977,7 +2977,7 @@ NAN_METHOD(Image::fromSVG)
                 Nan::ThrowTypeError("'strict' must be a boolean value");
                 return;
             }
-            strict = opt->BooleanValue();
+            strict = Nan::To<bool>(opt).FromJust();
         }
     }
 
@@ -3212,7 +3212,7 @@ NAN_METHOD(Image::fromSVGBytes)
                 Nan::ThrowTypeError("'strict' must be a boolean value");
                 return;
             }
-            strict = opt->BooleanValue();
+            strict = Nan::To<bool>(opt).FromJust();
         }
     }
 
@@ -3427,7 +3427,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 v8::Local<v8::Value> pre_val = options->Get(Nan::New("premultiplied").ToLocalChecked());
                 if (!pre_val.IsEmpty() && pre_val->IsBoolean())
                 {
-                    premultiplied = pre_val->BooleanValue();
+                    premultiplied = Nan::To<bool>(pre_val).FromJust();
                 }
                 else
                 {
@@ -3441,7 +3441,7 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 v8::Local<v8::Value> painted_val = options->Get(Nan::New("painted").ToLocalChecked());
                 if (!painted_val.IsEmpty() && painted_val->IsBoolean())
                 {
-                    painted = painted_val->BooleanValue();
+                    painted = Nan::To<bool>(painted_val).FromJust();
                 }
                 else
                 {
@@ -3598,7 +3598,7 @@ NAN_METHOD(Image::fromBytes)
                 v8::Local<v8::Value> opt = options->Get(Nan::New("premultiply").ToLocalChecked());
                 if (!opt.IsEmpty() && opt->IsBoolean())
                 {
-                    premultiply = opt->BooleanValue();
+                    premultiply = Nan::To<bool>(opt).FromJust();
                 }
                 else
                 {

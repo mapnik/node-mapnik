@@ -45,7 +45,7 @@ static inline NAN_METHOD(register_fonts)
                     return;
                 }
 
-                bool recurse = recurse_opt->BooleanValue();
+                bool recurse = Nan::To<bool>(recurse_opt).FromJust();
                 std::string path = TOSTR(info[0]);
                 found = mapnik::freetype_engine::register_fonts(path,recurse);
             }

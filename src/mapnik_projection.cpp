@@ -76,7 +76,7 @@ NAN_METHOD(Projection::New)
                 Nan::ThrowTypeError("'lazy' must be a Boolean");
                 return;
             }
-            lazy = lazy_opt->BooleanValue();
+            lazy = Nan::To<bool>(lazy_opt).FromJust();
         }
     }
 

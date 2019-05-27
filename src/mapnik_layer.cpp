@@ -264,7 +264,7 @@ NAN_SETTER(Layer::set_prop)
             Nan::ThrowTypeError("Must provide a boolean");
             return;
         }
-        l->layer_->set_queryable(value->BooleanValue());
+        l->layer_->set_queryable(Nan::To<bool>(value).FromJust());
     }
     else if (a == "clear_label_cache")
     {
@@ -272,7 +272,7 @@ NAN_SETTER(Layer::set_prop)
             Nan::ThrowTypeError("Must provide a boolean");
             return;
         }
-        l->layer_->set_clear_label_cache(value->BooleanValue());
+        l->layer_->set_clear_label_cache(Nan::To<bool>(value).FromJust());
     }
     else if (a == "active")
     {
@@ -280,7 +280,7 @@ NAN_SETTER(Layer::set_prop)
             Nan::ThrowTypeError("Must provide a boolean");
             return;
         }
-        l->layer_->set_active(value->BooleanValue());
+        l->layer_->set_active(Nan::To<bool>(value).FromJust());
     }
 }
 
