@@ -263,7 +263,7 @@ NAN_METHOD(MemoryDatasource::add)
                             double num = Nan::To<double>(value).FromJust();
                             // todo - round
                             if (num == Nan::To<int>(value).FromJust()) {
-                                feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(Nan::To<int>(value).FromJust()));
+                                feature->put_new(TOSTR(name), Nan::To<node_mapnik::value_integer>(value).FromJust());
                             } else {
                                 double dub_val = Nan::To<double>(value).FromJust();
                                 feature->put_new(TOSTR(name),dub_val);

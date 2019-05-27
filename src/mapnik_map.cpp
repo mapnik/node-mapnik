@@ -425,13 +425,13 @@ NAN_SETTER(Map::set_prop)
                 double num = Nan::To<double>(a_value).FromJust();
                 // todo - round
                 if (num == Nan::To<int>(a_value).FromJust()) {
-                    params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(Nan::To<int>(a_value).FromJust());
+                    params[TOSTR(name)] = Nan::To<node_mapnik::value_integer>(a_value).FromJust();
                 } else {
                     double dub_val = Nan::To<double>(a_value).FromJust();
                     params[TOSTR(name)] = dub_val;
                 }
             } else if (a_value->IsBoolean()) {
-                params[TOSTR(name)] = static_cast<mapnik::value_bool>(Nan::To<bool>(a_value).FromJust());
+                params[TOSTR(name)] = Nan::To<mapnik::value_bool>(a_value).FromJust();
             }
             i++;
         }

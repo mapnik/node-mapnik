@@ -22,7 +22,7 @@ static inline void object_to_container(mapnik::attributes & cont, v8::Local<v8::
         } else if (value->IsNumber()) {
             mapnik::value_double num = Nan::To<double>(value).FromJust();
             if (num == Nan::To<int>(value).FromJust()) {
-                cont[TOSTR(name)] = static_cast<node_mapnik::value_integer>(Nan::To<int>(value).FromJust());
+                cont[TOSTR(name)] = Nan::To<node_mapnik::value_integer>(value).FromJust();
             } else {
                 cont[TOSTR(name)] = num;
             }
