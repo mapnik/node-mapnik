@@ -288,8 +288,8 @@ NAN_METHOD(Datasource::featureset)
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                 return;
             }
-            extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                           maxx->NumberValue(),maxy->NumberValue());
+            extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
+                                           Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
         }
     }
 

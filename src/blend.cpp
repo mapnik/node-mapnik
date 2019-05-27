@@ -89,9 +89,9 @@ NAN_METHOD(hsl2rgb) {
         return;
     }
     double h,s,l;
-    h = info[0]->NumberValue();
-    s = info[1]->NumberValue();
-    l = info[2]->NumberValue();
+    h = Nan::To<double>(info[0]).FromJust();
+    s = Nan::To<double>(info[1]).FromJust();
+    l = Nan::To<double>(info[2]).FromJust();
     v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
     std::uint32_t r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
@@ -109,8 +109,8 @@ static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std
         if (val_array->Length() != 2) {
             msg = "h array must be a pair of values";
         }
-        tinter.h0 = val_array->Get(0)->NumberValue();
-        tinter.h1 = val_array->Get(1)->NumberValue();
+        tinter.h0 = Nan::To<double>(val_array->Get(0)).FromJust();
+        tinter.h1 = Nan::To<double>(val_array->Get(1)).FromJust();
     }
     v8::Local<v8::Value> sat = tint->Get(Nan::New("s").ToLocalChecked());
     if (!sat.IsEmpty() && sat->IsArray()) {
@@ -118,8 +118,8 @@ static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std
         if (val_array->Length() != 2) {
             msg = "s array must be a pair of values";
         }
-        tinter.s0 = val_array->Get(0)->NumberValue();
-        tinter.s1 = val_array->Get(1)->NumberValue();
+        tinter.s0 = Nan::To<double>(val_array->Get(0)).FromJust();
+        tinter.s1 = Nan::To<double>(val_array->Get(1)).FromJust();
     }
     v8::Local<v8::Value> light = tint->Get(Nan::New("l").ToLocalChecked());
     if (!light.IsEmpty() && light->IsArray()) {
@@ -127,8 +127,8 @@ static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std
         if (val_array->Length() != 2) {
             msg = "l array must be a pair of values";
         }
-        tinter.l0 = val_array->Get(0)->NumberValue();
-        tinter.l1 = val_array->Get(1)->NumberValue();
+        tinter.l0 = Nan::To<double>(val_array->Get(0)).FromJust();
+        tinter.l1 = Nan::To<double>(val_array->Get(1)).FromJust();
     }
     v8::Local<v8::Value> alpha = tint->Get(Nan::New("a").ToLocalChecked());
     if (!alpha.IsEmpty() && alpha->IsArray()) {
@@ -136,8 +136,8 @@ static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std
         if (val_array->Length() != 2) {
             msg = "a array must be a pair of values";
         }
-        tinter.a0 = val_array->Get(0)->NumberValue();
-        tinter.a1 = val_array->Get(1)->NumberValue();
+        tinter.a0 = Nan::To<double>(val_array->Get(0)).FromJust();
+        tinter.a1 = Nan::To<double>(val_array->Get(1)).FromJust();
     }
 }
 

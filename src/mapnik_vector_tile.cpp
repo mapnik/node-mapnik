@@ -557,7 +557,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("option 'area_threshold' must be an floating point number");
                 return scope.Escape(Nan::Undefined());
             }
-            area_threshold = area_thres->NumberValue();
+            area_threshold = Nan::To<double>(area_thres).FromJust();
             if (area_threshold < 0.0)
             {
                 Nan::ThrowTypeError("option 'area_threshold' can not be negative");
@@ -572,7 +572,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                 return scope.Escape(Nan::Undefined());
             }
-            simplify_distance = param_val->NumberValue();
+            simplify_distance = Nan::To<double>(param_val).FromJust();
             if (simplify_distance < 0.0)
             {
                 Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
@@ -639,7 +639,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
                 return scope.Escape(Nan::Undefined());
             }
-            scale_factor = bind_opt->NumberValue();
+            scale_factor = Nan::To<double>(bind_opt).FromJust();
             if (scale_factor <= 0.0)
             {
                 Nan::ThrowTypeError("optional arg 'scale' must be greater then zero");
@@ -654,7 +654,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
                 return scope.Escape(Nan::Undefined());
             }
-            scale_denominator = bind_opt->NumberValue();
+            scale_denominator = Nan::To<double>(bind_opt).FromJust();
             if (scale_denominator < 0.0)
             {
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be non negative number");
@@ -715,8 +715,8 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                 return scope.Escape(Nan::Undefined());
             }
-            max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                               maxx->NumberValue(),maxy->NumberValue());
+            max_extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
+                                               Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
         }
         if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
         {
@@ -946,7 +946,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("option 'area_threshold' must be a number");
                 return;
             }
-            area_threshold = area_thres->NumberValue();
+            area_threshold = Nan::To<double>(area_thres).FromJust();
             if (area_threshold < 0.0)
             {
                 Nan::ThrowTypeError("option 'area_threshold' can not be negative");
@@ -1013,7 +1013,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                 return;
             }
-            simplify_distance = param_val->NumberValue();
+            simplify_distance = Nan::To<double>(param_val).FromJust();
             if (simplify_distance < 0.0)
             {
                 Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
@@ -1028,7 +1028,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
                 return;
             }
-            scale_factor = bind_opt->NumberValue();
+            scale_factor = Nan::To<double>(bind_opt).FromJust();
             if (scale_factor < 0.0)
             {
                 Nan::ThrowTypeError("option 'scale' can not be negative");
@@ -1043,7 +1043,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
                 return;
             }
-            scale_denominator = bind_opt->NumberValue();
+            scale_denominator = Nan::To<double>(bind_opt).FromJust();
             if (scale_denominator < 0.0)
             {
                 Nan::ThrowTypeError("option 'scale_denominator' can not be negative");
@@ -1104,8 +1104,8 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                 return;
             }
-            max_extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                               maxx->NumberValue(),maxy->NumberValue());
+            max_extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
+                                               Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
         }
         if (options->Has(Nan::New("process_all_rings").ToLocalChecked()))
         {
@@ -1570,7 +1570,7 @@ NAN_METHOD(VectorTile::query)
                 Nan::ThrowTypeError("tolerance value must be a number");
                 return;
             }
-            tolerance = tol->NumberValue();
+            tolerance = Nan::To<double>(tol).FromJust();
         }
         if (options->Has(Nan::New("layer").ToLocalChecked()))
         {
@@ -1584,8 +1584,8 @@ NAN_METHOD(VectorTile::query)
         }
     }
 
-    double lon = info[0]->NumberValue();
-    double lat = info[1]->NumberValue();
+    double lon = Nan::To<double>(info[0]).FromJust();
+    double lat = Nan::To<double>(info[1]).FromJust();
     VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
 
     // If last argument is not a function go with sync call.
@@ -1864,8 +1864,8 @@ NAN_METHOD(VectorTile::queryMany)
             return;
         }
         query_lonlat lonlat;
-        lonlat.lon = lon->NumberValue();
-        lonlat.lat = lat->NumberValue();
+        lonlat.lon = Nan::To<double>(lon).FromJust();
+        lonlat.lat = Nan::To<double>(lat).FromJust();
         query.push_back(std::move(lonlat));
     }
 
@@ -1887,7 +1887,7 @@ NAN_METHOD(VectorTile::queryMany)
                 Nan::ThrowTypeError("tolerance value must be a number");
                 return;
             }
-            tolerance = tol->NumberValue();
+            tolerance = Nan::To<double>(tol).FromJust();
         }
         if (options->Has(Nan::New("layer").ToLocalChecked()))
         {
@@ -3249,7 +3249,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                 return;
             }
-            simplify_distance = param_val->NumberValue();
+            simplify_distance = Nan::To<double>(param_val).FromJust();
             if (simplify_distance < 0.0)
             {
                 Nan::ThrowTypeError("option 'simplify_distance' must be a positive number");
@@ -4959,7 +4959,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("optional arg 'scale' must be a number");
                 return;
             }
-            closure->scale_factor = bind_opt->NumberValue();
+            closure->scale_factor = Nan::To<double>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked()))
         {
@@ -4969,7 +4969,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
                 return;
             }
-            closure->scale_denominator = bind_opt->NumberValue();
+            closure->scale_denominator = Nan::To<double>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("variables").ToLocalChecked()))
         {

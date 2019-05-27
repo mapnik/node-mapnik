@@ -331,10 +331,10 @@ NAN_SETTER(Map::set_prop)
                 Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
                 return;
             } else {
-                double minx = arr->Get(0)->NumberValue();
-                double miny = arr->Get(1)->NumberValue();
-                double maxx = arr->Get(2)->NumberValue();
-                double maxy = arr->Get(3)->NumberValue();
+                double minx = Nan::To<double>(arr->Get(0)).FromJust();
+                double miny = Nan::To<double>(arr->Get(1)).FromJust();
+                double maxx = Nan::To<double>(arr->Get(2)).FromJust();
+                double maxy = Nan::To<double>(arr->Get(3)).FromJust();
                 mapnik::box2d<double> box(minx,miny,maxx,maxy);
                 if(a == "extent")
                     m->map_->zoom_to_box(box);
@@ -422,12 +422,12 @@ NAN_SETTER(Map::set_prop)
             if (a_value->IsString()) {
                 params[TOSTR(name)] = const_cast<char const*>(TOSTR(a_value));
             } else if (a_value->IsNumber()) {
-                double num = a_value->NumberValue();
+                double num = Nan::To<double>(a_value).FromJust();
                 // todo - round
                 if (num == a_value->IntegerValue()) {
                     params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(a_value->IntegerValue());
                 } else {
-                    double dub_val = a_value->NumberValue();
+                    double dub_val = Nan::To<double>(a_value).FromJust();
                     params[TOSTR(name)] = dub_val;
                 }
             } else if (a_value->IsBoolean()) {
@@ -688,8 +688,8 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
     }
     else
     {
-        x = info[0]->NumberValue();
-        y = info[1]->NumberValue();
+        x = Nan::To<double>(info[0]).FromJust();
+        y = Nan::To<double>(info[1]).FromJust();
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
@@ -1569,10 +1569,10 @@ NAN_METHOD(Map::zoomToBox)
             return;
         }
         v8::Local<v8::Array> a = info[0].As<v8::Array>();
-        minx = a->Get(0)->NumberValue();
-        miny = a->Get(1)->NumberValue();
-        maxx = a->Get(2)->NumberValue();
-        maxy = a->Get(3)->NumberValue();
+        minx = Nan::To<double>(a->Get(0)).FromJust();
+        miny = Nan::To<double>(a->Get(1)).FromJust();
+        maxx = Nan::To<double>(a->Get(2)).FromJust();
+        maxy = Nan::To<double>(a->Get(3)).FromJust();
 
     }
     else if (info.Length() != 4)
@@ -1585,10 +1585,10 @@ NAN_METHOD(Map::zoomToBox)
                info[2]->IsNumber() &&
                info[3]->IsNumber())
     {
-        minx = info[0]->NumberValue();
-        miny = info[1]->NumberValue();
-        maxx = info[2]->NumberValue();
-        maxy = info[3]->NumberValue();
+        minx = Nan::To<double>(info[0]).FromJust();
+        miny = Nan::To<double>(info[1]).FromJust();
+        maxx = Nan::To<double>(info[2]).FromJust();
+        maxy = Nan::To<double>(info[3]).FromJust();
     }
     else
     {
@@ -1813,7 +1813,7 @@ NAN_METHOD(Map::render)
                     return;
                 }
 
-                scale_factor = bind_opt->NumberValue();
+                scale_factor = Nan::To<double>(bind_opt).FromJust();
             }
 
             if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
@@ -1823,7 +1823,7 @@ NAN_METHOD(Map::render)
                     return;
                 }
 
-                scale_denominator = bind_opt->NumberValue();
+                scale_denominator = Nan::To<double>(bind_opt).FromJust();
             }
 
             if (options->Has(Nan::New("offset_x").ToLocalChecked())) {
@@ -2046,7 +2046,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'area_threshold' must be a number");
                     return;
                 }
-                closure->area_threshold = param_val->NumberValue();
+                closure->area_threshold = Nan::To<double>(param_val).FromJust();
                 if (closure->area_threshold < 0.0)
                 {
                     delete closure;
@@ -2126,7 +2126,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
                     return;
                 }
-                closure->simplify_distance = param_val->NumberValue();
+                closure->simplify_distance = Nan::To<double>(param_val).FromJust();
                 if (closure->simplify_distance < 0)
                 {
                     delete closure;
@@ -2474,7 +2474,7 @@ NAN_METHOD(Map::renderFile)
                 return;
             }
 
-            scale_factor = bind_opt->NumberValue();
+            scale_factor = Nan::To<double>(bind_opt).FromJust();
         }
 
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
@@ -2484,7 +2484,7 @@ NAN_METHOD(Map::renderFile)
                 return;
             }
 
-            scale_denominator = bind_opt->NumberValue();
+            scale_denominator = Nan::To<double>(bind_opt).FromJust();
         }
 
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
@@ -2683,7 +2683,7 @@ NAN_METHOD(Map::renderSync)
                 return;
             }
 
-            scale_factor = bind_opt->NumberValue();
+            scale_factor = Nan::To<double>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
@@ -2692,7 +2692,7 @@ NAN_METHOD(Map::renderSync)
                 return;
             }
 
-            scale_denominator = bind_opt->NumberValue();
+            scale_denominator = Nan::To<double>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());
@@ -2803,7 +2803,7 @@ NAN_METHOD(Map::renderFileSync)
                 return;
             }
 
-            scale_factor = bind_opt->NumberValue();
+            scale_factor = Nan::To<double>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("scale_denominator").ToLocalChecked())) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("scale_denominator").ToLocalChecked());
@@ -2812,7 +2812,7 @@ NAN_METHOD(Map::renderFileSync)
                 return;
             }
 
-            scale_denominator = bind_opt->NumberValue();
+            scale_denominator = Nan::To<double>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("buffer_size").ToLocalChecked())) {
             v8::Local<v8::Value> bind_opt = options->Get(Nan::New("buffer_size").ToLocalChecked());

@@ -248,7 +248,7 @@ NAN_SETTER(Layer::set_prop)
             Nan::ThrowTypeError("Must provide a number");
             return;
         }
-        l->layer_->set_minimum_scale_denominator(value->NumberValue());
+        l->layer_->set_minimum_scale_denominator(Nan::To<double>(value).FromJust());
     }
     else if (a == "maximum_scale_denominator")
     {
@@ -256,7 +256,7 @@ NAN_SETTER(Layer::set_prop)
             Nan::ThrowTypeError("Must provide a number");
             return;
         }
-        l->layer_->set_maximum_scale_denominator(value->NumberValue());
+        l->layer_->set_maximum_scale_denominator(Nan::To<double>(value).FromJust());
     }
     else if (a == "queryable")
     {

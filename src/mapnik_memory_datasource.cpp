@@ -88,7 +88,7 @@ NAN_METHOD(MemoryDatasource::New)
         }
         else if (value->IsNumber())
         {
-            params[TOSTR(name)] = value->NumberValue();
+            params[TOSTR(name)] = Nan::To<double>(value).FromJust();
         }
         else if (value->IsBoolean())
         {
@@ -183,8 +183,8 @@ NAN_METHOD(MemoryDatasource::featureset)
                     Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                     return;
                 }
-                extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                               maxx->NumberValue(),maxy->NumberValue());
+                extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
+                                               Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
             }
         }
 
@@ -241,7 +241,7 @@ NAN_METHOD(MemoryDatasource::add)
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
-            feature->set_geometry(mapnik::geometry::point<double>(x->NumberValue(),y->NumberValue()));
+            feature->set_geometry(mapnik::geometry::point<double>(Nan::To<double>(x).FromJust(),Nan::To<double>(y).FromJust()));
             if (obj->Has(Nan::New("properties").ToLocalChecked()))
             {
                 v8::Local<v8::Value> props = obj->Get(Nan::New("properties").ToLocalChecked());
@@ -260,12 +260,12 @@ NAN_METHOD(MemoryDatasource::add)
                             mapnik::value_unicode_string ustr = d->tr_.transcode(TOSTR(value));
                             feature->put_new(TOSTR(name),ustr);
                         } else if (value->IsNumber()) {
-                            double num = value->NumberValue();
+                            double num = Nan::To<double>(value).FromJust();
                             // todo - round
                             if (num == value->IntegerValue()) {
                                 feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
                             } else {
-                                double dub_val = value->NumberValue();
+                                double dub_val = Nan::To<double>(value).FromJust();
                                 feature->put_new(TOSTR(name),dub_val);
                             }
                         } else if (value->IsNull()) {

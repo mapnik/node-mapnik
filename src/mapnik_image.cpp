@@ -529,7 +529,7 @@ NAN_METHOD(Image::setPixel)
     }
     else if (info[2]->IsNumber())
     {
-        double val = info[2]->NumberValue();
+        double val = Nan::To<double>(info[2]).FromJust();
         mapnik::set_pixel<double>(*im->this_,x,y,val);
     }
     else if (info[2]->IsObject())
@@ -822,7 +822,7 @@ v8::Local<v8::Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         }
         else if (info[0]->IsNumber())
         {
-            double val = info[0]->NumberValue();
+            double val = Nan::To<double>(info[0]).FromJust();
             mapnik::fill<double>(*im->this_,val);
         }
         else if (info[0]->IsObject())
@@ -913,7 +913,7 @@ NAN_METHOD(Image::fill)
     }
     else if (info[0]->IsNumber())
     {
-        closure->val_double = info[0]->NumberValue();
+        closure->val_double = Nan::To<double>(info[0]).FromJust();
         closure->type = FILL_DOUBLE;
     }
     else if (info[0]->IsObject())
@@ -1530,7 +1530,7 @@ NAN_METHOD(Image::copy)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            scaling = scaling_val->NumberValue();
+            scaling = Nan::To<double>(scaling_val).FromJust();
             scaling_or_offset_set = true;
         }
         else
@@ -1545,7 +1545,7 @@ NAN_METHOD(Image::copy)
         v8::Local<v8::Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
         if (offset_val->IsNumber())
         {
-            offset = offset_val->NumberValue();
+            offset = Nan::To<double>(offset_val).FromJust();
             scaling_or_offset_set = true;
         }
         else
@@ -1700,7 +1700,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            scaling = scaling_val->NumberValue();
+            scaling = Nan::To<double>(scaling_val).FromJust();
             scaling_or_offset_set = true;
         }
         else
@@ -1715,7 +1715,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> offset_val = options->Get(Nan::New("offset").ToLocalChecked());
         if (offset_val->IsNumber())
         {
-            offset = offset_val->NumberValue();
+            offset = Nan::To<double>(offset_val).FromJust();
             scaling_or_offset_set = true;
         }
         else
@@ -1869,7 +1869,7 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
             return;
         }
-        offset_x = bind_opt->NumberValue();
+        offset_x = Nan::To<double>(bind_opt).FromJust();
     }
     if (options->Has(Nan::New("offset_y").ToLocalChecked()))
     {
@@ -1879,7 +1879,7 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
             return;
         }
-        offset_y = bind_opt->NumberValue();
+        offset_y = Nan::To<double>(bind_opt).FromJust();
     }
     if (options->Has(Nan::New("offset_width").ToLocalChecked()))
     {
@@ -1889,7 +1889,7 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_width' must be a number");
             return;
         }
-        offset_width = bind_opt->NumberValue();
+        offset_width = Nan::To<double>(bind_opt).FromJust();
         if (offset_width <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_width' must be a integer greater then zero");
@@ -1904,7 +1904,7 @@ NAN_METHOD(Image::resize)
             Nan::ThrowTypeError("optional arg 'offset_height' must be a number");
             return;
         }
-        offset_height = bind_opt->NumberValue();
+        offset_height = Nan::To<double>(bind_opt).FromJust();
         if (offset_height <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_height' must be a integer greater then zero");
@@ -1936,7 +1936,7 @@ NAN_METHOD(Image::resize)
         v8::Local<v8::Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
         if (ff_val->IsNumber())
         {
-            filter_factor = ff_val->NumberValue();
+            filter_factor = Nan::To<double>(ff_val).FromJust();
         }
         else
         {
@@ -2245,7 +2245,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_x = bind_opt->NumberValue();
+        offset_x = Nan::To<double>(bind_opt).FromJust();
     }
     if (options->Has(Nan::New("offset_y").ToLocalChecked()))
     {
@@ -2255,7 +2255,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_y = bind_opt->NumberValue();
+        offset_y = Nan::To<double>(bind_opt).FromJust();
     }
     if (options->Has(Nan::New("offset_width").ToLocalChecked()))
     {
@@ -2265,7 +2265,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_width' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_width = bind_opt->NumberValue();
+        offset_width = Nan::To<double>(bind_opt).FromJust();
         if (offset_width <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_width' must be a integer greater then zero");
@@ -2280,7 +2280,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
             Nan::ThrowTypeError("optional arg 'offset_height' must be a number");
             return scope.Escape(Nan::Undefined());
         }
-        offset_height = bind_opt->NumberValue();
+        offset_height = Nan::To<double>(bind_opt).FromJust();
         if (offset_height <= 0.0)
         {
             Nan::ThrowTypeError("optional arg 'offset_height' must be a integer greater then zero");
@@ -2313,7 +2313,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> ff_val = options->Get(Nan::New("filter_factor").ToLocalChecked());
         if (ff_val->IsNumber())
         {
-            filter_factor = ff_val->NumberValue();
+            filter_factor = Nan::To<double>(ff_val).FromJust();
         }
         else
         {
@@ -2710,7 +2710,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 Nan::ThrowTypeError("'scale' must be a number");
                 return scope.Escape(Nan::Undefined());
             }
-            scale = scale_opt->NumberValue();
+            scale = Nan::To<double>(scale_opt).FromJust();
             if (scale <= 0)
             {
                 Nan::ThrowTypeError("'scale' must be a positive non zero number");
@@ -2947,7 +2947,7 @@ NAN_METHOD(Image::fromSVG)
                 Nan::ThrowTypeError("'scale' must be a number");
                 return;
             }
-            scale = scale_opt->NumberValue();
+            scale = Nan::To<double>(scale_opt).FromJust();
             if (scale <= 0)
             {
                 Nan::ThrowTypeError("'scale' must be a positive non zero number");
@@ -3182,7 +3182,7 @@ NAN_METHOD(Image::fromSVGBytes)
                 Nan::ThrowTypeError("'scale' must be a number");
                 return;
             }
-            scale = scale_opt->NumberValue();
+            scale = Nan::To<double>(scale_opt).FromJust();
             if (scale <= 0)
             {
                 Nan::ThrowTypeError("'scale' must be a positive non zero number");
@@ -4251,7 +4251,7 @@ NAN_METHOD(Image::composite)
                 Nan::ThrowTypeError("opacity must be a floating point number");
                 return;
             }
-            opacity = opt->NumberValue();
+            opacity = Nan::To<double>(opt).FromJust();
             if (opacity < 0 || opacity > 1) {
                 Nan::ThrowTypeError("opacity must be a floating point number between 0-1");
                 return;
@@ -4379,7 +4379,7 @@ NAN_SETTER(Image::set_scaling)
     }
     else
     {
-        double val = value->NumberValue();
+        double val = Nan::To<double>(value).FromJust();
         if (val == 0.0)
         {
             Nan::ThrowError("Scaling value can not be zero");
@@ -4398,7 +4398,7 @@ NAN_SETTER(Image::set_offset)
     }
     else
     {
-        double val = value->NumberValue();
+        double val = Nan::To<double>(value).FromJust();
         im->this_->set_offset(val);
     }
 }

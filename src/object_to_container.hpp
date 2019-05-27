@@ -20,7 +20,7 @@ static inline void object_to_container(mapnik::attributes & cont, v8::Local<v8::
         } else if (value->IsString()) {
             cont[TOSTR(name)] = tr.transcode(TOSTR(value));
         } else if (value->IsNumber()) {
-            mapnik::value_double num = value->NumberValue();
+            mapnik::value_double num = Nan::To<double>(value).FromJust();
             if (num == value->IntegerValue()) {
                 cont[TOSTR(name)] = static_cast<node_mapnik::value_integer>(value->IntegerValue());
             } else {
