@@ -104,7 +104,7 @@ NAN_METHOD(Grid::New)
             }
         }
 
-        Grid* g = new Grid(info[0]->IntegerValue(), info[1]->IntegerValue(), key);
+        Grid* g = new Grid(Nan::To<int>(info[0]).FromJust(), Nan::To<int>(info[1]).FromJust(), key);
         g->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
@@ -324,10 +324,10 @@ NAN_METHOD(Grid::view)
         return;
     }
 
-    unsigned x = info[0]->IntegerValue();
-    unsigned y = info[1]->IntegerValue();
-    unsigned w = info[2]->IntegerValue();
-    unsigned h = info[3]->IntegerValue();
+    unsigned x = Nan::To<int>(info[0]).FromJust();
+    unsigned y = Nan::To<int>(info[1]).FromJust();
+    unsigned w = Nan::To<int>(info[2]).FromJust();
+    unsigned h = Nan::To<int>(info[3]).FromJust();
 
     Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
     info.GetReturnValue().Set(GridView::NewInstance(g,x,y,w,h));
@@ -368,7 +368,7 @@ NAN_METHOD(Grid::encodeSync)
                 return;
             }
 
-            resolution = bind_opt->IntegerValue();
+            resolution = Nan::To<int>(bind_opt).FromJust();
             if (resolution == 0)
             {
                 Nan::ThrowTypeError("'resolution' can not be zero");
@@ -479,7 +479,7 @@ NAN_METHOD(Grid::encode)
                 return;
             }
 
-            resolution = bind_opt->IntegerValue();
+            resolution = Nan::To<int>(bind_opt).FromJust();
             if (resolution == 0)
             {
                 Nan::ThrowTypeError("'resolution' can not be zero");

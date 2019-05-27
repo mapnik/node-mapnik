@@ -84,7 +84,7 @@ NAN_METHOD(Feature::New)
         return;
     }
 
-    Feature* f = new Feature(info[0]->IntegerValue());
+    Feature* f = new Feature(Nan::To<int>(info[0]).FromJust());
     f->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }

@@ -258,8 +258,8 @@ NAN_METHOD(GridView::getPixel)
             Nan::ThrowTypeError("second arg, 'y' must be an integer");
             return;
         }
-        x = info[0]->IntegerValue();
-        y = info[1]->IntegerValue();
+        x = Nan::To<int>(info[0]).FromJust();
+        y = Nan::To<int>(info[1]).FromJust();
     } else {
         Nan::ThrowTypeError("must supply x,y to query pixel color");
         return;
@@ -302,7 +302,7 @@ NAN_METHOD(GridView::encodeSync)
                 return;
             }
 
-            resolution = bind_opt->IntegerValue();
+            resolution = Nan::To<int>(bind_opt).FromJust();
 
             if (resolution == 0)
             {
@@ -416,7 +416,7 @@ NAN_METHOD(GridView::encode)
                 return;
             }
 
-            resolution = bind_opt->IntegerValue();
+            resolution = Nan::To<int>(bind_opt).FromJust();
 
             if (resolution == 0)
             {

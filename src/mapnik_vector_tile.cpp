@@ -356,9 +356,9 @@ NAN_METHOD(VectorTile::New)
         return;
     }
 
-    std::int64_t z = info[0]->IntegerValue();
-    std::int64_t x = info[1]->IntegerValue();
-    std::int64_t y = info[2]->IntegerValue();
+    std::int64_t z = Nan::To<int>(info[0]).FromJust();
+    std::int64_t x = Nan::To<int>(info[1]).FromJust();
+    std::int64_t y = Nan::To<int>(info[2]).FromJust();
     if (z < 0 || x < 0 || y < 0)
     {
         Nan::ThrowTypeError("required parameters (z, x, and y) must be greater then or equal to zero");
@@ -395,7 +395,7 @@ NAN_METHOD(VectorTile::New)
                 Nan::ThrowTypeError("optional arg 'tile_size' must be a number");
                 return;
             }
-            int tile_size_tmp = opt->IntegerValue();
+            int tile_size_tmp = Nan::To<int>(opt).FromJust();
             if (tile_size_tmp <= 0)
             {
                 Nan::ThrowTypeError("optional arg 'tile_size' must be greater then zero");
@@ -411,7 +411,7 @@ NAN_METHOD(VectorTile::New)
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                 return;
             }
-            buffer_size = opt->IntegerValue();
+            buffer_size = Nan::To<int>(opt).FromJust();
         }
     }
     if (static_cast<double>(tile_size) + (2 * buffer_size) <= 0)
@@ -607,7 +607,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
                 return scope.Escape(Nan::Undefined());
             }
-            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(ft).FromJust());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
@@ -622,7 +622,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
                 return scope.Escape(Nan::Undefined());
             }
-            threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+            threading_mode = static_cast<std::launch>(Nan::To<int>(param_val).FromJust());
             if (threading_mode != std::launch::async &&
                 threading_mode != std::launch::deferred &&
                 threading_mode != (std::launch::async | std::launch::deferred))
@@ -669,7 +669,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
                 return scope.Escape(Nan::Undefined());
             }
-            offset_x = bind_opt->IntegerValue();
+            offset_x = Nan::To<int>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("offset_y").ToLocalChecked()))
         {
@@ -679,7 +679,7 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
                 return scope.Escape(Nan::Undefined());
             }
-            offset_y = bind_opt->IntegerValue();
+            offset_y = Nan::To<int>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("reencode").ToLocalChecked()))
         {
@@ -981,7 +981,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
                 return;
             }
-            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(ft).FromJust());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
@@ -996,7 +996,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
                 return;
             }
-            threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+            threading_mode = static_cast<std::launch>(Nan::To<int>(param_val).FromJust());
             if (threading_mode != std::launch::async &&
                 threading_mode != std::launch::deferred &&
                 threading_mode != (std::launch::async | std::launch::deferred))
@@ -1058,7 +1058,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
                 return;
             }
-            offset_x = bind_opt->IntegerValue();
+            offset_x = Nan::To<int>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("offset_y").ToLocalChecked()))
         {
@@ -1068,7 +1068,7 @@ NAN_METHOD(VectorTile::composite)
                 Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
                 return;
             }
-            offset_y = bind_opt->IntegerValue();
+            offset_y = Nan::To<int>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("reencode").ToLocalChecked()))
         {
@@ -2929,7 +2929,7 @@ v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         else if (layer_id->IsNumber())
         {
-            int layer_idx = layer_id->IntegerValue();
+            int layer_idx = Nan::To<int>(layer_id).FromJust();
             if (layer_idx < 0)
             {
                 Nan::ThrowTypeError("A layer index can not be negative");
@@ -3046,7 +3046,7 @@ NAN_METHOD(VectorTile::toGeoJSON)
     }
     else if (layer_id->IsNumber())
     {
-        closure->layer_idx = layer_id->IntegerValue();
+        closure->layer_idx = Nan::To<int>(layer_id).FromJust();
         if (closure->layer_idx < 0)
         {
             delete closure;
@@ -3199,7 +3199,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 Nan::ThrowError("option 'area_threshold' must be a number");
                 return;
             }
-            area_threshold = param_val->IntegerValue();
+            area_threshold = Nan::To<int>(param_val).FromJust();
             if (area_threshold < 0.0)
             {
                 Nan::ThrowError("option 'area_threshold' can not be negative");
@@ -3234,7 +3234,7 @@ NAN_METHOD(VectorTile::addGeoJSON)
                 Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
                 return;
             }
-            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft->IntegerValue());
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(ft).FromJust());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
@@ -4350,7 +4350,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
                 return scope.Escape(Nan::Undefined());
             }
-            level = param_val->IntegerValue();
+            level = Nan::To<int>(param_val).FromJust();
             if (level < 0 || level > 9)
             {
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
@@ -4539,7 +4539,7 @@ NAN_METHOD(VectorTile::getData)
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
                 return;
             }
-            level = param_val->IntegerValue();
+            level = Nan::To<int>(param_val).FromJust();
             if (level < 0 || level > 9)
             {
                 Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
@@ -4887,7 +4887,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("optional arg 'z' must be a number");
                 return;
             }
-            closure->z = bind_opt->IntegerValue();
+            closure->z = Nan::To<int>(bind_opt).FromJust();
             set_z = true;
             closure->zxy_override = true;
         }
@@ -4899,7 +4899,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("optional arg 'x' must be a number");
                 return;
             }
-            closure->x = bind_opt->IntegerValue();
+            closure->x = Nan::To<int>(bind_opt).FromJust();
             set_x = true;
             closure->zxy_override = true;
         }
@@ -4911,7 +4911,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("optional arg 'y' must be a number");
                 return;
             }
-            closure->y = bind_opt->IntegerValue();
+            closure->y = Nan::To<int>(bind_opt).FromJust();
             set_y = true;
             closure->zxy_override = true;
         }
@@ -4949,7 +4949,7 @@ NAN_METHOD(VectorTile::render)
                 Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                 return;
             }
-            closure->buffer_size = bind_opt->IntegerValue();
+            closure->buffer_size = Nan::To<int>(bind_opt).FromJust();
         }
         if (options->Has(Nan::New("scale").ToLocalChecked()))
         {
@@ -5066,7 +5066,7 @@ NAN_METHOD(VectorTile::render)
             }
             else if (layer_id->IsNumber())
             {
-                layer_idx = layer_id->IntegerValue();
+                layer_idx = Nan::To<int>(layer_id).FromJust();
                 std::size_t layer_num = layers.size();
                 if (layer_idx >= layer_num)
                 {
@@ -6398,7 +6398,7 @@ NAN_SETTER(VectorTile::set_tile_x)
     }
     else
     {
-        int val = value->IntegerValue();
+        int val = Nan::To<int>(value).FromJust();
         if (val < 0)
         {
             Nan::ThrowError("tile x coordinate must be greater then or equal to zero");
@@ -6417,7 +6417,7 @@ NAN_SETTER(VectorTile::set_tile_y)
     }
     else
     {
-        int val = value->IntegerValue();
+        int val = Nan::To<int>(value).FromJust();
         if (val < 0)
         {
             Nan::ThrowError("tile y coordinate must be greater then or equal to zero");
@@ -6436,7 +6436,7 @@ NAN_SETTER(VectorTile::set_tile_z)
     }
     else
     {
-        int val = value->IntegerValue();
+        int val = Nan::To<int>(value).FromJust();
         if (val < 0)
         {
             Nan::ThrowError("tile z coordinate must be greater then or equal to zero");
@@ -6455,7 +6455,7 @@ NAN_SETTER(VectorTile::set_tile_size)
     }
     else
     {
-        int val = value->IntegerValue();
+        int val = Nan::To<int>(value).FromJust();
         if (val <= 0)
         {
             Nan::ThrowError("tile size must be greater then zero");
@@ -6474,7 +6474,7 @@ NAN_SETTER(VectorTile::set_buffer_size)
     }
     else
     {
-        int val = value->IntegerValue();
+        int val = Nan::To<int>(value).FromJust();
         if (static_cast<int>(d->tile_size()) + (2 * val) <= 0)
         {
             Nan::ThrowError("too large of a negative buffer for tilesize");

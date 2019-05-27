@@ -223,7 +223,7 @@ NAN_METHOD(Map::New)
             Nan::ThrowTypeError("'width' and 'height' must be integers");
             return;
         }
-        Map* m = new Map(info[0]->IntegerValue(),info[1]->IntegerValue());
+        Map* m = new Map(Nan::To<int>(info[0]).FromJust(),Nan::To<int>(info[1]).FromJust());
         m->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
@@ -240,7 +240,7 @@ NAN_METHOD(Map::New)
             Nan::ThrowError("'srs' value must be a string");
             return;
         }
-        Map* m = new Map(info[0]->IntegerValue(), info[1]->IntegerValue(), TOSTR(info[2]));
+        Map* m = new Map(Nan::To<int>(info[0]).FromJust(), Nan::To<int>(info[1]).FromJust(), TOSTR(info[2]));
         m->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;
@@ -349,7 +349,7 @@ NAN_SETTER(Map::set_prop)
             Nan::ThrowError("'aspect_fix_mode' must be a constant (number)");
             return;
         } else {
-            int val = value->IntegerValue();
+            int val = Nan::To<int>(value).FromJust();
             if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0) {
                 m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
             } else {
@@ -372,7 +372,7 @@ NAN_SETTER(Map::set_prop)
             Nan::ThrowTypeError("Must provide an integer bufferSize");
             return;
         } else {
-            m->map_->set_buffer_size(value->IntegerValue());
+            m->map_->set_buffer_size(Nan::To<int>(value).FromJust());
         }
     }
     else if (a == "width") {
@@ -380,7 +380,7 @@ NAN_SETTER(Map::set_prop)
             Nan::ThrowTypeError("Must provide an integer width");
             return;
         } else {
-            m->map_->set_width(value->IntegerValue());
+            m->map_->set_width(Nan::To<int>(value).FromJust());
         }
     }
     else if (a == "height") {
@@ -388,7 +388,7 @@ NAN_SETTER(Map::set_prop)
             Nan::ThrowTypeError("Must provide an integer height");
             return;
         } else {
-            m->map_->set_height(value->IntegerValue());
+            m->map_->set_height(Nan::To<int>(value).FromJust());
         }
     }
     else if (a == "background") {
@@ -424,8 +424,8 @@ NAN_SETTER(Map::set_prop)
             } else if (a_value->IsNumber()) {
                 double num = Nan::To<double>(a_value).FromJust();
                 // todo - round
-                if (num == a_value->IntegerValue()) {
-                    params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(a_value->IntegerValue());
+                if (num == Nan::To<int>(a_value).FromJust()) {
+                    params[TOSTR(name)] = static_cast<node_mapnik::value_integer>(Nan::To<int>(a_value).FromJust());
                 } else {
                     double dub_val = Nan::To<double>(a_value).FromJust();
                     params[TOSTR(name)] = dub_val;
@@ -740,7 +740,7 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
             }
             else if (layer_id->IsNumber())
             {
-                layer_idx = layer_id->IntegerValue();
+                layer_idx = Nan::To<int>(layer_id).FromJust();
                 std::size_t layer_num = layers.size();
 
                 if (layer_idx < 0) {
@@ -959,7 +959,7 @@ NAN_METHOD(Map::remove_layer) {
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-    unsigned int index = info[0]->IntegerValue();
+    unsigned int index = Nan::To<int>(info[0]).FromJust();
 
     if (index >= 0 && index < layers.size()) {
         m->map_->remove_layer(index);
@@ -992,7 +992,7 @@ NAN_METHOD(Map::get_layer)
     v8::Local<v8::Value> layer = info[0];
     if (layer->IsNumber())
     {
-        unsigned int index = info[0]->IntegerValue();
+        unsigned int index = Nan::To<int>(info[0]).FromJust();
 
         if (index < layers.size())
         {
@@ -1069,7 +1069,7 @@ NAN_METHOD(Map::resize)
     }
 
     Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    m->map_->resize(info[0]->IntegerValue(),info[1]->IntegerValue());
+    m->map_->resize(Nan::To<int>(info[0]).FromJust(),Nan::To<int>(info[1]).FromJust());
     return;
 }
 
@@ -1803,7 +1803,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
                     return;
                 }
-                buffer_size = bind_opt->IntegerValue();
+                buffer_size = Nan::To<int>(bind_opt).FromJust();
             }
 
             if (options->Has(Nan::New("scale").ToLocalChecked())) {
@@ -1833,7 +1833,7 @@ NAN_METHOD(Map::render)
                     return;
                 }
 
-                offset_x = bind_opt->IntegerValue();
+                offset_x = Nan::To<int>(bind_opt).FromJust();
             }
 
             if (options->Has(Nan::New("offset_y").ToLocalChecked())) {
@@ -1843,7 +1843,7 @@ NAN_METHOD(Map::render)
                     return;
                 }
 
-                offset_y = bind_opt->IntegerValue();
+                offset_y = Nan::To<int>(bind_opt).FromJust();
             }
         }
 
@@ -1926,7 +1926,7 @@ NAN_METHOD(Map::render)
                         return;
                     }
                 } else { // IS NUMBER
-                    layer_idx = layer_id->IntegerValue();
+                    layer_idx = Nan::To<int>(layer_id).FromJust();
                     std::size_t layer_num = layers.size();
 
                     if (layer_idx >= layer_num) {
@@ -2088,7 +2088,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'fill_type' must be an unsigned integer");
                     return;
                 }
-                closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val->IntegerValue());
+                closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(param_val).FromJust());
                 if (closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
                 {
                     delete closure;
@@ -2106,7 +2106,7 @@ NAN_METHOD(Map::render)
                     Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
                     return;
                 }
-                closure->threading_mode = static_cast<std::launch>(param_val->IntegerValue());
+                closure->threading_mode = static_cast<std::launch>(Nan::To<int>(param_val).FromJust());
                 if (closure->threading_mode != std::launch::async &&
                     closure->threading_mode != std::launch::deferred &&
                     closure->threading_mode != (std::launch::async | std::launch::deferred))
@@ -2494,7 +2494,7 @@ NAN_METHOD(Map::renderFile)
                 return;
             }
 
-            buffer_size = bind_opt->IntegerValue();
+            buffer_size = Nan::To<int>(bind_opt).FromJust();
         }
 
     } else if (!info[1]->IsFunction()) {
@@ -2701,7 +2701,7 @@ NAN_METHOD(Map::renderSync)
                 return;
             }
 
-            buffer_size = bind_opt->IntegerValue();
+            buffer_size = Nan::To<int>(bind_opt).FromJust();
         }
     }
 
@@ -2821,7 +2821,7 @@ NAN_METHOD(Map::renderFileSync)
                 return;
             }
 
-            buffer_size = bind_opt->IntegerValue();
+            buffer_size = Nan::To<int>(bind_opt).FromJust();
         }
     }
 

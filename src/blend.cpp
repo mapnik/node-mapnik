@@ -67,9 +67,9 @@ NAN_METHOD(rgb2hsl) {
         return;
     }
     std::uint32_t r,g,b;
-    r = info[0]->IntegerValue();
-    g = info[1]->IntegerValue();
-    b = info[2]->IntegerValue();
+    r = Nan::To<int>(info[0]).FromJust();
+    g = Nan::To<int>(info[1]).FromJust();
+    b = Nan::To<int>(info[2]).FromJust();
     v8::Local<v8::Array> hsl = Nan::New<v8::Array>(3);
     double h,s,l;
     rgb_to_hsl(r,g,b,h,s,l);
@@ -522,7 +522,7 @@ NAN_METHOD(Blend) {
 
     // Validate options
     if (!options.IsEmpty()) {
-        baton->quality = options->Get(Nan::New("quality").ToLocalChecked())->Int32Value();
+        baton->quality = Nan::To<int>(options->Get(Nan::New("quality").ToLocalChecked())).FromJust();
 
         v8::Local<v8::Value> format_val = options->Get(Nan::New("format").ToLocalChecked());
         if (!format_val.IsEmpty() && format_val->IsString()) {
@@ -553,8 +553,8 @@ NAN_METHOD(Blend) {
         }
 
         baton->reencode = Nan::To<bool>(options->Get(Nan::New("reencode").ToLocalChecked())).FromJust();
-        baton->width = options->Get(Nan::New("width").ToLocalChecked())->Int32Value();
-        baton->height = options->Get(Nan::New("height").ToLocalChecked())->Int32Value();
+        baton->width = Nan::To<int>(options->Get(Nan::New("width").ToLocalChecked())).FromJust();
+        baton->height = Nan::To<int>(options->Get(Nan::New("height").ToLocalChecked())).FromJust();
 
         v8::Local<v8::Value> matte_val = options->Get(Nan::New("matte").ToLocalChecked());
         if (!matte_val.IsEmpty() && matte_val->IsString()) {

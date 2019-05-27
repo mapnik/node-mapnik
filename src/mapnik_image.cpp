@@ -202,13 +202,13 @@ NAN_METHOD(Image::New)
 
                     if (!init_val.IsEmpty() && init_val->IsNumber())
                     {
-                        int int_val = init_val->IntegerValue();
+                        int int_val = Nan::To<int>(init_val).FromJust();
                         if (int_val >= mapnik::image_dtype::IMAGE_DTYPE_MAX || int_val < 0)
                         {
                             Nan::ThrowTypeError("Image 'type' must be a valid image type");
                             return;
                         }
-                        type = static_cast<mapnik::image_dtype>(init_val->IntegerValue());
+                        type = static_cast<mapnik::image_dtype>(Nan::To<int>(init_val).FromJust());
                     }
                     else
                     {
@@ -267,8 +267,8 @@ NAN_METHOD(Image::New)
         }
 
         try {
-            Image* im = new Image(info[0]->IntegerValue(),
-                                  info[1]->IntegerValue(),
+            Image* im = new Image(Nan::To<int>(info[0]).FromJust(),
+                                  Nan::To<int>(info[1]).FromJust(),
                                   type,
                                   initialize,
                                   premultiplied,
@@ -467,8 +467,8 @@ NAN_METHOD(Image::getPixel)
             Nan::ThrowTypeError("second arg, 'y' must be an integer");
             return;
         }
-        x = info[0]->IntegerValue();
-        y = info[1]->IntegerValue();
+        x = Nan::To<int>(info[0]).FromJust();
+        y = Nan::To<int>(info[1]).FromJust();
     } else {
         Nan::ThrowError("must supply x,y to query pixel color");
         return;
@@ -509,8 +509,8 @@ NAN_METHOD(Image::setPixel)
         Nan::ThrowTypeError("expects three arguments: x, y, and pixel value");
         return;
     }
-    int x = info[0]->IntegerValue();
-    int y = info[1]->IntegerValue();
+    int x = Nan::To<int>(info[0]).FromJust();
+    int y = Nan::To<int>(info[1]).FromJust();
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     if (x < 0 || x >= static_cast<int>(im->this_->width()) || y < 0 || y >= static_cast<int>(im->this_->height()))
     {
@@ -623,7 +623,7 @@ NAN_METHOD(Image::compare)
                 Nan::ThrowTypeError("optional arg 'threshold' must be a number");
                 return;
             }
-            threshold = bind_opt->IntegerValue();
+            threshold = Nan::To<int>(bind_opt).FromJust();
         }
 
         if (options->Has(Nan::New("alpha").ToLocalChecked())) {
@@ -1495,7 +1495,7 @@ NAN_METHOD(Image::copy)
     {
         if (info[0]->IsNumber())
         {
-            type = static_cast<mapnik::image_dtype>(info[0]->IntegerValue());
+            type = static_cast<mapnik::image_dtype>(Nan::To<int>(info[0]).FromJust());
             if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
             {
                 Nan::ThrowTypeError("Image 'type' must be a valid image type");
@@ -1665,7 +1665,7 @@ v8::Local<v8::Value> Image::_copySync(Nan::NAN_METHOD_ARGS_TYPE info)
     {
         if (info[0]->IsNumber())
         {
-            type = static_cast<mapnik::image_dtype>(info[0]->IntegerValue());
+            type = static_cast<mapnik::image_dtype>(Nan::To<int>(info[0]).FromJust());
             if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
             {
                 Nan::ThrowTypeError("Image 'type' must be a valid image type");
@@ -1815,7 +1815,7 @@ NAN_METHOD(Image::resize)
     {
         if (info[0]->IsNumber())
         {
-            auto width_tmp = info[0]->IntegerValue();
+            auto width_tmp = Nan::To<int>(info[0]).FromJust();
             if (width_tmp <= 0)
             {
                 Nan::ThrowTypeError("Width must be a integer greater then zero");
@@ -1830,7 +1830,7 @@ NAN_METHOD(Image::resize)
         }
         if (info[1]->IsNumber())
         {
-            auto height_tmp = info[1]->IntegerValue();
+            auto height_tmp = Nan::To<int>(info[1]).FromJust();
             if (height_tmp <= 0)
             {
                 Nan::ThrowTypeError("Height must be a integer greater then zero");
@@ -1916,7 +1916,7 @@ NAN_METHOD(Image::resize)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            std::int64_t scaling_int = scaling_val->IntegerValue();
+            std::int64_t scaling_int = Nan::To<int>(scaling_val).FromJust();
             if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Nan::ThrowTypeError("Invalid scaling_method");
@@ -2191,7 +2191,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     {
         if (info[0]->IsNumber())
         {
-            int width_tmp = info[0]->IntegerValue();
+            int width_tmp = Nan::To<int>(info[0]).FromJust();
             if (width_tmp <= 0)
             {
                 Nan::ThrowTypeError("Width parameter must be an integer greater then zero");
@@ -2206,7 +2206,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         }
         if (info[1]->IsNumber())
         {
-            int height_tmp = info[1]->IntegerValue();
+            int height_tmp = Nan::To<int>(info[1]).FromJust();
             if (height_tmp <= 0)
             {
                 Nan::ThrowTypeError("Height parameter must be an integer greater then zero");
@@ -2293,7 +2293,7 @@ v8::Local<v8::Value> Image::_resizeSync(Nan::NAN_METHOD_ARGS_TYPE info)
         v8::Local<v8::Value> scaling_val = options->Get(Nan::New("scaling_method").ToLocalChecked());
         if (scaling_val->IsNumber())
         {
-            std::int64_t scaling_int = scaling_val->IntegerValue();
+            std::int64_t scaling_int = Nan::To<int>(scaling_val).FromJust();
             if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Nan::ThrowTypeError("Invalid scaling_method");
@@ -2725,7 +2725,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
                 Nan::ThrowTypeError("'max_size' must be a positive integer");
                 return scope.Escape(Nan::Undefined());
             }
-            auto max_size_val = opt->IntegerValue();
+            auto max_size_val = Nan::To<int>(opt).FromJust();
             if (max_size_val < 0 || max_size_val > 65535) {
                 Nan::ThrowTypeError("'max_size' must be a positive integer between 0 and 65535");
                 return scope.Escape(Nan::Undefined());
@@ -2962,7 +2962,7 @@ NAN_METHOD(Image::fromSVG)
                 Nan::ThrowTypeError("'max_size' must be a positive integer");
                 return;
             }
-            auto max_size_val = opt->IntegerValue();
+            auto max_size_val = Nan::To<int>(opt).FromJust();
             if (max_size_val < 0 || max_size_val > 65535) {
                 Nan::ThrowTypeError("'max_size' must be a positive integer between 0 and 65535");
                 return;
@@ -3197,7 +3197,7 @@ NAN_METHOD(Image::fromSVGBytes)
                 Nan::ThrowTypeError("'max_size' must be a positive integer");
                 return;
             }
-            auto max_size_val = opt->IntegerValue();
+            auto max_size_val = Nan::To<int>(opt).FromJust();
             if (max_size_val < 0 || max_size_val > 65535) {
                 Nan::ThrowTypeError("'max_size' must be a positive integer between 0 and 65535");
                 return;
@@ -3386,8 +3386,8 @@ v8::Local<v8::Value> Image::_fromBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
         return scope.Escape(Nan::Undefined());
     }
 
-    unsigned width = info[0]->IntegerValue();
-    unsigned height = info[1]->IntegerValue();
+    unsigned width = Nan::To<int>(info[0]).FromJust();
+    unsigned height = Nan::To<int>(info[1]).FromJust();
 
     if (width <= 0 || height <= 0)
     {
@@ -3611,7 +3611,7 @@ NAN_METHOD(Image::fromBytes)
                 v8::Local<v8::Value> opt = options->Get(Nan::New("max_size").ToLocalChecked());
                 if (opt->IsNumber())
                 {
-                    auto max_size_val = opt->IntegerValue();
+                    auto max_size_val = Nan::To<int>(opt).FromJust();
                     if (max_size_val < 0 || max_size_val > 65535) {
                         Nan::ThrowTypeError("max_size must be a positive integer between 0 and 65535");
                         return;
@@ -3952,10 +3952,10 @@ NAN_METHOD(Image::view)
     }
 
     // TODO parse args
-    unsigned x = info[0]->IntegerValue();
-    unsigned y = info[1]->IntegerValue();
-    unsigned w = info[2]->IntegerValue();
-    unsigned h = info[3]->IntegerValue();
+    unsigned x = Nan::To<int>(info[0]).FromJust();
+    unsigned y = Nan::To<int>(info[1]).FromJust();
+    unsigned w = Nan::To<int>(info[2]).FromJust();
+    unsigned h = Nan::To<int>(info[3]).FromJust();
 
     Image* im = Nan::ObjectWrap::Unwrap<Image>(info.Holder());
     info.GetReturnValue().Set(ImageView::NewInstance(im,x,y,w,h));
@@ -4235,7 +4235,7 @@ NAN_METHOD(Image::composite)
                 Nan::ThrowTypeError("comp_op must be a mapnik.compositeOp value");
                 return;
             }
-            int mode_int = opt->IntegerValue();
+            int mode_int = Nan::To<int>(opt).FromJust();
             if (mode_int > static_cast<int>(mapnik::composite_mode_e::divide) || mode_int < 0)
             {
                 Nan::ThrowTypeError("Invalid comp_op value");
@@ -4265,7 +4265,7 @@ NAN_METHOD(Image::composite)
                 Nan::ThrowTypeError("dx must be an integer");
                 return;
             }
-            dx = opt->IntegerValue();
+            dx = Nan::To<int>(opt).FromJust();
         }
 
         if (options->Has(Nan::New("dy").ToLocalChecked()))
@@ -4275,7 +4275,7 @@ NAN_METHOD(Image::composite)
                 Nan::ThrowTypeError("dy must be an integer");
                 return;
             }
-            dy = opt->IntegerValue();
+            dy = Nan::To<int>(opt).FromJust();
         }
 
         if (options->Has(Nan::New("image_filters").ToLocalChecked()))

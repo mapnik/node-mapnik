@@ -79,7 +79,7 @@ NAN_METHOD(Logger::set_severity){
         return;
     }
 
-    int severity = info[0]->IntegerValue();
+    int severity = Nan::To<int>(info[0]).FromJust();
     mapnik::logger::instance().set_severity(static_cast<mapnik::logger::severity_type>(severity));
     return;
 }

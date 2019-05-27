@@ -84,7 +84,7 @@ NAN_METHOD(MemoryDatasource::New)
         v8::Local<v8::Value> value = options->Get(name);
         if (value->IsUint32() || value->IsInt32())
         {
-            params[TOSTR(name)] = value->IntegerValue();
+            params[TOSTR(name)] = Nan::To<mapnik::value_integer>(value).FromJust();
         }
         else if (value->IsNumber())
         {
@@ -262,8 +262,8 @@ NAN_METHOD(MemoryDatasource::add)
                         } else if (value->IsNumber()) {
                             double num = Nan::To<double>(value).FromJust();
                             // todo - round
-                            if (num == value->IntegerValue()) {
-                                feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
+                            if (num == Nan::To<int>(value).FromJust()) {
+                                feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(Nan::To<int>(value).FromJust()));
                             } else {
                                 double dub_val = Nan::To<double>(value).FromJust();
                                 feature->put_new(TOSTR(name),dub_val);

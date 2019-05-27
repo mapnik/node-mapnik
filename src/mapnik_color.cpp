@@ -97,9 +97,9 @@ NAN_METHOD(Color::New)
                  info[1]->IsNumber() &&
                  info[2]->IsNumber())
         {
-            int r = info[0]->IntegerValue();
-            int g = info[1]->IntegerValue();
-            int b = info[2]->IntegerValue();
+            int r = Nan::To<int>(info[0]).FromJust();
+            int g = Nan::To<int>(info[1]).FromJust();
+            int b = Nan::To<int>(info[2]).FromJust();
             if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
             {
                 Nan::ThrowTypeError("color value out of range");
@@ -113,9 +113,9 @@ NAN_METHOD(Color::New)
                  info[2]->IsNumber() &&
                  info[3]->IsBoolean())
         {
-            int r = info[0]->IntegerValue();
-            int g = info[1]->IntegerValue();
-            int b = info[2]->IntegerValue();
+            int r = Nan::To<int>(info[0]).FromJust();
+            int g = Nan::To<int>(info[1]).FromJust();
+            int b = Nan::To<int>(info[2]).FromJust();
             if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
             {
                 Nan::ThrowTypeError("color value out of range");
@@ -129,10 +129,10 @@ NAN_METHOD(Color::New)
                  info[2]->IsNumber() &&
                  info[3]->IsNumber())
         {
-            int r = info[0]->IntegerValue();
-            int g = info[1]->IntegerValue();
-            int b = info[2]->IntegerValue();
-            int a = info[3]->IntegerValue();
+            int r = Nan::To<int>(info[0]).FromJust();
+            int g = Nan::To<int>(info[1]).FromJust();
+            int b = Nan::To<int>(info[2]).FromJust();
+            int a = Nan::To<int>(info[3]).FromJust();
             if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
             {
                 Nan::ThrowTypeError("color value out of range");
@@ -147,10 +147,10 @@ NAN_METHOD(Color::New)
                  info[3]->IsNumber() &&
                  info[4]->IsBoolean())
         {
-            int r = info[0]->IntegerValue();
-            int g = info[1]->IntegerValue();
-            int b = info[2]->IntegerValue();
-            int a = info[3]->IntegerValue();
+            int r = Nan::To<int>(info[0]).FromJust();
+            int g = Nan::To<int>(info[1]).FromJust();
+            int b = Nan::To<int>(info[2]).FromJust();
+            int a = Nan::To<int>(info[3]).FromJust();
             if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
             {
                 Nan::ThrowTypeError("color value out of range");
@@ -211,7 +211,7 @@ NAN_SETTER(Color::set_prop)
         Nan::ThrowTypeError("color channel value must be an integer");
         return;
     }
-    int val = value->IntegerValue();
+    int val = Nan::To<int>(value).FromJust();
     if (val < 0 || val > 255)
     {
         Nan::ThrowTypeError("Value out of range for color channel");
