@@ -962,7 +962,7 @@ NAN_METHOD(Map::remove_layer) {
 
     unsigned int index = Nan::To<int>(info[0]).FromJust();
 
-    if (index >= 0 && index < layers.size()) {
+    if (index < layers.size()) {
         m->map_->remove_layer(index);
         return;
     }
