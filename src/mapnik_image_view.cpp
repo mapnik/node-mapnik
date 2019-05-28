@@ -56,12 +56,12 @@ ImageView::ImageView(Image * JSImage) :
     Nan::ObjectWrap(),
     this_(),
     JSImage_(JSImage) {
-        JSImage_->_ref();
+        JSImage_->Ref();
     }
 
 ImageView::~ImageView()
 {
-    JSImage_->_unref();
+    JSImage_->Unref();
 }
 
 NAN_METHOD(ImageView::New)

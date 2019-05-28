@@ -1855,7 +1855,6 @@ NAN_METHOD(Map::render)
             closure->request.data = closure;
             closure->m = m;
             closure->im = Nan::ObjectWrap::Unwrap<Image>(obj);
-            closure->im->_ref();
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
@@ -1882,7 +1881,7 @@ NAN_METHOD(Map::render)
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
-
+            closure->im->Ref();
         }
 #if defined(GRID_RENDERER)
         else if (Nan::New(Grid::constructor)->HasInstance(obj)) {
@@ -1983,7 +1982,6 @@ NAN_METHOD(Map::render)
             closure->request.data = closure;
             closure->m = m;
             closure->g = g;
-            closure->g->_ref();
             closure->layer_idx = layer_idx;
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
@@ -1999,6 +1997,7 @@ NAN_METHOD(Map::render)
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
+            closure->g->Ref();
         }
 #endif
         else if (Nan::New(VectorTile::constructor)->HasInstance(obj))
@@ -2163,7 +2162,6 @@ NAN_METHOD(Map::render)
             closure->request.data = closure;
             closure->m = m;
             closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
-            closure->d->_ref();
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
             closure->offset_x = offset_x;
@@ -2177,6 +2175,7 @@ NAN_METHOD(Map::render)
             }
             closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
+            closure->d->Ref();
         }
         else
         {
@@ -2246,7 +2245,7 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     }
 
     closure->m->Unref();
-    closure->d->_unref();
+    closure->d->Unref();
     closure->cb.Reset();
     delete closure;
 }
@@ -2310,7 +2309,7 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     }
 
     closure->m->Unref();
-    closure->g->_unref();
+    closure->g->Unref();
     closure->cb.Reset();
     delete closure;
 }
@@ -2395,7 +2394,7 @@ void Map::EIO_AfterRenderImage(uv_work_t* req)
     }
 
     closure->m->Unref();
-    closure->im->_unref();
+    closure->im->Unref();
     closure->cb.Reset();
     delete closure;
 }
