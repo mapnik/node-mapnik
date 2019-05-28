@@ -400,7 +400,7 @@ NAN_METHOD(ImageView::encodeSync)
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
-		{
+        {
             v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
             if (!format_opt->IsObject()) {
                 Nan::ThrowTypeError("'palette' must be an object");

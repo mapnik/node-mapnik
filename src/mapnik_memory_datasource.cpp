@@ -174,10 +174,10 @@ NAN_METHOD(MemoryDatasource::featureset)
                     Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
                     return;
                 }
-				v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
-				v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
-				v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
-				v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
+                v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
+                v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
+                v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
+                v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
                 if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
                 {
                     Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
