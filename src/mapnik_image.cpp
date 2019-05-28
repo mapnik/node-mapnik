@@ -524,7 +524,7 @@ NAN_METHOD(Image::setPixel)
     }
     else if (info[2]->IsInt32())
     {
-        std::int32_t val = info[2]->Int32Value();
+        std::int32_t val = Nan::To<int32_t>(info[2]).FromJust();
         mapnik::set_pixel<std::int32_t>(*im->this_,x,y,val);
     }
     else if (info[2]->IsNumber())
@@ -818,7 +818,7 @@ v8::Local<v8::Value> Image::_fillSync(Nan::NAN_METHOD_ARGS_TYPE info) {
         }
         else if (info[0]->IsInt32())
         {
-            std::int32_t val = info[0]->Int32Value();
+            std::int32_t val = Nan::To<int32_t>(info[2]).FromJust();
             mapnik::fill<std::int32_t>(*im->this_,val);
         }
         else if (info[0]->IsNumber())
@@ -909,7 +909,7 @@ NAN_METHOD(Image::fill)
     }
     else if (info[0]->IsInt32())
     {
-        closure->val_32 = info[0]->Int32Value();
+        closure->val_32 = Nan::To<int32_t>(info[2]).FromJust();
         closure->type = FILL_INT32;
     }
     else if (info[0]->IsNumber())

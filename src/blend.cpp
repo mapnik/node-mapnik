@@ -591,7 +591,7 @@ NAN_METHOD(Blend) {
             v8::Local<v8::Value> compression_val = Nan::Get(options, Nan::New("compression").ToLocalChecked()).ToLocalChecked();
             if (!compression_val.IsEmpty() && compression_val->IsNumber())
             {
-                baton->compression = compression_val->Int32Value();
+                baton->compression = Nan::To<int>(compression_val).FromJust();
             }
             else
             {
