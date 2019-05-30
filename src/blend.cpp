@@ -66,16 +66,15 @@ NAN_METHOD(rgb2hsl) {
         Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
         return;
     }
-    std::uint32_t r,g,b;
-    r = Nan::To<int>(info[0]).FromJust();
-    g = Nan::To<int>(info[1]).FromJust();
-    b = Nan::To<int>(info[2]).FromJust();
+    std::uint32_t r = Nan::To<int>(info[0]).FromJust();
+    std::uint32_t g = Nan::To<int>(info[1]).FromJust();
+    std::uint32_t b = Nan::To<int>(info[2]).FromJust();
     v8::Local<v8::Array> hsl = Nan::New<v8::Array>(3);
     double h,s,l;
     rgb_to_hsl(r,g,b,h,s,l);
-    Nan::Set(hsl,  0,Nan::New<v8::Number>(h));
-    Nan::Set(hsl,  1,Nan::New<v8::Number>(s));
-    Nan::Set(hsl,  2,Nan::New<v8::Number>(l));
+    Nan::Set(hsl, 0, Nan::New<v8::Number>(h));
+    Nan::Set(hsl, 1, Nan::New<v8::Number>(s));
+    Nan::Set(hsl, 2, Nan::New<v8::Number>(l));
     info.GetReturnValue().Set(hsl);
 }
 
@@ -95,9 +94,9 @@ NAN_METHOD(hsl2rgb) {
     v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
     std::uint32_t r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
-    Nan::Set(rgb,  0,Nan::New<v8::Integer>(r));
-    Nan::Set(rgb,  1,Nan::New<v8::Integer>(g));
-    Nan::Set(rgb,  2,Nan::New<v8::Integer>(b));
+    Nan::Set(rgb, 0, Nan::New<v8::Integer>(r));
+    Nan::Set(rgb, 1, Nan::New<v8::Integer>(g));
+    Nan::Set(rgb, 2, Nan::New<v8::Integer>(b));
     info.GetReturnValue().Set(rgb);
 }
 
