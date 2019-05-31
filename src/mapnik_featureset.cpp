@@ -98,7 +98,7 @@ v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp)
     Featureset* fs = new Featureset();
     fs->this_ = fsp;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(fs);
-    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Featureset instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

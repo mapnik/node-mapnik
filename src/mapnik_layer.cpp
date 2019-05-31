@@ -111,7 +111,7 @@ v8::Local<v8::Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
     // copy new mapnik::layer into the shared_ptr
     l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(l);
-    v8::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Layer instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
