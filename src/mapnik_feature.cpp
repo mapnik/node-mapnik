@@ -35,11 +35,11 @@ void Feature::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "geometry", geometry);
     Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
 
-    Nan::SetMethod(lcons->GetFunction().As<v8::Object>(),
+    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
                     "fromJSON",
                     Feature::fromJSON);
 
-    target->Set(Nan::New("Feature").ToLocalChecked(),lcons->GetFunction());
+    Nan::Set(target, Nan::New("Feature").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -84,7 +84,7 @@ NAN_METHOD(Feature::New)
         return;
     }
 
-    Feature* f = new Feature(info[0]->IntegerValue());
+    Feature* f = new Feature(Nan::To<int>(info[0]).FromJust());
     f->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
@@ -114,7 +114,7 @@ NAN_METHOD(Feature::fromJSON)
         }
         Feature* feat = new Feature(f);
         v8::Local<v8::Value> ext = Nan::New<v8::External>(feat);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
         if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
         else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
     }
@@ -134,7 +134,7 @@ v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
     Nan::EscapableHandleScope scope;
     Feature* f = new Feature(f_ptr);
     v8::Local<v8::Value> ext = Nan::New<v8::External>(f);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
@@ -164,10 +164,10 @@ NAN_METHOD(Feature::extent)
     Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
     mapnik::box2d<double> const& e = fp->get()->envelope();
-    a->Set(0, Nan::New<v8::Number>(e.minx()));
-    a->Set(1, Nan::New<v8::Number>(e.miny()));
-    a->Set(2, Nan::New<v8::Number>(e.maxx()));
-    a->Set(3, Nan::New<v8::Number>(e.maxy()));
+    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
+    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
+    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
+    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
 
     info.GetReturnValue().Set(a);
 }
@@ -189,7 +189,7 @@ NAN_METHOD(Feature::attributes)
     {
         for (auto const& attr : *feature)
         {
-            feat->Set(Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
+            Nan::Set(feat, Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
                       mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
                 );
         }

@@ -41,7 +41,7 @@ void Datasource::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "extent", extent);
     Nan::SetPrototypeMethod(lcons, "fields", fields);
 
-    target->Set(Nan::New("Datasource").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Datasource").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -68,12 +68,12 @@ NAN_METHOD(Datasource::New)
         Datasource* d =  static_cast<Datasource*>(ptr);
         if (d->datasource_->type() == mapnik::datasource::Raster)
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("raster").ToLocalChecked());
         }
         else
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("vector").ToLocalChecked());
         }
         d->Wrap(info.This());
@@ -95,12 +95,12 @@ NAN_METHOD(Datasource::New)
     v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
     mapnik::parameters params;
-    v8::Local<v8::Array> names = options->GetPropertyNames();
+    v8::Local<v8::Array> names = Nan::GetPropertyNames(options).ToLocalChecked();
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        v8::Local<v8::Value> name = names->Get(i)->ToString();
-        v8::Local<v8::Value> value = options->Get(name);
+        v8::Local<v8::Value> name = Nan::Get(names, i).ToLocalChecked()->ToString(Nan::GetCurrentContext()).ToLocalChecked();
+        v8::Local<v8::Value> value = Nan::Get(options, name).ToLocalChecked();
         // TODO - don't treat everything as strings
         params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
         i++;
@@ -121,12 +121,12 @@ NAN_METHOD(Datasource::New)
     {
         if (ds->type() == mapnik::datasource::Raster)
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("raster").ToLocalChecked());
         }
         else
         {
-            info.This()->Set(Nan::New("type").ToLocalChecked(),
+            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
                              Nan::New("vector").ToLocalChecked());
         }
         Datasource* d = new Datasource();
@@ -147,7 +147,7 @@ v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     Datasource* d = new Datasource();
     d->datasource_ = ds_ptr;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Datasource instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
@@ -194,10 +194,10 @@ NAN_METHOD(Datasource::extent)
     }
 
     v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
-    a->Set(0, Nan::New<v8::Number>(e.minx()));
-    a->Set(1, Nan::New<v8::Number>(e.miny()));
-    a->Set(2, Nan::New<v8::Number>(e.maxx()));
-    a->Set(3, Nan::New<v8::Number>(e.maxy()));
+    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
+    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
+    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
+    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
     info.GetReturnValue().Set(a);
 }
 
@@ -263,10 +263,10 @@ NAN_METHOD(Datasource::featureset)
             Nan::ThrowTypeError("optional second argument must be an options object");
             return;
         }
-        v8::Local<v8::Object> options = info[0]->ToObject();
-        if (options->Has(Nan::New("extent").ToLocalChecked()))
+        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());
+            v8::Local<v8::Value> extent_opt = Nan::Get(options, Nan::New("extent").ToLocalChecked()).ToLocalChecked();
             if (!extent_opt->IsArray())
             {
                 Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
@@ -279,17 +279,17 @@ NAN_METHOD(Datasource::featureset)
                 Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
                 return;
             }
-            v8::Local<v8::Value> minx = bbox->Get(0);
-            v8::Local<v8::Value> miny = bbox->Get(1);
-            v8::Local<v8::Value> maxx = bbox->Get(2);
-            v8::Local<v8::Value> maxy = bbox->Get(3);
+            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
+            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
+            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
+            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
             if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
             {
                 Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                 return;
             }
-            extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                           maxx->NumberValue(),maxy->NumberValue());
+            extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
+                                           Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
         }
     }
 

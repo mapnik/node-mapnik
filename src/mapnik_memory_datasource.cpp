@@ -30,7 +30,7 @@ void MemoryDatasource::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "add", add);
     Nan::SetPrototypeMethod(lcons, "fields", fields);
 
-    target->Set(Nan::New("MemoryDatasource").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("MemoryDatasource").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -76,23 +76,23 @@ NAN_METHOD(MemoryDatasource::New)
     v8::Local<v8::Object> options = info[0].As<v8::Object>();
 
     mapnik::parameters params;
-    v8::Local<v8::Array> names = options->GetPropertyNames();
+    v8::Local<v8::Array> names = Nan::GetPropertyNames(options).ToLocalChecked();
     unsigned int i = 0;
     unsigned int a_length = names->Length();
     while (i < a_length) {
-        v8::Local<v8::Value> name = names->Get(i)->ToString();
-        v8::Local<v8::Value> value = options->Get(name);
+        v8::Local<v8::Value> name = Nan::Get(names, i).ToLocalChecked()->ToString(Nan::GetCurrentContext()).ToLocalChecked();
+        v8::Local<v8::Value> value = Nan::Get(options, name).ToLocalChecked();
         if (value->IsUint32() || value->IsInt32())
         {
-            params[TOSTR(name)] = value->IntegerValue();
+            params[TOSTR(name)] = Nan::To<mapnik::value_integer>(value).FromJust();
         }
         else if (value->IsNumber())
         {
-            params[TOSTR(name)] = value->NumberValue();
+            params[TOSTR(name)] = Nan::To<double>(value).FromJust();
         }
         else if (value->IsBoolean())
         {
-            params[TOSTR(name)] = value->BooleanValue();
+            params[TOSTR(name)] = Nan::To<bool>(value).FromJust();
         }
         else
         {
@@ -113,7 +113,7 @@ v8::Local<v8::Value> MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr
     MemoryDatasource* d = new MemoryDatasource();
     d->datasource_ = ds_ptr;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new MemoryDatasource instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }
@@ -158,10 +158,10 @@ NAN_METHOD(MemoryDatasource::featureset)
                 Nan::ThrowTypeError("optional second argument must be an options object");
                 return;
             }
-            v8::Local<v8::Object> options = info[0]->ToObject();
-            if (options->Has(Nan::New("extent").ToLocalChecked()))
+            v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+            if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
             {
-                v8::Local<v8::Value> extent_opt = options->Get(Nan::New("extent").ToLocalChecked());
+                v8::Local<v8::Value> extent_opt = Nan::Get(options, Nan::New("extent").ToLocalChecked()).ToLocalChecked();
                 if (!extent_opt->IsArray())
                 {
                     Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
@@ -174,17 +174,17 @@ NAN_METHOD(MemoryDatasource::featureset)
                     Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
                     return;
                 }
-                v8::Local<v8::Value> minx = bbox->Get(0);
-                v8::Local<v8::Value> miny = bbox->Get(1);
-                v8::Local<v8::Value> maxx = bbox->Get(2);
-                v8::Local<v8::Value> maxy = bbox->Get(3);
+                v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
+                v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
+                v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
+                v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
                 if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
                 {
                     Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
                     return;
                 }
-                extent = mapnik::box2d<double>(minx->NumberValue(),miny->NumberValue(),
-                                               maxx->NumberValue(),maxy->NumberValue());
+                extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
+                                               Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
             }
         }
 
@@ -226,46 +226,47 @@ NAN_METHOD(MemoryDatasource::add)
 
     v8::Local<v8::Object> obj = info[0].As<v8::Object>();
 
-    if (obj->Has(Nan::New("wkt").ToLocalChecked()) || (obj->Has(Nan::New("x").ToLocalChecked()) && obj->Has(Nan::New("y").ToLocalChecked())))
+    if ((Nan::Has(obj, Nan::New("wkt").ToLocalChecked()).FromMaybe(false)) ||
+        (Nan::Has(obj, Nan::New("x").ToLocalChecked()).FromMaybe(false) && Nan::Has(obj, Nan::New("y").ToLocalChecked()).FromMaybe(false)))
     {
-        if (obj->Has(Nan::New("wkt").ToLocalChecked()))
+        if (Nan::Has(obj, Nan::New("wkt").ToLocalChecked()).FromMaybe(false))
         {
             Nan::ThrowError("wkt not yet supported");
             return;
         }
 
-        v8::Local<v8::Value> x = obj->Get(Nan::New("x").ToLocalChecked());
-        v8::Local<v8::Value> y = obj->Get(Nan::New("y").ToLocalChecked());
+        v8::Local<v8::Value> x = Nan::Get(obj, Nan::New("x").ToLocalChecked()).ToLocalChecked();
+        v8::Local<v8::Value> y = Nan::Get(obj, Nan::New("y").ToLocalChecked()).ToLocalChecked();
         if (!x->IsUndefined() && x->IsNumber() && !y->IsUndefined() && y->IsNumber())
         {
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));
             ++(d->feature_id_);
-            feature->set_geometry(mapnik::geometry::point<double>(x->NumberValue(),y->NumberValue()));
-            if (obj->Has(Nan::New("properties").ToLocalChecked()))
+            feature->set_geometry(mapnik::geometry::point<double>(Nan::To<double>(x).FromJust(),Nan::To<double>(y).FromJust()));
+            if (Nan::Has(obj, Nan::New("properties").ToLocalChecked()).FromMaybe(false))
             {
-                v8::Local<v8::Value> props = obj->Get(Nan::New("properties").ToLocalChecked());
+                v8::Local<v8::Value> props = Nan::Get(obj, Nan::New("properties").ToLocalChecked()).ToLocalChecked();
                 if (props->IsObject())
                 {
-                    v8::Local<v8::Object> p_obj = props->ToObject();
-                    v8::Local<v8::Array> names = p_obj->GetPropertyNames();
+                    v8::Local<v8::Object> p_obj = props->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+                    v8::Local<v8::Array> names = Nan::GetPropertyNames(p_obj).ToLocalChecked();
                     unsigned int i = 0;
                     unsigned int a_length = names->Length();
                     while (i < a_length)
                     {
-                        v8::Local<v8::Value> name = names->Get(i)->ToString();
+                        v8::Local<v8::Value> name = Nan::Get(names, i).ToLocalChecked()->ToString(Nan::GetCurrentContext()).ToLocalChecked();
                         // if name in q.property_names() ?
-                        v8::Local<v8::Value> value = p_obj->Get(name);
+                        v8::Local<v8::Value> value = Nan::Get(p_obj, name).ToLocalChecked();
                         if (value->IsString()) {
                             mapnik::value_unicode_string ustr = d->tr_.transcode(TOSTR(value));
                             feature->put_new(TOSTR(name),ustr);
                         } else if (value->IsNumber()) {
-                            double num = value->NumberValue();
+                            double num = Nan::To<double>(value).FromJust();
                             // todo - round
-                            if (num == value->IntegerValue()) {
-                                feature->put_new(TOSTR(name),static_cast<node_mapnik::value_integer>(value->IntegerValue()));
+                            if (num == Nan::To<int>(value).FromJust()) {
+                                feature->put_new(TOSTR(name), Nan::To<node_mapnik::value_integer>(value).FromJust());
                             } else {
-                                double dub_val = value->NumberValue();
+                                double dub_val = Nan::To<double>(value).FromJust();
                                 feature->put_new(TOSTR(name),dub_val);
                             }
                         } else if (value->IsNull()) {

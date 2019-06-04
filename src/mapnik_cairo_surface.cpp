@@ -13,7 +13,7 @@ void CairoSurface::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "width", width);
     Nan::SetPrototypeMethod(lcons, "height", height);
     Nan::SetPrototypeMethod(lcons, "getData", getData);
-    target->Set(Nan::New("CairoSurface").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("CairoSurface").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -64,7 +64,7 @@ NAN_METHOD(CairoSurface::New)
             Nan::ThrowTypeError("CairoSurface 'width' and 'height' must be a integers");
             return;
         }
-        CairoSurface* im = new CairoSurface(format, info[1]->IntegerValue(), info[2]->IntegerValue());
+        CairoSurface* im = new CairoSurface(format, Nan::To<int>(info[1]).FromJust(), Nan::To<int>(info[2]).FromJust());
         im->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
         return;

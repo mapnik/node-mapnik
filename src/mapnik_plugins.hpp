@@ -39,7 +39,7 @@ static inline NAN_METHOD(available_input_plugins)
     v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
+        Nan::Set(a, i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }

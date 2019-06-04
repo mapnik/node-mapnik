@@ -36,16 +36,16 @@ static inline NAN_METHOD(register_fonts)
             }
 
             v8::Local<v8::Object> options = info[1].As<v8::Object>();
-            if (options->Has(Nan::New("recurse").ToLocalChecked()))
+            if (Nan::Has(options, Nan::New("recurse").ToLocalChecked()).FromMaybe(false))
             {
-                v8::Local<v8::Value> recurse_opt = options->Get(Nan::New("recurse").ToLocalChecked());
+                v8::Local<v8::Value> recurse_opt = Nan::Get(options, Nan::New("recurse").ToLocalChecked()).ToLocalChecked();
                 if (!recurse_opt->IsBoolean())
                 {
                     Nan::ThrowTypeError("'recurse' must be a Boolean");
                     return;
                 }
 
-                bool recurse = recurse_opt->BooleanValue();
+                bool recurse = Nan::To<bool>(recurse_opt).FromJust();
                 std::string path = TOSTR(info[0]);
                 found = mapnik::freetype_engine::register_fonts(path,recurse);
             }
@@ -74,7 +74,7 @@ static inline NAN_METHOD(available_font_faces)
     v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        a->Set(i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
+        Nan::Set(a, i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -86,7 +86,7 @@ static inline NAN_METHOD(memory_fonts)
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        a->Set(i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
+        Nan::Set(a, i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(a);
 }
@@ -97,7 +97,7 @@ static inline NAN_METHOD(available_font_files)
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     for (auto const& kv : mapping)
     {
-        obj->Set(Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
+        Nan::Set(obj, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
     }
     info.GetReturnValue().Set(obj);
 }
