@@ -89,8 +89,9 @@ public:
 
     bool acquire();
     void release();
-    void _ref() { Ref(); }
-    void _unref() { Unref(); }
+
+    using Nan::ObjectWrap::Ref;
+    using Nan::ObjectWrap::Unref;
 
     inline map_ptr get() { return map_; }
 

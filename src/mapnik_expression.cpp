@@ -86,16 +86,15 @@ NAN_METHOD(Expression::evaluate)
         Nan::ThrowTypeError("first argument is invalid, must be a mapnik.Feature");
         return;
     }
-    v8::Local<v8::Object> obj = info[0].As<v8::Object>();
-    if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Feature::constructor)->HasInstance(obj)) {
+
+    if (info[0]->IsNull() || info[0]->IsUndefined() || !Nan::New(Feature::constructor)->HasInstance(info[0])) {
         Nan::ThrowTypeError("first argument is invalid, must be a mapnik.Feature");
         return;
     }
 
-    Feature* f = Nan::ObjectWrap::Unwrap<Feature>(obj);
+    Feature* f = Nan::ObjectWrap::Unwrap<Feature>(info[0].As<v8::Object>());
 
     Expression* e = Nan::ObjectWrap::Unwrap<Expression>(info.Holder());
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
     mapnik::attributes vars;
     if (info.Length() > 1)
     {
@@ -104,7 +103,7 @@ NAN_METHOD(Expression::evaluate)
             Nan::ThrowTypeError("optional second argument must be an options object");
             return;
         }
-        options = info[1]->ToObject();
+        v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
         if (options->Has(Nan::New("variables").ToLocalChecked()))
         {

@@ -114,8 +114,8 @@ public:
     static NAN_GETTER(get_offset);
     static NAN_SETTER(set_offset);
 
-    void _ref() { Ref(); }
-    void _unref() { Unref(); }
+    using Nan::ObjectWrap::Ref;
+    using Nan::ObjectWrap::Unref;
 
     Image(unsigned int width, unsigned int height, mapnik::image_dtype type, bool initialized, bool premultiplied, bool painted);
     Image(image_ptr this_);

@@ -3558,7 +3558,7 @@ NAN_METHOD(VectorTile::addImage)
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_AddImage, (uv_after_work_cb)EIO_AfterAddImage);
     d->Ref();
-    im->_ref();
+    im->Ref();
     return;
 }
 
@@ -3611,7 +3611,7 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
     }
 
     closure->d->Unref();
-    closure->im->_unref();
+    closure->im->Unref();
     closure->cb.Reset();
     delete closure;
 }
@@ -4698,6 +4698,20 @@ using surface_type = mapnik::util::variant
 #endif
      >;
 
+struct ref_visitor
+{
+    void operator() (dummy_surface) {} // no-op
+    template <typename SurfaceType>
+    void operator() (SurfaceType * surface)
+    {
+        if (surface != nullptr)
+        {
+            surface->Ref();
+        }
+    }
+};
+
+
 struct deref_visitor
 {
     void operator() (dummy_surface) {} // no-op
@@ -4706,7 +4720,7 @@ struct deref_visitor
     {
         if (surface != nullptr)
         {
-            surface->_unref();
+            surface->Unref();
         }
     }
 };
@@ -4755,11 +4769,6 @@ struct vector_tile_render_baton_t
         zxy_override(false),
         error(false)
         {}
-
-    ~vector_tile_render_baton_t()
-    {
-        mapnik::util::apply_visitor(deref_visitor(),surface);
-    }
 };
 
 struct baton_guard
@@ -4978,7 +4987,6 @@ NAN_METHOD(VectorTile::render)
     if (Nan::New(Image::constructor)->HasInstance(im_obj))
     {
         Image *im = Nan::ObjectWrap::Unwrap<Image>(im_obj);
-        im->_ref();
         closure->width = im->get()->width();
         closure->height = im->get()->height();
         closure->surface = im;
@@ -4986,7 +4994,6 @@ NAN_METHOD(VectorTile::render)
     else if (Nan::New(CairoSurface::constructor)->HasInstance(im_obj))
     {
         CairoSurface *c = Nan::ObjectWrap::Unwrap<CairoSurface>(im_obj);
-        c->_ref();
         closure->width = c->width();
         closure->height = c->height();
         closure->surface = c;
@@ -5018,7 +5025,6 @@ NAN_METHOD(VectorTile::render)
     else if (Nan::New(Grid::constructor)->HasInstance(im_obj))
     {
         Grid *g = Nan::ObjectWrap::Unwrap<Grid>(im_obj);
-        g->_ref();
         closure->width = g->get()->width();
         closure->height = g->get()->height();
         closure->surface = g;
@@ -5119,7 +5125,8 @@ NAN_METHOD(VectorTile::render)
     closure->error = false;
     closure->cb.Reset(callback.As<v8::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, (uv_after_work_cb)EIO_AfterRenderTile);
-    m->_ref();
+    mapnik::util::apply_visitor(ref_visitor(), closure->surface);
+    m->Ref();
     d->Ref();
     guard.release();
     return;
@@ -5355,7 +5362,8 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
         }
     }
 
-    closure->m->_unref();
+    mapnik::util::apply_visitor(deref_visitor(), closure->surface);
+    closure->m->Unref();
     closure->d->Unref();
     closure->cb.Reset();
     delete closure;

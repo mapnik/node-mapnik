@@ -41,8 +41,9 @@ public:
 
     static NAN_GETTER(get_key);
     static NAN_SETTER(set_key);
-    void _ref() { Ref(); }
-    void _unref() { Unref(); }
+
+    using Nan::ObjectWrap::Ref;
+    using Nan::ObjectWrap::Unref;
 
     Grid(unsigned int width, unsigned int height, std::string const& key);
     inline grid_ptr get() { return this_; }
