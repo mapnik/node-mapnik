@@ -1363,7 +1363,6 @@ NAN_METHOD(VectorTile::layer)
         Nan::ThrowTypeError("layer does not exist in vector tile");
         return;
     }
-    protozero::pbf_reader layer_msg;
     VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
     protozero::pbf_reader tile_message(d->get_tile()->get_reader());
     while (tile_message.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
