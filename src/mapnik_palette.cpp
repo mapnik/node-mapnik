@@ -20,7 +20,7 @@ void Palette::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toString", ToString);
     Nan::SetPrototypeMethod(lcons, "toBuffer", ToBuffer);
 
-    target->Set(Nan::New("Palette").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Palette").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 

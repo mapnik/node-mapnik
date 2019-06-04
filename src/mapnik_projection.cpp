@@ -35,7 +35,7 @@ void Projection::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "forward", forward);
     Nan::SetPrototypeMethod(lcons, "inverse", inverse);
 
-    target->Set(Nan::New("Projection").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Projection").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -68,15 +68,15 @@ NAN_METHOD(Projection::New)
             return;
         }
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (options->Has(Nan::New("lazy").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("lazy").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> lazy_opt = options->Get(Nan::New("lazy").ToLocalChecked());
+            v8::Local<v8::Value> lazy_opt = Nan::Get(options, Nan::New("lazy").ToLocalChecked()).ToLocalChecked();
             if (!lazy_opt->IsBoolean())
             {
                 Nan::ThrowTypeError("'lazy' must be a Boolean");
                 return;
             }
-            lazy = lazy_opt->BooleanValue();
+            lazy = Nan::To<bool>(lazy_opt).FromJust();
         }
     }
 
@@ -125,30 +125,30 @@ NAN_METHOD(Projection::forward)
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
-                double x = a->Get(0)->NumberValue();
-                double y = a->Get(1)->NumberValue();
+                double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
+                double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
                 p->projection_->forward(x,y);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-                arr->Set(0, Nan::New(x));
-                arr->Set(1, Nan::New(y));
+                Nan::Set(arr, 0, Nan::New(x));
+                Nan::Set(arr, 1, Nan::New(y));
                 info.GetReturnValue().Set(arr);
             }
             else if (array_length == 4)
             {
                 double ulx, uly, urx, ury, lrx, lry, llx, lly;
-                ulx = llx = a->Get(0)->NumberValue();
-                lry = lly = a->Get(1)->NumberValue();
-                lrx = urx = a->Get(2)->NumberValue();
-                uly = ury = a->Get(3)->NumberValue();
+                ulx = llx = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
+                lry = lly = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
+                lrx = urx = Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust();
+                uly = ury = Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust();
                 p->projection_->forward(ulx,uly);
                 p->projection_->forward(urx,ury);
                 p->projection_->forward(lrx,lry);
                 p->projection_->forward(llx,lly);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-                arr->Set(0, Nan::New(std::min(ulx,llx)));
-                arr->Set(1, Nan::New(std::min(lry,lly)));
-                arr->Set(2, Nan::New(std::max(urx,lrx)));
-                arr->Set(3, Nan::New(std::max(ury,uly)));
+                Nan::Set(arr, 0, Nan::New(std::min(ulx,llx)));
+                Nan::Set(arr, 1, Nan::New(std::min(lry,lly)));
+                Nan::Set(arr, 2, Nan::New(std::max(urx,lrx)));
+                Nan::Set(arr, 3, Nan::New(std::max(ury,uly)));
                 info.GetReturnValue().Set(arr);
             }
             else
@@ -191,27 +191,27 @@ NAN_METHOD(Projection::inverse)
             unsigned int array_length = a->Length();
             if (array_length == 2)
             {
-                double x = a->Get(0)->NumberValue();
-                double y = a->Get(1)->NumberValue();
+                double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
+                double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
                 p->projection_->inverse(x,y);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-                arr->Set(0, Nan::New(x));
-                arr->Set(1, Nan::New(y));
+                Nan::Set(arr, 0, Nan::New(x));
+                Nan::Set(arr, 1, Nan::New(y));
                 info.GetReturnValue().Set(arr);
             }
             else if (array_length == 4)
             {
-                double minx = a->Get(0)->NumberValue();
-                double miny = a->Get(1)->NumberValue();
-                double maxx = a->Get(2)->NumberValue();
-                double maxy = a->Get(3)->NumberValue();
+                double minx = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
+                double miny = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
+                double maxx = Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust();
+                double maxy = Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust();
                 p->projection_->inverse(minx,miny);
                 p->projection_->inverse(maxx,maxy);
                 v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-                arr->Set(0, Nan::New(minx));
-                arr->Set(1, Nan::New(miny));
-                arr->Set(2, Nan::New(maxx));
-                arr->Set(3, Nan::New(maxy));
+                Nan::Set(arr, 0, Nan::New(minx));
+                Nan::Set(arr, 1, Nan::New(miny));
+                Nan::Set(arr, 2, Nan::New(maxx));
+                Nan::Set(arr, 3, Nan::New(maxy));
                 info.GetReturnValue().Set(arr);
             }
             else
@@ -239,7 +239,7 @@ void ProjTransform::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "forward", forward);
     Nan::SetPrototypeMethod(lcons, "backward", backward);
 
-    target->Set(Nan::New("ProjTransform").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("ProjTransform").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -309,29 +309,29 @@ NAN_METHOD(ProjTransform::forward)
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
-            double x = a->Get(0)->NumberValue();
-            double y = a->Get(1)->NumberValue();
+            double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
+            double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
             double z = 0;
             if (!p->this_->forward(x,y,z))
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
+                  << x <<  "," << y << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
                 Nan::ThrowError(s.str().c_str());
                 return;
 
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-            arr->Set(0, Nan::New(x));
-            arr->Set(1, Nan::New(y));
+            Nan::Set(arr, 0, Nan::New(x));
+            Nan::Set(arr, 1, Nan::New(y));
             info.GetReturnValue().Set(arr);
         }
         else if (array_length == 4)
         {
-            mapnik::box2d<double> box(a->Get(0)->NumberValue(),
-                                      a->Get(1)->NumberValue(),
-                                      a->Get(2)->NumberValue(),
-                                      a->Get(3)->NumberValue());
+            mapnik::box2d<double> box(Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust(),
+                                      Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust(),
+                                      Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust(),
+                                      Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust());
             if (!p->this_->forward(box))
             {
                 std::ostringstream s;
@@ -341,10 +341,10 @@ NAN_METHOD(ProjTransform::forward)
                 return;
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-            arr->Set(0, Nan::New(box.minx()));
-            arr->Set(1, Nan::New(box.miny()));
-            arr->Set(2, Nan::New(box.maxx()));
-            arr->Set(3, Nan::New(box.maxy()));
+            Nan::Set(arr, 0, Nan::New(box.minx()));
+            Nan::Set(arr, 1, Nan::New(box.miny()));
+            Nan::Set(arr, 2, Nan::New(box.maxx()));
+            Nan::Set(arr, 3, Nan::New(box.maxy()));
             info.GetReturnValue().Set(arr);
         }
         else
@@ -373,28 +373,28 @@ NAN_METHOD(ProjTransform::backward)
         unsigned int array_length = a->Length();
         if (array_length == 2)
         {
-            double x = a->Get(0)->NumberValue();
-            double y = a->Get(1)->NumberValue();
+            double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
+            double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
             double z = 0;
             if (!p->this_->backward(x,y,z))
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << a->Get(0)->NumberValue() << "," << a->Get(1)->NumberValue() << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
+                  << x << "," << y << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
                 Nan::ThrowError(s.str().c_str());
                 return;
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-            arr->Set(0, Nan::New(x));
-            arr->Set(1, Nan::New(y));
+            Nan::Set(arr, 0, Nan::New(x));
+            Nan::Set(arr, 1, Nan::New(y));
             info.GetReturnValue().Set(arr);
         }
         else if (array_length == 4)
         {
-            mapnik::box2d<double> box(a->Get(0)->NumberValue(),
-                                      a->Get(1)->NumberValue(),
-                                      a->Get(2)->NumberValue(),
-                                      a->Get(3)->NumberValue());
+            mapnik::box2d<double> box(Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust(),
+                                      Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust(),
+                                      Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust(),
+                                      Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust());
             if (!p->this_->backward(box))
             {
                 std::ostringstream s;
@@ -404,10 +404,10 @@ NAN_METHOD(ProjTransform::backward)
                 return;
             }
             v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-            arr->Set(0, Nan::New(box.minx()));
-            arr->Set(1, Nan::New(box.miny()));
-            arr->Set(2, Nan::New(box.maxx()));
-            arr->Set(3, Nan::New(box.maxy()));
+            Nan::Set(arr, 0, Nan::New(box.minx()));
+            Nan::Set(arr, 1, Nan::New(box.miny()));
+            Nan::Set(arr, 2, Nan::New(box.maxx()));
+            Nan::Set(arr, 3, Nan::New(box.maxy()));
             info.GetReturnValue().Set(arr);
         }
         else

@@ -26,7 +26,7 @@ void Expression::Initialize(v8::Local<v8::Object> target) {
     Nan::SetPrototypeMethod(lcons, "toString", toString);
     Nan::SetPrototypeMethod(lcons, "evaluate", evaluate);
 
-    target->Set(Nan::New("Expression").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Expression").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -105,15 +105,15 @@ NAN_METHOD(Expression::evaluate)
         }
         v8::Local<v8::Object> options = info[1].As<v8::Object>();
 
-        if (options->Has(Nan::New("variables").ToLocalChecked()))
+        if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = options->Get(Nan::New("variables").ToLocalChecked());
+            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
             if (!bind_opt->IsObject())
             {
                 Nan::ThrowTypeError("optional arg 'variables' must be an object");
                 return;
             }
-            object_to_container(vars,bind_opt->ToObject());
+            object_to_container(vars,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
         }
     }
     mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::feature_impl,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));

@@ -20,7 +20,7 @@ void Featureset::Initialize(v8::Local<v8::Object> target) {
 
     Nan::SetPrototypeMethod(lcons, "next", next);
 
-    target->Set(Nan::New("Featureset").ToLocalChecked(), lcons->GetFunction());
+    Nan::Set(target, Nan::New("Featureset").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
     constructor.Reset(lcons);
 }
 
@@ -98,7 +98,7 @@ v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp)
     Featureset* fs = new Featureset();
     fs->this_ = fsp;
     v8::Local<v8::Value> ext = Nan::New<v8::External>(fs);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::New(constructor)->GetFunction(), 1, &ext);
+    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
     if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Featureset instance");
     return scope.Escape(maybe_local.ToLocalChecked());
 }

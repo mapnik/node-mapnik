@@ -116,13 +116,13 @@ static void write_features(T const& grid_type,
         {
             if (attr == "__id__")
             {
-                feat->Set(Nan::New<v8::String>(attr).ToLocalChecked(), Nan::New<v8::Number>(feature->id()));
+                Nan::Set(feat, Nan::New<v8::String>(attr).ToLocalChecked(), Nan::New<v8::Number>(feature->id()));
             }
             else if (feature->has_key(attr))
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
-                feat->Set(Nan::New<v8::String>(attr).ToLocalChecked(),
+                Nan::Set(feat, Nan::New<v8::String>(attr).ToLocalChecked(),
                     mapnik::util::apply_visitor(node_mapnik::value_converter(),
                     attr_val));
             }
@@ -130,7 +130,7 @@ static void write_features(T const& grid_type,
 
         if (found)
         {
-            feature_data->Set(Nan::New<v8::String>(feat_itr->first).ToLocalChecked(), feat);
+            Nan::Set(feature_data, Nan::New<v8::String>(feat_itr->first).ToLocalChecked(), feat);
         }
     }
 }
