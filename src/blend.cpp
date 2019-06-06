@@ -464,6 +464,7 @@ void Work_AfterBlend(uv_work_t* req) {
         };
         async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 1, argv);
     }
+    baton->callback.Reset();
     delete baton;
 }
 
