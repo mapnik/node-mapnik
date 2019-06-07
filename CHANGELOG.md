@@ -2,9 +2,8 @@
 
 ## 4.3.0
 - Updated NAN bindings to support node12
-- Fixed small memory leaks associated with callback in blend method
 - Added support for `remove_layer` on map object
-- Fixed other various resource leaks
+- Fixed various resource leaks
 
 ## 4.2.1
 - Performance improvement in `mapnik.blend` and `mapnik.Image` methods by having it hold the event loop less time and copying less data into buffers
