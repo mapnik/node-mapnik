@@ -576,7 +576,7 @@ NAN_METHOD(Blend) {
             baton->palette = Nan::ObjectWrap::Unwrap<Palette>(palette_val->ToObject(Nan::GetCurrentContext()).ToLocalChecked())->palette();
         }
 
-        v8::Local<v8::Value> mode_val = palette_val = Nan::Get(options, Nan::New("mode").ToLocalChecked()).ToLocalChecked();
+        v8::Local<v8::Value> mode_val = Nan::Get(options, Nan::New("mode").ToLocalChecked()).ToLocalChecked();
         if (!mode_val.IsEmpty() && mode_val->IsString()) {
             std::string mode_string = TOSTR(mode_val);
             if (mode_string == "octree" || mode_string == "o") {
