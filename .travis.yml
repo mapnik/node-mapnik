@@ -23,6 +23,7 @@ install:
   - which node
   - clang++ -v
   - which clang++
+  - make distclean
   - make ${BUILDTYPE}
   # Build should be standalone now, so remove mason deps
   - rm -rf mason_packages
