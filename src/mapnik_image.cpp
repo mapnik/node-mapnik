@@ -2766,7 +2766,6 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             if (strict && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
-                errorMessage << "SVG parse error:" << std::endl;
                 for (auto const& error : p.err_handler().error_messages()) {
                     errorMessage <<  error << std::endl;
                 }
