@@ -129,6 +129,7 @@ matrix:
         # You might want to do this if there are multiple errors and you want to see them all before fixing
         - export CXXFLAGS="${MASON_SANITIZE_CXXFLAGS} -fno-sanitize-recover=all"
         - export LDFLAGS="${MASON_SANITIZE_LDFLAGS}"
+        - make distclean
         - make ${BUILDTYPE}
       # Overrides `script` to disable asan LD_PRELOAD before publishing
       before_script:
@@ -153,6 +154,7 @@ matrix:
             - g++-6
       # Overrides `install` to avoid initializing clang toolchain
       install:
+        - make distclean
         - make ${BUILDTYPE}
       # Overrides `script` to disable publishing
       before_script:
