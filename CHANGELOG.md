@@ -1,10 +1,10 @@
 # Changelog
 
-
 ## 4.3.0
 - Updated NAN bindings to support node12
 - Added support for `remove_layer` on map object
 - Fixed various resource leaks
+- Remove bogus "SVG parse error" error message header
 
 ## 4.2.1
 - Performance improvement in `mapnik.blend` and `mapnik.Image` methods by having it hold the event loop less time and copying less data into buffers
