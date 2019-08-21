@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.1
+- Update to mapnik@a0ea7db1a
+- Remove remaining "SVG parse error" error message headers
+
 ## 4.3.0
 - Updated NAN bindings to support node12
 - Added support for `remove_layer` on map object
