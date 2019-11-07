@@ -605,7 +605,7 @@ NAN_METHOD(Image::compare)
         return;
     }
 
-    int threshold = 16;
+    int threshold = 0;
     unsigned alpha = true;
 
     if (info.Length() > 1) {

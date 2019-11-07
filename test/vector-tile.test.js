@@ -2849,7 +2849,7 @@ describe('mapnik.VectorTile ', function() {
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/raster_layer.xml');
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
-        map.render(vtile,{image_scaling:"bilinear",image_format:"jpeg"},function(err,vtile) {
+        map.render(vtile,{image_scaling:"bilinear",image_format:"png"},function(err,vtile) {
             if (err) throw err;
             // now this vtile contains a 256/256 image
             // now render out with fancy styling
@@ -2860,14 +2860,14 @@ describe('mapnik.VectorTile ', function() {
             map2.loadSync('./test/data/vector_tile/raster_style.xml');
             vtile.render(map2, new mapnik.Image(256, 256), {z:2,x:0,y:0,buffer_size:256}, function(err, vtile_image) {
                 if (err) throw err;
-                var actual = './test/data/vector_tile/tile-raster.actual.jpg';
-                var expected = './test/data/vector_tile/tile-raster.expected.jpg';
+                var actual = './test/data/vector_tile/tile-raster.actual.png';
+                var expected = './test/data/vector_tile/tile-raster.expected.png';
                 if (!existsSync(expected) || process.env.UPDATE) {
-                    vtile_image.save(expected, 'jpeg80');
+                    vtile_image.save(expected);
                 }
                 var diff = vtile_image.compare(new mapnik.Image.open(expected));
                 if (diff > 0) {
-                    vtile_image.save(actual, 'jpeg80');
+                    vtile_image.save(actual);
                 }
                 assert.equal(0,diff);
                 done();

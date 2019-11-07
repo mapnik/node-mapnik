@@ -585,7 +585,7 @@ describe('mapnik.Image ', function() {
         var blank2 = new mapnik.Image(256, 256);
         blank2.setPixel(0,0,new mapnik.Color('rgba(16,16,16,0)'));
         // should pass because threshold is 16 by default
-        assert.equal(blank.compare(blank2),0);
+        assert.equal(blank.compare(blank2,{threshold:16}),0);
         // with 15 or below threshold should fail
         assert.equal(blank.compare(blank2,{threshold:15}),1);
     });
@@ -611,10 +611,37 @@ describe('mapnik.Image ', function() {
         });
     });
 
-    it('should be able to open and save jpeg', function(done) {
+    it('should be able to open and save png', function(done) {
         var im = new mapnik.Image(10,10);
         im.fill(new mapnik.Color('green'));
+        var filename = './test/data/images/10x10.png';
+        if (!fs.existsSync(filename) || process.env.UPDATE ) {
+            im.save(filename);
+        }
+        // sync open
+        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+        // sync fromBytes
+        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("png"))));
+        // async open
+        mapnik.Image.open(filename,function(err,im2) {
+            if (err) throw err;
+            assert.equal(0,im.compare(im2));
+            // async fromBytes
+            mapnik.Image.fromBytes(im.encodeSync("png"),function(err,im3) {
+                if (err) throw err;
+                assert.equal(0,im.compare(im3));
+                done();
+            });
+        });
+    });
+    
+    it('should be able to open and save jpeg', function(done) {
+        var im = new mapnik.Image(10,10);
+        im.fill(new mapnik.Color('rgba(255,255,255,1)'));
         var filename = './test/data/images/10x10.jpeg';
+        if (!fs.existsSync(filename) || process.env.UPDATE ) {
+            im.save(filename);
+        }
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
         // sync fromBytes
@@ -636,6 +663,9 @@ describe('mapnik.Image ', function() {
         var im = new mapnik.Image(10,10);
         im.fill(new mapnik.Color('green'));
         var filename = './test/data/images/10x10.tiff';
+        if (!fs.existsSync(filename) || process.env.UPDATE ) {
+            im.save(filename);
+        }
         // sync open
         assert.equal(0,im.compare(new mapnik.Image.open(filename)));
         // sync fromBytes
@@ -807,8 +837,11 @@ describe('mapnik.Image ', function() {
     if (mapnik.versions.mapnik_number >= 200300) {
         it('should be able to open and save webp', function(done) {
             var im = new mapnik.Image(10,10);
-            im.fill(new mapnik.Color('green'));
+            im.fill(new mapnik.Color('rgba(255,255,255,1)'));
             var filename = './test/data/images/10x10.webp';
+            if (!fs.existsSync(filename) || process.env.UPDATE ) {
+                im.save(filename);
+            }
             // sync open
             assert.equal(0,im.compare(new mapnik.Image.open(filename)));
             // sync fromBytes
