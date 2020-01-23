@@ -2797,7 +2797,7 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
         double lox,loy,hix,hiy;
         svg.bounding_rect(&lox, &loy, &hix, &hiy);
         marker_path->set_bounding_box(lox,loy,hix,hiy);
-        marker_path->set_dimensions(svg.width(),svg.height());
+        marker_path->set_dimensions(svg.width(), svg.height());
 
         using pixfmt = agg::pixfmt_rgba32_pre;
         using renderer_base = agg::renderer_base<pixfmt>;
@@ -2823,7 +2823,9 @@ v8::Local<v8::Value> Image::_fromSVGSync(bool fromFile, Nan::NAN_METHOD_ARGS_TYP
             return scope.Escape(Nan::Undefined());
         }
 
-        mapnik::image_rgba8 im(static_cast<int>(svg_width), static_cast<int>(svg_height), true, true);
+        mapnik::image_rgba8 im(static_cast<int>(std::round(svg_width)),
+                               static_cast<int>(std::round(svg_height)),
+                               true, true);
         agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
         pixfmt pixf(buf);
         renderer_base renb(pixf);
