@@ -1,5 +1,9 @@
 # Changelog
 
+## HEAD
+
+- Drop support for Node versions less than 10.
+
 ## 4.3.1
 - Update to mapnik@a0ea7db1a
 - Remove remaining "SVG parse error" error message headers

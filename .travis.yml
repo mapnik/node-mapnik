@@ -8,12 +8,6 @@ env:
   global:
    - secure: "bvbvxQe4GXZoU1zxm6KylaUSuQuhUZKe1V4+iYM0Sde6hj6RtAUccCWT7mNacCe2I6uGVHHjVfd7wLovT5y7lyT5pzY3UtypxFwuvGxDHotH4hhTg4m8/7APdB4bf5YgBf5IC6pMUPpUloh6TsTIwYzEaJdp/52b31Qfx80FooqOGOrEqntiyvidWsdUmlrxWnpxCVndkZgwvD15Uc08DWyD8Hklor6cKW6d/3zVIFmy81uAvTQp5W5xXC47S/BYYIwz3GU0zx+CMWM1oFObSbkVMG3LXDurqyvzWf9+09ZtBlC2JW0AOt9atk7vnD115Ia1KaEWalMhb3AGwJx4M4hqonooWOx20NL5P0sqEUe94GBUwvvb295vFTbw9guSGYXL3cOeWTlh2Ol466vJUwBvfr4OQ6Qu401nb1sIIv4SoIT9xXSHbopoderRVQurrcl/wesR19hgzrQC9ytJ6QCS1xnnzKogflfMQDDayrCMwpiZ5gvMGheGNbAh661wL03YXiviMwG307+iwFk8zyw05g4nW5/v3S+OYq3QatUgk+ZDpX2JS2zX4D6Aj2QLzKtCrx9pNpngl8pN+drmac1nklUeQLANxyv8hQjJvs1a4utj7ed9CY7QEWkvfrUl7rZqXvzacKmGEWoTkZKru19pa0enLTThKQV6AOei3e4="
 
-# enable c++11/14 builds
-addons:
-  apt:
-    sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'libstdc++-4.9-dev' ]
-
 install:
   # set up the environment by installing mason and clang++
   - ./scripts/setup.sh --config local.env
@@ -45,34 +39,6 @@ script:
 # run your tests and build binaries
 matrix:
   include:
-    # linux publishable node v4/release
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 4
-    # linux publishable node v4/debug
-    - os: linux
-      env: BUILDTYPE=debug
-      node_js: 4
-    # linux publishable node v6
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 6
-    # linux publishable node v6/debug
-    - os: linux
-      env: BUILDTYPE=debug
-      node_js: 6
-    # linux publishable node v7
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 7
-    # linux publishable node v8
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 8
-    # linux publishable node v9
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 9
     # linux publishable node v10
     - os: linux
       env: BUILDTYPE=release
@@ -81,31 +47,6 @@ matrix:
     - os: linux
       env: BUILDTYPE=release
       node_js: 12
-    # osx publishable node v4
-    - os: osx
-      osx_image: xcode8.3
-      env: BUILDTYPE=release
-      node_js: 4
-    # osx publishable node v6
-    - os: osx
-      osx_image: xcode8.3
-      env: BUILDTYPE=release
-      node_js: 6
-    # osx publishable node v7
-    - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 7
-    # osx publishable node v8
-    - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 8
-    # osx publishable node v9
-    - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 9
     # osx publishable node v10
     - os: osx
       osx_image: xcode8.2
@@ -116,10 +57,10 @@ matrix:
       osx_image: xcode8.2
       env: BUILDTYPE=release
       node_js: 12
-    # Sanitizer build node v4/Debug
+    # Sanitizer build node v10/Debug
     - os: linux
       env: BUILDTYPE=debug TOOLSET=-asan
-      node_js: 4
+      node_js: 10
       # Overrides `install` to set up custom asan flags
       install:
         - ./scripts/setup.sh --config local.env
@@ -144,7 +85,7 @@ matrix:
     # g++ build (default builds all use clang++)
     - os: linux
       env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"
-      node_js: 4
+      node_js: 10
       addons:
         apt:
           sources:
@@ -166,14 +107,14 @@ matrix:
     # test building with out SSE_MATH enabled
     - os: linux
       env: BUILDTYPE=release SSE_MATH=false
-      node_js: 4
+      node_js: 10
       # Overrides `script` to disable publishing
       before_script:
         - npm test
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
-      node_js: 4
+      node_js: 10
       # Overrides `script` to publish coverage data to codecov
       before_script:
         - source scripts/postgis/setup_and_run.sh
