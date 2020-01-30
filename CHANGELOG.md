@@ -1,8 +1,12 @@
 # Changelog
 
-## HEAD
+## 4.4.0
 
+- Update protozero to v1.6.8
+- Update geometry.hpp to v1.0.0
+- Update wagyu to 0.5.0
 - Drop support for Node versions less than 10.
+- Consistent output image size compatible with other SVG libraries (#938)
 
 ## 4.3.1
 - Update to mapnik@a0ea7db1a

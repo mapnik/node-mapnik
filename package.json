@@ -4,8 +4,8 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.3.1",
-  "mapnik_version": "a0ea7db1a",
+  "version": "4.4.0",
+  "mapnik_version": "0636734f8",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -53,11 +53,11 @@
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
-    "aws-sdk": "2.0.12",
-    "jshint": "^2.5.10",
-    "mocha": "2.x",
     "@mapbox/sphericalmercator": "~1.0.2",
-    "bytes": "~2.1.0"
+    "aws-sdk": "2.0.12",
+    "bytes": "~2.1.0",
+    "jshint": "^2.5.10",
+    "mocha": "^7.0.1"
   },
   "jshintConfig": {
     "node": true,

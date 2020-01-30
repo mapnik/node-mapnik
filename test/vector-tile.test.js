@@ -2241,7 +2241,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             if (hasBoostSimple) {
                 assert.equal(vtile.reportGeometrySimplicity().length, 0);
-                assert.equal(vtile.reportGeometryValidity().length, 25); // Dataset not expected to be OGC valid
+                assert.equal(vtile.reportGeometryValidity().length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0.mvt';
@@ -2279,7 +2279,7 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 // commented since this is not stable across boost versions
                 //assert.equal(vtile.reportGeometrySimplicity().length, 1); // seems simple, boost bug?
-                assert.equal(vtile.reportGeometryValidity().length, 25); // Dataset not expected to be OGC valid
+                assert.equal(vtile.reportGeometryValidity().length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile_threading_auto.mvt';
@@ -2318,7 +2318,7 @@ describe('mapnik.VectorTile ', function() {
             if (hasBoostSimple) {
                 // commented since this is not stable across boost versions
                 //assert.equal(vtile.reportGeometrySimplicity().length, 1); // geometry is simple, boost bug?
-                assert.equal(vtile.reportGeometryValidity().length, 25); // Dataset not expected to be OGC valid
+                assert.equal(vtile.reportGeometryValidity().length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile_threading_async.mvt';
@@ -2349,7 +2349,7 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             if (hasBoostSimple) {
                 assert.equal(vtile.reportGeometrySimplicity().length, 0);
-                assert.equal(vtile.reportGeometryValidity().length, 24); // Dataset not expected to be OGC valid
+                assert.equal(vtile.reportGeometryValidity().length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-area_threshold.mvt';
@@ -2381,7 +2381,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple.mvt';
@@ -2416,10 +2416,10 @@ describe('mapnik.VectorTile ', function() {
                 var validityReport3 = vtile.reportGeometryValidity({lat_lon:true});
                 var validityReport4 = vtile.reportGeometryValidity({web_merc:true});
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 23); // Dataset not expected to be OGC valid
                 assert.equal(validityReport2.length, 0); // Dataset not expected to be OGC valid
-                assert.equal(validityReport3.length, 26); // Dataset not expected to be OGC valid
-                assert.equal(validityReport4.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport3.length, 24); // Dataset not expected to be OGC valid
+                assert.equal(validityReport4.length, 23); // Dataset not expected to be OGC valid
             }
             var expected = './test/data/vector_tile/tile0-strictly_simple_false.mvt';
             var actual = './test/data/vector_tile/tile0-strictly_simple_false.actual.mvt';
@@ -2450,7 +2450,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 33); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 30); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-simplify_distance.mvt';
@@ -2490,7 +2490,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 33); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 30); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-simple_and_distance.mvt';
@@ -2531,7 +2531,7 @@ describe('mapnik.VectorTile ', function() {
                 var validityReport = vtile.reportGeometryValidity();
                 var validityReport2 = vtile.reportGeometryValidity({split_multi_features:true});
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 23); // Dataset not expected to be OGC valid
                 assert.equal(validityReport2.length, 0);
             }
             var expected = './test/data/vector_tile/tile0-mpu-false.mvt';
@@ -2595,7 +2595,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-evenOdd.mvt';
@@ -2627,7 +2627,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-nonZero.mvt';
@@ -2659,7 +2659,7 @@ describe('mapnik.VectorTile ', function() {
                 var simplicityReport = vtile.reportGeometrySimplicity();
                 var validityReport = vtile.reportGeometryValidity();
                 assert.equal(simplicityReport.length, 0);
-                assert.equal(validityReport.length, 25); // Dataset not expected to be OGC valid
+                assert.equal(validityReport.length, 23); // Dataset not expected to be OGC valid
                 assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             }
             var expected = './test/data/vector_tile/tile0-process-all-mp-rings.mvt';
