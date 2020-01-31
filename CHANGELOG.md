@@ -2,6 +2,7 @@
 
 ## 4.4.0
 
+- Update mapnik to 3be9ce8fa
 - Update protozero to v1.6.8
 - Update geometry.hpp to v1.0.0
 - Update wagyu to 0.5.0
