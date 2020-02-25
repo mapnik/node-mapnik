@@ -95,7 +95,7 @@ inline Nan::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> &&
                                                      }, ptr.get());
     if (!res.IsEmpty())
     {
-        Nan::AdjustExternalMemory(static_cast<std::int64_t>(ptr->capacity()));
+        Nan::AdjustExternalMemory(ptr->capacity());
         ptr.release();
 
     }
