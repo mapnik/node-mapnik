@@ -86,16 +86,18 @@ inline void params_to_object(v8::Local<v8::Object>& ds, std::string const& key, 
 
 inline Nan::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> && ptr)
 {
-    Nan::MaybeLocal<v8::Object> res = Nan::NewBuffer(
-            &(*ptr)[0],
-            ptr->size(),
-            [](char*, void* hint) {
-                delete static_cast<std::string*>(hint);
-            },
-            ptr.get());
+    Nan::MaybeLocal<v8::Object> res = Nan::NewBuffer(const_cast<char*>(ptr->data()),
+                                                     ptr->length(),
+                                                     [](char* buf, void* hint) {
+                                                         std::string * str = static_cast<std::string*>(hint);
+                                                         Nan::AdjustExternalMemory(-str->capacity());
+                                                         delete str;
+                                                     }, ptr.get());
     if (!res.IsEmpty())
     {
+        Nan::AdjustExternalMemory(static_cast<std::int64_t>(ptr->capacity()));
         ptr.release();
+
     }
     return res;
 }
