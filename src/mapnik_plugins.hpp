@@ -33,15 +33,15 @@ namespace node_mapnik {
  * @name datasources
  * @returns {Array<String>} list of plugins available to use
  */
-static inline NAN_METHOD(available_input_plugins)
+static inline Napi::Value available_input_plugins(const Napi::CallbackInfo& info)
 {
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
+    Napi::Array a = Napi::Array::New(env, names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        Nan::Set(a, i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
+        (a).Set(i, Napi::String::New(env, names[i].c_str()));
     }
-    info.GetReturnValue().Set(a);
+    return a;
 }
 
 /**
@@ -64,12 +64,12 @@ static inline NAN_METHOD(available_input_plugins)
  * @example
  * mapnik.registerDatasource(path.join(mapnik.settings.paths.input_plugins, 'geojson.input'));
  */
-static inline NAN_METHOD(register_datasource)
+static inline Napi::Value register_datasource(const Napi::CallbackInfo& info)
 {
-    if (info.Length() != 1 || !info[0]->IsString())
+    if (info.Length() != 1 || !info[0].IsString())
     {
-        Nan::ThrowTypeError("first argument must be a path to a mapnik input plugin (.input)");
-        return;
+        Napi::TypeError::New(env, "first argument must be a path to a mapnik input plugin (.input)").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
     std::string path = TOSTR(info[0]);
@@ -77,10 +77,10 @@ static inline NAN_METHOD(register_datasource)
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
     if (names_after.size() > names_before.size())
     {
-        info.GetReturnValue().Set(Nan::True());
+        return env.True();
         return;
     }
-    info.GetReturnValue().Set(Nan::False());
+    return env.False();
 }
 
 /**
@@ -90,12 +90,12 @@ static inline NAN_METHOD(register_datasource)
  * @name registerDatasources
  * @param {Array<String>} list of paths to their respective datasources
  */
-static inline NAN_METHOD(register_datasources)
+static inline Napi::Value register_datasources(const Napi::CallbackInfo& info)
 {
-    if (info.Length() != 1 || !info[0]->IsString())
+    if (info.Length() != 1 || !info[0].IsString())
     {
-        Nan::ThrowTypeError("first argument must be a path to a directory of mapnik input plugins");
-        return;
+        Napi::TypeError::New(env, "first argument must be a path to a directory of mapnik input plugins").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
     std::string path = TOSTR(info[0]);
@@ -103,10 +103,10 @@ static inline NAN_METHOD(register_datasources)
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
     if (names_after.size() > names_before.size())
     {
-        info.GetReturnValue().Set(Nan::True());
+        return env.True();
         return;
     }
-    info.GetReturnValue().Set(Nan::False());
+    return env.False();
 }
 
 

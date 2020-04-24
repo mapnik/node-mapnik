@@ -8,7 +8,7 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
-Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
+Napi::FunctionReference Geometry::constructor;
 
 /**
  * **`mapnik.Geometry`**
@@ -23,74 +23,74 @@ Nan::Persistent<v8::FunctionTemplate> Geometry::constructor;
  *
  * @class Geometry
  */
-void Geometry::Initialize(v8::Local<v8::Object> target) {
+void Geometry::Initialize(Napi::Object target) {
 
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Geometry::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Geometry").ToLocalChecked());
+    Napi::FunctionReference lcons = Napi::Function::New(env, Geometry::New);
 
-    Nan::SetPrototypeMethod(lcons, "extent", extent);
-    Nan::SetPrototypeMethod(lcons, "type", type);
-    Nan::SetPrototypeMethod(lcons, "toWKB", toWKB);
-    Nan::SetPrototypeMethod(lcons, "toWKT", toWKT);
-    Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
-    Nan::SetPrototypeMethod(lcons, "toJSONSync", toJSONSync);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    lcons->SetClassName(Napi::String::New(env, "Geometry"));
+
+    InstanceMethod("extent", &extent),
+    InstanceMethod("type", &type),
+    InstanceMethod("toWKB", &toWKB),
+    InstanceMethod("toWKT", &toWKT),
+    InstanceMethod("toJSON", &toJSON),
+    InstanceMethod("toJSONSync", &toJSONSync),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "Unknown",mapnik::geometry::geometry_types::Unknown)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "Point",mapnik::geometry::geometry_types::Point)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "MultiPoint",mapnik::geometry::geometry_types::MultiPoint)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "LineString",mapnik::geometry::geometry_types::LineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "MultiLineString",mapnik::geometry::geometry_types::MultiLineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "Polygon",mapnik::geometry::geometry_types::Polygon)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "MultiPolygon",mapnik::geometry::geometry_types::MultiPolygon)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "GeometryCollection",mapnik::geometry::geometry_types::GeometryCollection)
-    Nan::Set(target, Nan::New("Geometry").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "Geometry"), Napi::GetFunction(lcons));
     constructor.Reset(lcons);
 }
 
-Geometry::Geometry(mapnik::feature_ptr f) :
-    Nan::ObjectWrap(),
+Geometry::Geometry(mapnik::feature_ptr f) : Napi::ObjectWrap<Geometry>(),
     feat_(f) {}
 
 Geometry::~Geometry()
 {
 }
 
-NAN_METHOD(Geometry::New)
+Napi::Value Geometry::New(const Napi::CallbackInfo& info)
 {
-    if (info[0]->IsExternal())
+    if (info[0].IsExternal())
     {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
+        Napi::External ext = info[0].As<Napi::External>();
         void* ptr = ext->Value();
         Geometry* g =  static_cast<Geometry*>(ptr);
         g->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
     else
     {
-        Nan::ThrowError("a mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance");
-        return;
+        Napi::Error::New(env, "a mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
-    Nan::EscapableHandleScope scope;
+Napi::Value Geometry::NewInstance(mapnik::feature_ptr f) {
+    Napi::EscapableHandleScope scope(env);
     Geometry* g = new Geometry(f);
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(g);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Geometry instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
+    Napi::Value ext = Napi::External::New(env, g);
+    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
+    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Geometry instance").ThrowAsJavaScriptException();
+
+    return scope.Escape(maybe_local);
 }
 
 /**
@@ -101,11 +101,11 @@ v8::Local<v8::Value> Geometry::NewInstance(mapnik::feature_ptr f) {
  * @memberof Geometry
  * @instance
  */
-NAN_METHOD(Geometry::type)
+Napi::Value Geometry::type(const Napi::CallbackInfo& info)
 {
-    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+    Geometry* g = info.Holder().Unwrap<Geometry>();
     auto const& geom = g->feat_->get_geometry();
-    info.GetReturnValue().Set(Nan::New<v8::Integer>(mapnik::geometry::geometry_type(geom)));
+    return Napi::Number::New(env, mapnik::geometry::geometry_type(geom));
 }
 
 /**
@@ -117,9 +117,9 @@ NAN_METHOD(Geometry::type)
  * @instance
  * @name toJSONSync
  */
-NAN_METHOD(Geometry::toJSONSync)
+Napi::Value Geometry::toJSONSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_toJSONSync(info));
+    return _toJSONSync(info);
 }
 
 bool to_geojson_projected(std::string & json,
@@ -132,9 +132,9 @@ bool to_geojson_projected(std::string & json,
     return mapnik::util::to_geojson(json,projected_geom);
 }
 
-v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
-    Nan::EscapableHandleScope scope;
-    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+Napi::Value Geometry::_toJSONSync(const Napi::CallbackInfo& info) {
+    Napi::EscapableHandleScope scope(env);
+    Geometry* g = info.Holder().Unwrap<Geometry>();
     std::string json;
     if (info.Length() < 1)
     {
@@ -143,32 +143,36 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
             // Fairly certain this situation can never be reached but
             // leaving it none the less
             /* LCOV_EXCL_START */
-            Nan::ThrowError("Failed to generate GeoJSON");
-            return scope.Escape(Nan::Undefined());
+            Napi::Error::New(env, "Failed to generate GeoJSON").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
             /* LCOV_EXCL_STOP */
         }
     }
     else
     {
-        if (!info[0]->IsObject()) {
-            Nan::ThrowTypeError("optional first arg must be an options object");
-            return scope.Escape(Nan::Undefined());
+        if (!info[0].IsObject()) {
+            Napi::TypeError::New(env, "optional first arg must be an options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "transform")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bound_opt = Nan::Get(options, Nan::New("transform").ToLocalChecked()).ToLocalChecked();
-            if (!bound_opt->IsObject()) {
-                Nan::ThrowTypeError("'transform' must be an object");
-                return scope.Escape(Nan::Undefined());
+            Napi::Value bound_opt = (options).Get(Napi::String::New(env, "transform"));
+            if (!bound_opt.IsObject()) {
+                Napi::TypeError::New(env, "'transform' must be an object").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
 
-            v8::Local<v8::Object> obj = bound_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(ProjTransform::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.ProjTransform expected as first arg");
-                return scope.Escape(Nan::Undefined());
+            Napi::Object obj = bound_opt->ToObject(Napi::GetCurrentContext());
+            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
+                Napi::TypeError::New(env, "mapnik.ProjTransform expected as first arg").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            ProjTransform* tr = Nan::ObjectWrap::Unwrap<ProjTransform>(obj);
+            ProjTransform* tr = obj.Unwrap<ProjTransform>();
             mapnik::proj_transform const& prj_trans = *tr->get();
             mapnik::geometry::geometry<double> const& geom = g->feat_->get_geometry();
             if (!to_geojson_projected(json,geom,prj_trans))
@@ -176,13 +180,14 @@ v8::Local<v8::Value> Geometry::_toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info) {
                 // Fairly certain this situation can never be reached but
                 // leaving it none the less
                 /* LCOV_EXCL_START */
-                Nan::ThrowError("Failed to generate GeoJSON");
-                return scope.Escape(Nan::Undefined());
+                Napi::Error::New(env, "Failed to generate GeoJSON").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
                 /* LCOV_EXCL_STOP */
             }
         }
     }
-    return scope.Escape(Nan::New<v8::String>(json).ToLocalChecked());
+    return scope.Escape(Napi::String::New(env, json));
 }
 
 struct to_json_baton {
@@ -191,7 +196,7 @@ struct to_json_baton {
     ProjTransform* tr;
     bool error;
     std::string result;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 };
 
 
@@ -206,44 +211,44 @@ struct to_json_baton {
  * @instance
  * @name toJSON
  */
-NAN_METHOD(Geometry::toJSON)
+Napi::Value Geometry::toJSON(const Napi::CallbackInfo& info)
 {
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction()) {
-        info.GetReturnValue().Set(_toJSONSync(info));
+        return _toJSONSync(info);
         return;
     }
 
     to_json_baton *closure = new to_json_baton();
     closure->request.data = closure;
-    closure->g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+    closure->g = info.Holder().Unwrap<Geometry>();
     closure->error = false;
     closure->tr = nullptr;
     if (info.Length() > 1)
     {
-        if (!info[0]->IsObject()) {
-            Nan::ThrowTypeError("optional first arg must be an options object");
-            return;
+        if (!info[0].IsObject()) {
+            Napi::TypeError::New(env, "optional first arg must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("transform").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "transform")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bound_opt = Nan::Get(options, Nan::New("transform").ToLocalChecked()).ToLocalChecked();
-            if (!bound_opt->IsObject()) {
-                Nan::ThrowTypeError("'transform' must be an object");
-                return;
+            Napi::Value bound_opt = (options).Get(Napi::String::New(env, "transform"));
+            if (!bound_opt.IsObject()) {
+                Napi::TypeError::New(env, "'transform' must be an object").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            v8::Local<v8::Object> obj = bound_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(ProjTransform::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.ProjTransform expected as first arg");
-                return;
+            Napi::Object obj = bound_opt->ToObject(Napi::GetCurrentContext());
+            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
+                Napi::TypeError::New(env, "mapnik.ProjTransform expected as first arg").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->tr = Nan::ObjectWrap::Unwrap<ProjTransform>(obj);
+            closure->tr = obj.Unwrap<ProjTransform>();
             closure->tr->Ref();
         }
     }
-    v8::Local<v8::Value> callback = info[info.Length()-1];
-    closure->cb.Reset(callback.As<v8::Function>());
+    Napi::Value callback = info[info.Length()-1];
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, to_json, (uv_after_work_cb)after_to_json);
     closure->g->Ref();
     return;
@@ -294,22 +299,22 @@ void Geometry::to_json(uv_work_t* req)
 
 void Geometry::after_to_json(uv_work_t* req)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     to_json_baton *closure = static_cast<to_json_baton *>(req->data);
-    Nan::AsyncResource async_resource(__func__);
+    Napi::AsyncResource async_resource(__func__);
     if (closure->error)
     {
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->result.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         /* LCOV_EXCL_STOP */
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), Napi::String::New(env, closure->result) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->g->Unref();
     if (closure->tr) {
@@ -327,16 +332,16 @@ void Geometry::after_to_json(uv_work_t* req)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
-NAN_METHOD(Geometry::extent)
+Napi::Value Geometry::extent(const Napi::CallbackInfo& info)
 {
-    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
+    Geometry* g = info.Holder().Unwrap<Geometry>();
+    Napi::Array a = Napi::Array::New(env, 4);
     mapnik::box2d<double> const& e = g->feat_->envelope();
-    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
-    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
-    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
-    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
-    info.GetReturnValue().Set(a);
+    (a).Set(0, Napi::Number::New(env, e.minx()));
+    (a).Set(1, Napi::Number::New(env, e.miny()));
+    (a).Set(2, Napi::Number::New(env, e.maxx()));
+    (a).Set(3, Napi::Number::New(env, e.maxy()));
+    return a;
 }
 
 /**
@@ -347,20 +352,20 @@ NAN_METHOD(Geometry::extent)
  * @instance
  * @returns {string} wkt representation of this geometry
  */
-NAN_METHOD(Geometry::toWKT)
+Napi::Value Geometry::toWKT(const Napi::CallbackInfo& info)
 {
     std::string wkt;
-    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+    Geometry* g = info.Holder().Unwrap<Geometry>();
     if (!mapnik::util::to_wkt(wkt, g->feat_->get_geometry()))
     {
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
-        Nan::ThrowError("Failed to generate WKT");
-        return;
+        Napi::Error::New(env, "Failed to generate WKT").ThrowAsJavaScriptException();
+        return env.Null();
         /* LCOV_EXCL_STOP */
     }
-    info.GetReturnValue().Set(Nan::New<v8::String>(wkt).ToLocalChecked());
+    return Napi::String::New(env, wkt);
 }
 
 /**
@@ -371,16 +376,16 @@ NAN_METHOD(Geometry::toWKT)
  * @instance
  * @returns {string} wkb representation of this geometry
  */
-NAN_METHOD(Geometry::toWKB)
+Napi::Value Geometry::toWKB(const Napi::CallbackInfo& info)
 {
-    Geometry* g = Nan::ObjectWrap::Unwrap<Geometry>(info.Holder());
+    Geometry* g = info.Holder().Unwrap<Geometry>();
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);
     if (!wkb)
     {
-        Nan::ThrowError("Failed to generate WKB - geometry likely null");
-        return;
+        Napi::Error::New(env, "Failed to generate WKB - geometry likely null").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    info.GetReturnValue().Set(Nan::CopyBuffer(wkb->buffer(), wkb->size()).ToLocalChecked());
+    return Napi::Buffer::Copy(env, wkb->buffer(), wkb->size());
 }
 
 /**

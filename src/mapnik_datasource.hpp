@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <memory>
@@ -15,18 +16,18 @@ namespace mapnik { class datasource; }
 
 typedef std::shared_ptr<mapnik::datasource> datasource_ptr;
 
-class Datasource: public Nan::ObjectWrap {
+class Datasource : public Napi::ObjectWrap<Datasource> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(datasource_ptr ds_ptr);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value NewInstance(datasource_ptr ds_ptr);
 
-    static NAN_METHOD(parameters);
-    static NAN_METHOD(describe);
-    static NAN_METHOD(featureset);
-    static NAN_METHOD(extent);
-    static NAN_METHOD(fields);
+    static Napi::Value parameters(const Napi::CallbackInfo& info);
+    static Napi::Value describe(const Napi::CallbackInfo& info);
+    static Napi::Value featureset(const Napi::CallbackInfo& info);
+    static Napi::Value extent(const Napi::CallbackInfo& info);
+    static Napi::Value fields(const Napi::CallbackInfo& info);
 
     Datasource();
     inline datasource_ptr get() { return datasource_; }

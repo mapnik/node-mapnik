@@ -1,144 +1,123 @@
-// node-mapnik
 #include "mapnik_palette.hpp"
-#include "utils.hpp"
-
+#include <mapnik/version.hpp>
 // stl
 #include <vector>
 #include <iomanip>
 #include <sstream>
-#include <iostream>
 
-Nan::Persistent<v8::FunctionTemplate> Palette::constructor;
+Napi::FunctionReference Palette::constructor;
 
-void Palette::Initialize(v8::Local<v8::Object> target) {
-    Nan::HandleScope scope;
+Napi::Object Palette::Initialize(Napi::Env env, Napi::Object exports)
+{
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Palette::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Palette").ToLocalChecked());
+     Napi::Function func = DefineClass(env, "Palette", {
+             InstanceMethod<&Palette::toBuffer>("toBuffer"),
+             InstanceMethod<&Palette::toString>("toString")
+         });
 
-    Nan::SetPrototypeMethod(lcons, "toString", ToString);
-    Nan::SetPrototypeMethod(lcons, "toBuffer", ToBuffer);
-
-    Nan::Set(target, Nan::New("Palette").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
+     constructor = Napi::Persistent(func);
+     constructor.SuppressDestruct();
+     exports.Set("Palette", func);
+     return exports;
 }
 
-Palette::Palette(std::string const& palette, mapnik::rgba_palette::palette_type type) :
-    Nan::ObjectWrap(),
-    palette_(std::make_shared<mapnik::rgba_palette>(palette, type)) {}
-
-Palette::~Palette() {
-}
-
-NAN_METHOD(Palette::New) {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
-    }
-
-    std::string palette;
+Palette::Palette(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Palette>(info)
+{
+    Napi::Env env = info.Env();
+    std::string palette_str;
     mapnik::rgba_palette::palette_type type = mapnik::rgba_palette::PALETTE_RGBA;
-    if (info.Length() >= 1) {
-        if (node::Buffer::HasInstance(info[0])) {
-            v8::Local<v8::Object> obj = info[0].As<v8::Object>();
-            palette = std::string(node::Buffer::Data(obj), node::Buffer::Length(obj));
-        }
+    if (info.Length() >= 1 && info[0].IsBuffer())
+    {
+        Napi::Object obj = info[0].As<Napi::Object>();
+        palette_str = std::string(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length());
     }
-    if (info.Length() >= 2) {
-        if (info[1]->IsString()) {
-            std::string obj = TOSTR(info[1]);
-            if (obj == "rgba")
-            {
-                type = mapnik::rgba_palette::PALETTE_RGBA;
-            }
-            else if (obj == "rgb")
-            {
-                type = mapnik::rgba_palette::PALETTE_RGB;
-            }
-            else if (obj == "act")
-            {
-                type = mapnik::rgba_palette::PALETTE_ACT;
-            }
-            else
-            {
-                Nan::ThrowTypeError((std::string("unknown palette type: ") + obj).c_str());
-                return;
-            }
+
+    if (info.Length() >= 2 && info[1].IsString())
+    {
+        std::string obj = info[1].As<Napi::String>();
+        if (obj == "rgba")
+        {
+            type = mapnik::rgba_palette::PALETTE_RGBA;
+        }
+        else if (obj == "rgb")
+        {
+            type = mapnik::rgba_palette::PALETTE_RGB;
+        }
+        else if (obj == "act")
+        {
+            type = mapnik::rgba_palette::PALETTE_ACT;
+        }
+        else
+        {
+            Napi::TypeError::New(env, (std::string("unknown palette type: ") + obj)).ThrowAsJavaScriptException();
+            return;
         }
     }
 
-    if (palette.empty()) {
-        Nan::ThrowTypeError("First parameter must be a palette string");
+    if (palette_str.empty()) {
+        Napi::TypeError::New(env, "First parameter must be a palette string").ThrowAsJavaScriptException();
         return;
     }
 
     try
     {
-
-        Palette* p = new Palette(palette, type);
-        p->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
+        palette_ = std::make_shared<mapnik::rgba_palette>(palette_str, type);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
     }
 }
 
-NAN_METHOD(Palette::ToString)
+Napi::Value Palette::toString(Napi::CallbackInfo const& info)
 {
-    palette_ptr p = Nan::ObjectWrap::Unwrap<Palette>(info.Holder())->palette_;
-
-    const std::vector<mapnik::rgb>& colors = p->palette();
+    Napi::Env env = info.Env();
+    std::vector<mapnik::rgb> const& colors = palette_->palette();
     std::size_t length = colors.size();
-    #if MAPNIK_VERSION >= 300012
-    const std::vector<unsigned>& alpha = p->alpha_table();
-    #else
-    const std::vector<unsigned>& alpha = p->alphaTable();
-    #endif
+#if MAPNIK_VERSION >= 300012
+    std::vector<unsigned> const& alpha = palette_->alpha_table();
+#else
+    std::vector<unsigned> const& alpha = palette_->alphaTable();
+#endif
     std::size_t alphaLength = alpha.size();
 
-    std::ostringstream str("");
-    str << "[Palette " << length;
-    if (length == 1) str << " color";
-    else str << " colors";
+    std::ostringstream ss("");
+    ss << "[Palette " << length;
+    if (length == 1) ss << " color";
+    else ss << " colors";
 
-    str << std::hex << std::setfill('0');
+    ss << std::hex << std::setfill('0');
 
-    for (std::size_t i = 0; i < length; i++) {
-        str << " #";
-        str << std::setw(2) << (unsigned)colors[i].r;
-        str << std::setw(2) << (unsigned)colors[i].g;
-        str << std::setw(2) << (unsigned)colors[i].b;
-        if (i < alphaLength) str << std::setw(2) << alpha[i];
+    for (std::size_t i = 0; i < length; ++i) {
+        ss << " #";
+        ss << std::setw(2) << static_cast<std::uint32_t>(colors[i].r);
+        ss << std::setw(2) << static_cast<std::uint32_t>(colors[i].g);
+        ss << std::setw(2) << static_cast<std::uint32_t>(colors[i].b);
+        if (i < alphaLength) ss << std::setw(2) << alpha[i];
     }
-
-    str << "]";
-    info.GetReturnValue().Set(Nan::New<v8::String>(str.str()).ToLocalChecked());
+    ss << "]";
+    return Napi::String::New(env, ss.str());
 }
 
-NAN_METHOD(Palette::ToBuffer)
+Napi::Value Palette::toBuffer(Napi::CallbackInfo const& info)
 {
-    palette_ptr p = Nan::ObjectWrap::Unwrap<Palette>(info.Holder())->palette_;
-
-    const std::vector<mapnik::rgb>& colors = p->palette();
+    Napi::Env env = info.Env();
+    std::vector<mapnik::rgb> const& colors = palette_->palette();
     std::size_t length = colors.size();
-    #if MAPNIK_VERSION >= 300012
-    const std::vector<unsigned>& alpha = p->alpha_table();
-    #else
-    const std::vector<unsigned>& alpha = p->alphaTable();
-    #endif
+#if MAPNIK_VERSION >= 300012
+    std::vector<unsigned> const& alpha = palette_->alpha_table();
+#else
+    std::vector<unsigned> const& alpha = palette_->alphaTable();
+#endif
     std::size_t alphaLength = alpha.size();
-
-    char palette[256 * 4];
-    for (std::size_t i = 0, pos = 0; i < length; i++) {
-        palette[pos++] = colors[i].r;
-        palette[pos++] = colors[i].g;
-        palette[pos++] = colors[i].b;
-        palette[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
+    char data[256 * 4];
+    for (std::size_t i = 0, pos = 0; i < length; ++i)
+    {
+        data[pos++] = colors[i].r;
+        data[pos++] = colors[i].g;
+        data[pos++] = colors[i].b;
+        data[pos++] = (i < alphaLength) ? alpha[i] : 0xFF;
     }
-    info.GetReturnValue().Set(Nan::CopyBuffer(palette, length * 4).ToLocalChecked());
+    return Napi::Buffer<char>::Copy(env, data, length * 4);
 }

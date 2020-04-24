@@ -85,10 +85,10 @@ static void grid2utf(T const& grid_type,
 
 template <typename T>
 static void write_features(T const& grid_type,
-                           v8::Local<v8::Object>& feature_data,
+                           Napi::Object& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     if (g_features.size() <= 0)
     {
@@ -110,19 +110,19 @@ static void write_features(T const& grid_type,
         }
 
         bool found = false;
-        v8::Local<v8::Object> feat = Nan::New<v8::Object>();
+        Napi::Object feat = Napi::Object::New(env);
         mapnik::feature_ptr feature = feat_itr->second;
         for (std::string const& attr : attributes)
         {
             if (attr == "__id__")
             {
-                Nan::Set(feat, Nan::New<v8::String>(attr).ToLocalChecked(), Nan::New<v8::Number>(feature->id()));
+                (feat).Set(Napi::String::New(env, attr), Napi::Number::New(env, feature->id()));
             }
             else if (feature->has_key(attr))
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
-                Nan::Set(feat, Nan::New<v8::String>(attr).ToLocalChecked(),
+                (feat).Set(Napi::String::New(env, attr),
                     mapnik::util::apply_visitor(node_mapnik::value_converter(),
                     attr_val));
             }
@@ -130,7 +130,7 @@ static void write_features(T const& grid_type,
 
         if (found)
         {
-            Nan::Set(feature_data, Nan::New<v8::String>(feat_itr->first).ToLocalChecked(), feat);
+            (feature_data).Set(Napi::String::New(env, feat_itr->first), feat);
         }
     }
 }

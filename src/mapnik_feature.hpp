@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <memory>
@@ -15,18 +16,18 @@
 
 
 
-class Feature: public Nan::ObjectWrap {
+class Feature : public Napi::ObjectWrap<Feature> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(mapnik::feature_ptr f_ptr);
-    static NAN_METHOD(fromJSON);
-    static NAN_METHOD(id);
-    static NAN_METHOD(extent);
-    static NAN_METHOD(attributes);
-    static NAN_METHOD(geometry);
-    static NAN_METHOD(toJSON);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value NewInstance(mapnik::feature_ptr f_ptr);
+    static Napi::Value fromJSON(const Napi::CallbackInfo& info);
+    static Napi::Value id(const Napi::CallbackInfo& info);
+    static Napi::Value extent(const Napi::CallbackInfo& info);
+    static Napi::Value attributes(const Napi::CallbackInfo& info);
+    static Napi::Value geometry(const Napi::CallbackInfo& info);
+    static Napi::Value toJSON(const Napi::CallbackInfo& info);
 
     // todo
     // how to allow altering of attributes

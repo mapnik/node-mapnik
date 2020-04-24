@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <mapnik/featureset.hpp>
@@ -14,13 +15,13 @@
 
 typedef mapnik::featureset_ptr fs_ptr;
 
-class Featureset: public Nan::ObjectWrap {
+class Featureset : public Napi::ObjectWrap<Featureset> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(mapnik::featureset_ptr fs_ptr);
-    static NAN_METHOD(next);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value NewInstance(mapnik::featureset_ptr fs_ptr);
+    static Napi::Value next(const Napi::CallbackInfo& info);
 
     Featureset();
 

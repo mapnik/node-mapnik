@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // stl
@@ -29,7 +30,7 @@ struct BImage {
         im_ptr(nullptr),
         im_raw_ptr(nullptr),
         im_obj(nullptr) {}
-    Nan::Persistent<v8::Object> buffer;
+    Napi::Persistent<v8::Object> buffer;
     const char * data;
     size_t dataLength;
     int x;
@@ -55,13 +56,13 @@ enum AlphaMode {
     BLEND_MODE_HEXTREE
 };
 
-NAN_METHOD(rgb2hsl);
-NAN_METHOD(hsl2rgb);
-NAN_METHOD(Blend);
+Napi::Value rgb2hsl(const Napi::CallbackInfo& info);
+Napi::Value hsl2rgb(const Napi::CallbackInfo& info);
+Napi::Value Blend(const Napi::CallbackInfo& info);
 
 struct BlendBaton {
     uv_work_t request;
-    Nan::Persistent<v8::Function> callback;
+    Napi::FunctionReference callback;
     Images images;
 
     std::string message;

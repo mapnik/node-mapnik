@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // stl
@@ -18,25 +19,32 @@
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>
 
-#define TOSTR(obj) (*Nan::Utf8String(obj))
+#define TOSTR(obj) (obj->As<Napi::String>().Utf8Value().c_str())
 
 #define FUNCTION_ARG(I, VAR)                                            \
-    if (info.Length() <= (I) || !info[I]->IsFunction()) {               \
-        Nan::ThrowTypeError("Argument " #I " must be a function");      \
+    if (info.Length() <= (I) || !info[I].IsFunction()) {               \
+        Napi::TypeError::New(env, "Argument " #I " must be a function").ThrowAsJavaScriptException(); \
         return;                                                         \
     }                                                                   \
-    v8::Local<v8::Function> VAR = info[I].As<v8::Function>();
+    Napi::Function VAR = info[I].As<Napi::Function>();
 
 #define ATTR(t, name, get, set)                                         \
-    Nan::SetAccessor(t->InstanceTemplate(), Nan::New<v8::String>(name).ToLocalChecked(), get, set);
+    Napi::SetAccessor(t->InstanceTemplate(), Napi::String::New(env, name), get, set);
 
 #define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
-    Nan::Set((target), Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::Integer>(constant));
+    ((target)).Set(Napi::String::New(env, name), Napi::Number::New(env, constant));
 
 #define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)      \
-    Nan::Set((target), Nan::New<v8::String>(name).ToLocalChecked(),  Nan::New<v8::Number>(constant));
+    ((target)).Set(Napi::String::New(env, name),  Napi::Number::New(env, constant));
 
 
+
+
+inline Napi::Value CallbackError(Napi::Env env, std::string const& message, Napi::Function const& func) {
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("message", message);
+    return func.Call({obj});
+}
 
 
 namespace node_mapnik {
@@ -46,47 +54,47 @@ typedef mapnik::value_integer value_integer;
 // adapted to work for both mapnik features and mapnik parameters
 struct value_converter
 {
-    v8::Local<v8::Value> operator () ( value_integer val ) const
+    Napi::Value operator () ( value_integer val ) const
     {
-        return Nan::New<v8::Number>(val);
+        return Napi::Number::New(env, val);
     }
 
-    v8::Local<v8::Value> operator () (mapnik::value_bool val ) const
+    Napi::Value operator () (mapnik::value_bool val ) const
     {
-        return Nan::New<v8::Boolean>(val);
+        return Napi::Boolean::New(env, val);
     }
 
-    v8::Local<v8::Value> operator () ( double val ) const
+    Napi::Value operator () ( double val ) const
     {
-        return Nan::New<v8::Number>(val);
+        return Napi::Number::New(env, val);
     }
 
-    v8::Local<v8::Value> operator () ( std::string const& val ) const
+    Napi::Value operator () ( std::string const& val ) const
     {
-        return Nan::New<v8::String>(val.c_str()).ToLocalChecked();
+        return Napi::String::New(env, val.c_str());
     }
 
-    v8::Local<v8::Value> operator () ( mapnik::value_unicode_string const& val) const
+    Napi::Value operator () ( mapnik::value_unicode_string const& val) const
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);
-        return Nan::New<v8::String>(buffer.c_str()).ToLocalChecked();
+        return Napi::String::New(env, buffer.c_str());
     }
 
-    v8::Local<v8::Value> operator () ( mapnik::value_null const& ) const
+    Napi::Value operator () ( mapnik::value_null const& ) const
     {
-        return Nan::Null();
+        return env.Null();
     }
 };
 
-inline void params_to_object(v8::Local<v8::Object>& ds, std::string const& key, mapnik::value_holder const& val)
+inline void params_to_object(Napi::Object& ds, std::string const& key, mapnik::value_holder const& val)
 {
-    Nan::Set(ds, Nan::New<v8::String>(key.c_str()).ToLocalChecked(), mapnik::util::apply_visitor(value_converter(), val));
+    (ds).Set(Napi::String::New(env, key.c_str()), mapnik::util::apply_visitor(value_converter(), val));
 }
 
-inline Nan::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> && ptr)
+inline Napi::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> && ptr)
 {
-    Nan::MaybeLocal<v8::Object> res = Nan::NewBuffer(
+    Napi::MaybeLocal<v8::Object> res = Napi::Buffer<char>::New(env,
             &(*ptr)[0],
             ptr->size(),
             [](char*, void* hint) {

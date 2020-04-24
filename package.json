@@ -37,7 +37,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "mapnik-vector-tile": "3.0.1",
-    "nan": "~2.14.0",
+    "node-addon-api": "nodejs/node-addon-api",
     "node-pre-gyp": "~0.13.0"
   },
   "bin": {
@@ -56,8 +56,8 @@
     "@mapbox/sphericalmercator": "~1.0.2",
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
-    "jshint": "^2.5.10",
-    "mocha": "^7.0.1"
+    "nyc": "^14.1.1",
+    "tape": "^4.5.1"
   },
   "jshintConfig": {
     "node": true,

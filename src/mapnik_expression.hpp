@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <memory>
@@ -14,13 +15,13 @@
 
 
 
-class Expression: public Nan::ObjectWrap {
+class Expression : public Napi::ObjectWrap<Expression> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static NAN_METHOD(toString);
-    static NAN_METHOD(evaluate);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value toString(const Napi::CallbackInfo& info);
+    static Napi::Value evaluate(const Napi::CallbackInfo& info);
 
     Expression();
     inline mapnik::expression_ptr get() { return this_; }

@@ -14,14 +14,14 @@
 
 namespace node_mapnik {
 
-static inline NAN_METHOD(register_fonts)
+static inline Napi::Value register_fonts(const Napi::CallbackInfo& info)
 {
     try
     {
-        if (info.Length() == 0 || !info[0]->IsString())
+        if (info.Length() == 0 || !info[0].IsString())
         {
-            Nan::ThrowTypeError("first argument must be a path to a directory of fonts");
-            return;
+            Napi::TypeError::New(env, "first argument must be a path to a directory of fonts").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         bool found = false;
@@ -29,23 +29,23 @@ static inline NAN_METHOD(register_fonts)
         // option hash
         if (info.Length() >= 2)
         {
-            if (!info[1]->IsObject())
+            if (!info[1].IsObject())
             {
-                Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
-                return;
+                Napi::TypeError::New(env, "second argument is optional, but if provided must be an object, eg. { recurse: true }").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            v8::Local<v8::Object> options = info[1].As<v8::Object>();
-            if (Nan::Has(options, Nan::New("recurse").ToLocalChecked()).FromMaybe(false))
+            Napi::Object options = info[1].As<Napi::Object>();
+            if ((options).Has(Napi::String::New(env, "recurse")).FromMaybe(false))
             {
-                v8::Local<v8::Value> recurse_opt = Nan::Get(options, Nan::New("recurse").ToLocalChecked()).ToLocalChecked();
+                Napi::Value recurse_opt = (options).Get(Napi::String::New(env, "recurse"));
                 if (!recurse_opt->IsBoolean())
                 {
-                    Nan::ThrowTypeError("'recurse' must be a Boolean");
-                    return;
+                    Napi::TypeError::New(env, "'recurse' must be a Boolean").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
 
-                bool recurse = Nan::To<bool>(recurse_opt).FromJust();
+                bool recurse = recurse_opt.As<Napi::Boolean>().Value();
                 std::string path = TOSTR(info[0]);
                 found = mapnik::freetype_engine::register_fonts(path,recurse);
             }
@@ -56,50 +56,50 @@ static inline NAN_METHOD(register_fonts)
             found = mapnik::freetype_engine::register_fonts(path);
         }
 
-        info.GetReturnValue().Set(Nan::New(found));
+        return Napi::New(env, found);
     }
     catch (std::exception const& ex)
     {
         // Does not appear that this line can ever be reached, not certain what would ever throw an exception
         /* LCOV_EXCL_START */
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
         /* LCOV_EXCL_STOP */
     }
 }
 
-static inline NAN_METHOD(available_font_faces)
+static inline Napi::Value available_font_faces(const Napi::CallbackInfo& info)
 {
     auto const& names = mapnik::freetype_engine::face_names();
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(names.size());
+    Napi::Array a = Napi::Array::New(env, names.size());
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        Nan::Set(a, i, Nan::New<v8::String>(names[i].c_str()).ToLocalChecked());
+        (a).Set(i, Napi::String::New(env, names[i].c_str()));
     }
-    info.GetReturnValue().Set(a);
+    return a;
 }
 
-static inline NAN_METHOD(memory_fonts)
+static inline Napi::Value memory_fonts(const Napi::CallbackInfo& info)
 {
     auto const& font_cache = mapnik::freetype_engine::get_cache();
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(font_cache.size());
+    Napi::Array a = Napi::Array::New(env, font_cache.size());
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        Nan::Set(a, i++, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked());
+        (a).Set(i++, Napi::String::New(env, kv.first.c_str()));
     }
-    info.GetReturnValue().Set(a);
+    return a;
 }
 
-static inline NAN_METHOD(available_font_files)
+static inline Napi::Value available_font_files(const Napi::CallbackInfo& info)
 {
     auto const& mapping = mapnik::freetype_engine::get_mapping();
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Napi::Object obj = Napi::Object::New(env);
     for (auto const& kv : mapping)
     {
-        Nan::Set(obj, Nan::New<v8::String>(kv.first.c_str()).ToLocalChecked(), Nan::New<v8::String>(kv.second.second.c_str()).ToLocalChecked());
+        (obj).Set(Napi::String::New(env, kv.first.c_str()), Napi::String::New(env, kv.second.second.c_str()));
     }
-    info.GetReturnValue().Set(obj);
+    return obj;
 }
 
 

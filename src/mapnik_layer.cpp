@@ -14,18 +14,18 @@
 // stl
 #include <limits>
 
-Nan::Persistent<v8::FunctionTemplate> Layer::constructor;
+Napi::FunctionReference Layer::constructor;
 
-void Layer::Initialize(v8::Local<v8::Object> target) {
+void Layer::Initialize(Napi::Object target) {
 
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Layer::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Layer").ToLocalChecked());
+    Napi::FunctionReference lcons = Napi::Function::New(env, Layer::New);
+
+    lcons->SetClassName(Napi::String::New(env, "Layer"));
 
     // methods
-    Nan::SetPrototypeMethod(lcons, "describe", describe);
+    InstanceMethod("describe", &describe),
 
     // properties
     ATTR(lcons, "name", get_prop, set_prop);
@@ -38,100 +38,98 @@ void Layer::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "queryable", get_prop, set_prop);
     ATTR(lcons, "clear_label_cache", get_prop, set_prop);
 
-    Nan::Set(target, Nan::New("Layer").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "Layer"),Napi::GetFunction(lcons));
     constructor.Reset(lcons);
 }
 
-Layer::Layer(std::string const& name):
-    Nan::ObjectWrap(),
+Layer::Layer(std::string const& name) : Napi::ObjectWrap<Layer>(),
     layer_(std::make_shared<mapnik::layer>(name)) {}
 
-Layer::Layer(std::string const& name, std::string const& srs):
-    Nan::ObjectWrap(),
+Layer::Layer(std::string const& name, std::string const& srs) : Napi::ObjectWrap<Layer>(),
     layer_(std::make_shared<mapnik::layer>(name,srs)) {}
 
-Layer::Layer():
-    Nan::ObjectWrap(),
+Layer::Layer() : Napi::ObjectWrap<Layer>(),
     layer_() {}
 
 
 Layer::~Layer() {}
 
-NAN_METHOD(Layer::New)
+Napi::Value Layer::New(const Napi::CallbackInfo& info)
 {
     if (!info.IsConstructCall()) {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
+        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info[0]->IsExternal())
+    if (info[0].IsExternal())
     {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
+        Napi::External ext = info[0].As<Napi::External>();
         void* ptr = ext->Value();
         Layer* l =  static_cast<Layer*>(ptr);
         l->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
 
     if (info.Length() == 1)
     {
-        if (!info[0]->IsString())
+        if (!info[0].IsString())
         {
-            Nan::ThrowTypeError("'name' must be a string");
-            return;
+            Napi::TypeError::New(env, "'name' must be a string").ThrowAsJavaScriptException();
+            return env.Null();
         }
         Layer* l = new Layer(TOSTR(info[0]));
         l->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
     else if (info.Length() == 2)
     {
-        if (!info[0]->IsString() || !info[1]->IsString()) {
-            Nan::ThrowTypeError("'name' and 'srs' must be a strings");
-            return;
+        if (!info[0].IsString() || !info[1].IsString()) {
+            Napi::TypeError::New(env, "'name' and 'srs' must be a strings").ThrowAsJavaScriptException();
+            return env.Null();
         }
         Layer* l = new Layer(TOSTR(info[0]),TOSTR(info[1]));
         l->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
     else
     {
-        Nan::ThrowTypeError("please provide Layer name and optional srs");
-        return;
+        Napi::TypeError::New(env, "please provide Layer name and optional srs").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-v8::Local<v8::Value> Layer::NewInstance(mapnik::layer const& lay_ref) {
-    Nan::EscapableHandleScope scope;
+Napi::Value Layer::NewInstance(mapnik::layer const& lay_ref) {
+    Napi::EscapableHandleScope scope(env);
     Layer* l = new Layer();
     // copy new mapnik::layer into the shared_ptr
     l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(l);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Layer instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
+    Napi::Value ext = Napi::External::New(env, l);
+    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
+    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Layer instance").ThrowAsJavaScriptException();
+
+    return scope.Escape(maybe_local);
 }
 
-NAN_GETTER(Layer::get_prop)
+Napi::Value Layer::get_prop(const Napi::CallbackInfo& info)
 {
-    Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
+    Layer* l = info.Holder().Unwrap<Layer>();
     std::string a = TOSTR(property);
     if (a == "name")
-        info.GetReturnValue().Set(Nan::New<v8::String>(l->layer_->name()).ToLocalChecked());
+        return Napi::String::New(env, l->layer_->name());
     else if (a == "srs")
-        info.GetReturnValue().Set(Nan::New<v8::String>(l->layer_->srs()).ToLocalChecked());
+        return Napi::String::New(env, l->layer_->srs());
     else if (a == "styles") {
         std::vector<std::string> const& style_names = l->layer_->styles();
-        v8::Local<v8::Array> s = Nan::New<v8::Array>(style_names.size());
+        Napi::Array s = Napi::Array::New(env, style_names.size());
         for (unsigned i = 0; i < style_names.size(); ++i)
         {
-            Nan::Set(s, i, Nan::New<v8::String>(style_names[i]).ToLocalChecked() );
+            (s).Set(i, Napi::String::New(env, style_names[i]) );
         }
-        info.GetReturnValue().Set(s);
+        return s;
     }
     else if (a == "datasource") {
         mapnik::datasource_ptr ds = l->layer_->datasource();
@@ -140,55 +138,55 @@ NAN_GETTER(Layer::get_prop)
             mapnik::memory_datasource * mem_ptr = dynamic_cast<mapnik::memory_datasource*>(ds.get());
             if (mem_ptr)
             {
-                info.GetReturnValue().Set(MemoryDatasource::NewInstance(ds));
+                return MemoryDatasource::NewInstance(ds);
             }
             else
             {
-                info.GetReturnValue().Set(Datasource::NewInstance(ds));
+                return Datasource::NewInstance(ds);
             }
         }
         return;
     }
     else if (a == "minimum_scale_denominator")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->minimum_scale_denominator()));
+        return Napi::Number::New(env, l->layer_->minimum_scale_denominator());
     }
     else if (a == "maximum_scale_denominator")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Number>(l->layer_->maximum_scale_denominator()));
+        return Napi::Number::New(env, l->layer_->maximum_scale_denominator());
     }
     else if (a == "queryable")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->queryable()));
+        return Napi::Boolean::New(env, l->layer_->queryable());
     }
     else if (a == "clear_label_cache")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->clear_label_cache()));
+        return Napi::Boolean::New(env, l->layer_->clear_label_cache());
     }
     else // if (a == "active")
     {
-        info.GetReturnValue().Set(Nan::New<v8::Boolean>(l->layer_->active()));
+        return Napi::Boolean::New(env, l->layer_->active());
     }
 }
 
-NAN_SETTER(Layer::set_prop)
+void Layer::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
+    Layer* l = info.Holder().Unwrap<Layer>();
     std::string a = TOSTR(property);
     if (a == "name")
     {
-        if (!value->IsString()) {
-            Nan::ThrowTypeError("'name' must be a string");
-            return;
+        if (!value.IsString()) {
+            Napi::TypeError::New(env, "'name' must be a string").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
             l->layer_->set_name(TOSTR(value));
         }
     }
     else if (a == "srs")
     {
-        if (!value->IsString()) {
-            Nan::ThrowTypeError("'srs' must be a string");
-            return;
+        if (!value.IsString()) {
+            Napi::TypeError::New(env, "'srs' must be a string").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
             l->layer_->set_srs(TOSTR(value));
         }
@@ -196,127 +194,127 @@ NAN_SETTER(Layer::set_prop)
     else if (a == "styles")
     {
         if (!value->IsArray()) {
-            Nan::ThrowTypeError("Must provide an array of style names");
-            return;
+            Napi::TypeError::New(env, "Must provide an array of style names").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            v8::Local<v8::Array> arr = value.As<v8::Array>();
+            Napi::Array arr = value.As<Napi::Array>();
             // todo - how to check if cast worked?
             unsigned int i = 0;
             unsigned int a_length = arr->Length();
             while (i < a_length) {
-                l->layer_->add_style(TOSTR(Nan::Get(arr, i).ToLocalChecked()));
+                l->layer_->add_style(TOSTR((arr).Get(i)));
                 i++;
             }
         }
     }
     else if (a == "datasource")
     {
-        if (!value->IsObject())
+        if (!value.IsObject())
         {
-            Nan::ThrowTypeError("mapnik.Datasource, or mapnik.MemoryDatasource instance expected");
-            return;
+            Napi::TypeError::New(env, "mapnik.Datasource, or mapnik.MemoryDatasource instance expected").ThrowAsJavaScriptException();
+            return env.Null();
         }
         if (value->IsNull() || value->IsUndefined()) {
-            Nan::ThrowTypeError("mapnik.Datasource, or mapnik.MemoryDatasource instance expected");
-            return;
+            Napi::TypeError::New(env, "mapnik.Datasource, or mapnik.MemoryDatasource instance expected").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            v8::Local<v8::Object> obj = value.As<v8::Object>();
-            if (Nan::New(Datasource::constructor)->HasInstance(obj)) {
-                Datasource *d = Nan::ObjectWrap::Unwrap<Datasource>(obj);
+            Napi::Object obj = value.As<Napi::Object>();
+            if (Napi::New(env, Datasource::constructor)->HasInstance(obj)) {
+                Datasource *d = obj.Unwrap<Datasource>();
                 l->layer_->set_datasource(d->get());
             }
-            /*else if (Nan::New(JSDatasource::constructor)->HasInstance(obj))
+            /*else if (Napi::New(env, JSDatasource::constructor)->HasInstance(obj))
             {
-                JSDatasource *d = Nan::ObjectWrap::Unwrap<JSDatasource>(obj);
+                JSDatasource *d = obj.Unwrap<JSDatasource>();
                 l->layer_->set_datasource(d->get());
             }*/
-            else if (Nan::New(MemoryDatasource::constructor)->HasInstance(obj))
+            else if (Napi::New(env, MemoryDatasource::constructor)->HasInstance(obj))
             {
-                MemoryDatasource *d = Nan::ObjectWrap::Unwrap<MemoryDatasource>(obj);
+                MemoryDatasource *d = obj.Unwrap<MemoryDatasource>();
                 l->layer_->set_datasource(d->get());
             }
             else
             {
-                Nan::ThrowTypeError("mapnik.Datasource or mapnik.MemoryDatasource instance expected");
-                return;
+                Napi::TypeError::New(env, "mapnik.Datasource or mapnik.MemoryDatasource instance expected").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
     }
     else if (a == "minimum_scale_denominator")
     {
-        if (!value->IsNumber()) {
-            Nan::ThrowTypeError("Must provide a number");
-            return;
+        if (!value.IsNumber()) {
+            Napi::TypeError::New(env, "Must provide a number").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        l->layer_->set_minimum_scale_denominator(Nan::To<double>(value).FromJust());
+        l->layer_->set_minimum_scale_denominator(value.As<Napi::Number>().DoubleValue());
     }
     else if (a == "maximum_scale_denominator")
     {
-        if (!value->IsNumber()) {
-            Nan::ThrowTypeError("Must provide a number");
-            return;
+        if (!value.IsNumber()) {
+            Napi::TypeError::New(env, "Must provide a number").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        l->layer_->set_maximum_scale_denominator(Nan::To<double>(value).FromJust());
+        l->layer_->set_maximum_scale_denominator(value.As<Napi::Number>().DoubleValue());
     }
     else if (a == "queryable")
     {
         if (!value->IsBoolean()) {
-            Nan::ThrowTypeError("Must provide a boolean");
-            return;
+            Napi::TypeError::New(env, "Must provide a boolean").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        l->layer_->set_queryable(Nan::To<bool>(value).FromJust());
+        l->layer_->set_queryable(value.As<Napi::Boolean>().Value());
     }
     else if (a == "clear_label_cache")
     {
         if (!value->IsBoolean()) {
-            Nan::ThrowTypeError("Must provide a boolean");
-            return;
+            Napi::TypeError::New(env, "Must provide a boolean").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        l->layer_->set_clear_label_cache(Nan::To<bool>(value).FromJust());
+        l->layer_->set_clear_label_cache(value.As<Napi::Boolean>().Value());
     }
     else if (a == "active")
     {
         if (!value->IsBoolean()) {
-            Nan::ThrowTypeError("Must provide a boolean");
-            return;
+            Napi::TypeError::New(env, "Must provide a boolean").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        l->layer_->set_active(Nan::To<bool>(value).FromJust());
+        l->layer_->set_active(value.As<Napi::Boolean>().Value());
     }
 }
 
-NAN_METHOD(Layer::describe)
+Napi::Value Layer::describe(const Napi::CallbackInfo& info)
 {
-    Layer* l = Nan::ObjectWrap::Unwrap<Layer>(info.Holder());
+    Layer* l = info.Holder().Unwrap<Layer>();
 
-    v8::Local<v8::Object> description = Nan::New<v8::Object>();
+    Napi::Object description = Napi::Object::New(env);
     mapnik::layer const& layer = *l->layer_;
 
-    Nan::Set(description, Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer.name()).ToLocalChecked());
+    (description).Set(Napi::String::New(env, "name"), Napi::String::New(env, layer.name()));
 
-    Nan::Set(description, Nan::New("srs").ToLocalChecked(), Nan::New<v8::String>(layer.srs()).ToLocalChecked());
+    (description).Set(Napi::String::New(env, "srs"), Napi::String::New(env, layer.srs()));
 
-    Nan::Set(description, Nan::New("active").ToLocalChecked(), Nan::New<v8::Boolean>(layer.active()));
+    (description).Set(Napi::String::New(env, "active"), Napi::Boolean::New(env, layer.active()));
 
-    Nan::Set(description, Nan::New("clear_label_cache").ToLocalChecked(), Nan::New<v8::Boolean>(layer.clear_label_cache()));
+    (description).Set(Napi::String::New(env, "clear_label_cache"), Napi::Boolean::New(env, layer.clear_label_cache()));
 
-    Nan::Set(description, Nan::New("minimum_scale_denominator").ToLocalChecked(), Nan::New<v8::Number>(layer.minimum_scale_denominator()));
+    (description).Set(Napi::String::New(env, "minimum_scale_denominator"), Napi::Number::New(env, layer.minimum_scale_denominator()));
 
-    Nan::Set(description, Nan::New("maximum_scale_denominator").ToLocalChecked(), Nan::New<v8::Number>(layer.maximum_scale_denominator()));
+    (description).Set(Napi::String::New(env, "maximum_scale_denominator"), Napi::Number::New(env, layer.maximum_scale_denominator()));
 
-    Nan::Set(description, Nan::New("queryable").ToLocalChecked(), Nan::New<v8::Boolean>(layer.queryable()));
+    (description).Set(Napi::String::New(env, "queryable"), Napi::Boolean::New(env, layer.queryable()));
 
     std::vector<std::string> const& style_names = layer.styles();
-    v8::Local<v8::Array> s = Nan::New<v8::Array>(style_names.size());
+    Napi::Array s = Napi::Array::New(env, style_names.size());
     for (unsigned i = 0; i < style_names.size(); ++i)
     {
-        Nan::Set(s, i, Nan::New<v8::String>(style_names[i]).ToLocalChecked() );
+        (s).Set(i, Napi::String::New(env, style_names[i]) );
     }
 
-    Nan::Set(description, Nan::New("styles").ToLocalChecked(), s );
+    (description).Set(Napi::String::New(env, "styles"), s );
 
     mapnik::datasource_ptr datasource = layer.datasource();
-    v8::Local<v8::Object> ds = Nan::New<v8::Object>();
-    Nan::Set(description, Nan::New("datasource").ToLocalChecked(), ds );
+    Napi::Object ds = Napi::Object::New(env);
+    (description).Set(Napi::String::New(env, "datasource"), ds );
     if ( datasource )
     {
         mapnik::parameters::const_iterator it = datasource->params().begin();
@@ -327,5 +325,5 @@ NAN_METHOD(Layer::describe)
         }
     }
 
-    info.GetReturnValue().Set(description);
+    return description;
 }

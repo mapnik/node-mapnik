@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // mapnik
@@ -12,19 +13,19 @@
 
 
 
-class Geometry: public Nan::ObjectWrap {
+class Geometry : public Napi::ObjectWrap<Geometry> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(mapnik::feature_ptr f);
-    static NAN_METHOD(type);
-    static NAN_METHOD(extent);
-    static NAN_METHOD(toWKB);
-    static NAN_METHOD(toWKT);
-    static v8::Local<v8::Value> _toJSONSync(Nan::NAN_METHOD_ARGS_TYPE info);
-    static NAN_METHOD(toJSON);
-    static NAN_METHOD(toJSONSync);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value NewInstance(mapnik::feature_ptr f);
+    static Napi::Value type(const Napi::CallbackInfo& info);
+    static Napi::Value extent(const Napi::CallbackInfo& info);
+    static Napi::Value toWKB(const Napi::CallbackInfo& info);
+    static Napi::Value toWKT(const Napi::CallbackInfo& info);
+    static Napi::Value _toJSONSync(const Napi::CallbackInfo& info);
+    static Napi::Value toJSON(const Napi::CallbackInfo& info);
+    static Napi::Value toJSONSync(const Napi::CallbackInfo& info);
     static void to_json(uv_work_t* req);
     static void after_to_json(uv_work_t* req);
     Geometry(mapnik::feature_ptr f);

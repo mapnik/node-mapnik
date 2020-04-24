@@ -57,86 +57,86 @@ static bool hexToUInt32Color(char *hex, std::uint32_t & value) {
     }
 }
 
-NAN_METHOD(rgb2hsl) {
+Napi::Value rgb2hsl(const Napi::CallbackInfo& info) {
     if (info.Length() != 3) {
-        Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
-        return;
+        Napi::TypeError::New(env, "Please pass r,g,b integer values as three arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    if (!info[0]->IsNumber() || !info[1]->IsNumber() || !info[2]->IsNumber()) {
-        Nan::ThrowTypeError("Please pass r,g,b integer values as three arguments");
-        return;
+    if (!info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsNumber()) {
+        Napi::TypeError::New(env, "Please pass r,g,b integer values as three arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    std::uint32_t r = Nan::To<int>(info[0]).FromJust();
-    std::uint32_t g = Nan::To<int>(info[1]).FromJust();
-    std::uint32_t b = Nan::To<int>(info[2]).FromJust();
-    v8::Local<v8::Array> hsl = Nan::New<v8::Array>(3);
+    std::uint32_t r = info[0].As<Napi::Number>().Int32Value();
+    std::uint32_t g = info[1].As<Napi::Number>().Int32Value();
+    std::uint32_t b = info[2].As<Napi::Number>().Int32Value();
+    Napi::Array hsl = Napi::Array::New(env, 3);
     double h,s,l;
     rgb_to_hsl(r,g,b,h,s,l);
-    Nan::Set(hsl, 0, Nan::New<v8::Number>(h));
-    Nan::Set(hsl, 1, Nan::New<v8::Number>(s));
-    Nan::Set(hsl, 2, Nan::New<v8::Number>(l));
-    info.GetReturnValue().Set(hsl);
+    (hsl).Set(0, Napi::Number::New(env, h));
+    (hsl).Set(1, Napi::Number::New(env, s));
+    (hsl).Set(2, Napi::Number::New(env, l));
+    return hsl;
 }
 
-NAN_METHOD(hsl2rgb) {
+Napi::Value hsl2rgb(const Napi::CallbackInfo& info) {
     if (info.Length() != 3) {
-        Nan::ThrowTypeError("Please pass hsl fractional values as three arguments");
-        return;
+        Napi::TypeError::New(env, "Please pass hsl fractional values as three arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    if (!info[0]->IsNumber() || !info[1]->IsNumber() || !info[2]->IsNumber()) {
-        Nan::ThrowTypeError("Please pass hsl fractional values as three arguments");
-        return;
+    if (!info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsNumber()) {
+        Napi::TypeError::New(env, "Please pass hsl fractional values as three arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
     double h,s,l;
-    h = Nan::To<double>(info[0]).FromJust();
-    s = Nan::To<double>(info[1]).FromJust();
-    l = Nan::To<double>(info[2]).FromJust();
-    v8::Local<v8::Array> rgb = Nan::New<v8::Array>(3);
+    h = info[0].As<Napi::Number>().DoubleValue();
+    s = info[1].As<Napi::Number>().DoubleValue();
+    l = info[2].As<Napi::Number>().DoubleValue();
+    Napi::Array rgb = Napi::Array::New(env, 3);
     std::uint32_t r,g,b;
     hsl_to_rgb(h,s,l,r,g,b);
-    Nan::Set(rgb, 0, Nan::New<v8::Integer>(r));
-    Nan::Set(rgb, 1, Nan::New<v8::Integer>(g));
-    Nan::Set(rgb, 2, Nan::New<v8::Integer>(b));
-    info.GetReturnValue().Set(rgb);
+    (rgb).Set(0, Napi::Number::New(env, r));
+    (rgb).Set(1, Napi::Number::New(env, g));
+    (rgb).Set(2, Napi::Number::New(env, b));
+    return rgb;
 }
 
-static void parseTintOps(v8::Local<v8::Object> const& tint, Tinter & tinter, std::string & msg) {
-    Nan::HandleScope scope;
-    v8::Local<v8::Value> hue = Nan::Get(tint, Nan::New("h").ToLocalChecked()).ToLocalChecked();
+static void parseTintOps(Napi::Object const& tint, Tinter & tinter, std::string & msg) {
+    Napi::HandleScope scope(env);
+    Napi::Value hue = (tint).Get(Napi::String::New(env, "h"));
     if (!hue.IsEmpty() && hue->IsArray()) {
-        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(hue);
+        Napi::Array val_array = hue.As<Napi::Array>();
         if (val_array->Length() != 2) {
             msg = "h array must be a pair of values";
         }
-        tinter.h0 = Nan::To<double>(Nan::Get(val_array, 0).ToLocalChecked()).FromJust();
-        tinter.h1 = Nan::To<double>(Nan::Get(val_array, 1).ToLocalChecked()).FromJust();
+        tinter.h0 = (val_array).Get(0.As<Napi::Number>().DoubleValue());
+        tinter.h1 = (val_array).Get(1.As<Napi::Number>().DoubleValue());
     }
-    v8::Local<v8::Value> sat = Nan::Get(tint, Nan::New("s").ToLocalChecked()).ToLocalChecked();
+    Napi::Value sat = (tint).Get(Napi::String::New(env, "s"));
     if (!sat.IsEmpty() && sat->IsArray()) {
-        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(sat);
+        Napi::Array val_array = sat.As<Napi::Array>();
         if (val_array->Length() != 2) {
             msg = "s array must be a pair of values";
         }
-        tinter.s0 = Nan::To<double>(Nan::Get(val_array, 0).ToLocalChecked()).FromJust();
-        tinter.s1 = Nan::To<double>(Nan::Get(val_array, 1).ToLocalChecked()).FromJust();
+        tinter.s0 = (val_array).Get(0.As<Napi::Number>().DoubleValue());
+        tinter.s1 = (val_array).Get(1.As<Napi::Number>().DoubleValue());
     }
-    v8::Local<v8::Value> light = Nan::Get(tint, Nan::New("l").ToLocalChecked()).ToLocalChecked();
+    Napi::Value light = (tint).Get(Napi::String::New(env, "l"));
     if (!light.IsEmpty() && light->IsArray()) {
-        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(light);
+        Napi::Array val_array = light.As<Napi::Array>();
         if (val_array->Length() != 2) {
             msg = "l array must be a pair of values";
         }
-        tinter.l0 = Nan::To<double>(Nan::Get(val_array, 0).ToLocalChecked()).FromJust();
-        tinter.l1 = Nan::To<double>(Nan::Get(val_array, 1).ToLocalChecked()).FromJust();
+        tinter.l0 = (val_array).Get(0.As<Napi::Number>().DoubleValue());
+        tinter.l1 = (val_array).Get(1.As<Napi::Number>().DoubleValue());
     }
-    v8::Local<v8::Value> alpha = Nan::Get(tint, Nan::New("a").ToLocalChecked()).ToLocalChecked();
+    Napi::Value alpha = (tint).Get(Napi::String::New(env, "a"));
     if (!alpha.IsEmpty() && alpha->IsArray()) {
-        v8::Local<v8::Array> val_array = v8::Local<v8::Array>::Cast(alpha);
+        Napi::Array val_array = alpha.As<Napi::Array>();
         if (val_array->Length() != 2) {
             msg = "a array must be a pair of values";
         }
-        tinter.a0 = Nan::To<double>(Nan::Get(val_array, 0).ToLocalChecked()).FromJust();
-        tinter.a1 = Nan::To<double>(Nan::Get(val_array, 1).ToLocalChecked()).FromJust();
+        tinter.a0 = (val_array).Get(0.As<Napi::Number>().DoubleValue());
+        tinter.a1 = (val_array).Get(1.As<Napi::Number>().DoubleValue());
     }
 }
 
@@ -442,9 +442,9 @@ void Work_Blend(uv_work_t* req)
 }
 
 void Work_AfterBlend(uv_work_t* req) {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     BlendBaton* baton = static_cast<BlendBaton*>(req->data);
-    Nan::AsyncResource async_resource(__func__);
+    Napi::AsyncResource async_resource(__func__);
 
     for (auto im : baton->images) {
         if (im->im_obj) {
@@ -452,17 +452,17 @@ void Work_AfterBlend(uv_work_t* req) {
         }
     }
 
-    if (!baton->message.length()) {
-        v8::Local<v8::Value> argv[] = {
-            Nan::Null(),
-            NewBufferFrom(std::move(baton->output_data)).ToLocalChecked()
+    if (!baton->message.Length()) {
+        Napi::Value argv[] = {
+            env.Null(),
+            NewBufferFrom(std::move(baton->output_data))
         };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, baton->callback), 2, argv);
     } else {
-        v8::Local<v8::Value> argv[] = {
-            Nan::Error(baton->message.c_str())
+        Napi::Value argv[] = {
+            Napi::Error::New(env, baton->message.c_str())
         };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 1, argv);
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, baton->callback), 1, argv);
     }
     delete baton;
 }
@@ -490,78 +490,78 @@ void Work_AfterBlend(uv_work_t* req) {
  *  fs.writeFileSync('result.png', result);
  * });
  */
-NAN_METHOD(Blend) {
+Napi::Value Blend(const Napi::CallbackInfo& info) {
     std::unique_ptr<BlendBaton> baton(new BlendBaton());
-    v8::Local<v8::Object> options;
-    if (info.Length() == 0 || !info[0]->IsArray()) {
-        Nan::ThrowTypeError("First argument must be an array of Buffers.");
-        return;
+    Napi::Object options;
+    if (info.Length() == 0 || !info[0].IsArray()) {
+        Napi::TypeError::New(env, "First argument must be an array of Buffers.").ThrowAsJavaScriptException();
+        return env.Null();
     } else if (info.Length() == 1) {
-        Nan::ThrowTypeError("Second argument must be a function");
-        return;
+        Napi::TypeError::New(env, "Second argument must be a function").ThrowAsJavaScriptException();
+        return env.Null();
     } else if (info.Length() == 2) {
         // No options provided.
-        if (!info[1]->IsFunction()) {
-            Nan::ThrowTypeError("Second argument must be a function.");
-            return;
+        if (!info[1].IsFunction()) {
+            Napi::TypeError::New(env, "Second argument must be a function.").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        baton->callback.Reset(info[1].As<v8::Function>());
+        baton->callback.Reset(info[1].As<Napi::Function>());
     } else if (info.Length() >= 3) {
-        if (!info[1]->IsObject()) {
-            Nan::ThrowTypeError("Second argument must be a an options object.");
-            return;
+        if (!info[1].IsObject()) {
+            Napi::TypeError::New(env, "Second argument must be a an options object.").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = v8::Local<v8::Object>::Cast(info[1]);
+        options = info[1].As<Napi::Object>();
 
-        if (!info[2]->IsFunction()) {
-            Nan::ThrowTypeError("Third argument must be a function.");
-            return;
+        if (!info[2].IsFunction()) {
+            Napi::TypeError::New(env, "Third argument must be a function.").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        baton->callback.Reset(info[2].As<v8::Function>());
+        baton->callback.Reset(info[2].As<Napi::Function>());
     }
 
     // Validate options
     if (!options.IsEmpty()) {
-        baton->quality = Nan::To<int>(Nan::Get(options, Nan::New("quality").ToLocalChecked()).ToLocalChecked()).FromJust();
+        baton->quality = (options).Get(Napi::String::New(env, "quality".As<Napi::Number>().Int32Value()));
 
-        v8::Local<v8::Value> format_val = Nan::Get(options, Nan::New("format").ToLocalChecked()).ToLocalChecked();
-        if (!format_val.IsEmpty() && format_val->IsString()) {
+        Napi::Value format_val = (options).Get(Napi::String::New(env, "format"));
+        if (!format_val.IsEmpty() && format_val.IsString()) {
             std::string format_val_string = TOSTR(format_val);
             if (format_val_string == "jpeg" || format_val_string == "jpg") {
                 baton->format = BLEND_FORMAT_JPEG;
                 if (baton->quality == 0) baton->quality = 85; // 85 is same default as mapnik core jpeg
                 else if (baton->quality < 0 || baton->quality > 100) {
-                    Nan::ThrowTypeError("JPEG quality is range 0-100.");
-                    return;
+                    Napi::TypeError::New(env, "JPEG quality is range 0-100.").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             } else if (format_val_string == "png") {
                 if (baton->quality == 1 || baton->quality > 256) {
-                    Nan::ThrowTypeError("PNG images must be quantized between 2 and 256 colors.");
-                    return;
+                    Napi::TypeError::New(env, "PNG images must be quantized between 2 and 256 colors.").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             } else if (format_val_string == "webp") {
                 baton->format = BLEND_FORMAT_WEBP;
                 if (baton->quality == 0) baton->quality = 80;
                 else if (baton->quality < 0 || baton->quality > 100) {
-                    Nan::ThrowTypeError("WebP quality is range 0-100.");
-                    return;
+                    Napi::TypeError::New(env, "WebP quality is range 0-100.").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             } else {
-                Nan::ThrowTypeError("Invalid output format.");
-                return;
+                Napi::TypeError::New(env, "Invalid output format.").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
 
-        baton->reencode = Nan::To<bool>(Nan::Get(options, Nan::New("reencode").ToLocalChecked()).ToLocalChecked()).FromJust();
-        baton->width = Nan::To<int>(Nan::Get(options, Nan::New("width").ToLocalChecked()).ToLocalChecked()).FromJust();
-        baton->height = Nan::To<int>(Nan::Get(options, Nan::New("height").ToLocalChecked()).ToLocalChecked()).FromJust();
+        baton->reencode = (options).Get(Napi::String::New(env, "reencode".As<Napi::Boolean>().Value()));
+        baton->width = (options).Get(Napi::String::New(env, "width".As<Napi::Number>().Int32Value()));
+        baton->height = (options).Get(Napi::String::New(env, "height".As<Napi::Number>().Int32Value()));
 
-        v8::Local<v8::Value> matte_val = Nan::Get(options, Nan::New("matte").ToLocalChecked()).ToLocalChecked();
-        if (!matte_val.IsEmpty() && matte_val->IsString()) {
-            if (!hexToUInt32Color(TOSTR(matte_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()), baton->matte))
+        Napi::Value matte_val = (options).Get(Napi::String::New(env, "matte"));
+        if (!matte_val.IsEmpty() && matte_val.IsString()) {
+            if (!hexToUInt32Color(TOSTR(matte_val->ToString(Napi::GetCurrentContext())), baton->matte))
             {
-                Nan::ThrowTypeError("Invalid batte provided.");
-                return;
+                Napi::TypeError::New(env, "Invalid batte provided.").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
             // Make sure we're reencoding in the case of single alpha PNGs
@@ -570,13 +570,13 @@ NAN_METHOD(Blend) {
             }
         }
 
-        v8::Local<v8::Value> palette_val = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
-        if (!palette_val.IsEmpty() && palette_val->IsObject()) {
-            baton->palette = Nan::ObjectWrap::Unwrap<Palette>(palette_val->ToObject(Nan::GetCurrentContext()).ToLocalChecked())->palette();
+        Napi::Value palette_val = (options).Get(Napi::String::New(env, "palette"));
+        if (!palette_val.IsEmpty() && palette_val.IsObject()) {
+            baton->palette = palette_val->ToObject(Napi::GetCurrentContext()))->palette(.Unwrap<Palette>();
         }
 
-        v8::Local<v8::Value> mode_val = Nan::Get(options, Nan::New("mode").ToLocalChecked()).ToLocalChecked();
-        if (!mode_val.IsEmpty() && mode_val->IsString()) {
+        Napi::Value mode_val = (options).Get(Napi::String::New(env, "mode"));
+        if (!mode_val.IsEmpty() && mode_val.IsString()) {
             std::string mode_string = TOSTR(mode_val);
             if (mode_string == "octree" || mode_string == "o") {
                 baton->mode = BLEND_MODE_OCTREE;
@@ -586,16 +586,16 @@ NAN_METHOD(Blend) {
             }
         }
 
-        if (Nan::Has(options, Nan::New("compression").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> compression_val = Nan::Get(options, Nan::New("compression").ToLocalChecked()).ToLocalChecked();
-            if (!compression_val.IsEmpty() && compression_val->IsNumber())
+        if ((options).Has(Napi::String::New(env, "compression")).FromMaybe(false)) {
+            Napi::Value compression_val = (options).Get(Napi::String::New(env, "compression"));
+            if (!compression_val.IsEmpty() && compression_val.IsNumber())
             {
-                baton->compression = Nan::To<int>(compression_val).FromJust();
+                baton->compression = compression_val.As<Napi::Number>().Int32Value();
             }
             else
             {
-                Nan::ThrowTypeError("Compression option must be a number");
-                return;
+                Napi::TypeError::New(env, "Compression option must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
 
@@ -612,86 +612,86 @@ NAN_METHOD(Blend) {
             std::ostringstream msg;
             msg << "Compression level must be between "
                 << min_compression << " and " << max_compression;
-            Nan::ThrowTypeError(msg.str().c_str());
-            return;
+            Napi::TypeError::New(env, msg.str().c_str()).ThrowAsJavaScriptException();
+            return env.Null();
         }
     }
 
-    v8::Local<v8::Array> js_images = v8::Local<v8::Array>::Cast(info[0]);
+    Napi::Array js_images = info[0].As<Napi::Array>();
     uint32_t length = js_images->Length();
     if (length < 1 && !baton->reencode) {
-        Nan::ThrowTypeError("First argument must contain at least one Buffer.");
-        return;
+        Napi::TypeError::New(env, "First argument must contain at least one Buffer.").ThrowAsJavaScriptException();
+        return env.Null();
     } else if (length == 1 && !baton->reencode) {
-        v8::Local<v8::Value> buffer = Nan::Get(js_images, 0).ToLocalChecked();
-        if (node::Buffer::HasInstance(buffer)) {
+        Napi::Value buffer = (js_images).Get(0);
+        if (buffer.IsBuffer()) {
             // Directly pass through buffer if it's the only one.
-            v8::Local<v8::Value> argv[] = {
-                Nan::Null(),
+            Napi::Value argv[] = {
+                env.Null(),
                 buffer
             };
-            Nan::AsyncResource async_resource(__func__);
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->callback), 2, argv);
+            Napi::AsyncResource async_resource(__func__);
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, baton->callback), 2, argv);
             return;
         }
     }
 
     if (!(length >= 1 || (baton->width > 0 && baton->height > 0))) {
-        Nan::ThrowTypeError("Without buffers, you have to specify width and height.");
-        return;
+        Napi::TypeError::New(env, "Without buffers, you have to specify width and height.").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (baton->width < 0 || baton->height < 0) {
-        Nan::ThrowTypeError("Image dimensions must be greater than 0.");
-        return;
+        Napi::TypeError::New(env, "Image dimensions must be greater than 0.").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     for (uint32_t i = 0; i < length; ++i) {
         ImagePtr image = std::make_shared<BImage>();
-        v8::Local<v8::Value> buffer = Nan::Get(js_images, i).ToLocalChecked();
-        if (node::Buffer::HasInstance(buffer)) {
-            image->buffer.Reset(buffer.As<v8::Object>());
-        } else if (buffer->IsObject()) {
-            v8::Local<v8::Object> props = buffer->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-            if (Nan::New(Image::constructor)->HasInstance(props)) {
-                Image * im = Nan::ObjectWrap::Unwrap<Image>(props);
+        Napi::Value buffer = (js_images).Get(i);
+        if (buffer.IsBuffer()) {
+            image->buffer.Reset(buffer.As<Napi::Object>());
+        } else if (buffer.IsObject()) {
+            Napi::Object props = buffer->ToObject(Napi::GetCurrentContext());
+            if (Napi::New(env, Image::constructor)->HasInstance(props)) {
+                Image * im = props.Unwrap<Image>();
                 if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
                     image->im_obj = im;
                 } else {
-                    Nan::ThrowTypeError("Only mapnik.Image types that are rgba8 can be passed to blend");
-                    return;
+                    Napi::TypeError::New(env, "Only mapnik.Image types that are rgba8 can be passed to blend").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             } else {
-                if (Nan::Has(props, Nan::New("buffer").ToLocalChecked()).FromMaybe(false)) {
-                    buffer = Nan::Get(props, Nan::New("buffer").ToLocalChecked()).ToLocalChecked();
-                    if (node::Buffer::HasInstance(buffer)) {
-                        image->buffer.Reset(buffer.As<v8::Object>());
-                    } else if (buffer->IsObject()) {
-                        v8::Local<v8::Object> possible_im = buffer.As<v8::Object>();
-                        if (Nan::New(Image::constructor)->HasInstance(possible_im)) {
-                            Image * im = Nan::ObjectWrap::Unwrap<Image>(possible_im);
+                if ((props).Has(Napi::String::New(env, "buffer")).FromMaybe(false)) {
+                    buffer = (props).Get(Napi::String::New(env, "buffer"));
+                    if (buffer.IsBuffer()) {
+                        image->buffer.Reset(buffer.As<Napi::Object>());
+                    } else if (buffer.IsObject()) {
+                        Napi::Object possible_im = buffer.As<Napi::Object>();
+                        if (Napi::New(env, Image::constructor)->HasInstance(possible_im)) {
+                            Image * im = possible_im.Unwrap<Image>();
                             if (im->get()->get_dtype() == mapnik::image_dtype_rgba8) {
                                 image->im_obj = im;
                             } else {
-                                Nan::ThrowTypeError("Only mapnik.Image types that are rgba8 can be passed to blend");
-                                return;
+                                Napi::TypeError::New(env, "Only mapnik.Image types that are rgba8 can be passed to blend").ThrowAsJavaScriptException();
+                                return env.Null();
                             }
                         }
                     }
                 }
-                image->x = Nan::To<int>(Nan::Get(props, Nan::New("x").ToLocalChecked()).ToLocalChecked()).FromJust();
-                image->y = Nan::To<int>(Nan::Get(props, Nan::New("y").ToLocalChecked()).ToLocalChecked()).FromJust();
+                image->x = (props).Get(Napi::String::New(env, "x".As<Napi::Number>().Int32Value()));
+                image->y = (props).Get(Napi::String::New(env, "y".As<Napi::Number>().Int32Value()));
 
-                v8::Local<v8::Value> tint_val = Nan::Get(props, Nan::New("tint").ToLocalChecked()).ToLocalChecked();
-                if (!tint_val.IsEmpty() && tint_val->IsObject()) {
-                    v8::Local<v8::Object> tint = tint_val->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+                Napi::Value tint_val = (props).Get(Napi::String::New(env, "tint"));
+                if (!tint_val.IsEmpty() && tint_val.IsObject()) {
+                    Napi::Object tint = tint_val->ToObject(Napi::GetCurrentContext());
                     if (!tint.IsEmpty()) {
                         baton->reencode = true;
                         std::string msg;
                         parseTintOps(tint,image->tint,msg);
                         if (!msg.empty()) {
-                            Nan::ThrowTypeError(msg.c_str());
-                            return;
+                            Napi::TypeError::New(env, msg.c_str()).ThrowAsJavaScriptException();
+                            return env.Null();
                         }
                     }
                 }
@@ -699,12 +699,12 @@ NAN_METHOD(Blend) {
         }
 
         if (image->buffer.IsEmpty() && !image->im_obj) {
-            Nan::ThrowTypeError("All elements must be Buffers or RGBA Mapnik Image objects or objects with a 'buffer' property.");
-            return;
+            Napi::TypeError::New(env, "All elements must be Buffers or RGBA Mapnik Image objects or objects with a 'buffer' property.").ThrowAsJavaScriptException();
+            return env.Null();
         }
         if (!image->im_obj) {
-            image->data = node::Buffer::Data(buffer);
-            image->dataLength = node::Buffer::Length(buffer);
+            image->data = buffer.As<Napi::Buffer<char>>().Data();
+            image->dataLength = buffer.As<Napi::Buffer<char>>().Length();
         }
         baton->images.push_back(image);
     }

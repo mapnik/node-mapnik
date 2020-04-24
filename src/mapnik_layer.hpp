@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // stl
@@ -16,17 +17,17 @@
 namespace mapnik { class layer; }
 typedef std::shared_ptr<mapnik::layer> layer_ptr;
 
-class Layer: public Nan::ObjectWrap {
+class Layer : public Napi::ObjectWrap<Layer> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 
-    static v8::Local<v8::Value> NewInstance(mapnik::layer const& lay_ref);
-    static NAN_METHOD(describe);
+    static Napi::Value NewInstance(mapnik::layer const& lay_ref);
+    static Napi::Value describe(const Napi::CallbackInfo& info);
 
-    static NAN_GETTER(get_prop);
-    static NAN_SETTER(set_prop);
+    Napi::Value get_prop(const Napi::CallbackInfo& info);
+    void set_prop(const Napi::CallbackInfo& info, const Napi::Value& value);
 
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);

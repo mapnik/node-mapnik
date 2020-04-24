@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // stl
@@ -18,14 +19,14 @@ namespace mapnik { class projection; }
 
 typedef std::shared_ptr<mapnik::projection> proj_ptr;
 
-class Projection: public Nan::ObjectWrap {
+class Projection : public Napi::ObjectWrap<Projection> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(inverse);
-    static NAN_METHOD(forward);
+    static Napi::Value inverse(const Napi::CallbackInfo& info);
+    static Napi::Value forward(const Napi::CallbackInfo& info);
 
     explicit Projection(std::string const& name, bool defer_init);
 
@@ -38,22 +39,22 @@ private:
 
 typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
 
-class ProjTransform: public Nan::ObjectWrap {
+class ProjTransform : public Napi::ObjectWrap<ProjTransform> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(forward);
-    static NAN_METHOD(backward);
+    static Napi::Value forward(const Napi::CallbackInfo& info);
+    static Napi::Value backward(const Napi::CallbackInfo& info);
 
     ProjTransform(mapnik::projection const& src,
                   mapnik::projection const& dest);
 
     inline proj_tr_ptr get() { return this_; }
 
-    using Nan::ObjectWrap::Ref;
-    using Nan::ObjectWrap::Unref;
+    using Napi::ObjectWrap::Ref;
+    using Napi::ObjectWrap::Unref;
 
 private:
     ~ProjTransform();

@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <string>
@@ -19,18 +20,18 @@
 
 
 
-class CairoSurface: public Nan::ObjectWrap {
+class CairoSurface : public Napi::ObjectWrap<CairoSurface> {
 public:
     typedef std::stringstream i_stream;
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static NAN_METHOD(getData);
-    static NAN_METHOD(width);
-    static NAN_METHOD(height);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value getData(const Napi::CallbackInfo& info);
+    static Napi::Value width(const Napi::CallbackInfo& info);
+    static Napi::Value height(const Napi::CallbackInfo& info);
 
-    using Nan::ObjectWrap::Ref;
-    using Nan::ObjectWrap::Unref;
+    using Napi::ObjectWrap::Ref;
+    using Napi::ObjectWrap::Unref;
 
     CairoSurface(std::string const& format, unsigned int width, unsigned int height);
     static cairo_status_t write_callback(void *closure,

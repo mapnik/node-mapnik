@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // stl
@@ -17,32 +18,32 @@ namespace mapnik { class Map; }
 
 typedef std::shared_ptr<mapnik::Map> map_ptr;
 
-class Map: public Nan::ObjectWrap {
+class Map : public Napi::ObjectWrap<Map> {
 public:
 
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(fonts);
-    static NAN_METHOD(fontFiles);
-    static NAN_METHOD(fontDirectory);
-    static NAN_METHOD(loadFonts);
-    static NAN_METHOD(registerFonts);
-    static NAN_METHOD(memoryFonts);
-    static NAN_METHOD(loadSync);
-    static NAN_METHOD(load);
+    static Napi::Value fonts(const Napi::CallbackInfo& info);
+    static Napi::Value fontFiles(const Napi::CallbackInfo& info);
+    static Napi::Value fontDirectory(const Napi::CallbackInfo& info);
+    static Napi::Value loadFonts(const Napi::CallbackInfo& info);
+    static Napi::Value registerFonts(const Napi::CallbackInfo& info);
+    static Napi::Value memoryFonts(const Napi::CallbackInfo& info);
+    static Napi::Value loadSync(const Napi::CallbackInfo& info);
+    static Napi::Value load(const Napi::CallbackInfo& info);
     static void EIO_Load(uv_work_t* req);
     static void EIO_AfterLoad(uv_work_t* req);
 
-    static NAN_METHOD(fromStringSync);
-    static NAN_METHOD(fromString);
+    static Napi::Value fromStringSync(const Napi::CallbackInfo& info);
+    static Napi::Value fromString(const Napi::CallbackInfo& info);
     static void EIO_FromString(uv_work_t* req);
     static void EIO_AfterFromString(uv_work_t* req);
-    static NAN_METHOD(clone);
+    static Napi::Value clone(const Napi::CallbackInfo& info);
 
     // async rendering
-    static NAN_METHOD(render);
+    static Napi::Value render(const Napi::CallbackInfo& info);
     static void EIO_RenderImage(uv_work_t* req);
     static void EIO_AfterRenderImage(uv_work_t* req);
 #if defined(GRID_RENDERER)
@@ -52,36 +53,36 @@ public:
     static void EIO_RenderVectorTile(uv_work_t* req);
     static void EIO_AfterRenderVectorTile(uv_work_t* req);
 
-    static NAN_METHOD(renderFile);
+    static Napi::Value renderFile(const Napi::CallbackInfo& info);
     static void EIO_RenderFile(uv_work_t* req);
     static void EIO_AfterRenderFile(uv_work_t* req);
 
     // sync rendering
-    static NAN_METHOD(renderSync);
-    static NAN_METHOD(renderFileSync);
+    static Napi::Value renderSync(const Napi::CallbackInfo& info);
+    static Napi::Value renderFileSync(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(save);
-    static NAN_METHOD(toXML);
+    static Napi::Value save(const Napi::CallbackInfo& info);
+    static Napi::Value toXML(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(clear);
-    static NAN_METHOD(resize);
-    static NAN_METHOD(zoomAll);
-    static NAN_METHOD(zoomToBox);
-    static NAN_METHOD(layers);
-    static NAN_METHOD(scale);
-    static NAN_METHOD(scaleDenominator);
-    static NAN_METHOD(queryPoint);
-    static NAN_METHOD(queryMapPoint);
-    static v8::Local<v8::Value> abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords);
+    static Napi::Value clear(const Napi::CallbackInfo& info);
+    static Napi::Value resize(const Napi::CallbackInfo& info);
+    static Napi::Value zoomAll(const Napi::CallbackInfo& info);
+    static Napi::Value zoomToBox(const Napi::CallbackInfo& info);
+    static Napi::Value layers(const Napi::CallbackInfo& info);
+    static Napi::Value scale(const Napi::CallbackInfo& info);
+    static Napi::Value scaleDenominator(const Napi::CallbackInfo& info);
+    static Napi::Value queryPoint(const Napi::CallbackInfo& info);
+    static Napi::Value queryMapPoint(const Napi::CallbackInfo& info);
+    static Napi::Value abstractQueryPoint(const Napi::CallbackInfo& info, bool geo_coords);
     static void EIO_QueryMap(uv_work_t* req);
     static void EIO_AfterQueryMap(uv_work_t* req);
 
-    static NAN_METHOD(add_layer);
-    static NAN_METHOD(remove_layer);
-    static NAN_METHOD(get_layer);
+    static Napi::Value add_layer(const Napi::CallbackInfo& info);
+    static Napi::Value remove_layer(const Napi::CallbackInfo& info);
+    static Napi::Value get_layer(const Napi::CallbackInfo& info);
 
-    static NAN_GETTER(get_prop);
-    static NAN_SETTER(set_prop);
+    Napi::Value get_prop(const Napi::CallbackInfo& info);
+    void set_prop(const Napi::CallbackInfo& info, const Napi::Value& value);
 
     Map(int width, int height);
     Map(int width, int height, std::string const& srs);
@@ -90,8 +91,8 @@ public:
     bool acquire();
     void release();
 
-    using Nan::ObjectWrap::Ref;
-    using Nan::ObjectWrap::Unref;
+    using Napi::ObjectWrap::Ref;
+    using Napi::ObjectWrap::Unref;
 
     inline map_ptr get() { return map_; }
 

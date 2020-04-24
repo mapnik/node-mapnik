@@ -227,7 +227,7 @@ detail::p2p_result path_to_point_distance(mapnik::geometry::geometry<double> con
     return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
 }
 
-Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
+Napi::FunctionReference VectorTile::constructor;
 
 /**
  * **`mapnik.VectorTile`**
@@ -250,48 +250,48 @@ Nan::Persistent<v8::FunctionTemplate> VectorTile::constructor;
  * console.log(vt.z, vt.x, vt.y); // 9, 112, 195
  * console.log(vt.tileSize, vt.bufferSize); // 4096, 128
  */
-void VectorTile::Initialize(v8::Local<v8::Object> target)
+void VectorTile::Initialize(Napi::Object target)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(VectorTile::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("VectorTile").ToLocalChecked());
-    Nan::SetPrototypeMethod(lcons, "render", render);
-    Nan::SetPrototypeMethod(lcons, "setData", setData);
-    Nan::SetPrototypeMethod(lcons, "setDataSync", setDataSync);
-    Nan::SetPrototypeMethod(lcons, "getData", getData);
-    Nan::SetPrototypeMethod(lcons, "getDataSync", getDataSync);
-    Nan::SetPrototypeMethod(lcons, "addData", addData);
-    Nan::SetPrototypeMethod(lcons, "addDataSync", addDataSync);
-    Nan::SetPrototypeMethod(lcons, "composite", composite);
-    Nan::SetPrototypeMethod(lcons, "compositeSync", compositeSync);
-    Nan::SetPrototypeMethod(lcons, "query", query);
-    Nan::SetPrototypeMethod(lcons, "queryMany", queryMany);
-    Nan::SetPrototypeMethod(lcons, "extent", extent);
-    Nan::SetPrototypeMethod(lcons, "bufferedExtent", bufferedExtent);
-    Nan::SetPrototypeMethod(lcons, "names", names);
-    Nan::SetPrototypeMethod(lcons, "layer", layer);
-    Nan::SetPrototypeMethod(lcons, "emptyLayers", emptyLayers);
-    Nan::SetPrototypeMethod(lcons, "paintedLayers", paintedLayers);
-    Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
-    Nan::SetPrototypeMethod(lcons, "toGeoJSON", toGeoJSON);
-    Nan::SetPrototypeMethod(lcons, "toGeoJSONSync", toGeoJSONSync);
-    Nan::SetPrototypeMethod(lcons, "addGeoJSON", addGeoJSON);
-    Nan::SetPrototypeMethod(lcons, "addImage", addImage);
-    Nan::SetPrototypeMethod(lcons, "addImageSync", addImageSync);
-    Nan::SetPrototypeMethod(lcons, "addImageBuffer", addImageBuffer);
-    Nan::SetPrototypeMethod(lcons, "addImageBufferSync", addImageBufferSync);
+    Napi::FunctionReference lcons = Napi::Function::New(env, VectorTile::New);
+
+    lcons->SetClassName(Napi::String::New(env, "VectorTile"));
+    InstanceMethod("render", &render),
+    InstanceMethod("setData", &setData),
+    InstanceMethod("setDataSync", &setDataSync),
+    InstanceMethod("getData", &getData),
+    InstanceMethod("getDataSync", &getDataSync),
+    InstanceMethod("addData", &addData),
+    InstanceMethod("addDataSync", &addDataSync),
+    InstanceMethod("composite", &composite),
+    InstanceMethod("compositeSync", &compositeSync),
+    InstanceMethod("query", &query),
+    InstanceMethod("queryMany", &queryMany),
+    InstanceMethod("extent", &extent),
+    InstanceMethod("bufferedExtent", &bufferedExtent),
+    InstanceMethod("names", &names),
+    InstanceMethod("layer", &layer),
+    InstanceMethod("emptyLayers", &emptyLayers),
+    InstanceMethod("paintedLayers", &paintedLayers),
+    InstanceMethod("toJSON", &toJSON),
+    InstanceMethod("toGeoJSON", &toGeoJSON),
+    InstanceMethod("toGeoJSONSync", &toGeoJSONSync),
+    InstanceMethod("addGeoJSON", &addGeoJSON),
+    InstanceMethod("addImage", &addImage),
+    InstanceMethod("addImageSync", &addImageSync),
+    InstanceMethod("addImageBuffer", &addImageBuffer),
+    InstanceMethod("addImageBufferSync", &addImageBufferSync),
 #if BOOST_VERSION >= 105600
-    Nan::SetPrototypeMethod(lcons, "reportGeometrySimplicity", reportGeometrySimplicity);
-    Nan::SetPrototypeMethod(lcons, "reportGeometrySimplicitySync", reportGeometrySimplicitySync);
-    Nan::SetPrototypeMethod(lcons, "reportGeometryValidity", reportGeometryValidity);
-    Nan::SetPrototypeMethod(lcons, "reportGeometryValiditySync", reportGeometryValiditySync);
+    InstanceMethod("reportGeometrySimplicity", &reportGeometrySimplicity),
+    InstanceMethod("reportGeometrySimplicitySync", &reportGeometrySimplicitySync),
+    InstanceMethod("reportGeometryValidity", &reportGeometryValidity),
+    InstanceMethod("reportGeometryValiditySync", &reportGeometryValiditySync),
 #endif // BOOST_VERSION >= 105600
-    Nan::SetPrototypeMethod(lcons, "painted", painted);
-    Nan::SetPrototypeMethod(lcons, "clear", clear);
-    Nan::SetPrototypeMethod(lcons, "clearSync", clearSync);
-    Nan::SetPrototypeMethod(lcons, "empty", empty);
+    InstanceMethod("painted", &painted),
+    InstanceMethod("clear", &clear),
+    InstanceMethod("clearSync", &clearSync),
+    InstanceMethod("empty", &empty),
 
     // properties
     ATTR(lcons, "x", get_tile_x, set_tile_x);
@@ -300,9 +300,9 @@ void VectorTile::Initialize(v8::Local<v8::Object> target)
     ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
 
-    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "info", info);
+    Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(), "info", info);
     
-    Nan::Set(target, Nan::New("VectorTile").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "VectorTile"), Napi::GetFunction(lcons));
     constructor.Reset(lcons);
 }
 
@@ -310,8 +310,7 @@ VectorTile::VectorTile(std::uint64_t z,
                        std::uint64_t x,
                        std::uint64_t y,
                        std::uint32_t tile_size,
-                       std::int32_t buffer_size) :
-    Nan::ObjectWrap(),
+                       std::int32_t buffer_size) : Napi::ObjectWrap<VectorTile>(),
     tile_(std::make_shared<mapnik::vector_tile_impl::merc_tile>(x, y, z, tile_size, buffer_size))
 {
 }
@@ -324,106 +323,106 @@ VectorTile::~VectorTile()
 }
 /* LCOV_EXCL_STOP */
 
-NAN_METHOD(VectorTile::New)
+Napi::Value VectorTile::New(const Napi::CallbackInfo& info)
 {
     if (!info.IsConstructCall())
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
+        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info[0]->IsExternal())
+    if (info[0].IsExternal())
     {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
+        Napi::External ext = info[0].As<Napi::External>();
         void* ptr = ext->Value();
         VectorTile* v =  static_cast<VectorTile*>(ptr);
         v->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
 
     if (info.Length() < 3)
     {
-        Nan::ThrowError("please provide a z, x, y");
-        return;
+        Napi::Error::New(env, "please provide a z, x, y").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsNumber() ||
-        !info[1]->IsNumber() ||
-        !info[2]->IsNumber())
+    if (!info[0].IsNumber() ||
+        !info[1].IsNumber() ||
+        !info[2].IsNumber())
     {
-        Nan::ThrowTypeError("required parameters (z, x, and y) must be a integers");
-        return;
+        Napi::TypeError::New(env, "required parameters (z, x, and y) must be a integers").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    std::int64_t z = Nan::To<int>(info[0]).FromJust();
-    std::int64_t x = Nan::To<int>(info[1]).FromJust();
-    std::int64_t y = Nan::To<int>(info[2]).FromJust();
+    std::int64_t z = info[0].As<Napi::Number>().Int32Value();
+    std::int64_t x = info[1].As<Napi::Number>().Int32Value();
+    std::int64_t y = info[2].As<Napi::Number>().Int32Value();
     if (z < 0 || x < 0 || y < 0)
     {
-        Nan::ThrowTypeError("required parameters (z, x, and y) must be greater then or equal to zero");
-        return;
+        Napi::TypeError::New(env, "required parameters (z, x, and y) must be greater then or equal to zero").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::int64_t max_at_zoom = pow(2,z);
     if (x >= max_at_zoom)
     {
-        Nan::ThrowTypeError("required parameter x is out of range of possible values based on z value");
-        return;
+        Napi::TypeError::New(env, "required parameter x is out of range of possible values based on z value").ThrowAsJavaScriptException();
+        return env.Null();
     }
     if (y >= max_at_zoom)
     {
-        Nan::ThrowTypeError("required parameter y is out of range of possible values based on z value");
-        return;
+        Napi::TypeError::New(env, "required parameter y is out of range of possible values based on z value").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     std::uint32_t tile_size = 4096;
     std::int32_t buffer_size = 128;
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     if (info.Length() > 3)
     {
-        if (!info[3]->IsObject())
+        if (!info[3].IsObject())
         {
-            Nan::ThrowTypeError("optional fourth argument must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional fourth argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = info[3]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("tile_size").ToLocalChecked()).FromMaybe(false))
+        options = info[3].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "tile_size")).FromMaybe(false))
         {
-            v8::Local<v8::Value> opt = Nan::Get(options, Nan::New("tile_size").ToLocalChecked()).ToLocalChecked();
-            if (!opt->IsNumber())
+            Napi::Value opt = (options).Get(Napi::String::New(env, "tile_size"));
+            if (!opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'tile_size' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'tile_size' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            int tile_size_tmp = Nan::To<int>(opt).FromJust();
+            int tile_size_tmp = opt.As<Napi::Number>().Int32Value();
             if (tile_size_tmp <= 0)
             {
-                Nan::ThrowTypeError("optional arg 'tile_size' must be greater then zero");
-                return;
+                Napi::TypeError::New(env, "optional arg 'tile_size' must be greater then zero").ThrowAsJavaScriptException();
+                return env.Null();
             }
             tile_size = tile_size_tmp;
         }
-        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false))
         {
-            v8::Local<v8::Value> opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
-            if (!opt->IsNumber())
+            Napi::Value opt = (options).Get(Napi::String::New(env, "buffer_size"));
+            if (!opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            buffer_size = Nan::To<int>(opt).FromJust();
+            buffer_size = opt.As<Napi::Number>().Int32Value();
         }
     }
     if (static_cast<double>(tile_size) + (2 * buffer_size) <= 0)
     {
-        Nan::ThrowError("too large of a negative buffer for tilesize");
-        return;
+        Napi::Error::New(env, "too large of a negative buffer for tilesize").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     VectorTile* d = new VectorTile(z, x, y, tile_size, buffer_size);
 
     d->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    return info.This();
     return;
 }
 
@@ -500,25 +499,27 @@ void _composite(VectorTile* target_vt,
  * vt1.compositeSync([vt2], options);
  *
  */
-NAN_METHOD(VectorTile::compositeSync)
+Napi::Value VectorTile::compositeSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_compositeSync(info));
+    return _compositeSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_compositeSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    if (info.Length() < 1 || !info[0]->IsArray())
+    Napi::EscapableHandleScope scope(env);
+    if (info.Length() < 1 || !info[0].IsArray())
     {
-        Nan::ThrowTypeError("must provide an array of VectorTile objects and an optional options object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "must provide an array of VectorTile objects and an optional options object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    v8::Local<v8::Array> vtiles = info[0].As<v8::Array>();
+    Napi::Array vtiles = info[0].As<Napi::Array>();
     unsigned num_tiles = vtiles->Length();
     if (num_tiles < 1)
     {
-        Nan::ThrowTypeError("must provide an array with at least one VectorTile object and an optional options object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "must provide an array with at least one VectorTile object and an optional options object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
 
     // options needed for re-rendering tiles
@@ -543,239 +544,266 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     if (info.Length() > 1)
     {
         // options object
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("optional second argument must be an options object");
-            return scope.Escape(Nan::Undefined());
+            Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
-        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
         {
-            v8::Local<v8::Value> area_thres = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
-            if (!area_thres->IsNumber())
+            Napi::Value area_thres = (options).Get(Napi::String::New(env, "area_threshold"));
+            if (!area_thres.IsNumber())
             {
-                Nan::ThrowTypeError("option 'area_threshold' must be an floating point number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'area_threshold' must be an floating point number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            area_threshold = Nan::To<double>(area_thres).FromJust();
+            area_threshold = area_thres.As<Napi::Number>().DoubleValue();
             if (area_threshold < 0.0)
             {
-                Nan::ThrowTypeError("option 'area_threshold' can not be negative");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'area_threshold' can not be negative").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "simplify_distance"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            simplify_distance = Nan::To<double>(param_val).FromJust();
+            simplify_distance = param_val.As<Napi::Number>().DoubleValue();
             if (simplify_distance < 0.0)
             {
-                Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'simplify_distance' can not be negative").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
         {
-            v8::Local<v8::Value> strict_simp = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
+            Napi::Value strict_simp = (options).Get(Napi::String::New(env, "strictly_simple"));
             if (!strict_simp->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            strictly_simple = Nan::To<bool>(strict_simp).FromJust();
+            strictly_simple = strict_simp.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "multi_polygon_union")).FromMaybe(false))
         {
-            v8::Local<v8::Value> mpu = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
+            Napi::Value mpu = (options).Get(Napi::String::New(env, "multi_polygon_union"));
             if (!mpu->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'multi_polygon_union' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            multi_polygon_union = Nan::To<bool>(mpu).FromJust();
+            multi_polygon_union = mpu.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "fill_type")).FromMaybe(false))
         {
-            v8::Local<v8::Value> ft = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
-            if (!ft->IsNumber())
+            Napi::Value ft = (options).Get(Napi::String::New(env, "fill_type"));
+            if (!ft.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(ft).FromJust());
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft.As<Napi::Number>().Int32Value());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
-                Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "threading_mode")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("threading_mode").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "threading_mode"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'threading_mode' must be an unsigned integer").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            threading_mode = static_cast<std::launch>(Nan::To<int>(param_val).FromJust());
+            threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
             if (threading_mode != std::launch::async &&
                 threading_mode != std::launch::deferred &&
                 threading_mode != (std::launch::async | std::launch::deferred))
             {
-                Nan::ThrowTypeError("optional arg 'threading_mode' is invalid");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'threading_mode' is invalid").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            scale_factor = Nan::To<double>(bind_opt).FromJust();
+            scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_factor <= 0.0)
             {
-                Nan::ThrowTypeError("optional arg 'scale' must be greater then zero");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'scale' must be greater then zero").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            scale_denominator = Nan::To<double>(bind_opt).FromJust();
+            scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_denominator < 0.0)
             {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be non negative number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be non negative number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "offset_x")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_x").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_x"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            offset_x = Nan::To<int>(bind_opt).FromJust();
+            offset_x = bind_opt.As<Napi::Number>().Int32Value();
         }
-        if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "offset_y")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_y").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_y"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            offset_y = Nan::To<int>(bind_opt).FromJust();
+            offset_y = bind_opt.As<Napi::Number>().Int32Value();
         }
-        if (Nan::Has(options, Nan::New("reencode").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "reencode")).FromMaybe(false))
         {
-            v8::Local<v8::Value> reencode_opt = Nan::Get(options, Nan::New("reencode").ToLocalChecked()).ToLocalChecked();
+            Napi::Value reencode_opt = (options).Get(Napi::String::New(env, "reencode"));
             if (!reencode_opt->IsBoolean())
             {
-                Nan::ThrowTypeError("reencode value must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "reencode value must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            reencode = Nan::To<bool>(reencode_opt).FromJust();
+            reencode = reencode_opt.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("max_extent").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "max_extent")).FromMaybe(false))
         {
-            v8::Local<v8::Value> max_extent_opt = Nan::Get(options, Nan::New("max_extent").ToLocalChecked()).ToLocalChecked();
+            Napi::Value max_extent_opt = (options).Get(Napi::String::New(env, "max_extent"));
             if (!max_extent_opt->IsArray())
             {
-                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            v8::Local<v8::Array> bbox = max_extent_opt.As<v8::Array>();
+            Napi::Array bbox = max_extent_opt.As<Napi::Array>();
             auto len = bbox->Length();
             if (!(len == 4))
             {
-                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
-            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
-            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
-            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
-            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
+            Napi::Value minx = (bbox).Get(0);
+            Napi::Value miny = (bbox).Get(1);
+            Napi::Value maxx = (bbox).Get(2);
+            Napi::Value maxy = (bbox).Get(3);
+            if (!minx.IsNumber() || !miny.IsNumber() || !maxx.IsNumber() || !maxy.IsNumber())
             {
-                Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
-                return scope.Escape(Nan::Undefined());
+                Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            max_extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
-                                               Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
+            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
+                                               maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
         }
-        if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            process_all_rings = Nan::To<bool>(param_val).FromJust();
+            process_all_rings = param_val.As<Napi::Boolean>().Value();
         }
 
-        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             scaling_method = *method;
         }
 
-        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'image_format' must be a string");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             image_format = TOSTR(param_val);
         }
     }
-    VectorTile* target_vt = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* target_vt = info.Holder().Unwrap<VectorTile>();
     std::vector<VectorTile*> vtiles_vec;
     vtiles_vec.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j)
     {
-        v8::Local<v8::Value> val = Nan::Get(vtiles, j).ToLocalChecked();
-        if (!val->IsObject())
+        Napi::Value val = (vtiles).Get(j);
+        if (!val.IsObject())
         {
-            Nan::ThrowTypeError("must provide an array of VectorTile objects");
-            return scope.Escape(Nan::Undefined());
+            Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
-        v8::Local<v8::Object> tile_obj = val->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Nan::New(VectorTile::constructor)->HasInstance(tile_obj))
+        Napi::Object tile_obj = val->ToObject(Napi::GetCurrentContext());
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Napi::New(env, VectorTile::constructor)->HasInstance(tile_obj))
         {
-            Nan::ThrowTypeError("must provide an array of VectorTile objects");
-            return scope.Escape(Nan::Undefined());
+            Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
-        vtiles_vec.push_back(Nan::ObjectWrap::Unwrap<VectorTile>(tile_obj));
+        vtiles_vec.push_back(tile_obj).Unwrap<VectorTile>();
     }
     try
     {
@@ -799,11 +827,12 @@ v8::Local<v8::Value> VectorTile::_compositeSync(Nan::NAN_METHOD_ARGS_TYPE info)
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowTypeError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
 
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -828,7 +857,7 @@ typedef struct
     mapnik::scaling_method_e scaling_method;
     std::launch threading_mode;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } vector_tile_composite_baton_t;
 
 /**
@@ -889,24 +918,24 @@ typedef struct
  * });
  *
  */
-NAN_METHOD(VectorTile::composite)
+Napi::Value VectorTile::composite(const Napi::CallbackInfo& info)
 {
     if ((info.Length() < 2) || !info[info.Length()-1]->IsFunction())
     {
-        info.GetReturnValue().Set(_compositeSync(info));
+        return _compositeSync(info);
         return;
     }
-    if (!info[0]->IsArray())
+    if (!info[0].IsArray())
     {
-        Nan::ThrowTypeError("must provide an array of VectorTile objects and an optional options object");
-        return;
+        Napi::TypeError::New(env, "must provide an array of VectorTile objects and an optional options object").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Array> vtiles = info[0].As<v8::Array>();
+    Napi::Array vtiles = info[0].As<Napi::Array>();
     unsigned num_tiles = vtiles->Length();
     if (num_tiles < 1)
     {
-        Nan::ThrowTypeError("must provide an array with at least one VectorTile object and an optional options object");
-        return;
+        Napi::TypeError::New(env, "must provide an array with at least one VectorTile object and an optional options object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // options needed for re-rendering tiles
@@ -932,222 +961,222 @@ NAN_METHOD(VectorTile::composite)
     if (info.Length() > 2)
     {
         // options object
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("optional second argument must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
         {
-            v8::Local<v8::Value> area_thres = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
-            if (!area_thres->IsNumber())
+            Napi::Value area_thres = (options).Get(Napi::String::New(env, "area_threshold"));
+            if (!area_thres.IsNumber())
             {
-                Nan::ThrowTypeError("option 'area_threshold' must be a number");
-                return;
+                Napi::TypeError::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            area_threshold = Nan::To<double>(area_thres).FromJust();
+            area_threshold = area_thres.As<Napi::Number>().DoubleValue();
             if (area_threshold < 0.0)
             {
-                Nan::ThrowTypeError("option 'area_threshold' can not be negative");
-                return;
+                Napi::TypeError::New(env, "option 'area_threshold' can not be negative").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
         {
-            v8::Local<v8::Value> strict_simp = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
+            Napi::Value strict_simp = (options).Get(Napi::String::New(env, "strictly_simple"));
             if (!strict_simp->IsBoolean())
             {
-                Nan::ThrowTypeError("strictly_simple value must be a boolean");
-                return;
+                Napi::TypeError::New(env, "strictly_simple value must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            strictly_simple = Nan::To<bool>(strict_simp).FromJust();
+            strictly_simple = strict_simp.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "multi_polygon_union")).FromMaybe(false))
         {
-            v8::Local<v8::Value> mpu = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
+            Napi::Value mpu = (options).Get(Napi::String::New(env, "multi_polygon_union"));
             if (!mpu->IsBoolean())
             {
-                Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
-                return;
+                Napi::TypeError::New(env, "multi_polygon_union value must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            multi_polygon_union = Nan::To<bool>(mpu).FromJust();
+            multi_polygon_union = mpu.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "fill_type")).FromMaybe(false))
         {
-            v8::Local<v8::Value> ft = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
-            if (!ft->IsNumber())
+            Napi::Value ft = (options).Get(Napi::String::New(env, "fill_type"));
+            if (!ft.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(ft).FromJust());
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft.As<Napi::Number>().Int32Value());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
-                Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
-                return;
+                Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "threading_mode")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("threading_mode").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "threading_mode"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
-                return;
+                Napi::TypeError::New(env, "option 'threading_mode' must be an unsigned integer").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            threading_mode = static_cast<std::launch>(Nan::To<int>(param_val).FromJust());
+            threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
             if (threading_mode != std::launch::async &&
                 threading_mode != std::launch::deferred &&
                 threading_mode != (std::launch::async | std::launch::deferred))
             {
-                Nan::ThrowTypeError("optional arg 'threading_mode' is not a valid value");
-                return;
+                Napi::TypeError::New(env, "optional arg 'threading_mode' is not a valid value").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "simplify_distance"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
-                return;
+                Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            simplify_distance = Nan::To<double>(param_val).FromJust();
+            simplify_distance = param_val.As<Napi::Number>().DoubleValue();
             if (simplify_distance < 0.0)
             {
-                Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
-                return;
+                Napi::TypeError::New(env, "option 'simplify_distance' can not be negative").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            scale_factor = Nan::To<double>(bind_opt).FromJust();
+            scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_factor < 0.0)
             {
-                Nan::ThrowTypeError("option 'scale' can not be negative");
-                return;
+                Napi::TypeError::New(env, "option 'scale' can not be negative").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            scale_denominator = Nan::To<double>(bind_opt).FromJust();
+            scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_denominator < 0.0)
             {
-                Nan::ThrowTypeError("option 'scale_denominator' can not be negative");
-                return;
+                Napi::TypeError::New(env, "option 'scale_denominator' can not be negative").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "offset_x")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_x").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_x"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            offset_x = Nan::To<int>(bind_opt).FromJust();
+            offset_x = bind_opt.As<Napi::Number>().Int32Value();
         }
-        if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "offset_y")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_y").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_y"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            offset_y = Nan::To<int>(bind_opt).FromJust();
+            offset_y = bind_opt.As<Napi::Number>().Int32Value();
         }
-        if (Nan::Has(options, Nan::New("reencode").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "reencode")).FromMaybe(false))
         {
-            v8::Local<v8::Value> reencode_opt = Nan::Get(options, Nan::New("reencode").ToLocalChecked()).ToLocalChecked();
+            Napi::Value reencode_opt = (options).Get(Napi::String::New(env, "reencode"));
             if (!reencode_opt->IsBoolean())
             {
-                Nan::ThrowTypeError("reencode value must be a boolean");
-                return;
+                Napi::TypeError::New(env, "reencode value must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            reencode = Nan::To<bool>(reencode_opt).FromJust();
+            reencode = reencode_opt.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("max_extent").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "max_extent")).FromMaybe(false))
         {
-            v8::Local<v8::Value> max_extent_opt = Nan::Get(options, Nan::New("max_extent").ToLocalChecked()).ToLocalChecked();
+            Napi::Value max_extent_opt = (options).Get(Napi::String::New(env, "max_extent"));
             if (!max_extent_opt->IsArray())
             {
-                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
-                return;
+                Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            v8::Local<v8::Array> bbox = max_extent_opt.As<v8::Array>();
+            Napi::Array bbox = max_extent_opt.As<Napi::Array>();
             auto len = bbox->Length();
             if (!(len == 4))
             {
-                Nan::ThrowTypeError("max_extent value must be an array of [minx,miny,maxx,maxy]");
-                return;
+                Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
-            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
-            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
-            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
-            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
+            Napi::Value minx = (bbox).Get(0);
+            Napi::Value miny = (bbox).Get(1);
+            Napi::Value maxx = (bbox).Get(2);
+            Napi::Value maxy = (bbox).Get(3);
+            if (!minx.IsNumber() || !miny.IsNumber() || !maxx.IsNumber() || !maxy.IsNumber())
             {
-                Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
-                return;
+                Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            max_extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
-                                               Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
+            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
+                                               maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
         }
-        if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
             if (!param_val->IsBoolean()) {
-                Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            process_all_rings = Nan::To<bool>(param_val).FromJust();
+            process_all_rings = param_val.As<Napi::Boolean>().Value();
         }
 
-        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string");
-                return;
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
+                return env.Null();
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                return;
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
+                return env.Null();
             }
             scaling_method = *method;
         }
 
-        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'image_format' must be a string");
-                return;
+                Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
+                return env.Null();
             }
             image_format = TOSTR(param_val);
         }
     }
 
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length()-1];
     vector_tile_composite_baton_t *closure = new vector_tile_composite_baton_t();
     closure->request.data = closure;
     closure->offset_x = offset_x;
@@ -1165,31 +1194,31 @@ NAN_METHOD(VectorTile::composite)
     closure->scaling_method = scaling_method;
     closure->image_format = image_format;
     closure->threading_mode = threading_mode;
-    closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    closure->d = info.Holder().Unwrap<VectorTile>();
     closure->error = false;
     closure->vtiles.reserve(num_tiles);
     for (unsigned j=0;j < num_tiles;++j)
     {
-        v8::Local<v8::Value> val = Nan::Get(vtiles, j).ToLocalChecked();
-        if (!val->IsObject())
+        Napi::Value val = (vtiles).Get(j);
+        if (!val.IsObject())
         {
             delete closure;
-            Nan::ThrowTypeError("must provide an array of VectorTile objects");
-            return;
+            Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Object> tile_obj = val->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Nan::New(VectorTile::constructor)->HasInstance(tile_obj))
+        Napi::Object tile_obj = val->ToObject(Napi::GetCurrentContext());
+        if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Napi::New(env, VectorTile::constructor)->HasInstance(tile_obj))
         {
             delete closure;
-            Nan::ThrowTypeError("must provide an array of VectorTile objects");
-            return;
+            Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        VectorTile* vt = Nan::ObjectWrap::Unwrap<VectorTile>(tile_obj);
+        VectorTile* vt = tile_obj.Unwrap<VectorTile>();
         vt->Ref();
         closure->vtiles.push_back(vt);
     }
     closure->d->Ref();
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
     return;
 }
@@ -1226,19 +1255,19 @@ void VectorTile::EIO_Composite(uv_work_t* req)
 
 void VectorTile::EIO_AfterComposite(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
 
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), closure->d->handle() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     for (VectorTile* vt : closure->vtiles)
     {
@@ -1261,16 +1290,16 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  * var extent = vt.extent();
  * console.log(extent); // [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248]
  */
-NAN_METHOD(VectorTile::extent)
+Napi::Value VectorTile::extent(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Array arr = Napi::Array::New(env, 4);
     mapnik::box2d<double> const& e = d->tile_->extent();
-    Nan::Set(arr, 0, Nan::New<v8::Number>(e.minx()));
-    Nan::Set(arr, 1, Nan::New<v8::Number>(e.miny()));
-    Nan::Set(arr, 2, Nan::New<v8::Number>(e.maxx()));
-    Nan::Set(arr, 3, Nan::New<v8::Number>(e.maxy()));
-    info.GetReturnValue().Set(arr);
+    (arr).Set(0, Napi::Number::New(env, e.minx()));
+    (arr).Set(1, Napi::Number::New(env, e.miny()));
+    (arr).Set(2, Napi::Number::New(env, e.maxx()));
+    (arr).Set(3, Napi::Number::New(env, e.maxy()));
+    return arr;
     return;
 }
 
@@ -1286,16 +1315,16 @@ NAN_METHOD(VectorTile::extent)
  * var extent = vt.bufferedExtent();
  * console.log(extent); // [-11273544.4277, 4693845.0329, -11190380.9409, 4777008.5197];
  */
-NAN_METHOD(VectorTile::bufferedExtent)
+Napi::Value VectorTile::bufferedExtent(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Array arr = Napi::Array::New(env, 4);
     mapnik::box2d<double> e = d->tile_->get_buffered_extent();
-    Nan::Set(arr, 0, Nan::New<v8::Number>(e.minx()));
-    Nan::Set(arr, 1, Nan::New<v8::Number>(e.miny()));
-    Nan::Set(arr, 2, Nan::New<v8::Number>(e.maxx()));
-    Nan::Set(arr, 3, Nan::New<v8::Number>(e.maxy()));
-    info.GetReturnValue().Set(arr);
+    (arr).Set(0, Napi::Number::New(env, e.minx()));
+    (arr).Set(1, Napi::Number::New(env, e.miny()));
+    (arr).Set(2, Napi::Number::New(env, e.maxx()));
+    (arr).Set(3, Napi::Number::New(env, e.maxy()));
+    return arr;
     return;
 }
 
@@ -1312,17 +1341,17 @@ NAN_METHOD(VectorTile::bufferedExtent)
  * vt.addDataSync(data);
  * console.log(vt.names()); // ['layer-name', 'another-layer']
  */
-NAN_METHOD(VectorTile::names)
+Napi::Value VectorTile::names(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     std::vector<std::string> const& names = d->tile_->get_layers();
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(names.size());
+    Napi::Array arr = Napi::Array::New(env, names.size());
     unsigned idx = 0;
     for (std::string const& name : names)
     {
-        Nan::Set(arr, idx++,Nan::New<v8::String>(name).ToLocalChecked());
+        (arr).Set(idx++,Napi::String::New(env, name));
     }
-    info.GetReturnValue().Set(arr);
+    return arr;
     return;
 }
 
@@ -1342,26 +1371,26 @@ NAN_METHOD(VectorTile::names)
  * var vt2 = vt.layer('layer-name');
  * console.log(vt2.names()); // ['layer-name']
  */
-NAN_METHOD(VectorTile::layer)
+Napi::Value VectorTile::layer(const Napi::CallbackInfo& info)
 {
     if (info.Length() < 1)
     {
-        Nan::ThrowError("first argument must be either a layer name");
-        return;
+        Napi::Error::New(env, "first argument must be either a layer name").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Value> layer_id = info[0];
+    Napi::Value layer_id = info[0];
     std::string layer_name;
-    if (!layer_id->IsString())
+    if (!layer_id.IsString())
     {
-        Nan::ThrowTypeError("'layer' argument must be a layer name (string)");
-        return;
+        Napi::TypeError::New(env, "'layer' argument must be a layer name (string)").ThrowAsJavaScriptException();
+        return env.Null();
     }
     layer_name = TOSTR(layer_id);
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!d->get_tile()->has_layer(layer_name))
     {
-        Nan::ThrowTypeError("layer does not exist in vector tile");
-        return;
+        Napi::TypeError::New(env, "layer does not exist in vector tile").ThrowAsJavaScriptException();
+        return env.Null();
     }
     VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
     protozero::pbf_reader tile_message(d->get_tile()->get_reader());
@@ -1380,10 +1409,11 @@ NAN_METHOD(VectorTile::layer)
             break;
         }
     }
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(v);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Layer instance");
-    else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
+    Napi::Value ext = Napi::External::New(env, v);
+    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
+    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Layer instance").ThrowAsJavaScriptException();
+
+    else return maybe_local;
     return;
 }
 
@@ -1400,17 +1430,17 @@ NAN_METHOD(VectorTile::layer)
  * // assumes you have added data to your tile
  * console.log(empty); // ['layer-name', 'empty-layer']
  */
-NAN_METHOD(VectorTile::emptyLayers)
+Napi::Value VectorTile::emptyLayers(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     std::set<std::string> const& names = d->tile_->get_empty_layers();
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(names.size());
+    Napi::Array arr = Napi::Array::New(env, names.size());
     unsigned idx = 0;
     for (std::string const& name : names)
     {
-        Nan::Set(arr, idx++,Nan::New<v8::String>(name).ToLocalChecked());
+        (arr).Set(idx++,Napi::String::New(env, name));
     }
-    info.GetReturnValue().Set(arr);
+    return arr;
     return;
 }
 
@@ -1428,17 +1458,17 @@ NAN_METHOD(VectorTile::emptyLayers)
  * // assumes you have added data to your tile
  * console.log(painted); // ['layer-name']
  */
-NAN_METHOD(VectorTile::paintedLayers)
+Napi::Value VectorTile::paintedLayers(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     std::set<std::string> const& names = d->tile_->get_painted_layers();
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(names.size());
+    Napi::Array arr = Napi::Array::New(env, names.size());
     unsigned idx = 0;
     for (std::string const& name : names)
     {
-        Nan::Set(arr, idx++,Nan::New<v8::String>(name).ToLocalChecked());
+        (arr).Set(idx++,Napi::String::New(env, name));
     }
-    info.GetReturnValue().Set(arr);
+    return arr;
     return;
 }
 
@@ -1455,10 +1485,10 @@ NAN_METHOD(VectorTile::paintedLayers)
  * var empty = vt.empty();
  * console.log(empty); // true
  */
-NAN_METHOD(VectorTile::empty)
+Napi::Value VectorTile::empty(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Boolean>(d->tile_->is_empty()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::Boolean::New(env, d->tile_->is_empty());
 }
 
 /**
@@ -1474,10 +1504,10 @@ NAN_METHOD(VectorTile::empty)
  * var painted = vt.painted();
  * console.log(painted); // false
  */
-NAN_METHOD(VectorTile::painted)
+Napi::Value VectorTile::painted(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New(d->tile_->is_painted()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::New(env, d->tile_->is_painted());
 }
 
 typedef struct
@@ -1491,7 +1521,7 @@ typedef struct
     std::vector<query_result> result;
     std::string layer_name;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } vector_tile_query_baton_t;
 
 /**
@@ -1544,49 +1574,49 @@ typedef struct
  *   console.log(features[0].layer); // 'layer name'
  * });
  */
-NAN_METHOD(VectorTile::query)
+Napi::Value VectorTile::query(const Napi::CallbackInfo& info)
 {
-    if (info.Length() < 2 || !info[0]->IsNumber() || !info[1]->IsNumber())
+    if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber())
     {
-        Nan::ThrowError("expects lon,lat info");
-        return;
+        Napi::Error::New(env, "expects lon,lat info").ThrowAsJavaScriptException();
+        return env.Null();
     }
     double tolerance = 0.0; // meters
     std::string layer_name("");
     if (info.Length() > 2)
     {
-        v8::Local<v8::Object> options = Nan::New<v8::Object>();
-        if (!info[2]->IsObject())
+        Napi::Object options = Napi::Object::New(env);
+        if (!info[2].IsObject())
         {
-            Nan::ThrowTypeError("optional third argument must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("tolerance").ToLocalChecked()).FromMaybe(false))
+        options = info[2].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "tolerance")).FromMaybe(false))
         {
-            v8::Local<v8::Value> tol = Nan::Get(options, Nan::New("tolerance").ToLocalChecked()).ToLocalChecked();
-            if (!tol->IsNumber())
+            Napi::Value tol = (options).Get(Napi::String::New(env, "tolerance"));
+            if (!tol.IsNumber())
             {
-                Nan::ThrowTypeError("tolerance value must be a number");
-                return;
+                Napi::TypeError::New(env, "tolerance value must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            tolerance = Nan::To<double>(tol).FromJust();
+            tolerance = tol.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
         {
-            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
-            if (!layer_id->IsString())
+            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
+            if (!layer_id.IsString())
             {
-                Nan::ThrowTypeError("layer value must be a string");
-                return;
+                Napi::TypeError::New(env, "layer value must be a string").ThrowAsJavaScriptException();
+                return env.Null();
             }
             layer_name = TOSTR(layer_id);
         }
     }
 
-    double lon = Nan::To<double>(info[0]).FromJust();
-    double lat = Nan::To<double>(info[1]).FromJust();
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    double lon = info[0].As<Napi::Number>().DoubleValue();
+    double lat = info[1].As<Napi::Number>().DoubleValue();
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     // If last argument is not a function go with sync call.
     if (!info[info.Length()-1]->IsFunction())
@@ -1594,19 +1624,19 @@ NAN_METHOD(VectorTile::query)
         try
         {
             std::vector<query_result> result = _query(d, lon, lat, tolerance, layer_name);
-            v8::Local<v8::Array> arr = _queryResultToV8(result);
-            info.GetReturnValue().Set(arr);
+            Napi::Array arr = _queryResultToV8(result);
+            return arr;
             return;
         }
         catch (std::exception const& ex)
         {
-            Nan::ThrowError(ex.what());
-            return;
+            Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+            return env.Null();
         }
     }
     else
     {
-        v8::Local<v8::Value> callback = info[info.Length()-1];
+        Napi::Value callback = info[info.Length()-1];
         vector_tile_query_baton_t *closure = new vector_tile_query_baton_t();
         closure->request.data = closure;
         closure->lon = lon;
@@ -1615,7 +1645,7 @@ NAN_METHOD(VectorTile::query)
         closure->layer_name = layer_name;
         closure->d = d;
         closure->error = false;
-        closure->cb.Reset(callback.As<v8::Function>());
+        closure->cb.Reset(callback.As<Napi::Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_Query, (uv_after_work_cb)EIO_AfterQuery);
         d->Ref();
         return;
@@ -1638,20 +1668,20 @@ void VectorTile::EIO_Query(uv_work_t* req)
 
 void VectorTile::EIO_AfterQuery(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
         std::vector<query_result> const& result = closure->result;
-        v8::Local<v8::Array> arr = _queryResultToV8(result);
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), arr };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Array arr = _queryResultToV8(result);
+        Napi::Value argv[2] = { env.Null(), arr };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->d->Unref();
@@ -1769,19 +1799,19 @@ bool VectorTile::_querySort(query_result const& a, query_result const& b)
     return a.distance < b.distance;
 }
 
-v8::Local<v8::Array> VectorTile::_queryResultToV8(std::vector<query_result> const& result)
+Napi::Array VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {
-    v8::Local<v8::Array> arr = Nan::New<v8::Array>(result.size());
+    Napi::Array arr = Napi::Array::New(env, result.size());
     std::size_t i = 0;
     for (auto const& item : result)
     {
-        v8::Local<v8::Value> feat = Feature::NewInstance(item.feature);
-        v8::Local<v8::Object> feat_obj = feat->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        Nan::Set(feat_obj, Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.layer).ToLocalChecked());
-        Nan::Set(feat_obj, Nan::New("distance").ToLocalChecked(),Nan::New<v8::Number>(item.distance));
-        Nan::Set(feat_obj, Nan::New("x_hit").ToLocalChecked(),Nan::New<v8::Number>(item.x_hit));
-        Nan::Set(feat_obj, Nan::New("y_hit").ToLocalChecked(),Nan::New<v8::Number>(item.y_hit));
-        Nan::Set(arr, i++,feat);
+        Napi::Value feat = Feature::NewInstance(item.feature);
+        Napi::Object feat_obj = feat->ToObject(Napi::GetCurrentContext());
+        (feat_obj).Set(Napi::String::New(env, "layer"),Napi::String::New(env, item.layer));
+        (feat_obj).Set(Napi::String::New(env, "distance"),Napi::Number::New(env, item.distance));
+        (feat_obj).Set(Napi::String::New(env, "x_hit"),Napi::Number::New(env, item.x_hit));
+        (feat_obj).Set(Napi::String::New(env, "y_hit"),Napi::Number::New(env, item.y_hit));
+        (arr).Set(i++,feat);
     }
     return arr;
 }
@@ -1797,7 +1827,7 @@ typedef struct
     queryMany_result result;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } vector_tile_queryMany_baton_t;
 
 /**
@@ -1832,12 +1862,12 @@ typedef struct
  *   }
  * });
  */
-NAN_METHOD(VectorTile::queryMany)
+Napi::Value VectorTile::queryMany(const Napi::CallbackInfo& info)
 {
-    if (info.Length() < 2 || !info[0]->IsArray())
+    if (info.Length() < 2 || !info[0].IsArray())
     {
-        Nan::ThrowError("expects lon,lat info + object with layer property referring to a layer name");
-        return;
+        Napi::Error::New(env, "expects lon,lat info + object with layer property referring to a layer name").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     double tolerance = 0.0; // meters
@@ -1846,76 +1876,76 @@ NAN_METHOD(VectorTile::queryMany)
     std::vector<query_lonlat> query;
 
     // Convert v8 queryArray to a std vector
-    v8::Local<v8::Array> queryArray = v8::Local<v8::Array>::Cast(info[0]);
+    Napi::Array queryArray = info[0].As<Napi::Array>();
     query.reserve(queryArray->Length());
     for (uint32_t p = 0; p < queryArray->Length(); ++p)
     {
-        v8::Local<v8::Value> item = Nan::Get(queryArray, p).ToLocalChecked();
+        Napi::Value item = (queryArray).Get(p);
         if (!item->IsArray())
         {
-            Nan::ThrowError("non-array item encountered");
-            return;
+            Napi::Error::New(env, "non-array item encountered").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Array> pair = v8::Local<v8::Array>::Cast(item);
-        v8::Local<v8::Value> lon = Nan::Get(pair, 0).ToLocalChecked();
-        v8::Local<v8::Value> lat = Nan::Get(pair, 1).ToLocalChecked();
-        if (!lon->IsNumber() || !lat->IsNumber())
+        Napi::Array pair = item.As<Napi::Array>();
+        Napi::Value lon = (pair).Get(0);
+        Napi::Value lat = (pair).Get(1);
+        if (!lon.IsNumber() || !lat.IsNumber())
         {
-            Nan::ThrowError("lng lat must be numbers");
-            return;
+            Napi::Error::New(env, "lng lat must be numbers").ThrowAsJavaScriptException();
+            return env.Null();
         }
         query_lonlat lonlat;
-        lonlat.lon = Nan::To<double>(lon).FromJust();
-        lonlat.lat = Nan::To<double>(lat).FromJust();
+        lonlat.lon = lon.As<Napi::Number>().DoubleValue();
+        lonlat.lat = lat.As<Napi::Number>().DoubleValue();
         query.push_back(std::move(lonlat));
     }
 
     // Convert v8 options object to std params
     if (info.Length() > 1)
     {
-        v8::Local<v8::Object> options = Nan::New<v8::Object>();
-        if (!info[1]->IsObject())
+        Napi::Object options = Napi::Object::New(env);
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("optional second argument must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("tolerance").ToLocalChecked()).FromMaybe(false))
+        options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "tolerance")).FromMaybe(false))
         {
-            v8::Local<v8::Value> tol = Nan::Get(options, Nan::New("tolerance").ToLocalChecked()).ToLocalChecked();
-            if (!tol->IsNumber())
+            Napi::Value tol = (options).Get(Napi::String::New(env, "tolerance"));
+            if (!tol.IsNumber())
             {
-                Nan::ThrowTypeError("tolerance value must be a number");
-                return;
+                Napi::TypeError::New(env, "tolerance value must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            tolerance = Nan::To<double>(tol).FromJust();
+            tolerance = tol.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
         {
-            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
-            if (!layer_id->IsString())
+            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
+            if (!layer_id.IsString())
             {
-                Nan::ThrowTypeError("layer value must be a string");
-                return;
+                Napi::TypeError::New(env, "layer value must be a string").ThrowAsJavaScriptException();
+                return env.Null();
             }
             layer_name = TOSTR(layer_id);
         }
-        if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("fields").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "fields"));
             if (!param_val->IsArray())
             {
-                Nan::ThrowTypeError("option 'fields' must be an array of strings");
-                return;
+                Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(param_val);
+            Napi::Array a = param_val.As<Napi::Array>();
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
             fields.reserve(num_fields);
             while (i < num_fields)
             {
-                v8::Local<v8::Value> name = Nan::Get(a, i).ToLocalChecked();
-                if (name->IsString())
+                Napi::Value name = (a).Get(i);
+                if (name.IsString())
                 {
                     fields.emplace_back(TOSTR(name));
                 }
@@ -1926,11 +1956,11 @@ NAN_METHOD(VectorTile::queryMany)
 
     if (layer_name.empty())
     {
-        Nan::ThrowTypeError("options.layer is required");
-        return;
+        Napi::TypeError::New(env, "options.layer is required").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.This());
+    VectorTile* d = this;
 
     // If last argument is not a function go with sync call.
     if (!info[info.Length()-1]->IsFunction())
@@ -1939,19 +1969,19 @@ NAN_METHOD(VectorTile::queryMany)
         {
             queryMany_result result;
             _queryMany(result, d, query, tolerance, layer_name, fields);
-            v8::Local<v8::Object> result_obj = _queryManyResultToV8(result);
-            info.GetReturnValue().Set(result_obj);
+            Napi::Object result_obj = _queryManyResultToV8(result);
+            return result_obj;
             return;
         }
         catch (std::exception const& ex)
         {
-            Nan::ThrowError(ex.what());
-            return;
+            Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+            return env.Null();
         }
     }
     else
     {
-        v8::Local<v8::Value> callback = info[info.Length()-1];
+        Napi::Value callback = info[info.Length()-1];
         vector_tile_queryMany_baton_t *closure = new vector_tile_queryMany_baton_t();
         closure->d = d;
         closure->query = query;
@@ -1960,7 +1990,7 @@ NAN_METHOD(VectorTile::queryMany)
         closure->fields = fields;
         closure->error = false;
         closure->request.data = closure;
-        closure->cb.Reset(callback.As<v8::Function>());
+        closure->cb.Reset(callback.As<Napi::Function>());
         uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMany, (uv_after_work_cb)EIO_AfterQueryMany);
         d->Ref();
         return;
@@ -2096,36 +2126,36 @@ bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b)
     return a.distance < b.distance;
 }
 
-v8::Local<v8::Object> VectorTile::_queryManyResultToV8(queryMany_result const& result)
+Napi::Object VectorTile::_queryManyResultToV8(queryMany_result const& result)
 {
-    v8::Local<v8::Object> results = Nan::New<v8::Object>();
-    v8::Local<v8::Array> features = Nan::New<v8::Array>(result.features.size());
-    v8::Local<v8::Array> hits = Nan::New<v8::Array>(result.hits.size());
-    Nan::Set(results, Nan::New("hits").ToLocalChecked(), hits);
-    Nan::Set(results, Nan::New("features").ToLocalChecked(), features);
+    Napi::Object results = Napi::Object::New(env);
+    Napi::Array features = Napi::Array::New(env, result.features.size());
+    Napi::Array hits = Napi::Array::New(env, result.hits.size());
+    (results).Set(Napi::String::New(env, "hits"), hits);
+    (results).Set(Napi::String::New(env, "features"), features);
 
     // result.features => features
     for (auto const& item : result.features)
     {
-        v8::Local<v8::Value> feat = Feature::NewInstance(item.second.feature);
-        v8::Local<v8::Object> feat_obj = feat->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        Nan::Set(feat_obj, Nan::New("layer").ToLocalChecked(),Nan::New<v8::String>(item.second.layer).ToLocalChecked());
-        Nan::Set(features, item.first, feat_obj);
+        Napi::Value feat = Feature::NewInstance(item.second.feature);
+        Napi::Object feat_obj = feat->ToObject(Napi::GetCurrentContext());
+        (feat_obj).Set(Napi::String::New(env, "layer"),Napi::String::New(env, item.second.layer));
+        (features).Set(item.first, feat_obj);
     }
 
     // result.hits => hits
     for (auto const& hit : result.hits)
     {
-        v8::Local<v8::Array> point_hits = Nan::New<v8::Array>(hit.second.size());
+        Napi::Array point_hits = Napi::Array::New(env, hit.second.size());
         std::size_t i = 0;
         for (auto const& h : hit.second)
         {
-            v8::Local<v8::Object> hit_obj = Nan::New<v8::Object>();
-            Nan::Set(hit_obj, Nan::New("distance").ToLocalChecked(), Nan::New<v8::Number>(h.distance));
-            Nan::Set(hit_obj, Nan::New("feature_id").ToLocalChecked(), Nan::New<v8::Number>(h.feature_id));
-            Nan::Set(point_hits, i++, hit_obj);
+            Napi::Object hit_obj = Napi::Object::New(env);
+            (hit_obj).Set(Napi::String::New(env, "distance"), Napi::Number::New(env, h.distance));
+            (hit_obj).Set(Napi::String::New(env, "feature_id"), Napi::Number::New(env, h.feature_id));
+            (point_hits).Set(i++, hit_obj);
         }
-        Nan::Set(hits, hit.first, point_hits);
+        (hits).Set(hit.first, point_hits);
     }
 
     return results;
@@ -2147,20 +2177,20 @@ void VectorTile::EIO_QueryMany(uv_work_t* req)
 
 void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
         queryMany_result result = closure->result;
-        v8::Local<v8::Object> obj = _queryManyResultToV8(result);
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), obj };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Object obj = _queryManyResultToV8(result);
+        Napi::Value argv[2] = { env.Null(), obj };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->d->Unref();
@@ -2236,172 +2266,172 @@ static inline std::string geometry_type_as_string(T const& geom)
 
 struct geometry_array_visitor
 {
-    v8::Local<v8::Array> operator() (mapnik::geometry::geometry_empty const &)
+    Napi::Array operator() (mapnik::geometry::geometry_empty const &)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
         // LCOV_EXCL_START
-        Nan::EscapableHandleScope scope;
-        return scope.Escape(Nan::New<v8::Array>());
+        Napi::EscapableHandleScope scope(env);
+        return scope.Escape(Napi::Array::New(env));
         // LCOV_EXCL_STOP
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::point<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::point<T> const & geom)
     {
-        Nan::EscapableHandleScope scope;
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-        Nan::Set(arr, 0, Nan::New<v8::Number>(geom.x));
-        Nan::Set(arr, 1, Nan::New<v8::Number>(geom.y));
+        Napi::EscapableHandleScope scope(env);
+        Napi::Array arr = Napi::Array::New(env, 2);
+        (arr).Set(0, Napi::Number::New(env, geom.x));
+        (arr).Set(1, Napi::Number::New(env, geom.y));
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::line_string<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::line_string<T> const & geom)
     {
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         if (geom.empty())
         {
             // Removed as it should be a bug if a vector tile has reached this point
             // therefore no known tests reach this point
             // LCOV_EXCL_START
-            return scope.Escape(Nan::New<v8::Array>());
+            return scope.Escape(Napi::Array::New(env));
             // LCOV_EXCL_STOP
         }
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        Napi::Array arr = Napi::Array::New(env, geom.size());
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            Nan::Set(arr, c++, (*this)(pt));
+            (arr).Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::linear_ring<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::linear_ring<T> const & geom)
     {
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         if (geom.empty())
         {
             // Removed as it should be a bug if a vector tile has reached this point
             // therefore no known tests reach this point
             // LCOV_EXCL_START
-            return scope.Escape(Nan::New<v8::Array>());
+            return scope.Escape(Napi::Array::New(env));
             // LCOV_EXCL_STOP
         }
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        Napi::Array arr = Napi::Array::New(env, geom.size());
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            Nan::Set(arr, c++, (*this)(pt));
+            (arr).Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::multi_point<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::multi_point<T> const & geom)
     {
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         if (geom.empty())
         {
             // Removed as it should be a bug if a vector tile has reached this point
             // therefore no known tests reach this point
             // LCOV_EXCL_START
-            return scope.Escape(Nan::New<v8::Array>());
+            return scope.Escape(Napi::Array::New(env));
             // LCOV_EXCL_STOP
         }
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        Napi::Array arr = Napi::Array::New(env, geom.size());
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            Nan::Set(arr, c++, (*this)(pt));
+            (arr).Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::multi_line_string<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::multi_line_string<T> const & geom)
     {
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         if (geom.empty())
         {
             // Removed as it should be a bug if a vector tile has reached this point
             // therefore no known tests reach this point
             // LCOV_EXCL_START
-            return scope.Escape(Nan::New<v8::Array>());
+            return scope.Escape(Napi::Array::New(env));
             // LCOV_EXCL_STOP
         }
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        Napi::Array arr = Napi::Array::New(env, geom.size());
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            Nan::Set(arr, c++, (*this)(pt));
+            (arr).Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::polygon<T> const & poly)
+    Napi::Array operator() (mapnik::geometry::polygon<T> const & poly)
     {
-        Nan::EscapableHandleScope scope;
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(poly.size());
+        Napi::EscapableHandleScope scope(env);
+        Napi::Array arr = Napi::Array::New(env, poly.size());
         std::uint32_t index = 0;
 
         for (auto const & ring : poly)
         {
-            Nan::Set(arr, index++, (*this)(ring));
+            (arr).Set(index++, (*this)(ring));
         }
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::multi_polygon<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::multi_polygon<T> const & geom)
     {
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         if (geom.empty())
         {
             // Removed as it should be a bug if a vector tile has reached this point
             // therefore no known tests reach this point
             // LCOV_EXCL_START
-            return scope.Escape(Nan::New<v8::Array>());
+            return scope.Escape(Napi::Array::New(env));
             // LCOV_EXCL_STOP
         }
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        Napi::Array arr = Napi::Array::New(env, geom.size());
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            Nan::Set(arr, c++, (*this)(pt));
+            (arr).Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::geometry<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::geometry<T> const & geom)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
         // LCOV_EXCL_START
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         return scope.Escape(mapnik::util::apply_visitor((*this), geom));
         // LCOV_EXCL_STOP
     }
 
     template <typename T>
-    v8::Local<v8::Array> operator() (mapnik::geometry::geometry_collection<T> const & geom)
+    Napi::Array operator() (mapnik::geometry::geometry_collection<T> const & geom)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
         // LCOV_EXCL_START
-        Nan::EscapableHandleScope scope;
+        Napi::EscapableHandleScope scope(env);
         if (geom.empty())
         {
-            return scope.Escape(Nan::New<v8::Array>());
+            return scope.Escape(Napi::Array::New(env));
         }
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(geom.size());
+        Napi::Array arr = Napi::Array::New(env, geom.size());
         std::uint32_t c = 0;
         for (auto const & pt : geom)
         {
-            Nan::Set(arr, c++, (*this)(pt));
+            (arr).Set(c++, (*this)(pt));
         }
         return scope.Escape(arr);
         // LCOV_EXCL_STOP
@@ -2409,52 +2439,52 @@ struct geometry_array_visitor
 };
 
 template <typename T>
-v8::Local<v8::Array> geometry_to_array(mapnik::geometry::geometry<T> const & geom)
+Napi::Array geometry_to_array(mapnik::geometry::geometry<T> const & geom)
 {
-    Nan::EscapableHandleScope scope;
+    Napi::EscapableHandleScope scope(env);
     return scope.Escape(mapnik::util::apply_visitor(geometry_array_visitor(), geom));
 }
 
 struct json_value_visitor
 {
-    v8::Local<v8::Object> & att_obj_;
+    Napi::Object & att_obj_;
     std::string const& name_;
 
-    json_value_visitor(v8::Local<v8::Object> & att_obj,
+    json_value_visitor(Napi::Object & att_obj,
                        std::string const& name)
         : att_obj_(att_obj),
           name_(name) {}
 
     void operator() (std::string const& val)
     {
-        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New(val).ToLocalChecked());
+        (att_obj_).Set(Napi::New(env, name_), Napi::New(env, val));
     }
 
     void operator() (bool const& val)
     {
-        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Boolean>(val));
+        (att_obj_).Set(Napi::New(env, name_), Napi::Boolean::New(env, val));
     }
 
     void operator() (int64_t const& val)
     {
-        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        (att_obj_).Set(Napi::New(env, name_), Napi::Number::New(env, val));
     }
 
     void operator() (uint64_t const& val)
     {
         // LCOV_EXCL_START
-        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        (att_obj_).Set(Napi::New(env, name_), Napi::Number::New(env, val));
         // LCOV_EXCL_STOP
     }
 
     void operator() (double const& val)
     {
-        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        (att_obj_).Set(Napi::New(env, name_), Napi::Number::New(env, val));
     }
 
     void operator() (float const& val)
     {
-        Nan::Set(att_obj_, Nan::New(name_).ToLocalChecked(), Nan::New<v8::Number>(val));
+        (att_obj_).Set(Napi::New(env, name_), Napi::Number::New(env, val));
     }
 };
 
@@ -2482,40 +2512,40 @@ struct json_value_visitor
  * //   features: [ ... ] // array of objects
  * // }
  */
-NAN_METHOD(VectorTile::toJSON)
+Napi::Value VectorTile::toJSON(const Napi::CallbackInfo& info)
 {
     bool decode_geometry = false;
     if (info.Length() >= 1)
     {
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowError("The first argument must be an object");
-            return;
+            Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
 
-        if (Nan::Has(options, Nan::New("decode_geometry").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "decode_geometry")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("decode_geometry").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "decode_geometry"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'decode_geometry' must be a boolean");
-                return;
+                Napi::Error::New(env, "option 'decode_geometry' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            decode_geometry = Nan::To<bool>(param_val).FromJust();
+            decode_geometry = param_val.As<Napi::Boolean>().Value();
         }
     }
 
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     try
     {
         protozero::pbf_reader tile_msg = d->tile_->get_reader();
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(d->tile_->get_layers().size());
+        Napi::Array arr = Napi::Array::New(env, d->tile_->get_layers().size());
         std::size_t l_idx = 0;
         while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
             protozero::pbf_reader layer_msg = tile_msg.get_message();
-            v8::Local<v8::Object> layer_obj = Nan::New<v8::Object>();
+            Napi::Object layer_obj = Napi::Object::New(env);
             std::vector<std::string> layer_keys;
             mapnik::vector_tile_impl::layer_pbf_attr_type layer_values;
             std::vector<protozero::pbf_reader> layer_features;
@@ -2526,7 +2556,7 @@ NAN_METHOD(VectorTile::toJSON)
                 switch (layer_msg.tag())
                 {
                     case mapnik::vector_tile_impl::Layer_Encoding::NAME:
-                        Nan::Set(layer_obj, Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_msg.get_string()).ToLocalChecked());
+                        (layer_obj).Set(Napi::String::New(env, "name"), Napi::String::New(env, layer_msg.get_string()));
                         break;
                     case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
                         layer_features.push_back(layer_msg.get_message());
@@ -2574,11 +2604,11 @@ NAN_METHOD(VectorTile::toJSON)
                         }
                         break;
                     case mapnik::vector_tile_impl::Layer_Encoding::EXTENT:
-                        Nan::Set(layer_obj, Nan::New("extent").ToLocalChecked(), Nan::New<v8::Integer>(layer_msg.get_uint32()));
+                        (layer_obj).Set(Napi::String::New(env, "extent"), Napi::Number::New(env, layer_msg.get_uint32()));
                         break;
                     case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
                         version = layer_msg.get_uint32();
-                        Nan::Set(layer_obj, Nan::New("version").ToLocalChecked(), Nan::New<v8::Integer>(version));
+                        (layer_obj).Set(Napi::String::New(env, "version"), Napi::Number::New(env, version));
                         break;
                     default:
                         // LCOV_EXCL_START
@@ -2587,11 +2617,11 @@ NAN_METHOD(VectorTile::toJSON)
                         // LCOV_EXCL_STOP
                 }
             }
-            v8::Local<v8::Array> f_arr = Nan::New<v8::Array>(layer_features.size());
+            Napi::Array f_arr = Napi::Array::New(env, layer_features.size());
             std::size_t f_idx = 0;
             for (auto feature_msg : layer_features)
             {
-                v8::Local<v8::Object> feature_obj = Nan::New<v8::Object>();
+                Napi::Object feature_obj = Napi::Object::New(env);
                 mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
                 mapnik::vector_tile_impl::GeometryPBF::pbf_itr tag_itr;
                 bool has_geom = false;
@@ -2603,7 +2633,7 @@ NAN_METHOD(VectorTile::toJSON)
                     switch (feature_msg.tag())
                     {
                         case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                            Nan::Set(feature_obj, Nan::New("id").ToLocalChecked(),Nan::New<v8::Number>(feature_msg.get_uint64()));
+                            (feature_obj).Set(Napi::String::New(env, "id"),Napi::Number::New(env, feature_msg.get_uint64()));
                             break;
                         case mapnik::vector_tile_impl::Feature_Encoding::TAGS:
                             tag_itr = feature_msg.get_packed_uint32();
@@ -2612,7 +2642,7 @@ NAN_METHOD(VectorTile::toJSON)
                         case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
                             geom_type_enum = feature_msg.get_enum();
                             has_geom_type = true;
-                            Nan::Set(feature_obj, Nan::New("type").ToLocalChecked(),Nan::New<v8::Integer>(geom_type_enum));
+                            (feature_obj).Set(Napi::String::New(env, "type"),Napi::Number::New(env, geom_type_enum));
                             break;
                         case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
                             geom_itr = feature_msg.get_packed_uint32();
@@ -2621,8 +2651,8 @@ NAN_METHOD(VectorTile::toJSON)
                         case mapnik::vector_tile_impl::Feature_Encoding::RASTER:
                         {
                             auto im_buffer = feature_msg.get_view();
-                            Nan::Set(feature_obj, Nan::New("raster").ToLocalChecked(),
-                                             Nan::CopyBuffer(im_buffer.data(), im_buffer.size()).ToLocalChecked());
+                            (feature_obj).Set(Napi::String::New(env, "raster"),
+                                             Napi::Buffer::Copy(env, im_buffer.data(), im_buffer.size()));
                             break;
                         }
                         default:
@@ -2632,7 +2662,7 @@ NAN_METHOD(VectorTile::toJSON)
                             // LCOV_EXCL_STOP
                     }
                 }
-                v8::Local<v8::Object> att_obj = Nan::New<v8::Object>();
+                Napi::Object att_obj = Napi::Object::New(env);
                 if (has_tags)
                 {
                     for (auto _i = tag_itr.begin(); _i != tag_itr.end();)
@@ -2653,7 +2683,7 @@ NAN_METHOD(VectorTile::toJSON)
                         }
                     }
                 }
-                Nan::Set(feature_obj, Nan::New("properties").ToLocalChecked(), att_obj);
+                (feature_obj).Set(Napi::String::New(env, "properties"), att_obj);
                 if (has_geom && has_geom_type)
                 {
                     if (decode_geometry)
@@ -2661,10 +2691,10 @@ NAN_METHOD(VectorTile::toJSON)
                         // Decode the geometry first into an int64_t mapnik geometry
                         mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
                         mapnik::geometry::geometry<std::int64_t> geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, geom_type_enum, version, 0, 0, 1.0, 1.0);
-                        v8::Local<v8::Array> g_arr = geometry_to_array<std::int64_t>(geom);
-                        Nan::Set(feature_obj, Nan::New("geometry").ToLocalChecked(), g_arr);
+                        Napi::Array g_arr = geometry_to_array<std::int64_t>(geom);
+                        (feature_obj).Set(Napi::String::New(env, "geometry"), g_arr);
                         std::string geom_type = geometry_type_as_string(geom);
-                        Nan::Set(feature_obj, Nan::New("geometry_type").ToLocalChecked(), Nan::New(geom_type).ToLocalChecked());
+                        (feature_obj).Set(Napi::String::New(env, "geometry_type"), Napi::New(env, geom_type));
                     }
                     else
                     {
@@ -2673,27 +2703,27 @@ NAN_METHOD(VectorTile::toJSON)
                         {
                             geom_vec.push_back(*_i);
                         }
-                        v8::Local<v8::Array> g_arr = Nan::New<v8::Array>(geom_vec.size());
+                        Napi::Array g_arr = Napi::Array::New(env, geom_vec.size());
                         for (std::size_t k = 0; k < geom_vec.size();++k)
                         {
-                            Nan::Set(g_arr, k, Nan::New<v8::Number>(geom_vec[k]));
+                            (g_arr).Set(k, Napi::Number::New(env, geom_vec[k]));
                         }
-                        Nan::Set(feature_obj, Nan::New("geometry").ToLocalChecked(), g_arr);
+                        (feature_obj).Set(Napi::String::New(env, "geometry"), g_arr);
                     }
                 }
-                Nan::Set(f_arr, f_idx++, feature_obj);
+                (f_arr).Set(f_idx++, feature_obj);
             }
-            Nan::Set(layer_obj, Nan::New("features").ToLocalChecked(), f_arr);
-            Nan::Set(arr, l_idx++, layer_obj);
+            (layer_obj).Set(Napi::String::New(env, "features"), f_arr);
+            (arr).Set(l_idx++, layer_obj);
         }
-        info.GetReturnValue().Set(arr);
+        return arr;
         return;
     }
     catch (std::exception const& ex)
     {
         // LCOV_EXCL_START
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
         // LCOV_EXCL_STOP
     }
 }
@@ -2768,9 +2798,9 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  * geojson // stringified GeoJSON
  * JSON.parse(geojson); // GeoJSON object
  */
-NAN_METHOD(VectorTile::toGeoJSONSync)
+Napi::Value VectorTile::toGeoJSONSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_toGeoJSONSync(info));
+    return _toGeoJSONSync(info);
 }
 
 void write_geojson_array(std::string & result,
@@ -2889,26 +2919,28 @@ bool write_geojson_layer_name(std::string & result,
     return false;
 }
 
-v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_toGeoJSONSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
+    Napi::EscapableHandleScope scope(env);
     if (info.Length() < 1)
     {
-        Nan::ThrowError("first argument must be either a layer name (string) or layer index (integer)");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "first argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    v8::Local<v8::Value> layer_id = info[0];
-    if (! (layer_id->IsString() || layer_id->IsNumber()) )
+    Napi::Value layer_id = info[0];
+    if (! (layer_id.IsString() || layer_id.IsNumber()) )
     {
-        Nan::ThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "'layer' argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
 
-    VectorTile* v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* v = info.Holder().Unwrap<VectorTile>();
     std::string result;
     try
     {
-        if (layer_id->IsString())
+        if (layer_id.IsString())
         {
             std::string layer_name = TOSTR(layer_id);
             if (layer_name == "__array__")
@@ -2924,29 +2956,33 @@ v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 if (!write_geojson_layer_name(result, layer_name, v))
                 {
                     std::string error_msg("Layer name '" + layer_name + "' not found");
-                    Nan::ThrowTypeError(error_msg.c_str());
-                    return scope.Escape(Nan::Undefined());
+                    Napi::TypeError::New(env, error_msg.c_str()).ThrowAsJavaScriptException();
+
+                    return scope.Escape(env.Undefined());
                 }
             }
         }
-        else if (layer_id->IsNumber())
+        else if (layer_id.IsNumber())
         {
-            int layer_idx = Nan::To<int>(layer_id).FromJust();
+            int layer_idx = layer_id.As<Napi::Number>().Int32Value();
             if (layer_idx < 0)
             {
-                Nan::ThrowTypeError("A layer index can not be negative");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "A layer index can not be negative").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             else if (layer_idx >= static_cast<int>(v->get_tile()->get_layers().size()))
             {
-                Nan::ThrowTypeError("Layer index exceeds the number of layers in the vector tile.");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "Layer index exceeds the number of layers in the vector tile.").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             if (!write_geojson_layer_index(result, layer_idx, v))
             {
                 // LCOV_EXCL_START
-                Nan::ThrowTypeError("Layer could not be retrieved (should have not reached here)");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "Layer could not be retrieved (should have not reached here)").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
                 // LCOV_EXCL_STOP
             }
         }
@@ -2954,11 +2990,12 @@ v8::Local<v8::Value> VectorTile::_toGeoJSONSync(Nan::NAN_METHOD_ARGS_TYPE info)
     catch (std::exception const& ex)
     {
         // LCOV_EXCL_START
-        Nan::ThrowTypeError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
         // LCOV_EXCL_STOP
     }
-    return scope.Escape(Nan::New<v8::String>(result).ToLocalChecked());
+    return scope.Escape(Napi::String::New(env, result));
 }
 
 enum geojson_write_type : std::uint8_t
@@ -2978,7 +3015,7 @@ struct to_geojson_baton
     geojson_write_type type;
     int layer_idx;
     std::string layer_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 };
 
 /**
@@ -3000,29 +3037,29 @@ struct to_geojson_baton
  *   console.log(JSON.parse(geojson)); // GeoJSON object
  * });
  */
-NAN_METHOD(VectorTile::toGeoJSON)
+Napi::Value VectorTile::toGeoJSON(const Napi::CallbackInfo& info)
 {
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction())
     {
-        info.GetReturnValue().Set(_toGeoJSONSync(info));
+        return _toGeoJSONSync(info);
         return;
     }
     to_geojson_baton *closure = new to_geojson_baton();
     closure->request.data = closure;
-    closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    closure->v = info.Holder().Unwrap<VectorTile>();
     closure->error = false;
     closure->layer_idx = 0;
     closure->type = geojson_write_all;
 
-    v8::Local<v8::Value> layer_id = info[0];
-    if (! (layer_id->IsString() || layer_id->IsNumber()) )
+    Napi::Value layer_id = info[0];
+    if (! (layer_id.IsString() || layer_id.IsNumber()) )
     {
         delete closure;
-        Nan::ThrowTypeError("'layer' argument must be either a layer name (string) or layer index (integer)");
-        return;
+        Napi::TypeError::New(env, "'layer' argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (layer_id->IsString())
+    if (layer_id.IsString())
     {
         std::string layer_name = TOSTR(layer_id);
         if (layer_name == "__array__")
@@ -3039,33 +3076,33 @@ NAN_METHOD(VectorTile::toGeoJSON)
             {
                 delete closure;
                 std::string error_msg("The layer does not contain the name: " + layer_name);
-                Nan::ThrowTypeError(error_msg.c_str());
-                return;
+                Napi::TypeError::New(env, error_msg.c_str()).ThrowAsJavaScriptException();
+                return env.Null();
             }
             closure->layer_name = layer_name;
             closure->type = geojson_write_layer_name;
         }
     }
-    else if (layer_id->IsNumber())
+    else if (layer_id.IsNumber())
     {
-        closure->layer_idx = Nan::To<int>(layer_id).FromJust();
+        closure->layer_idx = layer_id.As<Napi::Number>().Int32Value();
         if (closure->layer_idx < 0)
         {
             delete closure;
-            Nan::ThrowTypeError("A layer index can not be negative");
-            return;
+            Napi::TypeError::New(env, "A layer index can not be negative").ThrowAsJavaScriptException();
+            return env.Null();
         }
         else if (closure->layer_idx >= static_cast<int>(closure->v->get_tile()->get_layers().size()))
         {
             delete closure;
-            Nan::ThrowTypeError("Layer index exceeds the number of layers in the vector tile.");
-            return;
+            Napi::TypeError::New(env, "Layer index exceeds the number of layers in the vector tile.").ThrowAsJavaScriptException();
+            return env.Null();
         }
         closure->type = geojson_write_layer_index;
     }
 
-    v8::Local<v8::Value> callback = info[info.Length()-1];
-    closure->cb.Reset(callback.As<v8::Function>());
+    Napi::Value callback = info[info.Length()-1];
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, to_geojson, (uv_after_work_cb)after_to_geojson);
     closure->v->Ref();
     return;
@@ -3106,22 +3143,22 @@ void VectorTile::to_geojson(uv_work_t* req)
 
 void VectorTile::after_to_geojson(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
     if (closure->error)
     {
         // Because there are no known ways to trigger the exception path in to_geojson
         // there is no easy way to test this path currently
         // LCOV_EXCL_START
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->result.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->result.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New<v8::String>(closure->result).ToLocalChecked() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), Napi::String::New(env, closure->result) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
@@ -3160,23 +3197,23 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  * var vt = mapnik.VectorTile(0,0,0);
  * vt.addGeoJSON(JSON.stringify(geojson), 'layer-name', {});
  */
-NAN_METHOD(VectorTile::addGeoJSON)
+Napi::Value VectorTile::addGeoJSON(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (info.Length() < 1 || !info[0]->IsString())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (info.Length() < 1 || !info[0].IsString())
     {
-        Nan::ThrowError("first argument must be a GeoJSON string");
-        return;
+        Napi::Error::New(env, "first argument must be a GeoJSON string").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    if (info.Length() < 2 || !info[1]->IsString())
+    if (info.Length() < 2 || !info[1].IsString())
     {
-        Nan::ThrowError("second argument must be a layer name (string)");
-        return;
+        Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::string geojson_string = TOSTR(info[0]);
     std::string geojson_name = TOSTR(info[1]);
 
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     double area_threshold = 0.1;
     double simplify_distance = 0.0;
     bool strictly_simple = true;
@@ -3187,87 +3224,87 @@ NAN_METHOD(VectorTile::addGeoJSON)
     if (info.Length() > 2)
     {
         // options object
-        if (!info[2]->IsObject())
+        if (!info[2].IsObject())
         {
-            Nan::ThrowError("optional third argument must be an options object");
-            return;
+            Napi::Error::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
+        options = info[2].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "area_threshold"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowError("option 'area_threshold' must be a number");
-                return;
+                Napi::Error::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            area_threshold = Nan::To<int>(param_val).FromJust();
+            area_threshold = param_val.As<Napi::Number>().Int32Value();
             if (area_threshold < 0.0)
             {
-                Nan::ThrowError("option 'area_threshold' can not be negative");
-                return;
+                Napi::Error::New(env, "option 'area_threshold' can not be negative").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "strictly_simple"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'strictly_simple' must be a boolean");
-                return;
+                Napi::Error::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            strictly_simple = Nan::To<bool>(param_val).FromJust();
+            strictly_simple = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "multi_polygon_union")).FromMaybe(false))
         {
-            v8::Local<v8::Value> mpu = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
+            Napi::Value mpu = (options).Get(Napi::String::New(env, "multi_polygon_union"));
             if (!mpu->IsBoolean())
             {
-                Nan::ThrowTypeError("multi_polygon_union value must be a boolean");
-                return;
+                Napi::TypeError::New(env, "multi_polygon_union value must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            multi_polygon_union = Nan::To<bool>(mpu).FromJust();
+            multi_polygon_union = mpu.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "fill_type")).FromMaybe(false))
         {
-            v8::Local<v8::Value> ft = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
-            if (!ft->IsNumber())
+            Napi::Value ft = (options).Get(Napi::String::New(env, "fill_type"));
+            if (!ft.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'fill_type' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(ft).FromJust());
+            fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft.As<Napi::Number>().Int32Value());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
-                Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
-                return;
+                Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "simplify_distance"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
-                return;
+                Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            simplify_distance = Nan::To<double>(param_val).FromJust();
+            simplify_distance = param_val.As<Napi::Number>().DoubleValue();
             if (simplify_distance < 0.0)
             {
-                Nan::ThrowTypeError("option 'simplify_distance' must be a positive number");
-                return;
+                Napi::TypeError::New(env, "option 'simplify_distance' must be a positive number").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            process_all_rings = Nan::To<bool>(param_val).FromJust();
+            process_all_rings = param_val.As<Napi::Boolean>().Value();
         }
     }
 
@@ -3290,12 +3327,12 @@ NAN_METHOD(VectorTile::addGeoJSON)
         ren.set_fill_type(fill_type);
         ren.set_process_all_rings(process_all_rings);
         ren.update_tile(*d->get_tile());
-        info.GetReturnValue().Set(Nan::True());
+        return env.True();
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
     }
 }
 
@@ -3321,39 +3358,43 @@ NAN_METHOD(VectorTile::addGeoJSON)
  *   image_scaling: 'gaussian'
  * });
  */
-NAN_METHOD(VectorTile::addImageSync)
+Napi::Value VectorTile::addImageSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_addImageSync(info));
+    return _addImageSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_addImageSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (info.Length() < 1 || !info[0]->IsObject())
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowError("first argument must be an Image object");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    if (info.Length() < 2 || !info[1]->IsString())
+    if (info.Length() < 2 || !info[1].IsString())
     {
-        Nan::ThrowError("second argument must be a layer name (string)");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
     std::string layer_name = TOSTR(info[1]);
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (obj->IsNull() ||
         obj->IsUndefined() ||
-        !Nan::New(Image::constructor)->HasInstance(obj))
+        !Napi::New(env, Image::constructor)->HasInstance(obj))
     {
-        Nan::ThrowError("first argument must be an Image object");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    Image *im = Nan::ObjectWrap::Unwrap<Image>(obj);
+    Image *im = obj.Unwrap<Image>();
     if (im->get()->width() <= 0 || im->get()->height() <= 0)
     {
-        Nan::ThrowError("Image width and height must be greater then zero");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
 
     std::string image_format = "webp";
@@ -3362,38 +3403,42 @@ v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
     if (info.Length() > 2)
     {
         // options object
-        if (!info[2]->IsObject())
+        if (!info[2].IsObject())
         {
-            Nan::ThrowError("optional third argument must be an options object");
-            return scope.Escape(Nan::Undefined());
+            Napi::Error::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
 
-        v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[2].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString()) 
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
+            if (!param_val.IsString()) 
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             scaling_method = *method;
         }
 
-        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString()) 
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
+            if (!param_val.IsString()) 
             {
-                Nan::ThrowTypeError("option 'image_format' must be a string");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
             image_format = TOSTR(param_val);
         }
@@ -3419,14 +3464,15 @@ v8::Local<v8::Value> VectorTile::_addImageSync(Nan::NAN_METHOD_ARGS_TYPE info)
         ren.set_scaling_method(scaling_method);
         ren.set_image_format(image_format);
         ren.update_tile(*d->get_tile());
-        info.GetReturnValue().Set(Nan::True());
+        return env.True();
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -3439,7 +3485,7 @@ typedef struct
     mapnik::scaling_method_e scaling_method;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } vector_tile_add_image_baton_t;
 
 /**
@@ -3467,45 +3513,45 @@ typedef struct
  *   // your custom code using `vt`
  * });
  */
-NAN_METHOD(VectorTile::addImage)
+Napi::Value VectorTile::addImage(const Napi::CallbackInfo& info)
 {
     // If last param is not a function assume sync
     if (info.Length() < 2)
     {
-        Nan::ThrowError("addImage requires at least two parameters: an Image and a layer name");
-        return;
+        Napi::Error::New(env, "addImage requires at least two parameters: an Image and a layer name").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
-        info.GetReturnValue().Set(_addImageSync(info));
+        return _addImageSync(info);
         return;
     }
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.This());
-    if (!info[0]->IsObject())
+    VectorTile* d = this;
+    if (!info[0].IsObject())
     {
-        Nan::ThrowError("first argument must be an Image object");
-        return;
+        Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    if (!info[1]->IsString())
+    if (!info[1].IsString())
     {
-        Nan::ThrowError("second argument must be a layer name (string)");
-        return;
+        Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::string layer_name = TOSTR(info[1]);
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (obj->IsNull() ||
         obj->IsUndefined() ||
-        !Nan::New(Image::constructor)->HasInstance(obj))
+        !Napi::New(env, Image::constructor)->HasInstance(obj))
     {
-        Nan::ThrowError("first argument must be an Image object");
-        return;
+        Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    Image *im = Nan::ObjectWrap::Unwrap<Image>(obj);
+    Image *im = obj.Unwrap<Image>();
     if (im->get()->width() <= 0 || im->get()->height() <= 0)
     {
-        Nan::ThrowError("Image width and height must be greater then zero");
-        return;
+        Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     std::string image_format = "webp";
@@ -3514,38 +3560,38 @@ NAN_METHOD(VectorTile::addImage)
     if (info.Length() > 3)
     {
         // options object
-        if (!info[2]->IsObject())
+        if (!info[2].IsObject())
         {
-            Nan::ThrowError("optional third argument must be an options object");
-            return;
+            Napi::Error::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[2].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString()) 
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
+            if (!param_val.IsString()) 
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string");
-                return;
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
+                return env.Null();
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
-                Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                return;
+                Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
+                return env.Null();
             }
             scaling_method = *method;
         }
 
-        if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString()) 
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
+            if (!param_val.IsString()) 
             {
-                Nan::ThrowTypeError("option 'image_format' must be a string");
-                return;
+                Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
+                return env.Null();
             }
             image_format = TOSTR(param_val);
         }
@@ -3558,7 +3604,7 @@ NAN_METHOD(VectorTile::addImage)
     closure->image_format = image_format;
     closure->layer_name = layer_name;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_AddImage, (uv_after_work_cb)EIO_AfterAddImage);
     d->Ref();
     im->Ref();
@@ -3600,18 +3646,18 @@ void VectorTile::EIO_AddImage(uv_work_t* req)
 
 void VectorTile::EIO_AfterAddImage(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_add_image_baton_t *closure = static_cast<vector_tile_add_image_baton_t *>(req->data);
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { env.Null() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -3635,52 +3681,57 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
  * var image_buffer = fs.readFileSync('./path/to/image.jpg');
  * vt.addImageBufferSync(image_buffer, 'layer-name');
  */
-NAN_METHOD(VectorTile::addImageBufferSync)
+Napi::Value VectorTile::addImageBufferSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_addImageBufferSync(info));
+    return _addImageBufferSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_addImageBufferSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_addImageBufferSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (info.Length() < 1 || !info[0]->IsObject())
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("first argument must be a buffer object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    if (info.Length() < 2 || !info[1]->IsString())
+    if (info.Length() < 2 || !info[1].IsString())
     {
-        Nan::ThrowError("second argument must be a layer name (string)");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
     std::string layer_name = TOSTR(info[1]);
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first arg must be a buffer object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    std::size_t buffer_size = node::Buffer::Length(obj);
+    std::size_t buffer_size = obj.As<Napi::Buffer<char>>().Length();
     if (buffer_size <= 0)
     {
-        Nan::ThrowError("cannot accept empty buffer as protobuf");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "cannot accept empty buffer as protobuf").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
     try
     {
-        add_image_buffer_as_tile_layer(*d->get_tile(), layer_name, node::Buffer::Data(obj), buffer_size);
+        add_image_buffer_as_tile_layer(*d->get_tile(), layer_name, obj.As<Napi::Buffer<char>>().Data(), buffer_size);
     }
     catch (std::exception const& ex)
     {
         // no obvious way to get this to throw in JS under obvious conditions
         // but keep the standard exeption cache in C++
         // LCOV_EXCL_START
-        Nan::ThrowError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
         // LCOV_EXCL_STOP
     }
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -3692,8 +3743,8 @@ typedef struct
     std::string layer_name;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-    Nan::Persistent<v8::Object> buffer;
+    Napi::FunctionReference cb;
+    Napi::Persistent<v8::Object> buffer;
 } vector_tile_addimagebuffer_baton_t;
 
 
@@ -3716,51 +3767,51 @@ typedef struct
  *   // your custom code
  * });
  */
-NAN_METHOD(VectorTile::addImageBuffer)
+Napi::Value VectorTile::addImageBuffer(const Napi::CallbackInfo& info)
 {
     if (info.Length() < 3)
     {
-        info.GetReturnValue().Set(_addImageBufferSync(info));
+        return _addImageBufferSync(info);
         return;
     }
 
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() < 1 || !info[0]->IsObject())
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("first argument must be a buffer object");
-        return;
+        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    if (info.Length() < 2 || !info[1]->IsString())
+    if (info.Length() < 2 || !info[1].IsString())
     {
-        Nan::ThrowError("second argument must be a layer name (string)");
-        return;
+        Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::string layer_name = TOSTR(info[1]);
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first arg must be a buffer object");
-        return;
+        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     vector_tile_addimagebuffer_baton_t *closure = new vector_tile_addimagebuffer_baton_t();
     closure->request.data = closure;
     closure->d = d;
     closure->layer_name = layer_name;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
-    closure->buffer.Reset(obj.As<v8::Object>());
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
+    closure->cb.Reset(callback.As<Napi::Function>());
+    closure->buffer.Reset(obj.As<Napi::Object>());
+    closure->data = obj.As<Napi::Buffer<char>>().Data();
+    closure->dataLength = obj.As<Napi::Buffer<char>>().Length();
     uv_queue_work(uv_default_loop(), &closure->request, EIO_AddImageBuffer, (uv_after_work_cb)EIO_AfterAddImageBuffer);
     d->Ref();
     return;
@@ -3785,20 +3836,20 @@ void VectorTile::EIO_AddImageBuffer(uv_work_t* req)
 
 void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
     if (closure->error)
     {
         // LCOV_EXCL_START
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { env.Null() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -3824,74 +3875,81 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  * vt.addDataSync(data_buffer);
  * // your custom code
  */
-NAN_METHOD(VectorTile::addDataSync)
+Napi::Value VectorTile::addDataSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_addDataSync(info));
+    return _addDataSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_addDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_addDataSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (info.Length() < 1 || !info[0]->IsObject())
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("first argument must be a buffer object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first arg must be a buffer object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    std::size_t buffer_size = node::Buffer::Length(obj);
+    std::size_t buffer_size = obj.As<Napi::Buffer<char>>().Length();
     if (buffer_size <= 0)
     {
-        Nan::ThrowError("cannot accept empty buffer as protobuf");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "cannot accept empty buffer as protobuf").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
     bool upgrade = false;
     bool validate = false;
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     if (info.Length() > 1)
     {
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("second arg must be a options object");
-            return scope.Escape(Nan::Undefined());
+            Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
-        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
+        options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "validate"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'validate' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            validate = Nan::To<bool>(param_val).FromJust();
+            validate = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "upgrade")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "upgrade"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            upgrade = Nan::To<bool>(param_val).FromJust();
+            upgrade = param_val.As<Napi::Boolean>().Value();
         }
     }
     try
     {
-        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, validate, upgrade);
+        merge_from_compressed_buffer(*d->get_tile(), obj.As<Napi::Buffer<char>>().Data(), buffer_size, validate, upgrade);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -3904,8 +3962,8 @@ typedef struct
     size_t dataLength;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-    Nan::Persistent<v8::Object> buffer;
+    Napi::FunctionReference cb;
+    Napi::Persistent<v8::Object> buffer;
 } vector_tile_adddata_baton_t;
 
 
@@ -3929,62 +3987,62 @@ typedef struct
  *   // your custom code
  * });
  */
-NAN_METHOD(VectorTile::addData)
+Napi::Value VectorTile::addData(const Napi::CallbackInfo& info)
 {
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
-        info.GetReturnValue().Set(_addDataSync(info));
+        return _addDataSync(info);
         return;
     }
 
-    if (info.Length() < 1 || !info[0]->IsObject())
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("first argument must be a buffer object");
-        return;
+        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first arg must be a buffer object");
-        return;
+        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     bool upgrade = false;
     bool validate = false;
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     if (info.Length() > 1)
     {
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("second arg must be a options object");
-            return;
+            Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
+        options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "validate"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'validate' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            validate = Nan::To<bool>(param_val).FromJust();
+            validate = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "upgrade")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "upgrade"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            upgrade = Nan::To<bool>(param_val).FromJust();
+            upgrade = param_val.As<Napi::Boolean>().Value();
         }
     }
 
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     vector_tile_adddata_baton_t *closure = new vector_tile_adddata_baton_t();
     closure->request.data = closure;
@@ -3992,10 +4050,10 @@ NAN_METHOD(VectorTile::addData)
     closure->validate = validate;
     closure->upgrade = upgrade;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
-    closure->buffer.Reset(obj.As<v8::Object>());
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
+    closure->cb.Reset(callback.As<Napi::Function>());
+    closure->buffer.Reset(obj.As<Napi::Object>());
+    closure->data = obj.As<Napi::Buffer<char>>().Data();
+    closure->dataLength = obj.As<Napi::Buffer<char>>().Length();
     uv_queue_work(uv_default_loop(), &closure->request, EIO_AddData, (uv_after_work_cb)EIO_AfterAddData);
     d->Ref();
     return;
@@ -4024,18 +4082,18 @@ void VectorTile::EIO_AddData(uv_work_t* req)
 
 void VectorTile::EIO_AfterAddData(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { env.Null() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -4061,75 +4119,82 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  * vectorTile.setDataSync(data);
  * // your custom code
  */
-NAN_METHOD(VectorTile::setDataSync)
+Napi::Value VectorTile::setDataSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_setDataSync(info));
+    return _setDataSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_setDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_setDataSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (info.Length() < 1 || !info[0]->IsObject())
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("first argument must be a buffer object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first arg must be a buffer object");
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    std::size_t buffer_size = node::Buffer::Length(obj);
+    std::size_t buffer_size = obj.As<Napi::Buffer<char>>().Length();
     if (buffer_size <= 0)
     {
-        Nan::ThrowError("cannot accept empty buffer as protobuf");
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, "cannot accept empty buffer as protobuf").ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
     bool upgrade = false;
     bool validate = false;
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     if (info.Length() > 1)
     {
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("second arg must be a options object");
-            return scope.Escape(Nan::Undefined());
+            Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
-        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
+        options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "validate"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'validate' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            validate = Nan::To<bool>(param_val).FromJust();
+            validate = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "upgrade")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "upgrade"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            upgrade = Nan::To<bool>(param_val).FromJust();
+            upgrade = param_val.As<Napi::Boolean>().Value();
         }
     }
     try
     {
         d->clear();
-        merge_from_compressed_buffer(*d->get_tile(), node::Buffer::Data(obj), buffer_size, validate, upgrade);
+        merge_from_compressed_buffer(*d->get_tile(), obj.As<Napi::Buffer<char>>().Data(), buffer_size, validate, upgrade);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
     }
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -4142,8 +4207,8 @@ typedef struct
     size_t dataLength;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-    Nan::Persistent<v8::Object> buffer;
+    Napi::FunctionReference cb;
+    Napi::Persistent<v8::Object> buffer;
 } vector_tile_setdata_baton_t;
 
 
@@ -4166,62 +4231,62 @@ typedef struct
  *   // your custom code
  * });
  */
-NAN_METHOD(VectorTile::setData)
+Napi::Value VectorTile::setData(const Napi::CallbackInfo& info)
 {
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
-        info.GetReturnValue().Set(_setDataSync(info));
+        return _setDataSync(info);
         return;
     }
 
-    if (info.Length() < 1 || !info[0]->IsObject())
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("first argument must be a buffer object");
-        return;
+        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first arg must be a buffer object");
-        return;
+        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     bool upgrade = false;
     bool validate = false;
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     if (info.Length() > 1)
     {
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("second arg must be a options object");
-            return;
+            Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New<v8::String>("validate").ToLocalChecked()).FromMaybe(false))
+        options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("validate").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "validate"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'validate' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            validate = Nan::To<bool>(param_val).FromJust();
+            validate = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New<v8::String>("upgrade").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "upgrade")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("upgrade").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "upgrade"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'upgrade' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            upgrade = Nan::To<bool>(param_val).FromJust();
+            upgrade = param_val.As<Napi::Boolean>().Value();
         }
     }
 
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     vector_tile_setdata_baton_t *closure = new vector_tile_setdata_baton_t();
     closure->request.data = closure;
@@ -4229,10 +4294,10 @@ NAN_METHOD(VectorTile::setData)
     closure->upgrade = upgrade;
     closure->d = d;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
-    closure->buffer.Reset(obj.As<v8::Object>());
-    closure->data = node::Buffer::Data(obj);
-    closure->dataLength = node::Buffer::Length(obj);
+    closure->cb.Reset(callback.As<Napi::Function>());
+    closure->buffer.Reset(obj.As<Napi::Object>());
+    closure->data = obj.As<Napi::Buffer<char>>().Data();
+    closure->dataLength = obj.As<Napi::Buffer<char>>().Length();
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
     d->Ref();
     return;
@@ -4263,18 +4328,18 @@ void VectorTile::EIO_SetData(uv_work_t* req)
 
 void VectorTile::EIO_AfterSetData(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { env.Null() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
     closure->d->Unref();
@@ -4302,100 +4367,107 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  *   strategy: 'FILTERED'
  * });
  */
-NAN_METHOD(VectorTile::getDataSync)
+Napi::Value VectorTile::getDataSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_getDataSync(info));
+    return _getDataSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_getDataSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     bool compress = false;
     bool release = false;
     int level = Z_DEFAULT_COMPRESSION;
     int strategy = Z_DEFAULT_STRATEGY;
 
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
 
     if (info.Length() > 0)
     {
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowTypeError("first arg must be a options object");
-            return scope.Escape(Nan::Undefined());
+            Napi::TypeError::New(env, "first arg must be a options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
         }
 
-        options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        options = info[0].ToObject(Napi::GetCurrentContext());
 
-        if (Nan::Has(options, Nan::New<v8::String>("compression").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "compression")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("compression").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "compression"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'compression' must be a string, either 'gzip', or 'none' (default)").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            compress = std::string("gzip") == (TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()));
+            compress = std::string("gzip") == (TOSTR(param_val->ToString(Napi::GetCurrentContext())));
         }
-        if (Nan::Has(options, Nan::New<v8::String>("release").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "release")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("release").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "release"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'release' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::Error::New(env, "option 'release' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            release = Nan::To<bool>(param_val).FromJust();
+            release = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New<v8::String>("level").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "level")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("level").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "level"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            level = Nan::To<int>(param_val).FromJust();
+            level = param_val.As<Napi::Number>().Int32Value();
             if (level < 0 || level > 9)
             {
-                Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
-        if (Nan::Has(options, Nan::New<v8::String>("strategy").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "strategy")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strategy").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "strategy"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            else if (std::string("FILTERED") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("FILTERED") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_FILTERED;
             }
-            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_HUFFMAN_ONLY;
             }
-            else if (std::string("RLE") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("RLE") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_RLE;
             }
-            else if (std::string("FIXED") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("FIXED") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_FIXED;
             }
-            else if (std::string("DEFAULT") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("DEFAULT") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_DEFAULT_STRATEGY;
             }
             else
             {
-                Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
         }
     }
@@ -4405,7 +4477,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         std::size_t raw_size = d->tile_->size();
         if (raw_size <= 0)
         {
-            return scope.Escape(Nan::NewBuffer(0).ToLocalChecked());
+            return scope.Escape(Napi::Buffer<char>::New(env, 0));
         }
         else
         {
@@ -4416,19 +4488,20 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                 std::ostringstream s;
                 s << "Data is too large to convert to a node::Buffer ";
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
-                Nan::ThrowTypeError(s.str().c_str());
-                return scope.Escape(Nan::Undefined());
+                Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
                 // LCOV_EXCL_STOP
             }
             if (!compress)
             {
                 if (release)
                 {
-                    return scope.Escape(node_mapnik::NewBufferFrom(d->tile_->release_buffer()).ToLocalChecked());
+                    return scope.Escape(node_mapnik::NewBufferFrom(d->tile_->release_buffer()));
                 }
                 else
                 {
-                    return scope.Escape(Nan::CopyBuffer((char*)d->tile_->data(),raw_size).ToLocalChecked());
+                    return scope.Escape(Napi::Buffer::Copy(env, (char*)d->tile_->data(),raw_size));
                 }
             }
             else
@@ -4440,7 +4513,7 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
                     // To keep the same behaviour as a non compression release, we want to clear the VT buffer
                     d->tile_->clear();
                 }
-                return scope.Escape(node_mapnik::NewBufferFrom(std::move(compressed)).ToLocalChecked());
+                return scope.Escape(node_mapnik::NewBufferFrom(std::move(compressed)));
             }
         }
     }
@@ -4450,11 +4523,12 @@ v8::Local<v8::Value> VectorTile::_getDataSync(Nan::NAN_METHOD_ARGS_TYPE info)
         // found to test with repeatability this exception path is not included
         // in test coverage.
         // LCOV_EXCL_START
-        Nan::ThrowTypeError(ex.what());
-        return scope.Escape(Nan::Undefined());
+        Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
+
+        return scope.Escape(env.Undefined());
         // LCOV_EXCL_STOP
     }
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -4468,7 +4542,7 @@ typedef struct
     int level;
     int strategy;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } vector_tile_get_data_baton_t;
 
 /**
@@ -4492,104 +4566,104 @@ typedef struct
  *   console.log(data); // buffer
  * });
  */
-NAN_METHOD(VectorTile::getData)
+Napi::Value VectorTile::getData(const Napi::CallbackInfo& info)
 {
     if (info.Length() == 0 || !info[info.Length()-1]->IsFunction())
     {
-        info.GetReturnValue().Set(_getDataSync(info));
+        return _getDataSync(info);
         return;
     }
 
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length()-1];
     bool compress = false;
     bool release = false;
     int level = Z_DEFAULT_COMPRESSION;
     int strategy = Z_DEFAULT_STRATEGY;
 
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
 
     if (info.Length() > 1)
     {
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowTypeError("first arg must be a options object");
-            return;
+            Napi::TypeError::New(env, "first arg must be a options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        options = info[0].ToObject(Napi::GetCurrentContext());
 
-        if (Nan::Has(options, Nan::New("compression").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "compression")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("compression").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "compression"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'compression' must be a string, either 'gzip', or 'none' (default)");
-                return;
+                Napi::TypeError::New(env, "option 'compression' must be a string, either 'gzip', or 'none' (default)").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            compress = std::string("gzip") == (TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()));
+            compress = std::string("gzip") == (TOSTR(param_val->ToString(Napi::GetCurrentContext())));
         }
-        if (Nan::Has(options, Nan::New("release").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "release")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("release").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "release"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("option 'release' must be a boolean");
-                return;
+                Napi::TypeError::New(env, "option 'release' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            release = Nan::To<bool>(param_val).FromJust();
+            release = param_val.As<Napi::Boolean>().Value();
         }
-        if (Nan::Has(options, Nan::New("level").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "level")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("level").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsNumber())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "level"));
+            if (!param_val.IsNumber())
             {
-                Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
-                return;
+                Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            level = Nan::To<int>(param_val).FromJust();
+            level = param_val.As<Napi::Number>().Int32Value();
             if (level < 0 || level > 9)
             {
-                Nan::ThrowTypeError("option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive");
-                return;
+                Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("strategy").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "strategy")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strategy").ToLocalChecked()).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "strategy"));
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
-                return;
+                Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            else if (std::string("FILTERED") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("FILTERED") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_FILTERED;
             }
-            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("HUFFMAN_ONLY") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_HUFFMAN_ONLY;
             }
-            else if (std::string("RLE") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("RLE") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_RLE;
             }
-            else if (std::string("FIXED") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("FIXED") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_FIXED;
             }
-            else if (std::string("DEFAULT") == TOSTR(param_val->ToString(Nan::GetCurrentContext()).ToLocalChecked()))
+            else if (std::string("DEFAULT") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
                 strategy = Z_DEFAULT_STRATEGY;
             }
             else
             {
-                Nan::ThrowTypeError("option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT");
-                return;
+                Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
     }
 
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     vector_tile_get_data_baton_t *closure = new vector_tile_get_data_baton_t();
     closure->request.data = closure;
     closure->d = d;
@@ -4599,7 +4673,7 @@ NAN_METHOD(VectorTile::getData)
     closure->level = level;
     closure->strategy = strategy;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, get_data, (uv_after_work_cb)after_get_data);
     d->Ref();
     return;
@@ -4630,8 +4704,8 @@ void VectorTile::get_data(uv_work_t* req)
 
 void VectorTile::after_get_data(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
     if (closure->error)
     {
@@ -4639,8 +4713,8 @@ void VectorTile::after_get_data(uv_work_t* req)
         // found to test with repeatability this exception path is not included
         // in test coverage.
         // LCOV_EXCL_START
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else if (!closure->data->empty())
@@ -4650,17 +4724,17 @@ void VectorTile::after_get_data(uv_work_t* req)
             // To keep the same behaviour as a non compression release, we want to clear the VT buffer
             closure->d->tile_->clear();
         }
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), 
-                                         node_mapnik::NewBufferFrom(std::move(closure->data)).ToLocalChecked() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), 
+                                         node_mapnik::NewBufferFrom(std::move(closure->data)) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     else
     {
         std::size_t raw_size = closure->d->tile_->size();
         if (raw_size <= 0)
         {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::NewBuffer(0).ToLocalChecked() };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            Napi::Value argv[2] = { env.Null(), Napi::Buffer<char>::New(env, 0) };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
         else if (raw_size >= node::Buffer::kMaxLength)
         {
@@ -4670,22 +4744,22 @@ void VectorTile::after_get_data(uv_work_t* req)
             std::ostringstream s;
             s << "Data is too large to convert to a node::Buffer ";
             s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
-            v8::Local<v8::Value> argv[1] = { Nan::Error(s.str().c_str()) };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+            Napi::Value argv[1] = { Napi::Error::New(env, s.str().c_str()) };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
             // LCOV_EXCL_STOP
         }
         else
         {
             if (closure->release)
             {
-                v8::Local<v8::Value> argv[2] = { Nan::Null(), 
-                                                 node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()).ToLocalChecked() };
-                async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+                Napi::Value argv[2] = { env.Null(), 
+                                                 node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()) };
+                async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
             }
             else
             {
-                v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)closure->d->tile_->data(),raw_size).ToLocalChecked() };
-                async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+                Napi::Value argv[2] = { env.Null(), Napi::Buffer::Copy(env, (char*)closure->d->tile_->data(),raw_size) };
+                async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
             }
         }
     }
@@ -4741,7 +4815,7 @@ struct vector_tile_render_baton_t
     surface_type surface;
     mapnik::attributes variables;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
     std::string result;
     std::size_t layer_idx;
     std::int64_t z;
@@ -4841,85 +4915,85 @@ struct baton_guard
  *   image.save('./path/to/image/file.png', 'png32');
  * });
  */
-NAN_METHOD(VectorTile::render)
+Napi::Value VectorTile::render(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (info.Length() < 1 || !info[0]->IsObject())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("mapnik.Map expected as first arg");
-        return;
+        Napi::TypeError::New(env, "mapnik.Map expected as first arg").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Map::constructor)->HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Map::constructor)->HasInstance(obj))
     {
-        Nan::ThrowTypeError("mapnik.Map expected as first arg");
-        return;
+        Napi::TypeError::New(env, "mapnik.Map expected as first arg").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map *m = Nan::ObjectWrap::Unwrap<Map>(obj);
-    if (info.Length() < 2 || !info[1]->IsObject())
+    Map *m = obj.Unwrap<Map>();
+    if (info.Length() < 2 || !info[1].IsObject())
     {
-        Nan::ThrowTypeError("a renderable mapnik object is expected as second arg");
-        return;
+        Napi::TypeError::New(env, "a renderable mapnik object is expected as second arg").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    v8::Local<v8::Object> im_obj = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+    Napi::Object im_obj = info[1].ToObject(Napi::GetCurrentContext());
 
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     vector_tile_render_baton_t *closure = new vector_tile_render_baton_t();
     baton_guard guard(closure);
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
 
     if (info.Length() > 2)
     {
         bool set_x = false;
         bool set_y = false;
         bool set_z = false;
-        if (!info[2]->IsObject())
+        if (!info[2].IsObject())
         {
-            Nan::ThrowTypeError("optional third argument must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("z").ToLocalChecked()).FromMaybe(false))
+        options = info[2].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "z")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("z").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "z"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'z' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'z' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->z = Nan::To<int>(bind_opt).FromJust();
+            closure->z = bind_opt.As<Napi::Number>().Int32Value();
             set_z = true;
             closure->zxy_override = true;
         }
-        if (Nan::Has(options, Nan::New("x").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "x")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("x").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "x"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'x' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'x' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->x = Nan::To<int>(bind_opt).FromJust();
+            closure->x = bind_opt.As<Napi::Number>().Int32Value();
             set_x = true;
             closure->zxy_override = true;
         }
-        if (Nan::Has(options, Nan::New("y").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "y")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("y").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "y"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'y' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'y' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->y = Nan::To<int>(bind_opt).FromJust();
+            closure->y = bind_opt.As<Napi::Number>().Int32Value();
             set_y = true;
             closure->zxy_override = true;
         }
@@ -4928,90 +5002,90 @@ NAN_METHOD(VectorTile::render)
         {
             if (!set_z || !set_x || !set_y)
             {
-                Nan::ThrowTypeError("original args 'z', 'x', and 'y' must all be used together");
-                return;
+                Napi::TypeError::New(env, "original args 'z', 'x', and 'y' must all be used together").ThrowAsJavaScriptException();
+                return env.Null();
             }
             if (closure->x < 0 || closure->y < 0 || closure->z < 0)
             {
-                Nan::ThrowTypeError("original args 'z', 'x', and 'y' can not be negative");
-                return;
+                Napi::TypeError::New(env, "original args 'z', 'x', and 'y' can not be negative").ThrowAsJavaScriptException();
+                return env.Null();
             }
             std::int64_t max_at_zoom = pow(2,closure->z);
             if (closure->x >= max_at_zoom)
             {
-                Nan::ThrowTypeError("required parameter x is out of range of possible values based on z value");
-                return;
+                Napi::TypeError::New(env, "required parameter x is out of range of possible values based on z value").ThrowAsJavaScriptException();
+                return env.Null();
             }
             if (closure->y >= max_at_zoom)
             {
-                Nan::ThrowTypeError("required parameter y is out of range of possible values based on z value");
-                return;
+                Napi::TypeError::New(env, "required parameter y is out of range of possible values based on z value").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
 
-        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->buffer_size = Nan::To<int>(bind_opt).FromJust();
+            closure->buffer_size = bind_opt.As<Napi::Number>().Int32Value();
         }
-        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->scale_factor = Nan::To<double>(bind_opt).FromJust();
+            closure->scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                return;
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->scale_denominator = Nan::To<double>(bind_opt).FromJust();
+            closure->scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsObject())
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+            if (!bind_opt.IsObject())
             {
-                Nan::ThrowTypeError("optional arg 'variables' must be an object");
-                return;
+                Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
+            object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
         }
     }
 
     closure->layer_idx = 0;
-    if (Nan::New(Image::constructor)->HasInstance(im_obj))
+    if (Napi::New(env, Image::constructor)->HasInstance(im_obj))
     {
-        Image *im = Nan::ObjectWrap::Unwrap<Image>(im_obj);
+        Image *im = im_obj.Unwrap<Image>();
         closure->width = im->get()->width();
         closure->height = im->get()->height();
         closure->surface = im;
     }
-    else if (Nan::New(CairoSurface::constructor)->HasInstance(im_obj))
+    else if (Napi::New(env, CairoSurface::constructor)->HasInstance(im_obj))
     {
-        CairoSurface *c = Nan::ObjectWrap::Unwrap<CairoSurface>(im_obj);
+        CairoSurface *c = im_obj.Unwrap<CairoSurface>();
         closure->width = c->width();
         closure->height = c->height();
         closure->surface = c;
-        if (Nan::Has(options, Nan::New("renderer").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "renderer")).FromMaybe(false))
         {
-            v8::Local<v8::Value> renderer = Nan::Get(options, Nan::New("renderer").ToLocalChecked()).ToLocalChecked();
-            if (!renderer->IsString() )
+            Napi::Value renderer = (options).Get(Napi::String::New(env, "renderer"));
+            if (!renderer.IsString() )
             {
-                Nan::ThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
-                return;
+                Napi::Error::New(env, "'renderer' option must be a string of either 'svg' or 'cairo'").ThrowAsJavaScriptException();
+                return env.Null();
             }
             std::string renderer_name = TOSTR(renderer);
             if (renderer_name == "cairo")
@@ -5024,15 +5098,15 @@ NAN_METHOD(VectorTile::render)
             }
             else
             {
-                Nan::ThrowError("'renderer' option must be a string of either 'svg' or 'cairo'");
-                return;
+                Napi::Error::New(env, "'renderer' option must be a string of either 'svg' or 'cairo'").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
     }
 #if defined(GRID_RENDERER)
-    else if (Nan::New(Grid::constructor)->HasInstance(im_obj))
+    else if (Napi::New(env, Grid::constructor)->HasInstance(im_obj))
     {
-        Grid *g = Nan::ObjectWrap::Unwrap<Grid>(im_obj);
+        Grid *g = im_obj.Unwrap<Grid>();
         closure->width = g->get()->width();
         closure->height = g->get()->height();
         closure->surface = g;
@@ -5040,16 +5114,16 @@ NAN_METHOD(VectorTile::render)
         std::size_t layer_idx = 0;
 
         // grid requires special options for now
-        if (!Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
+        if (!(options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
         {
-            Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-            return;
+            Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
+            return env.Null();
         }
         else
         {
             std::vector<mapnik::layer> const& layers = m->get()->layers();
-            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
-            if (layer_id->IsString())
+            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
+            if (layer_id.IsString())
             {
                 bool found = false;
                 unsigned int idx(0);
@@ -5068,13 +5142,13 @@ NAN_METHOD(VectorTile::render)
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    Nan::ThrowTypeError(s.str().c_str());
-                    return;
+                    Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             }
-            else if (layer_id->IsNumber())
+            else if (layer_id.IsNumber())
             {
-                layer_idx = Nan::To<int>(layer_id).FromJust();
+                layer_idx = layer_id.As<Napi::Number>().Int32Value();
                 std::size_t layer_num = layers.size();
                 if (layer_idx >= layer_num)
                 {
@@ -5088,31 +5162,31 @@ NAN_METHOD(VectorTile::render)
                     {
                         s << "no layers found in map";
                     }
-                    Nan::ThrowTypeError(s.str().c_str());
-                    return;
+                    Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             }
             else
             {
-                Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                return;
+                Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
-        if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("fields").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "fields"));
             if (!param_val->IsArray())
             {
-                Nan::ThrowTypeError("option 'fields' must be an array of strings");
-                return;
+                Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(param_val);
+            Napi::Array a = param_val.As<Napi::Array>();
             unsigned int i = 0;
             unsigned int num_fields = a->Length();
             while (i < num_fields)
             {
-                v8::Local<v8::Value> name = Nan::Get(a, i).ToLocalChecked();
-                if (name->IsString())
+                Napi::Value name = (a).Get(i);
+                if (name.IsString())
                 {
                     g->get()->add_field(TOSTR(name));
                 }
@@ -5124,14 +5198,14 @@ NAN_METHOD(VectorTile::render)
 #endif
     else
     {
-        Nan::ThrowTypeError("renderable mapnik object expected as second arg");
-        return;
+        Napi::TypeError::New(env, "renderable mapnik object expected as second arg").ThrowAsJavaScriptException();
+        return env.Null();
     }
     closure->request.data = closure;
     closure->d = d;
     closure->m = m;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderTile, (uv_after_work_cb)EIO_AfterRenderTile);
     mapnik::util::apply_visitor(ref_visitor(), closure->surface);
     m->Ref();
@@ -5342,32 +5416,32 @@ void VectorTile::EIO_RenderTile(uv_work_t* req)
 
 void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
         if (closure->surface.is<Image *>())
         {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<Image *>(closure->surface)->handle() };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            Napi::Value argv[2] = { env.Null(), mapnik::util::get<Image *>(closure->surface)->handle() };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
 #if defined(GRID_RENDERER)
         else if (closure->surface.is<Grid *>())
         {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<Grid *>(closure->surface)->handle() };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            Napi::Value argv[2] = { env.Null(), mapnik::util::get<Grid *>(closure->surface)->handle() };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
 #endif
         else if (closure->surface.is<CairoSurface *>())
         {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            Napi::Value argv[2] = { env.Null(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
     }
 
@@ -5387,17 +5461,17 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
  * vt.clearSync();
  * console.log(vt.getData().length); // 0
  */
-NAN_METHOD(VectorTile::clearSync)
+Napi::Value VectorTile::clearSync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_clearSync(info));
+    return _clearSync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_clearSync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     d->clear();
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
 }
 
 typedef struct
@@ -5407,7 +5481,7 @@ typedef struct
     std::string format;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } clear_vector_tile_baton_t;
 
 /**
@@ -5423,27 +5497,27 @@ typedef struct
  *   console.log(vt.getData().length); // 0
  * });
  */
-NAN_METHOD(VectorTile::clear)
+Napi::Value VectorTile::clear(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     if (info.Length() == 0)
     {
-        info.GetReturnValue().Set(_clearSync(info));
+        return _clearSync(info);
         return;
     }
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!callback->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
     clear_vector_tile_baton_t *closure = new clear_vector_tile_baton_t();
     closure->request.data = closure;
     closure->d = d;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     d->Ref();
     return;
@@ -5468,21 +5542,21 @@ void VectorTile::EIO_Clear(uv_work_t* req)
 
 void VectorTile::EIO_AfterClear(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
     if (closure->error)
     {
         // No reason this should ever throw an exception, not currently testable.
         // LCOV_EXCL_START
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { env.Null() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     closure->d->Unref();
     closure->cb.Reset();
@@ -5946,20 +6020,20 @@ void vector_tile_not_simple(VectorTile * v,
     }
 }
 
-v8::Local<v8::Array> make_not_simple_array(std::vector<not_simple_feature> & errors)
+Napi::Array make_not_simple_array(std::vector<not_simple_feature> & errors)
 {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Array> array = Nan::New<v8::Array>(errors.size());
-    v8::Local<v8::String> layer_key = Nan::New<v8::String>("layer").ToLocalChecked();
-    v8::Local<v8::String> feature_id_key = Nan::New<v8::String>("featureId").ToLocalChecked();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Array array = Napi::Array::New(env, errors.size());
+    Napi::String layer_key = Napi::String::New(env, "layer");
+    Napi::String feature_id_key = Napi::String::New(env, "featureId");
     std::uint32_t idx = 0;
     for (auto const& error : errors)
     {
         // LCOV_EXCL_START
-        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-        Nan::Set(obj, layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
-        Nan::Set(obj, feature_id_key, Nan::New<v8::Number>(error.feature_id));
-        Nan::Set(array, idx++, obj);
+        Napi::Object obj = Napi::Object::New(env);
+        (obj).Set(layer_key, Napi::String::New(env, error.layer));
+        (obj).Set(feature_id_key, Napi::Number::New(env, error.feature_id));
+        (array).Set(idx++, obj);
         // LCOV_EXCL_STOP
     }
     return scope.Escape(array);
@@ -5986,23 +6060,23 @@ void vector_tile_not_valid(VectorTile * v,
     }
 }
 
-v8::Local<v8::Array> make_not_valid_array(std::vector<not_valid_feature> & errors)
+Napi::Array make_not_valid_array(std::vector<not_valid_feature> & errors)
 {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Array> array = Nan::New<v8::Array>(errors.size());
-    v8::Local<v8::String> layer_key = Nan::New<v8::String>("layer").ToLocalChecked();
-    v8::Local<v8::String> feature_id_key = Nan::New<v8::String>("featureId").ToLocalChecked();
-    v8::Local<v8::String> message_key = Nan::New<v8::String>("message").ToLocalChecked();
-    v8::Local<v8::String> geojson_key = Nan::New<v8::String>("geojson").ToLocalChecked();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Array array = Napi::Array::New(env, errors.size());
+    Napi::String layer_key = Napi::String::New(env, "layer");
+    Napi::String feature_id_key = Napi::String::New(env, "featureId");
+    Napi::String message_key = Napi::String::New(env, "message");
+    Napi::String geojson_key = Napi::String::New(env, "geojson");
     std::uint32_t idx = 0;
     for (auto const& error : errors)
     {
-        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-        Nan::Set(obj, layer_key, Nan::New<v8::String>(error.layer).ToLocalChecked());
-        Nan::Set(obj, message_key, Nan::New<v8::String>(error.message).ToLocalChecked());
-        Nan::Set(obj, feature_id_key, Nan::New<v8::Number>(error.feature_id));
-        Nan::Set(obj, geojson_key, Nan::New<v8::String>(error.geojson).ToLocalChecked());
-        Nan::Set(array, idx++, obj);
+        Napi::Object obj = Napi::Object::New(env);
+        (obj).Set(layer_key, Napi::String::New(env, error.layer));
+        (obj).Set(message_key, Napi::String::New(env, error.message));
+        (obj).Set(feature_id_key, Napi::Number::New(env, error.feature_id));
+        (obj).Set(geojson_key, Napi::String::New(env, error.geojson));
+        (array).Set(idx++, obj);
     }
     return scope.Escape(array);
 }
@@ -6015,7 +6089,7 @@ struct not_simple_baton
     bool error;
     std::vector<not_simple_feature> result;
     std::string err_msg;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 };
 
 struct not_valid_baton
@@ -6028,7 +6102,7 @@ struct not_valid_baton
     bool web_merc;
     std::vector<not_valid_feature> result;
     std::string err_msg;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 };
 
 /**
@@ -6043,15 +6117,15 @@ struct not_valid_baton
  * console.log(simple); // array of non-simple geometries and their layer info
  * console.log(simple.length); // number
  */
-NAN_METHOD(VectorTile::reportGeometrySimplicitySync)
+Napi::Value VectorTile::reportGeometrySimplicitySync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_reportGeometrySimplicitySync(info));
+    return _reportGeometrySimplicitySync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_reportGeometrySimplicitySync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    Napi::EscapableHandleScope scope(env);
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     try
     {
         std::vector<not_simple_feature> errors;
@@ -6061,11 +6135,12 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
     catch (std::exception const& ex)
     {
         // LCOV_EXCL_START
-        Nan::ThrowError(ex.what());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+
         // LCOV_EXCL_STOP
     }
     // LCOV_EXCL_START
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
     // LCOV_EXCL_STOP
 }
 
@@ -6088,60 +6163,64 @@ v8::Local<v8::Value> VectorTile::_reportGeometrySimplicitySync(Nan::NAN_METHOD_A
  * console.log(valid); // array of invalid geometries and their layer info
  * console.log(valid.length); // number
  */
-NAN_METHOD(VectorTile::reportGeometryValiditySync)
+Napi::Value VectorTile::reportGeometryValiditySync(const Napi::CallbackInfo& info)
 {
-    info.GetReturnValue().Set(_reportGeometryValiditySync(info));
+    return _reportGeometryValiditySync(info);
 }
 
-v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value VectorTile::_reportGeometryValiditySync(const Napi::CallbackInfo& info)
 {
-    Nan::EscapableHandleScope scope;
+    Napi::EscapableHandleScope scope(env);
     bool split_multi_features = false;
     bool lat_lon = false;
     bool web_merc = false;
     if (info.Length() >= 1)
     {
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowError("The first argument must be an object");
-            return scope.Escape(Nan::Undefined());
-        }
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+            Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
 
-        if (Nan::Has(options, Nan::New("split_multi_features").ToLocalChecked()).FromMaybe(false))
+            return scope.Escape(env.Undefined());
+        }
+        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
+
+        if ((options).Has(Napi::String::New(env, "split_multi_features")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("split_multi_features").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "split_multi_features"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'split_multi_features' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::Error::New(env, "option 'split_multi_features' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            split_multi_features = Nan::To<bool>(param_val).FromJust();
+            split_multi_features = param_val.As<Napi::Boolean>().Value();
         }
 
-        if (Nan::Has(options, Nan::New("lat_lon").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "lat_lon")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("lat_lon").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "lat_lon"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'lat_lon' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::Error::New(env, "option 'lat_lon' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            lat_lon = Nan::To<bool>(param_val).FromJust();
+            lat_lon = param_val.As<Napi::Boolean>().Value();
         }
 
-        if (Nan::Has(options, Nan::New("web_merc").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "web_merc")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("web_merc").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "web_merc"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'web_merc' must be a boolean");
-                return scope.Escape(Nan::Undefined());
+                Napi::Error::New(env, "option 'web_merc' must be a boolean").ThrowAsJavaScriptException();
+
+                return scope.Escape(env.Undefined());
             }
-            web_merc = Nan::To<bool>(param_val).FromJust();
+            web_merc = param_val.As<Napi::Boolean>().Value();
         }
     }
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     try
     {
         std::vector<not_valid_feature> errors;
@@ -6151,11 +6230,12 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
     catch (std::exception const& ex)
     {
         // LCOV_EXCL_START
-        Nan::ThrowError(ex.what());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+
         // LCOV_EXCL_STOP
     }
     // LCOV_EXCL_START
-    return scope.Escape(Nan::Undefined());
+    return scope.Escape(env.Undefined());
     // LCOV_EXCL_STOP
 }
 
@@ -6173,26 +6253,26 @@ v8::Local<v8::Value> VectorTile::_reportGeometryValiditySync(Nan::NAN_METHOD_ARG
  *   console.log(simple.length); // number
  * });
  */
-NAN_METHOD(VectorTile::reportGeometrySimplicity)
+Napi::Value VectorTile::reportGeometrySimplicity(const Napi::CallbackInfo& info)
 {
     if (info.Length() == 0)
     {
-        info.GetReturnValue().Set(_reportGeometrySimplicitySync(info));
+        return _reportGeometrySimplicitySync(info);
         return;
     }
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!callback->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     not_simple_baton *closure = new not_simple_baton();
     closure->request.data = closure;
-    closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    closure->v = info.Holder().Unwrap<VectorTile>();
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometrySimplicity, (uv_after_work_cb)EIO_AfterReportGeometrySimplicity);
     closure->v->Ref();
     return;
@@ -6216,21 +6296,21 @@ void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
 
 void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
     if (closure->error)
     {
         // LCOV_EXCL_START
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->err_msg.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
-        v8::Local<v8::Array> array = make_not_simple_array(closure->result);
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), array };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Array array = make_not_simple_array(closure->result);
+        Napi::Value argv[2] = { env.Null(), array };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
@@ -6257,11 +6337,11 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
  *   console.log(valid.length); // number
  * });
  */
-NAN_METHOD(VectorTile::reportGeometryValidity)
+Napi::Value VectorTile::reportGeometryValidity(const Napi::CallbackInfo& info)
 {
-    if (info.Length() == 0 || (info.Length() == 1 && !info[0]->IsFunction()))
+    if (info.Length() == 0 || (info.Length() == 1 && !info[0].IsFunction()))
     {
-        info.GetReturnValue().Set(_reportGeometryValiditySync(info));
+        return _reportGeometryValiditySync(info);
         return;
     }
     bool split_multi_features = false;
@@ -6269,62 +6349,62 @@ NAN_METHOD(VectorTile::reportGeometryValidity)
     bool web_merc = false;
     if (info.Length() >= 2)
     {
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowError("The first argument must be an object");
-            return;
+            Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
 
-        if (Nan::Has(options, Nan::New("split_multi_features").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "split_multi_features")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("split_multi_features").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "split_multi_features"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'split_multi_features' must be a boolean");
-                return;
+                Napi::Error::New(env, "option 'split_multi_features' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            split_multi_features = Nan::To<bool>(param_val).FromJust();
+            split_multi_features = param_val.As<Napi::Boolean>().Value();
         }
 
-        if (Nan::Has(options, Nan::New("lat_lon").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "lat_lon")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("lat_lon").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "lat_lon"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'lat_lon' must be a boolean");
-                return;
+                Napi::Error::New(env, "option 'lat_lon' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            lat_lon = Nan::To<bool>(param_val).FromJust();
+            lat_lon = param_val.As<Napi::Boolean>().Value();
         }
 
-        if (Nan::Has(options, Nan::New("web_merc").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "web_merc")).FromMaybe(false))
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("web_merc").ToLocalChecked()).ToLocalChecked();
+            Napi::Value param_val = (options).Get(Napi::String::New(env, "web_merc"));
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowError("option 'web_merc' must be a boolean");
-                return;
+                Napi::Error::New(env, "option 'web_merc' must be a boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            web_merc = Nan::To<bool>(param_val).FromJust();
+            web_merc = param_val.As<Napi::Boolean>().Value();
         }
     }
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!callback->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     not_valid_baton *closure = new not_valid_baton();
     closure->request.data = closure;
-    closure->v = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
+    closure->v = info.Holder().Unwrap<VectorTile>();
     closure->error = false;
     closure->split_multi_features = split_multi_features;
     closure->lat_lon = lat_lon;
     closure->web_merc = web_merc;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
     closure->v->Ref();
     return;
@@ -6348,21 +6428,21 @@ void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
 
 void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
     if (closure->error)
     {
         // LCOV_EXCL_START
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->err_msg.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->err_msg.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         // LCOV_EXCL_STOP
     }
     else
     {
-        v8::Local<v8::Array> array = make_not_valid_array(closure->result);
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), array };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Array array = make_not_valid_array(closure->result);
+        Napi::Value argv[2] = { env.Null(), array };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
@@ -6371,126 +6451,131 @@ void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 
 #endif // BOOST_VERSION >= 1.58
 
-NAN_GETTER(VectorTile::get_tile_x)
+Napi::Value VectorTile::get_tile_x(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->x()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::Number::New(env, d->tile_->x());
 }
 
-NAN_GETTER(VectorTile::get_tile_y)
+Napi::Value VectorTile::get_tile_y(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->y()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::Number::New(env, d->tile_->y());
 }
 
-NAN_GETTER(VectorTile::get_tile_z)
+Napi::Value VectorTile::get_tile_z(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->z()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::Number::New(env, d->tile_->z());
 }
 
-NAN_GETTER(VectorTile::get_tile_size)
+Napi::Value VectorTile::get_tile_size(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->tile_size()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::Number::New(env, d->tile_->tile_size());
 }
 
-NAN_GETTER(VectorTile::get_buffer_size)
+Napi::Value VectorTile::get_buffer_size(const Napi::CallbackInfo& info)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(d->tile_->buffer_size()));
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    return Napi::Number::New(env, d->tile_->buffer_size());
 }
 
-NAN_SETTER(VectorTile::set_tile_x)
+void VectorTile::set_tile_x(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (!value->IsNumber())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (!value.IsNumber())
     {
-        Nan::ThrowError("Must provide a number");
+        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
+
     }
     else
     {
-        int val = Nan::To<int>(value).FromJust();
+        int val = value.As<Napi::Number>().Int32Value();
         if (val < 0)
         {
-            Nan::ThrowError("tile x coordinate must be greater then or equal to zero");
-            return;
+            Napi::Error::New(env, "tile x coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
+            return env.Null();
         }
         d->tile_->x(val);
     }
 }
 
-NAN_SETTER(VectorTile::set_tile_y)
+void VectorTile::set_tile_y(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (!value->IsNumber())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (!value.IsNumber())
     {
-        Nan::ThrowError("Must provide a number");
+        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
+
     }
     else
     {
-        int val = Nan::To<int>(value).FromJust();
+        int val = value.As<Napi::Number>().Int32Value();
         if (val < 0)
         {
-            Nan::ThrowError("tile y coordinate must be greater then or equal to zero");
-            return;
+            Napi::Error::New(env, "tile y coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
+            return env.Null();
         }
         d->tile_->y(val);
     }
 }
 
-NAN_SETTER(VectorTile::set_tile_z)
+void VectorTile::set_tile_z(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (!value->IsNumber())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (!value.IsNumber())
     {
-        Nan::ThrowError("Must provide a number");
+        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
+
     }
     else
     {
-        int val = Nan::To<int>(value).FromJust();
+        int val = value.As<Napi::Number>().Int32Value();
         if (val < 0)
         {
-            Nan::ThrowError("tile z coordinate must be greater then or equal to zero");
-            return;
+            Napi::Error::New(env, "tile z coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
+            return env.Null();
         }
         d->tile_->z(val);
     }
 }
 
-NAN_SETTER(VectorTile::set_tile_size)
+void VectorTile::set_tile_size(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (!value->IsNumber())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (!value.IsNumber())
     {
-        Nan::ThrowError("Must provide a number");
+        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
+
     }
     else
     {
-        int val = Nan::To<int>(value).FromJust();
+        int val = value.As<Napi::Number>().Int32Value();
         if (val <= 0)
         {
-            Nan::ThrowError("tile size must be greater then zero");
-            return;
+            Napi::Error::New(env, "tile size must be greater then zero").ThrowAsJavaScriptException();
+            return env.Null();
         }
         d->tile_->tile_size(val);
     }
 }
 
-NAN_SETTER(VectorTile::set_buffer_size)
+void VectorTile::set_buffer_size(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    VectorTile* d = Nan::ObjectWrap::Unwrap<VectorTile>(info.Holder());
-    if (!value->IsNumber())
+    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    if (!value.IsNumber())
     {
-        Nan::ThrowError("Must provide a number");
+        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
+
     }
     else
     {
-        int val = Nan::To<int>(value).FromJust();
+        int val = value.As<Napi::Number>().Int32Value();
         if (static_cast<int>(d->tile_size()) + (2 * val) <= 0)
         {
-            Nan::ThrowError("too large of a negative buffer for tilesize");
-            return;
+            Napi::Error::New(env, "too large of a negative buffer for tilesize").ThrowAsJavaScriptException();
+            return env.Null();
         }
         d->tile_->buffer_size(val);
     }
@@ -6500,11 +6585,11 @@ typedef struct {
     uv_work_t request;
     const char *data;
     size_t dataLength;
-    v8::Local<v8::Object> obj;
+    Napi::Object obj;
     bool error;
     std::string error_str;
-    Nan::Persistent<v8::Object> buffer;
-    Nan::Persistent<v8::Function> cb;
+    Napi::Persistent<v8::Object> buffer;
+    Napi::FunctionReference cb;
 } vector_tile_info_baton_t;
 
 /**
@@ -6540,23 +6625,23 @@ typedef struct {
  * //      version: 2 } ],
  * //    errors: false }
  */
-NAN_METHOD(VectorTile::info)
+Napi::Value VectorTile::info(const Napi::CallbackInfo& info)
 {
-    if (info.Length() < 1 || !info[0]->IsObject())
+    if (info.Length() < 1 || !info[0].IsObject())
     {
-        Nan::ThrowTypeError("must provide a buffer argument");
-        return;
+        Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-    if (obj->IsNull() || obj->IsUndefined() || !node::Buffer::HasInstance(obj))
+    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
+    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
     {
-        Nan::ThrowTypeError("first argument is invalid, must be a Buffer");
-        return;
+        Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    v8::Local<v8::Object> out = Nan::New<v8::Object>();
-    v8::Local<v8::Array> layers = Nan::New<v8::Array>();
+    Napi::Object out = Napi::Object::New(env);
+    Napi::Array layers = Napi::Array::New(env);
     std::set<mapnik::vector_tile_impl::validity_error> errors;
     bool has_errors = false;
     std::size_t layers_size = 0;
@@ -6567,15 +6652,15 @@ NAN_METHOD(VectorTile::info)
     std::string decompressed;
     try
     {
-        if (mapnik::vector_tile_impl::is_gzip_compressed(node::Buffer::Data(obj),node::Buffer::Length(obj)) ||
-            mapnik::vector_tile_impl::is_zlib_compressed(node::Buffer::Data(obj),node::Buffer::Length(obj)))
+        if (mapnik::vector_tile_impl::is_gzip_compressed(obj.As<Napi::Buffer<char>>().Data(),obj.As<Napi::Buffer<char>>().Length()) ||
+            mapnik::vector_tile_impl::is_zlib_compressed(obj.As<Napi::Buffer<char>>().Data(),obj.As<Napi::Buffer<char>>().Length()))
         {
-            mapnik::vector_tile_impl::zlib_decompress(node::Buffer::Data(obj), node::Buffer::Length(obj), decompressed);
+            mapnik::vector_tile_impl::zlib_decompress(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length(), decompressed);
             tile_msg = protozero::pbf_reader(decompressed);
         }
         else
         {
-            tile_msg = protozero::pbf_reader(node::Buffer::Data(obj),node::Buffer::Length(obj));
+            tile_msg = protozero::pbf_reader(obj.As<Napi::Buffer<char>>().Data(),obj.As<Napi::Buffer<char>>().Length());
         }
         while (tile_msg.next())
         {
@@ -6583,7 +6668,7 @@ NAN_METHOD(VectorTile::info)
             {
                 case mapnik::vector_tile_impl::Tile_Encoding::LAYERS:
                     {
-                        v8::Local<v8::Object> layer_obj = Nan::New<v8::Object>();
+                        Napi::Object layer_obj = Napi::Object::New(env);
                         std::uint64_t point_feature_count = 0;
                         std::uint64_t line_feature_count = 0;
                         std::uint64_t polygon_feature_count = 0;
@@ -6619,25 +6704,25 @@ NAN_METHOD(VectorTile::info)
                             {
                                 errors.insert(mapnik::vector_tile_impl::TILE_REPEATED_LAYER_NAMES);
                             }
-                            Nan::Set(layer_obj, Nan::New("name").ToLocalChecked(), Nan::New<v8::String>(layer_name).ToLocalChecked());
+                            (layer_obj).Set(Napi::String::New(env, "name"), Napi::String::New(env, layer_name));
                         }
-                        Nan::Set(layer_obj, Nan::New("features").ToLocalChecked(), Nan::New<v8::Number>(feature_count));
-                        Nan::Set(layer_obj, Nan::New("point_features").ToLocalChecked(), Nan::New<v8::Number>(point_feature_count));
-                        Nan::Set(layer_obj, Nan::New("linestring_features").ToLocalChecked(), Nan::New<v8::Number>(line_feature_count));
-                        Nan::Set(layer_obj, Nan::New("polygon_features").ToLocalChecked(), Nan::New<v8::Number>(polygon_feature_count));
-                        Nan::Set(layer_obj, Nan::New("unknown_features").ToLocalChecked(), Nan::New<v8::Number>(unknown_feature_count));
-                        Nan::Set(layer_obj, Nan::New("raster_features").ToLocalChecked(), Nan::New<v8::Number>(raster_feature_count));
-                        Nan::Set(layer_obj, Nan::New("version").ToLocalChecked(), Nan::New<v8::Number>(layer_version));
+                        (layer_obj).Set(Napi::String::New(env, "features"), Napi::Number::New(env, feature_count));
+                        (layer_obj).Set(Napi::String::New(env, "point_features"), Napi::Number::New(env, point_feature_count));
+                        (layer_obj).Set(Napi::String::New(env, "linestring_features"), Napi::Number::New(env, line_feature_count));
+                        (layer_obj).Set(Napi::String::New(env, "polygon_features"), Napi::Number::New(env, polygon_feature_count));
+                        (layer_obj).Set(Napi::String::New(env, "unknown_features"), Napi::Number::New(env, unknown_feature_count));
+                        (layer_obj).Set(Napi::String::New(env, "raster_features"), Napi::Number::New(env, raster_feature_count));
+                        (layer_obj).Set(Napi::String::New(env, "version"), Napi::Number::New(env, layer_version));
                         if (!layer_errors.empty())
                         {
                             has_errors = true;
-                            v8::Local<v8::Array> err_arr = Nan::New<v8::Array>();
+                            Napi::Array err_arr = Napi::Array::New(env);
                             std::size_t i = 0;
                             for (auto const& e : layer_errors)
                             {
-                                Nan::Set(err_arr, i++, Nan::New<v8::String>(mapnik::vector_tile_impl::validity_error_to_string(e)).ToLocalChecked());
+                                (err_arr).Set(i++, Napi::String::New(env, mapnik::vector_tile_impl::validity_error_to_string(e)));
                             }
-                            Nan::Set(layer_obj, Nan::New("errors").ToLocalChecked(), err_arr);
+                            (layer_obj).Set(Napi::String::New(env, "errors"), err_arr);
                         }
                         if (first_layer)
                         {
@@ -6651,7 +6736,7 @@ NAN_METHOD(VectorTile::info)
                             }
                         }
                         first_layer = false;
-                        Nan::Set(layers, layers_size++, layer_obj);
+                        (layers).Set(layers_size++, layer_obj);
                     }
                     break;
                 default:
@@ -6665,19 +6750,19 @@ NAN_METHOD(VectorTile::info)
     {
         errors.insert(mapnik::vector_tile_impl::INVALID_PBF_BUFFER);
     }
-    Nan::Set(out, Nan::New("layers").ToLocalChecked(), layers);
+    (out).Set(Napi::String::New(env, "layers"), layers);
     has_errors = has_errors || !errors.empty();
-    Nan::Set(out, Nan::New("errors").ToLocalChecked(),  Nan::New<v8::Boolean>(has_errors));
+    (out).Set(Napi::String::New(env, "errors"),  Napi::Boolean::New(env, has_errors));
     if (!errors.empty())
     {
-        v8::Local<v8::Array> err_arr = Nan::New<v8::Array>();
+        Napi::Array err_arr = Napi::Array::New(env);
         std::size_t i = 0;
         for (auto const& e : errors)
         {
-            Nan::Set(err_arr, i++, Nan::New<v8::String>(mapnik::vector_tile_impl::validity_error_to_string(e)).ToLocalChecked());
+            (err_arr).Set(i++, Napi::String::New(env, mapnik::vector_tile_impl::validity_error_to_string(e)));
         }
-        Nan::Set(out, Nan::New("tile_errors").ToLocalChecked(), err_arr);
+        (out).Set(Napi::String::New(env, "tile_errors"), err_arr);
     }
-    info.GetReturnValue().Set(out);
+    return out;
     return;
 }

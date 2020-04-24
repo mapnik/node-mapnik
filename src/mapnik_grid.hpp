@@ -6,7 +6,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <mapnik/grid/grid.hpp>
@@ -16,34 +17,34 @@
 
 typedef std::shared_ptr<mapnik::grid> grid_ptr;
 
-class Grid: public Nan::ObjectWrap {
+class Grid : public Napi::ObjectWrap<Grid> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(encodeSync);
-    static NAN_METHOD(encode);
+    static Napi::Value encodeSync(const Napi::CallbackInfo& info);
+    static Napi::Value encode(const Napi::CallbackInfo& info);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
-    static NAN_METHOD(addField);
-    static NAN_METHOD(fields);
-    static NAN_METHOD(view);
-    static NAN_METHOD(width);
-    static NAN_METHOD(height);
-    static NAN_METHOD(painted);
-    static v8::Local<v8::Value> _clearSync(Nan::NAN_METHOD_ARGS_TYPE info);
-    static NAN_METHOD(clearSync);
-    static NAN_METHOD(clear);
+    static Napi::Value addField(const Napi::CallbackInfo& info);
+    static Napi::Value fields(const Napi::CallbackInfo& info);
+    static Napi::Value view(const Napi::CallbackInfo& info);
+    static Napi::Value width(const Napi::CallbackInfo& info);
+    static Napi::Value height(const Napi::CallbackInfo& info);
+    static Napi::Value painted(const Napi::CallbackInfo& info);
+    static Napi::Value _clearSync(const Napi::CallbackInfo& info);
+    static Napi::Value clearSync(const Napi::CallbackInfo& info);
+    static Napi::Value clear(const Napi::CallbackInfo& info);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
 
-    static NAN_GETTER(get_key);
-    static NAN_SETTER(set_key);
+    Napi::Value get_key(const Napi::CallbackInfo& info);
+    void set_key(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    using Nan::ObjectWrap::Ref;
-    using Nan::ObjectWrap::Unref;
+    using Napi::ObjectWrap::Ref;
+    using Napi::ObjectWrap::Unref;
 
     Grid(unsigned int width, unsigned int height, std::string const& key);
     inline grid_ptr get() { return this_; }

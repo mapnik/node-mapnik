@@ -47,7 +47,7 @@
 // boost
 #include <boost/optional/optional.hpp>  // for optional
 
-Nan::Persistent<v8::FunctionTemplate> Map::constructor;
+Napi::FunctionReference Map::constructor;
 
 /**
  * **`mapnik.Map`**
@@ -90,48 +90,48 @@ Nan::Persistent<v8::FunctionTemplate> Map::constructor;
  * //   srs: '+init=epsg:3857'
  * // }
  */
-void Map::Initialize(v8::Local<v8::Object> target) {
+void Map::Initialize(Napi::Object target) {
 
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Map::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Map").ToLocalChecked());
+    Napi::FunctionReference lcons = Napi::Function::New(env, Map::New);
 
-    Nan::SetPrototypeMethod(lcons, "fonts", fonts);
-    Nan::SetPrototypeMethod(lcons, "fontFiles", fontFiles);
-    Nan::SetPrototypeMethod(lcons, "fontDirectory", fontDirectory);
-    Nan::SetPrototypeMethod(lcons, "loadFonts", loadFonts);
-    Nan::SetPrototypeMethod(lcons, "memoryFonts", memoryFonts);
-    Nan::SetPrototypeMethod(lcons, "registerFonts", registerFonts);
-    Nan::SetPrototypeMethod(lcons, "load", load);
-    Nan::SetPrototypeMethod(lcons, "loadSync", loadSync);
-    Nan::SetPrototypeMethod(lcons, "fromStringSync", fromStringSync);
-    Nan::SetPrototypeMethod(lcons, "fromString", fromString);
-    Nan::SetPrototypeMethod(lcons, "clone", clone);
-    Nan::SetPrototypeMethod(lcons, "save", save);
-    Nan::SetPrototypeMethod(lcons, "clear", clear);
-    Nan::SetPrototypeMethod(lcons, "toXML", toXML);
-    Nan::SetPrototypeMethod(lcons, "resize", resize);
+    lcons->SetClassName(Napi::String::New(env, "Map"));
+
+    InstanceMethod("fonts", &fonts),
+    InstanceMethod("fontFiles", &fontFiles),
+    InstanceMethod("fontDirectory", &fontDirectory),
+    InstanceMethod("loadFonts", &loadFonts),
+    InstanceMethod("memoryFonts", &memoryFonts),
+    InstanceMethod("registerFonts", &registerFonts),
+    InstanceMethod("load", &load),
+    InstanceMethod("loadSync", &loadSync),
+    InstanceMethod("fromStringSync", &fromStringSync),
+    InstanceMethod("fromString", &fromString),
+    InstanceMethod("clone", &clone),
+    InstanceMethod("save", &save),
+    InstanceMethod("clear", &clear),
+    InstanceMethod("toXML", &toXML),
+    InstanceMethod("resize", &resize),
 
 
-    Nan::SetPrototypeMethod(lcons, "render", render);
-    Nan::SetPrototypeMethod(lcons, "renderSync", renderSync);
-    Nan::SetPrototypeMethod(lcons, "renderFile", renderFile);
-    Nan::SetPrototypeMethod(lcons, "renderFileSync", renderFileSync);
+    InstanceMethod("render", &render),
+    InstanceMethod("renderSync", &renderSync),
+    InstanceMethod("renderFile", &renderFile),
+    InstanceMethod("renderFileSync", &renderFileSync),
 
-    Nan::SetPrototypeMethod(lcons, "zoomAll", zoomAll);
-    Nan::SetPrototypeMethod(lcons, "zoomToBox", zoomToBox); //setExtent
-    Nan::SetPrototypeMethod(lcons, "scale", scale);
-    Nan::SetPrototypeMethod(lcons, "scaleDenominator", scaleDenominator);
-    Nan::SetPrototypeMethod(lcons, "queryPoint", queryPoint);
-    Nan::SetPrototypeMethod(lcons, "queryMapPoint", queryMapPoint);
+    InstanceMethod("zoomAll", &zoomAll),
+    InstanceMethod("zoomToBox", &zoomToBox), //setExtent
+    InstanceMethod("scale", &scale),
+    InstanceMethod("scaleDenominator", &scaleDenominator),
+    InstanceMethod("queryPoint", &queryPoint),
+    InstanceMethod("queryMapPoint", &queryMapPoint),
 
     // layer access
-    Nan::SetPrototypeMethod(lcons, "add_layer", add_layer);
-    Nan::SetPrototypeMethod(lcons, "remove_layer", remove_layer);
-    Nan::SetPrototypeMethod(lcons, "get_layer", get_layer);
-    Nan::SetPrototypeMethod(lcons, "layers", layers);
+    InstanceMethod("add_layer", &add_layer),
+    InstanceMethod("remove_layer", &remove_layer),
+    InstanceMethod("get_layer", &get_layer),
+    InstanceMethod("layers", &layers),
 
     // properties
     ATTR(lcons, "srs", get_prop, set_prop);
@@ -145,40 +145,37 @@ void Map::Initialize(v8::Local<v8::Object> target) {
     ATTR(lcons, "parameters", get_prop, set_prop);
     ATTR(lcons, "aspect_fix_mode", get_prop, set_prop);
 
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_GROW_BBOX",mapnik::Map::GROW_BBOX)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_GROW_CANVAS",mapnik::Map::GROW_CANVAS)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_SHRINK_BBOX",mapnik::Map::SHRINK_BBOX)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_SHRINK_CANVAS",mapnik::Map::SHRINK_CANVAS)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_ADJUST_BBOX_WIDTH",mapnik::Map::ADJUST_BBOX_WIDTH)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_ADJUST_BBOX_HEIGHT",mapnik::Map::ADJUST_BBOX_HEIGHT)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_ADJUST_CANVAS_WIDTH",mapnik::Map::ADJUST_CANVAS_WIDTH)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_ADJUST_CANVAS_HEIGHT",mapnik::Map::ADJUST_CANVAS_HEIGHT)
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
                                 "ASPECT_RESPECT",mapnik::Map::RESPECT)
-    Nan::Set(target, Nan::New("Map").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "Map"),Napi::GetFunction(lcons));
     constructor.Reset(lcons);
 }
 
-Map::Map(int width, int height) :
-    Nan::ObjectWrap(),
+Map::Map(int width, int height) : Napi::ObjectWrap<Map>(),
     map_(std::make_shared<mapnik::Map>(width,height)),
     in_use_(false) {}
 
-Map::Map(int width, int height, std::string const& srs) :
-    Nan::ObjectWrap(),
+Map::Map(int width, int height, std::string const& srs) : Napi::ObjectWrap<Map>(),
     map_(std::make_shared<mapnik::Map>(width,height,srs)),
     in_use_(false) {}
 
-Map::Map() :
-    Nan::ObjectWrap(),
+Map::Map() : Napi::ObjectWrap<Map>(),
     map_(),
     in_use_(false) {}
 
@@ -197,115 +194,115 @@ void Map::release() {
     in_use_ = false;
 }
 
-NAN_METHOD(Map::New)
+Napi::Value Map::New(const Napi::CallbackInfo& info)
 {
     if (!info.IsConstructCall())
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
+        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // accept a reference or v8:External?
-    if (info[0]->IsExternal())
+    if (info[0].IsExternal())
     {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
+        Napi::External ext = info[0].As<Napi::External>();
         void* ptr = ext->Value();
         Map* m =  static_cast<Map*>(ptr);
         m->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
 
     if (info.Length() == 2)
     {
-        if (!info[0]->IsNumber() || !info[1]->IsNumber())
+        if (!info[0].IsNumber() || !info[1].IsNumber())
         {
-            Nan::ThrowTypeError("'width' and 'height' must be integers");
-            return;
+            Napi::TypeError::New(env, "'width' and 'height' must be integers").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        Map* m = new Map(Nan::To<int>(info[0]).FromJust(),Nan::To<int>(info[1]).FromJust());
+        Map* m = new Map(info[0].As<Napi::Number>().Int32Value(),info[1].As<Napi::Number>().Int32Value());
         m->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
     else if (info.Length() == 3)
     {
-        if (!info[0]->IsNumber() || !info[1]->IsNumber())
+        if (!info[0].IsNumber() || !info[1].IsNumber())
         {
-            Nan::ThrowTypeError("'width' and 'height' must be integers");
-            return;
+            Napi::TypeError::New(env, "'width' and 'height' must be integers").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        if (!info[2]->IsString())
+        if (!info[2].IsString())
         {
-            Nan::ThrowError("'srs' value must be a string");
-            return;
+            Napi::Error::New(env, "'srs' value must be a string").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        Map* m = new Map(Nan::To<int>(info[0]).FromJust(), Nan::To<int>(info[1]).FromJust(), TOSTR(info[2]));
+        Map* m = new Map(info[0].As<Napi::Number>().Int32Value(), info[1].As<Napi::Number>().Int32Value(), TOSTR(info[2]));
         m->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        return info.This();
         return;
     }
     else
     {
-        Nan::ThrowError("please provide Map width and height and optional srs");
-        return;
+        Napi::Error::New(env, "please provide Map width and height and optional srs").ThrowAsJavaScriptException();
+        return env.Null();
     }
     return;
 }
 
-NAN_GETTER(Map::get_prop)
+Napi::Value Map::get_prop(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::string a = TOSTR(property);
     if(a == "extent") {
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
+        Napi::Array arr = Napi::Array::New(env, 4);
         mapnik::box2d<double> const& e = m->map_->get_current_extent();
-        Nan::Set(arr, 0, Nan::New<v8::Number>(e.minx()));
-        Nan::Set(arr, 1, Nan::New<v8::Number>(e.miny()));
-        Nan::Set(arr, 2, Nan::New<v8::Number>(e.maxx()));
-        Nan::Set(arr, 3, Nan::New<v8::Number>(e.maxy()));
-        info.GetReturnValue().Set(arr);
+        (arr).Set(0, Napi::Number::New(env, e.minx()));
+        (arr).Set(1, Napi::Number::New(env, e.miny()));
+        (arr).Set(2, Napi::Number::New(env, e.maxx()));
+        (arr).Set(3, Napi::Number::New(env, e.maxy()));
+        return arr;
     }
     else if(a == "bufferedExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-        Nan::Set(arr, 0, Nan::New<v8::Number>(e->minx()));
-        Nan::Set(arr, 1, Nan::New<v8::Number>(e->miny()));
-        Nan::Set(arr, 2, Nan::New<v8::Number>(e->maxx()));
-        Nan::Set(arr, 3, Nan::New<v8::Number>(e->maxy()));
-        info.GetReturnValue().Set(arr);
+        Napi::Array arr = Napi::Array::New(env, 4);
+        (arr).Set(0, Napi::Number::New(env, e->minx()));
+        (arr).Set(1, Napi::Number::New(env, e->miny()));
+        (arr).Set(2, Napi::Number::New(env, e->maxx()));
+        (arr).Set(3, Napi::Number::New(env, e->maxy()));
+        return arr;
     }
     else if(a == "maximumExtent") {
         boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
         if (!e)
             return;
-        v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-        Nan::Set(arr, 0, Nan::New<v8::Number>(e->minx()));
-        Nan::Set(arr, 1, Nan::New<v8::Number>(e->miny()));
-        Nan::Set(arr, 2, Nan::New<v8::Number>(e->maxx()));
-        Nan::Set(arr, 3, Nan::New<v8::Number>(e->maxy()));
-        info.GetReturnValue().Set(arr);
+        Napi::Array arr = Napi::Array::New(env, 4);
+        (arr).Set(0, Napi::Number::New(env, e->minx()));
+        (arr).Set(1, Napi::Number::New(env, e->miny()));
+        (arr).Set(2, Napi::Number::New(env, e->maxx()));
+        (arr).Set(3, Napi::Number::New(env, e->maxy()));
+        return arr;
     }
     else if(a == "aspect_fix_mode")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->get_aspect_fix_mode()));
+        return Napi::Number::New(env, m->map_->get_aspect_fix_mode());
     else if(a == "width")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->width()));
+        return Napi::Number::New(env, m->map_->width());
     else if(a == "height")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->height()));
+        return Napi::Number::New(env, m->map_->height());
     else if (a == "srs")
-        info.GetReturnValue().Set(Nan::New<v8::String>(m->map_->srs()).ToLocalChecked());
+        return Napi::String::New(env, m->map_->srs());
     else if(a == "bufferSize")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(m->map_->buffer_size()));
+        return Napi::Number::New(env, m->map_->buffer_size());
     else if (a == "background") {
         boost::optional<mapnik::color> c = m->map_->background();
         if (c)
-            info.GetReturnValue().Set(Color::NewInstance(*c));
+            return Color::NewInstance(*c);
         else
             return;
     }
     else //if (a == "parameters")
     {
-        v8::Local<v8::Object> ds = Nan::New<v8::Object>();
+        Napi::Object ds = Napi::Object::New(env);
         mapnik::parameters const& params = m->map_->get_extra_parameters();
         mapnik::parameters::const_iterator it = params.begin();
         mapnik::parameters::const_iterator end = params.end();
@@ -313,28 +310,28 @@ NAN_GETTER(Map::get_prop)
         {
             node_mapnik::params_to_object(ds, it->first, it->second);
         }
-        info.GetReturnValue().Set(ds);
+        return ds;
     }
 }
 
-NAN_SETTER(Map::set_prop)
+void Map::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::string a = TOSTR(property);
     if(a == "extent" || a == "maximumExtent") {
         if (!value->IsArray()) {
-            Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
-            return;
+            Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            v8::Local<v8::Array> arr = value.As<v8::Array>();
+            Napi::Array arr = value.As<Napi::Array>();
             if (arr->Length() != 4) {
-                Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
-                return;
+                Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Null();
             } else {
-                double minx = Nan::To<double>(Nan::Get(arr, 0).ToLocalChecked()).FromJust();
-                double miny = Nan::To<double>(Nan::Get(arr, 1).ToLocalChecked()).FromJust();
-                double maxx = Nan::To<double>(Nan::Get(arr, 2).ToLocalChecked()).FromJust();
-                double maxy = Nan::To<double>(Nan::Get(arr, 3).ToLocalChecked()).FromJust();
+                double minx = (arr).Get(0.As<Napi::Number>().DoubleValue());
+                double miny = (arr).Get(1.As<Napi::Number>().DoubleValue());
+                double maxx = (arr).Get(2.As<Napi::Number>().DoubleValue());
+                double maxy = (arr).Get(3.As<Napi::Number>().DoubleValue());
                 mapnik::box2d<double> box(minx,miny,maxx,maxy);
                 if(a == "extent")
                     m->map_->zoom_to_box(box);
@@ -345,93 +342,93 @@ NAN_SETTER(Map::set_prop)
     }
     else if (a == "aspect_fix_mode")
     {
-        if (!value->IsNumber()) {
-            Nan::ThrowError("'aspect_fix_mode' must be a constant (number)");
-            return;
+        if (!value.IsNumber()) {
+            Napi::Error::New(env, "'aspect_fix_mode' must be a constant (number)").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            int val = Nan::To<int>(value).FromJust();
+            int val = value.As<Napi::Number>().Int32Value();
             if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0) {
                 m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
             } else {
-                Nan::ThrowError("'aspect_fix_mode' value is invalid");
-                return;
+                Napi::Error::New(env, "'aspect_fix_mode' value is invalid").ThrowAsJavaScriptException();
+                return env.Null();
             }
         }
     }
     else if (a == "srs")
     {
-        if (!value->IsString()) {
-            Nan::ThrowError("'srs' must be a string");
-            return;
+        if (!value.IsString()) {
+            Napi::Error::New(env, "'srs' must be a string").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
             m->map_->set_srs(TOSTR(value));
         }
     }
     else if (a == "bufferSize") {
-        if (!value->IsNumber()) {
-            Nan::ThrowTypeError("Must provide an integer bufferSize");
-            return;
+        if (!value.IsNumber()) {
+            Napi::TypeError::New(env, "Must provide an integer bufferSize").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            m->map_->set_buffer_size(Nan::To<int>(value).FromJust());
+            m->map_->set_buffer_size(value.As<Napi::Number>().Int32Value());
         }
     }
     else if (a == "width") {
-        if (!value->IsNumber()) {
-            Nan::ThrowTypeError("Must provide an integer width");
-            return;
+        if (!value.IsNumber()) {
+            Napi::TypeError::New(env, "Must provide an integer width").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            m->map_->set_width(Nan::To<int>(value).FromJust());
+            m->map_->set_width(value.As<Napi::Number>().Int32Value());
         }
     }
     else if (a == "height") {
-        if (!value->IsNumber()) {
-            Nan::ThrowTypeError("Must provide an integer height");
-            return;
+        if (!value.IsNumber()) {
+            Napi::TypeError::New(env, "Must provide an integer height").ThrowAsJavaScriptException();
+            return env.Null();
         } else {
-            m->map_->set_height(Nan::To<int>(value).FromJust());
+            m->map_->set_height(value.As<Napi::Number>().Int32Value());
         }
     }
     else if (a == "background") {
-        if (!value->IsObject()) {
-            Nan::ThrowTypeError("mapnik.Color expected");
-            return;
+        if (!value.IsObject()) {
+            Napi::TypeError::New(env, "mapnik.Color expected").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> obj = value.As<v8::Object>();
-        if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Color::constructor)->HasInstance(obj)) {
-            Nan::ThrowTypeError("mapnik.Color expected");
-            return;
+        Napi::Object obj = value.As<Napi::Object>();
+        if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Color::constructor)->HasInstance(obj)) {
+            Napi::TypeError::New(env, "mapnik.Color expected").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        Color *c = Nan::ObjectWrap::Unwrap<Color>(obj);
+        Color *c = obj.Unwrap<Color>();
         m->map_->set_background(*c->get());
     }
     else if (a == "parameters") {
-        if (!value->IsObject()) {
-            Nan::ThrowTypeError("object expected for map.parameters");
-            return;
+        if (!value.IsObject()) {
+            Napi::TypeError::New(env, "object expected for map.parameters").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> obj = value->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        Napi::Object obj = value->ToObject(Napi::GetCurrentContext());
         mapnik::parameters params;
-        v8::Local<v8::Array> names = Nan::GetPropertyNames(obj).ToLocalChecked();
+        Napi::Array names = Napi::GetPropertyNames(obj);
         unsigned int i = 0;
         unsigned int a_length = names->Length();
         while (i < a_length) {
-            v8::Local<v8::Value> name = Nan::Get(names, i).ToLocalChecked()->ToString(Nan::GetCurrentContext()).ToLocalChecked();
-            v8::Local<v8::Value> a_value = Nan::Get(obj, name).ToLocalChecked();
-            if (a_value->IsString()) {
+            Napi::Value name = (names).Get(i)->ToString(Napi::GetCurrentContext());
+            Napi::Value a_value = (obj).Get(name);
+            if (a_value.IsString()) {
                 params[TOSTR(name)] = const_cast<char const*>(TOSTR(a_value));
-            } else if (a_value->IsNumber()) {
-                double num = Nan::To<double>(a_value).FromJust();
+            } else if (a_value.IsNumber()) {
+                double num = a_value.As<Napi::Number>().DoubleValue();
                 // todo - round
-                if (num == Nan::To<int>(a_value).FromJust()) {
-                    params[TOSTR(name)] = Nan::To<node_mapnik::value_integer>(a_value).FromJust();
+                if (num == a_value.As<Napi::Number>().Int32Value()) {
+                    params[TOSTR(name)] = Napi::To<node_mapnik::value_integer>(a_value);
                 } else {
-                    double dub_val = Nan::To<double>(a_value).FromJust();
+                    double dub_val = a_value.As<Napi::Number>().DoubleValue();
                     params[TOSTR(name)] = dub_val;
                 }
             } else if (a_value->IsBoolean()) {
-                params[TOSTR(name)] = Nan::To<mapnik::value_bool>(a_value).FromJust();
+                params[TOSTR(name)] = Napi::To<mapnik::value_bool>(a_value);
             }
             i++;
         }
@@ -447,57 +444,57 @@ NAN_SETTER(Map::set_prop)
  * @instance
  *
  */
-NAN_METHOD(Map::loadFonts)
+Napi::Value Map::loadFonts(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Boolean>(m->map_->load_fonts()));
+    Map* m = info.Holder().Unwrap<Map>();
+    return Napi::Boolean::New(env, m->map_->load_fonts());
 }
 
-NAN_METHOD(Map::memoryFonts)
+Napi::Value Map::memoryFonts(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     auto const& font_cache = m->map_->get_font_memory_cache();
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(font_cache.size());
+    Napi::Array a = Napi::Array::New(env, font_cache.size());
     unsigned i = 0;
     for (auto const& kv : font_cache)
     {
-        Nan::Set(a, i++, Nan::New(kv.first).ToLocalChecked());
+        (a).Set(i++, Napi::New(env, kv.first));
     }
-    info.GetReturnValue().Set(a);
+    return a;
 }
 
-NAN_METHOD(Map::registerFonts)
+Napi::Value Map::registerFonts(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    if (info.Length() == 0 || !info[0]->IsString())
+    Map* m = info.Holder().Unwrap<Map>();
+    if (info.Length() == 0 || !info[0].IsString())
     {
-        Nan::ThrowTypeError("first argument must be a path to a directory of fonts");
-        return;
+        Napi::TypeError::New(env, "first argument must be a path to a directory of fonts").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     bool recurse = false;
 
     if (info.Length() >= 2)
     {
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. { recurse: true }");
-            return;
+            Napi::TypeError::New(env, "second argument is optional, but if provided must be an object, eg. { recurse: true }").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (Nan::Has(options, Nan::New("recurse").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[1].As<Napi::Object>();
+        if ((options).Has(Napi::String::New(env, "recurse")).FromMaybe(false))
         {
-            v8::Local<v8::Value> recurse_opt = Nan::Get(options, Nan::New("recurse").ToLocalChecked()).ToLocalChecked();
+            Napi::Value recurse_opt = (options).Get(Napi::String::New(env, "recurse"));
             if (!recurse_opt->IsBoolean())
             {
-                Nan::ThrowTypeError("'recurse' must be a Boolean");
-                return;
+                Napi::TypeError::New(env, "'recurse' must be a Boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            recurse = Nan::To<bool>(recurse_opt).FromJust();
+            recurse = recurse_opt.As<Napi::Boolean>().Value();
         }
     }
     std::string path = TOSTR(info[0]);
-    info.GetReturnValue().Set(Nan::New(m->map_->register_fonts(path,recurse)));
+    return Napi::New(env, m->map_->register_fonts(path,recurse));
 }
 
 /**
@@ -507,17 +504,17 @@ NAN_METHOD(Map::registerFonts)
  * @name font
  * @returns {Array<string>} fonts
  */
-NAN_METHOD(Map::fonts)
+Napi::Value Map::fonts(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     auto const& mapping = m->map_->get_font_file_mapping();
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(mapping.size());
+    Napi::Array a = Napi::Array::New(env, mapping.size());
     unsigned i = 0;
     for (auto const& kv : mapping)
     {
-        Nan::Set(a, i++, Nan::New<v8::String>(kv.first).ToLocalChecked());
+        (a).Set(i++, Napi::String::New(env, kv.first));
     }
-    info.GetReturnValue().Set(a);
+    return a;
 }
 
 /**
@@ -528,16 +525,16 @@ NAN_METHOD(Map::fonts)
  * @name fontFiles
  * @returns {Object} fonts
  */
-NAN_METHOD(Map::fontFiles)
+Napi::Value Map::fontFiles(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     auto const& mapping = m->map_->get_font_file_mapping();
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Napi::Object obj = Napi::Object::New(env);
     for (auto const& kv : mapping)
     {
-        Nan::Set(obj, Nan::New<v8::String>(kv.first).ToLocalChecked(), Nan::New<v8::String>(kv.second.second).ToLocalChecked());
+        (obj).Set(Napi::String::New(env, kv.first), Napi::String::New(env, kv.second.second));
     }
-    info.GetReturnValue().Set(obj);
+    return obj;
 }
 
 /**
@@ -547,13 +544,13 @@ NAN_METHOD(Map::fontFiles)
  * @name fontDirectory
  * @returns {string|undefined} fonts
  */
-NAN_METHOD(Map::fontDirectory)
+Napi::Value Map::fontDirectory(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     boost::optional<std::string> const& fdir = m->map_->font_directory();
     if (fdir)
     {
-        info.GetReturnValue().Set(Nan::New<v8::String>(*fdir).ToLocalChecked());
+        return Napi::String::New(env, *fdir);
     }
     return;
 }
@@ -566,10 +563,10 @@ NAN_METHOD(Map::fontDirectory)
  * @name scale
  * @returns {number} scale
  */
-NAN_METHOD(Map::scale)
+Napi::Value Map::scale(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(m->map_->scale()));
+    Map* m = info.Holder().Unwrap<Map>();
+    return Napi::Number::New(env, m->map_->scale());
 }
 
 /**
@@ -580,10 +577,10 @@ NAN_METHOD(Map::scale)
  * @name scaleDenominator
  * @returns {number} scale denominator
  */
-NAN_METHOD(Map::scaleDenominator)
+Napi::Value Map::scaleDenominator(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(m->map_->scale_denominator()));
+    Map* m = info.Holder().Unwrap<Map>();
+    return Napi::Number::New(env, m->map_->scale_denominator());
 }
 
 typedef struct {
@@ -596,7 +593,7 @@ typedef struct {
     double y;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } query_map_baton_t;
 
 /**
@@ -629,7 +626,7 @@ typedef struct {
  * });
  *
  */
-NAN_METHOD(Map::queryMapPoint)
+Napi::Value Map::queryMapPoint(const Napi::CallbackInfo& info)
 {
     abstractQueryPoint(info,false);
     return;
@@ -665,58 +662,62 @@ NAN_METHOD(Map::queryMapPoint)
  * });
  *
  */
-NAN_METHOD(Map::queryPoint)
+Napi::Value Map::queryPoint(const Napi::CallbackInfo& info)
 {
     abstractQueryPoint(info,true);
     return;
 }
 
-v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, bool geo_coords)
+Napi::Value Map::abstractQueryPoint(const Napi::CallbackInfo& info, bool geo_coords)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     if (info.Length() < 3)
     {
-        Nan::ThrowError("requires at least three arguments, a x,y query and a callback");
-        return Nan::Undefined();
+        Napi::Error::New(env, "requires at least three arguments, a x,y query and a callback").ThrowAsJavaScriptException();
+
+        return env.Undefined();
     }
 
     double x,y;
-    if (!info[0]->IsNumber() || !info[1]->IsNumber())
+    if (!info[0].IsNumber() || !info[1].IsNumber())
     {
-        Nan::ThrowTypeError("x,y arguments must be numbers");
-        return Nan::Undefined();
+        Napi::TypeError::New(env, "x,y arguments must be numbers").ThrowAsJavaScriptException();
+
+        return env.Undefined();
     }
     else
     {
-        x = Nan::To<double>(info[0]).FromJust();
-        y = Nan::To<double>(info[1]).FromJust();
+        x = info[0].As<Napi::Number>().DoubleValue();
+        y = info[1].As<Napi::Number>().DoubleValue();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
 
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
     int layer_idx = -1;
 
     if (info.Length() > 3)
     {
         // options object
-        if (!info[2]->IsObject()) {
-            Nan::ThrowTypeError("optional third argument must be an options object");
-            return Nan::Undefined();
+        if (!info[2].IsObject()) {
+            Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+
+            return env.Undefined();
         }
 
-        options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        options = info[2].ToObject(Napi::GetCurrentContext());
 
-        if (Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
         {
             std::vector<mapnik::layer> const& layers = m->map_->layers();
-            v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
-            if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
-                Nan::ThrowTypeError("'layer' option required for map query and must be either a layer name(string) or layer index (integer)");
-                return Nan::Undefined();
+            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
+            if (! (layer_id.IsString() || layer_id.IsNumber()) ) {
+                Napi::TypeError::New(env, "'layer' option required for map query and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
+
+                return env.Undefined();
             }
 
-            if (layer_id->IsString()) {
+            if (layer_id.IsString()) {
                 bool found = false;
                 unsigned int idx(0);
                 std::string layer_name = TOSTR(layer_id);
@@ -734,13 +735,14 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
                 {
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
-                    Nan::ThrowTypeError(s.str().c_str());
-                    return Nan::Undefined();
+                    Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+
+                    return env.Undefined();
                 }
             }
-            else if (layer_id->IsNumber())
+            else if (layer_id.IsNumber())
             {
-                layer_idx = Nan::To<int>(layer_id).FromJust();
+                layer_idx = layer_id.As<Napi::Number>().Int32Value();
                 std::size_t layer_num = layers.size();
 
                 if (layer_idx < 0) {
@@ -755,8 +757,9 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
                     {
                         s << "no layers found in map";
                     }
-                    Nan::ThrowTypeError(s.str().c_str());
-                    return Nan::Undefined();
+                    Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+
+                    return env.Undefined();
                 } else if (layer_idx >= static_cast<int>(layer_num)) {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid, ";
@@ -768,18 +771,20 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
                     {
                         s << "no layers found in map";
                     }
-                    Nan::ThrowTypeError(s.str().c_str());
-                    return Nan::Undefined();
+                    Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+
+                    return env.Undefined();
                 }
             }
         }
     }
 
     // ensure function callback
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
+    Napi::Value callback = info[info.Length() - 1];
     if (!callback->IsFunction()) {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return Nan::Undefined();
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+
+        return env.Undefined();
     }
 
     query_map_baton_t *closure = new query_map_baton_t();
@@ -790,10 +795,10 @@ v8::Local<v8::Value> Map::abstractQueryPoint(Nan::NAN_METHOD_ARGS_TYPE info, boo
     closure->layer_idx = static_cast<std::size_t>(layer_idx);
     closure->geo_coords = geo_coords;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMap, (uv_after_work_cb)EIO_AfterQueryMap);
     m->Ref();
-    return Nan::Undefined();
+    return env.Undefined();
 }
 
 void Map::EIO_QueryMap(uv_work_t* req)
@@ -854,37 +859,37 @@ void Map::EIO_QueryMap(uv_work_t* req)
 
 void Map::EIO_AfterQueryMap(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     query_map_baton_t *closure = static_cast<query_map_baton_t *>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     } else {
         std::size_t num_result = closure->featuresets.size();
         if (num_result >= 1)
         {
-            v8::Local<v8::Array> a = Nan::New<v8::Array>(num_result);
+            Napi::Array a = Napi::Array::New(env, num_result);
             typedef std::map<std::string,mapnik::featureset_ptr> fs_itr;
             fs_itr::const_iterator it = closure->featuresets.begin();
             fs_itr::const_iterator end = closure->featuresets.end();
             unsigned idx = 0;
             for (; it != end; ++it)
             {
-                v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-                Nan::Set(obj, Nan::New("layer").ToLocalChecked(), Nan::New<v8::String>(it->first).ToLocalChecked());
-                Nan::Set(obj, Nan::New("featureset").ToLocalChecked(), Featureset::NewInstance(it->second));
-                Nan::Set(a, idx, obj);
+                Napi::Object obj = Napi::Object::New(env);
+                (obj).Set(Napi::String::New(env, "layer"), Napi::String::New(env, it->first));
+                (obj).Set(Napi::String::New(env, "featureset"), Featureset::NewInstance(it->second));
+                (a).Set(idx, obj);
                 ++idx;
             }
             closure->featuresets.clear();
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), a };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            Napi::Value argv[2] = { env.Null(), a };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
         else
         {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::Undefined() };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+            Napi::Value argv[2] = { env.Null(), env.Undefined() };
+            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
     }
 
@@ -901,16 +906,16 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  * @name layers
  * @returns {Array<mapnik.Layer>} layers
  */
-NAN_METHOD(Map::layers)
+Napi::Value Map::layers(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::vector<mapnik::layer> const& layers = m->map_->layers();
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(layers.size());
+    Napi::Array a = Napi::Array::New(env, layers.size());
     for (unsigned i = 0; i < layers.size(); ++i )
     {
-        Nan::Set(a, i, Layer::NewInstance(layers[i]));
+        (a).Set(i, Layer::NewInstance(layers[i]));
     }
-    info.GetReturnValue().Set(a);
+    return a;
 }
 
 /**
@@ -921,19 +926,19 @@ NAN_METHOD(Map::layers)
  * @name add_layer
  * @param {mapnik.Layer} new layer
  */
-NAN_METHOD(Map::add_layer) {
-    if (!info[0]->IsObject()) {
-        Nan::ThrowTypeError("mapnik.Layer expected");
-        return;
+Napi::Value Map::add_layer(const Napi::CallbackInfo& info) {
+    if (!info[0].IsObject()) {
+        Napi::TypeError::New(env, "mapnik.Layer expected").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    v8::Local<v8::Object> obj = info[0].As<v8::Object>();
-    if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Layer::constructor)->HasInstance(obj)) {
-        Nan::ThrowTypeError("mapnik.Layer expected");
-        return;
+    Napi::Object obj = info[0].As<Napi::Object>();
+    if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Layer::constructor)->HasInstance(obj)) {
+        Napi::TypeError::New(env, "mapnik.Layer expected").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    Layer *l = Nan::ObjectWrap::Unwrap<Layer>(obj);
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Layer *l = obj.Unwrap<Layer>();
+    Map* m = info.Holder().Unwrap<Map>();
     m->map_->add_layer(*l->get());
     return;
 }
@@ -946,28 +951,29 @@ NAN_METHOD(Map::add_layer) {
  * @name remove_layer
  * @param {number} layer index
  */
-NAN_METHOD(Map::remove_layer) {
+Napi::Value Map::remove_layer(const Napi::CallbackInfo& info) {
     if (info.Length() != 1) {
-        Nan::ThrowError("Please provide layer index");
-        return;
+        Napi::Error::New(env, "Please provide layer index").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsNumber()) {
-        Nan::ThrowTypeError("index must be number");
-        return;
+    if (!info[0].IsNumber()) {
+        Napi::TypeError::New(env, "index must be number").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-    unsigned int index = Nan::To<int>(info[0]).FromJust();
+    unsigned int index = info[0].As<Napi::Number>().Int32Value();
 
     if (index < layers.size()) {
         m->map_->remove_layer(index);
         return;
     }
 
-    Nan::ThrowTypeError("invalid layer index");
+    Napi::TypeError::New(env, "invalid layer index").ThrowAsJavaScriptException();
+
 }
 
 /**
@@ -980,33 +986,33 @@ NAN_METHOD(Map::remove_layer) {
  * @returns {mapnik.Layer} the layer
  * @throws {Error} if index is incorrect or layer is not found
  */
-NAN_METHOD(Map::get_layer)
+Napi::Value Map::get_layer(const Napi::CallbackInfo& info)
 {
     if (info.Length() != 1) {
-        Nan::ThrowError("Please provide layer name or index");
-        return;
+        Napi::Error::New(env, "Please provide layer name or index").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-    v8::Local<v8::Value> layer = info[0];
-    if (layer->IsNumber())
+    Napi::Value layer = info[0];
+    if (layer.IsNumber())
     {
-        unsigned int index = Nan::To<int>(info[0]).FromJust();
+        unsigned int index = info[0].As<Napi::Number>().Int32Value();
 
         if (index < layers.size())
         {
-            info.GetReturnValue().Set(Layer::NewInstance(layers[index]));
+            return Layer::NewInstance(layers[index]);
             return;
         }
         else
         {
-            Nan::ThrowTypeError("invalid layer index");
-            return;
+            Napi::TypeError::New(env, "invalid layer index").ThrowAsJavaScriptException();
+            return env.Null();
         }
     }
-    else if (layer->IsString())
+    else if (layer.IsString())
     {
         bool found = false;
         unsigned int idx(0);
@@ -1016,7 +1022,7 @@ NAN_METHOD(Map::get_layer)
             if (lyr.name() == layer_name)
             {
                 found = true;
-                info.GetReturnValue().Set(Layer::NewInstance(layers[idx]));
+                return Layer::NewInstance(layers[idx]);
                 return;
             }
             ++idx;
@@ -1025,13 +1031,13 @@ NAN_METHOD(Map::get_layer)
         {
             std::ostringstream s;
             s << "Layer name '" << layer_name << "' not found";
-            Nan::ThrowTypeError(s.str().c_str());
-            return;
+            Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            return env.Null();
         }
 
     }
-    Nan::ThrowTypeError("first argument must be either a layer name(string) or layer index (integer)");
-    return;
+    Napi::TypeError::New(env, "first argument must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
+    return env.Null();
 }
 
 /**
@@ -1041,9 +1047,9 @@ NAN_METHOD(Map::get_layer)
  * @instance
  * @name clear
  */
-NAN_METHOD(Map::clear)
+Napi::Value Map::clear(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     m->map_->remove_all();
     return;
 }
@@ -1057,20 +1063,20 @@ NAN_METHOD(Map::clear)
  * @param {number} width
  * @param {number} height
  */
-NAN_METHOD(Map::resize)
+Napi::Value Map::resize(const Napi::CallbackInfo& info)
 {
     if (info.Length() != 2) {
-        Nan::ThrowError("Please provide width and height");
-        return;
+        Napi::Error::New(env, "Please provide width and height").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
-        Nan::ThrowTypeError("width and height must be integers");
-        return;
+    if (!info[0].IsNumber() || !info[1].IsNumber()) {
+        Napi::TypeError::New(env, "width and height must be integers").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
-    m->map_->resize(Nan::To<int>(info[0]).FromJust(),Nan::To<int>(info[1]).FromJust());
+    Map* m = info.Holder().Unwrap<Map>();
+    m->map_->resize(info[0].As<Napi::Number>().Int32Value(),info[1].As<Napi::Number>().Int32Value());
     return;
 }
 
@@ -1083,7 +1089,7 @@ typedef struct {
     bool strict;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } load_xml_baton_t;
 
 
@@ -1098,59 +1104,59 @@ typedef struct {
  * @param {Object} [options={}]
  * @param {Function} callback
  */
-NAN_METHOD(Map::load)
+Napi::Value Map::load(const Napi::CallbackInfo& info)
 {
     if (info.Length() < 2) {
-        Nan::ThrowError("please provide a stylesheet path, options, and callback");
-        return;
+        Napi::Error::New(env, "please provide a stylesheet path, options, and callback").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure stylesheet path is a string
-    v8::Local<v8::Value> stylesheet = info[0];
-    if (!stylesheet->IsString()) {
-        Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet");
-        return;
+    Napi::Value stylesheet = info[0];
+    if (!stylesheet.IsString()) {
+        Napi::TypeError::New(env, "first argument must be a path to a mapnik stylesheet").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length()-1];
     if (!callback->IsFunction()) {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure options object
-    if (!info[1]->IsObject()) {
-        Nan::ThrowTypeError("options must be an object, eg {strict: true}");
-        return;
+    if (!info[1].IsObject()) {
+        Napi::TypeError::New(env, "options must be an object, eg {strict: true}").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    v8::Local<v8::Object> options = info[1].As<v8::Object>();
+    Napi::Object options = info[1].As<Napi::Object>();
 
     bool strict = false;
-    v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-    if (Nan::Has(options, param).ToChecked())
+    Napi::String param = Napi::String::New(env, "strict");
+    if ((options).Has(param).ToChecked())
     {
-        v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
+        Napi::Value param_val = (options).Get(param);
         if (!param_val->IsBoolean()) {
-            Nan::ThrowTypeError("'strict' must be a Boolean");
-            return;
+            Napi::TypeError::New(env, "'strict' must be a Boolean").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        strict = Nan::To<bool>(param_val).FromJust();
+        strict = param_val.As<Napi::Boolean>().Value();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
-    param = Nan::New("base").ToLocalChecked();
-    if (Nan::Has(options, param).ToChecked())
+    param = Napi::String::New(env, "base");
+    if ((options).Has(param).ToChecked())
     {
-        v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
-        if (!param_val->IsString()) {
-            Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
-            return;
+        Napi::Value param_val = (options).Get(param);
+        if (!param_val.IsString()) {
+            Napi::TypeError::New(env, "'base' must be a string representing a filesystem path").ThrowAsJavaScriptException();
+            return env.Null();
         }
         closure->base_path = TOSTR(param_val);
     }
@@ -1159,7 +1165,7 @@ NAN_METHOD(Map::load)
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Load, (uv_after_work_cb)EIO_AfterLoad);
     m->Ref();
     return;
@@ -1182,15 +1188,15 @@ void Map::EIO_Load(uv_work_t* req)
 
 void Map::EIO_AfterLoad(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->m->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), closure->m->handle() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -1211,14 +1217,14 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  * @example
  * map.loadSync('./style.xml');
  */
-NAN_METHOD(Map::loadSync)
+Napi::Value Map::loadSync(const Napi::CallbackInfo& info)
 {
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet");
-        return;
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "first argument must be a path to a mapnik stylesheet").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::string stylesheet = TOSTR(info[0]);
     bool strict = false;
     std::string base_path;
@@ -1226,40 +1232,40 @@ NAN_METHOD(Map::loadSync)
     if (info.Length() > 2)
     {
 
-        Nan::ThrowError("only accepts two arguments: a path to a mapnik stylesheet and an optional options object");
-        return;
+        Napi::Error::New(env, "only accepts two arguments: a path to a mapnik stylesheet and an optional options object").ThrowAsJavaScriptException();
+        return env.Null();
     }
     else if (info.Length() == 2)
     {
         // ensure options object
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("options must be an object, eg {strict: true}");
-            return;
+            Napi::TypeError::New(env, "options must be an object, eg {strict: true}").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
+        Napi::Object options = info[1].As<Napi::Object>();
 
-        v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-        if (Nan::Has(options, param).ToChecked())
+        Napi::String param = Napi::String::New(env, "strict");
+        if ((options).Has(param).ToChecked())
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
+            Napi::Value param_val = (options).Get(param);
             if (!param_val->IsBoolean())
             {
-                Nan::ThrowTypeError("'strict' must be a Boolean");
-                return;
+                Napi::TypeError::New(env, "'strict' must be a Boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            strict = Nan::To<bool>(param_val).FromJust();
+            strict = param_val.As<Napi::Boolean>().Value();
         }
 
-        param = Nan::New("base").ToLocalChecked();
-        if (Nan::Has(options, param).ToChecked())
+        param = Napi::String::New(env, "base");
+        if ((options).Has(param).ToChecked())
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
-            if (!param_val->IsString())
+            Napi::Value param_val = (options).Get(param);
+            if (!param_val.IsString())
             {
-                Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
-                return;
+                Napi::TypeError::New(env, "'base' must be a string representing a filesystem path").ThrowAsJavaScriptException();
+                return env.Null();
             }
             base_path = TOSTR(param_val);
         }
@@ -1271,8 +1277,8 @@ NAN_METHOD(Map::loadSync)
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
     }
     return;
 }
@@ -1290,16 +1296,16 @@ NAN_METHOD(Map::loadSync)
  * var fs = require('fs');
  * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));
  */
-NAN_METHOD(Map::fromStringSync)
+Napi::Value Map::fromStringSync(const Napi::CallbackInfo& info)
 {
     if (info.Length() < 1) {
-        Nan::ThrowError("Accepts 2 arguments: stylesheet string and an optional options");
-        return;
+        Napi::Error::New(env, "Accepts 2 arguments: stylesheet string and an optional options").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        Nan::ThrowTypeError("first argument must be a mapnik stylesheet string");
-        return;
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "first argument must be a mapnik stylesheet string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
 
@@ -1309,37 +1315,37 @@ NAN_METHOD(Map::fromStringSync)
 
     if (info.Length() >= 2) {
         // ensure options object
-        if (!info[1]->IsObject()) {
-            Nan::ThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
-            return;
+        if (!info[1].IsObject()) {
+            Napi::TypeError::New(env, "options must be an object, eg {strict: true, base: \".\"'}").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
+        Napi::Object options = info[1].As<Napi::Object>();
 
-        v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-        if (Nan::Has(options, param).ToChecked())
+        Napi::String param = Napi::String::New(env, "strict");
+        if ((options).Has(param).ToChecked())
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
+            Napi::Value param_val = (options).Get(param);
             if (!param_val->IsBoolean()) {
-                Nan::ThrowTypeError("'strict' must be a Boolean");
-                return;
+                Napi::TypeError::New(env, "'strict' must be a Boolean").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            strict = Nan::To<bool>(param_val).FromJust();
+            strict = param_val.As<Napi::Boolean>().Value();
         }
 
-        param = Nan::New("base").ToLocalChecked();
-        if (Nan::Has(options, param).ToChecked())
+        param = Napi::String::New(env, "base");
+        if ((options).Has(param).ToChecked())
         {
-            v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
-            if (!param_val->IsString()) {
-                Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
-                return;
+            Napi::Value param_val = (options).Get(param);
+            if (!param_val.IsString()) {
+                Napi::TypeError::New(env, "'base' must be a string representing a filesystem path").ThrowAsJavaScriptException();
+                return env.Null();
             }
             base_path = TOSTR(param_val);
         }
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
 
     std::string stylesheet = TOSTR(info[0]);
 
@@ -1349,8 +1355,8 @@ NAN_METHOD(Map::fromStringSync)
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
     }
     return;
 }
@@ -1371,65 +1377,65 @@ NAN_METHOD(Map::fromStringSync)
  *   // details loaded
  * });
  */
-NAN_METHOD(Map::fromString)
+Napi::Value Map::fromString(const Napi::CallbackInfo& info)
 {
     if (info.Length() < 2)
     {
-        Nan::ThrowError("please provide a stylesheet string, options, and callback");
-        return;
+        Napi::Error::New(env, "please provide a stylesheet string, options, and callback").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure stylesheet path is a string
-    v8::Local<v8::Value> stylesheet = info[0];
-    if (!stylesheet->IsString())
+    Napi::Value stylesheet = info[0];
+    if (!stylesheet.IsString())
     {
-        Nan::ThrowTypeError("first argument must be a path to a mapnik stylesheet string");
-        return;
+        Napi::TypeError::New(env, "first argument must be a path to a mapnik stylesheet string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure options object
-    if (!info[1]->IsObject())
+    if (!info[1].IsObject())
     {
-        Nan::ThrowTypeError("options must be an object, eg {strict: true, base: \".\"'}");
-        return;
+        Napi::TypeError::New(env, "options must be an object, eg {strict: true, base: \".\"'}").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    v8::Local<v8::Object> options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+    Napi::Object options = info[1].ToObject(Napi::GetCurrentContext());
 
     bool strict = false;
-    v8::Local<v8::String> param = Nan::New("strict").ToLocalChecked();
-    if (Nan::Has(options, param).ToChecked())
+    Napi::String param = Napi::String::New(env, "strict");
+    if ((options).Has(param).ToChecked())
     {
-        v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
+        Napi::Value param_val = (options).Get(param);
         if (!param_val->IsBoolean())
         {
-            Nan::ThrowTypeError("'strict' must be a Boolean");
-            return;
+            Napi::TypeError::New(env, "'strict' must be a Boolean").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        strict = Nan::To<bool>(param_val).FromJust();
+        strict = param_val.As<Napi::Boolean>().Value();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
 
     load_xml_baton_t *closure = new load_xml_baton_t();
     closure->request.data = closure;
 
-    param = Nan::New("base").ToLocalChecked();
-    if (Nan::Has(options, param).ToChecked())
+    param = Napi::String::New(env, "base");
+    if ((options).Has(param).ToChecked())
     {
-        v8::Local<v8::Value> param_val = Nan::Get(options, param).ToLocalChecked();
-        if (!param_val->IsString())
+        Napi::Value param_val = (options).Get(param);
+        if (!param_val.IsString())
         {
-            Nan::ThrowTypeError("'base' must be a string representing a filesystem path");
-            return;
+            Napi::TypeError::New(env, "'base' must be a string representing a filesystem path").ThrowAsJavaScriptException();
+            return env.Null();
         }
         closure->base_path = TOSTR(param_val);
     }
@@ -1438,7 +1444,7 @@ NAN_METHOD(Map::fromString)
     closure->m = m;
     closure->strict = strict;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_FromString, (uv_after_work_cb)EIO_AfterFromString);
     m->Ref();
     return;
@@ -1461,15 +1467,15 @@ void Map::EIO_FromString(uv_work_t* req)
 
 void Map::EIO_AfterFromString(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     load_xml_baton_t *closure = static_cast<load_xml_baton_t *>(req->data);
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->m->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), closure->m->handle() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -1486,15 +1492,16 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  * @memberof Map
  * @returns {mapnik.Map} clone
  */
-NAN_METHOD(Map::clone)
+Napi::Value Map::clone(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     Map* m2 = new Map();
     m2->map_ = std::make_shared<mapnik::Map>(*m->map_);
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(m2);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Map instance");
-    else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
+    Napi::Value ext = Napi::External::New(env, m2);
+    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
+    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Map instance").ThrowAsJavaScriptException();
+
+    else return maybe_local;
 }
 
 /**
@@ -1508,15 +1515,15 @@ NAN_METHOD(Map::clone)
  * map.save("path/to/map.xml");
  */
 
-NAN_METHOD(Map::save)
+Napi::Value Map::save(const Napi::CallbackInfo& info)
 {
-    if (info.Length() != 1 || !info[0]->IsString())
+    if (info.Length() != 1 || !info[0].IsString())
     {
-        Nan::ThrowTypeError("first argument must be a path to map.xml to save");
-        return;
+        Napi::TypeError::New(env, "first argument must be a path to map.xml to save").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::string filename = TOSTR(info[0]);
     bool explicit_defaults = false;
     mapnik::save_map(*m->map_,filename,explicit_defaults);
@@ -1532,32 +1539,32 @@ NAN_METHOD(Map::save)
  * @example
  * var xml = map.toXML();
  */
-NAN_METHOD(Map::toXML)
+Napi::Value Map::toXML(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     bool explicit_defaults = false;
     std::string map_string = mapnik::save_map_to_string(*m->map_,explicit_defaults);
-    info.GetReturnValue().Set(Nan::New<v8::String>(map_string).ToLocalChecked());
+    return Napi::String::New(env, map_string);
 }
 
-NAN_METHOD(Map::zoomAll)
+Napi::Value Map::zoomAll(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     try
     {
         m->map_->zoom_all();
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
     }
     return;
 }
 
-NAN_METHOD(Map::zoomToBox)
+Napi::Value Map::zoomToBox(const Napi::CallbackInfo& info)
 {
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
 
     double minx;
     double miny;
@@ -1566,37 +1573,37 @@ NAN_METHOD(Map::zoomToBox)
 
     if (info.Length() == 1)
     {
-        if (!info[0]->IsArray())
+        if (!info[0].IsArray())
         {
-            Nan::ThrowError("Must provide an array of: [minx,miny,maxx,maxy]");
-            return;
+            Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        v8::Local<v8::Array> a = info[0].As<v8::Array>();
-        minx = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-        miny = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
-        maxx = Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust();
-        maxy = Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust();
+        Napi::Array a = info[0].As<Napi::Array>();
+        minx = (a).Get(0.As<Napi::Number>().DoubleValue());
+        miny = (a).Get(1.As<Napi::Number>().DoubleValue());
+        maxx = (a).Get(2.As<Napi::Number>().DoubleValue());
+        maxy = (a).Get(3.As<Napi::Number>().DoubleValue());
 
     }
     else if (info.Length() != 4)
     {
-        Nan::ThrowError("Must provide 4 arguments: minx,miny,maxx,maxy");
-        return;
+        Napi::Error::New(env, "Must provide 4 arguments: minx,miny,maxx,maxy").ThrowAsJavaScriptException();
+        return env.Null();
     }
-    else if (info[0]->IsNumber() &&
-               info[1]->IsNumber() &&
-               info[2]->IsNumber() &&
-               info[3]->IsNumber())
+    else if (info[0].IsNumber() &&
+               info[1].IsNumber() &&
+               info[2].IsNumber() &&
+               info[3].IsNumber())
     {
-        minx = Nan::To<double>(info[0]).FromJust();
-        miny = Nan::To<double>(info[1]).FromJust();
-        maxx = Nan::To<double>(info[2]).FromJust();
-        maxy = Nan::To<double>(info[3]).FromJust();
+        minx = info[0].As<Napi::Number>().DoubleValue();
+        miny = info[1].As<Napi::Number>().DoubleValue();
+        maxx = info[2].As<Napi::Number>().DoubleValue();
+        maxy = info[3].As<Napi::Number>().DoubleValue();
     }
     else
     {
-        Nan::ThrowError("If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers");
-        return;
+        Napi::Error::New(env, "If you are providing 4 arguments: minx,miny,maxx,maxy - they must be all numbers").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     mapnik::box2d<double> box(minx,miny,maxx,maxy);
@@ -1616,7 +1623,7 @@ struct image_baton_t {
     unsigned offset_y;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
     image_baton_t() :
       buffer_size(0),
       scale_factor(1.0),
@@ -1642,7 +1649,7 @@ struct grid_baton_t {
     unsigned offset_y;
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
     grid_baton_t() :
       layer_idx(-1),
       buffer_size(0),
@@ -1676,7 +1683,7 @@ struct vector_tile_baton_t {
     bool process_all_rings;
     std::launch threading_mode;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
     vector_tile_baton_t() :
         area_threshold(0.1),
         scale_factor(1.0),
@@ -1755,27 +1762,27 @@ struct vector_tile_baton_t {
  *     console.log(vtile); // => vector tile object with data from xml
  * });
  */
-NAN_METHOD(Map::render)
+Napi::Value Map::render(const Napi::CallbackInfo& info)
 {
     // ensure at least 2 args
     if (info.Length() < 2) {
-        Nan::ThrowTypeError("requires at least two arguments, a renderable mapnik object, and a callback");
-        return;
+        Napi::TypeError::New(env, "requires at least two arguments, a renderable mapnik object, and a callback").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure renderable object
-    if (!info[0]->IsObject()) {
-        Nan::ThrowTypeError("requires a renderable mapnik object to be passed as first argument");
-        return;
+    if (!info[0].IsObject()) {
+        Napi::TypeError::New(env, "requires a renderable mapnik object to be passed as first argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // ensure function callback
     if (!info[info.Length()-1]->IsFunction()) {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
 
     try
     {
@@ -1788,76 +1795,76 @@ NAN_METHOD(Map::render)
         unsigned offset_x = 0;
         unsigned offset_y = 0;
 
-        v8::Local<v8::Object> options = Nan::New<v8::Object>();
+        Napi::Object options = Napi::Object::New(env);
 
         if (info.Length() > 2) {
 
             // options object
-            if (!info[1]->IsObject()) {
-                Nan::ThrowTypeError("optional second argument must be an options object");
-                return;
+            if (!info[1].IsObject()) {
+                Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+            options = info[1].ToObject(Napi::GetCurrentContext());
 
-            if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false)) {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsNumber()) {
-                    Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
-                    return;
+            if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false)) {
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
+                if (!bind_opt.IsNumber()) {
+                    Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                buffer_size = Nan::To<int>(bind_opt).FromJust();
+                buffer_size = bind_opt.As<Napi::Number>().Int32Value();
             }
 
-            if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false)) {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsNumber()) {
-                    Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                    return;
+            if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false)) {
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+                if (!bind_opt.IsNumber()) {
+                    Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
 
-                scale_factor = Nan::To<double>(bind_opt).FromJust();
+                scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
             }
 
-            if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false)) {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsNumber()) {
-                    Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                    return;
+            if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false)) {
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+                if (!bind_opt.IsNumber()) {
+                    Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
 
-                scale_denominator = Nan::To<double>(bind_opt).FromJust();
+                scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
             }
 
-            if (Nan::Has(options, Nan::New("offset_x").ToLocalChecked()).FromMaybe(false)) {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_x").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsNumber()) {
-                    Nan::ThrowTypeError("optional arg 'offset_x' must be a number");
-                    return;
+            if ((options).Has(Napi::String::New(env, "offset_x")).FromMaybe(false)) {
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_x"));
+                if (!bind_opt.IsNumber()) {
+                    Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
 
-                offset_x = Nan::To<int>(bind_opt).FromJust();
+                offset_x = bind_opt.As<Napi::Number>().Int32Value();
             }
 
-            if (Nan::Has(options, Nan::New("offset_y").ToLocalChecked()).FromMaybe(false)) {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("offset_y").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsNumber()) {
-                    Nan::ThrowTypeError("optional arg 'offset_y' must be a number");
-                    return;
+            if ((options).Has(Napi::String::New(env, "offset_y")).FromMaybe(false)) {
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_y"));
+                if (!bind_opt.IsNumber()) {
+                    Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
 
-                offset_y = Nan::To<int>(bind_opt).FromJust();
+                offset_y = bind_opt.As<Napi::Number>().Int32Value();
             }
         }
 
-        v8::Local<v8::Object> obj = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
+        Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
 
-        if (Nan::New(Image::constructor)->HasInstance(obj)) {
+        if (Napi::New(env, Image::constructor)->HasInstance(obj)) {
 
             image_baton_t *closure = new image_baton_t();
             closure->request.data = closure;
             closure->m = m;
-            closure->im = Nan::ObjectWrap::Unwrap<Image>(obj);
+            closure->im = obj.Unwrap<Image>();
             closure->buffer_size = buffer_size;
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
@@ -1865,49 +1872,49 @@ NAN_METHOD(Map::render)
             closure->offset_y = offset_y;
             closure->error = false;
 
-            if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
             {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsObject())
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+                if (!bind_opt.IsObject())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("optional arg 'variables' must be an object");
-                    return;
+                    Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
+                object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
             }
             if (!m->acquire())
             {
                 delete closure;
-                Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-                return;
+                Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
+            closure->cb.Reset(info[info.Length() - 1].As<Napi::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
             closure->im->Ref();
         }
 #if defined(GRID_RENDERER)
-        else if (Nan::New(Grid::constructor)->HasInstance(obj)) {
+        else if (Napi::New(env, Grid::constructor)->HasInstance(obj)) {
 
-            Grid * g = Nan::ObjectWrap::Unwrap<Grid>(obj);
+            Grid * g = obj.Unwrap<Grid>();
 
             std::size_t layer_idx = 0;
 
             // grid requires special options for now
-            if (!Nan::Has(options, Nan::New("layer").ToLocalChecked()).FromMaybe(false)) {
-                Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                return;
+            if (!(options).Has(Napi::String::New(env, "layer")).FromMaybe(false)) {
+                Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
+                return env.Null();
             } else {
 
                 std::vector<mapnik::layer> const& layers = m->map_->layers();
 
-                v8::Local<v8::Value> layer_id = Nan::Get(options, Nan::New("layer").ToLocalChecked()).ToLocalChecked();
-                if (! (layer_id->IsString() || layer_id->IsNumber()) ) {
-                    Nan::ThrowTypeError("'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)");
-                    return;
+                Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
+                if (! (layer_id.IsString() || layer_id.IsNumber()) ) {
+                    Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
 
-                if (layer_id->IsString()) {
+                if (layer_id.IsString()) {
                     bool found = false;
                     unsigned int idx(0);
                     std::string const & layer_name = TOSTR(layer_id);
@@ -1925,11 +1932,11 @@ NAN_METHOD(Map::render)
                     {
                         std::ostringstream s;
                         s << "Layer name '" << layer_name << "' not found";
-                        Nan::ThrowTypeError(s.str().c_str());
-                        return;
+                        Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                        return env.Null();
                     }
                 } else { // IS NUMBER
-                    layer_idx = Nan::To<int>(layer_id).FromJust();
+                    layer_idx = layer_id.As<Napi::Number>().Int32Value();
                     std::size_t layer_num = layers.size();
 
                     if (layer_idx >= layer_num) {
@@ -1943,25 +1950,25 @@ NAN_METHOD(Map::render)
                         {
                             s << "no layers found in map";
                         }
-                        Nan::ThrowTypeError(s.str().c_str());
-                        return;
+                        Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                        return env.Null();
                     }
                 }
             }
 
-            if (Nan::Has(options, Nan::New("fields").ToLocalChecked()).FromMaybe(false)) {
+            if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false)) {
 
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("fields").ToLocalChecked()).ToLocalChecked();
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "fields"));
                 if (!param_val->IsArray()) {
-                    Nan::ThrowTypeError("option 'fields' must be an array of strings");
-                    return;
+                    Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(param_val);
+                Napi::Array a = param_val.As<Napi::Array>();
                 unsigned int i = 0;
                 unsigned int num_fields = a->Length();
                 while (i < num_fields) {
-                    v8::Local<v8::Value> name = Nan::Get(a, i).ToLocalChecked();
-                    if (name->IsString()){
+                    Napi::Value name = (a).Get(i);
+                    if (name.IsString()){
                         g->get()->add_field(TOSTR(name));
                     }
                     i++;
@@ -1970,16 +1977,16 @@ NAN_METHOD(Map::render)
 
             grid_baton_t *closure = new grid_baton_t();
 
-            if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
             {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsObject())
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+                if (!bind_opt.IsObject())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("optional arg 'variables' must be an object");
-                    return;
+                    Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
+                object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
             }
 
             closure->request.data = closure;
@@ -1995,176 +2002,176 @@ NAN_METHOD(Map::render)
             if (!m->acquire())
             {
                 delete closure;
-                Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-                return;
+                Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
+            closure->cb.Reset(info[info.Length() - 1].As<Napi::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
             closure->g->Ref();
         }
 #endif
-        else if (Nan::New(VectorTile::constructor)->HasInstance(obj))
+        else if (Napi::New(env, VectorTile::constructor)->HasInstance(obj))
         {
 
             vector_tile_baton_t *closure = new vector_tile_baton_t();
 
-            if (Nan::Has(options, Nan::New("image_scaling").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_scaling").ToLocalChecked()).ToLocalChecked();
-                if (!param_val->IsString())
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
+                if (!param_val.IsString())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'image_scaling' must be a string");
-                    return;
+                    Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
                 std::string image_scaling = TOSTR(param_val);
                 boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
                 if (!method)
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')");
-                    return;
+                    Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
                 closure->scaling_method = *method;
             }
 
-            if (Nan::Has(options, Nan::New("image_format").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("image_format").ToLocalChecked()).ToLocalChecked();
-                if (!param_val->IsString())
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
+                if (!param_val.IsString())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'image_format' must be a string");
-                    return;
+                    Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
                 closure->image_format = TOSTR(param_val);
             }
 
-            if (Nan::Has(options, Nan::New("area_threshold").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("area_threshold").ToLocalChecked()).ToLocalChecked();
-                if (!param_val->IsNumber())
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "area_threshold"));
+                if (!param_val.IsNumber())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'area_threshold' must be a number");
-                    return;
+                    Napi::TypeError::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->area_threshold = Nan::To<double>(param_val).FromJust();
+                closure->area_threshold = param_val.As<Napi::Number>().DoubleValue();
                 if (closure->area_threshold < 0.0)
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'area_threshold' must not be a negative number");
-                    return;
+                    Napi::TypeError::New(env, "option 'area_threshold' must not be a negative number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             }
 
-            if (Nan::Has(options, Nan::New("strictly_simple").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("strictly_simple").ToLocalChecked()).ToLocalChecked();
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "strictly_simple"));
                 if (!param_val->IsBoolean())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'strictly_simple' must be a boolean");
-                    return;
+                    Napi::TypeError::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->strictly_simple = Nan::To<bool>(param_val).FromJust();
+                closure->strictly_simple = param_val.As<Napi::Boolean>().Value();
             }
 
-            if (Nan::Has(options, Nan::New("multi_polygon_union").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "multi_polygon_union")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("multi_polygon_union").ToLocalChecked()).ToLocalChecked();
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "multi_polygon_union"));
                 if (!param_val->IsBoolean())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'multi_polygon_union' must be a boolean");
-                    return;
+                    Napi::TypeError::New(env, "option 'multi_polygon_union' must be a boolean").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->multi_polygon_union = Nan::To<bool>(param_val).FromJust();
+                closure->multi_polygon_union = param_val.As<Napi::Boolean>().Value();
             }
 
-            if (Nan::Has(options, Nan::New("fill_type").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "fill_type")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("fill_type").ToLocalChecked()).ToLocalChecked();
-                if (!param_val->IsNumber())
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "fill_type"));
+                if (!param_val.IsNumber())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'fill_type' must be an unsigned integer");
-                    return;
+                    Napi::TypeError::New(env, "option 'fill_type' must be an unsigned integer").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(Nan::To<int>(param_val).FromJust());
+                closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val.As<Napi::Number>().Int32Value());
                 if (closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
                 {
                     delete closure;
-                    Nan::ThrowTypeError("optional arg 'fill_type' out of possible range");
-                    return;
+                    Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             }
 
-            if (Nan::Has(options, Nan::New("threading_mode").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "threading_mode")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("threading_mode").ToLocalChecked()).ToLocalChecked();
-                if (!param_val->IsNumber())
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "threading_mode"));
+                if (!param_val.IsNumber())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'threading_mode' must be an unsigned integer");
-                    return;
+                    Napi::TypeError::New(env, "option 'threading_mode' must be an unsigned integer").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->threading_mode = static_cast<std::launch>(Nan::To<int>(param_val).FromJust());
+                closure->threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
                 if (closure->threading_mode != std::launch::async &&
                     closure->threading_mode != std::launch::deferred &&
                     closure->threading_mode != (std::launch::async | std::launch::deferred))
                 {
                     delete closure;
-                    Nan::ThrowTypeError("optional arg 'threading_mode' value passed is invalid");
-                    return;
+                    Napi::TypeError::New(env, "optional arg 'threading_mode' value passed is invalid").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             }
 
-            if (Nan::Has(options, Nan::New("simplify_distance").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("simplify_distance").ToLocalChecked()).ToLocalChecked();
-                if (!param_val->IsNumber())
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "simplify_distance"));
+                if (!param_val.IsNumber())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'simplify_distance' must be an floating point number");
-                    return;
+                    Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->simplify_distance = Nan::To<double>(param_val).FromJust();
+                closure->simplify_distance = param_val.As<Napi::Number>().DoubleValue();
                 if (closure->simplify_distance < 0)
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'simplify_distance' can not be negative");
-                    return;
+                    Napi::TypeError::New(env, "option 'simplify_distance' can not be negative").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
             }
 
-            if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
             {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsObject())
+                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+                if (!bind_opt.IsObject())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("optional arg 'variables' must be an object");
-                    return;
+                    Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
+                object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
             }
 
-            if (Nan::Has(options, Nan::New("process_all_rings").ToLocalChecked()).FromMaybe(false))
+            if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
             {
-                v8::Local<v8::Value> param_val = Nan::Get(options, Nan::New("process_all_rings").ToLocalChecked()).ToLocalChecked();
+                Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
                 if (!param_val->IsBoolean())
                 {
                     delete closure;
-                    Nan::ThrowTypeError("option 'process_all_rings' must be a boolean");
-                    return;
+                    Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
+                    return env.Null();
                 }
-                closure->process_all_rings = Nan::To<bool>(param_val).FromJust();
+                closure->process_all_rings = param_val.As<Napi::Boolean>().Value();
             }
 
             closure->request.data = closure;
             closure->m = m;
-            closure->d = Nan::ObjectWrap::Unwrap<VectorTile>(obj);
+            closure->d = obj.Unwrap<VectorTile>();
             closure->scale_factor = scale_factor;
             closure->scale_denominator = scale_denominator;
             closure->offset_x = offset_x;
@@ -2173,17 +2180,17 @@ NAN_METHOD(Map::render)
             if (!m->acquire())
             {
                 delete closure;
-                Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-                return;
+                Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            closure->cb.Reset(info[info.Length() - 1].As<v8::Function>());
+            closure->cb.Reset(info[info.Length() - 1].As<Napi::Function>());
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
             closure->d->Ref();
         }
         else
         {
-            Nan::ThrowTypeError("renderable mapnik object expected");
-            return;
+            Napi::TypeError::New(env, "renderable mapnik object expected").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         m->Ref();
@@ -2193,8 +2200,8 @@ NAN_METHOD(Map::render)
     {
         // I am not quite sure it is possible to put a test in to cover an exception here
         /* LCOV_EXCL_START */
-        Nan::ThrowTypeError(ex.what());
-        return;
+        Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
         /* LCOV_EXCL_STOP */
     }
 }
@@ -2232,20 +2239,20 @@ void Map::EIO_RenderVectorTile(uv_work_t* req)
 
 void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     vector_tile_baton_t *closure = static_cast<vector_tile_baton_t *>(req->data);
     closure->m->release();
 
     if (closure->error)
     {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->d->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), closure->d->handle() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2298,8 +2305,8 @@ void Map::EIO_RenderGrid(uv_work_t* req)
 
 void Map::EIO_AfterRenderGrid(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
 
     grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
     closure->m->release();
@@ -2307,11 +2314,11 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     if (closure->error) {
         // TODO - add more attributes
         // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->g->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), closure->g->handle() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2387,17 +2394,17 @@ void Map::EIO_RenderImage(uv_work_t* req)
 
 void Map::EIO_AfterRenderImage(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     image_baton_t *closure = static_cast<image_baton_t *>(req->data);
     closure->m->release();
 
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->im->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
+        Napi::Value argv[2] = { env.Null(), closure->im->handle() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
 
     closure->m->Unref();
@@ -2419,14 +2426,14 @@ typedef struct {
     int buffer_size; // TODO - no effect until mapnik::request is used
     bool error;
     std::string error_name;
-    Nan::Persistent<v8::Function> cb;
+    Napi::FunctionReference cb;
 } render_file_baton_t;
 
-NAN_METHOD(Map::renderFile)
+Napi::Value Map::renderFile(const Napi::CallbackInfo& info)
 {
-    if (info.Length() < 1 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("first argument must be a path to a file to save");
-        return;
+    if (info.Length() < 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "first argument must be a path to a file to save").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // defaults
@@ -2436,80 +2443,80 @@ NAN_METHOD(Map::renderFile)
     palette_ptr palette;
     int buffer_size = 0;
 
-    v8::Local<v8::Value> callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length()-1];
 
     if (!callback->IsFunction()) {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    v8::Local<v8::Object> options = Nan::New<v8::Object>();
+    Napi::Object options = Napi::Object::New(env);
 
-    if (!info[1]->IsFunction() && info[1]->IsObject()) {
-        options = info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("format").ToLocalChecked()).FromMaybe(false))
+    if (!info[1].IsFunction() && info[1].IsObject()) {
+        options = info[1].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("format").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsString()) {
-                Nan::ThrowTypeError("'format' must be a String");
-                return;
+            Napi::Value format_opt = (options).Get(Napi::String::New(env, "format"));
+            if (!format_opt.IsString()) {
+                Napi::TypeError::New(env, "'format' must be a String").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
             format = TOSTR(format_opt);
         }
 
-        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "palette")).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsObject()) {
-                Nan::ThrowTypeError("'palette' must be an object");
-                return;
+            Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
+            if (!format_opt.IsObject()) {
+                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
-                return;
+            Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
+            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = obj)->palette(.Unwrap<Palette>();
         }
-        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            scale_factor = Nan::To<double>(bind_opt).FromJust();
-        }
-
-        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                return;
-            }
-
-            scale_denominator = Nan::To<double>(bind_opt).FromJust();
+            scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
         }
 
-        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            buffer_size = Nan::To<int>(bind_opt).FromJust();
+            scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
         }
 
-    } else if (!info[1]->IsFunction()) {
-        Nan::ThrowTypeError("optional argument must be an object");
-        return;
+        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
+            }
+
+            buffer_size = bind_opt.As<Napi::Number>().Int32Value();
+        }
+
+    } else if (!info[1].IsFunction()) {
+        Napi::TypeError::New(env, "optional argument must be an object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::string output = TOSTR(info[0]);
 
     //maybe do this in the async part?
@@ -2518,23 +2525,23 @@ NAN_METHOD(Map::renderFile)
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << output << "\n";
-            Nan::ThrowError(s.str().c_str());
-            return;
+            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            return env.Null();
         }
     }
 
     render_file_baton_t *closure = new render_file_baton_t();
 
-    if (Nan::Has(options, Nan::New("variables").ToLocalChecked()).FromMaybe(false))
+    if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
     {
-        v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("variables").ToLocalChecked()).ToLocalChecked();
-        if (!bind_opt->IsObject())
+        Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+        if (!bind_opt.IsObject())
         {
             delete closure;
-            Nan::ThrowTypeError("optional arg 'variables' must be an object");
-            return;
+            Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+            return env.Null();
         }
-        object_to_container(closure->variables,bind_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
+        object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
     }
 
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
@@ -2544,8 +2551,8 @@ NAN_METHOD(Map::renderFile)
         delete closure;
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
-        Nan::ThrowError(s.str().c_str());
-        return;
+        Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+        return env.Null();
 #endif
     } else {
         closure->use_cairo = false;
@@ -2554,8 +2561,8 @@ NAN_METHOD(Map::renderFile)
     if (!m->acquire())
     {
         delete closure;
-        Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-        return;
+        Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+        return env.Null();
     }
     closure->request.data = closure;
 
@@ -2564,7 +2571,7 @@ NAN_METHOD(Map::renderFile)
     closure->scale_denominator = scale_denominator;
     closure->buffer_size = buffer_size;
     closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
+    closure->cb.Reset(callback.As<Napi::Function>());
 
     closure->format = format;
     closure->palette = palette;
@@ -2620,17 +2627,17 @@ void Map::EIO_RenderFile(uv_work_t* req)
 
 void Map::EIO_AfterRenderFile(uv_work_t* req)
 {
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
+    Napi::HandleScope scope(env);
+    Napi::AsyncResource async_resource(__func__);
     render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
     closure->m->release();
 
     if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     } else {
-        v8::Local<v8::Value> argv[1] = { Nan::Null() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
+        Napi::Value argv[1] = { env.Null() };
+        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
     closure->m->Unref();
@@ -2640,7 +2647,7 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
 }
 
 // TODO - add support for grids
-NAN_METHOD(Map::renderSync)
+Napi::Value Map::renderSync(const Napi::CallbackInfo& info)
 {
     std::string format = "png";
     palette_ptr palette;
@@ -2650,74 +2657,74 @@ NAN_METHOD(Map::renderSync)
 
     if (info.Length() >= 1)
     {
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowTypeError("first argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
-            return;
+            Napi::TypeError::New(env, "first argument is optional, but if provided must be an object, eg. {format: 'pdf'}").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("format").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
+        if ((options).Has(Napi::String::New(env, "format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("format").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsString()) {
-                Nan::ThrowTypeError("'format' must be a String");
-                return;
+            Napi::Value format_opt = (options).Get(Napi::String::New(env, "format"));
+            if (!format_opt.IsString()) {
+                Napi::TypeError::New(env, "'format' must be a String").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
             format = TOSTR(format_opt);
         }
 
-        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "palette")).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsObject()) {
-                Nan::ThrowTypeError("'palette' must be an object");
-                return;
+            Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
+            if (!format_opt.IsObject()) {
+                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
-                return;
+            Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
+            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = obj)->palette(.Unwrap<Palette>();
         }
-        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            scale_factor = Nan::To<double>(bind_opt).FromJust();
+            scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            scale_denominator = Nan::To<double>(bind_opt).FromJust();
+            scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            buffer_size = Nan::To<int>(bind_opt).FromJust();
+            buffer_size = bind_opt.As<Napi::Number>().Int32Value();
         }
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     if (!m->acquire())
     {
-        Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-        return;
+        Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+        return env.Null();
     }
     std::string s;
     try
@@ -2744,23 +2751,23 @@ NAN_METHOD(Map::renderSync)
     catch (std::exception const& ex)
     {
         m->release();
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
     }
     m->release();
-    info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
+    return Napi::Buffer::Copy(env, (char*)s.data(), s.size());
 }
 
-NAN_METHOD(Map::renderFileSync)
+Napi::Value Map::renderFileSync(const Napi::CallbackInfo& info)
 {
-    if (info.Length() < 1 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("first argument must be a path to a file to save");
-        return;
+    if (info.Length() < 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "first argument must be a path to a file to save").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (info.Length() > 2) {
-        Nan::ThrowError("accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}");
-        return;
+        Napi::Error::New(env, "accepts two arguments, a required path to a file, an optional options object, eg. {format: 'pdf'}").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // defaults
@@ -2771,69 +2778,69 @@ NAN_METHOD(Map::renderFileSync)
     palette_ptr palette;
 
     if (info.Length() >= 2){
-        if (!info[1]->IsObject()) {
-            Nan::ThrowTypeError("second argument is optional, but if provided must be an object, eg. {format: 'pdf'}");
-            return;
+        if (!info[1].IsObject()) {
+            Napi::TypeError::New(env, "second argument is optional, but if provided must be an object, eg. {format: 'pdf'}").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (Nan::Has(options, Nan::New("format").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[1].As<Napi::Object>();
+        if ((options).Has(Napi::String::New(env, "format")).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("format").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsString()) {
-                Nan::ThrowTypeError("'format' must be a String");
-                return;
+            Napi::Value format_opt = (options).Get(Napi::String::New(env, "format"));
+            if (!format_opt.IsString()) {
+                Napi::TypeError::New(env, "'format' must be a String").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
             format = TOSTR(format_opt);
         }
 
-        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
+        if ((options).Has(Napi::String::New(env, "palette")).FromMaybe(false))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsObject()) {
-                Nan::ThrowTypeError("'palette' must be an object");
-                return;
+            Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
+            if (!format_opt.IsObject()) {
+                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            v8::Local<v8::Object> obj = format_opt->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
-                return;
+            Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
+            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            palette = obj)->palette(.Unwrap<Palette>();
         }
-        if (Nan::Has(options, Nan::New("scale").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'scale' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            scale_factor = Nan::To<double>(bind_opt).FromJust();
+            scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("scale_denominator").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("scale_denominator").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'scale_denominator' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            scale_denominator = Nan::To<double>(bind_opt).FromJust();
+            scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
         }
-        if (Nan::Has(options, Nan::New("buffer_size").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("buffer_size").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber()) {
-                Nan::ThrowTypeError("optional arg 'buffer_size' must be a number");
-                return;
+        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false)) {
+            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
+            if (!bind_opt.IsNumber()) {
+                Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
-            buffer_size = Nan::To<int>(bind_opt).FromJust();
+            buffer_size = bind_opt.As<Napi::Number>().Int32Value();
         }
     }
 
-    Map* m = Nan::ObjectWrap::Unwrap<Map>(info.Holder());
+    Map* m = info.Holder().Unwrap<Map>();
     std::string output = TOSTR(info[0]);
 
     if (format.empty()) {
@@ -2841,14 +2848,14 @@ NAN_METHOD(Map::renderFileSync)
         if (format == "<unknown>") {
             std::ostringstream s("");
             s << "unknown output extension for: " << output << "\n";
-            Nan::ThrowError(s.str().c_str());
-            return;
+            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            return env.Null();
         }
     }
     if (!m->acquire())
     {
-        Nan::ThrowTypeError("render: Map currently in use by another thread. Consider using a map pool.");
-        return;
+        Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     try
@@ -2862,8 +2869,8 @@ NAN_METHOD(Map::renderFileSync)
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
             m->release();
-            Nan::ThrowError(s.str().c_str());
-            return;
+            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            return env.Null();
 #endif
         }
         else
@@ -2892,8 +2899,8 @@ NAN_METHOD(Map::renderFileSync)
     catch (std::exception const& ex)
     {
         m->release();
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Null();
     }
     m->release();
     return;

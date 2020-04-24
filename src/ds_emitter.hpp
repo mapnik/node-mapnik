@@ -5,7 +5,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 // mapnik
@@ -20,9 +21,9 @@
 
 namespace node_mapnik {
 
-static void get_fields(v8::Local<v8::Object> fields, mapnik::datasource_ptr ds)
+static void get_fields(Napi::Object fields, mapnik::datasource_ptr ds)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     mapnik::layer_descriptor ld = ds->get_descriptor();
     // field names and types
     auto const& desc = ld.get_descriptors();
@@ -42,40 +43,40 @@ static void get_fields(v8::Local<v8::Object> fields, mapnik::datasource_ptr ds)
         else if (field_type == mapnik::Object) type = "Object";
         else type = "Unknown";
         std::string const& name = attr_info.get_name();
-        Nan::Set(fields, Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
-        Nan::Set(fields, Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::String>(type).ToLocalChecked());
+        (fields).Set(Napi::String::New(env, name), Napi::String::New(env, type));
+        (fields).Set(Napi::String::New(env, name), Napi::String::New(env, type));
         /* LCOV_EXCL_STOP */
     }
 }
 
-static void describe_datasource(v8::Local<v8::Object> description, mapnik::datasource_ptr ds)
+static void describe_datasource(Napi::Object description, mapnik::datasource_ptr ds)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     
     // type
     if (ds->type() == mapnik::datasource::Raster)
     {
-        Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New<v8::String>("raster").ToLocalChecked());
+        (description).Set(Napi::String::New(env, "type"), Napi::String::New(env, "raster"));
     }
     else
     {
-        Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New<v8::String>("vector").ToLocalChecked());
+        (description).Set(Napi::String::New(env, "type"), Napi::String::New(env, "vector"));
     }
 
     mapnik::layer_descriptor ld = ds->get_descriptor();
 
     // encoding
-    Nan::Set(description, Nan::New("encoding").ToLocalChecked(), Nan::New<v8::String>(ld.get_encoding().c_str()).ToLocalChecked());
+    (description).Set(Napi::String::New(env, "encoding"), Napi::String::New(env, ld.get_encoding().c_str()));
 
     // field names and types
-    v8::Local<v8::Object> fields = Nan::New<v8::Object>();
+    Napi::Object fields = Napi::Object::New(env);
     node_mapnik::get_fields(fields, ds);
-    Nan::Set(description, Nan::New("fields").ToLocalChecked(), fields);
+    (description).Set(Napi::String::New(env, "fields"), fields);
 
-    v8::Local<v8::String> js_type = Nan::New<v8::String>("unknown").ToLocalChecked();
+    Napi::String js_type = Napi::String::New(env, "unknown");
     if (ds->type() == mapnik::datasource::Raster)
     {
-        js_type = Nan::New<v8::String>("raster").ToLocalChecked();
+        js_type = Napi::String::New(env, "raster");
     }
     else
     {
@@ -87,22 +88,22 @@ static void describe_datasource(v8::Local<v8::Object> description, mapnik::datas
             {
             case mapnik::datasource_geometry_t::Point:
             {
-                js_type = Nan::New<v8::String>("point").ToLocalChecked();
+                js_type = Napi::String::New(env, "point");
                 break;
             }
             case mapnik::datasource_geometry_t::LineString:
             {
-                js_type = Nan::New<v8::String>("linestring").ToLocalChecked();
+                js_type = Napi::String::New(env, "linestring");
                 break;
             }
             case mapnik::datasource_geometry_t::Polygon:
             {
-                js_type = Nan::New<v8::String>("polygon").ToLocalChecked();
+                js_type = Napi::String::New(env, "polygon");
                 break;
             }
             case mapnik::datasource_geometry_t::Collection:
             {
-                js_type = Nan::New<v8::String>("collection").ToLocalChecked();
+                js_type = Napi::String::New(env, "collection");
                 break;
             }
             default:
@@ -112,7 +113,7 @@ static void describe_datasource(v8::Local<v8::Object> description, mapnik::datas
             }
         }
     }
-    Nan::Set(description, Nan::New("geometry_type").ToLocalChecked(), js_type);
+    (description).Set(Napi::String::New(env, "geometry_type"), js_type);
     for (auto const& param : ld.get_extra_parameters()) 
     {
         node_mapnik::params_to_object(description,param.first, param.second);

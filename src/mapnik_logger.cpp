@@ -2,7 +2,7 @@
 #include "mapnik_logger.hpp"
 #include <mapnik/debug.hpp>
 
-Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
+Napi::FunctionReference Logger::constructor;
 
 /**
  * **`mapnik.Logger`**
@@ -15,22 +15,22 @@ Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
  * var log = mapnik.Logger.get_severity();
  * console.log(log); // 3
  */
-void Logger::Initialize(v8::Local<v8::Object> target) {
-    Nan::HandleScope scope;
+void Logger::Initialize(Napi::Object target) {
+    Napi::HandleScope scope(env);
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Logger::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
+    Napi::FunctionReference lcons = Napi::Function::New(env, Logger::New);
+
+    lcons->SetClassName(Napi::String::New(env, "Logger"));
 
     // Static methods
-    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "getSeverity", Logger::get_severity);
-    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "setSeverity", Logger::set_severity);
+    Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(), "getSeverity", Logger::get_severity);
+    Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(), "setSeverity", Logger::set_severity);
 
     // Constants
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"NONE",mapnik::logger::severity_type::none);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"ERROR",mapnik::logger::severity_type::error);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"DEBUG",mapnik::logger::severity_type::debug);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"WARN",mapnik::logger::severity_type::warn);
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),"NONE",mapnik::logger::severity_type::none);
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),"ERROR",mapnik::logger::severity_type::error);
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),"DEBUG",mapnik::logger::severity_type::debug);
+    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),"WARN",mapnik::logger::severity_type::warn);
 
     // What about booleans like:
     // ENABLE_STATS
@@ -40,14 +40,14 @@ void Logger::Initialize(v8::Local<v8::Object> target) {
     // DEBUG
 
     // Not sure if needed...
-    Nan::Set(target, Nan::New("Logger").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "Logger"), Napi::GetFunction(lcons));
     constructor.Reset(lcons);
 
 }
 
-NAN_METHOD(Logger::New){
-    Nan::ThrowError("a mapnik.Logger cannot be created directly - rather you should ....");
-    return;
+Napi::Value Logger::New(const Napi::CallbackInfo& info){
+    Napi::Error::New(env, "a mapnik.Logger cannot be created directly - rather you should ....").ThrowAsJavaScriptException();
+    return env.Null();
 }
 
 /**
@@ -57,9 +57,9 @@ NAN_METHOD(Logger::New){
  * @static
  * @returns {number} severity level
  */
-NAN_METHOD(Logger::get_severity){
+Napi::Value Logger::get_severity(const Napi::CallbackInfo& info){
     int severity = mapnik::logger::instance().get_severity();
-    info.GetReturnValue().Set(Nan::New(severity));
+    return Napi::New(env, severity);
 }
 
 /**
@@ -73,13 +73,13 @@ NAN_METHOD(Logger::get_severity){
  * @param {number} severity - severity level
  * @returns {number} severity level
  */
-NAN_METHOD(Logger::set_severity){
-    if (info.Length() != 1 || !info[0]->IsNumber()) {
-        Nan::ThrowTypeError("requires a severity level parameter");
-        return;
+Napi::Value Logger::set_severity(const Napi::CallbackInfo& info){
+    if (info.Length() != 1 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "requires a severity level parameter").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    int severity = Nan::To<int>(info[0]).FromJust();
+    int severity = info[0].As<Napi::Number>().Int32Value();
     mapnik::logger::instance().set_severity(static_cast<mapnik::logger::severity_type>(severity));
     return;
 }

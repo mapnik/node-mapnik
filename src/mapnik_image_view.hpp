@@ -4,7 +4,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #pragma GCC diagnostic pop
 
 #include <mapnik/image.hpp>        // for image_rgba8
@@ -18,30 +19,30 @@ namespace mapnik { template <typename T> class image_view; }
 
 typedef std::shared_ptr<mapnik::image_view_any> image_view_ptr;
 
-class ImageView: public Nan::ObjectWrap {
+class ImageView : public Napi::ObjectWrap<ImageView> {
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(Image * JSImage,
+    static Napi::FunctionReference constructor;
+    static void Initialize(Napi::Object target);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value NewInstance(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
-    static NAN_METHOD(encodeSync);
-    static NAN_METHOD(encode);
+    static Napi::Value encodeSync(const Napi::CallbackInfo& info);
+    static Napi::Value encode(const Napi::CallbackInfo& info);
     static void AsyncEncode(uv_work_t* req);
     static void AfterEncode(uv_work_t* req);
 
-    //static NAN_METHOD(view);
-    static NAN_METHOD(width);
-    static NAN_METHOD(height);
-    //static NAN_METHOD(open);
-    static NAN_METHOD(save);
-    static NAN_METHOD(isSolid);
+    //static Napi::Value view(const Napi::CallbackInfo& info);
+    static Napi::Value width(const Napi::CallbackInfo& info);
+    static Napi::Value height(const Napi::CallbackInfo& info);
+    //static Napi::Value open(const Napi::CallbackInfo& info);
+    static Napi::Value save(const Napi::CallbackInfo& info);
+    static Napi::Value isSolid(const Napi::CallbackInfo& info);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
-    static v8::Local<v8::Value> _isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info);
-    static NAN_METHOD(isSolidSync);
-    static NAN_METHOD(getPixel);
+    static Napi::Value _isSolidSync(const Napi::CallbackInfo& info);
+    static Napi::Value isSolidSync(const Napi::CallbackInfo& info);
+    static Napi::Value getPixel(const Napi::CallbackInfo& info);
 
     ImageView(Image * JSImage);
 
