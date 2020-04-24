@@ -172,6 +172,12 @@ And you need to have the `mapnik-config` program is available and on your `${PAT
 Then run (within the cloned `node-mapnik` directory:
 
     make release_base
+    
+or
+    
+    make debug_base
+    
+for release and debug builds, respectively.
 
 #### Note on SSE:
 
