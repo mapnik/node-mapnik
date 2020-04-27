@@ -17,33 +17,26 @@ public:
 
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
-    //static Napi::Object NewInstance(Napi::Env env, Napi::Value args);
     // ctor
     explicit Image(Napi::CallbackInfo const& info);
     // methods
     Napi::Value getType(Napi::CallbackInfo const& info);
 
-    //static Napi::Value getPixel(const Napi::CallbackInfo& info);
-    //static Napi::Value setPixel(const Napi::CallbackInfo& info);
+    Napi::Value getPixel(Napi::CallbackInfo const& info);
+    void setPixel(Napi::CallbackInfo const& info);
 
     Napi::Value encodeSync(Napi::CallbackInfo const& info);
     Napi::Value encode(Napi::CallbackInfo const& info);
     /*
-
     static Napi::Value setGrayScaleToAlpha(const Napi::CallbackInfo& info);
     */
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
 /*
-    static Napi::Value view(const Napi::CallbackInfo& info);
-    static Napi::Value _openSync(const Napi::CallbackInfo& info);
+  static Napi::Value view(const Napi::CallbackInfo& info);
 */
-
-    static Napi::Value openSync(const Napi::CallbackInfo& info);
-    //static Napi::Value open(const Napi::CallbackInfo& info);
-
-    //static void EIO_Open(uv_work_t* req);
-    //static void EIO_AfterOpen(uv_work_t* req);
+    static Napi::Value openSync(Napi::CallbackInfo const& info);
+    static Napi::Value open(Napi::CallbackInfo const& info);
 /*
     static Napi::Value _fromBytesSync(const Napi::CallbackInfo& info);
     static Napi::Value _fromBufferSync(const Napi::CallbackInfo& info);
@@ -73,11 +66,10 @@ public:
     static Napi::Value filter(const Napi::CallbackInfo& info);
     static void EIO_Filter(uv_work_t* req);
     static void EIO_AfterFilter(uv_work_t* req);
-    static Napi::Value _fillSync(const Napi::CallbackInfo& info);
-    static Napi::Value fillSync(const Napi::CallbackInfo& info);
-    static Napi::Value fill(const Napi::CallbackInfo& info);
-    static void EIO_Fill(uv_work_t* req);
-    static void EIO_AfterFill(uv_work_t* req);
+*/
+    Napi::Value fillSync(Napi::CallbackInfo const& info);
+    Napi::Value fill(Napi::CallbackInfo const& info);
+    /*
     static Napi::Value _premultiplySync(const Napi::CallbackInfo& info);
     static Napi::Value premultiplySync(const Napi::CallbackInfo& info);
     static Napi::Value premultiply(const Napi::CallbackInfo& info);
@@ -95,7 +87,9 @@ public:
     static void EIO_AfterClear(uv_work_t* req);
     static void EIO_Composite(uv_work_t* req);
     static void EIO_AfterComposite(uv_work_t* req);
-    static Napi::Value compare(const Napi::CallbackInfo& info);
+*/
+    Napi::Value compare(Napi::CallbackInfo const& info);
+/*
     static Napi::Value isSolid(const Napi::CallbackInfo& info);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
@@ -125,8 +119,9 @@ public:
     Image(image_ptr this_);
     inline image_ptr get() { return this_; }
 */
-private:
+
     static Napi::FunctionReference constructor;
+private:
     static void encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette);
     image_ptr image_;
 };

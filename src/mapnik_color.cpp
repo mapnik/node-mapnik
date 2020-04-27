@@ -46,7 +46,13 @@ Color::Color(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<Color>(info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() == 1 && info[0].IsString())
+    if (info.Length() == 1 && info[0].IsExternal())
+    {
+        auto ext = info[0].As<Napi::External<std::shared_ptr<mapnik::color>>>();
+        if (ext) color_ = **ext.Data();
+        return;
+    }
+    else if (info.Length() == 1 && info[0].IsString())
     {
         try
         {

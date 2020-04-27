@@ -5,6 +5,7 @@
 
 class Color : public Napi::ObjectWrap<Color>
 {
+    friend class Image;
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

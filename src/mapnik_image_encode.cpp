@@ -9,6 +9,7 @@
 // std
 #include <exception>
 
+
 void Image::encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette)
 {
     Napi::Env env = info.Env();
@@ -52,6 +53,8 @@ void Image::encode_common_args_(Napi::CallbackInfo const& info, std::string& for
     }
 }
 
+namespace {
+
 struct AsyncEncode : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
@@ -89,7 +92,7 @@ struct AsyncEncode : Napi::AsyncWorker
                                                   },
                                                   result_.release());
             Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
-            return {Env().Null(), buffer};
+            return {env.Null(), buffer};
         }
         return Base::GetResult(env);
     }
@@ -99,6 +102,8 @@ private:
     std::string format_;
     std::unique_ptr<std::string> result_;
 };
+
+}
 
 /**
  * Encode this image into a buffer of encoded data (synchronous)
@@ -184,7 +189,7 @@ Napi::Value Image::encode(Napi::CallbackInfo const& info)
     encode_common_args_(info, format, palette);
     // ensure callback is a function
     Napi::Value callback_val = info[info.Length() - 1];
-    if (!info[info.Length() - 1].IsFunction())
+    if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Null();

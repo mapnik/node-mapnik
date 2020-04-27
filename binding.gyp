@@ -19,6 +19,7 @@
         "src/mapnik_image.cpp",
         "src/mapnik_image_encode.cpp",
         "src/mapnik_image_open.cpp",
+        "src/mapnik_image_fill.cpp",
         #"src/mapnik_image_view.cpp",
         #"src/mapnik_grid.cpp",
         #"src/mapnik_grid_view.cpp",

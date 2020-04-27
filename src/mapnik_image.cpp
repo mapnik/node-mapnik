@@ -55,16 +55,21 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::getType>("getType"),
             InstanceMethod<&Image::encodeSync>("encodeSync"),
             InstanceMethod<&Image::encode>("encode"),
+            InstanceMethod<&Image::fillSync>("fillSync"),
+            InstanceMethod<&Image::fill>("fill"),
             InstanceMethod<&Image::width>("width"),
             InstanceMethod<&Image::height>("height"),
-            StaticMethod<&Image::openSync>("openSync")
+            InstanceMethod<&Image::setPixel>("setPixel"),
+            InstanceMethod<&Image::getPixel>("getPixel"),
+            InstanceMethod<&Image::compare>("compare"),
+            StaticMethod<&Image::openSync>("openSync"),
+            StaticMethod<&Image::open>("open")
         });
-
 /*
 
     *InstanceMethod("getType", &getType),
-    InstanceMethod("getPixel", &getPixel),
-    InstanceMethod("setPixel", &setPixel),
+    *InstanceMethod("getPixel", &getPixel),
+    *InstanceMethod("setPixel", &setPixel),
     *InstanceMethod("encodeSync", &encodeSync),
     *InstanceMethod("encode", &encode),
     InstanceMethod("view", &view),
@@ -77,8 +82,8 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     InstanceMethod("composite", &composite),
     InstanceMethod("filter", &filter),
     InstanceMethod("filterSync", &filterSync),
-    InstanceMethod("fillSync", &fillSync),
-    InstanceMethod("fill", &fill),
+    *InstanceMethod("fillSync", &fillSync),
+    !InstanceMethod("fill", &fill),
     InstanceMethod("premultiplySync", &premultiplySync),
     InstanceMethod("premultiply", &premultiply),
     InstanceMethod("premultiplied", &premultiplied),
@@ -86,7 +91,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     InstanceMethod("demultiply", &demultiply),
     InstanceMethod("clear", &clear),
     InstanceMethod("clearSync", &clearSync),
-    InstanceMethod("compare", &compare),
+    *InstanceMethod("compare", &compare),
     InstanceMethod("isSolid", &isSolid),
     InstanceMethod("isSolidSync", &isSolidSync),
     InstanceMethod("copy", &copy),
@@ -100,9 +105,10 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     ATTR(lcons, "offset", get_offset, set_offset);
 
     // This *must* go after the ATTR setting
-    Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(),
-                    "open",
-                    Image::open);
+    *Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(),
+    *                "open",
+    *                Image::open);
+
     Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(),
                     "fromBytes",
                     Image::fromBytes);
@@ -307,105 +313,104 @@ Napi::Value Image::getType(Napi::CallbackInfo const& info)
     return Napi::Number::New(info.Env(), type);
 }
 
-/*
 struct visitor_get_pixel
 {
-    visitor_get_pixel(int x, int y)
-        : x_(x), y_(y) {}
+    visitor_get_pixel(Napi::Env env, int x, int y)
+        : env_(env), x_(x), y_(y) {}
 
     Napi::Value operator() (mapnik::image_null const&)
     {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
 
-        Napi::EscapableHandleScope scope(env);
-        return scope.Escape(env.Undefined());
+        Napi::EscapableHandleScope scope(env_);
+        return scope.Escape(env_.Undefined());
     }
 
     Napi::Value operator() (mapnik::image_gray8 const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Uint32::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray8s const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Int32::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray16 const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Uint32::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray16s const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Int32::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray32 const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Uint32::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray32s const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Int32::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray32f const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray64 const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray64s const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_gray64f const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
     Napi::Value operator() (mapnik::image_rgba8 const& data)
     {
-        Napi::EscapableHandleScope scope(env);
+        Napi::EscapableHandleScope scope(env_);
         std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
+        return scope.Escape(Napi::Number::New(env_, val));
     }
 
   private:
+    Napi::Env env_;
     int x_;
     int y_;
 
 };
 
-*/
 /**
  * Get a specific pixel and its value
  * @name getPixel
@@ -430,69 +435,83 @@ struct visitor_get_pixel
  *   console.log(values); // { premultiplied: false, a: 255, b: 0, g: 128, r: 0 }
  * });
  */
-/*
-Napi::Value Image::getPixel(const Napi::CallbackInfo& info)
+
+Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
     int x = 0;
     int y = 0;
     bool get_color = false;
-    if (info.Length() >= 3) {
-
-        if (!info[2].IsObject()) {
+    if (info.Length() >= 3)
+    {
+        if (!info[2].IsObject())
+        {
             Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
             return env.Null();
         }
 
-        Napi::Object options = info[2].ToObject(Napi::GetCurrentContext());
+        Napi::Object options = info[2].As<Napi::Object>();
 
-        if ((options).Has(Napi::String::New(env, "get_color")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "get_color"));
-            if (!bind_opt->IsBoolean()) {
+        if (options.Has("get_color"))
+        {
+            Napi::Value bind_opt = options.Get("get_color");
+            if (!bind_opt.IsBoolean())
+            {
                 Napi::TypeError::New(env, "optional arg 'color' must be a boolean").ThrowAsJavaScriptException();
                 return env.Null();
             }
-            get_color = bind_opt.As<Napi::Boolean>().Value();
+            get_color = bind_opt.As<Napi::Boolean>();
         }
-
     }
 
-    if (info.Length() >= 2) {
-        if (!info[0].IsNumber()) {
+    if (info.Length() >= 2)
+    {
+        if (!info[0].IsNumber())
+        {
             Napi::TypeError::New(env, "first arg, 'x' must be an integer").ThrowAsJavaScriptException();
             return env.Null();
         }
-        if (!info[1].IsNumber()) {
+        if (!info[1].IsNumber())
+        {
             Napi::TypeError::New(env, "second arg, 'y' must be an integer").ThrowAsJavaScriptException();
             return env.Null();
         }
         x = info[0].As<Napi::Number>().Int32Value();
         y = info[1].As<Napi::Number>().Int32Value();
-    } else {
+    }
+    else
+    {
         Napi::Error::New(env, "must supply x,y to query pixel color").ThrowAsJavaScriptException();
         return env.Null();
     }
-    Image* im = info.Holder().Unwrap<Image>();
-    if (x >= 0 && x < static_cast<int>(im->this_->width())
-        && y >= 0 && y < static_cast<int>(im->this_->height()))
+
+    if (x >= 0 && x < static_cast<int>(image_->width())
+        && y >= 0 && y < static_cast<int>(image_->height()))
     {
         if (get_color)
         {
-            mapnik::color val = mapnik::get_pixel<mapnik::color>(*im->this_, x, y);
-            return Color::NewInstance(val);
-        } else {
-            visitor_get_pixel visitor(x, y);
-            return mapnik::util::apply_visitor(visitor, *im->this_);
+            Napi::EscapableHandleScope scope(env);
+            using color_ptr = std::shared_ptr<mapnik::color>;
+            color_ptr val = std::make_shared<mapnik::color>(mapnik::get_pixel<mapnik::color>(*image_, x, y));
+            Napi::Value arg = Napi::External<color_ptr>::New(env, &val);
+            Napi::Object obj = constructor.New({arg});
+            return scope.Escape(napi_value(obj)).ToObject();
+        }
+        else
+        {
+            visitor_get_pixel visitor(env, x, y);
+            return mapnik::util::apply_visitor(visitor, *image_);
         }
     }
-    return;
+    return env.Null();
 }
-*/
+
 /**
  * Set a pixels value
  * @name setPixel
  * @instance
  * @memberof Image
- * @param {number} x position within image from top left
+ * @param {number} x position within334 image from top left
  * @param {number} y position within image from top left
  * @param {Object|number} numeric or object representation of a color, typically used with {@link mapnik.Color}
  * @example
@@ -501,58 +520,46 @@ Napi::Value Image::getPixel(const Napi::CallbackInfo& info)
  * var pixel = gray.getPixel(0,0,{get_color:true});
  * console.log(pixel); // { premultiplied: false, a: 255, b: 255, g: 255, r: 255 }
  */
- /*
-Napi::Value Image::setPixel(const Napi::CallbackInfo& info)
+
+void Image::setPixel(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
     if (info.Length() < 3 || (!info[0].IsNumber() && !info[1].IsNumber())) {
         Napi::TypeError::New(env, "expects three arguments: x, y, and pixel value").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
     int x = info[0].As<Napi::Number>().Int32Value();
     int y = info[1].As<Napi::Number>().Int32Value();
-    Image* im = info.Holder().Unwrap<Image>();
-    if (x < 0 || x >= static_cast<int>(im->this_->width()) || y < 0 || y >= static_cast<int>(im->this_->height()))
+
+    if (x < 0 || x >= static_cast<int>(image_->width()) || y < 0 || y >= static_cast<int>(image_->height()))
     {
         Napi::TypeError::New(env, "invalid pixel requested").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
-    if (info[2].IsUint32())
+    if (info[2].IsNumber())
     {
-        std::uint32_t val = Napi::To<std::uint32_t>(info[2]);
-        mapnik::set_pixel<std::uint32_t>(*im->this_,x,y,val);
-    }
-    else if (info[2].IsNumber())
-    {
-        std::int32_t val = info[2].As<Napi::Number>().Int32Value();
-        mapnik::set_pixel<std::int32_t>(*im->this_,x,y,val);
-    }
-    else if (info[2].IsNumber())
-    {
-        double val = info[2].As<Napi::Number>().DoubleValue();
-        mapnik::set_pixel<double>(*im->this_,x,y,val);
+        std::uint32_t val = info[2].As<Napi::Number>().Int32Value();
+        mapnik::set_pixel<std::uint32_t>(*image_, x, y, val);
     }
     else if (info[2].IsObject())
     {
-        Napi::Object obj = info[2].ToObject(Napi::GetCurrentContext());
-        if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Color::constructor)->HasInstance(obj))
+        Napi::Object obj = info[2].As<Napi::Object>();
+        if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Color::constructor.Value()))
         {
             Napi::TypeError::New(env, "A numeric or color value is expected as third arg").ThrowAsJavaScriptException();
-
         }
         else
         {
-            Color * color = obj.Unwrap<Color>();
-            mapnik::set_pixel(*im->this_,x,y,*(color->get()));
+            Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
+            mapnik::set_pixel(*image_, x, y, color->color_);
         }
     }
     else
     {
         Napi::TypeError::New(env, "A numeric or color value is expected as third arg").ThrowAsJavaScriptException();
-
     }
-    return;
 }
- */
+
 /**
  * Compare the pixels of one image to the pixels of another. Returns the number
  * of pixels that are different. So, if the images are identical then it returns `0`.
@@ -594,15 +601,18 @@ Napi::Value Image::setPixel(const Napi::CallbackInfo& info)
  * img2.setPixel(1,0, new mapnik.Color('blue'));
  * console.log(img1.compare(img2)); // 4
  */
-  /*
-Napi::Value Image::compare(const Napi::CallbackInfo& info)
+
+Napi::Value Image::compare(Napi::CallbackInfo const& info)
 {
-    if (info.Length() < 1 || !info[0].IsObject()) {
+    Napi::Env env = info.Env();
+    if (info.Length() < 1 || !info[0].IsObject())
+    {
         Napi::TypeError::New(env, "first argument should be a mapnik.Image").ThrowAsJavaScriptException();
         return env.Null();
     }
-    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Image::constructor)->HasInstance(obj)) {
+    Napi::Object obj = info[0].As<Napi::Object>();
+    if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Image::constructor.Value()))
+    {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
         return env.Null();
     }
@@ -610,45 +620,51 @@ Napi::Value Image::compare(const Napi::CallbackInfo& info)
     int threshold = 0;
     unsigned alpha = true;
 
-    if (info.Length() > 1) {
-
-        if (!info[1].IsObject()) {
+    if (info.Length() > 1)
+    {
+        if (!info[1].IsObject())
+        {
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
             return env.Null();
         }
 
-        Napi::Object options = info[1].ToObject(Napi::GetCurrentContext());
+        Napi::Object options = info[1].As<Napi::Object>();
 
-        if ((options).Has(Napi::String::New(env, "threshold")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "threshold"));
-            if (!bind_opt.IsNumber()) {
+        if (options.Has("threshold"))
+        {
+            Napi::Value bind_opt = options.Get("threshold");
+            if (!bind_opt.IsNumber())
+            {
                 Napi::TypeError::New(env, "optional arg 'threshold' must be a number").ThrowAsJavaScriptException();
                 return env.Null();
             }
             threshold = bind_opt.As<Napi::Number>().Int32Value();
         }
 
-        if ((options).Has(Napi::String::New(env, "alpha")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "alpha"));
-            if (!bind_opt->IsBoolean()) {
+        if (options.Has("alpha"))
+        {
+            Napi::Value bind_opt = options.Get("alpha");
+            if (!bind_opt.IsBoolean())
+            {
                 Napi::TypeError::New(env, "optional arg 'alpha' must be a boolean").ThrowAsJavaScriptException();
                 return env.Null();
             }
-            alpha = bind_opt.As<Napi::Boolean>().Value();
+            alpha = bind_opt.As<Napi::Boolean>();
         }
-
     }
-    Image* im = this;
-    Image* im2 = obj.Unwrap<Image>();
-    if (im->this_->width() != im2->this_->width() ||
-        im->this_->height() != im2->this_->height()) {
+    image_ptr image2 = Napi::ObjectWrap<Image>::Unwrap(obj)->image_;
+
+    if (image_->width() != image2->width() ||
+        image_->height() != image2->height())
+    {
             Napi::TypeError::New(env, "image dimensions do not match").ThrowAsJavaScriptException();
             return env.Null();
     }
-    unsigned difference = mapnik::compare(*im->this_, *im2->this_, threshold, alpha);
+    unsigned difference = mapnik::compare(*image_, *image2, threshold, alpha);
     return Napi::Number::New(env, difference);
 }
-  */
+
+
 /**
  * Apply a filter to this image. This changes all pixel values. (synchronous)
  *
@@ -789,236 +805,7 @@ void Image::EIO_AfterFilter(uv_work_t* req)
 }
 
   */
-/**
- * Fill this image with a given color. Changes all pixel values. (synchronous)
- *
- * @name fillSync
- * @instance
- * @memberof Image
- * @param {mapnik.Color|number} color
- * @example
- * var img = new mapnik.Image(5,5);
- * // blue pixels
- * img.fillSync(new mapnik.Color('blue'));
- * var colors = img.getPixel(0,0, {get_color: true});
- * // blue value is filled
- * console.log(colors.b); // 255
- */
-/*
-Napi::Value Image::fillSync(const Napi::CallbackInfo& info)
-{
-    return _fillSync(info);
-}
 
-Napi::Value Image::_fillSync(const Napi::CallbackInfo& info) {
-    Napi::EscapableHandleScope scope(env);
-    if (info.Length() < 1 ) {
-        Napi::TypeError::New(env, "expects one argument: Color object or a number").ThrowAsJavaScriptException();
-
-        return scope.Escape(env.Undefined());
-    }
-    Image* im = info.Holder().Unwrap<Image>();
-    try
-    {
-        if (info[0].IsUint32())
-        {
-            std::uint32_t val = Napi::To<std::uint32_t>(info[0]);
-            mapnik::fill<std::uint32_t>(*im->this_,val);
-        }
-        else if (info[0].IsNumber())
-        {
-            std::int32_t val = info[0].As<Napi::Number>().Int32Value();
-            mapnik::fill<std::int32_t>(*im->this_,val);
-        }
-        else if (info[0].IsNumber())
-        {
-            double val = info[0].As<Napi::Number>().DoubleValue();
-            mapnik::fill<double>(*im->this_,val);
-        }
-        else if (info[0].IsObject())
-        {
-            Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Color::constructor)->HasInstance(obj))
-            {
-                Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-
-            }
-            else
-            {
-                Color * color = obj.Unwrap<Color>();
-                mapnik::fill(*im->this_,*(color->get()));
-            }
-        }
-        else
-        {
-            Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-
-        }
-    }
-    catch(std::exception const& ex)
-    {
-        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
-    }
-    return scope.Escape(env.Undefined());
-}
-
-enum fill_type : std::uint8_t
-{
-    FILL_COLOR = 0,
-    FILL_UINT32,
-    FILL_INT32,
-    FILL_DOUBLE
-};
-
-typedef struct {
-    uv_work_t request;
-    Image* im;
-    fill_type type;
-    mapnik::color c;
-    std::uint32_t val_u32;
-    std::int32_t val_32;
-    double val_double;
-    //std::string format;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} fill_image_baton_t;
-*/
-/**
- * Fill this image with a given color. Changes all pixel values.
- *
- * @name fill
- * @instance
- * @memberof Image
- * @param {mapnik.Color|number} color
- * @param {Function} callback - `function(err, img)`
- * @example
- * var img = new mapnik.Image(5,5);
- * img.fill(new mapnik.Color('blue'), function(err, img) {
- *   if (err) throw err;
- *   var colors = img.getPixel(0,0, {get_color: true});
- *   pixel is colored blue
- *   console.log(color.b); // 255
- * });
- *
- * // or fill with rgb string
- * img.fill('rgba(255,255,255,0)', function(err, img) { ... });
- */
-  /*
-Napi::Value Image::fill(const Napi::CallbackInfo& info)
-{
-    if (info.Length() <= 1) {
-        return _fillSync(info);
-        return;
-    }
-
-    Image* im = info.Holder().Unwrap<Image>();
-    fill_image_baton_t *closure = new fill_image_baton_t();
-    if (info[0].IsUint32())
-    {
-        closure->val_u32 = Napi::To<std::uint32_t>(info[0]);
-        closure->type = FILL_UINT32;
-    }
-    else if (info[0].IsNumber())
-    {
-        closure->val_32 = info[0].As<Napi::Number>().Int32Value();
-        closure->type = FILL_INT32;
-    }
-    else if (info[0].IsNumber())
-    {
-        closure->val_double = info[0].As<Napi::Number>().DoubleValue();
-        closure->type = FILL_DOUBLE;
-    }
-    else if (info[0].IsObject())
-    {
-        Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-        if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Color::constructor)->HasInstance(obj))
-        {
-            delete closure;
-            Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        else
-        {
-            Color * color = obj.Unwrap<Color>();
-            closure->c = *(color->get());
-        }
-    }
-    else
-    {
-        delete closure;
-        Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-    // ensure callback is a function
-    Napi::Value callback = info[info.Length()-1];
-    if (!info[info.Length()-1]->IsFunction()) {
-        delete closure;
-        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-    else
-    {
-        closure->request.data = closure;
-        closure->im = im;
-        closure->error = false;
-        closure->cb.Reset(callback.As<Napi::Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_Fill, (uv_after_work_cb)EIO_AfterFill);
-        im->Ref();
-    }
-    return;
-}
-
-void Image::EIO_Fill(uv_work_t* req)
-{
-    fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
-    try
-    {
-        switch (closure->type)
-        {
-            case FILL_UINT32:
-                mapnik::fill(*closure->im->this_, closure->val_u32);
-                break;
-            case FILL_INT32:
-                mapnik::fill(*closure->im->this_, closure->val_32);
-                break;
-            default:
-            case FILL_DOUBLE:
-                mapnik::fill(*closure->im->this_, closure->val_double);
-                break;
-            case FILL_COLOR:
-                mapnik::fill(*closure->im->this_,closure->c);
-                break;
-        }
-    }
-    catch(std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void Image::EIO_AfterFill(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    fill_image_baton_t *closure = static_cast<fill_image_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        Napi::Value argv[2] = { env.Null(), closure->im->handle() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-  */
 /**
  * Make this image transparent. (synchronous)
  *

@@ -6,6 +6,59 @@
 //
 #include "mapnik_image.hpp"
 
+namespace  {
+
+struct AsyncOpen : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncOpen(std::string const& filename, Napi::Function const& callback)
+        : Base(callback),
+          filename_(filename) {}
+
+    void Execute() override
+    {
+        boost::optional<std::string> type = mapnik::type_from_filename(filename_);
+        if (type)
+        {
+            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename_, *type));
+            if (reader.get())
+            {
+                try
+                {
+                    image_ = std::make_shared<mapnik::image_any>(reader->read(0, 0, reader->width(), reader->height()));
+                    if (!reader->has_alpha()) mapnik::set_premultiplied_alpha(*image_, true);
+                }
+                catch (std::exception const& ex)
+                {
+                    SetError(ex.what());
+                }
+            }
+            else SetError("Can't create image reader");
+        }
+        else
+        {
+            SetError("Can't determine image type from filename");
+        }
+
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        if (image_)
+        {
+            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
+            Napi::Object obj = Image::constructor.New({arg});
+            return {env.Null(), napi_value(obj)};
+        }
+        return Base::GetResult(env);
+    }
+
+private:
+    std::string filename_;
+    image_ptr image_;
+};
+
+}
+
 /**
  * Load in a pre-existing image as an image object
  * @name openSync
@@ -60,29 +113,7 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
         return scope.Escape(env.Undefined());
     }
 }
-/*
-typedef struct {
-    uv_work_t request;
-    image_ptr im;
-    std::string error_name;
-    Napi::Persistent<v8::Object> buffer;
-    Napi::FunctionReference cb;
-    bool premultiply;
-    std::uint32_t max_size;
-    const char *data;
-    size_t dataLength;
-    bool error;
-} image_mem_ptr_baton_t;
 
-typedef struct {
-    uv_work_t request;
-    image_ptr im;
-    std::string filename;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} image_file_ptr_baton_t;
-  */
 /**
  * Load in a pre-existing image as an image object
  * @name open
@@ -96,15 +127,18 @@ typedef struct {
  *   // img is now an Image object
  * });
  */
-  /*
-Napi::Value Image::open(const Napi::CallbackInfo& info)
+
+Napi::Value Image::open(Napi::CallbackInfo const& info)
 {
-    if (info.Length() == 1) {
-        return _openSync(info);
-        return;
+    Napi::Env env = info.Env();
+
+    if (info.Length() == 1)
+    {
+        return openSync(info);
     }
 
-    if (info.Length() < 2) {
+    if (info.Length() < 2)
+    {
         Napi::Error::New(env, "must provide a string argument").ThrowAsJavaScriptException();
         return env.Null();
     }
@@ -115,21 +149,20 @@ Napi::Value Image::open(const Napi::CallbackInfo& info)
     }
 
     // ensure callback is a function
-    Napi::Value callback = info[info.Length()-1];
-    if (!info[info.Length()-1]->IsFunction()) {
+    Napi::Value callback_val = info[info.Length() - 1];
+    if (!callback_val.IsFunction())
+    {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Null();
     }
-
-    image_file_ptr_baton_t *closure = new image_file_ptr_baton_t();
-    closure->request.data = closure;
-    closure->filename = TOSTR(info[0]);
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Open, (uv_after_work_cb)EIO_AfterOpen);
-    return;
+    Napi::Function callback = callback_val.As<Napi::Function>();
+    std::string filename = info[0].As<Napi::String>();
+    auto * worker = new AsyncOpen(filename, callback);
+    worker->Queue();
+    return env.Undefined();
 }
 
+/*
 void Image::EIO_Open(uv_work_t* req)
 {
     image_file_ptr_baton_t *closure = static_cast<image_file_ptr_baton_t *>(req->data);

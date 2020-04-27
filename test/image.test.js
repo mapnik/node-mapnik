@@ -4,8 +4,8 @@ var test = require('tape');
 var mapnik = require('../');
 
 //var assert = require('assert');
-//var fs = require('fs');
-//var path = require('path');
+var fs = require('fs');
+var path = require('path');
 
 //mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
@@ -563,88 +563,94 @@ test('should throw with invalid formats and bad input', (assert) => {
             });
         });
     });
-
-    it('should support comparing images', function() {
-        // if width/height don't match should throw
-        assert.throws(function() { new mapnik.Image(256, 256).compare(new mapnik.Image(256, 255)); });
-        var one = new mapnik.Image(256, 256);
-        // two blank images should exactly match
-        assert.equal(one.compare(new mapnik.Image(256, 256)),0);
-        // here we set one pixel different
-        one.setPixel(0,0,new mapnik.Color('white'));
-        assert.equal(one.compare(new mapnik.Image(256, 256)),1);
-        // here we set all pixels to be different
-        one.fill(new mapnik.Color('white'));
-        assert.equal(one.compare(new mapnik.Image(256, 256)),one.width()*one.height());
-        // now lets test comparing just rgb and not alpha
-        var two = new mapnik.Image(256, 256);
-        // white image but fully alpha
-        two.fill(new mapnik.Color('rgba(255,255,255,0)'));
-        assert.equal(two.getPixel(0,0,{get_color:true}).r, 255);
-        assert.equal(two.getPixel(0,0,{get_color:true}).g, 255);
-        assert.equal(two.getPixel(0,0,{get_color:true}).b, 255);
-        assert.equal(two.getPixel(0,0,{get_color:true}).a, 0);
-        // if we consider alpha all pixels should be different
-        assert.equal(one.compare(two),one.width()*one.height());
-        // but ignoring alpha all pixels should pass as the same
-        assert.equal(one.compare(two,{alpha:false}),0);
-        // now lets test the threshold option
-        // a minorly different color should trigger differences
-        var blank = new mapnik.Image(256, 256);
-        var blank2 = new mapnik.Image(256, 256);
-        blank2.setPixel(0,0,new mapnik.Color('rgba(16,16,16,0)'));
-        // should pass because threshold is 16 by default
-        assert.equal(blank.compare(blank2,{threshold:16}),0);
-        // with 15 or below threshold should fail
-        assert.equal(blank.compare(blank2,{threshold:15}),1);
-    });
 */
+
+test('should support comparing images', (assert) => {
+  // if width/height don't match should throw
+  assert.throws(function() { new mapnik.Image(256, 256).compare(new mapnik.Image(256, 255)); });
+  var one = new mapnik.Image(256, 256);
+  // two blank images should exactly match
+  assert.equal(one.compare(new mapnik.Image(256, 256)),0);
+  // here we set one pixel different
+  one.setPixel(0,0,new mapnik.Color('white'));
+  assert.equal(one.compare(new mapnik.Image(256, 256)),1);
+  // here we set all pixels to be different
+  one.fill(new mapnik.Color('white'));
+  assert.equal(one.compare(new mapnik.Image(256, 256)),one.width()*one.height());
+
+  // now lets test comparing just rgb and not alpha
+  var two = new mapnik.Image(256, 256);
+  // white image but fully alpha
+  two.fill(new mapnik.Color('rgba(255,255,255,0)'));
+  assert.equal(two.getPixel(0,0,{get_color:true}).r, 255);
+  assert.equal(two.getPixel(0,0,{get_color:true}).g, 255);
+  assert.equal(two.getPixel(0,0,{get_color:true}).b, 255);
+  assert.equal(two.getPixel(0,0,{get_color:true}).a, 0);
+  // if we consider alpha all pixels should be different
+  assert.equal(one.compare(two),one.width()*one.height());
+  // but ignoring alpha all pixels should pass as the same
+  assert.equal(one.compare(two,{alpha:false}),0);
+  // now lets test the threshold option
+  // a minorly different color should trigger differences
+  var blank = new mapnik.Image(256, 256);
+  var blank2 = new mapnik.Image(256, 256);
+  blank2.setPixel(0,0,new mapnik.Color('rgba(16,16,16,0)'));
+  // should pass because threshold is 16 by default
+  assert.equal(blank.compare(blank2,{threshold:16}),0);
+  // with 15 or below threshold should fail
+  assert.equal(blank.compare(blank2,{threshold:15}),1);
+  assert.end();
+});
+
 
 test('should fail to open', (assert)=> {
   assert.throws(function() { var im = new mapnik.Image.openSync(); });
-  //assert.throws(function() { var im = new mapnik.Image.open(); });
+  assert.throws(function() { var im = new mapnik.Image.open(); });
   assert.throws(function() { var im = new mapnik.Image.openSync(null); });
   assert.throws(function() { var im = new mapnik.Image.openSync('./PATH/FILE_DOES_NOT_EXIST.tiff'); });
   assert.throws(function() { var im = new mapnik.Image.openSync('./test/data/markers.xml'); });
   assert.throws(function() { var im = new mapnik.Image.openSync('./test/images/corrupt-10x10.png'); });
-  //assert.throws(function() { var im = new mapnik.Image.open(null, function(err, result) {}); });
-  //assert.throws(function() { var im = new mapnik.Image.open('./test/images/10x10.png', null); });
-  //mapnik.Image.open('./PATH/FILE_DOES_NOT_EXIST.tiff', function(err, result) {
-  //  assert.throws(function() { if (err) throw err; });
-  //  mapnik.Image.open('./test/data/markers.xml', function(err, result) {
-  //    assert.throws(function() { if (err) throw err; });
-  //    mapnik.Image.open('./test/images/corrupt-10x10.png', function(err, result) {
-  //      assert.throws(function() { if (err) throw err; });
-   //     done();
-   //   });
-   // });
-  //});
+  assert.throws(function() { var im = new mapnik.Image.open(null, function(err, result) {}); });
+  assert.throws(function() { var im = new mapnik.Image.open('./test/images/10x10.png', null); });
+  mapnik.Image.open('./PATH/FILE_DOES_NOT_EXIST.tiff', function(err, result) {
+    assert.throws(function() { if (err) throw err; });
+    mapnik.Image.open('./test/data/markers.xml', function(err, result) {
+      assert.throws(function() { if (err) throw err; });
+      mapnik.Image.open('./test/images/corrupt-10x10.png', function(err, result) {
+        assert.throws(function() { if (err) throw err; });
+      });
+    });
+  });
   assert.end();
 });
+
+
+test('should be able to open and save png', (assert) => {
+  var im = new mapnik.Image(10,10);
+  im.fill(new mapnik.Color('green'));
+  var filename = './test/data/images/10x10.png';
+  if (!fs.existsSync(filename) || process.env.UPDATE ) {
+    im.save(filename);
+  }
+  // sync open
+  assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+  // sync fromBytes
+  //assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("png")))); FIXME!
+  // async open
+  mapnik.Image.open(filename,function(err,im2) {
+    if (err) throw err;
+    assert.equal(0,im.compare(im2));
+    // async fromBytes
+    //mapnik.Image.fromBytes(im.encodeSync("png"),function(err,im3) {
+    //  if (err) throw err;
+    //  assert.equal(0,im.compare(im3));
+    //  done();
+    //});
+  });
+  assert.end();
+});
+
 /*
-    it('should be able to open and save png', function(done) {
-        var im = new mapnik.Image(10,10);
-        im.fill(new mapnik.Color('green'));
-        var filename = './test/data/images/10x10.png';
-        if (!fs.existsSync(filename) || process.env.UPDATE ) {
-            im.save(filename);
-        }
-        // sync open
-        assert.equal(0,im.compare(new mapnik.Image.open(filename)));
-        // sync fromBytes
-        assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("png"))));
-        // async open
-        mapnik.Image.open(filename,function(err,im2) {
-            if (err) throw err;
-            assert.equal(0,im.compare(im2));
-            // async fromBytes
-            mapnik.Image.fromBytes(im.encodeSync("png"),function(err,im3) {
-                if (err) throw err;
-                assert.equal(0,im.compare(im3));
-                done();
-            });
-        });
-    });
 
     it('should be able to open and save jpeg', function(done) {
         var im = new mapnik.Image(10,10);
