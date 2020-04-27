@@ -494,7 +494,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
             using color_ptr = std::shared_ptr<mapnik::color>;
             color_ptr val = std::make_shared<mapnik::color>(mapnik::get_pixel<mapnik::color>(*image_, x, y));
             Napi::Value arg = Napi::External<color_ptr>::New(env, &val);
-            Napi::Object obj = constructor.New({arg});
+            Napi::Object obj = Color::constructor.New({arg});
             return scope.Escape(napi_value(obj)).ToObject();
         }
         else
