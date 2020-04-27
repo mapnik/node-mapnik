@@ -54,7 +54,7 @@ Napi::Value Image::fillSync(Napi::CallbackInfo const& info)
             else
             {
                 Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
-                mapnik::fill(*image_,color->color_);
+                mapnik::fill(*image_, color->color_);
             }
         }
         else
