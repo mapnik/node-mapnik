@@ -618,7 +618,7 @@ test('should support comparing images', (assert) => {
   assert.end();
 });
 
-/*
+
 test('should fail to open', (assert)=> {
   assert.throws(function() { var im = new mapnik.Image.openSync(); });
   assert.throws(function() { var im = new mapnik.Image.open(); });
@@ -639,9 +639,6 @@ test('should fail to open', (assert)=> {
   });
   assert.end();
 });
-
-*/
-
 
 test('should be able to open and save png', (assert) => {
   var im = new mapnik.Image(10,10);
