@@ -447,7 +447,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
         if (!info[2].IsObject())
         {
             Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[2].As<Napi::Object>();
@@ -458,7 +458,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
             if (!bind_opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "optional arg 'color' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             get_color = bind_opt.As<Napi::Boolean>();
         }
@@ -469,12 +469,12 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
         if (!info[0].IsNumber())
         {
             Napi::TypeError::New(env, "first arg, 'x' must be an integer").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         if (!info[1].IsNumber())
         {
             Napi::TypeError::New(env, "second arg, 'y' must be an integer").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         x = info[0].As<Napi::Number>().Int32Value();
         y = info[1].As<Napi::Number>().Int32Value();
@@ -482,7 +482,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
     else
     {
         Napi::Error::New(env, "must supply x,y to query pixel color").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (x >= 0 && x < static_cast<int>(image_->width())
@@ -503,7 +503,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
             return mapnik::util::apply_visitor(visitor, *image_);
         }
     }
-    return env.Null();
+    return env.Undefined();
 }
 
 /**
