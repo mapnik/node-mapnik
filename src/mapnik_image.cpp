@@ -55,6 +55,8 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::getType>("getType"),
             InstanceMethod<&Image::encodeSync>("encodeSync"),
             InstanceMethod<&Image::encode>("encode"),
+            InstanceMethod<&Image::saveSync>("saveSync"),
+            InstanceMethod<&Image::save>("save"),
             InstanceMethod<&Image::fillSync>("fillSync"),
             InstanceMethod<&Image::fill>("fill"),
             InstanceMethod<&Image::width>("width"),
@@ -73,12 +75,12 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     *InstanceMethod("encodeSync", &encodeSync),
     *InstanceMethod("encode", &encode),
     InstanceMethod("view", &view),
-    InstanceMethod("saveSync", &saveSync),
-    InstanceMethod("save", &save),
+    *InstanceMethod("saveSync", &saveSync),
+    *InstanceMethod("save", &save),
     InstanceMethod("setGrayScaleToAlpha", &setGrayScaleToAlpha),
     InstanceMethod("width", &width),
-    InstanceMethod("height", &height),
-    InstanceMethod("painted", &painted),
+    *InstanceMethod("height", &height),
+    *InstanceMethod("painted", &painted),
     InstanceMethod("composite", &composite),
     InstanceMethod("filter", &filter),
     InstanceMethod("filterSync", &filterSync),
@@ -166,17 +168,6 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
  * });
  */
 
-
-//Image::Image(unsigned int width, unsigned int height, mapnik::image_dtype type, bool initialized, bool premultiplied, bool painted) : Napi::ObjectWrap<Image>(),
-//    image_( std::make_shared<mapnik::image_any>(width,height,type,initialized,premultiplied,painted))
-//{
-//}
-
-//Image::Image(image_ptr _this) : Napi::ObjectWrap<Image>(),
-//    this_(_this)
-//{
-//}
-
 Image::Image(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<Image>(info)
 {
@@ -206,7 +197,6 @@ Image::Image(Napi::CallbackInfo const& info)
                 if (options.Has("type"))
                 {
                     Napi::Value init_val = options.Get("type");
-
                     if (!init_val.IsEmpty() && init_val.IsNumber())
                     {
                         int int_val = init_val.As<Napi::Number>().Int32Value();
@@ -225,7 +215,6 @@ Image::Image(Napi::CallbackInfo const& info)
                         return;
                     }
                 }
-
                 if (options.Has("initialize"))
                 {
                     Napi::Value init_val = options.Get("initialize");
@@ -239,7 +228,6 @@ Image::Image(Napi::CallbackInfo const& info)
                         return;
                     }
                 }
-
                 if (options.Has("premultiplied"))
                 {
                     Napi::Value pre_val = options.Get("premultiplied");
@@ -253,7 +241,6 @@ Image::Image(Napi::CallbackInfo const& info)
                         return;
                     }
                 }
-
                 if (options.Has("painted"))
                 {
                     Napi::Value painted_val = options.Get("painted");
@@ -313,6 +300,7 @@ Napi::Value Image::getType(Napi::CallbackInfo const& info)
     return Napi::Number::New(info.Env(), type);
 }
 
+namespace {
 struct visitor_get_pixel
 {
     visitor_get_pixel(Napi::Env env, int x, int y)
@@ -411,6 +399,28 @@ struct visitor_get_pixel
 
 };
 
+struct visitor_set_pixel
+{
+    visitor_set_pixel(Napi::Number const& num, int x, int y)
+        : num_(num), x_(x), y_(y) {}
+
+    void operator() (mapnik::image_null &) const
+    {
+        // no-op
+    }
+    template <typename T>
+    void operator() (T & image) const
+    {
+        mapnik::set_pixel(image, x_, y_, num_.DoubleValue());
+    }
+  private:
+    Napi::Number const& num_;
+    int x_;
+    int y_;
+
+};
+}
+
 /**
  * Get a specific pixel and its value
  * @name getPixel
@@ -451,7 +461,6 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
         }
 
         Napi::Object options = info[2].As<Napi::Object>();
-
         if (options.Has("get_color"))
         {
             Napi::Value bind_opt = options.Get("get_color");
@@ -538,8 +547,9 @@ void Image::setPixel(Napi::CallbackInfo const& info)
     }
     if (info[2].IsNumber())
     {
-        std::uint32_t val = info[2].As<Napi::Number>().Int32Value();
-        mapnik::set_pixel<std::uint32_t>(*image_, x, y, val);
+        auto num = info[2].As<Napi::Number>();
+        visitor_set_pixel visitor(num, x, y);
+        mapnik::util::apply_visitor(visitor, *image_);
     }
     else if (info[2].IsObject())
     {
@@ -3432,179 +3442,6 @@ Napi::Value Image::view(const Napi::CallbackInfo& info)
 
     Image* im = info.Holder().Unwrap<Image>();
     return ImageView::NewInstance(im,x,y,w,h);
-}
-*/
-/**
- * Encode this image and save it to disk as a file.
- *
- * @name saveSync
- * @param {string} filename
- * @param {string} [format=png]
- * @instance
- * @memberof Image
- * @example
- * img.saveSync('foo.png');
- */
- /*
-Napi::Value Image::saveSync(const Napi::CallbackInfo& info)
-{
-    return _saveSync(info);
-}
-
-Napi::Value Image::_saveSync(const Napi::CallbackInfo& info) {
-    Napi::EscapableHandleScope scope(env);
-    Image* im = info.Holder().Unwrap<Image>();
-
-    if (info.Length() == 0 || !info[0].IsString()){
-        Napi::TypeError::New(env, "filename required to save file").ThrowAsJavaScriptException();
-
-        return scope.Escape(env.Undefined());
-    }
-
-    std::string filename = TOSTR(info[0]);
-    std::string format("");
-
-    if (info.Length() >= 2) {
-        if (!info[1].IsString()) {
-            Napi::TypeError::New(env, "both 'filename' and 'format' arguments must be strings").ThrowAsJavaScriptException();
-
-            return scope.Escape(env.Undefined());
-        }
-        format = TOSTR(info[1]);
-    }
-    else
-    {
-        format = mapnik::guess_type(filename);
-        if (format == "<unknown>") {
-            std::ostringstream s("");
-            s << "unknown output extension for: " << filename << "\n";
-            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-
-            return scope.Escape(env.Undefined());
-        }
-    }
-
-    try
-    {
-        mapnik::save_to_file(*(im->this_),filename, format);
-    }
-    catch (std::exception const& ex)
-    {
-        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
-    }
-    return scope.Escape(env.Undefined());
-}
-
-typedef struct {
-    uv_work_t request;
-    Image* im;
-    std::string format;
-    std::string filename;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} save_image_baton_t;
- */
-/**
- * Encode this image and save it to disk as a file.
- *
- * @name save
- * @param {string} filename
- * @param {string} [format=png]
- * @param {Function} callback
- * @instance
- * @memberof Image
- * @example
- * img.save('image.png', 'png', function(err) {
- *   if (err) throw err;
- *   // your custom code
- * });
- */
-  /*
-Napi::Value Image::save(const Napi::CallbackInfo& info)
-{
-    Image* im = info.Holder().Unwrap<Image>();
-
-    if (info.Length() == 0 || !info[0].IsString()){
-        Napi::TypeError::New(env, "filename required to save file").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (!info[info.Length()-1]->IsFunction()) {
-        return _saveSync(info);
-        return;
-    }
-    // ensure callback is a function
-    Napi::Value callback = info[info.Length()-1];
-
-    std::string filename = TOSTR(info[0]);
-    std::string format("");
-
-    if (info.Length() >= 3) {
-        if (!info[1].IsString()) {
-            Napi::TypeError::New(env, "both 'filename' and 'format' arguments must be strings").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        format = TOSTR(info[1]);
-    }
-    else
-    {
-        format = mapnik::guess_type(filename);
-        if (format == "<unknown>") {
-            std::ostringstream s("");
-            s << "unknown output extension for: " << filename << "\n";
-            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-            return env.Null();
-        }
-    }
-
-    save_image_baton_t *closure = new save_image_baton_t();
-    closure->request.data = closure;
-    closure->format = format;
-    closure->filename = filename;
-    closure->im = im;
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Save, (uv_after_work_cb)EIO_AfterSave);
-    im->Ref();
-    return;
-}
-
-void Image::EIO_Save(uv_work_t* req)
-{
-    save_image_baton_t *closure = static_cast<save_image_baton_t *>(req->data);
-    try
-    {
-        mapnik::save_to_file(*(closure->im->this_),
-                             closure->filename,
-                             closure->format);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void Image::EIO_AfterSave(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    save_image_baton_t *closure = static_cast<save_image_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        Napi::Value argv[1] = { env.Null() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
 }
 
 typedef struct {

@@ -32,6 +32,9 @@ public:
     */
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
+    void saveSync(Napi::CallbackInfo const& info);
+    void save(Napi::CallbackInfo const& info);
+
 /*
   static Napi::Value view(const Napi::CallbackInfo& info);
 */
