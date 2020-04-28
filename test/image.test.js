@@ -291,37 +291,38 @@ test('should be initialized properly via async constructors', (assert) => {
             done();
         });
     });
-
-    it('should support setting the alpha channel based on the amount of gray', function() {
-        var gray = new mapnik.Image(256, 256);
-        gray.fill(new mapnik.Color('white'));
-        assert.throws(function() { gray.setGrayScaleToAlpha(null) });
-        assert.throws(function() { gray.setGrayScaleToAlpha({}) });
-        gray.setGrayScaleToAlpha();
-        var gray_view = gray.view(0, 0, gray.width(), gray.height());
-        assert.equal(gray_view.isSolidSync(), true);
-        var pixel = gray.getPixel(0, 0, {get_color:true});
-        assert.equal(pixel.r, 255);
-        assert.equal(pixel.g, 255);
-        assert.equal(pixel.b, 255);
-        assert.equal(pixel.a, 255);
-
-        gray.fill(new mapnik.Color('black'));
-        gray.setGrayScaleToAlpha();
-        var pixel2 = gray.getPixel(0, 0, {get_color:true});
-        assert.equal(pixel2.r, 255);
-        assert.equal(pixel2.g, 255);
-        assert.equal(pixel2.b, 255);
-        assert.equal(pixel2.a, 0);
-
-        gray.setGrayScaleToAlpha(new mapnik.Color('green'));
-        var pixel3 = gray.getPixel(0, 0, {get_color:true});
-        assert.equal(pixel3.r, 0);
-        assert.equal(pixel3.g, 128);
-        assert.equal(pixel3.b, 0);
-        assert.equal(pixel3.a, 255);
-    });
 */
+test('should support setting the alpha channel based on the amount of gray', (assert) => {
+  var gray = new mapnik.Image(256, 256);
+  gray.fill(new mapnik.Color('white'));
+  assert.throws(function() { gray.setGrayScaleToAlpha(null) });
+  assert.throws(function() { gray.setGrayScaleToAlpha({}) });
+  gray.setGrayScaleToAlpha();
+  //var gray_view = gray.view(0, 0, gray.width(), gray.height());
+  //assert.equal(gray_view.isSolidSync(), true); <--------------------FIXME
+  var pixel = gray.getPixel(0, 0, {get_color:true});
+  assert.equal(pixel.r, 255);
+  assert.equal(pixel.g, 255);
+  assert.equal(pixel.b, 255);
+  assert.equal(pixel.a, 255);
+
+  gray.fill(new mapnik.Color('black'));
+  gray.setGrayScaleToAlpha();
+  var pixel2 = gray.getPixel(0, 0, {get_color:true});
+  assert.equal(pixel2.r, 255);
+  assert.equal(pixel2.g, 255);
+  assert.equal(pixel2.b, 255);
+  assert.equal(pixel2.a, 0);
+
+  gray.setGrayScaleToAlpha(new mapnik.Color('green'));
+  var pixel3 = gray.getPixel(0, 0, {get_color:true});
+  assert.equal(pixel3.r, 0);
+  assert.equal(pixel3.g, 128);
+  assert.equal(pixel3.b, 0);
+  assert.equal(pixel3.a, 255);
+  assert.end();
+});
+
 test('should fail to compare', (assert) => {
   var im1 = new mapnik.Image(256,256);
   var im2 = new mapnik.Image(256,256);

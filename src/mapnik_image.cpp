@@ -66,6 +66,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::setPixel>("setPixel"),
             InstanceMethod<&Image::getPixel>("getPixel"),
             InstanceMethod<&Image::compare>("compare"),
+            InstanceMethod<&Image::setGrayScaleToAlpha>("setGrayScaleToAlpha"),
             StaticMethod<&Image::openSync>("openSync"),
             StaticMethod<&Image::open>("open")
         });
@@ -952,38 +953,40 @@ void Image::EIO_AfterClear(uv_work_t* req)
  * // turns a black pixel into a completely transparent mask
  * console.log(image.getPixel(0,0, {get_color:true})); // { premultiplied: false, a: 0, b: 255, g: 255, r: 255 }
  */
-/*
-Napi::Value Image::setGrayScaleToAlpha(const Napi::CallbackInfo& info)
+
+Napi::Value Image::setGrayScaleToAlpha(Napi::CallbackInfo const& info)
 {
-    Image* im = info.Holder().Unwrap<Image>();
-    if (info.Length() == 0) {
-        mapnik::set_grayscale_to_alpha(*im->this_);
-    } else {
-        if (!info[0].IsObject()) {
-            Napi::TypeError::New(env, "optional first arg must be a mapnik.Color").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-
-        if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Color::constructor)->HasInstance(obj)) {
-            Napi::TypeError::New(env, "mapnik.Color expected as first arg").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Color * color = obj.Unwrap<Color>();
-        mapnik::set_grayscale_to_alpha(*im->this_, *color->get());
+    Napi::Env env = info.Env();
+    if (info.Length() == 0)
+    {
+        mapnik::set_grayscale_to_alpha(*image_);
+        return env.Null();
+    }
+    else if (!info[0].IsObject())
+    {
+        Napi::TypeError::New(env, "optional first arg must be a mapnik.Color").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    return;
+    Napi::Object obj = info[0].As<Napi::Object>();
+    if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Color::constructor.Value()))
+    {
+        Napi::TypeError::New(env, "mapnik.Color expected as first arg").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
+    mapnik::set_grayscale_to_alpha(*image_, color->color_);
+    return env.Null();
 }
 
+/*
 typedef struct {
     uv_work_t request;
     Image* im;
     Napi::FunctionReference cb;
 } image_op_baton_t;
 */
+
 /**
  * Determine whether the given image is premultiplied.
  * https://en.wikipedia.org/wiki/Alpha_compositing

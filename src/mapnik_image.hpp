@@ -27,9 +27,7 @@ public:
 
     Napi::Value encodeSync(Napi::CallbackInfo const& info);
     Napi::Value encode(Napi::CallbackInfo const& info);
-    /*
-    static Napi::Value setGrayScaleToAlpha(const Napi::CallbackInfo& info);
-    */
+    Napi::Value setGrayScaleToAlpha(Napi::CallbackInfo const& info);
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
     void saveSync(Napi::CallbackInfo const& info);
