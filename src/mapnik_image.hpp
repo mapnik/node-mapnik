@@ -57,11 +57,13 @@ public:
     static void EIO_AfterFromSVG(uv_work_t* req);
     static void EIO_FromSVGBytes(uv_work_t* req);
     static void EIO_AfterFromSVGBytes(uv_work_t* req);
-    static Napi::Value _saveSync(const Napi::CallbackInfo& info);
-    static Napi::Value saveSync(const Napi::CallbackInfo& info);
-    static Napi::Value save(const Napi::CallbackInfo& info);
-    static void EIO_Save(uv_work_t* req);
-    static void EIO_AfterSave(uv_work_t* req);
+
+    // static Napi::Value _saveSync(const Napi::CallbackInfo& info);
+    // static Napi::Value saveSync(const Napi::CallbackInfo& info);
+    // static Napi::Value save(const Napi::CallbackInfo& info);
+    // static void EIO_Save(uv_work_t* req);
+    // static void EIO_AfterSave(uv_work_t* req);
+
     static Napi::Value painted(const Napi::CallbackInfo& info);
     static Napi::Value composite(const Napi::CallbackInfo& info);
     static Napi::Value _filterSync(const Napi::CallbackInfo& info);
@@ -109,19 +111,12 @@ public:
     static Napi::Value _resizeSync(const Napi::CallbackInfo& info);
     static Napi::Value resizeSync(const Napi::CallbackInfo& info);
     static Napi::Value data(const Napi::CallbackInfo& info);
-
-    Napi::Value get_scaling(const Napi::CallbackInfo& info);
-    void set_scaling(const Napi::CallbackInfo& info, const Napi::Value& value);
-    Napi::Value get_offset(const Napi::CallbackInfo& info);
-    void set_offset(const Napi::CallbackInfo& info, const Napi::Value& value);
-
-    using Napi::ObjectWrap::Ref;
-    using Napi::ObjectWrap::Unref;
-
-    Image(unsigned int width, unsigned int height, mapnik::image_dtype type, bool initialized, bool premultiplied, bool painted);
-    Image(image_ptr this_);
-    inline image_ptr get() { return this_; }
 */
+    // accessors
+    Napi::Value scaling(Napi::CallbackInfo const& info);
+    void scaling(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value offset(Napi::CallbackInfo const& info);
+    void offset(Napi::CallbackInfo const& info, Napi::Value const& value);
 
     static Napi::FunctionReference constructor;
 private:

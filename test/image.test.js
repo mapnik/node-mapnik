@@ -7,8 +7,6 @@ var path = require('path');
 
 //mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
-//describe('mapnik.Image ', function() {
-
 test('should throw with invalid usage', (assert) => {
   // no 'new' keyword
   assert.throws(function() { mapnik.Image(1, 1);});
@@ -27,7 +25,6 @@ test('should throw with invalid usage', (assert) => {
   assert.throws(function() { new mapnik.Image('a', 'b', 'c'); });
   assert.end();
 });
-
 
 test('should initialize image successfully with options', (assert) => {
   var options = {
@@ -128,31 +125,34 @@ test('should throw with invalid encoding format 3', (assert) => {
   });
 });
 
+
+test('should be initialized properly', (assert) => {
+  var im = new mapnik.Image(256, 256);
+  assert.ok(im instanceof mapnik.Image);
+
+  assert.equal(im.width(), 256);
+  assert.equal(im.height(), 256);
+  assert.throws(function() { im.view(); });
+  /* FIXME
+  var v = im.view(0, 0, 256, 256);
+  assert.ok(v instanceof mapnik.ImageView);
+  assert.equal(v.width(), 256);
+  assert.equal(v.height(), 256);
+  assert.equal(im.encodeSync().length, v.encodeSync().length);
+*/
+  var tmp_filename = './test/tmp/image'+Math.random()+'.png';
+  im.save(tmp_filename);
+
+  var im2 = new mapnik.Image.open(tmp_filename);
+  assert.ok(im2 instanceof mapnik.Image);
+
+  assert.equal(im2.width(), 256);
+  assert.equal(im2.height(), 256);
+  assert.equal(im.encodeSync().length, im2.encodeSync().length);
+  assert.end();
+});
+
 /*
-    it('should be initialized properly', function() {
-        var im = new mapnik.Image(256, 256);
-        assert.ok(im instanceof mapnik.Image);
-
-        assert.equal(im.width(), 256);
-        assert.equal(im.height(), 256);
-        assert.throws(function() { im.view(); });
-        var v = im.view(0, 0, 256, 256);
-        assert.ok(v instanceof mapnik.ImageView);
-        assert.equal(v.width(), 256);
-        assert.equal(v.height(), 256);
-        assert.equal(im.encodeSync().length, v.encodeSync().length);
-        var tmp_filename = './test/tmp/image'+Math.random()+'.png';
-        im.save(tmp_filename);
-
-        var im2 = new mapnik.Image.open(tmp_filename);
-        assert.ok(im2 instanceof mapnik.Image);
-
-        assert.equal(im2.width(), 256);
-        assert.equal(im2.height(), 256);
-
-        assert.equal(im.encodeSync().length, im2.encodeSync().length);
-    });
-
     it('should be able to open via byte stream', function(done) {
         var im = new mapnik.Image(256, 256);
         // png
@@ -495,7 +495,7 @@ test('should support have set_pixel protecting overflow and underflows', (assert
   assert.end();
 });
 
-/*
+
 test('should support scaling and offset', (assert) => {
   var im = new mapnik.Image(4, 4, {type: mapnik.imageType.gray16});
   assert.equal(im.scaling, 1);
@@ -510,6 +510,7 @@ test('should support scaling and offset', (assert) => {
   assert.end();
 });
 
+/*
 it('should fail to copy a null image', function(done) {
         var im = new mapnik.Image(4,4,{type: mapnik.imageType.null});
         var im3 = new mapnik.Image(4,4,{type: mapnik.imageType.gray8});

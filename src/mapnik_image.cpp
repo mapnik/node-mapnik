@@ -52,6 +52,8 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     Napi::HandleScope scope(env);
 
     Napi::Function func = DefineClass(env, "Image", {
+            InstanceAccessor<&Image::offset, &Image::offset>("offset"),
+            InstanceAccessor<&Image::scaling, &Image::scaling>("scaling"),
             InstanceMethod<&Image::getType>("getType"),
             InstanceMethod<&Image::encodeSync>("encodeSync"),
             InstanceMethod<&Image::encode>("encode"),
@@ -103,8 +105,8 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     InstanceMethod("data", &data),
 
     // properties
-    ATTR(lcons, "scaling", get_scaling, set_scaling);
-    ATTR(lcons, "offset", get_offset, set_offset);
+    *ATTR(lcons, "scaling", get_scaling, set_scaling);
+    *ATTR(lcons, "offset", get_offset, set_offset);
 
     // This *must* go after the ATTR setting
     *Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(),
@@ -3677,21 +3679,36 @@ void Image::EIO_AfterComposite(uv_work_t* req)
     delete closure;
 }
 
-Napi::Value Image::get_scaling(const Napi::CallbackInfo& info)
+*/
+
+
+Napi::Value Image::offset(Napi::CallbackInfo const& info)
 {
-    Image* im = info.Holder().Unwrap<Image>();
-    return Napi::Number::New(env, im->this_->get_scaling());
+    return Napi::Number::New(info.Env(), image_->get_offset());
 }
 
-Napi::Value Image::get_offset(const Napi::CallbackInfo& info)
+void Image::offset(Napi::CallbackInfo const& info, Napi::Value const& value)
 {
-    Image* im = info.Holder().Unwrap<Image>();
-    return Napi::Number::New(env, im->this_->get_offset());
+    Napi::Env env = info.Env();
+    if (!value.IsNumber())
+    {
+        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        double val = value.As<Napi::Number>().DoubleValue();
+        image_->set_offset(val);
+    }
 }
 
-void Image::set_scaling(const Napi::CallbackInfo& info, const Napi::Value& value)
+Napi::Value Image::scaling(Napi::CallbackInfo const& info)
 {
-    Image* im = info.Holder().Unwrap<Image>();
+    return Napi::Number::New(info.Env(), image_->get_scaling());
+}
+
+void Image::scaling(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
@@ -3703,27 +3720,13 @@ void Image::set_scaling(const Napi::CallbackInfo& info, const Napi::Value& value
         if (val == 0.0)
         {
             Napi::Error::New(env, "Scaling value can not be zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        im->this_->set_scaling(val);
+        image_->set_scaling(val);
     }
 }
 
-void Image::set_offset(const Napi::CallbackInfo& info, const Napi::Value& value)
-{
-    Image* im = info.Holder().Unwrap<Image>();
-    if (!value.IsNumber())
-    {
-        Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
 
-    }
-    else
-    {
-        double val = value.As<Napi::Number>().DoubleValue();
-        im->this_->set_offset(val);
-    }
-}
-*/
 /**
  * Return a copy of the pixel data in this image as a buffer
  *
