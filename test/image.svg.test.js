@@ -95,7 +95,7 @@ test('blocks allocating a very large image', (assert) => {
 test('customized the max image size to block', (assert) => {
   // 65535 is the max width/height in mapnik
   var svgdata = "<svg width='65535' height='65535'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
-  var buffer = new Buffer(svgdata);
+  var buffer = Buffer.from(svgdata);
   mapnik.Image.fromSVGBytes(buffer, {max_size:2049}, function(err, img) {
     assert.ok(err);
     assert.ok(err.message.match(/image created from svg must be 2049 pixels or fewer on each side/));
@@ -106,7 +106,7 @@ test('customized the max image size to block', (assert) => {
 test('max image size blocks dimension*scale', (assert) => {
   // 65535 is the max width/height in mapnik
   var svgdata = "<svg width='5000' height='5000'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
-  var buffer = new Buffer(svgdata);
+  var buffer = Buffer.from(svgdata);
   mapnik.Image.fromSVGBytes(buffer, {scale: 2, max_size:10000-1}, function(err, img) {
     assert.ok(err);
     assert.ok(err.message.match(/image created from svg must be 9999 pixels or fewer on each side/));
@@ -144,7 +144,7 @@ test('should err with async file w/o width or height', (assert) => {
 
 test('should err with async file w/o width or height as Bytes', (assert) => {
   var svgdata = "<svg width='0' height='0'><g id='a'><ellipse fill='#FFFFFF' stroke='#000000' stroke-width='4' cx='50' cy='50' rx='25' ry='25'/></g></svg>";
-  var buffer = new Buffer(svgdata);
+  var buffer = Buffer.from(svgdata);
   mapnik.Image.fromSVGBytes(buffer, function(err, img) {
     assert.ok(err);
     assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
