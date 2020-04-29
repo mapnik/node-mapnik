@@ -33,80 +33,47 @@ public:
     void saveSync(Napi::CallbackInfo const& info);
     void save(Napi::CallbackInfo const& info);
 
-/*
-  static Napi::Value view(const Napi::CallbackInfo& info);
-*/
+//static Napi::Value view(const Napi::CallbackInfo& info);
+
     static Napi::Value openSync(Napi::CallbackInfo const& info);
     static Napi::Value open(Napi::CallbackInfo const& info);
+    static Napi::Value fromBytesSync(Napi::CallbackInfo const& info);
+    static Napi::Value fromBytes(Napi::CallbackInfo const& info);
+
+//static Napi::Value fromBufferSync(Napi::CallbackInfo const& info);
+
+    static Napi::Value fromSVGSync(Napi::CallbackInfo const& info);
+    static Napi::Value fromSVG(Napi::CallbackInfo const& info);
+    static Napi::Value fromSVGBytesSync(Napi::CallbackInfo const& info);
+    static Napi::Value fromSVGBytes(Napi::CallbackInfo const& info);
+
 /*
-    static Napi::Value _fromBytesSync(const Napi::CallbackInfo& info);
-    static Napi::Value _fromBufferSync(const Napi::CallbackInfo& info);
-    static Napi::Value fromBytesSync(const Napi::CallbackInfo& info);
-    static Napi::Value fromBufferSync(const Napi::CallbackInfo& info);
-    static Napi::Value fromBytes(const Napi::CallbackInfo& info);
-    static void EIO_FromBytes(uv_work_t* req);
-    static void EIO_AfterFromBytes(uv_work_t* req);
-    static Napi::Value _fromSVGSync(bool fromFile, const Napi::CallbackInfo& info);
-    static Napi::Value fromSVGSync(const Napi::CallbackInfo& info);
-    static Napi::Value fromSVG(const Napi::CallbackInfo& info);
-    static Napi::Value fromSVGBytesSync(const Napi::CallbackInfo& info);
-    static Napi::Value fromSVGBytes(const Napi::CallbackInfo& info);
-    static void EIO_FromSVG(uv_work_t* req);
-    static void EIO_AfterFromSVG(uv_work_t* req);
-    static void EIO_FromSVGBytes(uv_work_t* req);
-    static void EIO_AfterFromSVGBytes(uv_work_t* req);
-
-    // static Napi::Value _saveSync(const Napi::CallbackInfo& info);
-    // static Napi::Value saveSync(const Napi::CallbackInfo& info);
-    // static Napi::Value save(const Napi::CallbackInfo& info);
-    // static void EIO_Save(uv_work_t* req);
-    // static void EIO_AfterSave(uv_work_t* req);
-
     static Napi::Value painted(const Napi::CallbackInfo& info);
     static Napi::Value composite(const Napi::CallbackInfo& info);
     static Napi::Value _filterSync(const Napi::CallbackInfo& info);
     static Napi::Value filterSync(const Napi::CallbackInfo& info);
     static Napi::Value filter(const Napi::CallbackInfo& info);
-    static void EIO_Filter(uv_work_t* req);
-    static void EIO_AfterFilter(uv_work_t* req);
 */
     Napi::Value fillSync(Napi::CallbackInfo const& info);
     Napi::Value fill(Napi::CallbackInfo const& info);
     /*
-    static Napi::Value _premultiplySync(const Napi::CallbackInfo& info);
     static Napi::Value premultiplySync(const Napi::CallbackInfo& info);
     static Napi::Value premultiply(const Napi::CallbackInfo& info);
-    static Napi::Value premultiplied(const Napi::CallbackInfo& info);
-    static void EIO_Premultiply(uv_work_t* req);
-    static Napi::Value _demultiplySync(const Napi::CallbackInfo& info);
+    */
+    Napi::Value premultiplied(Napi::CallbackInfo const& info);
+    /*
     static Napi::Value demultiplySync(const Napi::CallbackInfo& info);
     static Napi::Value demultiply(const Napi::CallbackInfo& info);
-    static void EIO_Demultiply(uv_work_t* req);
-    static void EIO_AfterMultiply(uv_work_t* req);
-    static Napi::Value _clearSync(const Napi::CallbackInfo& info);
     static Napi::Value clearSync(const Napi::CallbackInfo& info);
     static Napi::Value clear(const Napi::CallbackInfo& info);
-    static void EIO_Clear(uv_work_t* req);
-    static void EIO_AfterClear(uv_work_t* req);
-    static void EIO_Composite(uv_work_t* req);
-    static void EIO_AfterComposite(uv_work_t* req);
 */
     Napi::Value compare(Napi::CallbackInfo const& info);
 /*
     static Napi::Value isSolid(const Napi::CallbackInfo& info);
-    static void EIO_IsSolid(uv_work_t* req);
-    static void EIO_AfterIsSolid(uv_work_t* req);
-    static Napi::Value _isSolidSync(const Napi::CallbackInfo& info);
     static Napi::Value isSolidSync(const Napi::CallbackInfo& info);
     static Napi::Value copy(const Napi::CallbackInfo& info);
-    static void EIO_Copy(uv_work_t* req);
-    static void EIO_AfterCopy(uv_work_t* req);
-    static Napi::Value _copySync(const Napi::CallbackInfo& info);
     static Napi::Value copySync(const Napi::CallbackInfo& info);
     static Napi::Value resize(const Napi::CallbackInfo& info);
-    static void EIO_Resize(uv_work_t* req);
-    static void EIO_AfterResize(uv_work_t* req);
-    static Napi::Value _resizeSync(const Napi::CallbackInfo& info);
     static Napi::Value resizeSync(const Napi::CallbackInfo& info);
     static Napi::Value data(const Napi::CallbackInfo& info);
 */

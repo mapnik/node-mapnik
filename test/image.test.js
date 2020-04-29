@@ -93,30 +93,29 @@ test('should throw with invalid formats and bad input', (assert) => {
   });
 });
 
-/*
-    it('should throw with invalid binary read from buffer', function(done) {
-        assert.throws(function() { mapnik.Image.fromBytesSync(); });
-        assert.throws(function() { mapnik.Image.fromBytes(); });
-        assert.throws(function() { mapnik.Image.fromBytes(null); });
-        assert.throws(function() { mapnik.Image.fromBytes(null, function(err, result) {}); });
-        assert.throws(function() { mapnik.Image.fromBytes({}); });
-        assert.throws(function() { mapnik.Image.fromBytes({}, function(err, result) {}); });
-        assert.throws(function() { mapnik.Image.fromBytesSync({}); });
-        assert.throws(function() { mapnik.Image.fromBytes(new Buffer(0)); });
-        assert.throws(function() { mapnik.Image.fromBytes(new Buffer(0),{premultiply:1},function(){}); });
-        assert.throws(function() { mapnik.Image.fromBytes(new Buffer(0), null); });
-        assert.throws(function() { mapnik.Image.fromBytesSync(new Buffer(1024)); });
-        var buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
-        assert.throws(function() { mapnik.Image.fromBytesSync(buffer); });
-        buffer = new Buffer('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
-        assert.throws(function() { mapnik.Image.fromBytesSync(buffer); });
-        var stuff = mapnik.Image.fromBytes(buffer, function(err, result) {
-            assert.throws(function() { if (err) throw err; });
 
-            done();
-        });
-    });
-*/
+test('should throw with invalid binary read from buffer', (assert) => {
+  assert.throws(function() { mapnik.Image.fromBytesSync(); });
+  assert.throws(function() { mapnik.Image.fromBytes(); });
+  assert.throws(function() { mapnik.Image.fromBytes(null); });
+  assert.throws(function() { mapnik.Image.fromBytes(null, function(err, result) {}); });
+  assert.throws(function() { mapnik.Image.fromBytes({}); });
+  assert.throws(function() { mapnik.Image.fromBytes({}, function(err, result) {}); });
+  assert.throws(function() { mapnik.Image.fromBytesSync({}); });
+  assert.throws(function() { mapnik.Image.fromBytes(Buffer.alloc(0)); });
+  assert.throws(function() { mapnik.Image.fromBytes(Buffer.alloc(0),{premultiply:1},function(){}); });
+  assert.throws(function() { mapnik.Image.fromBytes(Buffer.alloc(0), null); });
+  assert.throws(function() { mapnik.Image.fromBytesSync(Buffer.alloc(1024)); });
+  var buffer = Buffer.from('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A' + new Array(48).join('\0'), 'binary');
+  assert.throws(function() { mapnik.Image.fromBytesSync(buffer); });
+  buffer = Buffer.from('\x89\x50\x4E\x47\x0D\x0A\x1A\x0A', 'binary');
+  assert.throws(function() { mapnik.Image.fromBytesSync(buffer); });
+  var stuff = mapnik.Image.fromBytes(buffer, function(err, result) {
+    assert.throws(function() { if (err) throw err; });
+    assert.end();
+  });
+});
+
 test('should throw with invalid encoding format 3', (assert) => {
   var im = new mapnik.Image(256, 256);
   im.encode('foo',function(err) {
@@ -152,31 +151,31 @@ test('should be initialized properly', (assert) => {
   assert.end();
 });
 
-/*
-    it('should be able to open via byte stream', function(done) {
-        var im = new mapnik.Image(256, 256);
-        // png
-        var tmp_filename1 = './test/tmp/image2'+Math.random()+'.png';
-        im.save(tmp_filename1);
-        var buffer = fs.readFileSync(tmp_filename1);
-        var im2 = new mapnik.Image.fromBytesSync(buffer);
-        assert.ok(im2 instanceof mapnik.Image);
-        assert.equal(im2.width(), 256);
-        assert.equal(im2.height(), 256);
-        assert.equal(im.encodeSync("png32").length, im2.encodeSync("png32").length);
-        // jpeg
-        var tmp_filename2 = './test/tmp/image2'+Math.random()+'.jpeg';
-        im.save(tmp_filename2, 'jpeg', function(err) {
-            var buffer2 = fs.readFileSync(tmp_filename2);
-            var im3 = new mapnik.Image.fromBytesSync(buffer2);
-            assert.ok(im3 instanceof mapnik.Image);
-            assert.equal(im3.width(), 256);
-            assert.equal(im3.height(), 256);
-            assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
-            done();
-        });
-    });
-*/
+
+test('should be able to open via byte stream', (assert) => {
+  var im = new mapnik.Image(256, 256);
+  // png
+  var tmp_filename1 = './test/tmp/image2'+Math.random()+'.png';
+  im.save(tmp_filename1);
+  var buffer = fs.readFileSync(tmp_filename1);
+  var im2 = new mapnik.Image.fromBytesSync(buffer);
+  assert.ok(im2 instanceof mapnik.Image);
+  assert.equal(im2.width(), 256);
+  assert.equal(im2.height(), 256);
+  assert.equal(im.encodeSync("png32").length, im2.encodeSync("png32").length);
+  // jpeg
+  var tmp_filename2 = './test/tmp/image2'+Math.random()+'.jpeg';
+  im.save(tmp_filename2, 'jpeg', function(err) {
+    var buffer2 = fs.readFileSync(tmp_filename2);
+    var im3 = new mapnik.Image.fromBytesSync(buffer2);
+    assert.ok(im3 instanceof mapnik.Image);
+    assert.equal(im3.width(), 256);
+    assert.equal(im3.height(), 256);
+    assert.equal(im.encodeSync("jpeg").length, im3.encodeSync("jpeg").length);
+    assert.end();
+  });
+});
+
 test('should be initialized properly via async constructors', (assert) => {
   var im = new mapnik.Image(256, 256);
   var tmp_filename = './test/tmp/image3'+Math.random()+'.png';
@@ -187,16 +186,17 @@ test('should be initialized properly via async constructors', (assert) => {
     assert.equal(im2.width(), 256);
     assert.equal(im2.height(), 256);
     assert.equal(im.encodeSync().length, im2.encodeSync().length);
-    //mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) { // FIXME
-    //  if (err) throw err;
-    //  assert.ok(im3 instanceof mapnik.Image);
-    //  assert.equal(im3.width(), 256);
-    //  assert.equal(im3.height(), 256);
-    //  assert.equal(im.encodeSync("png32").length, im3.encodeSync("png32").length);
-    assert.end();
-    //});
+    mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) { // FIXME
+      if (err) throw err;
+      assert.ok(im3 instanceof mapnik.Image);
+      assert.equal(im3.width(), 256);
+      assert.equal(im3.height(), 256);
+      assert.equal(im.encodeSync("png32").length, im3.encodeSync("png32").length);
+      assert.end();
+    });
   });
 });
+
 /*
     it('should support premultiply and demultiply', function(done) {
         var im = new mapnik.Image(5,5);
@@ -651,17 +651,17 @@ test('should be able to open and save png', (assert) => {
   // sync open
   assert.equal(0,im.compare(new mapnik.Image.open(filename)));
   // sync fromBytes
-  //assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("png")))); FIXME!
+  assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("png"))));
   // async open
   mapnik.Image.open(filename,function(err,im2) {
     if (err) throw err;
     assert.equal(0,im.compare(im2));
     // async fromBytes
-    //mapnik.Image.fromBytes(im.encodeSync("png"),function(err,im3) {
-    //  if (err) throw err;
-    //  assert.equal(0,im.compare(im3));
+    mapnik.Image.fromBytes(im.encodeSync("png"),function(err,im3) {
+      if (err) throw err;
+      assert.equal(0,im.compare(im3));
     assert.end();
-    //});
+    });
   });
 });
 
@@ -677,17 +677,17 @@ test('should be able to open and save jpeg', (assert) => {
   // sync open
   assert.equal(0,im.compare(new mapnik.Image.open(filename)));
   // sync fromBytes
-  // assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("jpeg")))); FIXME
+  assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("jpeg"))));
   // async open
   mapnik.Image.open(filename,function(err,im2) {
     if (err) throw err;
     assert.equal(0,im.compare(im2));
     // async fromBytes
-    //mapnik.Image.fromBytes(im.encodeSync("jpeg"),function(err,im3) {
-    //  if (err) throw err;
-    //  assert.equal(0,im.compare(im3));
+    mapnik.Image.fromBytes(im.encodeSync("jpeg"),function(err,im3) {
+      if (err) throw err;
+      assert.equal(0,im.compare(im3));
       assert.end();
-    //});
+    });
   });
 });
 
@@ -701,17 +701,17 @@ test('should be able to open and save tiff', (assert) => {
   // sync open
   assert.equal(0,im.compare(new mapnik.Image.open(filename)));
   // sync fromBytes
-  //assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("tiff")))); // FIXME
+  assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("tiff"))));
   // async open
   mapnik.Image.open(filename,function(err,im2) {
     if (err) throw err;
     assert.equal(0,im.compare(im2));
     // async fromBytes
-    //mapnik.Image.fromBytes(im.encodeSync("tiff"),function(err,im3) {
-    //  if (err) throw err;
-    //  assert.equal(0,im.compare(im3));
+    mapnik.Image.fromBytes(im.encodeSync("tiff"),function(err,im3) {
+      if (err) throw err;
+      assert.equal(0,im.compare(im3));
       assert.end();
-    //});
+    });
   });
 });
 
@@ -874,34 +874,34 @@ test('fill async works - double', (assert) => {
             done();
         });
     });
+*/
 
-    if (mapnik.versions.mapnik_number >= 200300) {
-        it('should be able to open and save webp', function(done) {
-            var im = new mapnik.Image(10,10);
-            im.fill(new mapnik.Color('rgba(255,255,255,1)'));
-            var filename = './test/data/images/10x10.webp';
-            if (!fs.existsSync(filename) || process.env.UPDATE ) {
-                im.save(filename);
-            }
-            // sync open
-            assert.equal(0,im.compare(new mapnik.Image.open(filename)));
-            // sync fromBytes
-            assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("webp"))));
-            // async open
-            mapnik.Image.open(filename,function(err,im2) {
-                if (err) throw err;
-                assert.equal(0,im.compare(im2));
-                // async fromBytes
-                mapnik.Image.fromBytes(im.encodeSync("webp"),function(err,im3) {
-                    if (err) throw err;
-                    assert.equal(0,im.compare(im3));
-                    done();
-                });
-            });
-        });
-    }
+test('should be able to open and save webp', (assert) => {
+  var im = new mapnik.Image(10,10);
+  im.fill(new mapnik.Color('rgba(255,255,255,1)'));
+  var filename = './test/data/images/10x10.webp';
+  if (!fs.existsSync(filename) || process.env.UPDATE ) {
+    im.save(filename);
+  }
+  // sync open
+  assert.equal(0,im.compare(new mapnik.Image.open(filename)));
+  // sync fromBytes
+  assert.equal(0,im.compare(new mapnik.Image.fromBytesSync(im.encodeSync("webp"))));
+  // async open
+  mapnik.Image.open(filename,function(err,im2) {
+    if (err) throw err;
+    assert.equal(0,im.compare(im2));
+    // async fromBytes
+    mapnik.Image.fromBytes(im.encodeSync("webp"),function(err,im3) {
+      if (err) throw err;
+      assert.equal(0,im.compare(im3));
+      assert.end();
+    });
+  });
+});
 
-    it('should fail to resize image with bad input', function(done) {
+/*
+it('should fail to resize image with bad input', function(done) {
         var im = new mapnik.Image(4,4,{type: mapnik.imageType.null});
         var im3 = new mapnik.Image(4,4,{type: mapnik.imageType.gray8});
         assert.throws(function() { var im2 = im.resize(4,4); });
@@ -1734,48 +1734,51 @@ test('fill async works - double', (assert) => {
         assert.equal(im2._buffer[0],99);
 
     });
+*/
 
-    it('should fail to use fromBufferSync due to bad input', function() {
-        var b = new Buffer(16);
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(null, null, null); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(null, 2, b); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, null, b); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, null); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(1, 2, b); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(0, 2, b); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, {}); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, null); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':'stuff'}); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':null}); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'premultiplied':null}); });
-        assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'painted':null}); });
+test('should fail to use fromBufferSync due to bad input', (assert) => {
+  var b = Buffer.alloc(16);
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(null, null, null); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(null, 2, b); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, null, b); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, null); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(1, 2, b); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(0, 2, b); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, {}); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, null); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':'stuff'}); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'type':null}); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'premultiplied':null}); });
+  assert.throws(function() { var im = new mapnik.Image.fromBufferSync(2, 2, b, {'painted':null}); });
+  assert.end();
+});
+
+test('fromBytes can premultiply in async/threadpool', (assert) => {
+  var data = require('fs').readFileSync(__dirname + '/support/a.png');
+  mapnik.Image.fromBytes(data, {premultiply:false}, function(err, im) {
+    if (err) throw err;
+    assert.ok(!im.premultiplied());
+    mapnik.Image.fromBytes(data, {premultiply:true}, function(err, im) {
+      if (err) throw err;
+      assert.ok(im.premultiplied());
+      assert.end();
     });
+  });
+});
 
-    it('fromBytes can premultiply in async/threadpool', function(done) {
-        var data = require('fs').readFileSync(__dirname + '/support/a.png');
-        mapnik.Image.fromBytes(data, {premultiply:false}, function(err, im) {
-            if (err) throw err;
-            assert.ok(!im.premultiplied());
-            mapnik.Image.fromBytes(data, {premultiply:true}, function(err, im) {
-                if (err) throw err;
-                assert.ok(im.premultiplied());
-                done();
-            });
-        });
-    });
+test('fromBytes can limit max image size', (assert) => {
+  var data = require('fs').readFileSync(__dirname + '/support/a.png');
+  mapnik.Image.fromBytes(data, {max_size:10, premultiply:false}, function(err, im) {
+    assert.ok(!im);
+    assert.ok(err);
+    assert.ok(err.message == 'image created from bytes must be 10 pixels or fewer on each side');
+    assert.end();
+  });
+});
 
-    it('fromBytes can limit max image size', function(done) {
-        var data = require('fs').readFileSync(__dirname + '/support/a.png');
-        mapnik.Image.fromBytes(data, {max_size:10, premultiply:false}, function(err, im) {
-            assert.ok(!im);
-            assert.ok(err);
-            assert.ok(err.message == 'image created from bytes must be 10 pixels or fewer on each side');
-            done();
-        });
-    });
-
-    it('resizes consistently', function(done) {
+/*
+it('resizes consistently', function(done) {
         var data = require('fs').readFileSync(__dirname + '/support/a.png');
         var image = mapnik.Image.fromBytesSync(data);
         image.premultiplySync();
