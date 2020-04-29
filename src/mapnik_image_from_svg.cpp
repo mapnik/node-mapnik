@@ -526,18 +526,17 @@ Napi::Value Image::fromSVGSync(Napi::CallbackInfo const& info)
 
 Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
 {
-    if (info.Length() <= 1)
+    if (info.Length() < 2)
     {
         return fromSVGSync(info);
     }
+
     Napi::Env env = info.Env();
-
-    //if (info.Length() < 2 || !info[0].IsString())
-    //{
-    //    Napi::TypeError::New(env, "must provide a filename argument").ThrowAsJavaScriptException();
-    //    return env.Null();
-    // }
-
+    if (!info[0].IsString())
+    {
+        Napi::TypeError::New(env, "must provide a filename argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
     // ensure callback is a function
     Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
@@ -630,18 +629,19 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
  */
 
 
-Napi::Value Image::fromSVGBytes(const Napi::CallbackInfo& info)
+Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
 {
-    if (info.Length() <= 1)
+    if (info.Length() < 2)
     {
-        return fromSVGSync(info);
+        return from_svg_sync_impl(info, false);
     }
     Napi::Env env = info.Env();
 
-    //if (info.Length() < 2 || !info[0].IsObject()) {
-    //    Napi::Error::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-    //    return env.Null();
-    //}
+    if (!info[0].IsObject())
+    {
+        Napi::Error::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
 
     Napi::Object obj = info[0].As<Napi::Object>();
     if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
