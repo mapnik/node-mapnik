@@ -715,62 +715,61 @@ test('should be able to open and save tiff', (assert) => {
   });
 });
 
-/*
-    it('isSolid async works if true', function(done) {
-        var im = new mapnik.Image(256, 256);
-        assert.throws(function() { im.isSolid(null); });
-        assert.equal(im.isSolid(), true);
-        assert.equal(im.isSolidSync(), true);
-        im.isSolid(function(err,solid,pixel) {
-            assert.equal(solid, true);
-            assert.equal(pixel, 0);
-            done();
-        });
-    });
 
-    it('isSolid should fail as not solid', function(done) {
-        var im = new mapnik.Image(256, 256);
-        im.setPixel(0,0,new mapnik.Color('green'));
-        assert.equal(im.isSolid(), false);
-        assert.equal(im.isSolidSync(), false);
-        im.isSolid(function(err,solid,pixel) {
-            assert.equal(solid, false);
-            done();
-        });
-    });
+test('isSolid async works if true', (assert) => {
+  var im = new mapnik.Image(256, 256);
+  assert.throws(function() { im.isSolid(null); });
+  assert.equal(im.isSolid(), true);
+  assert.equal(im.isSolidSync(), true);
+  im.isSolid(function(err, solid, pixel) {
+    assert.equal(solid, true);
+    assert.equal(pixel, 0);
+    assert.end();
+  });
+});
 
-    it('isSolid fails', function(done) {
-        var im = new mapnik.Image(0, 0);
-        assert.throws(function() { im.isSolidSync(); });
-        assert.throws(function() { im.isSolid(); });
-        im.isSolid(function(err,solid,pixel) {
-            assert.throws(function() { if (err) throw err });
-            done();
-        });
-    });
+test('isSolid should fail as not solid', (assert) => {
+  var im = new mapnik.Image(256, 256);
+  im.setPixel(0,0,new mapnik.Color('green'));
+  assert.equal(im.isSolid(), false);
+  assert.equal(im.isSolidSync(), false);
+  im.isSolid(function(err,solid,pixel) {
+    assert.equal(solid, false);
+    assert.end();
+  });
+});
 
-    it('isSolid async works if true and white', function(done) {
-        var im = new mapnik.Image(256, 256);
-        var color = new mapnik.Color('white');
-        im.fill(color);
-        assert.equal(im.isSolidSync(), true);
-        im.isSolid(function(err,solid,pixel) {
-            assert.equal(solid, true);
-            assert.equal(pixel, 0xffffffff);
-            done();
-        });
-    });
+test('isSolid fails', (assert) => {
+  var im = new mapnik.Image(0, 0);
+  assert.throws(function() { im.isSolidSync(); });
+  assert.throws(function() { im.isSolid(); });
+  im.isSolid(function(err,solid,pixel) {
+    assert.throws(function() { if (err) throw err });
+    assert.end();
+  });
+});
 
-    it('isSolid async works if false', function(done) {
-        var im = new mapnik.Image.open('./test/support/a.png');
-        assert.equal(im.isSolidSync(), false);
-        im.isSolid(function(err,solid,pixel) {
-            assert.equal(solid, false);
-            assert.equal(pixel, undefined);
-            done();
-        });
-    });
-*/
+test('isSolid async works if true and white', (assert) => {
+  var im = new mapnik.Image(256, 256);
+  var color = new mapnik.Color('white');
+  im.fill(color);
+  assert.equal(im.isSolidSync(), true);
+  im.isSolid(function(err,solid,pixel) {
+    assert.equal(solid, true);
+    assert.equal(pixel, 0xffffffff);
+    assert.end();
+  });
+});
+
+test('isSolid async works if false', (assert) => {
+  var im = new mapnik.Image.open('./test/support/a.png');
+  assert.equal(im.isSolidSync(), false);
+  im.isSolid(function(err,solid,pixel) {
+    assert.equal(solid, false);
+    assert.equal(pixel, undefined);
+    assert.end();
+  });
+});
 
 test('fill fails', (assert) => {
   var im = new mapnik.Image(5,5, {type: mapnik.imageType.null});

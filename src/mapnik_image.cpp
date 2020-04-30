@@ -14,7 +14,7 @@
 //#include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
-
+#include "pixel_utils.hpp"
 //#include "utils.hpp"
 
 // boost
@@ -49,6 +49,8 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::compare>("compare"),
             InstanceMethod<&Image::setGrayScaleToAlpha>("setGrayScaleToAlpha"),
             InstanceMethod<&Image::premultiplied>("premultiplied"),
+            InstanceMethod<&Image::isSolidSync>("isSolidSync"),
+            InstanceMethod<&Image::isSolid>("isSolid"),
             StaticMethod<&Image::openSync>("openSync"),
             StaticMethod<&Image::open>("open"),
             StaticMethod<&Image::fromBufferSync>("fromBufferSync"),
@@ -86,8 +88,8 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
     InstanceMethod("clear", &clear),
     InstanceMethod("clearSync", &clearSync),
     *InstanceMethod("compare", &compare),
-    InstanceMethod("isSolid", &isSolid),
-    InstanceMethod("isSolidSync", &isSolidSync),
+    *InstanceMethod("isSolid", &isSolid),
+    *InstanceMethod("isSolidSync", &isSolidSync),
     InstanceMethod("copy", &copy),
     InstanceMethod("copySync", &copySync),
     InstanceMethod("resize", &resize),
@@ -261,127 +263,6 @@ Napi::Value Image::getType(Napi::CallbackInfo const& info)
     return Napi::Number::New(info.Env(), type);
 }
 
-namespace {
-struct visitor_get_pixel
-{
-    visitor_get_pixel(Napi::Env env, int x, int y)
-        : env_(env), x_(x), y_(y) {}
-
-    Napi::Value operator() (mapnik::image_null const&)
-    {
-        // This should never be reached because the width and height of 0 for a null
-        // image will prevent the visitor from being called.
-
-        Napi::EscapableHandleScope scope(env_);
-        return scope.Escape(env_.Undefined());
-    }
-
-    Napi::Value operator() (mapnik::image_gray8 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray8s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray16 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray16s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray32 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray32s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray32f const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray64 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray64s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray64f const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_rgba8 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-  private:
-    Napi::Env env_;
-    int x_;
-    int y_;
-
-};
-
-struct visitor_set_pixel
-{
-    visitor_set_pixel(Napi::Number const& num, int x, int y)
-        : num_(num), x_(x), y_(y) {}
-
-    void operator() (mapnik::image_null &) const
-    {
-        // no-op
-    }
-    template <typename T>
-    void operator() (T & image) const
-    {
-        mapnik::set_pixel(image, x_, y_, num_.DoubleValue());
-    }
-  private:
-    Napi::Number const& num_;
-    int x_;
-    int y_;
-
-};
-}
-
 /**
  * Get a specific pixel and its value
  * @name getPixel
@@ -469,7 +350,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
         }
         else
         {
-            visitor_get_pixel visitor(env, x, y);
+            detail::visitor_get_pixel visitor(env, x, y);
             return mapnik::util::apply_visitor(visitor, *image_);
         }
     }
@@ -509,7 +390,7 @@ void Image::setPixel(Napi::CallbackInfo const& info)
     if (info[2].IsNumber())
     {
         auto num = info[2].As<Napi::Number>();
-        visitor_set_pixel visitor(num, x, y);
+        detail::visitor_set_pixel visitor(num, x, y);
         mapnik::util::apply_visitor(visitor, *image_);
     }
     else if (info[2].IsObject())
@@ -1118,123 +999,7 @@ typedef struct {
     bool result;
 } is_solid_image_baton_t;
 */
-/**
- * Test if an image's pixels are all exactly the same
- * @name isSolid
- * @memberof Image
- * @instance
- * @returns {boolean} `true` means all pixels are exactly the same
- * @example
- * var img = new mapnik.Image(2,2);
- * console.log(img.isSolid()); // true
- *
- * // change a pixel
- * img.setPixel(0,0, new mapnik.Color('green'));
- * console.log(img.isSolid()); // false
- */
   /*
-Napi::Value Image::isSolid(const Napi::CallbackInfo& info)
-{
-    Image* im = info.Holder().Unwrap<Image>();
-
-    if (info.Length() == 0) {
-        return _isSolidSync(info);
-        return;
-    }
-    // ensure callback is a function
-    Napi::Value callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
-        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    is_solid_image_baton_t *closure = new is_solid_image_baton_t();
-    closure->request.data = closure;
-    closure->im = im;
-    closure->result = true;
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
-    im->Ref();
-    return;
-}
-
-void Image::EIO_IsSolid(uv_work_t* req)
-{
-    is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
-    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0)
-    {
-        closure->result = mapnik::is_solid(*(closure->im->this_));
-    }
-    else
-    {
-        closure->error = true;
-        closure->error_name = "image does not have valid dimensions";
-    }
-}
-
-void Image::EIO_AfterIsSolid(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
-    if (closure->error) {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        if (closure->result)
-        {
-            Napi::Value argv[3] = { env.Null(),
-                                     Napi::New(env, closure->result),
-                                     mapnik::util::apply_visitor(visitor_get_pixel(0,0),*(closure->im->this_)),
-            };
-            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 3, argv);
-        }
-        else
-        {
-            Napi::Value argv[2] = { env.Null(), Napi::New(env, closure->result) };
-            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-        }
-    }
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
-/**
- * Determine whether the image is solid - whether it has alpha values of greater
- * than one.
- *
- * @name isSolidSync
- * @returns {boolean} whether the image is solid
- * @instance
- * @memberof Image
- * @example
- * var img = new mapnik.Image(256, 256);
- * var view = img.view(0, 0, 256, 256);
- * console.log(view.isSolidSync()); // true
- */
-/*
-Napi::Value Image::isSolidSync(const Napi::CallbackInfo& info)
-{
-    return _isSolidSync(info);
-}
-
-Napi::Value Image::_isSolidSync(const Napi::CallbackInfo& info)
-{
-    Napi::EscapableHandleScope scope(env);
-    Image* im = info.Holder().Unwrap<Image>();
-    if (im->this_->width() > 0 && im->this_->height() > 0)
-    {
-        return scope.Escape(Napi::Boolean::New(env, mapnik::is_solid(*(im->this_))));
-    }
-    Napi::Error::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
-
-    return scope.Escape(env.Undefined());
-}
-
 typedef struct {
     uv_work_t request;
     Image* im1;

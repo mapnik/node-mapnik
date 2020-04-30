@@ -66,9 +66,10 @@ public:
     static Napi::Value clear(const Napi::CallbackInfo& info);
 */
     Napi::Value compare(Napi::CallbackInfo const& info);
-/*
-    static Napi::Value isSolid(const Napi::CallbackInfo& info);
-    static Napi::Value isSolidSync(const Napi::CallbackInfo& info);
+
+    Napi::Value isSolid(Napi::CallbackInfo const& info);
+    Napi::Value isSolidSync(Napi::CallbackInfo const& info);
+    /*
     static Napi::Value copy(const Napi::CallbackInfo& info);
     static Napi::Value copySync(const Napi::CallbackInfo& info);
     static Napi::Value resize(const Napi::CallbackInfo& info);
