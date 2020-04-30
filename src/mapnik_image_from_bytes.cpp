@@ -228,3 +228,125 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
     worker->Queue();
     return env.Undefined();
 }
+
+
+/**
+ * Create an image of the existing buffer.
+ *
+ * Note: the buffer must live as long as the image.
+ * It is recommended that you do not use this method. Be warned!
+ *
+ * @name fromBufferSync
+ * @param {number} width
+ * @param {number} height
+ * @param {Buffer} buffer
+ * @returns {mapnik.Image} image object
+ * @static
+ * @memberof Image
+ * @example
+ * var img = new mapnik.Image.open('./path/to/image.png');
+ * var buffer = img.data(); // returns data as buffer
+ * var img2 = mapnik.Image.fromBufferSync(img.width(), img.height(), buffer);
+ */
+
+Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (info.Length() < 3 || !info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsObject())
+    {
+        Napi::TypeError::New(env, "must provide a width, height, and buffer argument").ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+    }
+
+    std::int32_t width = info[0].As<Napi::Number>().Int32Value();
+    std::int32_t height = info[1].As<Napi::Number>().Int32Value();
+
+    if (width <= 0 || height <= 0)
+    {
+        Napi::TypeError::New(env, "width and height must be greater then zero").ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+    }
+
+    Napi::Object obj = info[2].As<Napi::Object>();
+    if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
+    {
+        Napi::TypeError::New(env, "third argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+    }
+
+    // TODO - support other image types?
+    auto im_size = mapnik::image_rgba8::pixel_size * width * height;
+    if (im_size != obj.As<Napi::Buffer<char>>().Length())
+    {
+        Napi::TypeError::New(env, "invalid image size").ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+    }
+
+    bool premultiplied = false;
+    bool painted = false;
+
+    if (info.Length() >= 4)
+    {
+        if (info[3].IsObject())
+        {
+            Napi::Object options = info[3].As<Napi::Object>();
+            if (options.Has("type"))
+            {
+                Napi::TypeError::New(env, "'type' option not supported (only rgba images currently viable)").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+            if (options.Has("premultiplied"))
+            {
+                Napi::Value pre_val = options.Get("premultiplied");
+                if (!pre_val.IsEmpty() && pre_val.IsBoolean())
+                {
+                    premultiplied = pre_val.As<Napi::Boolean>();
+                }
+                else
+                {
+                    Napi::TypeError::New(env, "premultiplied option must be a boolean").ThrowAsJavaScriptException();
+                    return scope.Escape(env.Undefined());
+                }
+            }
+
+            if (options.Has("painted"))
+            {
+                Napi::Value painted_val = options.Get("painted");
+                if (!painted_val.IsEmpty() && painted_val.IsBoolean())
+                {
+                    painted = painted_val.As<Napi::Boolean>();
+                }
+                else
+                {
+                    Napi::TypeError::New(env, "painted option must be a boolean").ThrowAsJavaScriptException();
+                    return scope.Escape(env.Undefined());
+                }
+            }
+        }
+        else
+        {
+            Napi::TypeError::New(env, "Options parameter must be an object").ThrowAsJavaScriptException();
+            return scope.Escape(env.Undefined());
+        }
+    }
+
+    try
+    {
+        mapnik::image_rgba8 im_wrapper(width, height, reinterpret_cast<unsigned char*>(obj.As<Napi::Buffer<char>>().Data()), premultiplied, painted);
+        image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
+        Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
+        Napi::Object image_obj = constructor.New({arg});
+        image_obj.Set("_buffer", obj);
+        return scope.Escape(napi_value(image_obj)).ToObject();
+    }
+    catch (std::exception const& ex)
+    {
+        // There is no known way for this exception to be reached currently.
+        // LCOV_EXCL_START
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+        // LCOV_EXCL_STOP
+    }
+}

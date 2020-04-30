@@ -39,9 +39,7 @@ public:
     static Napi::Value open(Napi::CallbackInfo const& info);
     static Napi::Value fromBytesSync(Napi::CallbackInfo const& info);
     static Napi::Value fromBytes(Napi::CallbackInfo const& info);
-
-//static Napi::Value fromBufferSync(Napi::CallbackInfo const& info);
-
+    static Napi::Value fromBufferSync(Napi::CallbackInfo const& info);
     static Napi::Value fromSVGSync(Napi::CallbackInfo const& info);
     static Napi::Value fromSVG(Napi::CallbackInfo const& info);
     static Napi::Value fromSVGBytesSync(Napi::CallbackInfo const& info);
