@@ -460,13 +460,13 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument should be a mapnik.Image").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.InstanceOf(Image::constructor.Value()))
     {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     int threshold = 0;
@@ -477,7 +477,7 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[1].As<Napi::Object>();
@@ -488,7 +488,7 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'threshold' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             threshold = bind_opt.As<Napi::Number>().Int32Value();
         }
@@ -499,7 +499,7 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
             if (!bind_opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "optional arg 'alpha' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             alpha = bind_opt.As<Napi::Boolean>();
         }
@@ -510,7 +510,7 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
         image_->height() != image2->height())
     {
             Napi::TypeError::New(env, "image dimensions do not match").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
     }
     unsigned difference = mapnik::compare(*image_, *image2, threshold, alpha);
     return Napi::Number::New(env, difference);
@@ -599,14 +599,14 @@ Napi::Value Image::filter(const Napi::CallbackInfo& info)
 
     if (!info[info.Length()-1]->IsFunction()) {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Image* im = info.Holder().Unwrap<Image>();
     if (!info[0].IsString())
     {
         Napi::TypeError::New(env, "A string is expected for filter argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     filter_image_baton_t *closure = new filter_image_baton_t();
     closure->filter = TOSTR(info[0]);
@@ -729,7 +729,7 @@ Napi::Value Image::clear(const Napi::CallbackInfo& info)
     Napi::Value callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     clear_image_baton_t *closure = new clear_image_baton_t();
     closure->request.data = closure;
@@ -799,23 +799,23 @@ Napi::Value Image::setGrayScaleToAlpha(Napi::CallbackInfo const& info)
     if (info.Length() == 0)
     {
         mapnik::set_grayscale_to_alpha(*image_);
-        return env.Null();
+        return env.Undefined();
     }
     else if (!info[0].IsObject())
     {
         Napi::TypeError::New(env, "optional first arg must be a mapnik.Color").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.InstanceOf(Color::constructor.Value()))
     {
         Napi::TypeError::New(env, "mapnik.Color expected as first arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
     mapnik::set_grayscale_to_alpha(*image_, color->color_);
-    return env.Null();
+    return env.Undefined();
 }
 
 /*
@@ -897,7 +897,7 @@ Napi::Value Image::premultiply(const Napi::CallbackInfo& info)
     Napi::Value callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Image* im = info.Holder().Unwrap<Image>();
@@ -971,7 +971,7 @@ Napi::Value Image::demultiply(const Napi::CallbackInfo& info)
     Napi::Value callback = info[info.Length()-1];
     if (!info[info.Length()-1]->IsFunction()) {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Image* im = info.Holder().Unwrap<Image>();
@@ -1055,7 +1055,7 @@ Napi::Value Image::copy(const Napi::CallbackInfo& info)
             if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
             {
                 Napi::TypeError::New(env, "Image 'type' must be a valid image type").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         else if (info[0].IsObject())
@@ -1065,7 +1065,7 @@ Napi::Value Image::copy(const Napi::CallbackInfo& info)
         else
         {
             Napi::TypeError::New(env, "Unknown parameters passed").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
     if (info.Length() >= 3)
@@ -1077,7 +1077,7 @@ Napi::Value Image::copy(const Napi::CallbackInfo& info)
         else
         {
             Napi::TypeError::New(env, "Expected options object as second argument").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
 
@@ -1092,7 +1092,7 @@ Napi::Value Image::copy(const Napi::CallbackInfo& info)
         else
         {
             Napi::TypeError::New(env, "scaling argument must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
 
@@ -1107,7 +1107,7 @@ Napi::Value Image::copy(const Napi::CallbackInfo& info)
         else
         {
             Napi::TypeError::New(env, "offset argument must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
 
@@ -1385,14 +1385,14 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
             if (width_tmp <= 0)
             {
                 Napi::TypeError::New(env, "Width must be a integer greater then zero").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             width = static_cast<std::size_t>(width_tmp);
         }
         else
         {
             Napi::TypeError::New(env, "Width must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         if (info[1].IsNumber())
         {
@@ -1400,20 +1400,20 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
             if (height_tmp <= 0)
             {
                 Napi::TypeError::New(env, "Height must be a integer greater then zero").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             height = static_cast<std::size_t>(height_tmp);
         }
         else
         {
             Napi::TypeError::New(env, "Height must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
     else
     {
         Napi::TypeError::New(env, "resize requires a width and height parameter.").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     if (info.Length() >= 4)
     {
@@ -1424,7 +1424,7 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
         else
         {
             Napi::TypeError::New(env, "Expected options object as third argument").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
     if ((options).Has(Napi::String::New(env, "offset_x")).FromMaybe(false))
@@ -1433,7 +1433,7 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
         if (!bind_opt.IsNumber())
         {
             Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         offset_x = bind_opt.As<Napi::Number>().DoubleValue();
     }
@@ -1443,7 +1443,7 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
         if (!bind_opt.IsNumber())
         {
             Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         offset_y = bind_opt.As<Napi::Number>().DoubleValue();
     }
@@ -1453,13 +1453,13 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
         if (!bind_opt.IsNumber())
         {
             Napi::TypeError::New(env, "optional arg 'offset_width' must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         offset_width = bind_opt.As<Napi::Number>().DoubleValue();
         if (offset_width <= 0.0)
         {
             Napi::TypeError::New(env, "optional arg 'offset_width' must be a integer greater then zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
     if ((options).Has(Napi::String::New(env, "offset_height")).FromMaybe(false))
@@ -1468,13 +1468,13 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
         if (!bind_opt.IsNumber())
         {
             Napi::TypeError::New(env, "optional arg 'offset_height' must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         offset_height = bind_opt.As<Napi::Number>().DoubleValue();
         if (offset_height <= 0.0)
         {
             Napi::TypeError::New(env, "optional arg 'offset_height' must be a integer greater then zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
     if ((options).Has(Napi::String::New(env, "scaling_method")).FromMaybe(false))
@@ -1486,14 +1486,14 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
             if (scaling_int > mapnik::SCALING_BLACKMAN || scaling_int < 0)
             {
                 Napi::TypeError::New(env, "Invalid scaling_method").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scaling_method = static_cast<mapnik::scaling_method_e>(scaling_int);
         }
         else
         {
             Napi::TypeError::New(env, "scaling_method argument must be an integer").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
 
@@ -1507,7 +1507,7 @@ Napi::Value Image::resize(const Napi::CallbackInfo& info)
         else
         {
             Napi::TypeError::New(env, "filter_factor argument must be a number").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
     resize_image_baton_t *closure = new resize_image_baton_t();
@@ -2036,7 +2036,7 @@ Napi::Value Image::view(const Napi::CallbackInfo& info)
 {
     if ( (info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() )) {
         Napi::TypeError::New(env, "requires 4 integer arguments: x, y, width, height").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     // TODO parse args
@@ -2098,19 +2098,19 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
 {
     if (info.Length() < 1){
         Napi::TypeError::New(env, "requires at least one argument: an image mask").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (!info[0].IsObject()) {
         Napi::TypeError::New(env, "first argument must be an image mask").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Object im2 = info[0].As<Napi::Object>();
     if (!Napi::New(env, Image::constructor)->HasInstance(im2))
     {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     // ensure callback is a function
@@ -2118,7 +2118,7 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
     if (!info[info.Length()-1]->IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Image * dest_image = info.Holder().Unwrap<Image>();
@@ -2127,13 +2127,13 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
     if (!dest_image->this_->get_premultiplied())
     {
         Napi::TypeError::New(env, "destination image must be premultiplied").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (!source_image->this_->get_premultiplied())
     {
         Napi::TypeError::New(env, "source image must be premultiplied").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     mapnik::composite_mode_e mode = mapnik::src_over;
@@ -2145,7 +2145,7 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[1].As<Napi::Object>();
@@ -2156,13 +2156,13 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
             if (!opt.IsNumber())
             {
                 Napi::TypeError::New(env, "comp_op must be a mapnik.compositeOp value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             int mode_int = opt.As<Napi::Number>().Int32Value();
             if (mode_int > static_cast<int>(mapnik::composite_mode_e::divide) || mode_int < 0)
             {
                 Napi::TypeError::New(env, "Invalid comp_op value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             mode = static_cast<mapnik::composite_mode_e>(mode_int);
         }
@@ -2172,12 +2172,12 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
             Napi::Value opt = (options).Get(Napi::String::New(env, "opacity"));
             if (!opt.IsNumber()) {
                 Napi::TypeError::New(env, "opacity must be a floating point number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             opacity = opt.As<Napi::Number>().DoubleValue();
             if (opacity < 0 || opacity > 1) {
                 Napi::TypeError::New(env, "opacity must be a floating point number between 0-1").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
 
@@ -2186,7 +2186,7 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
             Napi::Value opt = (options).Get(Napi::String::New(env, "dx"));
             if (!opt.IsNumber()) {
                 Napi::TypeError::New(env, "dx must be an integer").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             dx = opt.As<Napi::Number>().Int32Value();
         }
@@ -2196,7 +2196,7 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
             Napi::Value opt = (options).Get(Napi::String::New(env, "dy"));
             if (!opt.IsNumber()) {
                 Napi::TypeError::New(env, "dy must be an integer").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             dy = opt.As<Napi::Number>().Int32Value();
         }
@@ -2206,14 +2206,14 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
             Napi::Value opt = (options).Get(Napi::String::New(env, "image_filters"));
             if (!opt.IsString()) {
                 Napi::TypeError::New(env, "image_filters argument must string of filter names").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             std::string filter_str = TOSTR(opt);
             bool result = mapnik::filter::parse_image_filters(filter_str, filters);
             if (!result)
             {
                 Napi::TypeError::New(env, "could not parse image_filters").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
     }

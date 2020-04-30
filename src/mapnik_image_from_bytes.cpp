@@ -158,19 +158,19 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
     if (info.Length() < 2)
     {
         Napi::Error::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (!info[0].IsObject()) {
         Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     // ensure callback is a function
@@ -178,7 +178,7 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     bool premultiply = false;
@@ -198,7 +198,7 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
                 else
                 {
                     Napi::TypeError::New(env, "premultiply option must be a boolean").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
             if (options.Has("max_size"))
@@ -210,14 +210,14 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
                     if (max_size_val < 0 || max_size_val > 65535)
                     {
                         Napi::TypeError::New(env, "max_size must be a positive integer between 0 and 65535").ThrowAsJavaScriptException();
-                        return env.Null();
+                        return env.Undefined();
                     }
                     max_size = static_cast<std::size_t>(max_size_val);
                 }
                 else
                 {
                     Napi::TypeError::New(env, "max_size option must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
         }

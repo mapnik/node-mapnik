@@ -148,7 +148,7 @@ Napi::Value Image::encodeSync(Napi::CallbackInfo const& info)
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 }
 
@@ -192,7 +192,7 @@ Napi::Value Image::encode(Napi::CallbackInfo const& info)
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     auto* worker = new AsyncEncode{image_, palette, format, callback};

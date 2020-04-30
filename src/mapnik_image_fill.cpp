@@ -123,7 +123,7 @@ Napi::Value Image::fillSync(Napi::CallbackInfo const& info)
 Napi::Value Image::fill(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() <= 1)
+    if (info.Length() < 2)
     {
         return fillSync(info);
     }
@@ -133,7 +133,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     double val = 0.0;
@@ -142,7 +142,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
         val = info[0].As<Napi::Number>().DoubleValue();
         auto* worker = new AsyncFill<double>(image_, val, callback);
         worker->Queue();
-        return env.Null();
+        return env.Undefined();
     }
     else if (info[0].IsObject())
     {
@@ -150,7 +150,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
         if (!obj.InstanceOf(Color::constructor.Value()))
         {
             Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         else
         {
@@ -162,7 +162,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
     else
     {
         Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
-    return env.Null();
+    return env.Undefined();
 }

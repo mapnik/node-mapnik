@@ -140,12 +140,12 @@ Napi::Value Image::open(Napi::CallbackInfo const& info)
     if (info.Length() < 2)
     {
         Napi::Error::New(env, "must provide a string argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (!info[0].IsString()) {
         Napi::TypeError::New(env, "Argument must be a string").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     // ensure callback is a function
@@ -153,7 +153,7 @@ Napi::Value Image::open(Napi::CallbackInfo const& info)
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     std::string filename = info[0].As<Napi::String>();

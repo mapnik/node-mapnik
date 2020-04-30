@@ -68,7 +68,7 @@ Napi::Value ImageView::New(const Napi::CallbackInfo& info)
     if (!info.IsConstructCall())
     {
         Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (info[0].IsExternal())
@@ -81,7 +81,7 @@ Napi::Value ImageView::New(const Napi::CallbackInfo& info)
         return;
     } else {
         Napi::Error::New(env, "Cannot create this object from Javascript").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     return;
 }
@@ -124,7 +124,7 @@ Napi::Value ImageView::isSolid(const Napi::CallbackInfo& info)
     Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     is_solid_image_view_baton_t *closure = new is_solid_image_view_baton_t();
@@ -313,7 +313,7 @@ Napi::Value ImageView::getPixel(const Napi::CallbackInfo& info)
 
         if (!info[2].IsObject()) {
             Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[2].ToObject(Napi::GetCurrentContext());
@@ -322,7 +322,7 @@ Napi::Value ImageView::getPixel(const Napi::CallbackInfo& info)
             Napi::Value bind_opt = (options).Get(Napi::String::New(env, "get_color"));
             if (!bind_opt->IsBoolean()) {
                 Napi::TypeError::New(env, "optional arg 'color' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             get_color = bind_opt.As<Napi::Boolean>().Value();
         }
@@ -332,17 +332,17 @@ Napi::Value ImageView::getPixel(const Napi::CallbackInfo& info)
     if (info.Length() >= 2) {
         if (!info[0].IsNumber()) {
             Napi::TypeError::New(env, "first arg, 'x' must be an integer").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         if (!info[1].IsNumber()) {
             Napi::TypeError::New(env, "second arg, 'y' must be an integer").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         x = info[0].As<Napi::Number>().Int32Value();
         y = info[1].As<Napi::Number>().Int32Value();
     } else {
         Napi::TypeError::New(env, "must supply x,y to query pixel color").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     ImageView* im = info.Holder().Unwrap<ImageView>();
@@ -386,7 +386,7 @@ Napi::Value ImageView::encodeSync(const Napi::CallbackInfo& info)
     if (info.Length() >= 1) {
         if (!info[0].IsString()) {
             Napi::TypeError::New(env, "first arg, 'format' must be a string").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         format = TOSTR(info[0]);
     }
@@ -395,7 +395,7 @@ Napi::Value ImageView::encodeSync(const Napi::CallbackInfo& info)
     if (info.Length() >= 2) {
         if (!info[1].IsObject()) {
             Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[1].As<Napi::Object>();
@@ -405,13 +405,13 @@ Napi::Value ImageView::encodeSync(const Napi::CallbackInfo& info)
             Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
             if (!format_opt.IsObject()) {
                 Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
 
             Napi::Object obj = format_opt.As<Napi::Object>();
             if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
 
             palette = obj)->palette(.Unwrap<Palette>();
@@ -433,7 +433,7 @@ Napi::Value ImageView::encodeSync(const Napi::CallbackInfo& info)
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 }
 
@@ -459,7 +459,7 @@ Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
     if (info.Length() > 1){
         if (!info[0].IsString()) {
             Napi::TypeError::New(env, "first arg, 'format' must be a string").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         format = TOSTR(info[0]);
     }
@@ -468,7 +468,7 @@ Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
     if (info.Length() >= 2) {
         if (!info[1].IsObject()) {
             Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[1].As<Napi::Object>();
@@ -478,13 +478,13 @@ Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
             Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
             if (!format_opt.IsObject()) {
                 Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
 
             Napi::Object obj = format_opt.As<Napi::Object>();
             if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
 
             palette = obj)->palette(.Unwrap<Palette>();
@@ -495,7 +495,7 @@ Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
     Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length()-1]->IsFunction()) {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     encode_image_view_baton_t *baton = new encode_image_view_baton_t();
@@ -556,7 +556,7 @@ Napi::Value ImageView::save(const Napi::CallbackInfo& info)
 {
     if (info.Length() == 0 || !info[0].IsString()){
         Napi::TypeError::New(env, "filename required").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     std::string filename = TOSTR(info[0]);
@@ -566,7 +566,7 @@ Napi::Value ImageView::save(const Napi::CallbackInfo& info)
     if (info.Length() >= 2) {
         if (!info[1].IsString()) {
             Napi::TypeError::New(env, "both 'filename' and 'format' arguments must be strings").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         format = mapnik::guess_type(TOSTR(info[1]));
@@ -574,7 +574,7 @@ Napi::Value ImageView::save(const Napi::CallbackInfo& info)
             std::ostringstream s("");
             s << "unknown output extension for: " << filename << "\n";
             Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
     }
 

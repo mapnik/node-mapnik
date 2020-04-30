@@ -535,14 +535,14 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
     if (!info[0].IsString())
     {
         Napi::TypeError::New(env, "must provide a filename argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     // ensure callback is a function
     Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     double scale = 1.0;
@@ -553,7 +553,7 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object options = info[1].As<Napi::Object>();
         if (options.Has("scale"))
@@ -562,13 +562,13 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
             if (!scale_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "'scale' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scale = scale_opt.As<Napi::Number>().DoubleValue();
             if (scale <= 0)
             {
                 Napi::TypeError::New(env, "'scale' must be a positive non zero number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if (options.Has("max_size"))
@@ -577,13 +577,13 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
             if (!opt.IsNumber())
             {
                 Napi::TypeError::New(env, "'max_size' must be a positive integer").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             auto max_size_val = opt.As<Napi::Number>().Int32Value();
             if (max_size_val < 0 || max_size_val > 65535)
             {
                 Napi::TypeError::New(env, "'max_size' must be a positive integer between 0 and 65535").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             max_size = static_cast<std::size_t>(max_size_val);
         }
@@ -593,7 +593,7 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
             if (!opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "'strict' must be a boolean value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             strict = opt.As<Napi::Boolean>();
         }
@@ -640,14 +640,14 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
     if (!info[0].IsObject())
     {
         Napi::Error::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     // ensure callback is a function
@@ -655,7 +655,7 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     double scale = 1.0;
@@ -666,7 +666,7 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object options = info[1].As<Napi::Object>();
         if (options.Has("scale"))
@@ -675,13 +675,13 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
             if (!scale_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "'scale' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scale = scale_opt.As<Napi::Number>().DoubleValue();
             if (scale <= 0)
             {
                 Napi::TypeError::New(env, "'scale' must be a positive non zero number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if (options.Has("max_size"))
@@ -690,13 +690,13 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
             if (!opt.IsNumber())
             {
                 Napi::TypeError::New(env, "'max_size' must be a positive integer").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             auto max_size_val = opt.As<Napi::Number>().Int32Value();
             if (max_size_val < 0 || max_size_val > 65535)
             {
                 Napi::TypeError::New(env, "'max_size' must be a positive integer between 0 and 65535").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             max_size = static_cast<std::size_t>(max_size_val);
         }
@@ -706,7 +706,7 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
             if (!opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "'strict' must be a boolean value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             strict = opt.As<Napi::Boolean>();
         }
