@@ -237,7 +237,7 @@ Napi::Value MemoryDatasource::add(const Napi::CallbackInfo& info)
 
         Napi::Value x = (obj).Get(Napi::String::New(env, "x"));
         Napi::Value y = (obj).Get(Napi::String::New(env, "y"));
-        if (!x->IsUndefined() && x.IsNumber() && !y->IsUndefined() && y.IsNumber())
+        if (x.IsNumber() && y.IsNumber())
         {
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
             mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,d->feature_id_));

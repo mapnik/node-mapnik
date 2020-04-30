@@ -263,13 +263,13 @@ Napi::Value ProjTransform::New(const Napi::CallbackInfo& info)
     }
 
     Napi::Object src_obj = info[0].As<Napi::Object>();
-    if (src_obj->IsNull() || src_obj->IsUndefined() || !Napi::New(env, Projection::constructor)->HasInstance(src_obj)) {
+    if (!Napi::New(env, Projection::constructor)->HasInstance(src_obj)) {
         Napi::TypeError::New(env, "mapnik.Projection expected for first argument").ThrowAsJavaScriptException();
         return env.Null();
     }
 
     Napi::Object dest_obj = info[1].As<Napi::Object>();
-    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Napi::New(env, Projection::constructor)->HasInstance(dest_obj)) {
+    if (!Napi::New(env, Projection::constructor)->HasInstance(dest_obj)) {
         Napi::TypeError::New(env, "mapnik.Projection expected for second argument").ThrowAsJavaScriptException();
         return env.Null();
     }

@@ -167,7 +167,7 @@ Napi::Value Geometry::_toJSONSync(const Napi::CallbackInfo& info) {
             }
 
             Napi::Object obj = bound_opt->ToObject(Napi::GetCurrentContext());
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.ProjTransform expected as first arg").ThrowAsJavaScriptException();
 
                 return scope.Escape(env.Undefined());
@@ -239,7 +239,7 @@ Napi::Value Geometry::toJSON(const Napi::CallbackInfo& info)
             }
 
             Napi::Object obj = bound_opt->ToObject(Napi::GetCurrentContext());
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.ProjTransform expected as first arg").ThrowAsJavaScriptException();
                 return env.Null();
             }

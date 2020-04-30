@@ -395,7 +395,7 @@ void Map::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
         }
 
         Napi::Object obj = value.As<Napi::Object>();
-        if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Color::constructor)->HasInstance(obj)) {
+        if (!Napi::New(env, Color::constructor)->HasInstance(obj)) {
             Napi::TypeError::New(env, "mapnik.Color expected").ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -933,7 +933,7 @@ Napi::Value Map::add_layer(const Napi::CallbackInfo& info) {
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Layer::constructor)->HasInstance(obj)) {
+    if (!Napi::New(env, Layer::constructor)->HasInstance(obj)) {
         Napi::TypeError::New(env, "mapnik.Layer expected").ThrowAsJavaScriptException();
         return env.Null();
     }
@@ -2474,7 +2474,7 @@ Napi::Value Map::renderFile(const Napi::CallbackInfo& info)
             }
 
             Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
                 return env.Null();
             }
@@ -2684,7 +2684,7 @@ Napi::Value Map::renderSync(const Napi::CallbackInfo& info)
             }
 
             Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
                 return env.Null();
             }
@@ -2804,7 +2804,7 @@ Napi::Value Map::renderFileSync(const Napi::CallbackInfo& info)
             }
 
             Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
                 return env.Null();
             }

@@ -301,7 +301,7 @@ void VectorTile::Initialize(Napi::Object target)
     ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
 
     Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(), "info", info);
-    
+
     (target).Set(Napi::String::New(env, "VectorTile"), Napi::GetFunction(lcons));
     constructor.Reset(lcons);
 }
@@ -3414,7 +3414,7 @@ Napi::Value VectorTile::_addImageSync(const Napi::CallbackInfo& info)
         if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
         {
             Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
-            if (!param_val.IsString()) 
+            if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
 
@@ -3434,7 +3434,7 @@ Napi::Value VectorTile::_addImageSync(const Napi::CallbackInfo& info)
         if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
         {
             Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
-            if (!param_val.IsString()) 
+            if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
 
@@ -3570,7 +3570,7 @@ Napi::Value VectorTile::addImage(const Napi::CallbackInfo& info)
         if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
         {
             Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
-            if (!param_val.IsString()) 
+            if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
                 return env.Null();
@@ -3588,7 +3588,7 @@ Napi::Value VectorTile::addImage(const Napi::CallbackInfo& info)
         if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
         {
             Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
-            if (!param_val.IsString()) 
+            if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
                 return env.Null();
@@ -3704,7 +3704,7 @@ Napi::Value VectorTile::_addImageBufferSync(const Napi::CallbackInfo& info)
     }
     std::string layer_name = TOSTR(info[1]);
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
 
@@ -3795,7 +3795,7 @@ Napi::Value VectorTile::addImageBuffer(const Napi::CallbackInfo& info)
     }
     std::string layer_name = TOSTR(info[1]);
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
         return env.Null();
@@ -3891,7 +3891,7 @@ Napi::Value VectorTile::_addDataSync(const Napi::CallbackInfo& info)
         return scope.Escape(env.Undefined());
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
 
@@ -4003,7 +4003,7 @@ Napi::Value VectorTile::addData(const Napi::CallbackInfo& info)
         return env.Null();
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
         return env.Null();
@@ -4135,7 +4135,7 @@ Napi::Value VectorTile::_setDataSync(const Napi::CallbackInfo& info)
         return scope.Escape(env.Undefined());
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
 
@@ -4247,7 +4247,7 @@ Napi::Value VectorTile::setData(const Napi::CallbackInfo& info)
         return env.Null();
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
         return env.Null();
@@ -4724,7 +4724,7 @@ void VectorTile::after_get_data(uv_work_t* req)
             // To keep the same behaviour as a non compression release, we want to clear the VT buffer
             closure->d->tile_->clear();
         }
-        Napi::Value argv[2] = { env.Null(), 
+        Napi::Value argv[2] = { env.Null(),
                                          node_mapnik::NewBufferFrom(std::move(closure->data)) };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
@@ -4752,7 +4752,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         {
             if (closure->release)
             {
-                Napi::Value argv[2] = { env.Null(), 
+                Napi::Value argv[2] = { env.Null(),
                                                  node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()) };
                 async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
             }
@@ -4924,7 +4924,7 @@ Napi::Value VectorTile::render(const Napi::CallbackInfo& info)
         return env.Null();
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Map::constructor)->HasInstance(obj))
+    if (!Napi::New(env, Map::constructor)->HasInstance(obj))
     {
         Napi::TypeError::New(env, "mapnik.Map expected as first arg").ThrowAsJavaScriptException();
         return env.Null();
@@ -6634,7 +6634,7 @@ Napi::Value VectorTile::info(const Napi::CallbackInfo& info)
     }
 
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (obj->IsNull() || obj->IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
         return env.Null();

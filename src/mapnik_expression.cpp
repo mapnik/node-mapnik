@@ -86,7 +86,7 @@ Napi::Value Expression::evaluate(const Napi::CallbackInfo& info)
         return env.Null();
     }
 
-    if (info[0].IsNull() || info[0].IsUndefined() || !Napi::New(env, Feature::constructor)->HasInstance(info[0])) {
+    if (!Napi::New(env, Feature::constructor)->HasInstance(info[0])) {
         Napi::TypeError::New(env, "first argument is invalid, must be a mapnik.Feature").ThrowAsJavaScriptException();
         return env.Null();
     }

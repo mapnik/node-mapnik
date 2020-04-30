@@ -93,7 +93,7 @@ Napi::Value Image::fromBytesSync(Napi::CallbackInfo const& info)
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
         return scope.Escape(env.Undefined());
@@ -167,7 +167,7 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
         return env.Null();
@@ -270,7 +270,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
     }
 
     Napi::Object obj = info[2].As<Napi::Object>();
-    if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "third argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
         return scope.Escape(env.Undefined());

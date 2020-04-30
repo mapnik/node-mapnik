@@ -9,12 +9,11 @@ namespace {
 
 // AsyncWorker
 
-
 template <typename T>
 struct AsyncFill : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncFill(image_ptr image, T const& val, Napi::Function const& callback)
+    AsyncFill(image_ptr const& image, T const& val, Napi::Function const& callback)
         : Base(callback),
           image_(image),
           val_(val) {}
@@ -66,7 +65,7 @@ Napi::Value Image::fillSync(Napi::CallbackInfo const& info)
         else if (info[0].IsObject())
         {
             Napi::Object obj = info[0].As<Napi::Object>();
-            if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Color::constructor.Value()))
+            if (!obj.InstanceOf(Color::constructor.Value()))
             {
                 Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
             }
@@ -138,7 +137,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
     else if (info[0].IsObject())
     {
         Napi::Object obj = info[0].As<Napi::Object>();
-        if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Color::constructor.Value()))
+        if (!obj.InstanceOf(Color::constructor.Value()))
         {
             Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
             return env.Null();

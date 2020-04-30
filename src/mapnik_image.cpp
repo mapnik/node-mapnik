@@ -396,7 +396,7 @@ void Image::setPixel(Napi::CallbackInfo const& info)
     else if (info[2].IsObject())
     {
         Napi::Object obj = info[2].As<Napi::Object>();
-        if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Color::constructor.Value()))
+        if (!obj.InstanceOf(Color::constructor.Value()))
         {
             Napi::TypeError::New(env, "A numeric or color value is expected as third arg").ThrowAsJavaScriptException();
         }
@@ -463,7 +463,7 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
         return env.Null();
     }
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Image::constructor.Value()))
+    if (!obj.InstanceOf(Image::constructor.Value()))
     {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
         return env.Null();
@@ -808,7 +808,7 @@ Napi::Value Image::setGrayScaleToAlpha(Napi::CallbackInfo const& info)
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (obj.IsNull() || obj.IsUndefined() || !obj.InstanceOf(Color::constructor.Value()))
+    if (!obj.InstanceOf(Color::constructor.Value()))
     {
         Napi::TypeError::New(env, "mapnik.Color expected as first arg").ThrowAsJavaScriptException();
         return env.Null();
@@ -2107,7 +2107,7 @@ Napi::Value Image::composite(const Napi::CallbackInfo& info)
     }
 
     Napi::Object im2 = info[0].As<Napi::Object>();
-    if (im2->IsNull() || im2->IsUndefined() || !Napi::New(env, Image::constructor)->HasInstance(im2))
+    if (!Napi::New(env, Image::constructor)->HasInstance(im2))
     {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
         return env.Null();

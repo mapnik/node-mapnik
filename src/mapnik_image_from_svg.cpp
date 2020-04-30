@@ -120,7 +120,7 @@ Napi::Value from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file)
         else
         {
             Napi::Object obj = info[0].As<Napi::Object>();
-            if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
+            if (!obj.IsBuffer())
             {
                 Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
                 return scope.Escape(env.Undefined());
@@ -644,7 +644,7 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (obj.IsNull() || obj.IsUndefined() || !obj.IsBuffer())
+    if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
         return env.Null();

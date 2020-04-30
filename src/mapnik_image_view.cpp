@@ -409,7 +409,7 @@ Napi::Value ImageView::encodeSync(const Napi::CallbackInfo& info)
             }
 
             Napi::Object obj = format_opt.As<Napi::Object>();
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
                 return env.Null();
             }
@@ -448,7 +448,7 @@ typedef struct {
 } encode_image_view_baton_t;
 
 
-Napi::Value ImageView::encode(const Napi::CallbackInfo& info)
+Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
 {
     ImageView* im = info.Holder().Unwrap<ImageView>();
 
@@ -482,7 +482,7 @@ Napi::Value ImageView::encode(const Napi::CallbackInfo& info)
             }
 
             Napi::Object obj = format_opt.As<Napi::Object>();
-            if (obj->IsNull() || obj->IsUndefined() || !Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
                 return env.Null();
             }
