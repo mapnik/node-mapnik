@@ -32,7 +32,7 @@ public:
     Napi::Value height(Napi::CallbackInfo const& info);
     void saveSync(Napi::CallbackInfo const& info);
     void save(Napi::CallbackInfo const& info);
-
+    Napi::Value data(Napi::CallbackInfo const& info);
 //static Napi::Value view(const Napi::CallbackInfo& info);
 
     static Napi::Value openSync(Napi::CallbackInfo const& info);
@@ -74,7 +74,7 @@ public:
     static Napi::Value copySync(const Napi::CallbackInfo& info);
     static Napi::Value resize(const Napi::CallbackInfo& info);
     static Napi::Value resizeSync(const Napi::CallbackInfo& info);
-    static Napi::Value data(const Napi::CallbackInfo& info);
+    *static Napi::Value data(const Napi::CallbackInfo& info);
 */
     // accessors
     Napi::Value scaling(Napi::CallbackInfo const& info);

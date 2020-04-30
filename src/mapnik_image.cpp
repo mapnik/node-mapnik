@@ -51,6 +51,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::premultiplied>("premultiplied"),
             InstanceMethod<&Image::isSolidSync>("isSolidSync"),
             InstanceMethod<&Image::isSolid>("isSolid"),
+            InstanceMethod<&Image::data>("data"),
             StaticMethod<&Image::openSync>("openSync"),
             StaticMethod<&Image::open>("open"),
             StaticMethod<&Image::fromBufferSync>("fromBufferSync"),
@@ -2341,11 +2342,10 @@ void Image::scaling(Napi::CallbackInfo const& info, Napi::Value const& value)
  * var img = new mapnik.Image.open('./path/to/image.png');
  * var buffr = img.data();
  */
-/*
+
 Napi::Value Image::data(const Napi::CallbackInfo& info)
 {
-    Image* im = info.Holder().Unwrap<Image>();
-    // TODO - make this zero copy
-    return Napi::Buffer::Copy(env, reinterpret_cast<const char *>(im->this_->bytes()), im->this_->size());
+    Napi::Env env = info.Env();
+    if (image_) return Napi::Buffer<char>::Copy(env, reinterpret_cast<char const*>(image_->bytes()), image_->size());
+    return info.Env().Null();
 }
-*/

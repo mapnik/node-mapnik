@@ -1699,41 +1699,40 @@ it('should fail to resize image with bad input', function(done) {
             });
         });
     });
-
-    it('be able to create image with zero allocation / from raw buffer', function() {
-        var im = new mapnik.Image.open('test/data/images/sat_image.png');
-        assert.equal(im.premultiplied(), false);
-        // note: makes copy when data() is called
-        var data = im.data();
-        var im2 = new mapnik.Image.fromBufferSync(im.width(), im.height(), data);
-        // We attach `data` onto the image so that v8 will not
-        // clean it up before im2 is destroyed
-        assert.equal(im2._buffer,data);
-        assert.equal(im2.premultiplied(), false);
-        assert.equal(0, im.compare(im2, {threshold:0}));
-        im.premultiplySync();
-        im2.premultiplySync();
-        assert.equal(im.premultiplied(), true);
-        assert.equal(im2.premultiplied(), true);
-        assert.equal(im.painted(), false);
-        assert.equal(im2.painted(), false);
-        assert.equal(0, im.compare(im2, {threshold:0}));
-        var im3 = new mapnik.Image.fromBufferSync(im.width(), im.height(), im.data(), {
-            premultiplied: true,
-            painted: true
-        });
-        assert.equal(im3.premultiplied(), true);
-        assert.equal(im3.painted(), true);
-
-        // Just for testing (not good practice) we modify data
-        // and ensure that im2._buffer also reflects the modification
-        // as another way to prove they are the same instance
-        assert.equal(im2._buffer[0],23);
-        data[0] = 99;
-        assert.equal(im2._buffer[0],99);
-
-    });
 */
+test('be able to create image with zero allocation / from raw buffer', (assert) => {
+  var im = new mapnik.Image.open('test/data/images/sat_image.png');
+  assert.equal(im.premultiplied(), false);
+  // note: makes copy when data() is called
+  var data = im.data();
+  var im2 = new mapnik.Image.fromBufferSync(im.width(), im.height(), data);
+  // We attach `data` onto the image so that v8 will not
+  // clean it up before im2 is destroyed
+  assert.equal(im2._buffer,data);
+  assert.equal(im2.premultiplied(), false);
+  assert.equal(0, im.compare(im2, {threshold:0}));
+  //im.premultiplySync(); FIXME
+  //im2.premultiplySync(); FIXME
+  //assert.equal(im.premultiplied(), true); FIXME
+  //assert.equal(im2.premultiplied(), true);FIXME
+  //assert.equal(im.painted(), false);FIXME
+  //assert.equal(im2.painted(), false);FIXME
+  assert.equal(0, im.compare(im2, {threshold:0}));
+  var im3 = new mapnik.Image.fromBufferSync(im.width(), im.height(), im.data(), {
+    premultiplied: true,
+    painted: true
+  });
+  assert.equal(im3.premultiplied(), true);
+  //assert.equal(im3.painted(), true);FIXME
+
+  // Just for testing (not good practice) we modify data
+  // and ensure that im2._buffer also reflects the modification
+  // as another way to prove they are the same instance
+  assert.equal(im2._buffer[0],23);
+  data[0] = 99;
+  assert.equal(im2._buffer[0],99);
+  assert.end();
+});
 
 test('should fail to use fromBufferSync due to bad input', (assert) => {
   var b = Buffer.alloc(16);
