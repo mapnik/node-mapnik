@@ -806,7 +806,7 @@ test('fill async works - color', (assert) => {
   im.fill(new mapnik.Color('blue'), function(err, im_res) {
     if (err) throw err;
     assert.equal(im.getPixel(0,0), 4294901760);
-//    assert.equal(im_res.getPixel(0,0), 4294901760); FIXME
+    assert.equal(im_res.getPixel(0,0), 4294901760);
     assert.end();
   });
 });
@@ -816,7 +816,7 @@ test('fill async works - int', (assert) => {
   im.fill(-1, function(err, im_res) {
     if (err) throw err;
     assert.equal(im.getPixel(0,0), 0);
-    //assert.equal(im_res.getPixel(0,0), 0); FIXME!
+    assert.equal(im_res.getPixel(0,0), 0);
     assert.end();
   });
 });
@@ -826,7 +826,7 @@ test('fill async works - uint', (assert) => {
   im.fill(1, function(err, im_res) {
     if (err) throw err;
     assert.equal(im.getPixel(0,0), 1);
-    //assert.equal(im_res.getPixel(0,0), 1); // FIXME
+    assert.equal(im_res.getPixel(0,0), 1);
     assert.end();
   });
 });
@@ -836,7 +836,7 @@ test('fill async works - double', (assert) => {
   im.fill(1.99, function(err, im_res) {
     if (err) throw err;
     assert.equal(im.getPixel(0,0), 1);
-    //assert.equal(im_res.getPixel(0,0), 1); // FIXME
+    assert.equal(im_res.getPixel(0,0), 1);
     assert.end();
   });
 });

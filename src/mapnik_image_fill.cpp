@@ -23,6 +23,16 @@ struct AsyncFill : Napi::AsyncWorker
         mapnik::fill(*image_, val_);
     }
 
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        if (image_)
+        {
+            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
+            Napi::Object obj = Image::constructor.New({arg});
+            return {env.Null(), napi_value(obj)};
+        }
+        return Base::GetResult(env);
+    }
     image_ptr image_;
     T val_;
 };
