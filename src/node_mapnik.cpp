@@ -153,13 +153,63 @@ void init_image_types(Napi::Env env, Napi::Object exports)
     exports.Set("imageType", image_types);
 }
 
+
+/**
+ * Image scaling type constants representing color and grayscale encodings.
+ *
+ * @name imageScaling
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} near
+ * @property {number} bilinear
+ * @property {number} bicubic
+ * @property {number} spline16
+ * @property {number} spline36
+ * @property {number} hanning
+ * @property {number} hamming
+ * @property {number} hermite
+ * @property {number} kaiser
+ * @property {number} quadric
+ * @property {number} catrom
+ * @property {number} gaussian
+ * @property {number} bessel
+ * @property {number} mitchell
+ * @property {number} sinc
+ * @property {number} lanczos
+ * @property {number} blackman
+ */
+
+void init_image_scalings(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object image_scaling_types = Napi::Object::New(env);
+    image_scaling_types.Set("near", Napi::Number::New(env, mapnik::SCALING_NEAR));
+    image_scaling_types.Set("bilinear", Napi::Number::New(env, mapnik::SCALING_BILINEAR));
+    image_scaling_types.Set("bicubic", Napi::Number::New(env, mapnik::SCALING_BICUBIC));
+    image_scaling_types.Set("spline16", Napi::Number::New(env, mapnik::SCALING_SPLINE16));
+    image_scaling_types.Set("spline36", Napi::Number::New(env, mapnik::SCALING_SPLINE36));
+    image_scaling_types.Set("hanning", Napi::Number::New(env, mapnik::SCALING_HANNING));
+    image_scaling_types.Set("hamming", Napi::Number::New(env, mapnik::SCALING_HAMMING));
+    image_scaling_types.Set("hermite", Napi::Number::New(env, mapnik::SCALING_HERMITE));
+    image_scaling_types.Set("kaiser", Napi::Number::New(env, mapnik::SCALING_KAISER));
+    image_scaling_types.Set("quadric", Napi::Number::New(env, mapnik::SCALING_QUADRIC));
+    image_scaling_types.Set("catrom", Napi::Number::New(env, mapnik::SCALING_CATROM));
+    image_scaling_types.Set("gaussian", Napi::Number::New(env, mapnik::SCALING_GAUSSIAN));
+    image_scaling_types.Set("bessel", Napi::Number::New(env, mapnik::SCALING_BESSEL));
+    image_scaling_types.Set("mitchell",Napi::Number::New(env, mapnik::SCALING_MITCHELL));
+    image_scaling_types.Set("sinc", Napi::Number::New(env, mapnik::SCALING_SINC));
+    image_scaling_types.Set("lanczos", Napi::Number::New(env, mapnik::SCALING_LANCZOS));
+    image_scaling_types.Set("blackman", Napi::Number::New(env, mapnik::SCALING_BLACKMAN));
+    exports.Set("imageScaling", image_scaling_types);
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     Color::Initialize(env, exports);
     Image::Initialize(env, exports);
     Palette::Initialize(env, exports);
     init_image_types(env, exports);
-
+    init_image_scalings(env, exports);
     return exports;
 }
 

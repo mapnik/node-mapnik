@@ -1,7 +1,6 @@
 #pragma once
 
 #include <napi.h>
-#include <memory>
 #include "mapnik_palette.hpp"
 
 namespace mapnik {
@@ -45,8 +44,8 @@ public:
     static Napi::Value fromSVGBytesSync(Napi::CallbackInfo const& info);
     static Napi::Value fromSVGBytes(Napi::CallbackInfo const& info);
 
+    Napi::Value painted(Napi::CallbackInfo const& info);
 /*
-    static Napi::Value painted(const Napi::CallbackInfo& info);
     static Napi::Value composite(const Napi::CallbackInfo& info);
     static Napi::Value _filterSync(const Napi::CallbackInfo& info);
     static Napi::Value filterSync(const Napi::CallbackInfo& info);
@@ -54,28 +53,22 @@ public:
 */
     Napi::Value fillSync(Napi::CallbackInfo const& info);
     Napi::Value fill(Napi::CallbackInfo const& info);
-    /*
-    static Napi::Value premultiplySync(const Napi::CallbackInfo& info);
-    static Napi::Value premultiply(const Napi::CallbackInfo& info);
-    */
-    Napi::Value premultiplied(Napi::CallbackInfo const& info);
-    /*
-    static Napi::Value demultiplySync(const Napi::CallbackInfo& info);
-    static Napi::Value demultiply(const Napi::CallbackInfo& info);
-    static Napi::Value clearSync(const Napi::CallbackInfo& info);
-    static Napi::Value clear(const Napi::CallbackInfo& info);
-*/
-    Napi::Value compare(Napi::CallbackInfo const& info);
 
+    Napi::Value premultiplySync(Napi::CallbackInfo const& info);
+    Napi::Value premultiply(Napi::CallbackInfo const& info);
+    Napi::Value demultiplySync(Napi::CallbackInfo const& info);
+    Napi::Value demultiply(Napi::CallbackInfo const& info);
+    Napi::Value premultiplied(Napi::CallbackInfo const& info);
+    Napi::Value clearSync(Napi::CallbackInfo const& info);
+    Napi::Value clear(Napi::CallbackInfo const& info);
+    Napi::Value compare(Napi::CallbackInfo const& info);
     Napi::Value isSolid(Napi::CallbackInfo const& info);
     Napi::Value isSolidSync(Napi::CallbackInfo const& info);
-    /*
-    static Napi::Value copy(const Napi::CallbackInfo& info);
-    static Napi::Value copySync(const Napi::CallbackInfo& info);
-    static Napi::Value resize(const Napi::CallbackInfo& info);
-    static Napi::Value resizeSync(const Napi::CallbackInfo& info);
-    *static Napi::Value data(const Napi::CallbackInfo& info);
-*/
+    Napi::Value copy(Napi::CallbackInfo const& info);
+    Napi::Value copySync(Napi::CallbackInfo const& info);
+    Napi::Value resize(Napi::CallbackInfo const& info);
+    Napi::Value resizeSync(Napi::CallbackInfo const& info);
+
     // accessors
     Napi::Value scaling(Napi::CallbackInfo const& info);
     void scaling(Napi::CallbackInfo const& info, Napi::Value const& value);

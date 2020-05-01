@@ -8,7 +8,6 @@
 namespace {
 
 // AsyncWorker
-
 template <typename T>
 struct AsyncFill : Napi::AsyncWorker
 {
