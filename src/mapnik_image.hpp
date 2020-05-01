@@ -32,8 +32,7 @@ public:
     void saveSync(Napi::CallbackInfo const& info);
     void save(Napi::CallbackInfo const& info);
     Napi::Value data(Napi::CallbackInfo const& info);
-//static Napi::Value view(const Napi::CallbackInfo& info);
-
+    Napi::Value buffer(Napi::CallbackInfo const& info);
     static Napi::Value openSync(Napi::CallbackInfo const& info);
     static Napi::Value open(Napi::CallbackInfo const& info);
     static Napi::Value fromBytesSync(Napi::CallbackInfo const& info);
@@ -45,12 +44,12 @@ public:
     static Napi::Value fromSVGBytes(Napi::CallbackInfo const& info);
 
     Napi::Value painted(Napi::CallbackInfo const& info);
-/*
-    static Napi::Value composite(const Napi::CallbackInfo& info);
-    static Napi::Value _filterSync(const Napi::CallbackInfo& info);
-    static Napi::Value filterSync(const Napi::CallbackInfo& info);
-    static Napi::Value filter(const Napi::CallbackInfo& info);
-*/
+
+    //Napi::Value view(const Napi::CallbackInfo& info);
+    //Napi::Value composite(const Napi::CallbackInfo& info);
+    //Napi::Value filterSync(const Napi::CallbackInfo& info);
+    //Napi::Value filter(const Napi::CallbackInfo& info);
+
     Napi::Value fillSync(Napi::CallbackInfo const& info);
     Napi::Value fill(Napi::CallbackInfo const& info);
 

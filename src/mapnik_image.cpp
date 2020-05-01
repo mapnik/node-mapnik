@@ -3,7 +3,7 @@
 #include <mapnik/image.hpp>             // for image types
 #include <mapnik/image_any.hpp>         // for image_any
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-//#include <mapnik/image_copy.hpp>
+
 
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/image_filter_types.hpp>
@@ -11,18 +11,12 @@
 #include <mapnik/image_scaling.hpp>
 
 #include "mapnik_image.hpp"
-//#include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 #include "pixel_utils.hpp"
-//#include "utils.hpp"
-
-// boost
-//#include <boost/optional/optional.hpp>
 
 // std
 #include <exception>
-//#include <ostream>                      // for operator<<, basic_ostream
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>
 
@@ -52,6 +46,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::isSolidSync>("isSolidSync"),
             InstanceMethod<&Image::isSolid>("isSolid"),
             InstanceMethod<&Image::data>("data"),
+            InstanceMethod<&Image::buffer>("buffer"),
             InstanceMethod<&Image::painted>("painted"),
             InstanceMethod<&Image::premultiplySync>("premultiplySync"),
             InstanceMethod<&Image::premultiply>("premultiply"),
@@ -1133,9 +1128,32 @@ void Image::scaling(Napi::CallbackInfo const& info, Napi::Value const& value)
  * var buffr = img.data();
  */
 
-Napi::Value Image::data(const Napi::CallbackInfo& info)
+Napi::Value Image::data(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     if (image_) return Napi::Buffer<char>::Copy(env, reinterpret_cast<char const*>(image_->bytes()), image_->size());
+    return info.Env().Null();
+}
+
+
+/**
+ * Return pixel data in this image as a buffer
+ * (NOTE: Caller must ensure original Image is alive
+ * while buffer is used as ownership is neither transferred or
+ * assumed)
+ *
+ * @name data
+ * @instance
+ * @memberof Image
+ * @returns {Buffer} pixel data as a buffer
+ * @example
+ * var img = new mapnik.Image.open('./path/to/image.png');
+ * var buff = img.buffer();
+ */
+
+Napi::Value Image::buffer(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    if (image_) return Napi::Buffer<char>::New(env, reinterpret_cast<char*>(image_->bytes()), image_->size());
     return info.Env().Null();
 }
