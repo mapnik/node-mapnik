@@ -113,7 +113,93 @@ static Napi::Value clearCache(const Napi::CallbackInfo& info)
  * var mapnik = require('mapnik');
  */
 
+/**
+ * Image type constants representing color and grayscale encodings.
+ * Composite operation constants
+ *
+ * @property {number} clear
+ * @property {number} src
+ * @property {number} dst
+ * @property {number} src_over
+ * @property {number} dst_over
+ * @property {number} src_in
+ * @property {number} dst_in
+ * @property {number} src_out
+ * @property {number} dst_out
+ * @property {number} src_atop
+ * @property {number} dst_atop
+ * @property {number} xor
+ * @property {number} plus
+ * @property {number} minus
+ * @property {number} multiply
+ * @property {number} screen
+ * @property {number} overlay
+ * @property {number} darken
+ * @property {number} lighten
+ * @property {number} color_dodge
+ * @property {number} color_burn
+ * @property {number} hard_light
+ * @property {number} soft_light
+ * @property {number} difference
+ * @property {number} exclusion
+ * @property {number} contrast
+ * @property {number} invert
+ * @property {number} invert-rgb
+ * @property {number} grain_merge
+ * @property {number} grain_extract
+ * @property {number} hue
+ * @property {number} saturation
+ * @property {number} color
+ * @property {number} linear_dodge
+ * @property {number} linear_burn
+ * @property {number} divide
+ * @name compositeOp
+ * @memberof mapnik
+ * @static
+ * @class
+ */
 
+void init_image_comp_op(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object composite_ops = Napi::Object::New(env);
+    composite_ops.Set("clear", Napi::Number::New(env, mapnik::clear));
+    composite_ops.Set("src", Napi::Number::New(env, mapnik::src));
+    composite_ops.Set("dst", Napi::Number::New(env, mapnik::dst));
+    composite_ops.Set("src_over", Napi::Number::New(env, mapnik::src_over));
+    composite_ops.Set("dst_over", Napi::Number::New(env, mapnik::dst_over));
+    composite_ops.Set("src_in", Napi::Number::New(env, mapnik::src_in));
+    composite_ops.Set("dst_in", Napi::Number::New(env, mapnik::dst_in));
+    composite_ops.Set("src_out", Napi::Number::New(env, mapnik::src_out));
+    composite_ops.Set("dst_out", Napi::Number::New(env, mapnik::dst_out));
+    composite_ops.Set("src_atop", Napi::Number::New(env, mapnik::src_atop));
+    composite_ops.Set("dst_atop", Napi::Number::New(env, mapnik::dst_atop));
+    composite_ops.Set("xor", Napi::Number::New(env, mapnik::_xor));
+    composite_ops.Set("plus", Napi::Number::New(env, mapnik::plus));
+    composite_ops.Set("minus", Napi::Number::New(env, mapnik::minus));
+    composite_ops.Set("multiply", Napi::Number::New(env, mapnik::multiply));
+    composite_ops.Set("screen", Napi::Number::New(env, mapnik::screen));
+    composite_ops.Set("overlay", Napi::Number::New(env, mapnik::overlay));
+    composite_ops.Set("darken", Napi::Number::New(env, mapnik::darken));
+    composite_ops.Set("lighten", Napi::Number::New(env, mapnik::lighten));
+    composite_ops.Set("color_dodge", Napi::Number::New(env, mapnik::color_dodge));
+    composite_ops.Set("color_burn", Napi::Number::New(env, mapnik::color_burn));
+    composite_ops.Set("hard_light", Napi::Number::New(env, mapnik::hard_light));
+    composite_ops.Set("soft_light", Napi::Number::New(env, mapnik::soft_light));
+    composite_ops.Set("difference", Napi::Number::New(env, mapnik::difference));
+    composite_ops.Set("exclusion", Napi::Number::New(env, mapnik::exclusion));
+    composite_ops.Set("contrast", Napi::Number::New(env, mapnik::contrast));
+    composite_ops.Set("invert", Napi::Number::New(env, mapnik::invert));
+    composite_ops.Set("invert-rgb", Napi::Number::New(env, mapnik::invert_rgb));
+    composite_ops.Set("grain_merge", Napi::Number::New(env, mapnik::grain_merge));
+    composite_ops.Set("grain_extract", Napi::Number::New(env, mapnik::grain_extract));
+    composite_ops.Set("hue", Napi::Number::New(env, mapnik::hue));
+    composite_ops.Set("saturation", Napi::Number::New(env, mapnik::saturation));
+    composite_ops.Set("color", Napi::Number::New(env, mapnik::_color));
+    composite_ops.Set("linear_dodge", Napi::Number::New(env, mapnik::linear_dodge));
+    composite_ops.Set("linear_burn", Napi::Number::New(env, mapnik::linear_burn));
+    composite_ops.Set("divide", Napi::Number::New(env, mapnik::divide));
+    exports.Set("compositeOp", composite_ops);
+}
 
 /**
  * Image type constants representing color and grayscale encodings.
@@ -210,6 +296,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Palette::Initialize(env, exports);
     init_image_types(env, exports);
     init_image_scalings(env, exports);
+    init_image_comp_op(env, exports);
     return exports;
 }
 

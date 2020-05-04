@@ -46,13 +46,11 @@ public:
     Napi::Value painted(Napi::CallbackInfo const& info);
 
     //Napi::Value view(const Napi::CallbackInfo& info);
-    //Napi::Value composite(const Napi::CallbackInfo& info);
-    //Napi::Value filterSync(const Napi::CallbackInfo& info);
-    //Napi::Value filter(const Napi::CallbackInfo& info);
-
+    Napi::Value composite(Napi::CallbackInfo const& info);
+    Napi::Value filterSync(Napi::CallbackInfo const& info);
+    Napi::Value filter(Napi::CallbackInfo const& info);
     Napi::Value fillSync(Napi::CallbackInfo const& info);
     Napi::Value fill(Napi::CallbackInfo const& info);
-
     Napi::Value premultiplySync(Napi::CallbackInfo const& info);
     Napi::Value premultiply(Napi::CallbackInfo const& info);
     Napi::Value demultiplySync(Napi::CallbackInfo const& info);

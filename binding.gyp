@@ -28,6 +28,8 @@
         "src/mapnik_image_clear.cpp",
         "src/mapnik_image_copy.cpp",
         "src/mapnik_image_resize.cpp",
+        "src/mapnik_image_compositing.cpp",
+        "src/mapnik_image_filter.cpp",
         #"src/mapnik_image_view.cpp",
         #"src/mapnik_grid.cpp",
         #"src/mapnik_grid_view.cpp",
