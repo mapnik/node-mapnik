@@ -31,7 +31,7 @@ Featureset::~Featureset()
 {
 }
 
-Napi::Value Featureset::New(const Napi::CallbackInfo& info)
+Napi::Value Featureset::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -62,7 +62,7 @@ Napi::Value Featureset::New(const Napi::CallbackInfo& info)
  * @memberof Featureset
  * @returns {mapnik.Feature|null} next feature
  */
-Napi::Value Featureset::next(const Napi::CallbackInfo& info)
+Napi::Value Featureset::next(Napi::CallbackInfo const& info)
 {
     Featureset* fs = info.Holder().Unwrap<Featureset>();
     if (fs->this_) {

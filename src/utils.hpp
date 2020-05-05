@@ -1,5 +1,4 @@
-#ifndef __NODE_MAPNIK_UTILS_H__
-#define __NODE_MAPNIK_UTILS_H__
+#pragma once
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -109,4 +108,3 @@ inline Napi::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> &
 }
 
 } // end ns
-#endif

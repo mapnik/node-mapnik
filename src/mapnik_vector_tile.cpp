@@ -323,7 +323,7 @@ VectorTile::~VectorTile()
 }
 /* LCOV_EXCL_STOP */
 
-Napi::Value VectorTile::New(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -499,12 +499,12 @@ void _composite(VectorTile* target_vt,
  * vt1.compositeSync([vt2], options);
  *
  */
-Napi::Value VectorTile::compositeSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
 {
     return _compositeSync(info);
 }
 
-Napi::Value VectorTile::_compositeSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_compositeSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     if (info.Length() < 1 || !info[0].IsArray())
@@ -918,7 +918,7 @@ typedef struct
  * });
  *
  */
-Napi::Value VectorTile::composite(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
 {
     if ((info.Length() < 2) || !info[info.Length()-1]->IsFunction())
     {
@@ -1290,7 +1290,7 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  * var extent = vt.extent();
  * console.log(extent); // [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248]
  */
-Napi::Value VectorTile::extent(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::extent(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     Napi::Array arr = Napi::Array::New(env, 4);
@@ -1315,7 +1315,7 @@ Napi::Value VectorTile::extent(const Napi::CallbackInfo& info)
  * var extent = vt.bufferedExtent();
  * console.log(extent); // [-11273544.4277, 4693845.0329, -11190380.9409, 4777008.5197];
  */
-Napi::Value VectorTile::bufferedExtent(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::bufferedExtent(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     Napi::Array arr = Napi::Array::New(env, 4);
@@ -1341,7 +1341,7 @@ Napi::Value VectorTile::bufferedExtent(const Napi::CallbackInfo& info)
  * vt.addDataSync(data);
  * console.log(vt.names()); // ['layer-name', 'another-layer']
  */
-Napi::Value VectorTile::names(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::names(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     std::vector<std::string> const& names = d->tile_->get_layers();
@@ -1371,7 +1371,7 @@ Napi::Value VectorTile::names(const Napi::CallbackInfo& info)
  * var vt2 = vt.layer('layer-name');
  * console.log(vt2.names()); // ['layer-name']
  */
-Napi::Value VectorTile::layer(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1)
     {
@@ -1430,7 +1430,7 @@ Napi::Value VectorTile::layer(const Napi::CallbackInfo& info)
  * // assumes you have added data to your tile
  * console.log(empty); // ['layer-name', 'empty-layer']
  */
-Napi::Value VectorTile::emptyLayers(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::emptyLayers(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     std::set<std::string> const& names = d->tile_->get_empty_layers();
@@ -1458,7 +1458,7 @@ Napi::Value VectorTile::emptyLayers(const Napi::CallbackInfo& info)
  * // assumes you have added data to your tile
  * console.log(painted); // ['layer-name']
  */
-Napi::Value VectorTile::paintedLayers(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::paintedLayers(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     std::set<std::string> const& names = d->tile_->get_painted_layers();
@@ -1485,7 +1485,7 @@ Napi::Value VectorTile::paintedLayers(const Napi::CallbackInfo& info)
  * var empty = vt.empty();
  * console.log(empty); // true
  */
-Napi::Value VectorTile::empty(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::empty(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::Boolean::New(env, d->tile_->is_empty());
@@ -1504,7 +1504,7 @@ Napi::Value VectorTile::empty(const Napi::CallbackInfo& info)
  * var painted = vt.painted();
  * console.log(painted); // false
  */
-Napi::Value VectorTile::painted(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::painted(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::New(env, d->tile_->is_painted());
@@ -1574,7 +1574,7 @@ typedef struct
  *   console.log(features[0].layer); // 'layer name'
  * });
  */
-Napi::Value VectorTile::query(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber())
     {
@@ -1862,7 +1862,7 @@ typedef struct
  *   }
  * });
  */
-Napi::Value VectorTile::queryMany(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 2 || !info[0].IsArray())
     {
@@ -2512,7 +2512,7 @@ struct json_value_visitor
  * //   features: [ ... ] // array of objects
  * // }
  */
-Napi::Value VectorTile::toJSON(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
 {
     bool decode_geometry = false;
     if (info.Length() >= 1)
@@ -2798,7 +2798,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  * geojson // stringified GeoJSON
  * JSON.parse(geojson); // GeoJSON object
  */
-Napi::Value VectorTile::toGeoJSONSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
 {
     return _toGeoJSONSync(info);
 }
@@ -2919,7 +2919,7 @@ bool write_geojson_layer_name(std::string & result,
     return false;
 }
 
-Napi::Value VectorTile::_toGeoJSONSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_toGeoJSONSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     if (info.Length() < 1)
@@ -3037,7 +3037,7 @@ struct to_geojson_baton
  *   console.log(JSON.parse(geojson)); // GeoJSON object
  * });
  */
-Napi::Value VectorTile::toGeoJSON(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
 {
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction())
     {
@@ -3197,7 +3197,7 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  * var vt = mapnik.VectorTile(0,0,0);
  * vt.addGeoJSON(JSON.stringify(geojson), 'layer-name', {});
  */
-Napi::Value VectorTile::addGeoJSON(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsString())
@@ -3358,12 +3358,12 @@ Napi::Value VectorTile::addGeoJSON(const Napi::CallbackInfo& info)
  *   image_scaling: 'gaussian'
  * });
  */
-Napi::Value VectorTile::addImageSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
 {
     return _addImageSync(info);
 }
 
-Napi::Value VectorTile::_addImageSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_addImageSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -3513,7 +3513,7 @@ typedef struct
  *   // your custom code using `vt`
  * });
  */
-Napi::Value VectorTile::addImage(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
 {
     // If last param is not a function assume sync
     if (info.Length() < 2)
@@ -3681,12 +3681,12 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
  * var image_buffer = fs.readFileSync('./path/to/image.jpg');
  * vt.addImageBufferSync(image_buffer, 'layer-name');
  */
-Napi::Value VectorTile::addImageBufferSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addImageBufferSync(Napi::CallbackInfo const& info)
 {
     return _addImageBufferSync(info);
 }
 
-Napi::Value VectorTile::_addImageBufferSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_addImageBufferSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -3767,7 +3767,7 @@ typedef struct
  *   // your custom code
  * });
  */
-Napi::Value VectorTile::addImageBuffer(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addImageBuffer(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 3)
     {
@@ -3875,12 +3875,12 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  * vt.addDataSync(data_buffer);
  * // your custom code
  */
-Napi::Value VectorTile::addDataSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
 {
     return _addDataSync(info);
 }
 
-Napi::Value VectorTile::_addDataSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_addDataSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -3987,7 +3987,7 @@ typedef struct
  *   // your custom code
  * });
  */
-Napi::Value VectorTile::addData(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
 {
     // ensure callback is a function
     Napi::Value callback = info[info.Length() - 1];
@@ -4119,12 +4119,12 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  * vectorTile.setDataSync(data);
  * // your custom code
  */
-Napi::Value VectorTile::setDataSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::setDataSync(Napi::CallbackInfo const& info)
 {
     return _setDataSync(info);
 }
 
-Napi::Value VectorTile::_setDataSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_setDataSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -4231,7 +4231,7 @@ typedef struct
  *   // your custom code
  * });
  */
-Napi::Value VectorTile::setData(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
 {
     // ensure callback is a function
     Napi::Value callback = info[info.Length() - 1];
@@ -4367,12 +4367,12 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  *   strategy: 'FILTERED'
  * });
  */
-Napi::Value VectorTile::getDataSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
 {
     return _getDataSync(info);
 }
 
-Napi::Value VectorTile::_getDataSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_getDataSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -4566,7 +4566,7 @@ typedef struct
  *   console.log(data); // buffer
  * });
  */
-Napi::Value VectorTile::getData(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 {
     if (info.Length() == 0 || !info[info.Length()-1]->IsFunction())
     {
@@ -4915,7 +4915,7 @@ struct baton_guard
  *   image.save('./path/to/image/file.png', 'png32');
  * });
  */
-Napi::Value VectorTile::render(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsObject())
@@ -5461,12 +5461,12 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
  * vt.clearSync();
  * console.log(vt.getData().length); // 0
  */
-Napi::Value VectorTile::clearSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::clearSync(Napi::CallbackInfo const& info)
 {
     return _clearSync(info);
 }
 
-Napi::Value VectorTile::_clearSync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_clearSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -5497,7 +5497,7 @@ typedef struct
  *   console.log(vt.getData().length); // 0
  * });
  */
-Napi::Value VectorTile::clear(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::clear(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
@@ -6117,12 +6117,12 @@ struct not_valid_baton
  * console.log(simple); // array of non-simple geometries and their layer info
  * console.log(simple.length); // number
  */
-Napi::Value VectorTile::reportGeometrySimplicitySync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::reportGeometrySimplicitySync(Napi::CallbackInfo const& info)
 {
     return _reportGeometrySimplicitySync(info);
 }
 
-Napi::Value VectorTile::_reportGeometrySimplicitySync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_reportGeometrySimplicitySync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -6163,12 +6163,12 @@ Napi::Value VectorTile::_reportGeometrySimplicitySync(const Napi::CallbackInfo& 
  * console.log(valid); // array of invalid geometries and their layer info
  * console.log(valid.length); // number
  */
-Napi::Value VectorTile::reportGeometryValiditySync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::reportGeometryValiditySync(Napi::CallbackInfo const& info)
 {
     return _reportGeometryValiditySync(info);
 }
 
-Napi::Value VectorTile::_reportGeometryValiditySync(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::_reportGeometryValiditySync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     bool split_multi_features = false;
@@ -6253,7 +6253,7 @@ Napi::Value VectorTile::_reportGeometryValiditySync(const Napi::CallbackInfo& in
  *   console.log(simple.length); // number
  * });
  */
-Napi::Value VectorTile::reportGeometrySimplicity(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
 {
     if (info.Length() == 0)
     {
@@ -6337,7 +6337,7 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
  *   console.log(valid.length); // number
  * });
  */
-Napi::Value VectorTile::reportGeometryValidity(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
 {
     if (info.Length() == 0 || (info.Length() == 1 && !info[0].IsFunction()))
     {
@@ -6451,37 +6451,37 @@ void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 
 #endif // BOOST_VERSION >= 1.58
 
-Napi::Value VectorTile::get_tile_x(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::get_tile_x(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::Number::New(env, d->tile_->x());
 }
 
-Napi::Value VectorTile::get_tile_y(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::get_tile_y(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::Number::New(env, d->tile_->y());
 }
 
-Napi::Value VectorTile::get_tile_z(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::get_tile_z(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::Number::New(env, d->tile_->z());
 }
 
-Napi::Value VectorTile::get_tile_size(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::get_tile_size(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::Number::New(env, d->tile_->tile_size());
 }
 
-Napi::Value VectorTile::get_buffer_size(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::get_buffer_size(Napi::CallbackInfo const& info)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     return Napi::Number::New(env, d->tile_->buffer_size());
 }
 
-void VectorTile::set_tile_x(const Napi::CallbackInfo& info, const Napi::Value& value)
+void VectorTile::set_tile_x(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!value.IsNumber())
@@ -6501,7 +6501,7 @@ void VectorTile::set_tile_x(const Napi::CallbackInfo& info, const Napi::Value& v
     }
 }
 
-void VectorTile::set_tile_y(const Napi::CallbackInfo& info, const Napi::Value& value)
+void VectorTile::set_tile_y(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!value.IsNumber())
@@ -6521,7 +6521,7 @@ void VectorTile::set_tile_y(const Napi::CallbackInfo& info, const Napi::Value& v
     }
 }
 
-void VectorTile::set_tile_z(const Napi::CallbackInfo& info, const Napi::Value& value)
+void VectorTile::set_tile_z(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!value.IsNumber())
@@ -6541,7 +6541,7 @@ void VectorTile::set_tile_z(const Napi::CallbackInfo& info, const Napi::Value& v
     }
 }
 
-void VectorTile::set_tile_size(const Napi::CallbackInfo& info, const Napi::Value& value)
+void VectorTile::set_tile_size(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!value.IsNumber())
@@ -6561,7 +6561,7 @@ void VectorTile::set_tile_size(const Napi::CallbackInfo& info, const Napi::Value
     }
 }
 
-void VectorTile::set_buffer_size(const Napi::CallbackInfo& info, const Napi::Value& value)
+void VectorTile::set_buffer_size(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!value.IsNumber())
@@ -6625,7 +6625,7 @@ typedef struct {
  * //      version: 2 } ],
  * //    errors: false }
  */
-Napi::Value VectorTile::info(const Napi::CallbackInfo& info)
+Napi::Value VectorTile::info(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1 || !info[0].IsObject())
     {

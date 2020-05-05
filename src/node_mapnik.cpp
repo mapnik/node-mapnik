@@ -56,7 +56,7 @@ static std::string format_version(int version)
     return s.str();
 }
 
-static Napi::Value clearCache(const Napi::CallbackInfo& info)
+static Napi::Value clearCache(Napi::CallbackInfo const& info)
 {
     Napi::HandleScope scope(env);
 #if defined(MAPNIK_MEMORY_MAPPED_FILE)

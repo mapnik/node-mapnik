@@ -46,7 +46,7 @@ Projection::~Projection()
 {
 }
 
-Napi::Value Projection::New(const Napi::CallbackInfo& info)
+Napi::Value Projection::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -106,7 +106,7 @@ Napi::Value Projection::New(const Napi::CallbackInfo& info)
  * var long_lat_coords = [-122.33517, 47.63752];
  * var projected = merc.forward(long_lat_coords);
  */
-Napi::Value Projection::forward(const Napi::CallbackInfo& info)
+Napi::Value Projection::forward(Napi::CallbackInfo const& info)
 {
     Projection* p = info.Holder().Unwrap<Projection>();
 
@@ -172,7 +172,7 @@ Napi::Value Projection::forward(const Napi::CallbackInfo& info)
  * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
  * @returns {Array<number>} unprojected coordinates
  */
-Napi::Value Projection::inverse(const Napi::CallbackInfo& info)
+Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
 {
     Projection* p = info.Holder().Unwrap<Projection>();
 
@@ -250,7 +250,7 @@ ProjTransform::~ProjTransform()
 {
 }
 
-Napi::Value ProjTransform::New(const Napi::CallbackInfo& info)
+Napi::Value ProjTransform::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall()) {
         Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
@@ -290,7 +290,7 @@ Napi::Value ProjTransform::New(const Napi::CallbackInfo& info)
     }
 }
 
-Napi::Value ProjTransform::forward(const Napi::CallbackInfo& info)
+Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
 {
     ProjTransform* p = info.Holder().Unwrap<ProjTransform>();
 
@@ -353,7 +353,7 @@ Napi::Value ProjTransform::forward(const Napi::CallbackInfo& info)
     }
 }
 
-Napi::Value ProjTransform::backward(const Napi::CallbackInfo& info)
+Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
 {
     ProjTransform* p = info.Holder().Unwrap<ProjTransform>();
 

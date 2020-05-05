@@ -52,7 +52,7 @@ Datasource::~Datasource()
 {
 }
 
-Napi::Value Datasource::New(const Napi::CallbackInfo& info)
+Napi::Value Datasource::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -152,7 +152,7 @@ Napi::Value Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     return scope.Escape(maybe_local);
 }
 
-Napi::Value Datasource::parameters(const Napi::CallbackInfo& info)
+Napi::Value Datasource::parameters(Napi::CallbackInfo const& info)
 {
     Datasource* d = this;
     Napi::Object ds = Napi::Object::New(env);
@@ -173,7 +173,7 @@ Napi::Value Datasource::parameters(const Napi::CallbackInfo& info)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
-Napi::Value Datasource::extent(const Napi::CallbackInfo& info)
+Napi::Value Datasource::extent(Napi::CallbackInfo const& info)
 {
     Datasource* d = info.Holder().Unwrap<Datasource>();
     mapnik::box2d<double> e;
@@ -210,7 +210,7 @@ Napi::Value Datasource::extent(const Napi::CallbackInfo& info)
  * @returns {Object} description: an object with type, fields, encoding,
  * geometry_type, and proj4 code
  */
-Napi::Value Datasource::describe(const Napi::CallbackInfo& info)
+Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
 {
     Datasource* d = info.Holder().Unwrap<Datasource>();
     Napi::Object description = Napi::Object::New(env);
@@ -251,7 +251,7 @@ Napi::Value Datasource::describe(const Napi::CallbackInfo& info)
  *     features.push(feature);
  * }
  */
-Napi::Value Datasource::featureset(const Napi::CallbackInfo& info)
+Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
 {
     Datasource* ds = info.Holder().Unwrap<Datasource>();
     mapnik::box2d<double> extent = ds->datasource_->envelope();
@@ -352,7 +352,7 @@ Napi::Value Datasource::featureset(const Napi::CallbackInfo& info)
  * //     LAT: 'Number'
  * // }
  */
-Napi::Value Datasource::fields(const Napi::CallbackInfo& info)
+Napi::Value Datasource::fields(Napi::CallbackInfo const& info)
 {
     Datasource* d = info.Holder().Unwrap<Datasource>();
     Napi::Object fields = Napi::Object::New(env);

@@ -19,9 +19,9 @@ class Featureset : public Napi::ObjectWrap<Featureset> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
     static Napi::Value NewInstance(mapnik::featureset_ptr fs_ptr);
-    static Napi::Value next(const Napi::CallbackInfo& info);
+    static Napi::Value next(Napi::CallbackInfo const& info);
 
     Featureset();
 

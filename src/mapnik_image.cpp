@@ -629,7 +629,7 @@ Napi::Value Image::height(Napi::CallbackInfo const& info)
  * console.log(img.width(), img2.width()); // 10, 5
  */
 /*
-Napi::Value Image::view(const Napi::CallbackInfo& info)
+Napi::Value Image::view(Napi::CallbackInfo const& info)
 {
     if ( (info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() )) {
         Napi::TypeError::New(env, "requires 4 integer arguments: x, y, width, height").ThrowAsJavaScriptException();

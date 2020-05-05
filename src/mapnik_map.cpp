@@ -194,7 +194,7 @@ void Map::release() {
     in_use_ = false;
 }
 
-Napi::Value Map::New(const Napi::CallbackInfo& info)
+Napi::Value Map::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -250,7 +250,7 @@ Napi::Value Map::New(const Napi::CallbackInfo& info)
     return;
 }
 
-Napi::Value Map::get_prop(const Napi::CallbackInfo& info)
+Napi::Value Map::get_prop(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     std::string a = TOSTR(property);
@@ -314,7 +314,7 @@ Napi::Value Map::get_prop(const Napi::CallbackInfo& info)
     }
 }
 
-void Map::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
+void Map::set_prop(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     Map* m = info.Holder().Unwrap<Map>();
     std::string a = TOSTR(property);
@@ -444,13 +444,13 @@ void Map::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
  * @instance
  *
  */
-Napi::Value Map::loadFonts(const Napi::CallbackInfo& info)
+Napi::Value Map::loadFonts(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     return Napi::Boolean::New(env, m->map_->load_fonts());
 }
 
-Napi::Value Map::memoryFonts(const Napi::CallbackInfo& info)
+Napi::Value Map::memoryFonts(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     auto const& font_cache = m->map_->get_font_memory_cache();
@@ -463,7 +463,7 @@ Napi::Value Map::memoryFonts(const Napi::CallbackInfo& info)
     return a;
 }
 
-Napi::Value Map::registerFonts(const Napi::CallbackInfo& info)
+Napi::Value Map::registerFonts(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     if (info.Length() == 0 || !info[0].IsString())
@@ -504,7 +504,7 @@ Napi::Value Map::registerFonts(const Napi::CallbackInfo& info)
  * @name font
  * @returns {Array<string>} fonts
  */
-Napi::Value Map::fonts(const Napi::CallbackInfo& info)
+Napi::Value Map::fonts(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     auto const& mapping = m->map_->get_font_file_mapping();
@@ -525,7 +525,7 @@ Napi::Value Map::fonts(const Napi::CallbackInfo& info)
  * @name fontFiles
  * @returns {Object} fonts
  */
-Napi::Value Map::fontFiles(const Napi::CallbackInfo& info)
+Napi::Value Map::fontFiles(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     auto const& mapping = m->map_->get_font_file_mapping();
@@ -544,7 +544,7 @@ Napi::Value Map::fontFiles(const Napi::CallbackInfo& info)
  * @name fontDirectory
  * @returns {string|undefined} fonts
  */
-Napi::Value Map::fontDirectory(const Napi::CallbackInfo& info)
+Napi::Value Map::fontDirectory(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     boost::optional<std::string> const& fdir = m->map_->font_directory();
@@ -563,7 +563,7 @@ Napi::Value Map::fontDirectory(const Napi::CallbackInfo& info)
  * @name scale
  * @returns {number} scale
  */
-Napi::Value Map::scale(const Napi::CallbackInfo& info)
+Napi::Value Map::scale(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     return Napi::Number::New(env, m->map_->scale());
@@ -577,7 +577,7 @@ Napi::Value Map::scale(const Napi::CallbackInfo& info)
  * @name scaleDenominator
  * @returns {number} scale denominator
  */
-Napi::Value Map::scaleDenominator(const Napi::CallbackInfo& info)
+Napi::Value Map::scaleDenominator(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     return Napi::Number::New(env, m->map_->scale_denominator());
@@ -626,7 +626,7 @@ typedef struct {
  * });
  *
  */
-Napi::Value Map::queryMapPoint(const Napi::CallbackInfo& info)
+Napi::Value Map::queryMapPoint(Napi::CallbackInfo const& info)
 {
     abstractQueryPoint(info,false);
     return;
@@ -662,13 +662,13 @@ Napi::Value Map::queryMapPoint(const Napi::CallbackInfo& info)
  * });
  *
  */
-Napi::Value Map::queryPoint(const Napi::CallbackInfo& info)
+Napi::Value Map::queryPoint(Napi::CallbackInfo const& info)
 {
     abstractQueryPoint(info,true);
     return;
 }
 
-Napi::Value Map::abstractQueryPoint(const Napi::CallbackInfo& info, bool geo_coords)
+Napi::Value Map::abstractQueryPoint(Napi::CallbackInfo const& info, bool geo_coords)
 {
     Napi::HandleScope scope(env);
     if (info.Length() < 3)
@@ -906,7 +906,7 @@ void Map::EIO_AfterQueryMap(uv_work_t* req)
  * @name layers
  * @returns {Array<mapnik.Layer>} layers
  */
-Napi::Value Map::layers(const Napi::CallbackInfo& info)
+Napi::Value Map::layers(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     std::vector<mapnik::layer> const& layers = m->map_->layers();
@@ -926,7 +926,7 @@ Napi::Value Map::layers(const Napi::CallbackInfo& info)
  * @name add_layer
  * @param {mapnik.Layer} new layer
  */
-Napi::Value Map::add_layer(const Napi::CallbackInfo& info) {
+Napi::Value Map::add_layer(Napi::CallbackInfo const& info) {
     if (!info[0].IsObject()) {
         Napi::TypeError::New(env, "mapnik.Layer expected").ThrowAsJavaScriptException();
         return env.Null();
@@ -951,7 +951,7 @@ Napi::Value Map::add_layer(const Napi::CallbackInfo& info) {
  * @name remove_layer
  * @param {number} layer index
  */
-Napi::Value Map::remove_layer(const Napi::CallbackInfo& info) {
+Napi::Value Map::remove_layer(Napi::CallbackInfo const& info) {
     if (info.Length() != 1) {
         Napi::Error::New(env, "Please provide layer index").ThrowAsJavaScriptException();
         return env.Null();
@@ -986,7 +986,7 @@ Napi::Value Map::remove_layer(const Napi::CallbackInfo& info) {
  * @returns {mapnik.Layer} the layer
  * @throws {Error} if index is incorrect or layer is not found
  */
-Napi::Value Map::get_layer(const Napi::CallbackInfo& info)
+Napi::Value Map::get_layer(Napi::CallbackInfo const& info)
 {
     if (info.Length() != 1) {
         Napi::Error::New(env, "Please provide layer name or index").ThrowAsJavaScriptException();
@@ -1047,7 +1047,7 @@ Napi::Value Map::get_layer(const Napi::CallbackInfo& info)
  * @instance
  * @name clear
  */
-Napi::Value Map::clear(const Napi::CallbackInfo& info)
+Napi::Value Map::clear(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     m->map_->remove_all();
@@ -1063,7 +1063,7 @@ Napi::Value Map::clear(const Napi::CallbackInfo& info)
  * @param {number} width
  * @param {number} height
  */
-Napi::Value Map::resize(const Napi::CallbackInfo& info)
+Napi::Value Map::resize(Napi::CallbackInfo const& info)
 {
     if (info.Length() != 2) {
         Napi::Error::New(env, "Please provide width and height").ThrowAsJavaScriptException();
@@ -1104,7 +1104,7 @@ typedef struct {
  * @param {Object} [options={}]
  * @param {Function} callback
  */
-Napi::Value Map::load(const Napi::CallbackInfo& info)
+Napi::Value Map::load(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 2) {
         Napi::Error::New(env, "please provide a stylesheet path, options, and callback").ThrowAsJavaScriptException();
@@ -1217,7 +1217,7 @@ void Map::EIO_AfterLoad(uv_work_t* req)
  * @example
  * map.loadSync('./style.xml');
  */
-Napi::Value Map::loadSync(const Napi::CallbackInfo& info)
+Napi::Value Map::loadSync(Napi::CallbackInfo const& info)
 {
     if (!info[0].IsString()) {
         Napi::TypeError::New(env, "first argument must be a path to a mapnik stylesheet").ThrowAsJavaScriptException();
@@ -1296,7 +1296,7 @@ Napi::Value Map::loadSync(const Napi::CallbackInfo& info)
  * var fs = require('fs');
  * map.fromStringSync(fs.readFileSync('./style.xml', 'utf8'));
  */
-Napi::Value Map::fromStringSync(const Napi::CallbackInfo& info)
+Napi::Value Map::fromStringSync(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1) {
         Napi::Error::New(env, "Accepts 2 arguments: stylesheet string and an optional options").ThrowAsJavaScriptException();
@@ -1377,7 +1377,7 @@ Napi::Value Map::fromStringSync(const Napi::CallbackInfo& info)
  *   // details loaded
  * });
  */
-Napi::Value Map::fromString(const Napi::CallbackInfo& info)
+Napi::Value Map::fromString(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 2)
     {
@@ -1492,7 +1492,7 @@ void Map::EIO_AfterFromString(uv_work_t* req)
  * @memberof Map
  * @returns {mapnik.Map} clone
  */
-Napi::Value Map::clone(const Napi::CallbackInfo& info)
+Napi::Value Map::clone(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     Map* m2 = new Map();
@@ -1515,7 +1515,7 @@ Napi::Value Map::clone(const Napi::CallbackInfo& info)
  * map.save("path/to/map.xml");
  */
 
-Napi::Value Map::save(const Napi::CallbackInfo& info)
+Napi::Value Map::save(Napi::CallbackInfo const& info)
 {
     if (info.Length() != 1 || !info[0].IsString())
     {
@@ -1539,7 +1539,7 @@ Napi::Value Map::save(const Napi::CallbackInfo& info)
  * @example
  * var xml = map.toXML();
  */
-Napi::Value Map::toXML(const Napi::CallbackInfo& info)
+Napi::Value Map::toXML(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     bool explicit_defaults = false;
@@ -1547,7 +1547,7 @@ Napi::Value Map::toXML(const Napi::CallbackInfo& info)
     return Napi::String::New(env, map_string);
 }
 
-Napi::Value Map::zoomAll(const Napi::CallbackInfo& info)
+Napi::Value Map::zoomAll(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
     try
@@ -1562,7 +1562,7 @@ Napi::Value Map::zoomAll(const Napi::CallbackInfo& info)
     return;
 }
 
-Napi::Value Map::zoomToBox(const Napi::CallbackInfo& info)
+Napi::Value Map::zoomToBox(Napi::CallbackInfo const& info)
 {
     Map* m = info.Holder().Unwrap<Map>();
 
@@ -1762,7 +1762,7 @@ struct vector_tile_baton_t {
  *     console.log(vtile); // => vector tile object with data from xml
  * });
  */
-Napi::Value Map::render(const Napi::CallbackInfo& info)
+Napi::Value Map::render(Napi::CallbackInfo const& info)
 {
     // ensure at least 2 args
     if (info.Length() < 2) {
@@ -2429,7 +2429,7 @@ typedef struct {
     Napi::FunctionReference cb;
 } render_file_baton_t;
 
-Napi::Value Map::renderFile(const Napi::CallbackInfo& info)
+Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1 || !info[0].IsString()) {
         Napi::TypeError::New(env, "first argument must be a path to a file to save").ThrowAsJavaScriptException();
@@ -2647,7 +2647,7 @@ void Map::EIO_AfterRenderFile(uv_work_t* req)
 }
 
 // TODO - add support for grids
-Napi::Value Map::renderSync(const Napi::CallbackInfo& info)
+Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
 {
     std::string format = "png";
     palette_ptr palette;
@@ -2758,7 +2758,7 @@ Napi::Value Map::renderSync(const Napi::CallbackInfo& info)
     return Napi::Buffer::Copy(env, (char*)s.data(), s.size());
 }
 
-Napi::Value Map::renderFileSync(const Napi::CallbackInfo& info)
+Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1 || !info[0].IsString()) {
         Napi::TypeError::New(env, "first argument must be a path to a file to save").ThrowAsJavaScriptException();

@@ -57,7 +57,7 @@ Feature::~Feature()
 {
 }
 
-Napi::Value Feature::New(const Napi::CallbackInfo& info)
+Napi::Value Feature::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -95,7 +95,7 @@ Napi::Value Feature::New(const Napi::CallbackInfo& info)
  *
  * Create a feature from a GeoJSON representation.
  */
-Napi::Value Feature::fromJSON(const Napi::CallbackInfo& info)
+Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1 || !info[0].IsString()) {
         Napi::TypeError::New(env, "requires one argument: a string representing a GeoJSON feature").ThrowAsJavaScriptException();
@@ -145,7 +145,7 @@ Napi::Value Feature::NewInstance(mapnik::feature_ptr f_ptr)
  * @instance
  * @returns {number} id the feature's internal id
  */
-Napi::Value Feature::id(const Napi::CallbackInfo& info)
+Napi::Value Feature::id(Napi::CallbackInfo const& info)
 {
     Feature* fp = info.Holder().Unwrap<Feature>();
     return Napi::Number::New(env, fp->get()->id());
@@ -159,7 +159,7 @@ Napi::Value Feature::id(const Napi::CallbackInfo& info)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
-Napi::Value Feature::extent(const Napi::CallbackInfo& info)
+Napi::Value Feature::extent(Napi::CallbackInfo const& info)
 {
     Feature* fp = info.Holder().Unwrap<Feature>();
     Napi::Array a = Napi::Array::New(env, 4);
@@ -180,7 +180,7 @@ Napi::Value Feature::extent(const Napi::CallbackInfo& info)
  * @instance
  * @returns {Object} attributes
  */
-Napi::Value Feature::attributes(const Napi::CallbackInfo& info)
+Napi::Value Feature::attributes(Napi::CallbackInfo const& info)
 {
     Feature* fp = info.Holder().Unwrap<Feature>();
     Napi::Object feat = Napi::Object::New(env);
@@ -206,7 +206,7 @@ Napi::Value Feature::attributes(const Napi::CallbackInfo& info)
  * @instance
  * @returns {mapnik.Geometry} geometry
  */
-Napi::Value Feature::geometry(const Napi::CallbackInfo& info)
+Napi::Value Feature::geometry(Napi::CallbackInfo const& info)
 {
     Feature* fp = info.Holder().Unwrap<Feature>();
     return Geometry::NewInstance(fp->get());
@@ -220,7 +220,7 @@ Napi::Value Feature::geometry(const Napi::CallbackInfo& info)
  * @memberof Feature
  * @returns {string} geojson Feature object in stringified GeoJSON
  */
-Napi::Value Feature::toJSON(const Napi::CallbackInfo& info)
+Napi::Value Feature::toJSON(Napi::CallbackInfo const& info)
 {
     Feature* fp = info.Holder().Unwrap<Feature>();
     std::string json;

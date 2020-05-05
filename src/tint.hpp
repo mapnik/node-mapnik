@@ -1,5 +1,4 @@
-#ifndef NODE_BLEND_SRC_TINT_H
-#define NODE_BLEND_SRC_TINT_H
+#pragma once
 
 #include <cmath>
 #include <string>
@@ -91,6 +90,3 @@ struct Tinter {
                 a1 == 1);
     }
 };
-
-
-#endif

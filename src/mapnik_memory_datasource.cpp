@@ -43,7 +43,7 @@ MemoryDatasource::~MemoryDatasource()
 {
 }
 
-Napi::Value MemoryDatasource::New(const Napi::CallbackInfo& info)
+Napi::Value MemoryDatasource::New(Napi::CallbackInfo const& info)
 {
     std::clog << "WARNING: MemoryDatasource is deprecated and will be removed in node-mapnik >= 3.7.x\n";
     if (!info.IsConstructCall())
@@ -118,7 +118,7 @@ Napi::Value MemoryDatasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
     return scope.Escape(maybe_local);
 }
 
-Napi::Value MemoryDatasource::parameters(const Napi::CallbackInfo& info)
+Napi::Value MemoryDatasource::parameters(Napi::CallbackInfo const& info)
 {
     MemoryDatasource* d = info.Holder().Unwrap<MemoryDatasource>();
     Napi::Object ds = Napi::Object::New(env);
@@ -133,7 +133,7 @@ Napi::Value MemoryDatasource::parameters(const Napi::CallbackInfo& info)
     return ds;
 }
 
-Napi::Value MemoryDatasource::describe(const Napi::CallbackInfo& info)
+Napi::Value MemoryDatasource::describe(Napi::CallbackInfo const& info)
 {
     MemoryDatasource* d = info.Holder().Unwrap<MemoryDatasource>();
     Napi::Object description = Napi::Object::New(env);
@@ -144,7 +144,7 @@ Napi::Value MemoryDatasource::describe(const Napi::CallbackInfo& info)
     return description;
 }
 
-Napi::Value MemoryDatasource::featureset(const Napi::CallbackInfo& info)
+Napi::Value MemoryDatasource::featureset(Napi::CallbackInfo const& info)
 {
     MemoryDatasource* d = info.Holder().Unwrap<MemoryDatasource>();
 
@@ -214,7 +214,7 @@ Napi::Value MemoryDatasource::featureset(const Napi::CallbackInfo& info)
     /* LCOV_EXCL_STOP */
 }
 
-Napi::Value MemoryDatasource::add(const Napi::CallbackInfo& info)
+Napi::Value MemoryDatasource::add(Napi::CallbackInfo const& info)
 {
     if ((info.Length() != 1) || !info[0].IsObject())
     {
@@ -285,7 +285,7 @@ Napi::Value MemoryDatasource::add(const Napi::CallbackInfo& info)
     return env.False();
 }
 
-Napi::Value MemoryDatasource::fields(const Napi::CallbackInfo& info)
+Napi::Value MemoryDatasource::fields(Napi::CallbackInfo const& info)
 {
     MemoryDatasource* d = info.Holder().Unwrap<MemoryDatasource>();
     Napi::Object fields = Napi::Object::New(env);

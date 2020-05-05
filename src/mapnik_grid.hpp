@@ -21,27 +21,27 @@ class Grid : public Napi::ObjectWrap<Grid> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
 
-    static Napi::Value encodeSync(const Napi::CallbackInfo& info);
-    static Napi::Value encode(const Napi::CallbackInfo& info);
+    static Napi::Value encodeSync(Napi::CallbackInfo const& info);
+    static Napi::Value encode(Napi::CallbackInfo const& info);
     static void EIO_Encode(uv_work_t* req);
     static void EIO_AfterEncode(uv_work_t* req);
 
-    static Napi::Value addField(const Napi::CallbackInfo& info);
-    static Napi::Value fields(const Napi::CallbackInfo& info);
-    static Napi::Value view(const Napi::CallbackInfo& info);
-    static Napi::Value width(const Napi::CallbackInfo& info);
-    static Napi::Value height(const Napi::CallbackInfo& info);
-    static Napi::Value painted(const Napi::CallbackInfo& info);
-    static Napi::Value _clearSync(const Napi::CallbackInfo& info);
-    static Napi::Value clearSync(const Napi::CallbackInfo& info);
-    static Napi::Value clear(const Napi::CallbackInfo& info);
+    static Napi::Value addField(Napi::CallbackInfo const& info);
+    static Napi::Value fields(Napi::CallbackInfo const& info);
+    static Napi::Value view(Napi::CallbackInfo const& info);
+    static Napi::Value width(Napi::CallbackInfo const& info);
+    static Napi::Value height(Napi::CallbackInfo const& info);
+    static Napi::Value painted(Napi::CallbackInfo const& info);
+    static Napi::Value _clearSync(Napi::CallbackInfo const& info);
+    static Napi::Value clearSync(Napi::CallbackInfo const& info);
+    static Napi::Value clear(Napi::CallbackInfo const& info);
     static void EIO_Clear(uv_work_t* req);
     static void EIO_AfterClear(uv_work_t* req);
 
-    Napi::Value get_key(const Napi::CallbackInfo& info);
-    void set_key(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value get_key(Napi::CallbackInfo const& info);
+    void set_key(Napi::CallbackInfo const& info, const Napi::Value& value);
 
     using Napi::ObjectWrap::Ref;
     using Napi::ObjectWrap::Unref;

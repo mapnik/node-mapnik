@@ -37,7 +37,7 @@ Expression::~Expression()
 {
 }
 
-Napi::Value Expression::New(const Napi::CallbackInfo& info)
+Napi::Value Expression::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -67,13 +67,13 @@ Napi::Value Expression::New(const Napi::CallbackInfo& info)
     return info.This();
 }
 
-Napi::Value Expression::toString(const Napi::CallbackInfo& info)
+Napi::Value Expression::toString(Napi::CallbackInfo const& info)
 {
     Expression* e = info.Holder().Unwrap<Expression>();
     return Napi::New(env, mapnik::to_expression_string(*e->get()));
 }
 
-Napi::Value Expression::evaluate(const Napi::CallbackInfo& info)
+Napi::Value Expression::evaluate(Napi::CallbackInfo const& info)
 {
     if (info.Length() < 1) {
         Napi::Error::New(env, "requires a mapnik.Feature as an argument").ThrowAsJavaScriptException();

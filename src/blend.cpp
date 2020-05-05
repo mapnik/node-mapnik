@@ -57,7 +57,7 @@ static bool hexToUInt32Color(char *hex, std::uint32_t & value) {
     }
 }
 
-Napi::Value rgb2hsl(const Napi::CallbackInfo& info) {
+Napi::Value rgb2hsl(Napi::CallbackInfo const& info) {
     if (info.Length() != 3) {
         Napi::TypeError::New(env, "Please pass r,g,b integer values as three arguments").ThrowAsJavaScriptException();
         return env.Null();
@@ -78,7 +78,7 @@ Napi::Value rgb2hsl(const Napi::CallbackInfo& info) {
     return hsl;
 }
 
-Napi::Value hsl2rgb(const Napi::CallbackInfo& info) {
+Napi::Value hsl2rgb(Napi::CallbackInfo const& info) {
     if (info.Length() != 3) {
         Napi::TypeError::New(env, "Please pass hsl fractional values as three arguments").ThrowAsJavaScriptException();
         return env.Null();
@@ -490,7 +490,7 @@ void Work_AfterBlend(uv_work_t* req) {
  *  fs.writeFileSync('result.png', result);
  * });
  */
-Napi::Value Blend(const Napi::CallbackInfo& info) {
+Napi::Value Blend(Napi::CallbackInfo const& info) {
     std::unique_ptr<BlendBaton> baton(new BlendBaton());
     Napi::Object options;
     if (info.Length() == 0 || !info[0].IsArray()) {

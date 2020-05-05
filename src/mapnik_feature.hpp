@@ -20,14 +20,14 @@ class Feature : public Napi::ObjectWrap<Feature> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
     static Napi::Value NewInstance(mapnik::feature_ptr f_ptr);
-    static Napi::Value fromJSON(const Napi::CallbackInfo& info);
-    static Napi::Value id(const Napi::CallbackInfo& info);
-    static Napi::Value extent(const Napi::CallbackInfo& info);
-    static Napi::Value attributes(const Napi::CallbackInfo& info);
-    static Napi::Value geometry(const Napi::CallbackInfo& info);
-    static Napi::Value toJSON(const Napi::CallbackInfo& info);
+    static Napi::Value fromJSON(Napi::CallbackInfo const& info);
+    static Napi::Value id(Napi::CallbackInfo const& info);
+    static Napi::Value extent(Napi::CallbackInfo const& info);
+    static Napi::Value attributes(Napi::CallbackInfo const& info);
+    static Napi::Value geometry(Napi::CallbackInfo const& info);
+    static Napi::Value toJSON(Napi::CallbackInfo const& info);
 
     // todo
     // how to allow altering of attributes

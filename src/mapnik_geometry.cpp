@@ -64,7 +64,7 @@ Geometry::~Geometry()
 {
 }
 
-Napi::Value Geometry::New(const Napi::CallbackInfo& info)
+Napi::Value Geometry::New(Napi::CallbackInfo const& info)
 {
     if (info[0].IsExternal())
     {
@@ -101,7 +101,7 @@ Napi::Value Geometry::NewInstance(mapnik::feature_ptr f) {
  * @memberof Geometry
  * @instance
  */
-Napi::Value Geometry::type(const Napi::CallbackInfo& info)
+Napi::Value Geometry::type(Napi::CallbackInfo const& info)
 {
     Geometry* g = info.Holder().Unwrap<Geometry>();
     auto const& geom = g->feat_->get_geometry();
@@ -117,7 +117,7 @@ Napi::Value Geometry::type(const Napi::CallbackInfo& info)
  * @instance
  * @name toJSONSync
  */
-Napi::Value Geometry::toJSONSync(const Napi::CallbackInfo& info)
+Napi::Value Geometry::toJSONSync(Napi::CallbackInfo const& info)
 {
     return _toJSONSync(info);
 }
@@ -132,7 +132,7 @@ bool to_geojson_projected(std::string & json,
     return mapnik::util::to_geojson(json,projected_geom);
 }
 
-Napi::Value Geometry::_toJSONSync(const Napi::CallbackInfo& info) {
+Napi::Value Geometry::_toJSONSync(Napi::CallbackInfo const& info) {
     Napi::EscapableHandleScope scope(env);
     Geometry* g = info.Holder().Unwrap<Geometry>();
     std::string json;
@@ -211,7 +211,7 @@ struct to_json_baton {
  * @instance
  * @name toJSON
  */
-Napi::Value Geometry::toJSON(const Napi::CallbackInfo& info)
+Napi::Value Geometry::toJSON(Napi::CallbackInfo const& info)
 {
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction()) {
         return _toJSONSync(info);
@@ -332,7 +332,7 @@ void Geometry::after_to_json(uv_work_t* req)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order geometry extent.
  */
-Napi::Value Geometry::extent(const Napi::CallbackInfo& info)
+Napi::Value Geometry::extent(Napi::CallbackInfo const& info)
 {
     Geometry* g = info.Holder().Unwrap<Geometry>();
     Napi::Array a = Napi::Array::New(env, 4);
@@ -352,7 +352,7 @@ Napi::Value Geometry::extent(const Napi::CallbackInfo& info)
  * @instance
  * @returns {string} wkt representation of this geometry
  */
-Napi::Value Geometry::toWKT(const Napi::CallbackInfo& info)
+Napi::Value Geometry::toWKT(Napi::CallbackInfo const& info)
 {
     std::string wkt;
     Geometry* g = info.Holder().Unwrap<Geometry>();
@@ -376,7 +376,7 @@ Napi::Value Geometry::toWKT(const Napi::CallbackInfo& info)
  * @instance
  * @returns {string} wkb representation of this geometry
  */
-Napi::Value Geometry::toWKB(const Napi::CallbackInfo& info)
+Napi::Value Geometry::toWKB(Napi::CallbackInfo const& info)
 {
     Geometry* g = info.Holder().Unwrap<Geometry>();
     mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);

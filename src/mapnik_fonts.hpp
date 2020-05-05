@@ -14,7 +14,7 @@
 
 namespace node_mapnik {
 
-static inline Napi::Value register_fonts(const Napi::CallbackInfo& info)
+static inline Napi::Value register_fonts(Napi::CallbackInfo const& info)
 {
     try
     {
@@ -68,7 +68,7 @@ static inline Napi::Value register_fonts(const Napi::CallbackInfo& info)
     }
 }
 
-static inline Napi::Value available_font_faces(const Napi::CallbackInfo& info)
+static inline Napi::Value available_font_faces(Napi::CallbackInfo const& info)
 {
     auto const& names = mapnik::freetype_engine::face_names();
     Napi::Array a = Napi::Array::New(env, names.size());
@@ -79,7 +79,7 @@ static inline Napi::Value available_font_faces(const Napi::CallbackInfo& info)
     return a;
 }
 
-static inline Napi::Value memory_fonts(const Napi::CallbackInfo& info)
+static inline Napi::Value memory_fonts(Napi::CallbackInfo const& info)
 {
     auto const& font_cache = mapnik::freetype_engine::get_cache();
     Napi::Array a = Napi::Array::New(env, font_cache.size());
@@ -91,7 +91,7 @@ static inline Napi::Value memory_fonts(const Napi::CallbackInfo& info)
     return a;
 }
 
-static inline Napi::Value available_font_files(const Napi::CallbackInfo& info)
+static inline Napi::Value available_font_files(Napi::CallbackInfo const& info)
 {
     auto const& mapping = mapnik::freetype_engine::get_mapping();
     Napi::Object obj = Napi::Object::New(env);

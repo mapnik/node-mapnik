@@ -1,4 +1,3 @@
-
 #if defined(GRID_RENDERER)
 
 // mapnik
@@ -16,7 +15,7 @@ Napi::FunctionReference Grid::constructor;
 
 /**
  * **`mapnik.Grid`**
- * 
+ *
  * Generator for [UTFGrid](https://www.mapbox.com/guides/an-open-platform)
  * representations of data.
  *
@@ -63,7 +62,7 @@ Grid::~Grid()
 {
 }
 
-Napi::Value Grid::New(const Napi::CallbackInfo& info)
+Napi::Value Grid::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -115,12 +114,12 @@ Napi::Value Grid::New(const Napi::CallbackInfo& info)
     }
 }
 
-Napi::Value Grid::clearSync(const Napi::CallbackInfo& info)
+Napi::Value Grid::clearSync(Napi::CallbackInfo const& info)
 {
     return _clearSync(info);
 }
 
-Napi::Value Grid::_clearSync(const Napi::CallbackInfo& info)
+Napi::Value Grid::_clearSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     Grid* g = info.Holder().Unwrap<Grid>();
@@ -136,7 +135,7 @@ typedef struct {
     Napi::FunctionReference cb;
 } clear_grid_baton_t;
 
-Napi::Value Grid::clear(const Napi::CallbackInfo& info)
+Napi::Value Grid::clear(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
 
@@ -186,7 +185,7 @@ void Grid::EIO_AfterClear(uv_work_t* req)
     clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
     if (closure->error)
     {
-        // There seems to be no possible way for the exception to be thrown in the previous 
+        // There seems to be no possible way for the exception to be thrown in the previous
         // process and therefore not possible to have an error here so removing it from code
         // coverage
         /* LCOV_EXCL_START */
@@ -204,7 +203,7 @@ void Grid::EIO_AfterClear(uv_work_t* req)
     delete closure;
 }
 
-Napi::Value Grid::painted(const Napi::CallbackInfo& info)
+Napi::Value Grid::painted(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
     return Napi::New(env, g->get()->painted());
@@ -217,7 +216,7 @@ Napi::Value Grid::painted(const Napi::CallbackInfo& info)
  * @name width
  * @returns {number} width
  */
-Napi::Value Grid::width(const Napi::CallbackInfo& info)
+Napi::Value Grid::width(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
     return Napi::Number::New(env, (unsigned)g->get()->width());
@@ -230,19 +229,19 @@ Napi::Value Grid::width(const Napi::CallbackInfo& info)
  * @name height
  * @returns {number} height
  */
-Napi::Value Grid::height(const Napi::CallbackInfo& info)
+Napi::Value Grid::height(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
     return Napi::Number::New(env, static_cast<unsigned>(g->get()->height()));
 }
 
-Napi::Value Grid::get_key(const Napi::CallbackInfo& info)
+Napi::Value Grid::get_key(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
     return Napi::String::New(env, g->get()->get_key());
 }
 
-void Grid::set_key(const Napi::CallbackInfo& info, const Napi::Value& value)
+void Grid::set_key(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
     if (!value.IsString())
@@ -261,7 +260,7 @@ void Grid::set_key(const Napi::CallbackInfo& info, const Napi::Value& value)
  * @name addField
  * @param {string} field
  */
-Napi::Value Grid::addField(const Napi::CallbackInfo& info)
+Napi::Value Grid::addField(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
 
@@ -288,7 +287,7 @@ Napi::Value Grid::addField(const Napi::CallbackInfo& info)
  * @name addField
  * @returns {v8::Array<string>} fields
  */
-Napi::Value Grid::fields(const Napi::CallbackInfo& info)
+Napi::Value Grid::fields(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
     std::set<std::string> const& a = g->get()->get_fields();
@@ -316,7 +315,7 @@ Napi::Value Grid::fields(const Napi::CallbackInfo& info)
  * @param {number} height
  * @returns {mapnik.Grid} a grid constrained to this new view
  */
-Napi::Value Grid::view(const Napi::CallbackInfo& info)
+Napi::Value Grid::view(Napi::CallbackInfo const& info)
 {
     if ( (info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() ))
     {
@@ -341,7 +340,7 @@ Napi::Value Grid::view(const Napi::CallbackInfo& info)
  * @param {Object} [options={ resolution: 4, features: false }]
  * @returns {Object} an encoded field with `grid`, `keys`, and `data` members.
  */
-Napi::Value Grid::encodeSync(const Napi::CallbackInfo& info)
+Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
 
@@ -452,7 +451,7 @@ typedef struct {
     std::vector<mapnik::grid::lookup_type> key_order;
 } encode_grid_baton_t;
 
-Napi::Value Grid::encode(const Napi::CallbackInfo& info)
+Napi::Value Grid::encode(Napi::CallbackInfo const& info)
 {
     Grid* g = info.Holder().Unwrap<Grid>();
 
@@ -550,7 +549,7 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
     encode_grid_baton_t *closure = static_cast<encode_grid_baton_t *>(req->data);
 
 
-    if (closure->error) 
+    if (closure->error)
     {
         // There is no known ways to throw errors in the processing prior
         // so simply removing the following from coverage
@@ -558,8 +557,8 @@ void Grid::EIO_AfterEncode(uv_work_t* req)
         Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
         /* LCOV_EXCL_STOP */
-    } 
-    else 
+    }
+    else
     {
 
         // convert key order to proper javascript array

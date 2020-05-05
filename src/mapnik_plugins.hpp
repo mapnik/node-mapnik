@@ -18,7 +18,7 @@ namespace node_mapnik {
 /**
  * Register all plugins available. This is not recommend in environments where high-performance is priority.
  * Consider registering plugins on a per-need basis.
- * 
+ *
  * @memberof mapnik
  * @name register_default_input_plugins
  * @example
@@ -33,7 +33,7 @@ namespace node_mapnik {
  * @name datasources
  * @returns {Array<String>} list of plugins available to use
  */
-static inline Napi::Value available_input_plugins(const Napi::CallbackInfo& info)
+static inline Napi::Value available_input_plugins(Napi::CallbackInfo const& info)
 {
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
     Napi::Array a = Napi::Array::New(env, names.size());
@@ -64,7 +64,7 @@ static inline Napi::Value available_input_plugins(const Napi::CallbackInfo& info
  * @example
  * mapnik.registerDatasource(path.join(mapnik.settings.paths.input_plugins, 'geojson.input'));
  */
-static inline Napi::Value register_datasource(const Napi::CallbackInfo& info)
+static inline Napi::Value register_datasource(Napi::CallbackInfo const& info)
 {
     if (info.Length() != 1 || !info[0].IsString())
     {
@@ -90,7 +90,7 @@ static inline Napi::Value register_datasource(const Napi::CallbackInfo& info)
  * @name registerDatasources
  * @param {Array<String>} list of paths to their respective datasources
  */
-static inline Napi::Value register_datasources(const Napi::CallbackInfo& info)
+static inline Napi::Value register_datasources(Napi::CallbackInfo const& info)
 {
     if (info.Length() != 1 || !info[0].IsString())
     {

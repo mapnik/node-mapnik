@@ -21,13 +21,13 @@ class Layer : public Napi::ObjectWrap<Layer> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
 
     static Napi::Value NewInstance(mapnik::layer const& lay_ref);
-    static Napi::Value describe(const Napi::CallbackInfo& info);
+    static Napi::Value describe(Napi::CallbackInfo const& info);
 
-    Napi::Value get_prop(const Napi::CallbackInfo& info);
-    void set_prop(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value get_prop(Napi::CallbackInfo const& info);
+    void set_prop(Napi::CallbackInfo const& info, const Napi::Value& value);
 
     Layer(std::string const& name);
     Layer(std::string const& name, std::string const& srs);

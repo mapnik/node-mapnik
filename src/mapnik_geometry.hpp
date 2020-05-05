@@ -17,15 +17,15 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
     static Napi::Value NewInstance(mapnik::feature_ptr f);
-    static Napi::Value type(const Napi::CallbackInfo& info);
-    static Napi::Value extent(const Napi::CallbackInfo& info);
-    static Napi::Value toWKB(const Napi::CallbackInfo& info);
-    static Napi::Value toWKT(const Napi::CallbackInfo& info);
-    static Napi::Value _toJSONSync(const Napi::CallbackInfo& info);
-    static Napi::Value toJSON(const Napi::CallbackInfo& info);
-    static Napi::Value toJSONSync(const Napi::CallbackInfo& info);
+    static Napi::Value type(Napi::CallbackInfo const& info);
+    static Napi::Value extent(Napi::CallbackInfo const& info);
+    static Napi::Value toWKB(Napi::CallbackInfo const& info);
+    static Napi::Value toWKT(Napi::CallbackInfo const& info);
+    static Napi::Value _toJSONSync(Napi::CallbackInfo const& info);
+    static Napi::Value toJSON(Napi::CallbackInfo const& info);
+    static Napi::Value toJSONSync(Napi::CallbackInfo const& info);
     static void to_json(uv_work_t* req);
     static void after_to_json(uv_work_t* req);
     Geometry(mapnik::feature_ptr f);

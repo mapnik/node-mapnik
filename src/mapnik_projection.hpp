@@ -23,10 +23,10 @@ class Projection : public Napi::ObjectWrap<Projection> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
 
-    static Napi::Value inverse(const Napi::CallbackInfo& info);
-    static Napi::Value forward(const Napi::CallbackInfo& info);
+    static Napi::Value inverse(Napi::CallbackInfo const& info);
+    static Napi::Value forward(Napi::CallbackInfo const& info);
 
     explicit Projection(std::string const& name, bool defer_init);
 
@@ -43,10 +43,10 @@ class ProjTransform : public Napi::ObjectWrap<ProjTransform> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
 
-    static Napi::Value forward(const Napi::CallbackInfo& info);
-    static Napi::Value backward(const Napi::CallbackInfo& info);
+    static Napi::Value forward(Napi::CallbackInfo const& info);
+    static Napi::Value backward(Napi::CallbackInfo const& info);
 
     ProjTransform(mapnik::projection const& src,
                   mapnik::projection const& dest);
@@ -63,4 +63,3 @@ private:
 
 
 #endif
-

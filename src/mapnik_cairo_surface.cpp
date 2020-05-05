@@ -29,7 +29,7 @@ CairoSurface::~CairoSurface()
 {
 }
 
-Napi::Value CairoSurface::New(const Napi::CallbackInfo& info)
+Napi::Value CairoSurface::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -76,19 +76,19 @@ Napi::Value CairoSurface::New(const Napi::CallbackInfo& info)
     return;
 }
 
-Napi::Value CairoSurface::width(const Napi::CallbackInfo& info)
+Napi::Value CairoSurface::width(Napi::CallbackInfo const& info)
 {
     CairoSurface* im = info.Holder().Unwrap<CairoSurface>();
     return Napi::New(env, im->width());
 }
 
-Napi::Value CairoSurface::height(const Napi::CallbackInfo& info)
+Napi::Value CairoSurface::height(Napi::CallbackInfo const& info)
 {
     CairoSurface* im = info.Holder().Unwrap<CairoSurface>();
     return Napi::New(env, im->height());
 }
 
-Napi::Value CairoSurface::getData(const Napi::CallbackInfo& info)
+Napi::Value CairoSurface::getData(Napi::CallbackInfo const& info)
 {
     CairoSurface* surface = info.Holder().Unwrap<CairoSurface>();
     std::string s = surface->ss_.str();

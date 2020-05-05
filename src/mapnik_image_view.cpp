@@ -63,7 +63,7 @@ ImageView::~ImageView()
     JSImage_->Unref();
 }
 
-Napi::Value ImageView::New(const Napi::CallbackInfo& info)
+Napi::Value ImageView::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -112,7 +112,7 @@ typedef struct {
     bool result;
 } is_solid_image_view_baton_t;
 
-Napi::Value ImageView::isSolid(const Napi::CallbackInfo& info)
+Napi::Value ImageView::isSolid(Napi::CallbackInfo const& info)
 {
     ImageView* im = info.Holder().Unwrap<ImageView>();
 
@@ -281,12 +281,12 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 }
 
 
-Napi::Value ImageView::isSolidSync(const Napi::CallbackInfo& info)
+Napi::Value ImageView::isSolidSync(Napi::CallbackInfo const& info)
 {
     return _isSolidSync(info);
 }
 
-Napi::Value ImageView::_isSolidSync(const Napi::CallbackInfo& info)
+Napi::Value ImageView::_isSolidSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     ImageView* im = info.Holder().Unwrap<ImageView>();
@@ -303,7 +303,7 @@ Napi::Value ImageView::_isSolidSync(const Napi::CallbackInfo& info)
 }
 
 
-Napi::Value ImageView::getPixel(const Napi::CallbackInfo& info)
+Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
 {
     int x = 0;
     int y = 0;
@@ -362,20 +362,20 @@ Napi::Value ImageView::getPixel(const Napi::CallbackInfo& info)
 }
 
 
-Napi::Value ImageView::width(const Napi::CallbackInfo& info)
+Napi::Value ImageView::width(Napi::CallbackInfo const& info)
 {
     ImageView* im = info.Holder().Unwrap<ImageView>();
     return Napi::Int32::New(env, static_cast<std::int32_t>(im->this_->width()));
 }
 
-Napi::Value ImageView::height(const Napi::CallbackInfo& info)
+Napi::Value ImageView::height(Napi::CallbackInfo const& info)
 {
     ImageView* im = info.Holder().Unwrap<ImageView>();
     return Napi::Int32::New(env, static_cast<std::int32_t>(im->this_->height()));
 }
 
 
-Napi::Value ImageView::encodeSync(const Napi::CallbackInfo& info)
+Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
 {
     ImageView* im = info.Holder().Unwrap<ImageView>();
 
@@ -552,7 +552,7 @@ void ImageView::AfterEncode(uv_work_t* req)
 }
 
 
-Napi::Value ImageView::save(const Napi::CallbackInfo& info)
+Napi::Value ImageView::save(Napi::CallbackInfo const& info)
 {
     if (info.Length() == 0 || !info[0].IsString()){
         Napi::TypeError::New(env, "filename required").ThrowAsJavaScriptException();

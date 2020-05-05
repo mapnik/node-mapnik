@@ -54,7 +54,7 @@ Layer::Layer() : Napi::ObjectWrap<Layer>(),
 
 Layer::~Layer() {}
 
-Napi::Value Layer::New(const Napi::CallbackInfo& info)
+Napi::Value Layer::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall()) {
         Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
@@ -114,7 +114,7 @@ Napi::Value Layer::NewInstance(mapnik::layer const& lay_ref) {
     return scope.Escape(maybe_local);
 }
 
-Napi::Value Layer::get_prop(const Napi::CallbackInfo& info)
+Napi::Value Layer::get_prop(Napi::CallbackInfo const& info)
 {
     Layer* l = info.Holder().Unwrap<Layer>();
     std::string a = TOSTR(property);
@@ -169,7 +169,7 @@ Napi::Value Layer::get_prop(const Napi::CallbackInfo& info)
     }
 }
 
-void Layer::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
+void Layer::set_prop(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
     Layer* l = info.Holder().Unwrap<Layer>();
     std::string a = TOSTR(property);
@@ -282,7 +282,7 @@ void Layer::set_prop(const Napi::CallbackInfo& info, const Napi::Value& value)
     }
 }
 
-Napi::Value Layer::describe(const Napi::CallbackInfo& info)
+Napi::Value Layer::describe(Napi::CallbackInfo const& info)
 {
     Layer* l = info.Holder().Unwrap<Layer>();
 

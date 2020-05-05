@@ -18,14 +18,14 @@ class MemoryDatasource : public Napi::ObjectWrap<MemoryDatasource> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
     static Napi::Value NewInstance(mapnik::datasource_ptr ds_ptr);
-    static Napi::Value parameters(const Napi::CallbackInfo& info);
-    static Napi::Value describe(const Napi::CallbackInfo& info);
-    static Napi::Value features(const Napi::CallbackInfo& info);
-    static Napi::Value featureset(const Napi::CallbackInfo& info);
-    static Napi::Value add(const Napi::CallbackInfo& info);
-    static Napi::Value fields(const Napi::CallbackInfo& info);
+    static Napi::Value parameters(Napi::CallbackInfo const& info);
+    static Napi::Value describe(Napi::CallbackInfo const& info);
+    static Napi::Value features(Napi::CallbackInfo const& info);
+    static Napi::Value featureset(Napi::CallbackInfo const& info);
+    static Napi::Value add(Napi::CallbackInfo const& info);
+    static Napi::Value fields(Napi::CallbackInfo const& info);
 
     MemoryDatasource();
     inline mapnik::datasource_ptr get() { return datasource_; }

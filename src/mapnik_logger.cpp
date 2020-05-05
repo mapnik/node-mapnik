@@ -6,7 +6,7 @@ Napi::FunctionReference Logger::constructor;
 
 /**
  * **`mapnik.Logger`**
- * 
+ *
  * No constructor - Severity level is only available via `mapnik.Logger` static instance.
  *
  * @class Logger
@@ -45,7 +45,7 @@ void Logger::Initialize(Napi::Object target) {
 
 }
 
-Napi::Value Logger::New(const Napi::CallbackInfo& info){
+Napi::Value Logger::New(Napi::CallbackInfo const& info){
     Napi::Error::New(env, "a mapnik.Logger cannot be created directly - rather you should ....").ThrowAsJavaScriptException();
     return env.Null();
 }
@@ -57,7 +57,7 @@ Napi::Value Logger::New(const Napi::CallbackInfo& info){
  * @static
  * @returns {number} severity level
  */
-Napi::Value Logger::get_severity(const Napi::CallbackInfo& info){
+Napi::Value Logger::get_severity(Napi::CallbackInfo const& info){
     int severity = mapnik::logger::instance().get_severity();
     return Napi::New(env, severity);
 }
@@ -73,7 +73,7 @@ Napi::Value Logger::get_severity(const Napi::CallbackInfo& info){
  * @param {number} severity - severity level
  * @returns {number} severity level
  */
-Napi::Value Logger::set_severity(const Napi::CallbackInfo& info){
+Napi::Value Logger::set_severity(Napi::CallbackInfo const& info){
     if (info.Length() != 1 || !info[0].IsNumber()) {
         Napi::TypeError::New(env, "requires a severity level parameter").ThrowAsJavaScriptException();
         return env.Null();

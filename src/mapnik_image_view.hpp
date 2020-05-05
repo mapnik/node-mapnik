@@ -23,26 +23,26 @@ class ImageView : public Napi::ObjectWrap<ImageView> {
 public:
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
     static Napi::Value NewInstance(Image * JSImage,
                              unsigned x,unsigned y, unsigned w, unsigned h);
 
-    static Napi::Value encodeSync(const Napi::CallbackInfo& info);
-    static Napi::Value encode(const Napi::CallbackInfo& info);
+    static Napi::Value encodeSync(Napi::CallbackInfo const& info);
+    static Napi::Value encode(Napi::CallbackInfo const& info);
     static void AsyncEncode(uv_work_t* req);
     static void AfterEncode(uv_work_t* req);
 
-    //static Napi::Value view(const Napi::CallbackInfo& info);
-    static Napi::Value width(const Napi::CallbackInfo& info);
-    static Napi::Value height(const Napi::CallbackInfo& info);
-    //static Napi::Value open(const Napi::CallbackInfo& info);
-    static Napi::Value save(const Napi::CallbackInfo& info);
-    static Napi::Value isSolid(const Napi::CallbackInfo& info);
+    //static Napi::Value view(Napi::CallbackInfo const& info);
+    static Napi::Value width(Napi::CallbackInfo const& info);
+    static Napi::Value height(Napi::CallbackInfo const& info);
+    //static Napi::Value open(Napi::CallbackInfo const& info);
+    static Napi::Value save(Napi::CallbackInfo const& info);
+    static Napi::Value isSolid(Napi::CallbackInfo const& info);
     static void EIO_IsSolid(uv_work_t* req);
     static void EIO_AfterIsSolid(uv_work_t* req);
-    static Napi::Value _isSolidSync(const Napi::CallbackInfo& info);
-    static Napi::Value isSolidSync(const Napi::CallbackInfo& info);
-    static Napi::Value getPixel(const Napi::CallbackInfo& info);
+    static Napi::Value _isSolidSync(Napi::CallbackInfo const& info);
+    static Napi::Value isSolidSync(Napi::CallbackInfo const& info);
+    static Napi::Value getPixel(Napi::CallbackInfo const& info);
 
     ImageView(Image * JSImage);
 

@@ -47,7 +47,7 @@ GridView::~GridView()
     JSGrid_->Unref();
 }
 
-Napi::Value GridView::New(const Napi::CallbackInfo& info)
+Napi::Value GridView::New(Napi::CallbackInfo const& info)
 {
     if (!info.IsConstructCall())
     {
@@ -88,19 +88,19 @@ Napi::Value GridView::NewInstance(Grid * JSGrid,
     return scope.Escape(maybe_local);
 }
 
-Napi::Value GridView::width(const Napi::CallbackInfo& info)
+Napi::Value GridView::width(Napi::CallbackInfo const& info)
 {
     GridView* g = info.Holder().Unwrap<GridView>();
     return Napi::Number::New(env, g->get()->width());
 }
 
-Napi::Value GridView::height(const Napi::CallbackInfo& info)
+Napi::Value GridView::height(Napi::CallbackInfo const& info)
 {
     GridView* g = info.Holder().Unwrap<GridView>();
     return Napi::Number::New(env, g->get()->height());
 }
 
-Napi::Value GridView::fields(const Napi::CallbackInfo& info)
+Napi::Value GridView::fields(Napi::CallbackInfo const& info)
 {
     GridView* g = info.Holder().Unwrap<GridView>();
     std::set<std::string> const& a = g->get()->get_fields();
@@ -128,7 +128,7 @@ typedef struct {
 } is_solid_grid_view_baton_t;
 
 
-Napi::Value GridView::isSolid(const Napi::CallbackInfo& info)
+Napi::Value GridView::isSolid(Napi::CallbackInfo const& info)
 {
     GridView* g = info.Holder().Unwrap<GridView>();
 
@@ -215,12 +215,12 @@ void GridView::EIO_AfterIsSolid(uv_work_t* req)
     delete closure;
 }
 
-Napi::Value GridView::isSolidSync(const Napi::CallbackInfo& info)
+Napi::Value GridView::isSolidSync(Napi::CallbackInfo const& info)
 {
     return _isSolidSync(info);
 }
 
-Napi::Value GridView::_isSolidSync(const Napi::CallbackInfo& info)
+Napi::Value GridView::_isSolidSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
     GridView* g = info.Holder().Unwrap<GridView>();
@@ -243,7 +243,7 @@ Napi::Value GridView::_isSolidSync(const Napi::CallbackInfo& info)
     return scope.Escape(env.True());
 }
 
-Napi::Value GridView::getPixel(const Napi::CallbackInfo& info)
+Napi::Value GridView::getPixel(Napi::CallbackInfo const& info)
 {
     unsigned x = 0;
     unsigned y = 0;
@@ -276,7 +276,7 @@ Napi::Value GridView::getPixel(const Napi::CallbackInfo& info)
     return;
 }
 
-Napi::Value GridView::encodeSync(const Napi::CallbackInfo& info)
+Napi::Value GridView::encodeSync(Napi::CallbackInfo const& info)
 {
     GridView* g = info.Holder().Unwrap<GridView>();
 
@@ -390,7 +390,7 @@ typedef struct {
 } encode_grid_view_baton_t;
 
 
-Napi::Value GridView::encode(const Napi::CallbackInfo& info)
+Napi::Value GridView::encode(Napi::CallbackInfo const& info)
 {
     GridView* g = info.Holder().Unwrap<GridView>();
 

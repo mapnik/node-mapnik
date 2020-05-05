@@ -25,10 +25,10 @@ public:
     typedef std::stringstream i_stream;
     static Napi::FunctionReference constructor;
     static void Initialize(Napi::Object target);
-    static Napi::Value New(const Napi::CallbackInfo& info);
-    static Napi::Value getData(const Napi::CallbackInfo& info);
-    static Napi::Value width(const Napi::CallbackInfo& info);
-    static Napi::Value height(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
+    static Napi::Value getData(Napi::CallbackInfo const& info);
+    static Napi::Value width(Napi::CallbackInfo const& info);
+    static Napi::Value height(Napi::CallbackInfo const& info);
 
     using Napi::ObjectWrap::Ref;
     using Napi::ObjectWrap::Unref;

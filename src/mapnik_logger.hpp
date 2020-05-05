@@ -16,13 +16,13 @@ public:
     static void Initialize(Napi::Object target);
 
     // Nan_Method when new Logger object is instantiated
-    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value New(Napi::CallbackInfo const& info);
 
     // Get and set functions
     // Are these the only methods available in logger?
-    static Napi::Value get_severity(const Napi::CallbackInfo& info);
-    static Napi::Value set_severity(const Napi::CallbackInfo& info);
-    static Napi::Value evoke_error(const Napi::CallbackInfo& info);
+    static Napi::Value get_severity(Napi::CallbackInfo const& info);
+    static Napi::Value set_severity(Napi::CallbackInfo const& info);
+    static Napi::Value evoke_error(Napi::CallbackInfo const& info);
 
 private:
     // Default Constructor

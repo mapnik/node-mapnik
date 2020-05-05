@@ -56,9 +56,9 @@ enum AlphaMode {
     BLEND_MODE_HEXTREE
 };
 
-Napi::Value rgb2hsl(const Napi::CallbackInfo& info);
-Napi::Value hsl2rgb(const Napi::CallbackInfo& info);
-Napi::Value Blend(const Napi::CallbackInfo& info);
+Napi::Value rgb2hsl(Napi::CallbackInfo const& info);
+Napi::Value hsl2rgb(Napi::CallbackInfo const& info);
+Napi::Value Blend(Napi::CallbackInfo const& info);
 
 struct BlendBaton {
     uv_work_t request;
