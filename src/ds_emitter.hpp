@@ -1,14 +1,4 @@
-#ifndef __NODE_MAPNIK_DS_EMITTER_H__
-#define __NODE_MAPNIK_DS_EMITTER_H__
-
-// nan
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <napi.h>
-#include <uv.h>
-#pragma GCC diagnostic pop
-
+#pragma once
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor, etc
 #include <mapnik/datasource.hpp>        // for datasource, etc
@@ -16,12 +6,12 @@
 
 // node mapnik
 #include "utils.hpp"
-
-
+//
+#include <napi.h>
 
 namespace node_mapnik {
 
-static void get_fields(Napi::Object fields, mapnik::datasource_ptr ds)
+static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_ptr ds)
 {
     Napi::HandleScope scope(env);
     mapnik::layer_descriptor ld = ds->get_descriptor();
@@ -43,16 +33,15 @@ static void get_fields(Napi::Object fields, mapnik::datasource_ptr ds)
         else if (field_type == mapnik::Object) type = "Object";
         else type = "Unknown";
         std::string const& name = attr_info.get_name();
-        (fields).Set(Napi::String::New(env, name), Napi::String::New(env, type));
-        (fields).Set(Napi::String::New(env, name), Napi::String::New(env, type));
+        fields.Set(name, type);
+        //fields.Set(name, Napi::String::New(env, type)); <== FIXME: duplicate?
         /* LCOV_EXCL_STOP */
     }
 }
 
-static void describe_datasource(Napi::Object description, mapnik::datasource_ptr ds)
+static void describe_datasource(Napi::Env env, Napi::Object description, mapnik::datasource_ptr ds)
 {
     Napi::HandleScope scope(env);
-    
     // type
     if (ds->type() == mapnik::datasource::Raster)
     {
@@ -70,7 +59,7 @@ static void describe_datasource(Napi::Object description, mapnik::datasource_ptr
 
     // field names and types
     Napi::Object fields = Napi::Object::New(env);
-    node_mapnik::get_fields(fields, ds);
+    node_mapnik::get_fields(env, fields, ds);
     (description).Set(Napi::String::New(env, "fields"), fields);
 
     Napi::String js_type = Napi::String::New(env, "unknown");
@@ -107,19 +96,15 @@ static void describe_datasource(Napi::Object description, mapnik::datasource_ptr
                 break;
             }
             default:
-            {
                 break;
-            }
             }
         }
     }
-    (description).Set(Napi::String::New(env, "geometry_type"), js_type);
-    for (auto const& param : ld.get_extra_parameters()) 
+    description.Set("geometry_type", js_type);
+    for (auto const& param : ld.get_extra_parameters())
     {
-        node_mapnik::params_to_object(description,param.first, param.second);
+        node_mapnik::params_to_object(env, description, param.first, param.second);
     }
 }
 
 }
-
-#endif

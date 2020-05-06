@@ -8,7 +8,94 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 #include <mapnik/util/geometry_to_wkb.hpp>
 
+namespace {
+
+bool to_geojson_projected(std::string & json,
+                          mapnik::geometry::geometry<double> const& geom,
+                          mapnik::proj_transform const& prj_trans)
+{
+    unsigned int n_err = 0;
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
+    if (n_err > 0) return false;
+    return mapnik::util::to_geojson(json, projected_geom);
+}
+
+struct AsyncToJSON : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncToJSON(Geometry* geom, ProjTransform * tr, Napi::Function const& callback)
+        :Base(callback),
+         geom_(geom),
+         tr_(tr)
+    {}
+
+    void Execute() override
+    {
+         try
+         {
+             if (tr_)
+             {
+                 mapnik::proj_transform const& prj_trans = *tr_->impl();
+                 mapnik::geometry::geometry<double> const& geom = geom_->geometry();
+                 if (!to_geojson_projected(json_, geom, prj_trans))
+                 {
+                     // Fairly certain this situation can never be reached but
+                     // leaving it none the less
+                     // LCOV_EXCL_START
+                     SetError("Failed to generate GeoJSON");
+                     // LCOV_EXCL_STOP
+                 }
+             }
+             else
+             {
+                 if (!mapnik::util::to_geojson(json_, geom_->geometry()))
+                 {
+                     // Fairly certain this situation can never be reached but
+                     // leaving it none the less
+                     /* LCOV_EXCL_START */
+                     SetError("Failed to generate GeoJSON");
+                     /* LCOV_EXCL_STOP */
+                 }
+             }
+         }
+         catch (std::exception const& ex)
+         {
+             SetError(ex.what());
+         }
+    }
+
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        return {env.Null(), Napi::String::New(env, json_)};
+    }
+private:
+    Geometry * geom_;
+    ProjTransform * tr_;
+    std::string json_;
+};
+
+
+}
+
 Napi::FunctionReference Geometry::constructor;
+
+
+Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "Geometry", {
+            InstanceMethod<&Geometry::extent>("extent"),
+            InstanceMethod<&Geometry::type>("type"),
+            InstanceMethod<&Geometry::toWKB>("toWKB"),
+            InstanceMethod<&Geometry::toWKT>("toWKT"),
+            InstanceMethod<&Geometry::toJSON>("toJSON")
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Geometry", func);
+    return exports;
+}
 
 /**
  * **`mapnik.Geometry`**
@@ -23,74 +110,21 @@ Napi::FunctionReference Geometry::constructor;
  *
  * @class Geometry
  */
-void Geometry::Initialize(Napi::Object target) {
 
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Geometry::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Geometry"));
-
-    InstanceMethod("extent", &extent),
-    InstanceMethod("type", &type),
-    InstanceMethod("toWKB", &toWKB),
-    InstanceMethod("toWKT", &toWKT),
-    InstanceMethod("toJSON", &toJSON),
-    InstanceMethod("toJSONSync", &toJSONSync),
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "Unknown",mapnik::geometry::geometry_types::Unknown)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "Point",mapnik::geometry::geometry_types::Point)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "MultiPoint",mapnik::geometry::geometry_types::MultiPoint)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "LineString",mapnik::geometry::geometry_types::LineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "MultiLineString",mapnik::geometry::geometry_types::MultiLineString)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "Polygon",mapnik::geometry::geometry_types::Polygon)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "MultiPolygon",mapnik::geometry::geometry_types::MultiPolygon)
-    NODE_MAPNIK_DEFINE_CONSTANT(Napi::GetFunction(lcons),
-                                "GeometryCollection",mapnik::geometry::geometry_types::GeometryCollection)
-    (target).Set(Napi::String::New(env, "Geometry"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-Geometry::Geometry(mapnik::feature_ptr f) : Napi::ObjectWrap<Geometry>(),
-    feat_(f) {}
-
-Geometry::~Geometry()
+Geometry::Geometry(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Geometry>(info)
 {
-}
-
-Napi::Value Geometry::New(Napi::CallbackInfo const& info)
-{
-    if (info[0].IsExternal())
+    Napi::Env env = info.Env();
+    if (info.Length() > 1 && info[0].IsExternal())
     {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        Geometry* g =  static_cast<Geometry*>(ptr);
-        g->Wrap(info.This());
-        return info.This();
-        return;
+        auto ext = info[0].As<Napi::External<mapnik::feature_ptr>>();
+        if (ext) feature_  = *ext.Data();
     }
     else
     {
-        Napi::Error::New(env, "a mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance").ThrowAsJavaScriptException();
-        return env.Null();
+        Napi::Error::New(env, "a mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance")
+            .ThrowAsJavaScriptException();
     }
-    return info.This();
-}
-
-Napi::Value Geometry::NewInstance(mapnik::feature_ptr f) {
-    Napi::EscapableHandleScope scope(env);
-    Geometry* g = new Geometry(f);
-    Napi::Value ext = Napi::External::New(env, g);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Geometry instance").ThrowAsJavaScriptException();
-
-    return scope.Escape(maybe_local);
 }
 
 /**
@@ -103,10 +137,11 @@ Napi::Value Geometry::NewInstance(mapnik::feature_ptr f) {
  */
 Napi::Value Geometry::type(Napi::CallbackInfo const& info)
 {
-    Geometry* g = info.Holder().Unwrap<Geometry>();
-    auto const& geom = g->feat_->get_geometry();
+    Napi::Env env = info.Env();
+    auto const& geom = this->geometry();
     return Napi::Number::New(env, mapnik::geometry::geometry_type(geom));
 }
+
 
 /**
  * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
@@ -117,88 +152,62 @@ Napi::Value Geometry::type(Napi::CallbackInfo const& info)
  * @instance
  * @name toJSONSync
  */
+
 Napi::Value Geometry::toJSONSync(Napi::CallbackInfo const& info)
 {
-    return _toJSONSync(info);
-}
-
-bool to_geojson_projected(std::string & json,
-                          mapnik::geometry::geometry<double> const& geom,
-                          mapnik::proj_transform const& prj_trans)
-{
-    unsigned int n_err = 0;
-    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
-    if (n_err > 0) return false;
-    return mapnik::util::to_geojson(json,projected_geom);
-}
-
-Napi::Value Geometry::_toJSONSync(Napi::CallbackInfo const& info) {
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    Geometry* g = info.Holder().Unwrap<Geometry>();
     std::string json;
     if (info.Length() < 1)
     {
-        if (!mapnik::util::to_geojson(json,g->feat_->get_geometry()))
+        if (!mapnik::util::to_geojson(json, geometry()))
         {
             // Fairly certain this situation can never be reached but
             // leaving it none the less
             /* LCOV_EXCL_START */
             Napi::Error::New(env, "Failed to generate GeoJSON").ThrowAsJavaScriptException();
-
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
             /* LCOV_EXCL_STOP */
         }
     }
     else
     {
-        if (!info[0].IsObject()) {
-            Napi::TypeError::New(env, "optional first arg must be an options object").ThrowAsJavaScriptException();
-
-            return scope.Escape(env.Undefined());
-        }
-        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "transform")).FromMaybe(false))
+        if (!info[0].IsObject())
         {
-            Napi::Value bound_opt = (options).Get(Napi::String::New(env, "transform"));
-            if (!bound_opt.IsObject()) {
+            Napi::TypeError::New(env, "optional first arg must be an options object").ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+        Napi::Object options = info[0].As<Napi::Object>();
+        if (options.Has("transform"))
+        {
+            Napi::Value bound_opt = options.Get("transform");
+            if (!bound_opt.IsObject())
+            {
                 Napi::TypeError::New(env, "'transform' must be an object").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-
-            Napi::Object obj = bound_opt->ToObject(Napi::GetCurrentContext());
-            if (!Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
+            Napi::Object obj = bound_opt.As<Napi::Object>();
+            if (!obj.InstanceOf(ProjTransform::constructor.Value()))
+            {
                 Napi::TypeError::New(env, "mapnik.ProjTransform expected as first arg").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-            ProjTransform* tr = obj.Unwrap<ProjTransform>();
-            mapnik::proj_transform const& prj_trans = *tr->get();
-            mapnik::geometry::geometry<double> const& geom = g->feat_->get_geometry();
-            if (!to_geojson_projected(json,geom,prj_trans))
+            ProjTransform* tr = Napi::ObjectWrap<ProjTransform>::Unwrap(obj);
+            //mapnik::proj_transform const& prj_trans = *tr->proj_transform;
+            mapnik::geometry::geometry<double> const& geom = this->geometry();
+            if (!to_geojson_projected(json, geom, *tr->impl()))
             {
                 // Fairly certain this situation can never be reached but
                 // leaving it none the less
                 /* LCOV_EXCL_START */
                 Napi::Error::New(env, "Failed to generate GeoJSON").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
                 /* LCOV_EXCL_STOP */
             }
         }
     }
     return scope.Escape(Napi::String::New(env, json));
 }
-
-struct to_json_baton {
-    uv_work_t request;
-    Geometry* g;
-    ProjTransform* tr;
-    bool error;
-    std::string result;
-    Napi::FunctionReference cb;
-};
-
 
 /**
  * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
@@ -211,117 +220,46 @@ struct to_json_baton {
  * @instance
  * @name toJSON
  */
+
 Napi::Value Geometry::toJSON(Napi::CallbackInfo const& info)
 {
-    if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction()) {
-        return _toJSONSync(info);
-        return;
+    if ((info.Length() < 1) || !info[info.Length()-1].IsFunction())
+    {
+        return toJSONSync(info);
     }
 
-    to_json_baton *closure = new to_json_baton();
-    closure->request.data = closure;
-    closure->g = info.Holder().Unwrap<Geometry>();
-    closure->error = false;
-    closure->tr = nullptr;
+    Napi::Env env = info.Env();
+    ProjTransform * transform = nullptr;
     if (info.Length() > 1)
     {
-        if (!info[0].IsObject()) {
+        if (!info[0].IsObject())
+        {
             Napi::TypeError::New(env, "optional first arg must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
-        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "transform")).FromMaybe(false))
+        Napi::Object options = info[0].As<Napi::Object>();
+        if (options.Has("transform"))
         {
-            Napi::Value bound_opt = (options).Get(Napi::String::New(env, "transform"));
-            if (!bound_opt.IsObject()) {
+            Napi::Value bound_opt = options.Get("transform");
+            if (!bound_opt.IsObject())
+            {
                 Napi::TypeError::New(env, "'transform' must be an object").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
 
-            Napi::Object obj = bound_opt->ToObject(Napi::GetCurrentContext());
-            if (!Napi::New(env, ProjTransform::constructor)->HasInstance(obj)) {
+            Napi::Object obj = bound_opt.As<Napi::Object>();
+            if (!obj.InstanceOf(ProjTransform::constructor.Value()))
+            {
                 Napi::TypeError::New(env, "mapnik.ProjTransform expected as first arg").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
-            closure->tr = obj.Unwrap<ProjTransform>();
-            closure->tr->Ref();
+            transform = Napi::ObjectWrap<ProjTransform>::Unwrap(obj);
         }
     }
-    Napi::Value callback = info[info.Length()-1];
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, to_json, (uv_after_work_cb)after_to_json);
-    closure->g->Ref();
-    return;
-}
-
-void Geometry::to_json(uv_work_t* req)
-{
-    to_json_baton *closure = static_cast<to_json_baton *>(req->data);
-    try
-    {
-        if (closure->tr)
-        {
-            mapnik::proj_transform const& prj_trans = *closure->tr->get();
-            mapnik::geometry::geometry<double> const& geom = closure->g->feat_->get_geometry();
-            if (!to_geojson_projected(closure->result,geom,prj_trans))
-            {
-                // Fairly certain this situation can never be reached but
-                // leaving it none the less
-                // LCOV_EXCL_START
-                closure->error = true;
-                closure->result = "Failed to generate GeoJSON";
-                // LCOV_EXCL_STOP
-            }
-        }
-        else
-        {
-            if (!mapnik::util::to_geojson(closure->result,closure->g->feat_->get_geometry()))
-            {
-                // Fairly certain this situation can never be reached but
-                // leaving it none the less
-                /* LCOV_EXCL_START */
-                closure->error = true;
-                closure->result = "Failed to generate GeoJSON";
-                /* LCOV_EXCL_STOP */
-            }
-        }
-    }
-    catch (std::exception const& ex)
-    {
-        // Fairly certain this situation can never be reached but
-        // leaving it none the less
-        /* LCOV_EXCL_START */
-        closure->error = true;
-        closure->result = ex.what();
-        /* LCOV_EXCL_STOP */
-    }
-}
-
-void Geometry::after_to_json(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    to_json_baton *closure = static_cast<to_json_baton *>(req->data);
-    Napi::AsyncResource async_resource(__func__);
-    if (closure->error)
-    {
-        // Fairly certain this situation can never be reached but
-        // leaving it none the less
-        /* LCOV_EXCL_START */
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->result.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-        /* LCOV_EXCL_STOP */
-    }
-    else
-    {
-        Napi::Value argv[2] = { env.Null(), Napi::String::New(env, closure->result) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-    closure->g->Unref();
-    if (closure->tr) {
-        closure->tr->Unref();
-    }
-    closure->cb.Reset();
-    delete closure;
+    Napi::Value callback_val = info[info.Length()-1];
+    auto * worker = new AsyncToJSON(this, transform, callback_val.As<Napi::Function>());
+    worker->Queue();
+    return env.Undefined();
 }
 
 /**
@@ -334,14 +272,15 @@ void Geometry::after_to_json(uv_work_t* req)
  */
 Napi::Value Geometry::extent(Napi::CallbackInfo const& info)
 {
-    Geometry* g = info.Holder().Unwrap<Geometry>();
-    Napi::Array a = Napi::Array::New(env, 4);
-    mapnik::box2d<double> const& e = g->feat_->envelope();
-    (a).Set(0, Napi::Number::New(env, e.minx()));
-    (a).Set(1, Napi::Number::New(env, e.miny()));
-    (a).Set(2, Napi::Number::New(env, e.maxx()));
-    (a).Set(3, Napi::Number::New(env, e.maxy()));
-    return a;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Array arr = Napi::Array::New(env, 4);
+    mapnik::box2d<double> const& bbox = feature_->envelope();
+    arr.Set(0u, Napi::Number::New(env, bbox.minx()));
+    arr.Set(1u, Napi::Number::New(env, bbox.miny()));
+    arr.Set(2u, Napi::Number::New(env, bbox.maxx()));
+    arr.Set(3u, Napi::Number::New(env, bbox.maxy()));
+    return scope.Escape(arr);
 }
 
 /**
@@ -354,18 +293,19 @@ Napi::Value Geometry::extent(Napi::CallbackInfo const& info)
  */
 Napi::Value Geometry::toWKT(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     std::string wkt;
-    Geometry* g = info.Holder().Unwrap<Geometry>();
-    if (!mapnik::util::to_wkt(wkt, g->feat_->get_geometry()))
+    if (!mapnik::util::to_wkt(wkt, this->geometry()))
     {
         // Fairly certain this situation can never be reached but
         // leaving it none the less
         /* LCOV_EXCL_START */
         Napi::Error::New(env, "Failed to generate WKT").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
-    return Napi::String::New(env, wkt);
+    return scope.Escape(Napi::String::New(env, wkt));
 }
 
 /**
@@ -378,14 +318,15 @@ Napi::Value Geometry::toWKT(Napi::CallbackInfo const& info)
  */
 Napi::Value Geometry::toWKB(Napi::CallbackInfo const& info)
 {
-    Geometry* g = info.Holder().Unwrap<Geometry>();
-    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(g->feat_->get_geometry(), mapnik::wkbNDR);
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::util::wkb_buffer_ptr wkb = mapnik::util::to_wkb(this->geometry(), mapnik::wkbNDR);
     if (!wkb)
     {
         Napi::Error::New(env, "Failed to generate WKB - geometry likely null").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
-    return Napi::Buffer::Copy(env, wkb->buffer(), wkb->size());
+    return scope.Escape(Napi::Buffer<char>::Copy(env, wkb->buffer(), wkb->size()));
 }
 
 /**

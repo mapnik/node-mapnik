@@ -1,33 +1,23 @@
-#ifndef __NODE_MAPNIK_FEATURESET_H__
-#define __NODE_MAPNIK_FEATURESET_H__
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <napi.h>
-#include <uv.h>
-#pragma GCC diagnostic pop
+#pragma once
 
 #include <mapnik/featureset.hpp>
 #include <memory>
 
+#include <napi.h>
 
 
-typedef mapnik::featureset_ptr fs_ptr;
+using featureset_ptr =  mapnik::featureset_ptr;
 
-class Featureset : public Napi::ObjectWrap<Featureset> {
+class Featureset : public Napi::ObjectWrap<Featureset>
+{
 public:
-    static Napi::FunctionReference constructor;
-    static void Initialize(Napi::Object target);
-    static Napi::Value New(Napi::CallbackInfo const& info);
-    static Napi::Value NewInstance(mapnik::featureset_ptr fs_ptr);
-    static Napi::Value next(Napi::CallbackInfo const& info);
-
-    Featureset();
-
+    // initialiser
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Featureset(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value next(Napi::CallbackInfo const& info);
 private:
-    ~Featureset();
-    fs_ptr this_;
+    static Napi::FunctionReference constructor;
+    featureset_ptr featureset_;
 };
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __NODE_MAPNIK_PLUGINS_H__
-#define __NODE_MAPNIK_PLUGINS_H__
-
+#pragma once
 
 // mapnik
 #include <mapnik/datasource_cache.hpp>
@@ -10,8 +8,6 @@
 #include <vector>
 #include <string>
 #include "utils.hpp"
-
-
 
 namespace node_mapnik {
 
@@ -35,13 +31,15 @@ namespace node_mapnik {
  */
 static inline Napi::Value available_input_plugins(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     std::vector<std::string> names = mapnik::datasource_cache::instance().plugin_names();
-    Napi::Array a = Napi::Array::New(env, names.size());
-    for (unsigned i = 0; i < names.size(); ++i)
+    Napi::Array array = Napi::Array::New(env, names.size());
+    for (std::size_t i = 0; i < names.size(); ++i)
     {
-        (a).Set(i, Napi::String::New(env, names[i].c_str()));
+        array.Set(i, names[i]);
     }
-    return a;
+    return scope.Escape(array);
 }
 
 /**
@@ -66,21 +64,18 @@ static inline Napi::Value available_input_plugins(Napi::CallbackInfo const& info
  */
 static inline Napi::Value register_datasource(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
     if (info.Length() != 1 || !info[0].IsString())
     {
         Napi::TypeError::New(env, "first argument must be a path to a mapnik input plugin (.input)").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
-    std::string path = TOSTR(info[0]);
+    std::string path = info[0].As<Napi::String>();
     mapnik::datasource_cache::instance().register_datasource(path);
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
-    if (names_after.size() > names_before.size())
-    {
-        return env.True();
-        return;
-    }
-    return env.False();
+    bool status = (names_after.size() > names_before.size()) ? true : false;
+    return Napi::Boolean::New(env, status);
 }
 
 /**
@@ -92,24 +87,18 @@ static inline Napi::Value register_datasource(Napi::CallbackInfo const& info)
  */
 static inline Napi::Value register_datasources(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
     if (info.Length() != 1 || !info[0].IsString())
     {
         Napi::TypeError::New(env, "first argument must be a path to a directory of mapnik input plugins").ThrowAsJavaScriptException();
         return env.Null();
     }
     std::vector<std::string> names_before = mapnik::datasource_cache::instance().plugin_names();
-    std::string path = TOSTR(info[0]);
+    std::string path = info[0].As<Napi::String>();
     mapnik::datasource_cache::instance().register_datasources(path);
     std::vector<std::string> names_after = mapnik::datasource_cache::instance().plugin_names();
-    if (names_after.size() > names_before.size())
-    {
-        return env.True();
-        return;
-    }
-    return env.False();
+    bool status = (names_after.size() > names_before.size()) ? true : false;
+    return Napi::Boolean::New(env, status);
 }
 
-
-}
-
-#endif // __NODE_MAPNIK_PLUGINS_H__
+} // ns

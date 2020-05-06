@@ -5,15 +5,15 @@
 //#include "mapnik_vector_tile.hpp"
 //#include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
-//#include "mapnik_geometry.hpp"
+#include "mapnik_geometry.hpp"
 //#include "mapnik_logger.hpp"
 //#include "mapnik_feature.hpp"
 //#include "mapnik_fonts.hpp"
-//#include "mapnik_plugins.hpp"
+#include "mapnik_plugins.hpp"
 #include "mapnik_palette.hpp"
-//#include "mapnik_projection.hpp"
+#include "mapnik_projection.hpp"
 //#include "mapnik_layer.hpp"
-//#include "mapnik_datasource.hpp"
+#include "mapnik_datasource.hpp"
 //#include "mapnik_featureset.hpp"
 //#include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
@@ -46,9 +46,8 @@
 // std
 #include <future>
 
-//namespace node_mapnik {
+namespace node_mapnik {
 
-/*
 static std::string format_version(int version)
 {
     std::ostringstream s;
@@ -58,14 +57,15 @@ static std::string format_version(int version)
 
 static Napi::Value clearCache(Napi::CallbackInfo const& info)
 {
-    Napi::HandleScope scope(env);
+    Napi::Env env = info.Env();
 #if defined(MAPNIK_MEMORY_MAPPED_FILE)
+    Napi::HandleScope scope(env);
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
 #endif
-    return;
+    return env.Undefined();
 }
-*/
+}
 /**
  * Mapnik is the core of cartographic design and processing. `node-mapnik` provides a
  * set of bindings to `mapnik` for node.js.
@@ -291,9 +291,22 @@ void init_image_scalings(Napi::Env env, Napi::Object exports)
 
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
+    // methods
+    exports.Set("registerDatasource", Napi::Function::New(env, node_mapnik::register_datasource));
+    exports.Set("register_datasource", Napi::Function::New(env, node_mapnik::register_datasource));
+    exports.Set("registerDatasources", Napi::Function::New(env, node_mapnik::register_datasources));
+    exports.Set("register_datasources", Napi::Function::New(env, node_mapnik::register_datasources));
+    exports.Set("datasources", Napi::Function::New(env, node_mapnik::available_input_plugins));
+    exports.Set("clearCache", Napi::Function::New(env, node_mapnik::clearCache));
+    // classes
     Color::Initialize(env, exports);
     Image::Initialize(env, exports);
     Palette::Initialize(env, exports);
+    Datasource::Initialize(env, exports);
+    Projection::Initialize(env, exports);
+    ProjTransform::Initialize(env, exports);
+    Geometry::Initialize(env, exports);
+    // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);
     init_image_comp_op(env, exports);

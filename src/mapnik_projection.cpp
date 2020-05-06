@@ -8,6 +8,21 @@
 
 Napi::FunctionReference Projection::constructor;
 
+
+Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "Projection", {
+            InstanceMethod<&Projection::forward>("forward"),
+            InstanceMethod<&Projection::inverse>("inverse")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Projection", func);
+    return exports;
+}
+
+
 /**
  * **`mapnik.Projection`**
  *
@@ -24,39 +39,15 @@ Napi::FunctionReference Projection::constructor;
  * @example
  * var wgs84 = new mapnik.Projection('+init=epsg:4326');
  */
-void Projection::Initialize(Napi::Object target) {
 
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Projection::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Projection"));
-
-    InstanceMethod("forward", &forward),
-    InstanceMethod("inverse", &inverse),
-
-    (target).Set(Napi::String::New(env, "Projection"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-Projection::Projection(std::string const& name, bool defer_init) : Napi::ObjectWrap<Projection>(),
-    projection_(std::make_shared<mapnik::projection>(name, defer_init)) {}
-
-Projection::~Projection()
+Projection::Projection(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Projection>(info)
 {
-}
-
-Napi::Value Projection::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() <= 0 || !info[0].IsString())
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (info.Length() <= 0 || !info[0].IsString()) {
         Napi::TypeError::New(env, "please provide a proj4 initialization string").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
     bool lazy = false;
     if (info.Length() >= 2)
@@ -64,32 +55,27 @@ Napi::Value Projection::New(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "The second parameter provided should be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
         Napi::Object options = info[1].As<Napi::Object>();
-        if ((options).Has(Napi::String::New(env, "lazy")).FromMaybe(false))
+        if (options.Has("lazy"))
         {
-            Napi::Value lazy_opt = (options).Get(Napi::String::New(env, "lazy"));
-            if (!lazy_opt->IsBoolean())
+            Napi::Value lazy_opt = options.Get("lazy");
+            if (!lazy_opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "'lazy' must be a Boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return;
             }
-            lazy = lazy_opt.As<Napi::Boolean>().Value();
+            lazy = lazy_opt.As<Napi::Boolean>();
         }
     }
-
     try
     {
-        Projection* p = new Projection(TOSTR(info[0]), lazy);
-        p->Wrap(info.This());
-        return info.This();
-        return;
+        projection_ = std::make_shared<mapnik::projection>(info[0].As<Napi::String>(), lazy);
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
     }
 }
 
@@ -108,57 +94,62 @@ Napi::Value Projection::New(Napi::CallbackInfo const& info)
  */
 Napi::Value Projection::forward(Napi::CallbackInfo const& info)
 {
-    Projection* p = info.Holder().Unwrap<Projection>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
     try
     {
-        if (info.Length() != 1) {
+        if (info.Length() != 1)
+        {
             Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            if (!info[0].IsArray()) {
+            return env.Undefined();
+        }
+        else
+        {
+            if (!info[0].IsArray())
+            {
                 Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
-            Napi::Array a = info[0].As<Napi::Array>();
-            unsigned int array_length = a->Length();
+            Napi::Array arr_in = info[0].As<Napi::Array>();
+            unsigned int array_length = arr_in.Length();
             if (array_length == 2)
             {
-                double x = (a).Get(0.As<Napi::Number>().DoubleValue());
-                double y = (a).Get(1.As<Napi::Number>().DoubleValue());
-                p->projection_->forward(x,y);
-                Napi::Array arr = Napi::Array::New(env, 2);
-                (arr).Set(0, Napi::New(env, x));
-                (arr).Set(1, Napi::New(env, y));
-                return arr;
+                double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                projection_->forward(x,y);
+                Napi::Array arr_out = Napi::Array::New(env, 2);
+                arr_out.Set(0u, Napi::Number::New(env, x));
+                arr_out.Set(1u, Napi::Number::New(env, y));
+                return scope.Escape(arr_out);
             }
             else if (array_length == 4)
             {
                 double ulx, uly, urx, ury, lrx, lry, llx, lly;
-                ulx = llx = (a).Get(0.As<Napi::Number>().DoubleValue());
-                lry = lly = (a).Get(1.As<Napi::Number>().DoubleValue());
-                lrx = urx = (a).Get(2.As<Napi::Number>().DoubleValue());
-                uly = ury = (a).Get(3.As<Napi::Number>().DoubleValue());
-                p->projection_->forward(ulx,uly);
-                p->projection_->forward(urx,ury);
-                p->projection_->forward(lrx,lry);
-                p->projection_->forward(llx,lly);
-                Napi::Array arr = Napi::Array::New(env, 4);
-                (arr).Set(0, Napi::New(env, std::min(ulx,llx)));
-                (arr).Set(1, Napi::New(env, std::min(lry,lly)));
-                (arr).Set(2, Napi::New(env, std::max(urx,lrx)));
-                (arr).Set(3, Napi::New(env, std::max(ury,uly)));
-                return arr;
+                ulx = llx = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                lry = lly = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                lrx = urx = arr_in.Get(2u).As<Napi::Number>().DoubleValue();
+                uly = ury = arr_in.Get(3u).As<Napi::Number>().DoubleValue();
+                projection_->forward(ulx,uly);
+                projection_->forward(urx,ury);
+                projection_->forward(lrx,lry);
+                projection_->forward(llx,lly);
+                Napi::Array arr_out = Napi::Array::New(env, 4);
+                arr_out.Set(0u, Napi::Number::New(env, std::min(ulx,llx)));
+                arr_out.Set(1u, Napi::Number::New(env, std::min(lry,lly)));
+                arr_out.Set(2u, Napi::Number::New(env, std::max(urx,lrx)));
+                arr_out.Set(3u, Napi::Number::New(env, std::max(ury,uly)));
+                return scope.Escape(arr_out);
             }
             else
             {
                 Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
     } catch (std::exception const & ex) {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 }
 
@@ -174,244 +165,260 @@ Napi::Value Projection::forward(Napi::CallbackInfo const& info)
  */
 Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
 {
-    Projection* p = info.Holder().Unwrap<Projection>();
+
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
     try
     {
-        if (info.Length() != 1) {
-            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            if (!info[0].IsArray()) {
-                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+        if (info.Length() != 1)
+        {
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+        else
+        {
+            if (!info[0].IsArray())
+            {
+                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                    .ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            Napi::Array a = info[0].As<Napi::Array>();
-            unsigned int array_length = a->Length();
+            Napi::Array arr_in = info[0].As<Napi::Array>();
+            unsigned int array_length = arr_in.Length();
             if (array_length == 2)
             {
-                double x = (a).Get(0.As<Napi::Number>().DoubleValue());
-                double y = (a).Get(1.As<Napi::Number>().DoubleValue());
-                p->projection_->inverse(x,y);
-                Napi::Array arr = Napi::Array::New(env, 2);
-                (arr).Set(0, Napi::New(env, x));
-                (arr).Set(1, Napi::New(env, y));
-                return arr;
+                double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                projection_->inverse(x,y);
+                Napi::Array arr_out = Napi::Array::New(env, 2);
+                arr_out.Set(0u, Napi::Number::New(env, x));
+                arr_out.Set(1u, Napi::Number::New(env, y));
+                return scope.Escape(arr_out);
             }
             else if (array_length == 4)
             {
-                double minx = (a).Get(0.As<Napi::Number>().DoubleValue());
-                double miny = (a).Get(1.As<Napi::Number>().DoubleValue());
-                double maxx = (a).Get(2.As<Napi::Number>().DoubleValue());
-                double maxy = (a).Get(3.As<Napi::Number>().DoubleValue());
-                p->projection_->inverse(minx,miny);
-                p->projection_->inverse(maxx,maxy);
-                Napi::Array arr = Napi::Array::New(env, 4);
-                (arr).Set(0, Napi::New(env, minx));
-                (arr).Set(1, Napi::New(env, miny));
-                (arr).Set(2, Napi::New(env, maxx));
-                (arr).Set(3, Napi::New(env, maxy));
-                return arr;
+                double minx = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                double miny = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                double maxx = arr_in.Get(2u).As<Napi::Number>().DoubleValue();
+                double maxy = arr_in.Get(3u).As<Napi::Number>().DoubleValue();
+                projection_->inverse(minx,miny);
+                projection_->inverse(maxx,maxy);
+                Napi::Array arr_out = Napi::Array::New(env, 4);
+                arr_out.Set(0u, Napi::Number::New(env, minx));
+                arr_out.Set(1u, Napi::Number::New(env, miny));
+                arr_out.Set(2u, Napi::Number::New(env, maxx));
+                arr_out.Set(3u, Napi::Number::New(env, maxy));
+                return scope.Escape(arr_out);
             }
             else
             {
-                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                    .ThrowAsJavaScriptException();
+                return env.Undefined();
             }
         }
-    } catch (std::exception const & ex) {
+    } catch (std::exception const & ex)
+    {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 }
 
 Napi::FunctionReference ProjTransform::constructor;
 
-void ProjTransform::Initialize(Napi::Object target) {
-
+Napi::Object ProjTransform::Initialize(Napi::Env env, Napi::Object exports)
+{
     Napi::HandleScope scope(env);
 
-    Napi::FunctionReference lcons = Napi::Function::New(env, ProjTransform::New);
-
-    lcons->SetClassName(Napi::String::New(env, "ProjTransform"));
-
-    InstanceMethod("forward", &forward),
-    InstanceMethod("backward", &backward),
-
-    (target).Set(Napi::String::New(env, "ProjTransform"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
+    Napi::Function func = DefineClass(env, "ProjTransform", {
+            InstanceMethod<&ProjTransform::forward>("forward"),
+            InstanceMethod<&ProjTransform::backward>("backward")
+         });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("ProjTransform", func);
+    return exports;
 }
 
-ProjTransform::ProjTransform(mapnik::projection const& src,
-                             mapnik::projection const& dest) : Napi::ObjectWrap<ProjTransform>(),
-    this_(std::make_shared<mapnik::proj_transform>(src,dest)) {}
 
-ProjTransform::~ProjTransform()
+ProjTransform::ProjTransform(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<ProjTransform>(info)
 {
-}
+    Napi::Env env = info.Env();
 
-Napi::Value ProjTransform::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall()) {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (info.Length() != 2 || !info[0].IsObject()  || !info[1].IsObject()) {
-        Napi::TypeError::New(env, "please provide two arguments: a pair of mapnik.Projection objects").ThrowAsJavaScriptException();
-        return env.Null();
+    if (info.Length() != 2 || !info[0].IsObject()  || !info[1].IsObject())
+    {
+        Napi::TypeError::New(env, "please provide two arguments: a pair of mapnik.Projection objects")
+            .ThrowAsJavaScriptException();
+        return;
     }
 
     Napi::Object src_obj = info[0].As<Napi::Object>();
-    if (!Napi::New(env, Projection::constructor)->HasInstance(src_obj)) {
-        Napi::TypeError::New(env, "mapnik.Projection expected for first argument").ThrowAsJavaScriptException();
-        return env.Null();
+
+    if (!src_obj.InstanceOf(Projection::constructor.Value()))
+    {
+        Napi::TypeError::New(env, "mapnik.Projection expected for first argument")
+            .ThrowAsJavaScriptException();
+        return;
     }
 
-    Napi::Object dest_obj = info[1].As<Napi::Object>();
-    if (!Napi::New(env, Projection::constructor)->HasInstance(dest_obj)) {
+    Napi::Object dst_obj = info[1].As<Napi::Object>();
+    if (!dst_obj.InstanceOf(Projection::constructor.Value()))
+    {
         Napi::TypeError::New(env, "mapnik.Projection expected for second argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
-
-    Projection *p1 = src_obj.Unwrap<Projection>();
-    Projection *p2 = dest_obj.Unwrap<Projection>();
+    Projection *p1 = Napi::ObjectWrap<Projection>::Unwrap(src_obj);
+    Projection *p2 = Napi::ObjectWrap<Projection>::Unwrap(dst_obj);
 
     try
     {
-        ProjTransform* p = new ProjTransform(*p1->get(),*p2->get());
-        p->Wrap(info.This());
-        return info.This();
+        proj_transform_ = std::make_shared<mapnik::proj_transform>(*p1->projection_, *p2->projection_);
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
     }
 }
 
 Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
 {
-    ProjTransform* p = info.Holder().Unwrap<ProjTransform>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
-    if (info.Length() != 1) {
-        Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-        return env.Null();
-    } else {
-        if (!info[0].IsArray()) {
-            Napi::TypeError::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-            return env.Null();
+    if (info.Length() != 1)
+    {
+        Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    else
+    {
+        if (!info[0].IsArray())
+        {
+            Napi::TypeError::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
         }
 
-        Napi::Array a = info[0].As<Napi::Array>();
-        unsigned int array_length = a->Length();
+        Napi::Array arr_in = info[0].As<Napi::Array>();
+        unsigned int array_length = arr_in.Length();
         if (array_length == 2)
         {
-            double x = (a).Get(0.As<Napi::Number>().DoubleValue());
-            double y = (a).Get(1.As<Napi::Number>().DoubleValue());
+            double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+            double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
             double z = 0;
-            if (!p->this_->forward(x,y,z))
+            if (!proj_transform_->forward(x, y, z))
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << x <<  "," << y << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
+                  << x <<  "," << y << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
                 Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-                return env.Null();
-
+                return env.Undefined();
             }
-            Napi::Array arr = Napi::Array::New(env, 2);
-            (arr).Set(0, Napi::New(env, x));
-            (arr).Set(1, Napi::New(env, y));
-            return arr;
+            Napi::Array arr_out = Napi::Array::New(env, 2);
+            arr_out.Set(0u, Napi::Number::New(env, x));
+            arr_out.Set(1u, Napi::Number::New(env, y));
+            return scope.Escape(arr_out);
         }
         else if (array_length == 4)
         {
-            mapnik::box2d<double> box((a).Get(0.As<Napi::Number>().DoubleValue()),
-                                      (a).Get(1.As<Napi::Number>().DoubleValue()),
-                                      (a).Get(2.As<Napi::Number>().DoubleValue()),
-                                      (a).Get(3.As<Napi::Number>().DoubleValue()));
-            if (!p->this_->forward(box))
+            mapnik::box2d<double> box(arr_in.Get(0u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(1u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(2u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(3u).As<Napi::Number>().DoubleValue());
+            if (!proj_transform_->forward(box))
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-                return env.Null();
+                  << box << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            Napi::Array arr = Napi::Array::New(env, 4);
-            (arr).Set(0, Napi::New(env, box.minx()));
-            (arr).Set(1, Napi::New(env, box.miny()));
-            (arr).Set(2, Napi::New(env, box.maxx()));
-            (arr).Set(3, Napi::New(env, box.maxy()));
-            return arr;
+            Napi::Array arr_out = Napi::Array::New(env, 4);
+            arr_out.Set(0u, Napi::Number::New(env, box.minx()));
+            arr_out.Set(1u, Napi::Number::New(env, box.miny()));
+            arr_out.Set(2u, Napi::Number::New(env, box.maxx()));
+            arr_out.Set(3u, Napi::Number::New(env, box.maxy()));
+            return scope.Escape(arr_out);
         }
         else
         {
-            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-            return env.Null();
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
         }
     }
 }
 
 Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
 {
-    ProjTransform* p = info.Holder().Unwrap<ProjTransform>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
-    if (info.Length() != 1) {
-        Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-        return env.Null();
-    } else {
+    if (info.Length() != 1)
+    {
+        Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    else
+    {
         if (!info[0].IsArray())
         {
-            Napi::TypeError::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
             return env.Null();
         }
 
-        Napi::Array a = info[0].As<Napi::Array>();
-        unsigned int array_length = a->Length();
+        Napi::Array arr_in = info[0].As<Napi::Array>();
+        unsigned int array_length = arr_in.Length();
         if (array_length == 2)
         {
-            double x = (a).Get(0.As<Napi::Number>().DoubleValue());
-            double y = (a).Get(1.As<Napi::Number>().DoubleValue());
+            double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+            double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
             double z = 0;
-            if (!p->this_->backward(x,y,z))
+            if (!proj_transform_->backward(x,y,z))
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << x << "," << y << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
-                Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                  << x << "," << y << " from " << proj_transform_->dest().params() << " to: " << proj_transform_->source().params();
+                Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Null();
             }
-            Napi::Array arr = Napi::Array::New(env, 2);
-            (arr).Set(0, Napi::New(env, x));
-            (arr).Set(1, Napi::New(env, y));
-            return arr;
+            Napi::Array arr_out = Napi::Array::New(env, 2);
+            arr_out.Set(0u, Napi::Number::New(env, x));
+            arr_out.Set(1u, Napi::Number::New(env, y));
+            return scope.Escape(arr_out);
         }
         else if (array_length == 4)
         {
-            mapnik::box2d<double> box((a).Get(0.As<Napi::Number>().DoubleValue()),
-                                      (a).Get(1.As<Napi::Number>().DoubleValue()),
-                                      (a).Get(2.As<Napi::Number>().DoubleValue()),
-                                      (a).Get(3.As<Napi::Number>().DoubleValue()));
-            if (!p->this_->backward(box))
+            mapnik::box2d<double> box(arr_in.Get(0u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(1u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(2u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(3u).As<Napi::Number>().DoubleValue());
+            if (!proj_transform_->backward(box))
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                  << box << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Null();
             }
-            Napi::Array arr = Napi::Array::New(env, 4);
-            (arr).Set(0, Napi::New(env, box.minx()));
-            (arr).Set(1, Napi::New(env, box.miny()));
-            (arr).Set(2, Napi::New(env, box.maxx()));
-            (arr).Set(3, Napi::New(env, box.maxy()));
-            return arr;
+            Napi::Array arr_out = Napi::Array::New(env, 4);
+            arr_out.Set(0u, Napi::Number::New(env, box.minx()));
+            arr_out.Set(1u, Napi::Number::New(env, box.miny()));
+            arr_out.Set(2u, Napi::Number::New(env, box.maxx()));
+            arr_out.Set(3u, Napi::Number::New(env, box.maxy()));
+            return scope.Escape(arr_out);
         }
         else
         {
-            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-            return env.Null();
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
         }
     }
 }

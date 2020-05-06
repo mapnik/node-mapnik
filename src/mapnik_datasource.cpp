@@ -18,6 +18,24 @@
 
 Napi::FunctionReference Datasource::constructor;
 
+Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports)
+{
+
+    Napi::Function func = DefineClass(env, "Datasource", {
+            InstanceMethod<&Datasource::parameters>("parameters"),
+            InstanceMethod<&Datasource::describe>("describe"),
+            //InstanceMethod<&Datasource::featureset>("featureset"),
+            InstanceMethod<&Datasource::extent>("extent"),
+            InstanceMethod<&Datasource::fields>("fields")
+
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Datasource", func);
+    return exports;
+}
+
 /**
  * **`mapnik.Datasource`**
  *
@@ -26,143 +44,69 @@ Napi::FunctionReference Datasource::constructor;
  *
  * @class Datasource
  */
-void Datasource::Initialize(Napi::Object target) {
 
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Datasource::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Datasource"));
-
-    // methods
-    InstanceMethod("parameters", &parameters),
-    InstanceMethod("describe", &describe),
-    InstanceMethod("featureset", &featureset),
-    InstanceMethod("extent", &extent),
-    InstanceMethod("fields", &fields),
-
-    (target).Set(Napi::String::New(env, "Datasource"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-Datasource::Datasource() : Napi::ObjectWrap<Datasource>(),
-    datasource_() {}
-
-Datasource::~Datasource()
+Datasource::Datasource(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Datasource>(info)
 {
-}
-
-Napi::Value Datasource::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() != 1)
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
+        Napi::TypeError::New(env, "accepts only one argument, an object of key:value datasource options").ThrowAsJavaScriptException();
+        return;
     }
 
     if (info[0].IsExternal())
     {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        Datasource* d =  static_cast<Datasource*>(ptr);
-        if (d->datasource_->type() == mapnik::datasource::Raster)
-        {
-            (info.This()).Set(Napi::String::New(env, "type"),
-                             Napi::String::New(env, "raster"));
-        }
-        else
-        {
-            (info.This()).Set(Napi::String::New(env, "type"),
-                             Napi::String::New(env, "vector"));
-        }
-        d->Wrap(info.This());
-        return info.This();
+        auto ext = info[0].As<Napi::External<datasource_ptr>>();
+        if (ext) datasource_ = *ext.Data();
+        //if (datasource_->type() == mapnik::datasource::Raster) info.This().Set("type","raster");
+        //else info.This().Set("type","vector");
         return;
-    }
-    if (info.Length() != 1)
-    {
-        Napi::TypeError::New(env, "accepts only one argument, an object of key:value datasource options").ThrowAsJavaScriptException();
-        return env.Null();
     }
 
     if (!info[0].IsObject())
     {
         Napi::TypeError::New(env, "Must provide an object, eg {type: 'shape', file : 'world.shp'}").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
 
     Napi::Object options = info[0].As<Napi::Object>();
 
     mapnik::parameters params;
-    Napi::Array names = Napi::GetPropertyNames(options);
-    unsigned int i = 0;
-    unsigned int a_length = names->Length();
-    while (i < a_length) {
-        Napi::Value name = (names).Get(i)->ToString(Napi::GetCurrentContext());
-        Napi::Value value = (options).Get(name);
-        // TODO - don't treat everything as strings
-        params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
-        i++;
+    Napi::Array names = options.GetPropertyNames();
+    unsigned int length = names.Length();
+    for (unsigned index = 0; index < length; ++index)
+    {
+        std::string name = names.Get(index).As<Napi::String>();
+        Napi::Value value = options.Get(name);
+        // TODO - don't treat everything as strings (FIXME ??)
+        params[name] = value.ToString().Utf8Value();
     }
 
-    mapnik::datasource_ptr ds;
     try
     {
-        ds = mapnik::datasource_cache::instance().create(params);
+        datasource_ = mapnik::datasource_cache::instance().create(params);
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (ds)
-    {
-        if (ds->type() == mapnik::datasource::Raster)
-        {
-            (info.This()).Set(Napi::String::New(env, "type"),
-                             Napi::String::New(env, "raster"));
-        }
-        else
-        {
-            (info.This()).Set(Napi::String::New(env, "type"),
-                             Napi::String::New(env, "vector"));
-        }
-        Datasource* d = new Datasource();
-        d->Wrap(info.This());
-        d->datasource_ = ds;
-        return info.This();
         return;
-    }
-    // Not sure this point could ever be reached, because if a ds is created,
-    // even if it is an empty or bad dataset the pointer will still exist
-    /* LCOV_EXCL_START */
-    return;
-    /* LCOV_EXCL_STOP */
-}
+     }
 
-Napi::Value Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
-    Napi::EscapableHandleScope scope(env);
-    Datasource* d = new Datasource();
-    d->datasource_ = ds_ptr;
-    Napi::Value ext = Napi::External::New(env, d);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Datasource instance").ThrowAsJavaScriptException();
-
-    return scope.Escape(maybe_local);
+    //if (datasource_->type() == mapnik::datasource::Raster) info.This().Set("type","raster");
+    //else info.This().Set("type","vector");
 }
 
 Napi::Value Datasource::parameters(Napi::CallbackInfo const& info)
 {
-    Datasource* d = this;
-    Napi::Object ds = Napi::Object::New(env);
-    mapnik::parameters::const_iterator it = d->datasource_->params().begin();
-    mapnik::parameters::const_iterator end = d->datasource_->params().end();
-    for (; it != end; ++it)
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object params = Napi::Object::New(env);
+    for (auto const& kv : datasource_->params())
     {
-        node_mapnik::params_to_object(ds, it->first, it->second);
+        node_mapnik::params_to_object(env, params, std::get<0>(kv), std::get<1>(kv));
     }
-    return ds;
+    return scope.Escape(params);
 }
 
 /**
@@ -175,11 +119,12 @@ Napi::Value Datasource::parameters(Napi::CallbackInfo const& info)
  */
 Napi::Value Datasource::extent(Napi::CallbackInfo const& info)
 {
-    Datasource* d = info.Holder().Unwrap<Datasource>();
-    mapnik::box2d<double> e;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::box2d<double> bbox;
     try
     {
-        e = d->datasource_->envelope();
+        bbox = datasource_->envelope();
     }
     catch (std::exception const& ex)
     {
@@ -189,16 +134,16 @@ Napi::Value Datasource::extent(Napi::CallbackInfo const& info)
         // to add to testing. Therefore marking it with exclusion
         /* LCOV_EXCL_START */
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
 
-    Napi::Array a = Napi::Array::New(env, 4);
-    (a).Set(0, Napi::Number::New(env, e.minx()));
-    (a).Set(1, Napi::Number::New(env, e.miny()));
-    (a).Set(2, Napi::Number::New(env, e.maxx()));
-    (a).Set(3, Napi::Number::New(env, e.maxy()));
-    return a;
+    Napi::Array arr = Napi::Array::New(env, 4);
+    arr.Set(0u, Napi::Number::New(env, bbox.minx()));
+    arr.Set(1u, Napi::Number::New(env, bbox.miny()));
+    arr.Set(2u, Napi::Number::New(env, bbox.maxx()));
+    arr.Set(3u, Napi::Number::New(env, bbox.maxy()));
+    return scope.Escape(arr);
 }
 
 /**
@@ -212,11 +157,12 @@ Napi::Value Datasource::extent(Napi::CallbackInfo const& info)
  */
 Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
 {
-    Datasource* d = info.Holder().Unwrap<Datasource>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     Napi::Object description = Napi::Object::New(env);
     try
     {
-        node_mapnik::describe_datasource(description,d->datasource_);
+        node_mapnik::describe_datasource(env, description, datasource_);
     }
     catch (std::exception const& ex)
     {
@@ -226,11 +172,10 @@ Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
         // to add to testing. Therefore marking it with exclusion
         /* LCOV_EXCL_START */
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
-
-    return description;
+    return scope.Escape(description);
 }
 
 /**
@@ -251,6 +196,7 @@ Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
  *     features.push(feature);
  * }
  */
+/*
 Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
 {
     Datasource* ds = info.Holder().Unwrap<Datasource>();
@@ -312,10 +258,9 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-        /* LCOV_EXCL_START */
+
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return env.Null();
-        /* LCOV_EXCL_STOP */
     }
 
     if (fs && mapnik::is_valid(fs))
@@ -323,11 +268,9 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
         return Featureset::NewInstance(fs);
     }
     // This should never be able to be reached
-    /* LCOV_EXCL_START */
     return;
-    /* LCOV_EXCL_STOP */
 }
-
+*/
 
 /**
  * Get only the fields metadata from a dataset.
@@ -352,10 +295,12 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
  * //     LAT: 'Number'
  * // }
  */
+
 Napi::Value Datasource::fields(Napi::CallbackInfo const& info)
 {
-    Datasource* d = info.Holder().Unwrap<Datasource>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     Napi::Object fields = Napi::Object::New(env);
-    node_mapnik::get_fields(fields,d->datasource_);
-    return fields;
+    node_mapnik::get_fields(env, fields, datasource_);
+    return scope.Escape(fields);
 }
