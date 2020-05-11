@@ -115,14 +115,14 @@ Geometry::Geometry(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<Geometry>(info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() > 1 && info[0].IsExternal())
+    if (info.Length() == 1 && info[0].IsExternal())
     {
         auto ext = info[0].As<Napi::External<mapnik::feature_ptr>>();
         if (ext) feature_  = *ext.Data();
     }
     else
     {
-        Napi::Error::New(env, "a mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance")
+        Napi::Error::New(env, "mapnik.Geometry cannot be created directly - it is only available via a mapnik.Feature instance")
             .ThrowAsJavaScriptException();
     }
 }

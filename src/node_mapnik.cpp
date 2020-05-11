@@ -7,14 +7,14 @@
 #include "mapnik_color.hpp"
 #include "mapnik_geometry.hpp"
 //#include "mapnik_logger.hpp"
-//#include "mapnik_feature.hpp"
+#include "mapnik_feature.hpp"
 //#include "mapnik_fonts.hpp"
 #include "mapnik_plugins.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_projection.hpp"
 //#include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
-//#include "mapnik_featureset.hpp"
+#include "mapnik_featureset.hpp"
 //#include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
 //#include "mapnik_image_view.hpp"
@@ -306,10 +306,27 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Projection::Initialize(env, exports);
     ProjTransform::Initialize(env, exports);
     Geometry::Initialize(env, exports);
+    Feature::Initialize(env, exports);
+    Featureset::Initialize(env, exports);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);
     init_image_comp_op(env, exports);
+
+    // versions
+    // versions of deps
+    Napi::Object versions = Napi::Object::New(env);
+    //versions.Set("node", &NODE_VERSION[1]); // NOTE: +1 strips the v in v0.10.26
+    //versions.Set("v8", v8::V8::GetVersion());
+    versions.Set("boost", node_mapnik::format_version(BOOST_VERSION));
+    versions.Set("boost_number", BOOST_VERSION);
+    versions.Set("mapnik", node_mapnik::format_version(MAPNIK_VERSION));
+    versions.Set("mapnik_number", MAPNIK_VERSION);
+    versions.Set("mapnik_git_describe", MAPNIK_GIT_REVISION);
+#if defined(HAVE_CAIRO)
+    versions.Set("cairo", CAIRO_VERSION_STRING);
+#endif
+    exports.Set("versions", versions);
     return exports;
 }
 

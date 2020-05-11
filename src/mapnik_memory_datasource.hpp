@@ -1,16 +1,7 @@
-#ifndef __NODE_MAPNIK_MEMORY_DATASOURCE_H__
-#define __NODE_MAPNIK_MEMORY_DATASOURCE_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <napi.h>
-#include <uv.h>
-#pragma GCC diagnostic pop
-
 #include <mapnik/datasource.hpp>
-
-
 
 namespace mapnik { class transcoder; }
 

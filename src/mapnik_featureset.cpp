@@ -3,6 +3,18 @@
 
 Napi::FunctionReference Featureset::constructor;
 
+Napi::Object Featureset::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "Featureset", {
+            InstanceMethod<&Featureset::next>("next")
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Featureset", func);
+    return exports;
+}
+
 /**
  * **`mapnik.Featureset`**
  *
@@ -10,47 +22,19 @@ Napi::FunctionReference Featureset::constructor;
  *
  * @class Featureset
  */
-void Featureset::Initialize(Napi::Object target) {
 
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Featureset::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Featureset"));
-
-    InstanceMethod("next", &next),
-
-    (target).Set(Napi::String::New(env, "Featureset"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-Featureset::Featureset() : Napi::ObjectWrap<Featureset>(),
-    this_() {}
-
-Featureset::~Featureset()
+Featureset::Featureset(Napi::CallbackInfo const& info)
+    :  Napi::ObjectWrap<Featureset>(info)
 {
-}
-
-Napi::Value Featureset::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1 && info[0].IsExternal())
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (info[0].IsExternal())
-    {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        Featureset* fs =  static_cast<Featureset*>(ptr);
-        fs->Wrap(info.This());
-        return info.This();
+        auto ext = info[0].As<Napi::External<mapnik::featureset_ptr>>();
+        if (ext) featureset_ = *ext.Data();
         return;
     }
-
-    Napi::TypeError::New(env, "Sorry a Featureset cannot currently be created, only accessed via an existing datasource").ThrowAsJavaScriptException();
-    return env.Null();
+    Napi::TypeError::New(env, "Sorry a Featureset cannot currently be created, only accessed via an existing datasource")
+        .ThrowAsJavaScriptException();
 }
 
 /**
@@ -64,12 +48,15 @@ Napi::Value Featureset::New(Napi::CallbackInfo const& info)
  */
 Napi::Value Featureset::next(Napi::CallbackInfo const& info)
 {
-    Featureset* fs = info.Holder().Unwrap<Featureset>();
-    if (fs->this_) {
-        mapnik::feature_ptr fp;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (featureset_)
+    {
+        mapnik::feature_ptr feature;
         try
         {
-            fp = fs->this_->next();
+            feature = featureset_->next();
         }
         catch (std::exception const& ex)
         {
@@ -80,25 +67,15 @@ Napi::Value Featureset::next(Napi::CallbackInfo const& info)
             // wrapping this in a try catch.
             /* LCOV_EXCL_START */
             Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
             /* LCOV_EXCL_STOP */
         }
-
-        if (fp) {
-            return Feature::NewInstance(fp);
+        if (feature)
+        {
+            Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature);
+            Napi::Object obj = Feature::constructor.New({arg});
+            return scope.Escape(napi_value(obj)).ToObject();
         }
     }
-    return;
-}
-
-Napi::Value Featureset::NewInstance(mapnik::featureset_ptr fsp)
-{
-    Napi::EscapableHandleScope scope(env);
-    Featureset* fs = new Featureset();
-    fs->this_ = fsp;
-    Napi::Value ext = Napi::External::New(env, fs);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Featureset instance").ThrowAsJavaScriptException();
-
-    return scope.Escape(maybe_local);
+    return env.Null(); // Loop termination condition
 }

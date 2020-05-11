@@ -12,6 +12,35 @@
 
 Napi::FunctionReference Feature::constructor;
 
+Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+
+    Napi::Function func = DefineClass(env, "Feature", {
+            InstanceMethod<&Feature::id>("id"),
+            InstanceMethod<&Feature::extent>("extent"),
+            InstanceMethod<&Feature::attributes>("attributes"),
+            InstanceMethod<&Feature::geometry>("geometry"),
+            InstanceMethod<&Feature::toJSON>("toJSON"),
+            StaticMethod<&Feature::fromJSON>("fromJSON")
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Feature", func);
+    return exports;
+}
+
+//Feature::Feature(mapnik::feature_ptr f) : Napi::ObjectWrap<Feature>(),
+//    this_(f) {}
+
+//Feature::Feature(int id) : Napi::ObjectWrap<Feature>(),
+//    this_() {
+//    // TODO - accept/require context object to reused
+//    ctx_ = std::make_shared<mapnik::context_type>();
+//    this_ = mapnik::feature_factory::create(ctx_,id);
+//}
+
 /**
  * **`mapnik.Feature`**
  *
@@ -21,70 +50,29 @@ Napi::FunctionReference Feature::constructor;
  *
  * @class Feature
  */
-void Feature::Initialize(Napi::Object target) {
 
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Feature::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Feature"));
-
-    InstanceMethod("id", &id),
-    InstanceMethod("extent", &extent),
-    InstanceMethod("attributes", &attributes),
-    InstanceMethod("geometry", &geometry),
-    InstanceMethod("toJSON", &toJSON),
-
-    Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(),
-                    "fromJSON",
-                    Feature::fromJSON);
-
-    (target).Set(Napi::String::New(env, "Feature"),Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-Feature::Feature(mapnik::feature_ptr f) : Napi::ObjectWrap<Feature>(),
-    this_(f) {}
-
-Feature::Feature(int id) : Napi::ObjectWrap<Feature>(),
-    this_() {
-    // TODO - accept/require context object to reused
-    ctx_ = std::make_shared<mapnik::context_type>();
-    this_ = mapnik::feature_factory::create(ctx_,id);
-}
-
-Feature::~Feature()
+Feature::Feature(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Feature>(info)
 {
-}
-
-Napi::Value Feature::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1)
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
+        if (info[0].IsExternal())
+        {
+            auto ext = info[0].As<Napi::External<mapnik::feature_ptr>>();
+            if (ext) feature_  = *ext.Data();
+            return;
+        }
+        else if (info[0].IsNumber())
+        {
+            ctx_ = std::make_shared<mapnik::context_type>();
+            std::int64_t id = info[0].As<Napi::Number>().Int64Value();
+            feature_ = mapnik::feature_factory::create(ctx_, id);
+            return;
+        }
     }
-
-    if (info[0].IsExternal())
-    {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        Feature* f =  static_cast<Feature*>(ptr);
-        f->Wrap(info.This());
-        return info.This();
-        return;
-    }
-
-    // TODO - expose mapnik.Context
-
-    if (info.Length() > 1 || info.Length() < 1 || !info[0].IsNumber()) {
-        Napi::TypeError::New(env, "requires one argument: an integer feature id").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    Feature* f = new Feature(info[0].As<Napi::Number>().Int32Value());
-    f->Wrap(info.This());
-    return info.This();
+    Napi::Error::New(env, "requires one argument: an integer feature id")
+        .ThrowAsJavaScriptException();
 }
 
 /**
@@ -97,25 +85,26 @@ Napi::Value Feature::New(Napi::CallbackInfo const& info)
  */
 Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
 {
-    if (info.Length() < 1 || !info[0].IsString()) {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (info.Length() < 1 || !info[0].IsString())
+    {
         Napi::TypeError::New(env, "requires one argument: a string representing a GeoJSON feature").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
-    std::string json = TOSTR(info[0]);
+    std::string json = info[0].As<Napi::String>();
     try
     {
-        mapnik::feature_ptr f(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
-        if (!mapnik::json::from_geojson(json,*f))
+        mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(), 1));
+        if (!mapnik::json::from_geojson(json,*feature))
         {
             Napi::Error::New(env, "Failed to read GeoJSON").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
-        Feature* feat = new Feature(f);
-        Napi::Value ext = Napi::External::New(env, feat);
-        Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-        if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Feature instance").ThrowAsJavaScriptException();
-
-        else return maybe_local;
+        Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature);
+        Napi::Object obj = Feature::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();
     }
     catch (std::exception const& ex)
     {
@@ -123,20 +112,9 @@ Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
         // but we'll keep this try catch to protect against mapnik or v8 changing
         /* LCOV_EXCL_START */
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
-}
-
-Napi::Value Feature::NewInstance(mapnik::feature_ptr f_ptr)
-{
-    Napi::EscapableHandleScope scope(env);
-    Feature* f = new Feature(f_ptr);
-    Napi::Value ext = Napi::External::New(env, f);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Feature instance").ThrowAsJavaScriptException();
-
-    return scope.Escape(maybe_local);
 }
 
 /**
@@ -147,8 +125,8 @@ Napi::Value Feature::NewInstance(mapnik::feature_ptr f_ptr)
  */
 Napi::Value Feature::id(Napi::CallbackInfo const& info)
 {
-    Feature* fp = info.Holder().Unwrap<Feature>();
-    return Napi::Number::New(env, fp->get()->id());
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, feature_->id());
 }
 
 /**
@@ -161,15 +139,15 @@ Napi::Value Feature::id(Napi::CallbackInfo const& info)
  */
 Napi::Value Feature::extent(Napi::CallbackInfo const& info)
 {
-    Feature* fp = info.Holder().Unwrap<Feature>();
-    Napi::Array a = Napi::Array::New(env, 4);
-    mapnik::box2d<double> const& e = fp->get()->envelope();
-    (a).Set(0, Napi::Number::New(env, e.minx()));
-    (a).Set(1, Napi::Number::New(env, e.miny()));
-    (a).Set(2, Napi::Number::New(env, e.maxx()));
-    (a).Set(3, Napi::Number::New(env, e.maxy()));
-
-    return a;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::box2d<double> const& envelope = feature_->envelope();
+    Napi::Array arr = Napi::Array::New(env, 4);
+    arr.Set(0u, Napi::Number::New(env, envelope.minx()));
+    arr.Set(1u, Napi::Number::New(env, envelope.miny()));
+    arr.Set(2u, Napi::Number::New(env, envelope.maxx()));
+    arr.Set(3u, Napi::Number::New(env, envelope.maxy()));
+    return scope.Escape(arr);
 }
 
 /**
@@ -182,19 +160,19 @@ Napi::Value Feature::extent(Napi::CallbackInfo const& info)
  */
 Napi::Value Feature::attributes(Napi::CallbackInfo const& info)
 {
-    Feature* fp = info.Holder().Unwrap<Feature>();
-    Napi::Object feat = Napi::Object::New(env);
-    mapnik::feature_ptr feature = fp->get();
-    if (feature)
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object attributes = Napi::Object::New(env);
+    if (feature_)
     {
-        for (auto const& attr : *feature)
+        for (auto const& attr : *feature_)
         {
-            (feat).Set(Napi::String::New(env, std::get<0>(attr)),
-                      mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
+            attributes.Set(std::get<0>(attr),
+                           mapnik::util::apply_visitor(node_mapnik::value_converter(env), std::get<1>(attr))
                 );
         }
     }
-    return feat;
+    return scope.Escape(attributes);
 }
 
 
@@ -208,8 +186,11 @@ Napi::Value Feature::attributes(Napi::CallbackInfo const& info)
  */
 Napi::Value Feature::geometry(Napi::CallbackInfo const& info)
 {
-    Feature* fp = info.Holder().Unwrap<Feature>();
-    return Geometry::NewInstance(fp->get());
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature_);
+    Napi::Object obj = Geometry::constructor.New({arg});
+    return scope.Escape(napi_value(obj)).ToObject();
 }
 
 /**
@@ -222,13 +203,13 @@ Napi::Value Feature::geometry(Napi::CallbackInfo const& info)
  */
 Napi::Value Feature::toJSON(Napi::CallbackInfo const& info)
 {
-    Feature* fp = info.Holder().Unwrap<Feature>();
+    Napi::Env env = info.Env();
     std::string json;
-    if (!mapnik::util::to_geojson(json, *(fp->get())))
+    if (!mapnik::util::to_geojson(json, *feature_))
     {
         /* LCOV_EXCL_START */
         Napi::Error::New(env, "Failed to generate GeoJSON").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
     return Napi::String::New(env, json);

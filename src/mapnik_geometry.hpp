@@ -8,6 +8,7 @@
 
 class Geometry : public Napi::ObjectWrap<Geometry>
 {
+    friend class Feature;
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

@@ -10,6 +10,7 @@
 
 class Feature : public Napi::ObjectWrap<Feature>
 {
+    friend class Featureset;
 public:
     // initialiser
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -22,12 +23,6 @@ public:
     Napi::Value attributes(Napi::CallbackInfo const& info);
     Napi::Value geometry(Napi::CallbackInfo const& info);
     Napi::Value toJSON(Napi::CallbackInfo const& info);
-    // todo
-    // how to allow altering of attributes
-    // expose get_geometry
-    //Feature(int id);
-    //inline mapnik::feature_ptr get() { return this_; }
-
 private:
     static Napi::FunctionReference constructor;
     mapnik::feature_ptr feature_;

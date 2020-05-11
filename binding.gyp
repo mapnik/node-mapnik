@@ -15,7 +15,7 @@
         #"src/mapnik_map.cpp",
         "src/mapnik_color.cpp",
         "src/mapnik_geometry.cpp",
-        #"src/mapnik_feature.cpp",
+        "src/mapnik_feature.cpp",
         "src/mapnik_image.cpp",
         "src/mapnik_image_encode.cpp",
         "src/mapnik_image_open.cpp",
@@ -38,7 +38,7 @@
         "src/mapnik_projection.cpp",
         #"src/mapnik_layer.cpp",
         "src/mapnik_datasource.cpp",
-        #"src/mapnik_featureset.cpp",
+        "src/mapnik_featureset.cpp",
         #"src/mapnik_expression.cpp",
         #"src/mapnik_cairo_surface.cpp",
         #"src/mapnik_vector_tile.cpp"

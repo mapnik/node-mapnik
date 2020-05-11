@@ -1,15 +1,13 @@
 #pragma once
 
 #include <mapnik/featureset.hpp>
-#include <memory>
-
 #include <napi.h>
-
 
 using featureset_ptr =  mapnik::featureset_ptr;
 
 class Featureset : public Napi::ObjectWrap<Featureset>
 {
+    friend class Datasource;
 public:
     // initialiser
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

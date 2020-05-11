@@ -17,10 +17,9 @@ public:
     // methods
     Napi::Value parameters(Napi::CallbackInfo const& info);
     Napi::Value describe(Napi::CallbackInfo const& info);
-    //Napi::Value featureset(Napi::CallbackInfo const& info);
+    Napi::Value featureset(Napi::CallbackInfo const& info);
     Napi::Value extent(Napi::CallbackInfo const& info);
     Napi::Value fields(Napi::CallbackInfo const& info);
-    //inline datasource_ptr get() { return datasource_; }
 private:
     static Napi::FunctionReference constructor;
     datasource_ptr datasource_;

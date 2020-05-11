@@ -24,7 +24,7 @@ Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports)
     Napi::Function func = DefineClass(env, "Datasource", {
             InstanceMethod<&Datasource::parameters>("parameters"),
             InstanceMethod<&Datasource::describe>("describe"),
-            //InstanceMethod<&Datasource::featureset>("featureset"),
+            InstanceMethod<&Datasource::featureset>("featureset"),
             InstanceMethod<&Datasource::extent>("extent"),
             InstanceMethod<&Datasource::fields>("fields")
 
@@ -196,39 +196,41 @@ Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
  *     features.push(feature);
  * }
  */
-/*
+
 Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
 {
-    Datasource* ds = info.Holder().Unwrap<Datasource>();
-    mapnik::box2d<double> extent = ds->datasource_->envelope();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::box2d<double> extent = datasource_->envelope();
+
     if (info.Length() > 0)
     {
         // options object
         if (!info[0].IsObject())
         {
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
-        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "extent")).FromMaybe(false))
+        Napi::Object options = info[0].As<Napi::Object>();
+        if (options.Has("extent"))
         {
-            Napi::Value extent_opt = (options).Get(Napi::String::New(env, "extent"));
-            if (!extent_opt->IsArray())
+            Napi::Value extent_opt = options.Get("extent");
+            if (!extent_opt.IsArray())
             {
                 Napi::TypeError::New(env, "extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             Napi::Array bbox = extent_opt.As<Napi::Array>();
-            auto len = bbox->Length();
+            auto len = bbox.Length();
             if (!(len == 4))
             {
                 Napi::TypeError::New(env, "extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
-            Napi::Value minx = (bbox).Get(0);
-            Napi::Value miny = (bbox).Get(1);
-            Napi::Value maxx = (bbox).Get(2);
-            Napi::Value maxy = (bbox).Get(3);
+            Napi::Value minx = bbox.Get(0u);
+            Napi::Value miny = bbox.Get(1u);
+            Napi::Value maxx = bbox.Get(2u);
+            Napi::Value maxy = bbox.Get(3u);
             if (!minx.IsNumber() || !miny.IsNumber() || !maxx.IsNumber() || !maxy.IsNumber())
             {
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
@@ -243,14 +245,14 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
     try
     {
         mapnik::query q(extent);
-        mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
+        mapnik::layer_descriptor ld = datasource_->get_descriptor();
         auto const& desc = ld.get_descriptors();
         for (auto const& attr_info : desc)
         {
             q.add_property_name(attr_info.get_name());
         }
 
-        fs = ds->datasource_->features(q);
+        fs = datasource_->features(q);
     }
     catch (std::exception const& ex)
     {
@@ -258,19 +260,19 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (fs && mapnik::is_valid(fs))
     {
-        return Featureset::NewInstance(fs);
+        Napi::Value arg = Napi::External<mapnik::featureset_ptr>::New(env, &fs);
+        Napi::Object obj = Featureset::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();;
     }
-    // This should never be able to be reached
-    return;
+    return env.Null(); // an empty Featureset
 }
-*/
+
 
 /**
  * Get only the fields metadata from a dataset.
