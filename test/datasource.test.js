@@ -165,25 +165,7 @@ test('should validate with known shapefile', (assert) => {
   assert.deepEqual(ds.fields(), expected.fields);
   assert.end();
 });
-/*
-test('test invalid use of memory datasource', (assert) => {
-  var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
-  assert.throws(function() { ds.add(); });
-  assert.throws(function() { ds.add(null); });
-  assert.throws(function() { ds.add({}, null); });
-  assert.throws(function() { ds.add({'wkt': '1234'}); });
-  assert.equal(false, ds.add({}));
-  assert.end();
-});
 
-test('test empty memory datasource', (assert) => {
-  var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
-  var empty_fs = ds.featureset();
-  assert.equal(typeof(empty_fs),'undefined');
-  assert.equal(empty_fs, null);
-  assert.end();
-});
-*/
 test('test empty geojson datasource', (assert) => {
   var input = {
     "type": "Feature",
@@ -221,24 +203,6 @@ test('test empty geojson datasource due to invalid json file', (assert) => {
   assert.end()
 });
 
-/*
-test('test valid use of memory datasource', (assert) => {
-  var ds = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
-  assert.equal(true, ds.add({ 'x': 0, 'y': 0 }));
-  assert.equal(true, ds.add({ 'x': 0.23432, 'y': 0.234234 }));
-  assert.equal(true, ds.add({ 'x': 1, 'y': 1 , 'properties': {'a':'b', 'c':1, 'd':0.23 }}));
-  var expected_describe = {
-    type: 'vector',
-    encoding: 'utf-8',
-    fields: {},
-    geometry_type: 'collection'
-  };
-  assert.deepEqual(expected_describe, ds.describe());
-  // Currently descriptors can not be added to memory datasource so will always be empty object
-  assert.deepEqual({},ds.fields());
-  assert.end();
-});
-*/
 test('should validate with raster', (assert) => {
   var options = {
     type: 'gdal',

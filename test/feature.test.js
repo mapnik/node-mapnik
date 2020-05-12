@@ -85,32 +85,6 @@ test('should match known features', (assert) => {
   assert.end();
 });
 
-/*
-test('should report null values as js null', (assert) => {
-  var extent = '-180,-60,180,60';
-  var ds = new mapnik.MemoryDatasource({'extent': extent});
-  var feat = {x:0,y:0,properties: {feat_id:1,null_val:null,name:"name",stuff: {hi:"wee"}}};
-  var bad_feat = {x:'0',y:0,properties: {feat_id:1,null_val:null,name:"name",stuff: {hi:"wee"}}};
-  assert.equal(ds.add(feat), true);
-  assert.equal(ds.add(bad_feat), false);
-  var featureset = ds.featureset();
-  var feature = featureset.next();
-  assert.equal(feature.id(),1);
-  var attr = feature.attributes();
-  assert.ok(attr.null_val === null);
-  assert.equal(attr.feat_id,1);
-  assert.equal(attr.name,'name');
-  var describe_expected = {
-    type: 'vector',
-    encoding: 'utf-8',
-    fields: {},
-    geometry_type: 'collection'
-  };
-  assert.deepEqual(describe_expected, ds.describe());
-  assert.end();
-});
-*/
-
 test('should output the same geojson that it read', (assert) => {
   var expected = {
     type: "Feature",
@@ -224,26 +198,6 @@ test('should be able to create feature from geojson and turn back into geojson',
     });
   });
 });
-/*
-test('should be able to get a featureset from Memory datasource', (assert) => {
-  var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
-  var fs0 = mem_datasource.featureset();
-  assert.equal(undefined, fs0);
-  mem_datasource.add({ 'x': 0, 'y': 0 });
-  var fs1 = mem_datasource.featureset();
-  assert.equal('{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[0,0]},"properties":{}}',
-  fs1.next().toJSON());
-  assert.equal(undefined, fs1.next());
-  mem_datasource.add({ 'x': 1, 'y': 1 });
-  var fs2 = mem_datasource.featureset();
-  assert.equal('{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[0,0]},"properties":{}}',
-  fs2.next().toJSON());
-  assert.equal('{"type":"Feature","id":2,"geometry":{"type":"Point","coordinates":[1,1]},"properties":{}}',
-  fs2.next().toJSON());
-  assert.equal(undefined, fs2.next());
-  assert.end()
-});
-*/
 
 test('should be able to reproject geojson feature', (assert) => {
   var merc_poly = {

@@ -1,329 +1,314 @@
 #include "mapnik_layer.hpp"
-
-#include "utils.hpp"                    // for TOSTR, ATTR, etc
-
 #include "mapnik_datasource.hpp"
-#include "mapnik_memory_datasource.hpp"
-
+#include "utils.hpp"
 // mapnik
 #include <mapnik/datasource.hpp>        // for datasource_ptr, datasource
 #include <mapnik/memory_datasource.hpp> // for memory_datasource
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/params.hpp>            // for parameters
-
 // stl
 #include <limits>
 
 Napi::FunctionReference Layer::constructor;
 
-void Layer::Initialize(Napi::Object target) {
-
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Layer::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Layer"));
-
-    // methods
-    InstanceMethod("describe", &describe),
-
-    // properties
-    ATTR(lcons, "name", get_prop, set_prop);
-    ATTR(lcons, "active", get_prop, set_prop);
-    ATTR(lcons, "srs", get_prop, set_prop);
-    ATTR(lcons, "styles", get_prop, set_prop);
-    ATTR(lcons, "datasource", get_prop, set_prop);
-    ATTR(lcons, "minimum_scale_denominator", get_prop, set_prop);
-    ATTR(lcons, "maximum_scale_denominator", get_prop, set_prop);
-    ATTR(lcons, "queryable", get_prop, set_prop);
-    ATTR(lcons, "clear_label_cache", get_prop, set_prop);
-
-    (target).Set(Napi::String::New(env, "Layer"),Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-Layer::Layer(std::string const& name) : Napi::ObjectWrap<Layer>(),
-    layer_(std::make_shared<mapnik::layer>(name)) {}
-
-Layer::Layer(std::string const& name, std::string const& srs) : Napi::ObjectWrap<Layer>(),
-    layer_(std::make_shared<mapnik::layer>(name,srs)) {}
-
-Layer::Layer() : Napi::ObjectWrap<Layer>(),
-    layer_() {}
-
-
-Layer::~Layer() {}
-
-Napi::Value Layer::New(Napi::CallbackInfo const& info)
+Napi::Object Layer::Initialize(Napi::Env env, Napi::Object exports)
 {
-    if (!info.IsConstructCall()) {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
-    }
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "Layer", {
+            InstanceMethod<&Layer::describe>("describe"),
+            InstanceAccessor<&Layer::name, &Layer::name>("name"),
+            InstanceAccessor<&Layer::active, &Layer::active>("active"),
+            InstanceAccessor<&Layer::srs, &Layer::srs>("srs"),
+            InstanceAccessor<&Layer::styles, &Layer::styles>("styles"),
+            InstanceAccessor<&Layer::datasource, &Layer::datasource>("datasource"),
+            InstanceAccessor<&Layer::minimum_scale_denominator, &Layer::minimum_scale_denominator>("minimum_scale_denominator"),
+            InstanceAccessor<&Layer::maximum_scale_denominator, &Layer::maximum_scale_denominator>("maximum_scale_denominator"),
+            InstanceAccessor<&Layer::queryable, &Layer::queryable>("queryable"),
+            InstanceAccessor<&Layer::clear_label_cache, &Layer::clear_label_cache>("clear_label_cache")
+        });
 
-    if (info[0].IsExternal())
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Layer", func);
+    return exports;
+}
+Layer::Layer(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Layer>(info)
+{
+    Napi::Env env = info.Env();
+    if (info.Length() == 1 && info[0].IsExternal())
     {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        Layer* l =  static_cast<Layer*>(ptr);
-        l->Wrap(info.This());
-        return info.This();
+        auto ext = info[0].As<Napi::External<layer_ptr>>();
+        if (ext) layer_ = *ext.Data();
         return;
     }
-
     if (info.Length() == 1)
     {
         if (!info[0].IsString())
         {
             Napi::TypeError::New(env, "'name' must be a string").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        Layer* l = new Layer(TOSTR(info[0]));
-        l->Wrap(info.This());
-        return info.This();
-        return;
+        layer_ = std::make_shared<mapnik::layer>(info[0].As<Napi::String>());
     }
     else if (info.Length() == 2)
     {
-        if (!info[0].IsString() || !info[1].IsString()) {
+        if (!info[0].IsString() || !info[1].IsString())
+        {
             Napi::TypeError::New(env, "'name' and 'srs' must be a strings").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        Layer* l = new Layer(TOSTR(info[0]),TOSTR(info[1]));
-        l->Wrap(info.This());
-        return info.This();
-        return;
+        layer_ = std::make_shared<mapnik::layer>(info[0].As<Napi::String>(), info[1].As<Napi::String>());
     }
     else
     {
         Napi::TypeError::New(env, "please provide Layer name and optional srs").ThrowAsJavaScriptException();
-        return env.Null();
     }
-    return info.This();
 }
 
-Napi::Value Layer::NewInstance(mapnik::layer const& lay_ref) {
-    Napi::EscapableHandleScope scope(env);
-    Layer* l = new Layer();
-    // copy new mapnik::layer into the shared_ptr
-    l->layer_ = std::make_shared<mapnik::layer>(lay_ref);
-    Napi::Value ext = Napi::External::New(env, l);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Layer instance").ThrowAsJavaScriptException();
+// accessors
 
-    return scope.Escape(maybe_local);
-}
-
-Napi::Value Layer::get_prop(Napi::CallbackInfo const& info)
+// name
+Napi::Value Layer::name(Napi::CallbackInfo const& info)
 {
-    Layer* l = info.Holder().Unwrap<Layer>();
-    std::string a = TOSTR(property);
-    if (a == "name")
-        return Napi::String::New(env, l->layer_->name());
-    else if (a == "srs")
-        return Napi::String::New(env, l->layer_->srs());
-    else if (a == "styles") {
-        std::vector<std::string> const& style_names = l->layer_->styles();
-        Napi::Array s = Napi::Array::New(env, style_names.size());
-        for (unsigned i = 0; i < style_names.size(); ++i)
-        {
-            (s).Set(i, Napi::String::New(env, style_names[i]) );
-        }
-        return s;
-    }
-    else if (a == "datasource") {
-        mapnik::datasource_ptr ds = l->layer_->datasource();
-        if (ds)
-        {
-            mapnik::memory_datasource * mem_ptr = dynamic_cast<mapnik::memory_datasource*>(ds.get());
-            if (mem_ptr)
-            {
-                return MemoryDatasource::NewInstance(ds);
-            }
-            else
-            {
-                return Datasource::NewInstance(ds);
-            }
-        }
+    Napi::Env env = info.Env();
+    return Napi::String::New(env, layer_->name());
+}
+
+void Layer::name(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsString())
+    {
+        Napi::TypeError::New(env, "'name' must be a string").ThrowAsJavaScriptException();
         return;
     }
-    else if (a == "minimum_scale_denominator")
+    layer_->set_name(value.As<Napi::String>());
+}
+
+// srs
+Napi::Value Layer::srs(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::String::New(env, layer_->srs());
+}
+
+void Layer::srs(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsString())
     {
-        return Napi::Number::New(env, l->layer_->minimum_scale_denominator());
+        Napi::TypeError::New(env, "'srs' must be a string").ThrowAsJavaScriptException();
+        return;
     }
-    else if (a == "maximum_scale_denominator")
+    layer_->set_srs(value.As<Napi::String>());
+}
+
+// styles
+Napi::Value Layer::styles(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::vector<std::string> const& style_names = layer_->styles();
+    std::size_t size = style_names.size();
+    Napi::Array arr = Napi::Array::New(env, size);
+    for (std::size_t index = 0; index < size; ++index)
     {
-        return Napi::Number::New(env, l->layer_->maximum_scale_denominator());
+        arr.Set(index, Napi::String::New(env, style_names[index]));
     }
-    else if (a == "queryable")
+    return scope.Escape(arr);
+}
+
+void Layer::styles(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    if (!value.IsArray())
     {
-        return Napi::Boolean::New(env, l->layer_->queryable());
+        Napi::TypeError::New(env, "Must provide an array of style names").ThrowAsJavaScriptException();
     }
-    else if (a == "clear_label_cache")
+    else
     {
-        return Napi::Boolean::New(env, l->layer_->clear_label_cache());
-    }
-    else // if (a == "active")
-    {
-        return Napi::Boolean::New(env, l->layer_->active());
+        Napi::Array arr = value.As<Napi::Array>();
+        std::size_t arr_size = arr.Length();
+        for (std::size_t index = 0; index < arr_size; ++index)
+        {
+            layer_->add_style(arr.Get(index).As<Napi::String>());
+        }
     }
 }
 
-void Layer::set_prop(Napi::CallbackInfo const& info, const Napi::Value& value)
+// datasource
+Napi::Value Layer::datasource(Napi::CallbackInfo const& info)
 {
-    Layer* l = info.Holder().Unwrap<Layer>();
-    std::string a = TOSTR(property);
-    if (a == "name")
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::datasource_ptr ds = layer_->datasource();
+    if (ds)
     {
-        if (!value.IsString()) {
-            Napi::TypeError::New(env, "'name' must be a string").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            l->layer_->set_name(TOSTR(value));
-        }
+        Napi::Value arg = Napi::External<mapnik::datasource_ptr>::New(env, &ds);
+        Napi::Object obj = Datasource::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();
     }
-    else if (a == "srs")
+    return env.Null();
+}
+
+void Layer::datasource(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsObject())
     {
-        if (!value.IsString()) {
-            Napi::TypeError::New(env, "'srs' must be a string").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            l->layer_->set_srs(TOSTR(value));
-        }
+        Napi::TypeError::New(env, "mapnik.Datasource instance expected").ThrowAsJavaScriptException();
+        return;
     }
-    else if (a == "styles")
+    else
     {
-        if (!value->IsArray()) {
-            Napi::TypeError::New(env, "Must provide an array of style names").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            Napi::Array arr = value.As<Napi::Array>();
-            // todo - how to check if cast worked?
-            unsigned int i = 0;
-            unsigned int a_length = arr->Length();
-            while (i < a_length) {
-                l->layer_->add_style(TOSTR((arr).Get(i)));
-                i++;
-            }
-        }
-    }
-    else if (a == "datasource")
-    {
-        if (!value.IsObject())
+        Napi::Object obj = value.As<Napi::Object>();
+        if (!obj.InstanceOf(Datasource::constructor.Value()))
         {
-            Napi::TypeError::New(env, "mapnik.Datasource, or mapnik.MemoryDatasource instance expected").ThrowAsJavaScriptException();
-            return env.Null();
+            Napi::TypeError::New(env, "mapnik.Datasource instance expected").ThrowAsJavaScriptException();
         }
-        if (value->IsNull() || value->IsUndefined()) {
-            Napi::TypeError::New(env, "mapnik.Datasource, or mapnik.MemoryDatasource instance expected").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            Napi::Object obj = value.As<Napi::Object>();
-            if (Napi::New(env, Datasource::constructor)->HasInstance(obj)) {
-                Datasource *d = obj.Unwrap<Datasource>();
-                l->layer_->set_datasource(d->get());
-            }
-            /*else if (Napi::New(env, JSDatasource::constructor)->HasInstance(obj))
-            {
-                JSDatasource *d = obj.Unwrap<JSDatasource>();
-                l->layer_->set_datasource(d->get());
-            }*/
-            else if (Napi::New(env, MemoryDatasource::constructor)->HasInstance(obj))
-            {
-                MemoryDatasource *d = obj.Unwrap<MemoryDatasource>();
-                l->layer_->set_datasource(d->get());
-            }
-            else
-            {
-                Napi::TypeError::New(env, "mapnik.Datasource or mapnik.MemoryDatasource instance expected").ThrowAsJavaScriptException();
-                return env.Null();
-            }
+        else
+        {
+            Datasource * ds = Napi::ObjectWrap<Datasource>::Unwrap(obj);
+            if (ds) layer_->set_datasource(ds->impl());
         }
-    }
-    else if (a == "minimum_scale_denominator")
-    {
-        if (!value.IsNumber()) {
-            Napi::TypeError::New(env, "Must provide a number").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        l->layer_->set_minimum_scale_denominator(value.As<Napi::Number>().DoubleValue());
-    }
-    else if (a == "maximum_scale_denominator")
-    {
-        if (!value.IsNumber()) {
-            Napi::TypeError::New(env, "Must provide a number").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        l->layer_->set_maximum_scale_denominator(value.As<Napi::Number>().DoubleValue());
-    }
-    else if (a == "queryable")
-    {
-        if (!value->IsBoolean()) {
-            Napi::TypeError::New(env, "Must provide a boolean").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        l->layer_->set_queryable(value.As<Napi::Boolean>().Value());
-    }
-    else if (a == "clear_label_cache")
-    {
-        if (!value->IsBoolean()) {
-            Napi::TypeError::New(env, "Must provide a boolean").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        l->layer_->set_clear_label_cache(value.As<Napi::Boolean>().Value());
-    }
-    else if (a == "active")
-    {
-        if (!value->IsBoolean()) {
-            Napi::TypeError::New(env, "Must provide a boolean").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        l->layer_->set_active(value.As<Napi::Boolean>().Value());
     }
 }
+
+// minimum_scale_denominator
+Napi::Value Layer::minimum_scale_denominator(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, layer_->minimum_scale_denominator());
+}
+
+void Layer::minimum_scale_denominator(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsNumber())
+    {
+        Napi::TypeError::New(env, "Must provide a number").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        layer_->set_minimum_scale_denominator(value.As<Napi::Number>().DoubleValue());
+    }
+}
+
+// maximum_scale_denominator
+Napi::Value Layer::maximum_scale_denominator(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, layer_->maximum_scale_denominator());
+}
+
+void Layer::maximum_scale_denominator(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsNumber())
+    {
+        Napi::TypeError::New(env, "Must provide a number").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        layer_->set_maximum_scale_denominator(value.As<Napi::Number>().DoubleValue());
+    }
+}
+
+// queryable
+Napi::Value Layer::queryable(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Boolean::New(env, layer_->queryable());
+}
+
+void Layer::queryable(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsBoolean())
+    {
+        Napi::TypeError::New(env, "'name' must be a boolean").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        layer_->set_queryable(value.As<Napi::Boolean>());
+    }
+}
+
+// active
+// queryable
+Napi::Value Layer::active(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Boolean::New(env, layer_->active());
+}
+
+void Layer::active(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsBoolean())
+    {
+        Napi::TypeError::New(env, "'name' must be a boolean").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        layer_->set_active(value.As<Napi::Boolean>());
+    }
+}
+
+// clear_label_cache
+Napi::Value Layer::clear_label_cache(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Boolean::New(env, layer_->clear_label_cache());
+}
+
+void Layer::clear_label_cache(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsBoolean())
+    {
+        Napi::TypeError::New(env, "'name' must be a boolean").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        layer_->set_clear_label_cache(value.As<Napi::Boolean>());
+    }
+}
+
 
 Napi::Value Layer::describe(Napi::CallbackInfo const& info)
 {
-    Layer* l = info.Holder().Unwrap<Layer>();
-
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     Napi::Object description = Napi::Object::New(env);
-    mapnik::layer const& layer = *l->layer_;
+    description.Set("name", layer_->name());
+    description.Set("srs", layer_->srs());
+    description.Set("active", Napi::Boolean::New(env, layer_->active()));
+    description.Set("clear_label_cache", Napi::Boolean::New(env, layer_->clear_label_cache()));
+    description.Set("minimum_scale_denominator", Napi::Number::New(env, layer_->minimum_scale_denominator()));
+    description.Set("maximum_scale_denominator", Napi::Number::New(env, layer_->maximum_scale_denominator()));
+    description.Set("queryable", Napi::Boolean::New(env, layer_->queryable()));
 
-    (description).Set(Napi::String::New(env, "name"), Napi::String::New(env, layer.name()));
-
-    (description).Set(Napi::String::New(env, "srs"), Napi::String::New(env, layer.srs()));
-
-    (description).Set(Napi::String::New(env, "active"), Napi::Boolean::New(env, layer.active()));
-
-    (description).Set(Napi::String::New(env, "clear_label_cache"), Napi::Boolean::New(env, layer.clear_label_cache()));
-
-    (description).Set(Napi::String::New(env, "minimum_scale_denominator"), Napi::Number::New(env, layer.minimum_scale_denominator()));
-
-    (description).Set(Napi::String::New(env, "maximum_scale_denominator"), Napi::Number::New(env, layer.maximum_scale_denominator()));
-
-    (description).Set(Napi::String::New(env, "queryable"), Napi::Boolean::New(env, layer.queryable()));
-
-    std::vector<std::string> const& style_names = layer.styles();
-    Napi::Array s = Napi::Array::New(env, style_names.size());
-    for (unsigned i = 0; i < style_names.size(); ++i)
+    std::vector<std::string> const& style_names = layer_->styles();
+    std::size_t size = style_names.size();
+    Napi::Array styles = Napi::Array::New(env, size );
+    for (std::size_t index = 0; index < size; ++index)
     {
-        (s).Set(i, Napi::String::New(env, style_names[i]) );
+        styles.Set(index, style_names[index]);
     }
-
-    (description).Set(Napi::String::New(env, "styles"), s );
-
-    mapnik::datasource_ptr datasource = layer.datasource();
+    description.Set("styles", styles);
     Napi::Object ds = Napi::Object::New(env);
-    (description).Set(Napi::String::New(env, "datasource"), ds );
-    if ( datasource )
+    description.Set(Napi::String::New(env, "datasource"), ds );
+
+    mapnik::datasource_ptr datasource = layer_->datasource();
+    if (datasource)
     {
-        mapnik::parameters::const_iterator it = datasource->params().begin();
-        mapnik::parameters::const_iterator end = datasource->params().end();
-        for (; it != end; ++it)
+        for (auto const& p : datasource->params())
         {
-            node_mapnik::params_to_object(ds, it->first, it->second);
+            node_mapnik::params_to_object(env, ds, std::get<0>(p), std::get<1>(p));
         }
     }
-
-    return description;
+    return scope.Escape(description);
 }

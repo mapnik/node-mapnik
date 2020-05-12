@@ -12,7 +12,7 @@
 #include "mapnik_plugins.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_projection.hpp"
-//#include "mapnik_layer.hpp"
+#include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
 //#include "mapnik_memory_datasource.hpp"
@@ -308,6 +308,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Geometry::Initialize(env, exports);
     Feature::Initialize(env, exports);
     Featureset::Initialize(env, exports);
+    Layer::Initialize(env, exports);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);

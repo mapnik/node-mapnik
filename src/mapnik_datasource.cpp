@@ -20,7 +20,6 @@ Napi::FunctionReference Datasource::constructor;
 
 Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports)
 {
-
     Napi::Function func = DefineClass(env, "Datasource", {
             InstanceMethod<&Datasource::parameters>("parameters"),
             InstanceMethod<&Datasource::describe>("describe"),
