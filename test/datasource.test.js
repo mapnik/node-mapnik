@@ -221,12 +221,10 @@ test('should validate with raster', (assert) => {
   assert.deepEqual(expected,describe);
 
   // Test that if added to layer, can get datasource back
-  /* FIXME
   var layer = new mapnik.Layer('foo', '+init=epsg:4326');
   layer.datasource = ds;
   var ds2 = layer.datasource;
   assert.ok(ds2);
   assert.deepEqual(ds2.parameters(), options);
-  */
   assert.end();
 });
