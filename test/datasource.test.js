@@ -9,6 +9,18 @@ mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.in
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
+
+let compare_proj_string = (str1, str2) => {
+  let a1 = str1.split(" ").sort();
+  let a2 = str2.split(" ").sort();
+  if (a1.length != a1.length)
+    return false;
+  for (let i = 0; i < a1.length; ++i) {
+    if (a1[i] != a2[i]) return false;
+  }
+  return true;
+};
+
 test('should throw with invalid usage', (assert) => {
   assert.throws(function() { mapnik.Datasource('foo'); });
   assert.throws(function() { mapnik.Datasource({ 'foo': 1 }); });
@@ -87,7 +99,7 @@ test('should validate with known shapefile - ogr', (assert) => {
     proj4:'+proj=merc +lon_0=0 +lat_ts=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs'
   };
   var actual = ds.describe();
-  assert.equal(actual.proj4, expected.proj4);
+  assert.ok(compare_proj_string(actual.proj4, expected.proj4));
   assert.deepEqual(actual.type, expected.type);
   assert.deepEqual(actual.encoding, expected.encoding);
   assert.deepEqual(actual.fields, expected.fields);
