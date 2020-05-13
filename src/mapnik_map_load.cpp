@@ -2,7 +2,6 @@
 
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
-#include <mapnik/params.hpp>            // for parameters
 
 namespace {
 

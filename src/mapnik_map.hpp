@@ -29,15 +29,14 @@ public:
     Napi::Value clone(Napi::CallbackInfo const& info);
 
     // async rendering
-    //Napi::Value render(Napi::CallbackInfo const& info);
-    //Napi::Value renderFile(Napi::CallbackInfo const& info);
+    Napi::Value render(Napi::CallbackInfo const& info);
+    Napi::Value renderFile(Napi::CallbackInfo const& info);
     // sync rendering
-    //Napi::Value renderSync(Napi::CallbackInfo const& info);
-    //Napi::Value renderFileSync(Napi::CallbackInfo const& info);
+    Napi::Value renderSync(Napi::CallbackInfo const& info);
+    Napi::Value renderFileSync(Napi::CallbackInfo const& info);
     // export
     Napi::Value save(Napi::CallbackInfo const& info);
     Napi::Value toXML(Napi::CallbackInfo const& info);
-
     Napi::Value clear(Napi::CallbackInfo const& info);
     Napi::Value resize(Napi::CallbackInfo const& info);
     Napi::Value zoomAll(Napi::CallbackInfo const& info);
@@ -45,10 +44,8 @@ public:
     Napi::Value layers(Napi::CallbackInfo const& info);
     Napi::Value scale(Napi::CallbackInfo const& info);
     Napi::Value scaleDenominator(Napi::CallbackInfo const& info);
-    //Napi::Value queryPoint(Napi::CallbackInfo const& info);
-    //Napi::Value queryMapPoint(Napi::CallbackInfo const& info);
-    //Napi::Value abstractQueryPoint(Napi::CallbackInfo const& info, bool geo_coords);
-
+    Napi::Value queryPoint(Napi::CallbackInfo const& info);
+    Napi::Value queryMapPoint(Napi::CallbackInfo const& info);
     Napi::Value add_layer(Napi::CallbackInfo const& info);
     Napi::Value remove_layer(Napi::CallbackInfo const& info);
     Napi::Value get_layer(Napi::CallbackInfo const& info);

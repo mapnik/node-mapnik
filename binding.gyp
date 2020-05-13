@@ -15,6 +15,8 @@
         "src/mapnik_map.cpp",
         "src/mapnik_map_load.cpp",
         "src/mapnik_map_from_string.cpp",
+        "src/mapnik_map_render.cpp",
+        "src/mapnik_map_query_point.cpp",
         "src/mapnik_color.cpp",
         "src/mapnik_geometry.cpp",
         "src/mapnik_feature.cpp",
