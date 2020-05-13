@@ -8,7 +8,8 @@ namespace mapnik { class Map; }
 
 using map_ptr = std::shared_ptr<mapnik::Map>;
 
-class Map : public Napi::ObjectWrap<Map> {
+class Map : public Napi::ObjectWrap<Map>
+{
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -21,10 +22,10 @@ public:
     Napi::Value loadFonts(Napi::CallbackInfo const& info);
     Napi::Value registerFonts(Napi::CallbackInfo const& info);
     Napi::Value memoryFonts(Napi::CallbackInfo const& info);
-    //Napi::Value loadSync(Napi::CallbackInfo const& info);
-    //Napi::Value load(Napi::CallbackInfo const& info);
-    //Napi::Value fromStringSync(Napi::CallbackInfo const& info);
-    //Napi::Value fromString(Napi::CallbackInfo const& info);
+    Napi::Value loadSync(Napi::CallbackInfo const& info);
+    Napi::Value load(Napi::CallbackInfo const& info);
+    Napi::Value fromStringSync(Napi::CallbackInfo const& info);
+    Napi::Value fromString(Napi::CallbackInfo const& info);
     Napi::Value clone(Napi::CallbackInfo const& info);
 
     // async rendering
@@ -72,8 +73,9 @@ public:
     //void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
-private:
+
     static Napi::FunctionReference constructor;
+private:
     map_ptr map_;
     bool in_use_;
 };
