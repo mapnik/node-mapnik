@@ -12,7 +12,7 @@
         #"src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
         #"src/blend.cpp",
-        #"src/mapnik_map.cpp",
+        "src/mapnik_map.cpp",
         "src/mapnik_color.cpp",
         "src/mapnik_geometry.cpp",
         "src/mapnik_feature.cpp",

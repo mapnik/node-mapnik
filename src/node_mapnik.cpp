@@ -3,7 +3,7 @@
 
 // node-mapnik
 //#include "mapnik_vector_tile.hpp"
-//#include "mapnik_map.hpp"
+#include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_geometry.hpp"
 //#include "mapnik_logger.hpp"
@@ -309,6 +309,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Feature::Initialize(env, exports);
     Featureset::Initialize(env, exports);
     Layer::Initialize(env, exports);
+    Map::Initialize(env, exports);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);
