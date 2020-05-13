@@ -87,7 +87,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports)
             InstanceAccessor<&Map::bufferedExtent>("bufferedExtent"),
             InstanceAccessor<&Map::maximumExtent, &Map::maximumExtent>("maximumExtent"),
             InstanceAccessor<&Map::background, &Map::background>("background"),
-            //InstanceAccessor<&Map::parameters, &Map::parameters>("parameters"),
+            InstanceAccessor<&Map::parameters, &Map::parameters>("parameters"),
             InstanceAccessor<&Map::aspect_fix_mode, &Map::aspect_fix_mode>("aspect_fix_mode")
 
         });
@@ -315,7 +315,6 @@ Napi::Value Map::bufferedExtent(Napi::CallbackInfo const& info)
 }
 
 // width
-
 Napi::Value Map::width(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
@@ -436,193 +435,65 @@ void Map::background(Napi::CallbackInfo const& info, Napi::Value const& value)
 }
 
 
-/*
-Napi::Value Map::get_prop(Napi::CallbackInfo const& info)
+// parameters
+Napi::Value Map::parameters(Napi::CallbackInfo const& info)
 {
-    Map* m = info.Holder().Unwrap<Map>();
-    std::string a = TOSTR(property);
-    if(a == "extent") {
-        Napi::Array arr = Napi::Array::New(env, 4);
-        mapnik::box2d<double> const& e = m->map_->get_current_extent();
-        arr.Set(0, Napi::Number::New(env, e.minx()));
-        arr.Set(1, Napi::Number::New(env, e.miny()));
-        arr.Set(2, Napi::Number::New(env, e.maxx()));
-        arr.Set(3, Napi::Number::New(env, e.maxy()));
-        return arr;
-    }
-    else if(a == "bufferedExtent") {
-        boost::optional<mapnik::box2d<double> > const& e = m->map_->get_buffered_extent();
-        Napi::Array arr = Napi::Array::New(env, 4);
-        arr.Set(0, Napi::Number::New(env, e->minx()));
-        arr.Set(1, Napi::Number::New(env, e->miny()));
-        arr.Set(2, Napi::Number::New(env, e->maxx()));
-        arr.Set(3, Napi::Number::New(env, e->maxy()));
-        return arr;
-    }
-    else if(a == "maximumExtent") {
-    boost::optional<mapnik::box2d<double> > const& e = m->map_->maximum_extent();
-        if (!e)
-            return;
-        Napi::Array arr = Napi::Array::New(env, 4);
-        arr.Set(0, Napi::Number::New(env, e->minx()));
-        arr.Set(1, Napi::Number::New(env, e->miny()));
-        arr.Set(2, Napi::Number::New(env, e->maxx()));
-        arr.Set(3, Napi::Number::New(env, e->maxy()));
-        return arr;
-    }
-    else if(a == "aspect_fix_mode")
-        return Napi::Number::New(env, m->map_->get_aspect_fix_mode());
-    else if(a == "width")
-        return Napi::Number::New(env, m->map_->width());
-    else if(a == "height")
-        return Napi::Number::New(env, m->map_->height());
-    else if (a == "srs")
-        return Napi::String::New(env, m->map_->srs());
-    else if(a == "bufferSize")
-        return Napi::Number::New(env, m->map_->buffer_size());
-    else if (a == "background") {
-        boost::optional<mapnik::color> c = m->map_->background();
-        if (c)
-            return Color::NewInstance(*c);
-        else
-            return;
-    }
-    else //if (a == "parameters")
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object obj = Napi::Object::New(env);
+    mapnik::parameters const& params = map_->get_extra_parameters();
+    for(auto const& p : params)
     {
-        Napi::Object ds = Napi::Object::New(env);
-        mapnik::parameters const& params = m->map_->get_extra_parameters();
-        mapnik::parameters::const_iterator it = params.begin();
-        mapnik::parameters::const_iterator end = params.end();
-        for (; it != end; ++it)
+        node_mapnik::params_to_object(env, obj, p.first, p.second);
+    }
+    return scope.Escape(obj);
+}
+
+void Map::parameters(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    if (!value.IsObject())
+    {
+        Napi::TypeError::New(env, "object expected for map.parameters").ThrowAsJavaScriptException();
+        return;
+    }
+    mapnik::parameters params;
+
+    Napi::Object obj = value.As<Napi::Object>();
+    Napi::Array names = obj.As<Napi::Array>();
+    std::size_t length = names.Length();
+    for(std::size_t index = 0; index < length; ++index)
+    {
+        std::string name = names.Get(index).ToString();
+        Napi::Value val = obj.Get(name);
+
+        if (val.IsString())
         {
-            node_mapnik::params_to_object(ds, it->first, it->second);
+            params[name] = val.As<Napi::String>().Utf8Value();
         }
-        return ds;
+        else if (val.IsNumber())
+        {
+            double num = val.As<Napi::Number>().DoubleValue();
+            // todo - round
+            if (num == val.As<Napi::Number>().Int32Value())
+            {
+                params[name] = static_cast<node_mapnik::value_integer>(num);
+            }
+            else
+            {
+                params[name] = num;
+            }
+        }
+        else if (val.IsBoolean())
+        {
+            params[name] = val.As<Napi::Boolean>().Value();
+        }
     }
+    map_->set_extra_parameters(params);
 }
 
-void Map::set_prop(Napi::CallbackInfo const& info, const Napi::Value& value)
-{
-    Map* m = info.Holder().Unwrap<Map>();
-    std::string a = TOSTR(property);
-    if(a == "extent" || a == "maximumExtent") {
-        if (!value->IsArray()) {
-            Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            Napi::Array arr = value.As<Napi::Array>();
-            if (arr->Length() != 4) {
-                Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
-            } else {
-                double minx = arr.Get(0.As<Napi::Number>().DoubleValue());
-                double miny = arr.Get(1.As<Napi::Number>().DoubleValue());
-                double maxx = arr.Get(2.As<Napi::Number>().DoubleValue());
-                double maxy = arr.Get(3.As<Napi::Number>().DoubleValue());
-                mapnik::box2d<double> box(minx,miny,maxx,maxy);
-                if(a == "extent")
-                    m->map_->zoom_to_box(box);
-                else
-                    m->map_->set_maximum_extent(box);
-            }
-        }
-    }
-    else if (a == "aspect_fix_mode")
-    {
-        if (!value.IsNumber()) {
-            Napi::Error::New(env, "'aspect_fix_mode' must be a constant (number)").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            int val = value.As<Napi::Number>().Int32Value();
-            if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0) {
-                m->map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
-            } else {
-                Napi::Error::New(env, "'aspect_fix_mode' value is invalid").ThrowAsJavaScriptException();
-                return env.Null();
-            }
-        }
-    }
-    else if (a == "srs")
-    {
-        if (!value.IsString()) {
-            Napi::Error::New(env, "'srs' must be a string").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            m->map_->set_srs(TOSTR(value));
-        }
-    }
-    else if (a == "bufferSize") {
-        if (!value.IsNumber()) {
-            Napi::TypeError::New(env, "Must provide an integer bufferSize").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            m->map_->set_buffer_size(value.As<Napi::Number>().Int32Value());
-        }
-    }
-    else if (a == "width") {
-        if (!value.IsNumber()) {
-            Napi::TypeError::New(env, "Must provide an integer width").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            m->map_->set_width(value.As<Napi::Number>().Int32Value());
-        }
-    }
-    else if (a == "height") {
-        if (!value.IsNumber()) {
-            Napi::TypeError::New(env, "Must provide an integer height").ThrowAsJavaScriptException();
-            return env.Null();
-        } else {
-            m->map_->set_height(value.As<Napi::Number>().Int32Value());
-        }
-    }
-    else if (a == "background") {
-        if (!value.IsObject()) {
-            Napi::TypeError::New(env, "mapnik.Color expected").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Object obj = value.As<Napi::Object>();
-        if (!Napi::New(env, Color::constructor)->HasInstance(obj)) {
-            Napi::TypeError::New(env, "mapnik.Color expected").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        Color *c = obj.Unwrap<Color>();
-        m->map_->set_background(*c->get());
-    }
-    else if (a == "parameters") {
-        if (!value.IsObject()) {
-            Napi::TypeError::New(env, "object expected for map.parameters").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-
-        Napi::Object obj = value->ToObject(Napi::GetCurrentContext());
-        mapnik::parameters params;
-        Napi::Array names = Napi::GetPropertyNames(obj);
-        unsigned int i = 0;
-        unsigned int a_length = names->Length();
-        while (i < a_length) {
-            Napi::Value name = (names).Get(i)->ToString(Napi::GetCurrentContext());
-            Napi::Value a_value = (obj).Get(name);
-            if (a_value.IsString()) {
-                params[TOSTR(name)] = const_cast<char const*>(TOSTR(a_value));
-            } else if (a_value.IsNumber()) {
-                double num = a_value.As<Napi::Number>().DoubleValue();
-                // todo - round
-                if (num == a_value.As<Napi::Number>().Int32Value()) {
-                    params[TOSTR(name)] = Napi::To<node_mapnik::value_integer>(a_value);
-                } else {
-                    double dub_val = a_value.As<Napi::Number>().DoubleValue();
-                    params[TOSTR(name)] = dub_val;
-                }
-            } else if (a_value->IsBoolean()) {
-                params[TOSTR(name)] = Napi::To<mapnik::value_bool>(a_value);
-            }
-            i++;
-        }
-        m->map_->set_extra_parameters(params);
-    }
-}
-*/
 /**
  * Load fonts from local or external source
  *

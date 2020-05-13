@@ -66,8 +66,8 @@ public:
     void maximumExtent(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value background(Napi::CallbackInfo const& info);
     void background(Napi::CallbackInfo const& info, Napi::Value const& value);
-    //Napi::Value parameters(Napi::CallbackInfo const& info);
-    //void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value parameters(Napi::CallbackInfo const& info);
+    void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
 
