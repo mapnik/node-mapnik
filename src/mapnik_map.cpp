@@ -58,25 +58,25 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Map::fontDirectory>("fontDirectory"),
             InstanceMethod<&Map::memoryFonts>("memoryFonts"),
             InstanceMethod<&Map::registerFonts>("registerFonts"),
-            InstanceMethod<&Map::load>("load"),
-            InstanceMethod<&Map::loadSync>("loadSync"),
-            InstanceMethod<&Map::fromStringSync>("fromStringSync"),
-            InstanceMethod<&Map::fromString>("fromString"),
+            //InstanceMethod<&Map::load>("load"),
+            //InstanceMethod<&Map::loadSync>("loadSync"),
+            //InstanceMethod<&Map::fromStringSync>("fromStringSync"),
+            //InstanceMethod<&Map::fromString>("fromString"),
             InstanceMethod<&Map::clone>("clone"),
             InstanceMethod<&Map::save>("save"),
             InstanceMethod<&Map::clear>("clear"),
             InstanceMethod<&Map::toXML>("toXML"),
             InstanceMethod<&Map::resize>("resize"),
-            InstanceMethod<&Map::render>("render"),
-            InstanceMethod<&Map::renderSync>("renderSync"),
-            InstanceMethod<&Map::renderFile>("renderFile"),
-            InstanceMethod<&Map::renderFileSync>("renderFileSync"),
+            //InstanceMethod<&Map::render>("render"),
+            //InstanceMethod<&Map::renderSync>("renderSync"),
+            //InstanceMethod<&Map::renderFile>("renderFile"),
+            //InstanceMethod<&Map::renderFileSync>("renderFileSync"),
             InstanceMethod<&Map::zoomAll>("zoomAll"),
             InstanceMethod<&Map::zoomToBox>("zoomToBox"),
             InstanceMethod<&Map::scale>("scale"),
             InstanceMethod<&Map::scaleDenominator>("scaleDenominator"),
-            InstanceMethod<&Map::queryPoint>("queryPoint"),
-            InstanceMethod<&Map::queryMapPoint>("queryMapPoint"),
+            //InstanceMethod<&Map::queryPoint>("queryPoint"),
+            //InstanceMethod<&Map::queryMapPoint>("queryMapPoint"),
             InstanceMethod<&Map::add_layer>("add_layer"),
             InstanceMethod<&Map::remove_layer>("remove_layer"),
             InstanceMethod<&Map::get_layer>("get_layer"),
@@ -90,7 +90,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports)
             InstanceAccessor<&Map::bufferedExtent>("bufferedExtent"),
             InstanceAccessor<&Map::maximumExtent, &Map::maximumExtent>("maximumExtent"),
             InstanceAccessor<&Map::background, &Map::background>("background"),
-            InstanceAccessor<&Map::parameters, &Map::parameters>("parameters"),
+            //InstanceAccessor<&Map::parameters, &Map::parameters>("parameters"),
             InstanceAccessor<&Map::aspect_fix_mode, &Map::aspect_fix_mode>("aspect_fix_mode")
 
         });
@@ -316,6 +316,128 @@ Napi::Value Map::bufferedExtent(Napi::CallbackInfo const& info)
     arr.Set(3u, Napi::Number::New(env, e->maxy()));
     return scope.Escape(arr);
 }
+
+// width
+
+Napi::Value Map::width(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, map_->width());
+}
+
+void Map::width(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+
+     if (!value.IsNumber())
+     {
+         Napi::TypeError::New(env, "Must provide an integer width").ThrowAsJavaScriptException();
+         return;
+     }
+     map_->set_width(value.As<Napi::Number>().Int32Value());
+}
+
+// height
+Napi::Value Map::height(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, map_->height());
+}
+
+void Map::height(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+
+     if (!value.IsNumber())
+     {
+         Napi::TypeError::New(env, "Must provide an integer height").ThrowAsJavaScriptException();
+         return;
+     }
+     map_->set_height(value.As<Napi::Number>().Int32Value());
+}
+
+// aspect_fix_mode
+Napi::Value Map::aspect_fix_mode(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, map_->get_aspect_fix_mode());
+}
+
+void Map::aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+
+     if (!value.IsNumber())
+     {
+         Napi::TypeError::New(env, "'aspect_fix_mode' must be a constant (number)").ThrowAsJavaScriptException();
+         return;
+     }
+     int val = value.As<Napi::Number>().Int32Value();
+     if (val < mapnik::Map::aspect_fix_mode_MAX && val >= 0)
+     {
+         map_->set_aspect_fix_mode(static_cast<mapnik::Map::aspect_fix_mode>(val));
+     }
+     else
+     {
+         Napi::Error::New(env, "'aspect_fix_mode' value is invalid").ThrowAsJavaScriptException();
+     }
+}
+
+
+// bufferSize
+Napi::Value Map::bufferSize(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, map_->buffer_size());
+}
+
+void Map::bufferSize(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+    if (!value.IsNumber())
+    {
+        Napi::TypeError::New(env, "Must provide an integer bufferSize").ThrowAsJavaScriptException();
+        return;
+    }
+    map_->set_buffer_size(value.As<Napi::Number>().Int32Value());
+}
+
+
+// background
+Napi::Value Map::background(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    boost::optional<mapnik::color> col = map_->background();
+    if (col)
+    {
+        Napi::Value arg = Napi::External<mapnik::color>::New(env, &(*col));
+        Napi::Object obj = Color::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();
+    }
+    return env.Undefined();
+}
+
+void Map::background(Napi::CallbackInfo const& info, Napi::Value const& value)
+{
+    Napi::Env env = info.Env();
+
+    if (!value.IsObject())
+    {
+        Napi::TypeError::New(env, "mapnik.Color expected").ThrowAsJavaScriptException();
+        return;
+    }
+    Napi::Object obj = value.As<Napi::Object>();
+
+    if (!obj.InstanceOf(Color::constructor.Value()))
+    {
+        Napi::TypeError::New(env, "Must provide an integer height").ThrowAsJavaScriptException();
+        return;
+    }
+    Color* c = Napi::ObjectWrap<Color>::Unwrap(obj);
+    map_->set_background(c->color_);
+}
+
 
 /*
 Napi::Value Map::get_prop(Napi::CallbackInfo const& info)

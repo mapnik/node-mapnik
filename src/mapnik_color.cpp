@@ -48,8 +48,8 @@ Color::Color(Napi::CallbackInfo const& info)
     Napi::Env env = info.Env();
     if (info.Length() == 1 && info[0].IsExternal())
     {
-        auto ext = info[0].As<Napi::External<std::shared_ptr<mapnik::color>>>();
-        if (ext) color_ = **ext.Data();
+        auto ext = info[0].As<Napi::External<mapnik::color>>();
+        if (ext) color_ = *ext.Data();
         return;
     }
     else if (info.Length() == 1 && info[0].IsString())

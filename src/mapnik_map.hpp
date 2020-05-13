@@ -21,18 +21,18 @@ public:
     Napi::Value loadFonts(Napi::CallbackInfo const& info);
     Napi::Value registerFonts(Napi::CallbackInfo const& info);
     Napi::Value memoryFonts(Napi::CallbackInfo const& info);
-    Napi::Value loadSync(Napi::CallbackInfo const& info);
-    Napi::Value load(Napi::CallbackInfo const& info);
-    Napi::Value fromStringSync(Napi::CallbackInfo const& info);
-    Napi::Value fromString(Napi::CallbackInfo const& info);
+    //Napi::Value loadSync(Napi::CallbackInfo const& info);
+    //Napi::Value load(Napi::CallbackInfo const& info);
+    //Napi::Value fromStringSync(Napi::CallbackInfo const& info);
+    //Napi::Value fromString(Napi::CallbackInfo const& info);
     Napi::Value clone(Napi::CallbackInfo const& info);
 
     // async rendering
-    Napi::Value render(Napi::CallbackInfo const& info);
-    Napi::Value renderFile(Napi::CallbackInfo const& info);
+    //Napi::Value render(Napi::CallbackInfo const& info);
+    //Napi::Value renderFile(Napi::CallbackInfo const& info);
     // sync rendering
-    Napi::Value renderSync(Napi::CallbackInfo const& info);
-    Napi::Value renderFileSync(Napi::CallbackInfo const& info);
+    //Napi::Value renderSync(Napi::CallbackInfo const& info);
+    //Napi::Value renderFileSync(Napi::CallbackInfo const& info);
     // export
     Napi::Value save(Napi::CallbackInfo const& info);
     Napi::Value toXML(Napi::CallbackInfo const& info);
@@ -44,9 +44,9 @@ public:
     Napi::Value layers(Napi::CallbackInfo const& info);
     Napi::Value scale(Napi::CallbackInfo const& info);
     Napi::Value scaleDenominator(Napi::CallbackInfo const& info);
-    Napi::Value queryPoint(Napi::CallbackInfo const& info);
-    Napi::Value queryMapPoint(Napi::CallbackInfo const& info);
-    Napi::Value abstractQueryPoint(Napi::CallbackInfo const& info, bool geo_coords);
+    //Napi::Value queryPoint(Napi::CallbackInfo const& info);
+    //Napi::Value queryMapPoint(Napi::CallbackInfo const& info);
+    //Napi::Value abstractQueryPoint(Napi::CallbackInfo const& info, bool geo_coords);
 
     Napi::Value add_layer(Napi::CallbackInfo const& info);
     Napi::Value remove_layer(Napi::CallbackInfo const& info);
@@ -68,8 +68,8 @@ public:
     void maximumExtent(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value background(Napi::CallbackInfo const& info);
     void background(Napi::CallbackInfo const& info, Napi::Value const& value);
-    Napi::Value parameters(Napi::CallbackInfo const& info);
-    void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
+    //Napi::Value parameters(Napi::CallbackInfo const& info);
+    //void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
 private:
