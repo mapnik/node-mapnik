@@ -79,7 +79,7 @@ public:
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
 
 private:
-    inline bool acquire() {not_in_use_.fetch_and(0));}
+    inline bool acquire() {return not_in_use_.fetch_and(0);}
     inline void release() {not_in_use_ = 1;}
 
     static Napi::FunctionReference constructor;
