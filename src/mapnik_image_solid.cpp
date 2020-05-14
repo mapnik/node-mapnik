@@ -31,7 +31,7 @@ struct AsyncIsSolid : Napi::AsyncWorker
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
         std::vector<napi_value> result = {env.Null(), Napi::Boolean::New(env, solid_)};
-        if (solid_) result.push_back( mapnik::util::apply_visitor(detail::visitor_get_pixel(env, 0, 0), *image_));
+        if (solid_) result.push_back(mapnik::util::apply_visitor(detail::visitor_get_pixel<mapnik::image_any>(env, 0, 0), *image_));
         return result;
     }
 

@@ -314,7 +314,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
         }
         else
         {
-            detail::visitor_get_pixel visitor(env, x, y);
+            detail::visitor_get_pixel<mapnik::image_any> visitor(env, x, y);
             return mapnik::util::apply_visitor(visitor, *image_);
         }
     }

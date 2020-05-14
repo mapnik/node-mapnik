@@ -1,14 +1,35 @@
 #pragma once
 
+#include <mapnik/image.hpp>
+#include <mapnik/image_view.hpp>
 
-namespace detail {
+namespace detail { namespace traits {
 
+template <typename T>
+struct null_image {};
+
+template <>
+struct null_image<mapnik::image_any>
+{
+    using type = mapnik::image_null;
+};
+
+template <typename T>
+struct null_image<mapnik::image_view<T>>
+{
+    using type = mapnik::image_view_null;
+};
+}
+
+template <typename Image> // image or image_view
 struct visitor_get_pixel
 {
+    using image_null_type = typename traits::null_image<Image>::type;
+
     visitor_get_pixel(Napi::Env env, int x, int y)
         : env_(env), x_(x), y_(y) {}
 
-    Napi::Value operator() (mapnik::image_null const&) const
+    Napi::Value operator() (image_null_type const&) const
     {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
