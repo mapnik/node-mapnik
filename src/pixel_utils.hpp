@@ -12,85 +12,16 @@ struct visitor_get_pixel
     {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
-
-        Napi::EscapableHandleScope scope(env_);
-        return scope.Escape(env_.Undefined());
+        return env_.Undefined();
     }
 
-    Napi::Value operator() (mapnik::image_gray8 const& data)
+    template <typename T>
+    Napi::Value operator() (T const& data)
     {
+        using image_type = T;
+        using pixel_type = typename image_type::pixel_type;
         Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray8s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray16 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray16s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray32 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray32s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray32f const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray64 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray64s const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_gray64f const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env_, val));
-    }
-
-    Napi::Value operator() (mapnik::image_rgba8 const& data)
-    {
-        Napi::EscapableHandleScope scope(env_);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
+        pixel_type val = mapnik::get_pixel<pixel_type>(data, x_, y_);
         return scope.Escape(Napi::Number::New(env_, val));
     }
 
