@@ -3,7 +3,7 @@
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
 
-namespace {
+namespace detail {
 
 struct AsyncMapFromString : Napi::AsyncWorker
 {
@@ -203,7 +203,7 @@ Napi::Value Map::fromString(Napi::CallbackInfo const& info)
         base_path = base_val.As<Napi::String>();
     }
 
-    auto* worker = new AsyncMapFromString(map_, stylesheet.As<Napi::String>(), base_path, strict, callback_val.As<Napi::Function>());
+    auto* worker = new detail::AsyncMapFromString(map_, stylesheet.As<Napi::String>(), base_path, strict, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

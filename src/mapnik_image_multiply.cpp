@@ -4,7 +4,7 @@
 
 #include "mapnik_image.hpp"
 
-namespace {
+namespace detail {
 
 // AsyncWorker
 template <bool pre = true>
@@ -35,10 +35,11 @@ struct AsyncMultiply : Napi::AsyncWorker
     image_ptr image_;
 };
 
-using AsyncPremultiply = AsyncMultiply<true>;
-using AsyncDemultiply = AsyncMultiply<false>;
 } // ns
 
+
+using AsyncPremultiply = detail::AsyncMultiply<true>;
+using AsyncDemultiply = detail::AsyncMultiply<false>;
 
 
 /**

@@ -6,7 +6,7 @@
 //
 #include "mapnik_image.hpp"
 
-namespace  {
+namespace detail {
 
 struct AsyncOpen : Napi::AsyncWorker
 {
@@ -157,7 +157,7 @@ Napi::Value Image::open(Napi::CallbackInfo const& info)
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     std::string filename = info[0].As<Napi::String>();
-    auto * worker = new AsyncOpen(filename, callback);
+    auto * worker = new detail::AsyncOpen(filename, callback);
     worker->Queue();
     return env.Undefined();
 }

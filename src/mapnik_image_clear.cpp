@@ -5,7 +5,7 @@
 #include "mapnik_image.hpp"
 
 
-namespace {
+namespace detail {
 
 // AsyncWorker
 
@@ -96,7 +96,7 @@ Napi::Value Image::clear(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    auto * worker = new AsyncClear{image_, callback_val.As<Napi::Function>()};
+    auto * worker = new detail::AsyncClear{image_, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

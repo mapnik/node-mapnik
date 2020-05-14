@@ -4,7 +4,7 @@
 
 #include "mapnik_image.hpp"
 
-namespace {
+namespace detail {
 
 struct AsyncCopy : Napi::AsyncWorker
 {
@@ -159,7 +159,7 @@ Napi::Value Image::copy(Napi::CallbackInfo const& info)
         offset = image_->get_offset();
     }
 
-    auto* worker = new AsyncCopy{image_, offset, scaling, type, callback_val.As<Napi::Function>()};
+    auto* worker = new detail::AsyncCopy{image_, offset, scaling, type, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

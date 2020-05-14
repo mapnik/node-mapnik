@@ -8,8 +8,14 @@ namespace mapnik { class Map; }
 
 using map_ptr = std::shared_ptr<mapnik::Map>;
 
+namespace detail {
+struct AsyncMapLoad;
+struct AsyncMapFromString;
+}
 class Map : public Napi::ObjectWrap<Map>
 {
+    friend struct detail::AsyncMapLoad;
+    friend struct detail::AsyncMapFromString;
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -70,9 +76,8 @@ public:
     void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
-
-    static Napi::FunctionReference constructor;
 private:
+    static Napi::FunctionReference constructor;
     map_ptr map_;
     bool in_use_;
 };

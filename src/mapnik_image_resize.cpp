@@ -110,7 +110,9 @@ struct resize_visitor
     int offset_y_;
 
 };
+} // ns
 
+namespace detail {
 struct AsyncResize : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
@@ -377,9 +379,9 @@ Napi::Value Image::resize(Napi::CallbackInfo const& info)
         }
     }
 
-    auto* worker = new AsyncResize{image_, scaling_method, width, height,
-                                   offset_x, offset_y, offset_width, offset_height,
-                                   filter_factor, callback_val.As<Napi::Function>()};
+    auto* worker = new detail::AsyncResize{image_, scaling_method, width, height,
+                                           offset_x, offset_y, offset_width, offset_height,
+                                           filter_factor, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

@@ -5,7 +5,7 @@
 #include <mapnik/image_compositing.hpp>
 #include "mapnik_image.hpp"
 
-namespace {
+namespace detail {
 
 struct AsyncComposite : Napi::AsyncWorker
 {
@@ -228,8 +228,8 @@ Napi::Value Image::composite(Napi::CallbackInfo const& info)
         }
     }
 
-    auto * worker = new AsyncComposite(image_, source_image, mode, opacity, dx, dy,
-                                       filters, callback_val.As<Napi::Function>());
+    auto * worker = new detail::AsyncComposite(image_, source_image, mode, opacity, dx, dy,
+                                               filters, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

@@ -6,7 +6,7 @@
 #include "mapnik_image.hpp"
 
 
-namespace {
+namespace detail {
 
 // AsyncWorker
 
@@ -126,7 +126,7 @@ Napi::Value Image::filter(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
     Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
-    auto* worker = new AsyncFilter{image_, info[0].As<Napi::String>(), callback};
+    auto* worker = new detail::AsyncFilter{image_, info[0].As<Napi::String>(), callback};
     worker->Queue();
     return env.Undefined();
 }

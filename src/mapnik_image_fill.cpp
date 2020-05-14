@@ -5,7 +5,7 @@
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
 
 
-namespace {
+namespace detail {
 
 // AsyncWorker
 template <typename T>
@@ -139,7 +139,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
     if (info[0].IsNumber())
     {
         val = info[0].As<Napi::Number>().DoubleValue();
-        auto* worker = new AsyncFill<double>(image_, val, callback);
+        auto* worker = new detail::AsyncFill<double>(image_, val, callback);
         worker->Queue();
         return env.Undefined();
     }
@@ -154,7 +154,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
         else
         {
             Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
-            auto* worker = new AsyncFill<mapnik::color>(image_, color->color_, callback);
+            auto* worker = new detail::AsyncFill<mapnik::color>(image_, color->color_, callback);
             worker->Queue();
         }
     }

@@ -5,7 +5,7 @@
 
 #include "mapnik_image.hpp"
 
-namespace {
+namespace detail {
 
 struct AsyncFromBytes : Napi::AsyncWorker
 {
@@ -224,7 +224,7 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     Napi::Buffer<char> buffer = info[0].As<Napi::Buffer<char>>();
-    auto * worker = new AsyncFromBytes(buffer, max_size, premultiply, callback);
+    auto * worker = new detail::AsyncFromBytes(buffer, max_size, premultiply, callback);
     worker->Queue();
     return env.Undefined();
 }

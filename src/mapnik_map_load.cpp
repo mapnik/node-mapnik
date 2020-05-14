@@ -3,12 +3,12 @@
 #include <mapnik/load_map.hpp>          // for load_map, load_map_string
 #include <mapnik/map.hpp>               // for Map, etc
 
-namespace {
+namespace detail {
 
-struct AsyncLoadMap : Napi::AsyncWorker
+struct AsyncMapLoad : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncLoadMap(map_ptr const& map, std::string const& stylesheet,
+    AsyncMapLoad(map_ptr const& map, std::string const& stylesheet,
                  std::string const& base_path, bool strict, Napi::Function const& callback)
         : Base(callback),
           map_(map),
@@ -119,8 +119,8 @@ Napi::Value Map::load(Napi::CallbackInfo const& info)
         base_path = base_val.As<Napi::String>();
     }
 
-    auto* worker = new AsyncLoadMap(map_, info[0].As<Napi::String>(),
-                                    base_path, strict, callback_val.As<Napi::Function>());
+    auto* worker = new detail::AsyncMapLoad(map_, info[0].As<Napi::String>(),
+                                            base_path, strict, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

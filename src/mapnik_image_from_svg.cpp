@@ -23,192 +23,7 @@
 
 #include "mapnik_image.hpp"
 
-namespace {
-
-Napi::Value from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file)
-{
-    Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-
-    if (!from_file && (info.Length() < 1 || !info[0].IsObject()))
-    {
-        Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
-    }
-
-    if (from_file && (info.Length() < 1 || !info[0].IsString()))
-    {
-        Napi::TypeError::New(env, "must provide a filename argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
-    }
-    double scale = 1.0;
-    std::size_t max_size = 2048;
-    bool strict = false;
-    if (info.Length() >= 2)
-    {
-        if (!info[1].IsObject())
-        {
-            Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-
-            return scope.Escape(env.Undefined());
-        }
-        Napi::Object options = info[1].As<Napi::Object>();
-        if (options.Has("scale"))
-        {
-            Napi::Value scale_opt = options.Get("scale");
-            if (!scale_opt.IsNumber())
-            {
-                Napi::TypeError::New(env, "'scale' must be a number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-            scale = scale_opt.As<Napi::Number>().DoubleValue();
-            if (scale <= 0)
-            {
-                Napi::TypeError::New(env, "'scale' must be a positive non zero number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-        }
-        if (options.Has("max_size"))
-        {
-            Napi::Value opt = options.Get("max_size");
-            if (!opt.IsNumber())
-            {
-                Napi::TypeError::New(env, "'max_size' must be a positive integer").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-            auto max_size_val = opt.As<Napi::Number>().Int32Value();
-            if (max_size_val < 0 || max_size_val > 65535)
-            {
-                Napi::TypeError::New(env, "'max_size' must be a positive integer between 0 and 65535").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-            max_size = static_cast<std::size_t>(max_size_val);
-        }
-        if (options.Has("strict"))
-        {
-            Napi::Value opt = options.Get("strict");
-            if (!opt.IsBoolean())
-            {
-                Napi::TypeError::New(env, "'strict' must be a boolean value").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-            strict = opt.As<Napi::Boolean>();
-        }
-    }
-
-    try
-    {
-        using namespace mapnik::svg;
-        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
-        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
-        svg_path_adapter svg_path(stl_storage);
-        svg_converter_type svg(svg_path, marker_path->attributes());
-        svg_parser p(svg);
-        if (from_file)
-        {
-            p.parse(info[0].As<Napi::String>());
-            if (strict && !p.err_handler().error_messages().empty())
-            {
-                std::ostringstream errorMessage;
-                for (auto const& error : p.err_handler().error_messages()) {
-                    errorMessage <<  error << std::endl;
-                }
-                Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-        }
-        else
-        {
-            Napi::Object obj = info[0].As<Napi::Object>();
-            if (!obj.IsBuffer())
-            {
-                Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-            std::string svg_buffer(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length());
-            p.parse_from_string(svg_buffer);
-            if (strict && !p.err_handler().error_messages().empty())
-            {
-                std::ostringstream errorMessage;
-                for (auto const& error : p.err_handler().error_messages())
-                {
-                    errorMessage <<  error << std::endl;
-                }
-                Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
-            }
-        }
-
-        double lox,loy,hix,hiy;
-        svg.bounding_rect(&lox, &loy, &hix, &hiy);
-        marker_path->set_bounding_box(lox,loy,hix,hiy);
-        marker_path->set_dimensions(svg.width(), svg.height());
-
-        using pixfmt = agg::pixfmt_rgba32_pre;
-        using renderer_base = agg::renderer_base<pixfmt>;
-        using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
-        agg::rasterizer_scanline_aa<> ras_ptr;
-        agg::scanline_u8 sl;
-
-        double opacity = 1;
-        double svg_width = svg.width() * scale;
-        double svg_height = svg.height() * scale;
-
-        if (svg_width <= 0 || svg_height <= 0)
-        {
-            Napi::TypeError::New(env, "image created from svg must have a width and height greater then zero").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
-        }
-
-        if (svg_width > static_cast<double>(max_size) || svg_height > static_cast<double>(max_size))
-        {
-            std::stringstream s;
-            s << "image created from svg must be " << max_size << " pixels or fewer on each side";
-            Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
-        }
-
-        mapnik::image_rgba8 im(static_cast<int>(std::round(svg_width)),
-                               static_cast<int>(std::round(svg_height)),
-                               true, true);
-        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
-        pixfmt pixf(buf);
-        renderer_base renb(pixf);
-        mapnik::box2d<double> const& bbox = marker_path->bounding_box();
-        mapnik::coord<double,2> c = bbox.center();
-        // center the svg marker on '0,0'
-        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
-        // Scale the image
-        mtx.scale(scale);
-        // render the marker at the center of the marker box
-        mtx.translate(0.5 * im.width(), 0.5 * im.height());
-
-        mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
-            mapnik::svg_attribute_type,
-            renderer_solid,
-            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
-                                                       marker_path->attributes());
-
-        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
-        mapnik::demultiply_alpha(im);
-
-        image_ptr imagep = std::make_shared<mapnik::image_any>(im);
-        Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
-        Napi::Object obj = Image::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
-    }
-    catch (std::exception const& ex)
-    {
-        // There is currently no known way to make these operations throw an exception, however,
-        // since the underlying agg library does possibly have some operation that might throw
-        // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
-        // LCOV_EXCL_START
-        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
-        // LCOV_EXCL_STOP
-    }
-}
-
+namespace detail {
 struct AsyncFromSVG : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
@@ -448,6 +263,192 @@ private:
 
 }
 
+
+Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file)
+{
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (!from_file && (info.Length() < 1 || !info[0].IsObject()))
+    {
+        Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+    }
+
+    if (from_file && (info.Length() < 1 || !info[0].IsString()))
+    {
+        Napi::TypeError::New(env, "must provide a filename argument").ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+    }
+    double scale = 1.0;
+    std::size_t max_size = 2048;
+    bool strict = false;
+    if (info.Length() >= 2)
+    {
+        if (!info[1].IsObject())
+        {
+            Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
+
+            return scope.Escape(env.Undefined());
+        }
+        Napi::Object options = info[1].As<Napi::Object>();
+        if (options.Has("scale"))
+        {
+            Napi::Value scale_opt = options.Get("scale");
+            if (!scale_opt.IsNumber())
+            {
+                Napi::TypeError::New(env, "'scale' must be a number").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+            scale = scale_opt.As<Napi::Number>().DoubleValue();
+            if (scale <= 0)
+            {
+                Napi::TypeError::New(env, "'scale' must be a positive non zero number").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+        }
+        if (options.Has("max_size"))
+        {
+            Napi::Value opt = options.Get("max_size");
+            if (!opt.IsNumber())
+            {
+                Napi::TypeError::New(env, "'max_size' must be a positive integer").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+            auto max_size_val = opt.As<Napi::Number>().Int32Value();
+            if (max_size_val < 0 || max_size_val > 65535)
+            {
+                Napi::TypeError::New(env, "'max_size' must be a positive integer between 0 and 65535").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+            max_size = static_cast<std::size_t>(max_size_val);
+        }
+        if (options.Has("strict"))
+        {
+            Napi::Value opt = options.Get("strict");
+            if (!opt.IsBoolean())
+            {
+                Napi::TypeError::New(env, "'strict' must be a boolean value").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+            strict = opt.As<Napi::Boolean>();
+        }
+    }
+
+    try
+    {
+        using namespace mapnik::svg;
+        mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
+        vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
+        svg_path_adapter svg_path(stl_storage);
+        svg_converter_type svg(svg_path, marker_path->attributes());
+        svg_parser p(svg);
+        if (from_file)
+        {
+            p.parse(info[0].As<Napi::String>());
+            if (strict && !p.err_handler().error_messages().empty())
+            {
+                std::ostringstream errorMessage;
+                for (auto const& error : p.err_handler().error_messages()) {
+                    errorMessage <<  error << std::endl;
+                }
+                Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+        }
+        else
+        {
+            Napi::Object obj = info[0].As<Napi::Object>();
+            if (!obj.IsBuffer())
+            {
+                Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+            std::string svg_buffer(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length());
+            p.parse_from_string(svg_buffer);
+            if (strict && !p.err_handler().error_messages().empty())
+            {
+                std::ostringstream errorMessage;
+                for (auto const& error : p.err_handler().error_messages())
+                {
+                    errorMessage <<  error << std::endl;
+                }
+                Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
+                return scope.Escape(env.Undefined());
+            }
+        }
+
+        double lox,loy,hix,hiy;
+        svg.bounding_rect(&lox, &loy, &hix, &hiy);
+        marker_path->set_bounding_box(lox,loy,hix,hiy);
+        marker_path->set_dimensions(svg.width(), svg.height());
+
+        using pixfmt = agg::pixfmt_rgba32_pre;
+        using renderer_base = agg::renderer_base<pixfmt>;
+        using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+        agg::rasterizer_scanline_aa<> ras_ptr;
+        agg::scanline_u8 sl;
+
+        double opacity = 1;
+        double svg_width = svg.width() * scale;
+        double svg_height = svg.height() * scale;
+
+        if (svg_width <= 0 || svg_height <= 0)
+        {
+            Napi::TypeError::New(env, "image created from svg must have a width and height greater then zero").ThrowAsJavaScriptException();
+            return scope.Escape(env.Undefined());
+        }
+
+        if (svg_width > static_cast<double>(max_size) || svg_height > static_cast<double>(max_size))
+        {
+            std::stringstream s;
+            s << "image created from svg must be " << max_size << " pixels or fewer on each side";
+            Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            return scope.Escape(env.Undefined());
+        }
+
+        mapnik::image_rgba8 im(static_cast<int>(std::round(svg_width)),
+                               static_cast<int>(std::round(svg_height)),
+                               true, true);
+        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
+        pixfmt pixf(buf);
+        renderer_base renb(pixf);
+        mapnik::box2d<double> const& bbox = marker_path->bounding_box();
+        mapnik::coord<double,2> c = bbox.center();
+        // center the svg marker on '0,0'
+        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+        // Scale the image
+        mtx.scale(scale);
+        // render the marker at the center of the marker box
+        mtx.translate(0.5 * im.width(), 0.5 * im.height());
+
+        mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
+            mapnik::svg_attribute_type,
+            renderer_solid,
+            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
+                                                       marker_path->attributes());
+
+        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        mapnik::demultiply_alpha(im);
+
+        image_ptr imagep = std::make_shared<mapnik::image_any>(im);
+        Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
+        Napi::Object obj = Image::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();
+    }
+    catch (std::exception const& ex)
+    {
+        // There is currently no known way to make these operations throw an exception, however,
+        // since the underlying agg library does possibly have some operation that might throw
+        // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
+        // LCOV_EXCL_START
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return scope.Escape(env.Undefined());
+        // LCOV_EXCL_STOP
+    }
+}
+
+
 /**
  * Load image from an SVG buffer (synchronous)
  * @name fromSVGBytesSync
@@ -599,7 +600,7 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
         }
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
-    auto * worker = new AsyncFromSVG(info[0].As<Napi::String>(), scale, max_size, strict, callback);
+    auto * worker = new detail::AsyncFromSVG(info[0].As<Napi::String>(), scale, max_size, strict, callback);
     worker->Queue();
     return env.Undefined();
 }
@@ -713,7 +714,7 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
     }
     Napi::Buffer<char> buffer = info[0].As<Napi::Buffer<char>>();
     Napi::Function callback = callback_val.As<Napi::Function>();
-    auto * worker = new AsyncFromSVGBytes(buffer, scale, max_size, strict, callback);
+    auto * worker = new detail::AsyncFromSVGBytes(buffer, scale, max_size, strict, callback);
     worker->Queue();
     return env.Undefined();
 }
