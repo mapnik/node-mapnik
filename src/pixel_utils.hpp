@@ -14,8 +14,8 @@ struct null_image<mapnik::image_any>
     using type = mapnik::image_null;
 };
 
-template <typename T>
-struct null_image<mapnik::image_view<T>>
+template <>
+struct null_image<mapnik::image_view_any>
 {
     using type = mapnik::image_view_null;
 };

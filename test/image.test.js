@@ -132,13 +132,13 @@ test('should be initialized properly', (assert) => {
   assert.equal(im.width(), 256);
   assert.equal(im.height(), 256);
   assert.throws(function() { im.view(); });
-  /* FIXME
+
   var v = im.view(0, 0, 256, 256);
   assert.ok(v instanceof mapnik.ImageView);
   assert.equal(v.width(), 256);
   assert.equal(v.height(), 256);
-  assert.equal(im.encodeSync().length, v.encodeSync().length);
-*/
+  // assert.equal(im.encodeSync().length, v.encodeSync().length); FIXME!!!
+
   var tmp_filename = './test/tmp/image'+Math.random()+'.png';
   im.save(tmp_filename);
 
@@ -220,7 +220,7 @@ test('should support premultiply and demultiply', (assert) => {
   });
 });
 
-/*
+
 test('should not be painted after rendering', (assert) => {
   var im_blank = new mapnik.Image(4, 4);
   assert.equal(im_blank.painted(), false);
@@ -230,6 +230,7 @@ test('should not be painted after rendering', (assert) => {
     assert.end();
   });
 });
+
 
 test('should have background set after rendering', (assert) => {
   var im_blank2 = new mapnik.Image(4, 4);
@@ -244,7 +245,7 @@ test('should have background set after rendering', (assert) => {
     assert.end();
   });
 });
-
+/*
 test('should be painted after rendering', (assert) => {
 
   var im_blank3 = new mapnik.Image(4, 4);
@@ -298,7 +299,7 @@ test('should support setting the alpha channel based on the amount of gray', (as
   assert.throws(function() { gray.setGrayScaleToAlpha(null) });
   assert.throws(function() { gray.setGrayScaleToAlpha({}) });
   gray.setGrayScaleToAlpha();
-  //var gray_view = gray.view(0, 0, gray.width(), gray.height());
+  var gray_view = gray.view(0, 0, gray.width(), gray.height());
   //assert.equal(gray_view.isSolidSync(), true); <--------------------FIXME
   var pixel = gray.getPixel(0, 0, {get_color:true});
   assert.equal(pixel.r, 255);

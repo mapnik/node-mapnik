@@ -8,12 +8,31 @@
 #include "mapnik_image_view.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
-#include "utils.hpp"
-
+//#include "utils.hpp"
+#include "pixel_utils.hpp"
 // std
-#include <exception>
+//#include <exception>
 
 Napi::FunctionReference ImageView::constructor;
+
+Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "ImageView", {
+            InstanceMethod<&ImageView::width>("width"),
+            InstanceMethod<&ImageView::height>("height"),
+            //InstanceMethod<&ImageView::encodeSync>("encodeSync"),
+            //InstanceMethod<&ImageView::encode>("encode"),
+            //InstanceMethod<&ImageView::save>("save"),
+            //InstanceMethod<&ImageView::isSolidSync>("isSolidSync"),
+            //InstanceMethod<&ImageView::isSolid>("isSolid"),
+            InstanceMethod<&ImageView::getPixel>("getPixel")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("ImageView", func);
+    return exports;
+}
 
 /**
  * This is usually not initialized directly: you'll use the `mapnik.Image#view`
@@ -30,79 +49,31 @@ Napi::FunctionReference ImageView::constructor;
  * var im = new mapnik.Image(256, 256);
  * var view = im.view(0, 0, 256, 256);
  */
-void ImageView::Initialize(Napi::Object target) {
 
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, ImageView::New);
-
-    lcons->SetClassName(Napi::String::New(env, "ImageView"));
-
-    InstanceMethod("encodeSync", &encodeSync),
-    InstanceMethod("encode", &encode),
-    InstanceMethod("save", &save),
-    InstanceMethod("width", &width),
-    InstanceMethod("height", &height),
-    InstanceMethod("isSolid", &isSolid),
-    InstanceMethod("isSolidSync", &isSolidSync),
-    InstanceMethod("getPixel", &getPixel),
-
-    (target).Set(Napi::String::New(env, "ImageView"),Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-
-ImageView::ImageView(Image * JSImage) : Napi::ObjectWrap<ImageView>(),
-    this_(),
-    JSImage_(JSImage) {
-        JSImage_->Ref();
-    }
-
-ImageView::~ImageView()
+ImageView::ImageView(Napi::CallbackInfo const& info)
+    :Napi::ObjectWrap<ImageView>(info)
 {
-    JSImage_->Unref();
-}
-
-Napi::Value ImageView::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 5 && info[0].IsExternal()
+        && info[1].IsNumber() && info[2].IsNumber()
+        && info[3].IsNumber() && info[4].IsNumber())
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Undefined();
+        std::size_t x = info[1].As<Napi::Number>().Int64Value();
+        std::size_t y = info[2].As<Napi::Number>().Int64Value();
+        std::size_t w = info[3].As<Napi::Number>().Int64Value();
+        std::size_t h = info[4].As<Napi::Number>().Int64Value();
+        auto ext = info[0].As<Napi::External<image_ptr>>();
+        if (ext)
+        {
+            image_ = *ext.Data();
+            image_view_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*image_, x, y, w, h));
+            return;
+        }
     }
-
-    if (info[0].IsExternal())
-    {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        ImageView* im =  static_cast<ImageView*>(ptr);
-        im->Wrap(info.This());
-        return info.This();
-        return;
-    } else {
-        Napi::Error::New(env, "Cannot create this object from Javascript").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-    return;
+    Napi::Error::New(env, "Cannot create this object from Javascript").ThrowAsJavaScriptException();
 }
 
-Napi::Value ImageView::NewInstance(Image * JSImage ,
-                             unsigned x,
-                             unsigned y,
-                             unsigned w,
-                             unsigned h
-    )
-{
-    Napi::EscapableHandleScope scope(env);
-    ImageView* imv = new ImageView(JSImage);
-    imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
-    Napi::Value ext = Napi::External::New(env, imv);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new ImageView instance").ThrowAsJavaScriptException();
-
-    return scope.Escape(maybe_local);
-}
-
+/*
 typedef struct {
     uv_work_t request;
     ImageView* im;
@@ -151,104 +122,6 @@ void ImageView::EIO_IsSolid(uv_work_t* req)
         closure->error_name = "image does not have valid dimensions";
     }
 }
-
-struct visitor_get_pixel_view
-{
-    visitor_get_pixel_view(int x, int y)
-        : x_(x), y_(y) {}
-
-    Napi::Value operator() (mapnik::image_view_null const& data)
-    {
-        // This should never be reached because the width and height of 0 for a null
-        // image will prevent the visitor from being called.
-        /* LCOV_EXCL_START */
-        Napi::EscapableHandleScope scope(env);
-        return scope.Escape(env.Undefined());
-        /* LCOV_EXCL_STOP */
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray8 const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Uint32::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray8s const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Int32::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray16 const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Uint32::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray16s const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Int32::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray32 const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Uint32::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray32s const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Napi::Int32::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray32f const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray64 const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray64s const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_gray64f const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
-    }
-
-    Napi::Value operator() (mapnik::image_view_rgba8 const& data)
-    {
-        Napi::EscapableHandleScope scope(env);
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Napi::Number::New(env, val));
-    }
-
-  private:
-    int x_;
-    int y_;
-
-};
 
 void ImageView::EIO_AfterIsSolid(uv_work_t* req)
 {
@@ -301,80 +174,88 @@ Napi::Value ImageView::_isSolidSync(Napi::CallbackInfo const& info)
         return scope.Escape(env.Undefined());
     }
 }
-
+*/
 
 Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
     int x = 0;
     int y = 0;
     bool get_color = false;
-
-    if (info.Length() >= 3) {
-
-        if (!info[2].IsObject()) {
+    if (info.Length() >= 3)
+    {
+        if (!info[2].IsObject())
+        {
             Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
             return env.Undefined();
         }
 
-        Napi::Object options = info[2].ToObject(Napi::GetCurrentContext());
-
-        if ((options).Has(Napi::String::New(env, "get_color")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "get_color"));
-            if (!bind_opt->IsBoolean()) {
+        Napi::Object options = info[2].As<Napi::Object>();
+        if (options.Has("get_color"))
+        {
+            Napi::Value bind_opt = options.Get("get_color");
+            if (!bind_opt.IsBoolean())
+            {
                 Napi::TypeError::New(env, "optional arg 'color' must be a boolean").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            get_color = bind_opt.As<Napi::Boolean>().Value();
+            get_color = bind_opt.As<Napi::Boolean>();
         }
-
     }
 
-    if (info.Length() >= 2) {
-        if (!info[0].IsNumber()) {
+    if (info.Length() >= 2)
+    {
+        if (!info[0].IsNumber())
+        {
             Napi::TypeError::New(env, "first arg, 'x' must be an integer").ThrowAsJavaScriptException();
             return env.Undefined();
         }
-        if (!info[1].IsNumber()) {
+        if (!info[1].IsNumber())
+        {
             Napi::TypeError::New(env, "second arg, 'y' must be an integer").ThrowAsJavaScriptException();
             return env.Undefined();
         }
         x = info[0].As<Napi::Number>().Int32Value();
         y = info[1].As<Napi::Number>().Int32Value();
-    } else {
-        Napi::TypeError::New(env, "must supply x,y to query pixel color").ThrowAsJavaScriptException();
+    }
+    else
+    {
+        Napi::Error::New(env, "must supply x,y to query pixel color").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    ImageView* im = info.Holder().Unwrap<ImageView>();
-    if (x >= 0 && x < static_cast<int>(im->this_->width())
-        && y >=0 && y < static_cast<int>(im->this_->height()))
+    if (x >= 0 && x < static_cast<int>(image_view_->width())
+        && y >= 0 && y < static_cast<int>(image_view_->height()))
     {
         if (get_color)
         {
-            mapnik::color val = mapnik::get_pixel<mapnik::color>(*im->this_, x, y);
-            return Color::NewInstance(val);
-        } else {
-            visitor_get_pixel_view visitor(x, y);
-            return mapnik::util::apply_visitor(visitor, *im->this_);
+            Napi::EscapableHandleScope scope(env);
+            mapnik::color col = mapnik::get_pixel<mapnik::color>(*image_view_, x, y);
+            Napi::Value arg = Napi::External<mapnik::color>::New(env, &col);
+            Napi::Object obj = Color::constructor.New({arg});
+            return scope.Escape(napi_value(obj)).ToObject();
+        }
+        else
+        {
+            detail::visitor_get_pixel<mapnik::image_view_any> visitor{env, x, y};
+            return mapnik::util::apply_visitor(visitor, *image_view_);
         }
     }
-    return;
+    return env.Undefined();
 }
 
 
 Napi::Value ImageView::width(Napi::CallbackInfo const& info)
 {
-    ImageView* im = info.Holder().Unwrap<ImageView>();
-    return Napi::Int32::New(env, static_cast<std::int32_t>(im->this_->width()));
+    return Napi::Number::New(info.Env(), image_view_->width());
 }
 
 Napi::Value ImageView::height(Napi::CallbackInfo const& info)
 {
-    ImageView* im = info.Holder().Unwrap<ImageView>();
-    return Napi::Int32::New(env, static_cast<std::int32_t>(im->this_->height()));
+    return Napi::Number::New(info.Env(), image_view_->height());
 }
 
-
+/*
 Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
 {
     ImageView* im = info.Holder().Unwrap<ImageView>();
@@ -436,6 +317,7 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 }
+
 
 typedef struct {
     uv_work_t request;
@@ -590,3 +472,4 @@ Napi::Value ImageView::save(Napi::CallbackInfo const& info)
     }
     return;
 }
+*/

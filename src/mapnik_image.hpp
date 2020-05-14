@@ -71,8 +71,7 @@ public:
     static Napi::Value fromSVGBytes(Napi::CallbackInfo const& info);
 
     Napi::Value painted(Napi::CallbackInfo const& info);
-
-    //Napi::Value view(Napi::CallbackInfo const& info);
+    Napi::Value view(Napi::CallbackInfo const& info);
     Napi::Value composite(Napi::CallbackInfo const& info);
     Napi::Value filterSync(Napi::CallbackInfo const& info);
     Napi::Value filter(Napi::CallbackInfo const& info);

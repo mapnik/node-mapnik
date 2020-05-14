@@ -17,7 +17,7 @@
 #include "mapnik_featureset.hpp"
 //#include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
-//#include "mapnik_image_view.hpp"
+#include "mapnik_image_view.hpp"
 //#include "mapnik_cairo_surface.hpp"
 #if defined(GRID_RENDERER)
 //#include "mapnik_grid.hpp"
@@ -301,6 +301,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     // classes
     Color::Initialize(env, exports);
     Image::Initialize(env, exports);
+    ImageView::Initialize(env, exports);
     Palette::Initialize(env, exports);
     Datasource::Initialize(env, exports);
     Projection::Initialize(env, exports);

@@ -28,9 +28,9 @@
 #endif
 
 // stl
-#include <exception>                    // for exception
-#include <iosfwd>                       // for ostringstream, ostream
-#include <ostream>                      // for operator<<, basic_ostream, etc
+//#include <exception>                    // for exception
+//#include <iosfwd>                       // for ostringstream, ostream
+//#include <ostream>                      // for operator<<, basic_ostream, etc
 #include <sstream>                      // for basic_ostringstream, etc
 
 // boost

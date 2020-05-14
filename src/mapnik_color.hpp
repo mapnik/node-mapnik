@@ -6,6 +6,7 @@
 class Color : public Napi::ObjectWrap<Color>
 {
     friend class Image;
+    friend class ImageView;
     friend class Map;
 public:
     // initializer

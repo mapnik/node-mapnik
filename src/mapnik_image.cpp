@@ -4,6 +4,7 @@
 #include <mapnik/image_any.hpp>         // for image_any
 #include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
 #include "mapnik_image.hpp"
+#include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_color.hpp"
 #include "pixel_utils.hpp"
@@ -54,6 +55,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Image::filterSync>("filterSync"),
             InstanceMethod<&Image::filter>("filter"),
             InstanceMethod<&Image::composite>("composite"),
+            InstanceMethod<&Image::view>("view"),
             StaticMethod<&Image::openSync>("openSync"),
             StaticMethod<&Image::open>("open"),
             StaticMethod<&Image::fromBufferSync>("fromBufferSync"),
@@ -64,9 +66,6 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports)
             StaticMethod<&Image::fromSVGBytesSync>("fromSVGBytesSync"),
             StaticMethod<&Image::fromSVGBytes>("fromSVGBytes")
         });
-/*
-    InstanceMethod("view", &view),
-*/
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Image", func);
@@ -103,7 +102,7 @@ Image::Image(Napi::CallbackInfo const& info)
     if (info.Length() == 1 && info[0].IsExternal())
     {
         auto ext = info[0].As<Napi::External<image_ptr>>();
-        image_ = *ext.Data();
+        if (ext) image_ = *ext.Data();
         return;
     }
     if (info.Length() >= 2)
@@ -314,7 +313,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
         }
         else
         {
-            detail::visitor_get_pixel<mapnik::image_any> visitor(env, x, y);
+            detail::visitor_get_pixel<mapnik::image_any> visitor{env, x, y};
             return mapnik::util::apply_visitor(visitor, *image_);
         }
     }
@@ -588,7 +587,7 @@ Napi::Value Image::painted(Napi::CallbackInfo const& info)
 
 Napi::Value Image::width(Napi::CallbackInfo const& info)
 {
-    return Napi::Number::New(info.Env(), static_cast<std::int32_t>(image_->width()));
+    return Napi::Number::New(info.Env(), image_->width());
 }
 
 /**
@@ -605,7 +604,7 @@ Napi::Value Image::width(Napi::CallbackInfo const& info)
 
 Napi::Value Image::height(Napi::CallbackInfo const& info)
 {
-    return Napi::Number::New(info.Env(), static_cast<std::int32_t>(image_->height()));
+    return Napi::Number::New(info.Env(), image_->height());
 }
 
 
@@ -627,25 +626,26 @@ Napi::Value Image::height(Napi::CallbackInfo const& info)
  * var img2 = img.view(0, 0, 5, 5);
  * console.log(img.width(), img2.width()); // 10, 5
  */
-/*
+
 Napi::Value Image::view(Napi::CallbackInfo const& info)
 {
-    if ( (info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() )) {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if ( (info.Length() != 4) ||
+         (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() ))
+    {
         Napi::TypeError::New(env, "requires 4 integer arguments: x, y, width, height").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-
-    // TODO parse args
-    unsigned x = info[0].As<Napi::Number>().Int32Value();
-    unsigned y = info[1].As<Napi::Number>().Int32Value();
-    unsigned w = info[2].As<Napi::Number>().Int32Value();
-    unsigned h = info[3].As<Napi::Number>().Int32Value();
-
-    Image* im = info.Holder().Unwrap<Image>();
-    return ImageView::NewInstance(im,x,y,w,h);
+    Napi::Number x = info[0].As<Napi::Number>();
+    Napi::Number y = info[1].As<Napi::Number>();
+    Napi::Number w = info[2].As<Napi::Number>();
+    Napi::Number h = info[3].As<Napi::Number>();
+    Napi::Value image_obj = Napi::External<image_ptr>::New(env, &image_);
+    Napi::Object obj = ImageView::constructor.New({image_obj, x, y, w, h });
+    return scope.Escape(napi_value(obj)).ToObject();
 }
-
-*/
 
 Napi::Value Image::offset(Napi::CallbackInfo const& info)
 {
