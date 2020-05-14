@@ -77,6 +77,16 @@ public:
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
 private:
+
+    inline bool acquire()
+    {
+        if (in_use_) return false;
+        in_use_ = true;
+        return true;
+    }
+
+    inline void release() {in_use_ = false;}
+
     static Napi::FunctionReference constructor;
     map_ptr map_;
     bool in_use_;

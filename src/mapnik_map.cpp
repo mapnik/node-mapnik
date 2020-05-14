@@ -1,7 +1,7 @@
 #include "mapnik_map.hpp"
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
-#include "mapnik_featureset.hpp"        // for Featureset
+//#include "mapnik_featureset.hpp"        // for Featureset
 #if defined(GRID_RENDERER)
 //#include "mapnik_grid.hpp"              // for Grid, Grid::constructor
 #endif
@@ -9,24 +9,16 @@
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
 //#include "mapnik_vector_tile.hpp"
-//#include "object_to_container.hpp"
 
 // mapnik-vector-tile
 //#include "vector_tile_processor.hpp"
 
 // mapnik
-#include <mapnik/agg_renderer.hpp>      // for agg_renderer
-#include <mapnik/geometry/box2d.hpp>    // for box2d
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/attribute.hpp>         // for attributes
 #include <mapnik/featureset.hpp>        // for featureset_ptr
 #if defined(GRID_RENDERER)
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>// for grid_renderer
 #endif
-#include <mapnik/image.hpp>             // for image_rgba8
-#include <mapnik/image_any.hpp>
-#include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/save_map.hpp>          // for save_map, etc
 #include <mapnik/image_scaling.hpp>
@@ -149,21 +141,6 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports)
  * //   srs: '+init=epsg:3857'
  * // }
  */
-
-/*
-bool Map::acquire() {
-    if (in_use_)
-    {
-        return false;
-    }
-    in_use_ = true;
-    return true;
-}
-
-void Map::release() {
-    in_use_ = false;
-}
-*/
 
 Map::Map(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<Map>(info)

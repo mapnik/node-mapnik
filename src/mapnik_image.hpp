@@ -16,6 +16,7 @@ struct AsyncClear;
 struct AsyncCopy;
 struct AsyncResize;
 struct AsyncFilter;
+struct AsyncRender;
 struct AsyncComposite;
 struct AsyncFromBytes;
 struct AsyncFromSVG;
@@ -26,11 +27,13 @@ template <bool> struct AsyncMultiply;
 
 class Image : public Napi::ObjectWrap<Image>
 {
+    friend class Map;
     friend struct detail::AsyncOpen;
     friend struct detail::AsyncClear;
     friend struct detail::AsyncCopy;
     friend struct detail::AsyncResize;
     friend struct detail::AsyncFilter;
+    friend struct detail::AsyncRender;
     friend struct detail::AsyncComposite;
     friend struct detail::AsyncFromBytes;
     friend struct detail::AsyncFromSVG;

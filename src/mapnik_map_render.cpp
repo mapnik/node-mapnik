@@ -1,33 +1,18 @@
 #include "mapnik_map.hpp"
-
-
-
+#include "mapnik_image.hpp"
+#include "object_to_container.hpp"
+// mapnik
+#include <mapnik/map.hpp>
+#include <mapnik/agg_renderer.hpp>      // for agg_renderer
+#include <mapnik/geometry/box2d.hpp>    // for box2d
+#include <mapnik/color.hpp>             // for color
+#include <mapnik/attribute.hpp>         // for attributes
+#include <mapnik/util/variant.hpp>      // for save_to_file, guess_type, etc
+#include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/image_any.hpp>
+#include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 
 /*
-struct image_baton_t {
-    uv_work_t request;
-    Map *m;
-    Image *im;
-    int buffer_size; // TODO - no effect until mapnik::request is used
-    double scale_factor;
-    double scale_denominator;
-    mapnik::attributes variables;
-    unsigned offset_x;
-    unsigned offset_y;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-    image_baton_t() :
-      buffer_size(0),
-      scale_factor(1.0),
-      scale_denominator(0.0),
-      variables(),
-      offset_x(0),
-      offset_y(0),
-      error(false),
-      error_name() {}
-};
-
 #if defined(GRID_RENDERER)
 struct grid_baton_t {
     uv_work_t request;
@@ -217,7 +202,9 @@ void Map::EIO_AfterRenderGrid(uv_work_t* req)
     delete closure;
 }
 #endif
+*/
 
+namespace detail {
 struct agg_renderer_visitor
 {
     agg_renderer_visitor(mapnik::Map const& m,
@@ -257,52 +244,69 @@ struct agg_renderer_visitor
     double scale_denominator_;
 };
 
-void Map::EIO_RenderImage(uv_work_t* req)
+struct AsyncRender : Napi::AsyncWorker
 {
-    image_baton_t *closure = static_cast<image_baton_t *>(req->data);
+    using Base = Napi::AsyncWorker;
 
-    try
+    AsyncRender(map_ptr const& map, image_ptr const& image,
+                double scale_factor, double scale_denominator,
+                int buffer_size, unsigned offset_x, unsigned offset_y,
+                mapnik::attributes const& variables,
+                Napi::Function const& callback)
+        :Base(callback),
+         map_(map),
+         image_(image),
+         scale_factor_(scale_factor),
+         scale_denominator_(scale_denominator),
+         buffer_size_(buffer_size),
+         offset_x_(offset_x),
+         offset_y_(offset_y),
+         variables_(variables) {}
+
+    void Execute() override
     {
-        mapnik::Map const& map = *closure->m->map_;
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        m_req.set_buffer_size(closure->buffer_size);
-        agg_renderer_visitor visit(map,
-                                   m_req,
-                                   closure->variables,
-                                   closure->scale_factor,
-                                   closure->offset_x,
-                                   closure->offset_y,
-                                   closure->scale_denominator);
-        mapnik::util::apply_visitor(visit, *closure->im->get());
+        try
+        {
+            mapnik::request request(map_->width(),map_->height(),map_->get_current_extent());
+            request.set_buffer_size(buffer_size_);
+            agg_renderer_visitor visit(*map_,
+                                       request,
+                                       variables_,
+                                       scale_factor_,
+                                       offset_x_,
+                                       offset_y_,
+                                       scale_denominator_);
+            mapnik::util::apply_visitor(visit, *image_);
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
     }
-    catch (std::exception const& ex)
+
+    std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        closure->error = true;
-        closure->error_name = ex.what();
+        if (map_)
+        {
+            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
+            Napi::Object obj = Image::constructor.New({arg});
+            return {env.Null(), napi_value(obj)};
+        }
+        return Base::GetResult(env);
     }
+private:
+    map_ptr map_;
+    image_ptr image_;
+    double scale_factor_;
+    double scale_denominator_;
+    int buffer_size_;
+    unsigned offset_x_;
+    unsigned offset_y_;
+    mapnik::attributes variables_;
+};
+
 }
-
-void Map::EIO_AfterRenderImage(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    image_baton_t *closure = static_cast<image_baton_t *>(req->data);
-    closure->m->release();
-
-    if (closure->error) {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    } else {
-        Napi::Value argv[2] = { env.Null(), closure->im->handle() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-
-    closure->m->Unref();
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-
+/*
 typedef struct {
     uv_work_t request;
     Map *m;
@@ -384,35 +388,35 @@ typedef struct {
 
 Napi::Value Map::render(Napi::CallbackInfo const& info)
 {
-    return info.Env().Undefined();
-}
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
 
-/*
-{
     // ensure at least 2 args
-    if (info.Length() < 2) {
-        Napi::TypeError::New(env, "requires at least two arguments, a renderable mapnik object, and a callback").ThrowAsJavaScriptException();
-        return env.Null();
+    if (info.Length() < 2)
+    {
+        Napi::TypeError::New(env, "requires at least two arguments, a renderable mapnik object, and a callback")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
     // ensure renderable object
-    if (!info[0].IsObject()) {
-        Napi::TypeError::New(env, "requires a renderable mapnik object to be passed as first argument").ThrowAsJavaScriptException();
-        return env.Null();
+    if (!info[0].IsObject())
+    {
+        Napi::TypeError::New(env, "requires a renderable mapnik object to be passed as first argument")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
     // ensure function callback
-    if (!info[info.Length()-1]->IsFunction()) {
+    if (!info[info.Length()-1].IsFunction())
+    {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
-
-    Map* m = info.Holder().Unwrap<Map>();
 
     try
     {
         // parse options
-
         // defaults
         int buffer_size = 0;
         double scale_factor = 1.0;
@@ -422,102 +426,108 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
 
         Napi::Object options = Napi::Object::New(env);
 
-        if (info.Length() > 2) {
-
+        if (info.Length() > 2)
+        {
             // options object
-            if (!info[1].IsObject()) {
+            if (!info[1].IsObject())
+            {
                 Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
 
-            options = info[1].ToObject(Napi::GetCurrentContext());
+            options = info[1].As<Napi::Object>();
 
-            if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false)) {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
-                if (!bind_opt.IsNumber()) {
-                    Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
-                }
-                buffer_size = bind_opt.As<Napi::Number>().Int32Value();
-            }
-
-            if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false)) {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
-                if (!bind_opt.IsNumber()) {
-                    Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
-                }
-
-                scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
-            }
-
-            if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false)) {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
-                if (!bind_opt.IsNumber()) {
-                    Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
-                }
-
-                scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
-            }
-
-            if ((options).Has(Napi::String::New(env, "offset_x")).FromMaybe(false)) {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_x"));
-                if (!bind_opt.IsNumber()) {
-                    Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
-                }
-
-                offset_x = bind_opt.As<Napi::Number>().Int32Value();
-            }
-
-            if ((options).Has(Napi::String::New(env, "offset_y")).FromMaybe(false)) {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "offset_y"));
-                if (!bind_opt.IsNumber()) {
-                    Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
-                }
-
-                offset_y = bind_opt.As<Napi::Number>().Int32Value();
-            }
-        }
-
-        Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-
-        if (Napi::New(env, Image::constructor)->HasInstance(obj)) {
-
-            image_baton_t *closure = new image_baton_t();
-            closure->request.data = closure;
-            closure->m = m;
-            closure->im = obj.Unwrap<Image>();
-            closure->buffer_size = buffer_size;
-            closure->scale_factor = scale_factor;
-            closure->scale_denominator = scale_denominator;
-            closure->offset_x = offset_x;
-            closure->offset_y = offset_y;
-            closure->error = false;
-
-            if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
+            if (options.Has("buffer_size"))
             {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
-                if (!bind_opt.IsObject())
+                Napi::Value buffer_size_val = options.Get("buffer_size");
+                if (!buffer_size_val.IsNumber())
                 {
-                    delete closure;
-                    Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-                    return env.Null();
+                    Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
+                    return env.Undefined();
                 }
-                object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
+                buffer_size = buffer_size_val.As<Napi::Number>().Int32Value();
             }
-            if (!m->acquire())
+
+            if (options.Has("scale"))
             {
-                delete closure;
-                Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
-                return env.Null();
+                Napi::Value scale_val = options.Get("scale");
+                if (!scale_val.IsNumber())
+                {
+                    Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                }
+                scale_factor = scale_val.As<Napi::Number>().DoubleValue();
             }
-            closure->cb.Reset(info[info.Length() - 1].As<Napi::Function>());
-            uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderImage, (uv_after_work_cb)EIO_AfterRenderImage);
-            closure->im->Ref();
+
+            if (options.Has("scale_denominator"))
+            {
+                Napi::Value scale_denominator_val = options.Get("scale_denominator");
+                if (!scale_denominator_val.IsNumber())
+                {
+                    Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                }
+                scale_denominator = scale_denominator_val.As<Napi::Number>().DoubleValue();
+            }
+
+            if (options.Has("offset_x"))
+            {
+                Napi::Value offset_x_val = options.Get("offset_x");
+                if (!offset_x_val.IsNumber())
+                {
+                    Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                }
+                offset_x = offset_x_val.As<Napi::Number>().Int32Value();
+            }
+            if (options.Has("offset_y"))
+            {
+                Napi::Value offset_y_val = options.Get("offset_y");
+                if (!offset_y_val.IsNumber())
+                {
+                    Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                }
+                offset_y = offset_y_val.As<Napi::Number>().Int32Value();
+            }
         }
+
+        Napi::Object obj = info[0].As<Napi::Object>();
+
+        if (!obj.InstanceOf(Image::constructor.Value()))
+        {
+            image_ptr image = Napi::ObjectWrap<Image>::Unwrap(obj)->image_;
+            mapnik::attributes variables;
+            if (options.Has("variables"))
+            {
+                Napi::Value variables_val = options.Get("variables");
+                if (!variables_val.IsObject())
+                {
+                    //delete closure;
+                    Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                }
+                object_to_container(variables, variables_val.As<Napi::Object>());
+            }
+            if (!acquire()) // FIXME !!!
+            {
+                Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+                return env.Undefined();
+            }
+            Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
+            auto* worker = new detail::AsyncRender(map_,
+                                                   image,
+                                                   scale_factor,
+                                                   scale_denominator,
+                                                   offset_x,
+                                                   offset_y,
+                                                   buffer_size,
+                                                   variables,
+                                                   callback);
+            worker->Queue();
+            return env.Undefined();
+        }
+/*
 #if defined(GRID_RENDERER)
         else if (Napi::New(env, Grid::constructor)->HasInstance(obj)) {
 
@@ -635,6 +645,9 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             closure->g->Ref();
         }
 #endif
+*/
+/*
+        // VT
         else if (Napi::New(env, VectorTile::constructor)->HasInstance(obj))
         {
 
@@ -812,27 +825,27 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
             closure->d->Ref();
         }
+#endif
+*/
         else
         {
             Napi::TypeError::New(env, "renderable mapnik object expected").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
-
-        m->Ref();
-        return;
+        return env.Undefined();
     }
     catch (std::exception const& ex)
     {
         // I am not quite sure it is possible to put a test in to cover an exception here
         // LCOV_EXCL_START
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
-// LCOV_EXCL_STOP
+        return env.Undefined();
+        // LCOV_EXCL_STOP
     }
 }
 
 // TODO - add support for grids
-*/
+
 Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
 {
     return info.Env().Undefined();
