@@ -3,6 +3,7 @@
 #include <napi.h>
 // stl
 #include <memory>
+#include <atomic>
 
 namespace mapnik { class Map; }
 
@@ -76,18 +77,12 @@ public:
     void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
+
 private:
-
-    inline bool acquire()
-    {
-        if (in_use_) return false;
-        in_use_ = true;
-        return true;
-    }
-
-    inline void release() {in_use_ = false;}
+    inline bool acquire() {not_in_use_.fetch_and(0));}
+    inline void release() {not_in_use_ = 1;}
 
     static Napi::FunctionReference constructor;
     map_ptr map_;
-    bool in_use_;
+    std::atomic<int> not_in_use_{1};
 };
