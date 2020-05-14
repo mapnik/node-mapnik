@@ -8,7 +8,7 @@ struct visitor_get_pixel
     visitor_get_pixel(Napi::Env env, int x, int y)
         : env_(env), x_(x), y_(y) {}
 
-    Napi::Value operator() (mapnik::image_null const&)
+    Napi::Value operator() (mapnik::image_null const&) const
     {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
@@ -16,7 +16,7 @@ struct visitor_get_pixel
     }
 
     template <typename T>
-    Napi::Value operator() (T const& data)
+    Napi::Value operator() (T const& data) const
     {
         using image_type = T;
         using pixel_type = typename image_type::pixel_type;
