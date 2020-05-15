@@ -54,44 +54,4 @@ Napi::Value rgb2hsl(Napi::CallbackInfo const& info);
 Napi::Value hsl2rgb(Napi::CallbackInfo const& info);
 Napi::Value blend(Napi::CallbackInfo const& info);
 
-/*
-struct BlendBaton {
-    uv_work_t request;
-    Napi::FunctionReference callback;
-    Images images;
-
-    std::string message;
-
-    int quality;
-    BlendFormat format;
-    bool reencode;
-    int width;
-    int height;
-    palette_ptr palette;
-    unsigned int matte;
-    int compression;
-    AlphaMode mode;
-    std::unique_ptr<std::string> output_data;
-
-    BlendBaton() :
-        quality(0),
-        format(BLEND_FORMAT_PNG),
-        reencode(false),
-        width(0),
-        height(0),
-        matte(0),
-        compression(-1),
-        mode(BLEND_MODE_HEXTREE),
-        output_data()
-    {
-        this->request.data = this;
-    }
-
-    ~BlendBaton()
-    {
-        for (auto const& image : images) if (image) image->buffer.Reset();
-        callback.Reset();
-    }
-};
-*/
 }

@@ -9,39 +9,9 @@ namespace mapnik {
 }
 
 using image_ptr = std::shared_ptr<mapnik::image_any>;
-/*
-namespace detail {
-struct AsyncOpen;
-struct AsyncClear;
-struct AsyncCopy;
-struct AsyncResize;
-struct AsyncFilter;
-struct AsyncRender;
-struct AsyncComposite;
-struct AsyncFromBytes;
-struct AsyncFromSVG;
-struct AsyncFromSVGBytes;
-template <typename T> struct AsyncFill;
-template <bool> struct AsyncMultiply;
-}
-*/
+
 class Image : public Napi::ObjectWrap<Image>
 {
-    /*
-    friend class Map;
-    friend struct detail::AsyncOpen;
-    friend struct detail::AsyncClear;
-    friend struct detail::AsyncCopy;
-    friend struct detail::AsyncResize;
-    friend struct detail::AsyncFilter;
-    friend struct detail::AsyncRender;
-    friend struct detail::AsyncComposite;
-    friend struct detail::AsyncFromBytes;
-    friend struct detail::AsyncFromSVG;
-    friend struct detail::AsyncFromSVGBytes;
-    template <typename T> friend struct detail::AsyncFill;
-    template <bool> friend struct detail::AsyncMultiply;
-    */
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
