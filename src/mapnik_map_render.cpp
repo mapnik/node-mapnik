@@ -496,7 +496,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
 
         if (obj.InstanceOf(Image::constructor.Value()))
         {
-            image_ptr image = Napi::ObjectWrap<Image>::Unwrap(obj)->image_;
+            image_ptr image = Napi::ObjectWrap<Image>::Unwrap(obj)->impl();
             mapnik::attributes variables;
             if (options.Has("variables"))
             {

@@ -17,6 +17,7 @@ public:
     // methods
     Napi::Value toString(Napi::CallbackInfo const& info);
     Napi::Value toBuffer(Napi::CallbackInfo const& info);
+    inline palette_ptr palette() { return palette_;}
 private:
     static Napi::FunctionReference constructor;
     palette_ptr palette_;

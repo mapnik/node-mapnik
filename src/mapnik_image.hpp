@@ -9,7 +9,7 @@ namespace mapnik {
 }
 
 using image_ptr = std::shared_ptr<mapnik::image_any>;
-
+/*
 namespace detail {
 struct AsyncOpen;
 struct AsyncClear;
@@ -24,9 +24,10 @@ struct AsyncFromSVGBytes;
 template <typename T> struct AsyncFill;
 template <bool> struct AsyncMultiply;
 }
-
+*/
 class Image : public Napi::ObjectWrap<Image>
 {
+    /*
     friend class Map;
     friend struct detail::AsyncOpen;
     friend struct detail::AsyncClear;
@@ -40,6 +41,7 @@ class Image : public Napi::ObjectWrap<Image>
     friend struct detail::AsyncFromSVGBytes;
     template <typename T> friend struct detail::AsyncFill;
     template <bool> friend struct detail::AsyncMultiply;
+    */
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -97,8 +99,9 @@ public:
     void scaling(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value offset(Napi::CallbackInfo const& info);
     void offset(Napi::CallbackInfo const& info, Napi::Value const& value);
-private:
+    inline image_ptr impl() const { return image_; }
     static Napi::FunctionReference constructor;
+private:
     static void encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette);
     static Napi::Value from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file);
     image_ptr image_;

@@ -5,8 +5,6 @@ var mapnik = require('../');
 var fs = require('fs');
 var path = require('path');
 
-//mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
-
 test('should throw with invalid usage', (assert) => {
   // no 'new' keyword
   assert.throws(function() { mapnik.Image(1, 1);});

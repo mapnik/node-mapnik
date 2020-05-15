@@ -11,7 +11,7 @@
       'sources': [
         #"src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
-        #"src/blend.cpp",
+        "src/blend.cpp",
         "src/mapnik_map.cpp",
         "src/mapnik_map_load.cpp",
         "src/mapnik_map_from_string.cpp",

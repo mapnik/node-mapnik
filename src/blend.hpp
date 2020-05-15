@@ -1,12 +1,5 @@
-#ifndef NODE_MAPNIK_BLEND_HPP
-#define NODE_MAPNIK_BLEND_HPP
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
+#pragma once
 #include <napi.h>
-#include <uv.h>
-#pragma GCC diagnostic pop
 
 // stl
 #include <string>
@@ -20,7 +13,7 @@ namespace node_mapnik {
 
 struct BImage {
     BImage() :
-        data(NULL),
+        data(nullptr),
         dataLength(0),
         x(0),
         y(0),
@@ -30,8 +23,9 @@ struct BImage {
         im_ptr(nullptr),
         im_raw_ptr(nullptr),
         im_obj(nullptr) {}
-    Napi::Persistent<v8::Object> buffer;
-    const char * data;
+    //Napi::Persistent<v8::Object> buffer;
+    Napi::Reference<Napi::Buffer<char>> buffer;
+    char const* data;
     size_t dataLength;
     int x;
     int y;
@@ -58,8 +52,9 @@ enum AlphaMode {
 
 Napi::Value rgb2hsl(Napi::CallbackInfo const& info);
 Napi::Value hsl2rgb(Napi::CallbackInfo const& info);
-Napi::Value Blend(Napi::CallbackInfo const& info);
+Napi::Value blend(Napi::CallbackInfo const& info);
 
+/*
 struct BlendBaton {
     uv_work_t request;
     Napi::FunctionReference callback;
@@ -98,7 +93,5 @@ struct BlendBaton {
         callback.Reset();
     }
 };
-
+*/
 }
-
-#endif // NODE_MAPNIK_BLEND_HPP

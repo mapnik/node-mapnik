@@ -25,7 +25,7 @@
 #endif
 //#include "mapnik_expression.hpp"
 //#include "utils.hpp"
-//#include "blend.hpp"
+#include "blend.hpp"
 
 // mapnik
 #include <mapnik/config.hpp> // for MAPNIK_DECL
@@ -298,6 +298,9 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set("register_datasources", Napi::Function::New(env, node_mapnik::register_datasources));
     exports.Set("datasources", Napi::Function::New(env, node_mapnik::available_input_plugins));
     exports.Set("clearCache", Napi::Function::New(env, node_mapnik::clearCache));
+    exports.Set("blend", Napi::Function::New(env, node_mapnik::blend));
+    exports.Set("rgb2hsl", Napi::Function::New(env, node_mapnik::rgb2hsl));
+    exports.Set("hsl2rgb", Napi::Function::New(env, node_mapnik::hsl2rgb));
     // classes
     Color::Initialize(env, exports);
     Image::Initialize(env, exports);
