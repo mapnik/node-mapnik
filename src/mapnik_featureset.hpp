@@ -4,10 +4,12 @@
 #include <napi.h>
 
 using featureset_ptr =  mapnik::featureset_ptr;
+namespace detail { struct AsyncQueryPoint;}
 
 class Featureset : public Napi::ObjectWrap<Featureset>
 {
     friend class Datasource;
+    friend struct detail::AsyncQueryPoint;
 public:
     // initialiser
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

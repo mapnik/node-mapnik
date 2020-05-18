@@ -80,7 +80,7 @@ public:
 private:
     inline bool acquire() {return not_in_use_.fetch_and(0);}
     inline void release() {not_in_use_ = 1;}
-
+    Napi::Value query_point_impl(Napi::CallbackInfo const& info, bool geo_coords);
     static Napi::FunctionReference constructor;
     map_ptr map_;
     std::atomic<int> not_in_use_{1};
