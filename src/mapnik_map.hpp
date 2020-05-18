@@ -34,7 +34,6 @@ public:
     Napi::Value fromStringSync(Napi::CallbackInfo const& info);
     Napi::Value fromString(Napi::CallbackInfo const& info);
     Napi::Value clone(Napi::CallbackInfo const& info);
-
     // async rendering
     Napi::Value render(Napi::CallbackInfo const& info);
     Napi::Value renderFile(Napi::CallbackInfo const& info);

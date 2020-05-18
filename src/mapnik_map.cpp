@@ -439,7 +439,7 @@ void Map::parameters(Napi::CallbackInfo const& info, Napi::Value const& value)
     mapnik::parameters params;
 
     Napi::Object obj = value.As<Napi::Object>();
-    Napi::Array names = obj.As<Napi::Array>();
+    Napi::Array names = obj.GetPropertyNames();
     std::size_t length = names.Length();
     for(std::size_t index = 0; index < length; ++index)
     {

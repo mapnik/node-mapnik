@@ -57,9 +57,12 @@ Datasource::Datasource(Napi::CallbackInfo const& info)
     if (info[0].IsExternal())
     {
         auto ext = info[0].As<Napi::External<datasource_ptr>>();
-        if (ext) datasource_ = *ext.Data();
-        //if (datasource_->type() == mapnik::datasource::Raster) info.This().Set("type","raster");
-        //else info.This().Set("type","vector");
+        if (ext)
+        {
+            datasource_ = *ext.Data();
+            if (datasource_->type() == mapnik::datasource::Raster) info.This().As<Napi::Object>().Set("type","raster");
+            else info.This().As<Napi::Object>().Set("type","vector");
+        }
         return;
     }
 
@@ -92,8 +95,8 @@ Datasource::Datasource(Napi::CallbackInfo const& info)
         return;
      }
 
-    //if (datasource_->type() == mapnik::datasource::Raster) info.This().Set("type","raster");
-    //else info.This().Set("type","vector");
+    if (datasource_->type() == mapnik::datasource::Raster) info.This().As<Napi::Object>().Set("type","raster");
+    else info.This().As<Napi::Object>().Set("type","vector");
 }
 
 Napi::Value Datasource::parameters(Napi::CallbackInfo const& info)
