@@ -23,7 +23,7 @@ struct BImage {
         im_ptr(nullptr),
         im_raw_ptr(nullptr),
         im_obj(nullptr) {}
-    //Napi::Persistent<v8::Object> buffer;
+
     Napi::Reference<Napi::Buffer<char>> buffer;
     char const* data;
     size_t dataLength;

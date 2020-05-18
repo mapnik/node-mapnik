@@ -47,6 +47,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Map::fontDirectory>("fontDirectory"),
             InstanceMethod<&Map::memoryFonts>("memoryFonts"),
             InstanceMethod<&Map::registerFonts>("registerFonts"),
+            InstanceMethod<&Map::loadFonts>("loadFonts"),
             InstanceMethod<&Map::load>("load"),
             InstanceMethod<&Map::loadSync>("loadSync"),
             InstanceMethod<&Map::fromStringSync>("fromStringSync"),
@@ -591,7 +592,7 @@ Napi::Value Map::fontDirectory(Napi::CallbackInfo const& info)
     {
         return Napi::String::New(env, *font_dir);
     }
-    return env.Null();
+    return env.Undefined();
 }
 
 /**

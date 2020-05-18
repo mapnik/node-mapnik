@@ -8,7 +8,7 @@
 #include "mapnik_geometry.hpp"
 //#include "mapnik_logger.hpp"
 #include "mapnik_feature.hpp"
-//#include "mapnik_fonts.hpp"
+#include "mapnik_fonts.hpp"
 #include "mapnik_plugins.hpp"
 #include "mapnik_palette.hpp"
 #include "mapnik_projection.hpp"
@@ -297,6 +297,11 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set("registerDatasources", Napi::Function::New(env, node_mapnik::register_datasources));
     exports.Set("register_datasources", Napi::Function::New(env, node_mapnik::register_datasources));
     exports.Set("datasources", Napi::Function::New(env, node_mapnik::available_input_plugins));
+    exports.Set("registerFonts", Napi::Function::New(env, node_mapnik::register_fonts));
+    exports.Set("register_fonts", Napi::Function::New(env, node_mapnik::register_fonts));
+    exports.Set("fonts", Napi::Function::New(env, node_mapnik::available_font_faces));
+    exports.Set("fontFiles", Napi::Function::New(env, node_mapnik::available_font_files));
+    exports.Set("memoryFonts", Napi::Function::New(env, node_mapnik::memory_fonts));
     exports.Set("clearCache", Napi::Function::New(env, node_mapnik::clearCache));
     exports.Set("blend", Napi::Function::New(env, node_mapnik::blend));
     exports.Set("rgb2hsl", Napi::Function::New(env, node_mapnik::rgb2hsl));
@@ -322,8 +327,6 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     // versions
     // versions of deps
     Napi::Object versions = Napi::Object::New(env);
-    //versions.Set("node", &NODE_VERSION[1]); // NOTE: +1 strips the v in v0.10.26
-    //versions.Set("v8", v8::V8::GetVersion());
     versions.Set("boost", node_mapnik::format_version(BOOST_VERSION));
     versions.Set("boost_number", BOOST_VERSION);
     versions.Set("mapnik", node_mapnik::format_version(MAPNIK_VERSION));

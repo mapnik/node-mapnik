@@ -88,7 +88,16 @@ Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Geometry::type>("type"),
             InstanceMethod<&Geometry::toWKB>("toWKB"),
             InstanceMethod<&Geometry::toWKT>("toWKT"),
-            InstanceMethod<&Geometry::toJSON>("toJSON")
+            InstanceMethod<&Geometry::toJSON>("toJSON"),
+            InstanceMethod<&Geometry::toJSON>("toJSONSync"),
+            StaticValue("Unknown", Napi::Number::New(env, mapnik::geometry::geometry_types::Unknown), napi_enumerable),
+            StaticValue("Point", Napi::Number::New(env, mapnik::geometry::geometry_types::Point), napi_enumerable),
+            StaticValue("LineString", Napi::Number::New(env, mapnik::geometry::geometry_types::LineString), napi_enumerable),
+            StaticValue("Polygon", Napi::Number::New(env, mapnik::geometry::geometry_types::Polygon), napi_enumerable),
+            StaticValue("MultiPoint", Napi::Number::New(env, mapnik::geometry::geometry_types::MultiPoint), napi_enumerable),
+            StaticValue("MultiLineString", Napi::Number::New(env, mapnik::geometry::geometry_types::MultiLineString), napi_enumerable),
+            StaticValue("MultiPolygon", Napi::Number::New(env, mapnik::geometry::geometry_types::MultiPolygon), napi_enumerable),
+            StaticValue("GeometryCollection", Napi::Number::New(env, mapnik::geometry::geometry_types::GeometryCollection), napi_enumerable)
         });
 
     constructor = Napi::Persistent(func);
