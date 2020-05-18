@@ -134,7 +134,7 @@ test('should render to a file - tiff', (assert) => {
   assert.end();
 });
 
-/*
+
 if (mapnik.supports.cairo) {
   test('should render to a file - pdf', (assert) => {
     var map = new mapnik.Map(256, 256);
@@ -148,7 +148,7 @@ if (mapnik.supports.cairo) {
 } else {
   test.skip('should render to a file - pdf', function() { });
 }
-*/
+
 test('should render to a file - scale', (assert) => {
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/stylesheet.xml');

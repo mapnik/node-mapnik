@@ -428,7 +428,6 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
         unsigned offset_y = 0;
 
         Napi::Object options = Napi::Object::New(env);
-
         if (info.Length() > 2)
         {
             // options object
@@ -941,7 +940,6 @@ Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
     try
     {
         mapnik::image_rgba8 im(map_->width(), map_->height());
-        //mapnik::Map const& map = *map_;
         mapnik::request m_req(map_->width(),map_->height(),map_->get_current_extent());
         m_req.set_buffer_size(buffer_size);
         mapnik::agg_renderer<mapnik::image_rgba8> ren(*map_,

@@ -336,6 +336,73 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     versions.Set("cairo", CAIRO_VERSION_STRING);
 #endif
     exports.Set("versions", versions);
+
+// supports
+    Napi::Object supports = Napi::Object::New(env);
+#ifdef GRID_RENDERER
+    supports.Set("grid", Napi::Boolean::New(env,true));
+#else
+    supports.Set("grid", Napi::Boolean::New(env,false));
+#endif
+
+#ifdef SVG_RENDERER
+    supports.Set("svg", Napi::Boolean::New(env,true));
+#else
+    supports.Set("svg", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_CAIRO)
+    supports.Set("cairo", Napi::Boolean::New(env,true));
+#ifdef CAIRO_HAS_PDF_SURFACE
+    supports.Set("cairo_pdf", Napi::Boolean::New(env,true));
+#else
+    supports.Set("cairo_pdf", Napi::Boolean::New(env,false));
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+    supports.Set("cairo_svg", Napi::Boolean::New(env,true));
+#else
+    supports.Set("cairo_svg", Napi::Boolean::New(env,false));
+#endif
+#else
+    supports.Set("cairo", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_PNG)
+    supports.Set("png", Napi::Boolean::New(env,true));
+#else
+    supports.Set("png", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_JPEG)
+    supports.Set("jpeg", Napi::Boolean::New(env,true));
+#else
+    supports.Set("jpeg", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_TIFF)
+    supports.Set("tiff", Napi::Boolean::New(env,true));
+#else
+    supports.Set("tiff", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_WEBP)
+    supports.Set("webp", Napi::Boolean::New(env,true));
+#else
+    supports.Set("webp", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(MAPNIK_USE_PROJ4)
+    supports.Set("proj4", Napi::Boolean::New(env,true));
+#else
+    supports.Set("proj4", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(MAPNIK_THREADSAFE)
+    supports.Set("threadsafe", Napi::Boolean::New(env,true));
+#else
+    supports.Set("threadsafe", Napi::Boolean::New(env,false));
+#endif
+    exports.Set("supports", supports);
     return exports;
 }
 
