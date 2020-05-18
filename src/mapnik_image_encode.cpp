@@ -34,14 +34,14 @@ void Image::encode_common_args_(Napi::CallbackInfo const& info, std::string& for
         Napi::Object options = info[1].As<Napi::Object>();
         if (options.Has("palette"))
         {
-            Napi::Value format_opt = options.Get("palette");
-            if (!format_opt.IsObject())
+            Napi::Value palette_opt = options.Get("palette");
+            if (!palette_opt.IsObject())
             {
                 Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
                 return;
             }
 
-            Napi::Object obj = format_opt.As<Napi::Object>();
+            Napi::Object obj = palette_opt.As<Napi::Object>();
 
             if (!obj.InstanceOf(Palette::constructor.Value()))
             {
