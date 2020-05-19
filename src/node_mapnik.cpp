@@ -6,7 +6,7 @@
 #include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_geometry.hpp"
-//#include "mapnik_logger.hpp"
+#include "mapnik_logger.hpp"
 #include "mapnik_feature.hpp"
 #include "mapnik_fonts.hpp"
 #include "mapnik_plugins.hpp"
@@ -320,6 +320,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Layer::Initialize(env, exports);
     Map::Initialize(env, exports);
     Expression::Initialize(env, exports);
+    Logger::Initialize(env, exports);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);

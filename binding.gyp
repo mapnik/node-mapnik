@@ -9,7 +9,7 @@
       'target_name': '<(module_name)',
       'product_dir': '<(module_path)',
       'sources': [
-        #"src/mapnik_logger.cpp",
+        "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
         "src/blend.cpp",
         "src/mapnik_map.cpp",
@@ -45,9 +45,6 @@
         "src/mapnik_expression.cpp",
         #"src/mapnik_cairo_surface.cpp",
         #"src/mapnik_vector_tile.cpp"
-      ],
-      "msvs_disabled_warnings": [
-        4267
       ],
       'include_dirs': [
         './mason_packages/.link/include/',
