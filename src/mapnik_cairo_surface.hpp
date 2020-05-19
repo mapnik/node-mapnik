@@ -1,16 +1,9 @@
-#ifndef __NODE_MAPNIK_CAIRO_H__
-#define __NODE_MAPNIK_CAIRO_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <napi.h>
-#include <uv.h>
-#pragma GCC diagnostic pop
 
-#include <string>
+//#include <string>
 #include <sstream>
-
 // cairo
 #if defined(HAVE_CAIRO)
 #include <cairo.h>
@@ -19,21 +12,24 @@
 #endif
 
 
-
-class CairoSurface : public Napi::ObjectWrap<CairoSurface> {
+class CairoSurface : public Napi::ObjectWrap<CairoSurface>
+{
 public:
-    typedef std::stringstream i_stream;
-    static Napi::FunctionReference constructor;
-    static void Initialize(Napi::Object target);
-    static Napi::Value New(Napi::CallbackInfo const& info);
-    static Napi::Value getData(Napi::CallbackInfo const& info);
-    static Napi::Value width(Napi::CallbackInfo const& info);
-    static Napi::Value height(Napi::CallbackInfo const& info);
+    //typedef std::stringstream i_stream;
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit CairoSurface(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value getData(Napi::CallbackInfo const& info);
+    Napi::Value width(Napi::CallbackInfo const& info);
+    Napi::Value height(Napi::CallbackInfo const& info);
 
-    using Napi::ObjectWrap::Ref;
-    using Napi::ObjectWrap::Unref;
+    //using Napi::ObjectWrap::Ref;
+    //using Napi::ObjectWrap::Unref;
 
-    CairoSurface(std::string const& format, unsigned int width, unsigned int height);
+    //CairoSurface(std::string const& format, unsigned int width, unsigned int height);
+    /*
     static cairo_status_t write_callback(void *closure,
                                          const unsigned char *data,
                                          unsigned int length)
@@ -45,9 +41,9 @@ public:
             // class it is unlikely that this could ever be reached unless something was very wrong
             // and went out of scope, aka it was improperly programmed. Therefore, it is not possible
             // to reach this point with standard testing.
-            /* LCOV_EXCL_START */
+            // LCOV_EXCL_START
             return CAIRO_STATUS_WRITE_ERROR;
-            /* LCOV_EXCL_STOP */
+            // LCOV_EXCL_STOP
         }
         i_stream* fin = reinterpret_cast<i_stream*>(closure);
         *fin << std::string((const char*)data,(size_t)length);
@@ -56,14 +52,14 @@ public:
         return 11; // CAIRO_STATUS_WRITE_ERROR
 #endif
     }
-    unsigned width() { return width_; }
-    unsigned height() { return height_; }
-    mutable i_stream ss_;
+*/
+    //unsigned width() { return width_; }
+    //unsigned height() { return height_; }
+    //mutable i_stream ss_;
 private:
+    static Napi::FunctionReference constructor;
     unsigned width_;
     unsigned height_;
     std::string format_;
-    ~CairoSurface();
+    std::stringstream stream_;
 };
-
-#endif
