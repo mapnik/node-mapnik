@@ -23,7 +23,7 @@
 //#include "mapnik_grid.hpp"
 //#include "mapnik_grid_view.hpp"
 #endif
-//#include "mapnik_expression.hpp"
+#include "mapnik_expression.hpp"
 //#include "utils.hpp"
 #include "blend.hpp"
 
@@ -319,6 +319,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Featureset::Initialize(env, exports);
     Layer::Initialize(env, exports);
     Map::Initialize(env, exports);
+    Expression::Initialize(env, exports);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);

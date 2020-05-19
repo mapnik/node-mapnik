@@ -1,120 +1,105 @@
 #include "utils.hpp"
 #include "mapnik_expression.hpp"
 #include "mapnik_feature.hpp"
-#include "utils.hpp"
 #include "object_to_container.hpp"
 
 // mapnik
-#include <mapnik/version.hpp>
 #include <mapnik/attribute.hpp>
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
 
-// stl
-#include <exception>                    // for exception
 
 Napi::FunctionReference Expression::constructor;
 
-void Expression::Initialize(Napi::Object target) {
-
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, Expression::New);
-
-    lcons->SetClassName(Napi::String::New(env, "Expression"));
-
-    InstanceMethod("toString", &toString),
-    InstanceMethod("evaluate", &evaluate),
-
-    (target).Set(Napi::String::New(env, "Expression"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
+Napi::Object Expression::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "Expression", {
+            InstanceMethod<&Expression::evaluate>("evaluate"),
+            InstanceMethod<&Expression::toString>("toString")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Expression", func);
+    return exports;
 }
 
-Expression::Expression() : Napi::ObjectWrap<Expression>(),
-    this_() {}
 
-Expression::~Expression()
+Expression::Expression(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Expression>(info)
 {
-}
+    Napi::Env env = info.Env();
 
-Napi::Value Expression::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    if (info.Length() != 1 || !info[0].IsString())
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
+        Napi::TypeError::New(env, "invalid arguments: accepts a single argument of string type").ThrowAsJavaScriptException();
+        return;
     }
-
-    mapnik::expression_ptr e_ptr;
     try
     {
-        if (info.Length() == 1 && info[0].IsString()) {
-            e_ptr = mapnik::parse_expression(TOSTR(info[0]));
-        } else {
-            Napi::TypeError::New(env, "invalid arguments: accepts a single argument of string type").ThrowAsJavaScriptException();
-            return env.Null();
-        }
+        expression_ = mapnik::parse_expression(info[0].As<Napi::String>());
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
     }
-
-    Expression* e = new Expression();
-    e->Wrap(info.This());
-    e->this_ = e_ptr;
-    return info.This();
 }
 
 Napi::Value Expression::toString(Napi::CallbackInfo const& info)
 {
-    Expression* e = info.Holder().Unwrap<Expression>();
-    return Napi::New(env, mapnik::to_expression_string(*e->get()));
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    Napi::String str = Napi::String::New(env, mapnik::to_expression_string(*expression_));
+    return scope.Escape(str);
 }
 
 Napi::Value Expression::evaluate(Napi::CallbackInfo const& info)
 {
-    if (info.Length() < 1) {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (info.Length() < 1)
+    {
         Napi::Error::New(env, "requires a mapnik.Feature as an argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (!info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a mapnik.Feature").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
-
-    if (!Napi::New(env, Feature::constructor)->HasInstance(info[0])) {
+    Napi::Object obj = info[0].As<Napi::Object>();
+    if (!obj.InstanceOf(Feature::constructor.Value()))
+    {
         Napi::TypeError::New(env, "first argument is invalid, must be a mapnik.Feature").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
-    Feature* f = info[0].As<Napi::Object>().Unwrap<Feature>();
+    Feature *f = Napi::ObjectWrap<Feature>::Unwrap(obj);
 
-    Expression* e = info.Holder().Unwrap<Expression>();
     mapnik::attributes vars;
     if (info.Length() > 1)
     {
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object options = info[1].As<Napi::Object>();
 
-        if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
+        if (options.Has("variables"))
         {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+            Napi::Value bind_opt = options.Get("variables");
             if (!bind_opt.IsObject())
             {
                 Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
-            object_to_container(vars,bind_opt->ToObject(Napi::GetCurrentContext()));
+            object_to_container(vars, bind_opt.As<Napi::Object>());
         }
     }
-    mapnik::value value_obj = mapnik::util::apply_visitor(mapnik::evaluate<mapnik::feature_impl,mapnik::value,mapnik::attributes>(*(f->get()),vars),*(e->get()));
-    return mapnik::util::apply_visitor(node_mapnik::value_converter(),value_obj);
+    using namespace mapnik;
+    value val =util::apply_visitor(mapnik::evaluate<feature_impl, value, attributes>(*f->impl(), vars),*expression_);
+    return scope.Escape(util::apply_visitor(node_mapnik::value_converter(env), val));
 }
