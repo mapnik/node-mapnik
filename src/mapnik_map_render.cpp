@@ -289,14 +289,11 @@ struct AsyncRender : Napi::AsyncWorker
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        if (map_)
-        {
-            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
-            return {env.Null(), napi_value(obj)};
-        }
-        return Base::GetResult(env);
+        Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
+        Napi::Object obj = Image::constructor.New({arg});
+        return {env.Null(), napi_value(obj)};
     }
+
 private:
     map_ptr map_;
     image_ptr image_;
@@ -308,25 +305,86 @@ private:
     mapnik::attributes variables_;
 };
 
-}
-/*
-typedef struct {
-    uv_work_t request;
-    Map *m;
-    std::string format;
-    std::string output;
-    palette_ptr palette;
-    double scale_factor;
-    double scale_denominator;
-    mapnik::attributes variables;
-    bool use_cairo;
-    int buffer_size; // TODO - no effect until mapnik::request is used
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} render_file_baton_t;
-*/
 
+struct AsyncRenderFile : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+
+    AsyncRenderFile(map_ptr const& map, std::string const& output_filename,
+                    double scale_factor, double scale_denominator,
+                    int buffer_size, palette_ptr const& palette,
+                    std::string const& format, bool use_cairo,
+                    mapnik::attributes const& variables,
+                    Napi::Function const& callback)
+        :Base(callback),
+         map_(map),
+         output_filename_(output_filename),
+         scale_factor_(scale_factor),
+         scale_denominator_(scale_denominator),
+         buffer_size_(buffer_size),
+         palette_(palette),
+         format_(format),
+         use_cairo_(use_cairo),
+         variables_(variables) {}
+
+    void Execute() override
+    {
+        try
+        {
+            if (use_cairo_)
+            {
+#if defined(HAVE_CAIRO)
+                // https://github.com/mapnik/mapnik/issues/1930
+                mapnik::save_to_cairo_file(*map_, output_filename_,
+                                           format_, scale_factor_,
+                                           scale_denominator_);
+#else
+                SetError("Cairo renderer is not available");
+#endif
+            }
+            else
+            {
+                mapnik::image_rgba8 im(map_->width(), map_->height());
+                mapnik::request m_req(map_->width(), map_->height(), map_->get_current_extent());
+                m_req.set_buffer_size(buffer_size_);
+                mapnik::agg_renderer<mapnik::image_rgba8> ren(*map_,
+                                                              m_req,
+                                                              variables_,
+                                                              im,
+                                                              scale_factor_);
+                ren.apply(scale_denominator_);
+                if (palette_.get())
+                {
+                    mapnik::save_to_file(im, output_filename_, *palette_);
+                }
+                else
+                {
+                    mapnik::save_to_file(im, output_filename_);
+                }
+            }
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        return Base::GetResult(env);
+    }
+private:
+    map_ptr map_;
+    std::string output_filename_;
+    double scale_factor_;
+    double scale_denominator_;
+    int buffer_size_;
+    palette_ptr palette_;
+    std::string format_;
+    bool use_cairo_;
+    mapnik::attributes variables_;
+};
+
+}
 
 /**
  * Renders a mapnik object (image tile, grid, vector tile) by passing in a renderable mapnik object.
@@ -970,11 +1028,11 @@ Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
 
 Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 {
-    return info.Env().Undefined();
-}
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
 
-/*
-    if (info.Length() < 1 || !info[0].IsString()) {
+    if (info.Length() < 1 || !info[0].IsString())
+    {
         Napi::TypeError::New(env, "first argument must be a path to a file to save").ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -986,210 +1044,148 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
     palette_ptr palette;
     int buffer_size = 0;
 
-    Napi::Value callback = info[info.Length()-1];
+    Napi::Value callback_val = info[info.Length() - 1];
 
-    if (!callback->IsFunction()) {
+    if (!callback_val.IsFunction())
+    {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
     Napi::Object options = Napi::Object::New(env);
 
-    if (!info[1].IsFunction() && info[1].IsObject()) {
-        options = info[1].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "format")).FromMaybe(false))
+    if (!info[1].IsFunction() && info[1].IsObject())
+    {
+        options = info[1].As<Napi::Object>();;
+        if (options.Has("format"))
         {
-            Napi::Value format_opt = (options).Get(Napi::String::New(env, "format"));
-            if (!format_opt.IsString()) {
+            Napi::Value format_opt = options.Get("format");
+            if (!format_opt.IsString())
+            {
                 Napi::TypeError::New(env, "'format' must be a String").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-
-            format = TOSTR(format_opt);
+            format = format_opt.As<Napi::String>();
         }
 
-        if ((options).Has(Napi::String::New(env, "palette")).FromMaybe(false))
+        if (options.Has("palette"))
         {
-            Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
-            if (!format_opt.IsObject()) {
+            Napi::Value palette_opt = options.Get("palette");
+            if (!palette_opt.IsObject())
+            {
                 Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
 
-            Napi::Object obj = format_opt->ToObject(Napi::GetCurrentContext());
-            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
+            Napi::Object obj = palette_opt.As<Napi::Object>();
+
+            if (!obj.InstanceOf(Palette::constructor.Value()))
+            {
                 Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-
-            palette = obj)->palette(.Unwrap<Palette>();
-        }
-        if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale"));
-            if (!bind_opt.IsNumber()) {
-                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-
-            scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
+            palette = Napi::ObjectWrap<Palette>::Unwrap(obj)->palette_;
         }
 
-        if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "scale_denominator"));
-            if (!bind_opt.IsNumber()) {
-                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-
-            scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
-        }
-
-        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false)) {
-            Napi::Value bind_opt = (options).Get(Napi::String::New(env, "buffer_size"));
-            if (!bind_opt.IsNumber()) {
+        if (options.Has("buffer_size"))
+        {
+            Napi::Value buffer_size_val = options.Get("buffer_size");
+            if (!buffer_size_val.IsNumber())
+            {
                 Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-
-            buffer_size = bind_opt.As<Napi::Number>().Int32Value();
+            buffer_size = buffer_size_val.As<Napi::Number>().Int32Value();
         }
 
-    } else if (!info[1].IsFunction()) {
+        if (options.Has("scale"))
+        {
+            Napi::Value scale_val = options.Get("scale");
+            if (!scale_val.IsNumber())
+            {
+                Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
+                return env.Undefined();
+            }
+            scale_factor = scale_val.As<Napi::Number>().DoubleValue();
+        }
+
+        if (options.Has("scale_denominator"))
+        {
+            Napi::Value scale_denominator_val = options.Get("scale_denominator");
+            if (!scale_denominator_val.IsNumber())
+            {
+                Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
+                return env.Undefined();
+            }
+            scale_denominator = scale_denominator_val.As<Napi::Number>().DoubleValue();
+        }
+    }
+    else if (!info[1].IsFunction())
+    {
         Napi::TypeError::New(env, "optional argument must be an object").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    Map* m = info.Holder().Unwrap<Map>();
-    std::string output = TOSTR(info[0]);
+    std::string output_filename = info[0].As<Napi::String>();
 
-    //maybe do this in the async part?
-    if (format.empty()) {
-        format = mapnik::guess_type(output);
-        if (format == "<unknown>") {
+    if (format.empty())
+    {
+        format = mapnik::guess_type(output_filename);
+        if (format == "<unknown>")
+        {
             std::ostringstream s("");
-            s << "unknown output extension for: " << output << "\n";
-            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            s << "unknown output  extension for: " << output_filename << "\n";
+            Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
             return env.Undefined();
         }
     }
-
-    render_file_baton_t *closure = new render_file_baton_t();
-
-    if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
+    mapnik::attributes variables;
+    if (options.Has("variables"))
     {
-        Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
-        if (!bind_opt.IsObject())
+        Napi::Value variables_val = options.Get("variables");
+        if (!variables_val.IsObject())
         {
-            delete closure;
             Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
             return env.Undefined();
         }
-        object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
+        object_to_container(variables, variables_val.As<Napi::Object>());
     }
 
-    if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24") {
-#if defined(HAVE_CAIRO)
-        closure->use_cairo = true;
-#else
-        delete closure;
+    bool use_cairo = false;
+    if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24")
+    {
+#if !defined(HAVE_CAIRO)
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
         Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
         return env.Undefined();
 #endif
-    } else {
-        closure->use_cairo = false;
     }
+    else use_cairo = false;
 
-    if (!m->acquire())
+
+    if (!acquire())
     {
-        delete closure;
-        Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.")
+            .ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    closure->request.data = closure;
 
-    closure->m = m;
-    closure->scale_factor = scale_factor;
-    closure->scale_denominator = scale_denominator;
-    closure->buffer_size = buffer_size;
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-
-    closure->format = format;
-    closure->palette = palette;
-    closure->output = output;
-
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderFile, (uv_after_work_cb)EIO_AfterRenderFile);
-    m->Ref();
-
-    return;
+    Napi::Function callback = callback_val.As<Napi::Function>();
+    auto* worker = new detail::AsyncRenderFile(map_,
+                                               output_filename,
+                                               scale_factor,
+                                               scale_denominator,
+                                               buffer_size,
+                                               palette,
+                                               format,
+                                               use_cairo,
+                                               variables,
+                                               callback);
+    worker->Queue();
+    return env.Undefined();
 
 }
-
-void Map::EIO_RenderFile(uv_work_t* req)
-{
-    render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
-
-    try
-    {
-        if(closure->use_cairo)
-        {
-#if defined(HAVE_CAIRO)
-            // https://github.com/mapnik/mapnik/issues/1930
-            mapnik::save_to_cairo_file(*closure->m->map_,closure->output,closure->format,closure->scale_factor,closure->scale_denominator);
-#else
-#endif
-        }
-        else
-        {
-            mapnik::image_rgba8 im(closure->m->map_->width(),closure->m->map_->height());
-            mapnik::Map const& map = *closure->m->map_;
-            mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-            m_req.set_buffer_size(closure->buffer_size);
-            mapnik::agg_renderer<mapnik::image_rgba8> ren(map,
-                                                   m_req,
-                                                   closure->variables,
-                                                   im,
-                                                   closure->scale_factor);
-            ren.apply(closure->scale_denominator);
-
-            if (closure->palette.get()) {
-                mapnik::save_to_file(im,closure->output,*closure->palette);
-            } else {
-                mapnik::save_to_file(im,closure->output);
-            }
-        }
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void Map::EIO_AfterRenderFile(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    render_file_baton_t *closure = static_cast<render_file_baton_t *>(req->data);
-    closure->m->release();
-
-    if (closure->error) {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    } else {
-        Napi::Value argv[1] = { env.Undefined() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-
-    closure->m->Unref();
-    closure->cb.Reset();
-    delete closure;
-
-}
-*/
-
 
 Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
 {
@@ -1289,15 +1285,15 @@ Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
         }
     }
 
-    std::string output = info[0].As<Napi::String>();
+    std::string output_filename = info[0].As<Napi::String>();
 
     if (format.empty())
     {
-        format = mapnik::guess_type(output);
+        format = mapnik::guess_type(output_filename);
         if (format == "<unknown>")
         {
             std::ostringstream s("");
-            s << "unknown output extension for: " << output << "\n";
+            s << "unknown output extension for: " << output_filename << "\n";
             Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
             return env.Undefined();
         }
@@ -1314,7 +1310,7 @@ Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
         if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
-            mapnik::save_to_cairo_file(*map_, output, format, scale_factor, scale_denominator);
+            mapnik::save_to_cairo_file(*map_, output_filename, format, scale_factor, scale_denominator);
 #else
             std::ostringstream s("");
             s << "Cairo backend is not available, cannot write to " << format << "\n";
@@ -1338,10 +1334,10 @@ Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
 
             if (palette.get())
             {
-                mapnik::save_to_file(im,output,*palette);
+                mapnik::save_to_file(im, output_filename, *palette);
             }
             else {
-                mapnik::save_to_file(im,output);
+                mapnik::save_to_file(im, output_filename);
             }
         }
     }
