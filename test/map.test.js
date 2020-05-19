@@ -10,10 +10,9 @@ var os = require('os');
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'csv.input'));
 
-//describe('mapnik.Map', function() {
 test('should throw with invalid usage', (assert) => {
   // no 'new' keyword
-  assert.throws(function() { mapnik.Map('foo'); });  // jshint ignore:line
+  assert.throws(function() { mapnik.Map('foo'); });
   // invalid args
   assert.throws(function() { new mapnik.Map(); });
   assert.throws(function() { new mapnik.Map(1); });

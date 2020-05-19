@@ -53,6 +53,7 @@ test('should render async to file (cairo format)', (assert) => {
     map.loadSync('./test/stylesheet.xml');
     map.zoomAll();
     map.renderFile(filename, { format: 'pdf' }, function(error) {
+      console.log(error);
       assert.ok(!error);
       assert.ok(exists(filename));
       assert.end();

@@ -1154,15 +1154,15 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
     bool use_cairo = false;
     if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24")
     {
-#if !defined(HAVE_CAIRO)
+#if defined(HAVE_CAIRO)
+        use_cairo = true;
+#else
         std::ostringstream s("");
         s << "Cairo backend is not available, cannot write to " << format << "\n";
         Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
         return env.Undefined();
 #endif
     }
-    else use_cairo = false;
-
 
     if (!acquire())
     {
