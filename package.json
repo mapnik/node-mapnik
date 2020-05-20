@@ -48,7 +48,7 @@
   },
   "scripts": {
     "prepublishOnly": "npm ls",
-    "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
+    "test": "tape test/*.test.js",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
