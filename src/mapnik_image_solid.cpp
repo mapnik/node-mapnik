@@ -74,51 +74,7 @@ Napi::Value Image::isSolid(Napi::CallbackInfo const& info)
     worker->Queue();
     return env.Undefined();
 }
-/*
-void Image::EIO_IsSolid(uv_work_t* req)
-{
-    is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
-    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0)
-    {
-        closure->result = mapnik::is_solid(*(closure->im->this_));
-    }
-    else
-    {
-        closure->error = true;
-        closure->error_name = "image does not have valid dimensions";
-    }
-}
 
-void Image::EIO_AfterIsSolid(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    is_solid_image_baton_t *closure = static_cast<is_solid_image_baton_t *>(req->data);
-    if (closure->error) {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        if (closure->result)
-        {
-            Napi::Value argv[3] = { env.Null(),
-                                     Napi::New(env, closure->result),
-                                     mapnik::util::apply_visitor(visitor_get_pixel(0,0),*(closure->im->this_)),
-            };
-            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 3, argv);
-        }
-        else
-        {
-            Napi::Value argv[2] = { env.Null(), Napi::New(env, closure->result) };
-            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-        }
-    }
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
 /**
  * Determine whether the image is solid - whether it has alpha values of greater
  * than one.

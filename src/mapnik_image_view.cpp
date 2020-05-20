@@ -13,6 +13,42 @@
 // std
 //#include <exception>
 
+
+namespace {
+
+struct AsyncIsSolid : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncIsSolid(image_view_ptr const& image_view, Napi::Function const& callback)
+        : Base(callback),
+          image_view_(image_view)
+    {}
+
+    void Execute() override
+    {
+        if (image_view_ && image_view_->width() > 0 && image_view_->height() > 0)
+        {
+            solid_ = mapnik::is_solid(*image_view_);
+
+        }
+        else
+        {
+            SetError("image_view does not have valid dimensions");
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        std::vector<napi_value> result = {env.Null(), Napi::Boolean::New(env, solid_)};
+        if (solid_) result.push_back(mapnik::util::apply_visitor(detail::visitor_get_pixel<mapnik::image_view_any>(env, 0, 0), *image_view_));
+        return result;
+    }
+
+private:
+    bool solid_;
+    image_view_ptr image_view_;
+};
+}
+
 Napi::FunctionReference ImageView::constructor;
 
 Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports)
@@ -24,8 +60,8 @@ Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports)
             //InstanceMethod<&ImageView::encodeSync>("encodeSync"),
             //InstanceMethod<&ImageView::encode>("encode"),
             //InstanceMethod<&ImageView::save>("save"),
-            //InstanceMethod<&ImageView::isSolidSync>("isSolidSync"),
-            //InstanceMethod<&ImageView::isSolid>("isSolid"),
+            InstanceMethod<&ImageView::isSolidSync>("isSolidSync"),
+            InstanceMethod<&ImageView::isSolid>("isSolid"),
             InstanceMethod<&ImageView::getPixel>("getPixel")
         });
     constructor = Napi::Persistent(func);
@@ -82,33 +118,29 @@ typedef struct {
     std::string error_name;
     bool result;
 } is_solid_image_view_baton_t;
+*/
+
 
 Napi::Value ImageView::isSolid(Napi::CallbackInfo const& info)
 {
-    ImageView* im = info.Holder().Unwrap<ImageView>();
-
-    if (info.Length() == 0) {
-        return _isSolidSync(info);
-        return;
+    if (info.Length() == 0)
+    {
+        return isSolidSync(info);
     }
+    Napi::Env env = info.Env();
     // ensure callback is a function
-    Napi::Value callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
+    Napi::Value callback_val = info[info.Length() - 1];
+    if (!callback_val.IsFunction())
+    {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    is_solid_image_view_baton_t *closure = new is_solid_image_view_baton_t();
-    closure->request.data = closure;
-    closure->im = im;
-    closure->result = true;
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
-    im->Ref();
-    return;
+    auto * worker = new AsyncIsSolid(image_view_, callback_val.As<Napi::Function>());
+    worker->Queue();
+    return env.Undefined();
 }
-
+/*
 void ImageView::EIO_IsSolid(uv_work_t* req)
 {
     is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
@@ -153,28 +185,21 @@ void ImageView::EIO_AfterIsSolid(uv_work_t* req)
     delete closure;
 }
 
+*/
 
 Napi::Value ImageView::isSolidSync(Napi::CallbackInfo const& info)
 {
-    return _isSolidSync(info);
-}
-
-Napi::Value ImageView::_isSolidSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    ImageView* im = info.Holder().Unwrap<ImageView>();
-    if (im->this_->width() > 0 && im->this_->height() > 0)
-    {
-        return scope.Escape(Napi::Boolean::New(env, mapnik::is_solid(*(im->this_))));
-    }
-    else
-    {
-        Napi::TypeError::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+    if (image_view_->width() > 0 && image_view_->height() > 0)
+    {
+        return scope.Escape(Napi::Boolean::New(env, mapnik::is_solid(*(image_view_))));
     }
+
+    Napi::TypeError::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
+    return scope.Escape(env.Undefined());
 }
-*/
 
 Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
 {

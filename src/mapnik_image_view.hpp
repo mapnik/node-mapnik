@@ -24,8 +24,8 @@ public:
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
     //Napi::Value save(Napi::CallbackInfo const& info);
-    //Napi::Value isSolid(Napi::CallbackInfo const& info);
-    //Napi::Value isSolidSync(Napi::CallbackInfo const& info);
+    Napi::Value isSolid(Napi::CallbackInfo const& info);
+    Napi::Value isSolidSync(Napi::CallbackInfo const& info);
     Napi::Value getPixel(Napi::CallbackInfo const& info);
 private:
     static Napi::FunctionReference constructor;
