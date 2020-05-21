@@ -8,11 +8,7 @@
 #include "mapnik_image_view.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
-//#include "utils.hpp"
 #include "pixel_utils.hpp"
-// std
-//#include <exception>
-
 
 namespace {
 
@@ -57,9 +53,9 @@ Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports)
     Napi::Function func = DefineClass(env, "ImageView", {
             InstanceMethod<&ImageView::width>("width"),
             InstanceMethod<&ImageView::height>("height"),
-            //InstanceMethod<&ImageView::encodeSync>("encodeSync"),
-            //InstanceMethod<&ImageView::encode>("encode"),
-            //InstanceMethod<&ImageView::save>("save"),
+            InstanceMethod<&ImageView::encodeSync>("encodeSync"),
+            InstanceMethod<&ImageView::encode>("encode"),
+            InstanceMethod<&ImageView::saveSync>("saveSync"),
             InstanceMethod<&ImageView::isSolidSync>("isSolidSync"),
             InstanceMethod<&ImageView::isSolid>("isSolid"),
             InstanceMethod<&ImageView::getPixel>("getPixel")
@@ -140,52 +136,6 @@ Napi::Value ImageView::isSolid(Napi::CallbackInfo const& info)
     worker->Queue();
     return env.Undefined();
 }
-/*
-void ImageView::EIO_IsSolid(uv_work_t* req)
-{
-    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0)
-    {
-        closure->result = mapnik::is_solid(*(closure->im->this_));
-    }
-    else
-    {
-        closure->error = true;
-        closure->error_name = "image does not have valid dimensions";
-    }
-}
-
-void ImageView::EIO_AfterIsSolid(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    if (closure->error) {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        if (closure->result)
-        {
-            Napi::Value argv[3] = { env.Null(),
-                                     Napi::New(env, closure->result),
-                                     mapnik::util::apply_visitor(visitor_get_pixel_view(0,0),*(closure->im->this_)),
-            };
-            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 3, argv);
-        }
-        else
-        {
-            Napi::Value argv[2] = { env.Null(), Napi::New(env, closure->result) };
-            async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-        }
-    }
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-
-*/
 
 Napi::Value ImageView::isSolidSync(Napi::CallbackInfo const& info)
 {
@@ -280,61 +230,127 @@ Napi::Value ImageView::height(Napi::CallbackInfo const& info)
     return Napi::Number::New(info.Env(), image_view_->height());
 }
 
-/*
+
+void ImageView::encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette)
+{
+    Napi::Env env = info.Env();
+    // accept custom format
+    if (info.Length() >= 1)
+    {
+        if (!info[0].IsString())
+        {
+            Napi::TypeError::New(env, "first arg, 'format' must be a string").ThrowAsJavaScriptException();
+            return;
+        }
+        format = info[0].As<Napi::String>();
+    }
+    // options
+    if (info.Length() >= 2)
+    {
+        if (!info[1].IsObject())
+        {
+            Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
+            return;
+        }
+        Napi::Object options = info[1].As<Napi::Object>();
+        if (options.Has("palette"))
+        {
+            Napi::Value palette_opt = options.Get("palette");
+            if (!palette_opt.IsObject())
+            {
+                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
+                return;
+            }
+
+            Napi::Object obj = palette_opt.As<Napi::Object>();
+
+            if (!obj.InstanceOf(Palette::constructor.Value()))
+            {
+                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
+                return;
+            }
+            palette = Napi::ObjectWrap<Palette>::Unwrap(obj)->palette_;
+        }
+    }
+}
+
+namespace {
+
+struct AsyncEncode : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    // ctor
+    AsyncEncode(image_view_ptr image_view, palette_ptr palette, std::string const& format, Napi::Function const& callback)
+        : Base(callback),
+          image_view_(image_view),
+          palette_(palette),
+          format_(format)
+    {}
+    void Execute() override
+    {
+        try
+        {
+            if (palette_) result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_, *palette_));
+            else result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_));
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        if (result_)
+        {
+            std::string & str = *result_;
+            auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
+                                                  [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
+                                                      if (str_ptr != nullptr) {
+                                                          Napi::MemoryManagement::AdjustExternalMemory
+                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                      }
+                                                      delete str_ptr;
+                                                  },
+                                                  result_.release());
+            Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+            return {env.Null(), buffer};
+        }
+        return Base::GetResult(env);
+    }
+private:
+    image_view_ptr image_view_;
+    palette_ptr palette_;
+    std::string format_;
+    std::unique_ptr<std::string> result_;
+};
+
+}
+
+
 Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
 {
-    ImageView* im = info.Holder().Unwrap<ImageView>();
-
-    std::string format = "png";
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::string format{"png"};
     palette_ptr palette;
-
-    // accept custom format
-    if (info.Length() >= 1) {
-        if (!info[0].IsString()) {
-            Napi::TypeError::New(env, "first arg, 'format' must be a string").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-        format = TOSTR(info[0]);
-    }
-
-    // options hash
-    if (info.Length() >= 2) {
-        if (!info[1].IsObject()) {
-            Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-
-        Napi::Object options = info[1].As<Napi::Object>();
-
-        if ((options).Has(Napi::String::New(env, "palette")).FromMaybe(false))
-        {
-            Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
-            if (!format_opt.IsObject()) {
-                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-
-            Napi::Object obj = format_opt.As<Napi::Object>();
-            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
-                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-
-            palette = obj)->palette(.Unwrap<Palette>();
-        }
-    }
-
-    try {
-        std::string s;
-        if (palette.get())
-        {
-            s = save_to_string(*(im->this_), format, *palette);
-        }
-        else {
-            s = save_to_string(*(im->this_), format);
-        }
-
-        return Napi::Buffer::Copy(env, (char*)s.data(),s.size());
+    encode_common_args_(info, format, palette);
+    try
+    {
+        std::unique_ptr<std::string> result;
+        if (palette) result = std::make_unique<std::string>(save_to_string(*image_, format, *palette));
+        else result = std::make_unique<std::string>(save_to_string(*image_, format));
+        std::string & str = *result;
+        auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
+                                              [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
+                                                  if (str_ptr != nullptr) {
+                                                      Napi::MemoryManagement::AdjustExternalMemory
+                                                          (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                  }
+                                                  delete str_ptr;
+                                              },
+                                              result.release());
+        Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+        return scope.Escape(buffer);
     }
     catch (std::exception const& ex)
     {
@@ -342,159 +358,67 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 }
-
-
-typedef struct {
-    uv_work_t request;
-    ImageView* im;
-    std::string format;
-    palette_ptr palette;
-    std::string error_name;
-    Napi::FunctionReference cb;
-    std::string result;
-} encode_image_view_baton_t;
-
 
 Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
 {
-    ImageView* im = info.Holder().Unwrap<ImageView>();
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
 
     std::string format = "png";
     palette_ptr palette;
 
-    // accept custom format
-    if (info.Length() > 1){
-        if (!info[0].IsString()) {
-            Napi::TypeError::New(env, "first arg, 'format' must be a string").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-        format = TOSTR(info[0]);
-    }
-
-    // options hash
-    if (info.Length() >= 2) {
-        if (!info[1].IsObject()) {
-            Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-
-        Napi::Object options = info[1].As<Napi::Object>();
-
-        if ((options).Has(Napi::String::New(env, "palette")).FromMaybe(false))
-        {
-            Napi::Value format_opt = (options).Get(Napi::String::New(env, "palette"));
-            if (!format_opt.IsObject()) {
-                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-
-            Napi::Object obj = format_opt.As<Napi::Object>();
-            if (!Napi::New(env, Palette::constructor)->HasInstance(obj)) {
-                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-
-            palette = obj)->palette(.Unwrap<Palette>();
-        }
-    }
-
-    // ensure callback is a function
-    Napi::Value callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
+    encode_common_args_(info, format, palette);
+     // ensure callback is a function
+    Napi::Value callback_val = info[info.Length() - 1];
+    if (!callback_val.IsFunction())
+    {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-
-    encode_image_view_baton_t *baton = new encode_image_view_baton_t();
-    baton->request.data = baton;
-    baton->im = im;
-    baton->format = format;
-    baton->palette = palette;
-    baton->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &baton->request, AsyncEncode, (uv_after_work_cb)AfterEncode);
-    im->Ref();
-    return;
+    Napi::Function callback = callback_val.As<Napi::Function>();
+    auto* worker = new AsyncEncode{image_view_, palette, format, callback};
+    worker->Queue();
+    return env.Undefined();
 }
 
-void ImageView::AsyncEncode(uv_work_t* req)
+void ImageView::saveSync(Napi::CallbackInfo const& info)
 {
-    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
-
-    try {
-        if (baton->palette.get())
-        {
-            baton->result = save_to_string(*(baton->im->this_), baton->format, *baton->palette);
-        }
-        else
-        {
-            baton->result = save_to_string(*(baton->im->this_), baton->format);
-        }
-    }
-    catch (std::exception const& ex)
+    Napi::Env env = info.Env();
+    if (info.Length() == 0 || !info[0].IsString())
     {
-        baton->error_name = ex.what();
+        Napi::TypeError::New(env, "filename required to save file").ThrowAsJavaScriptException();
+        return;
     }
-}
 
-void ImageView::AfterEncode(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
+    std::string filename = info[0].As<Napi::String>();
+    std::string format("");
 
-    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
-
-    if (!baton->error_name.empty()) {
-        Napi::Value argv[1] = { Napi::Error::New(env, baton->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, baton->cb), 1, argv);
+    if (info.Length() >= 2)
+    {
+        if (!info[1].IsString())
+        {
+            Napi::TypeError::New(env, "both 'filename' and 'format' arguments must be strings").ThrowAsJavaScriptException();
+            return;
+        }
+        format = info[1].As<Napi::String>();
     }
     else
     {
-        Napi::Value argv[2] = { env.Null(), Napi::Buffer::Copy(env, (char*)baton->result.data(), baton->result.size()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, baton->cb), 2, argv);
-    }
-
-    baton->im->Unref();
-    baton->cb.Reset();
-    delete baton;
-}
-
-
-Napi::Value ImageView::save(Napi::CallbackInfo const& info)
-{
-    if (info.Length() == 0 || !info[0].IsString()){
-        Napi::TypeError::New(env, "filename required").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-
-    std::string filename = TOSTR(info[0]);
-
-    std::string format("");
-
-    if (info.Length() >= 2) {
-        if (!info[1].IsString()) {
-            Napi::TypeError::New(env, "both 'filename' and 'format' arguments must be strings").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-
-        format = mapnik::guess_type(TOSTR(info[1]));
-        if (format == "<unknown>") {
+        format = mapnik::guess_type(filename);
+        if (format == "<unknown>")
+        {
             std::ostringstream s("");
             s << "unknown output extension for: " << filename << "\n";
             Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-            return env.Undefined();
+            return;
         }
     }
-
-    ImageView* im = info.Holder().Unwrap<ImageView>();
     try
     {
-        save_to_file(*im->this_,filename);
+        mapnik::save_to_file(*image_view_, filename, format);
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
     }
-    return;
 }
-*/

@@ -220,7 +220,7 @@ test('should throw with invalid encoding', (assert) => {
 test('should encode with a pallete', (assert) => {
   var im = new mapnik.Image(256, 256);
   var view = im.view(0,0,256,256);
-  var pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
+  var pal = new mapnik.Palette(Buffer.from('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
   assert.ok(view.encodeSync('png', {palette:pal}));
   view.encode('png', {palette:pal}, function(err, result) {
     if (err) throw err;
@@ -232,9 +232,9 @@ test('should encode with a pallete', (assert) => {
 test('should be able to save an ImageView', (assert) => {
   var im = new mapnik.Image(256, 256);
   var view = im.view(0,0,256,256);
-  var pal = new mapnik.Palette(new Buffer('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
+  var pal = new mapnik.Palette(Buffer.from('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
   var expected = './test/tmp/mapnik-image-view-saved.png';
-  view.save(expected);
+  view.saveSync(expected);
   assert.ok(fs.existsSync(expected));
   assert.end();
 });
@@ -242,21 +242,21 @@ test('should be able to save an ImageView', (assert) => {
 test('should throw with invalid formats', (assert) => {
   var im = new mapnik.Image(256, 256);
   var view = im.view(0,0,256,256);
-  assert.throws(function() { view.save('foo','foo'); });
-  assert.throws(function() { view.save(); });
-  assert.throws(function() { view.save('file.png', null); });
-  assert.throws(function() { view.save('foo'); });
-  assert.throws(function() { view.save('foo','foo'); });
-  assert.throws(function() { view.save(); });
-  assert.throws(function() { view.save('file.png', null); });
-  assert.throws(function() { view.save('foo'); });
+  assert.throws(function() { view.saveSync('foo','foo'); });
+  assert.throws(function() { view.saveSync(); });
+  assert.throws(function() { view.saveSync('file.png', null); });
+  assert.throws(function() { view.saveSync('foo'); });
+  assert.throws(function() { view.saveSync('foo','foo'); });
+  assert.throws(function() { view.saveSync(); });
+  assert.throws(function() { view.saveSync('file.png', null); });
+  assert.throws(function() { view.saveSync('foo'); });
   assert.throws(function() { view.saveSync(); });
   assert.throws(function() { view.saveSync('foo','foo'); });
   assert.throws(function() { view.saveSync('file.png', null); });
   assert.throws(function() { view.saveSync('foo'); });
-  assert.throws(function() { view.save(function(err) {}); });
-  assert.throws(function() { view.save('file.png', null, function(err) {}); });
-  assert.throws(function() { view.save('foo', function(err) {}); });
+  assert.throws(function() { view.saveSync(function(err) {}); });
+  assert.throws(function() { view.saveSync('file.png', null, function(err) {}); });
+  assert.throws(function() { view.saveSync('foo', function(err) {}); });
   assert.end();
 });
 

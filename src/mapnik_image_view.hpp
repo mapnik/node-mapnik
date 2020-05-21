@@ -19,17 +19,17 @@ public:
     // ctor
     explicit ImageView(Napi::CallbackInfo const& info);
     // methods
-    //Napi::Value encodeSync(Napi::CallbackInfo const& info);
-    //Napi::Value encode(Napi::CallbackInfo const& info);
+    Napi::Value encodeSync(Napi::CallbackInfo const& info);
+    Napi::Value encode(Napi::CallbackInfo const& info);
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
-    //Napi::Value save(Napi::CallbackInfo const& info);
+    void saveSync(Napi::CallbackInfo const& info);
     Napi::Value isSolid(Napi::CallbackInfo const& info);
     Napi::Value isSolidSync(Napi::CallbackInfo const& info);
     Napi::Value getPixel(Napi::CallbackInfo const& info);
 private:
+    static void encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette);
     static Napi::FunctionReference constructor;
     image_view_ptr image_view_;
     image_ptr image_;
-    //Image * JSImage_;
 };

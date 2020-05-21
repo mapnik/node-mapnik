@@ -9,6 +9,7 @@ using palette_ptr =  std::shared_ptr<mapnik::rgba_palette>;
 class Palette : public Napi::ObjectWrap<Palette>
 {
     friend class Image;
+    friend class ImageView;
     friend class Map;
 public:
     // initializer

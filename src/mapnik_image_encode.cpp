@@ -125,6 +125,7 @@ private:
 Napi::Value Image::encodeSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     std::string format{"png"};
     palette_ptr palette;
     encode_common_args_(info, format, palette);
@@ -143,7 +144,7 @@ Napi::Value Image::encodeSync(Napi::CallbackInfo const& info)
                                               },
                                               result.release());
         Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
-        return buffer;
+        return scope.Escape(buffer);
     }
     catch (std::exception const& ex)
     {
@@ -151,7 +152,6 @@ Napi::Value Image::encodeSync(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 }
-
 
 /**
  * Encode this image into a buffer of encoded data
