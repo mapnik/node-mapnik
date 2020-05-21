@@ -7,8 +7,8 @@ var mapnik = require('../');
 var fs = require('fs');
 var path = require('path');
 
-//var helper = require('./support/helper');
-//mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+var helper = require('./support/helper');
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 
 test('should throw with invalid usage', (assert) => {
   // no 'new' keyword
@@ -54,14 +54,13 @@ test('should support 256 color ACT palettes', (assert) => {
   assert.end();
 });
 
-// FIXME !!!!!!!!!
-/*
+
 test('should support rendering - sync', (assert) => {
   var map = new mapnik.Map(600, 400);
   map.fromStringSync(fs.readFileSync('./test/stylesheet.xml', 'utf8'), { strict: true, base: './test/' });
   map.zoomAll();
 
-  var pal = new mapnik.Palette(new Buffer('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
+  var pal = new mapnik.Palette(Buffer.from('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
 
   // Test rendering a blank image
   var filename = helper.filename();
@@ -70,14 +69,15 @@ test('should support rendering - sync', (assert) => {
   map.renderFileSync(filename, {palette: pal});
   var stat = fs.statSync(filename);
   assert.ok(stat.size < 7300);
+  assert.end();
 });
 
-it('should support rendering - async', function(done) {
+test('should support rendering - async', (assert) => {
   var map = new mapnik.Map(600, 400);
   map.fromStringSync(fs.readFileSync('./test/stylesheet.xml', 'utf8'), { strict: true, base: './test/' });
   map.zoomAll();
 
-  var pal = new mapnik.Palette(new Buffer('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
+  var pal = new mapnik.Palette(Buffer.from('\xff\x00\xff\xff\xff\xff','ascii'), 'rgb');
 
   // Test rendering a blank image
   var filename = helper.filename();
@@ -85,7 +85,6 @@ it('should support rendering - async', function(done) {
   map.renderFile(filename, {palette: pal}, function(err) {
     var stat = fs.statSync(filename);
     assert.ok(stat.size < 7300);
-    done();
+    assert.end();
   });
 });
-*/
