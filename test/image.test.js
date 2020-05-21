@@ -5,6 +5,8 @@ var mapnik = require('../');
 var fs = require('fs');
 var path = require('path');
 
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
+
 test('should throw with invalid usage', (assert) => {
   // no 'new' keyword
   assert.throws(function() { mapnik.Image(1, 1);});
@@ -135,7 +137,7 @@ test('should be initialized properly', (assert) => {
   assert.ok(v instanceof mapnik.ImageView);
   assert.equal(v.width(), 256);
   assert.equal(v.height(), 256);
-  // assert.equal(im.encodeSync().length, v.encodeSync().length); FIXME!!!
+  assert.equal(im.encodeSync().length, v.encodeSync().length);
 
   var tmp_filename = './test/tmp/image'+Math.random()+'.png';
   im.save(tmp_filename);
@@ -184,7 +186,7 @@ test('should be initialized properly via async constructors', (assert) => {
     assert.equal(im2.width(), 256);
     assert.equal(im2.height(), 256);
     assert.equal(im.encodeSync().length, im2.encodeSync().length);
-    mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) { // FIXME
+    mapnik.Image.fromBytes(im.encodeSync(),function(err,im3) {
       if (err) throw err;
       assert.ok(im3 instanceof mapnik.Image);
       assert.equal(im3.width(), 256);
@@ -243,53 +245,6 @@ test('should have background set after rendering', (assert) => {
     assert.end();
   });
 });
-/*
-test('should be painted after rendering', (assert) => {
-
-  var im_blank3 = new mapnik.Image(4, 4);
-  assert.equal(im_blank3.painted(), false);
-
-  var m3 = new mapnik.Map(4, 4);
-  var s = '<Map>';
-  s += '<Style name="points">';
-  s += ' <Rule>';
-  s += '  <PointSymbolizer />';
-  s += ' </Rule>';
-  s += '</Style>';
-  s += '</Map>';
-  m3.fromStringSync(s);
-
-  assert.throws(function() { mapnik.MemoryDatasource({extent: '-180,-90,180,90'}); });
-  assert.throws(function() { new mapnik.MemoryDatasource(); });
-  assert.throws(function() { new mapnik.MemoryDatasource(null); });
-  var params = {
-    extent:'-180,-90,180,90',
-    foo: 1,
-    waffle: 22.2,
-    fee: true,
-    boom: {},
-    lalala: null,
-    heheheh: undefined
-  }
-  var mem_datasource = new mapnik.MemoryDatasource(params);
-  mem_datasource.add({ 'x': 0, 'y': 0 });
-  mem_datasource.add({ 'x': 1, 'y': 1 });
-  mem_datasource.add({ 'x': 2, 'y': 2 });
-  mem_datasource.add({ 'x': 3, 'y': 3 });
-  var l = new mapnik.Layer('test');
-  l.srs = m3.srs;
-  l.styles = ['points'];
-  l.datasource = mem_datasource;
-  var mem_datasource_same = l.datasource;
-  assert.deepEqual(mem_datasource.parameters(), mem_datasource_same.parameters());
-  m3.add_layer(l);
-  m3.zoomAll();
-  m3.render(im_blank3, {},function(err,im_blank3) {
-    assert.equal(im_blank3.painted(), true);
-    assert.end();
-  });
-});
-*/
 
 test('should support setting the alpha channel based on the amount of gray', (assert) => {
   var gray = new mapnik.Image(256, 256);
@@ -298,7 +253,7 @@ test('should support setting the alpha channel based on the amount of gray', (as
   assert.throws(function() { gray.setGrayScaleToAlpha({}) });
   gray.setGrayScaleToAlpha();
   var gray_view = gray.view(0, 0, gray.width(), gray.height());
-  //assert.equal(gray_view.isSolidSync(), true); <--------------------FIXME
+  assert.equal(gray_view.isSolidSync(), true);
   var pixel = gray.getPixel(0, 0, {get_color:true});
   assert.equal(pixel.r, 255);
   assert.equal(pixel.g, 255);
@@ -1654,7 +1609,6 @@ test('should resize image down - blackman', (assert) => {
   });
 });
 
-/* FIXME
 test('resize async should yield the same results as rendered image', (assert) => {
   var im = new mapnik.Image.open('test/data/images/sat_image.png');
   im.premultiply();
@@ -1690,7 +1644,7 @@ test('resize sync should yield the same results as rendered image', (assert) => 
     });
   });
 });
-*/
+
 test('be able to create image with zero allocation / from raw buffer', (assert) => {
   var im = new mapnik.Image.open('test/data/images/sat_image.png');
   assert.equal(im.premultiplied(), false);
