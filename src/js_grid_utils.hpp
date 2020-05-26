@@ -1,5 +1,4 @@
-#ifndef __NODE_MAPNIK_GRID_UTILS_H__
-#define __NODE_MAPNIK_GRID_UTILS_H__
+#pragma once
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -13,8 +12,6 @@
 #include <stdint.h>  // for uint16_t
 
 #include <memory>
-
-
 
 
 namespace node_mapnik {
@@ -84,7 +81,7 @@ static void grid2utf(T const& grid_type,
 
 
 template <typename T>
-static void write_features(T const& grid_type,
+static void write_features(Napi::Env env, T const& grid_type,
                            Napi::Object& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
@@ -122,18 +119,17 @@ static void write_features(T const& grid_type,
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
-                (feat).Set(Napi::String::New(env, attr),
-                    mapnik::util::apply_visitor(node_mapnik::value_converter(),
-                    attr_val));
+                feat.Set(attr,
+                         mapnik::util::apply_visitor(node_mapnik::value_converter(env),
+                                                     attr_val));
             }
         }
 
         if (found)
         {
-            (feature_data).Set(Napi::String::New(env, feat_itr->first), feat);
+            feature_data.Set(feat_itr->first, feat);
         }
     }
 }
 
-}
-#endif // __NODE_MAPNIK_GRID_UTILS_H__
+} // ns node_mapnik

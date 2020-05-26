@@ -3,6 +3,7 @@
 #include "object_to_container.hpp"
 // mapnik
 #include <mapnik/map.hpp>
+#include <mapnik/layer.hpp>
 #include <mapnik/agg_renderer.hpp>      // for agg_renderer
 #include <mapnik/geometry/box2d.hpp>    // for box2d
 #include <mapnik/color.hpp>             // for color
@@ -13,6 +14,11 @@
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_io.hpp>
+#endif
+#if defined(GRID_RENDERER)
+#include "mapnik_grid.hpp"
+#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
+#include <mapnik/grid/grid_renderer.hpp>// for grid_renderer
 #endif
 
 /*
@@ -306,6 +312,79 @@ private:
 };
 
 
+struct AsyncRenderGrid : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+
+    AsyncRenderGrid(map_ptr const& map, grid_ptr const& grid,
+                    double scale_factor, double scale_denominator,
+                    int buffer_size, unsigned offset_x, unsigned offset_y,
+                    std::size_t layer_idx,
+                    Napi::Function const& callback)
+        :Base(callback),
+         map_(map),
+         grid_(grid),
+         scale_factor_(scale_factor),
+         scale_denominator_(scale_denominator),
+         buffer_size_(buffer_size),
+         offset_x_(offset_x),
+         offset_y_(offset_y),
+         layer_idx_(layer_idx) {}
+
+    void Execute() override
+    {
+        try
+        {
+            std::vector<mapnik::layer> const& layers = map_->layers();
+            // copy property names
+            std::set<std::string> attributes = grid_->get_fields();
+
+            // todo - make this a static constant
+            std::string known_id_key = "__id__";
+            if (attributes.find(known_id_key) != attributes.end())
+            {
+                attributes.erase(known_id_key);
+            }
+
+            std::string join_field = grid_->get_key();
+            if (known_id_key != join_field &&
+                attributes.find(join_field) == attributes.end())
+            {
+                attributes.insert(join_field);
+            }
+
+            mapnik::grid_renderer<mapnik::grid> ren(*map_,
+                                                    *grid_,
+                                                    scale_factor_,
+                                                    offset_x_,
+                                                    offset_y_);
+            mapnik::layer const& layer = layers[layer_idx_];
+            ren.apply(layer, attributes, scale_denominator_);
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        Napi::Value arg = Napi::External<grid_ptr>::New(env, &grid_);
+        Napi::Object obj = Grid::constructor.New({arg});
+        return {env.Null(), napi_value(obj)};
+    }
+
+private:
+    map_ptr map_;
+    grid_ptr grid_;
+    double scale_factor_;
+    double scale_denominator_;
+    int buffer_size_;
+    unsigned offset_x_;
+    unsigned offset_y_;
+    std::size_t layer_idx_;
+    //mapnik::attributes variables_;
+};
+
 struct AsyncRenderFile : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
@@ -587,32 +666,34 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             worker->Queue();
             return env.Undefined();
         }
-/*
 #if defined(GRID_RENDERER)
-        else if (Napi::New(env, Grid::constructor)->HasInstance(obj)) {
-
-            Grid * g = obj.Unwrap<Grid>();
-
+        else if (obj.InstanceOf(Grid::constructor.Value()))
+        {
+            grid_ptr grid = Napi::ObjectWrap<Grid>::Unwrap(obj)->impl();
             std::size_t layer_idx = 0;
 
             // grid requires special options for now
-            if (!(options).Has(Napi::String::New(env, "layer")).FromMaybe(false)) {
+            if (!options.Has("layer"))
+            {
                 Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
-                return env.Null();
-            } else {
+                return env.Undefined();
+            }
+            else
+            {
+                std::vector<mapnik::layer> const& layers = map_->layers();
 
-                std::vector<mapnik::layer> const& layers = m->map_->layers();
-
-                Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
-                if (! (layer_id.IsString() || layer_id.IsNumber()) ) {
+                Napi::Value layer_id = options.Get("layer");
+                if (! (layer_id.IsString() || layer_id.IsNumber()) )
+                {
                     Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
                     return env.Null();
                 }
 
-                if (layer_id.IsString()) {
+                if (layer_id.IsString())
+                {
                     bool found = false;
                     unsigned int idx(0);
-                    std::string const & layer_name = TOSTR(layer_id);
+                    std::string const & layer_name = layer_id.As<Napi::String>();
                     for (mapnik::layer const& lyr : layers)
                     {
                         if (lyr.name() == layer_name)
@@ -627,14 +708,17 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     {
                         std::ostringstream s;
                         s << "Layer name '" << layer_name << "' not found";
-                        Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-                        return env.Null();
+                        Napi::TypeError::New(env, s.str()).ThrowAsJavaScriptException();
+                        return env.Undefined();
                     }
-                } else { // IS NUMBER
+                }
+                else
+                { // IS NUMBER
                     layer_idx = layer_id.As<Napi::Number>().Int32Value();
                     std::size_t layer_num = layers.size();
 
-                    if (layer_idx >= layer_num) {
+                    if (layer_idx >= layer_num)
+                    {
                         std::ostringstream s;
                         s << "Zero-based layer index '" << layer_idx << "' not valid, ";
                         if (layer_num > 0)
@@ -651,61 +735,71 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 }
             }
 
-            if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false)) {
-
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "fields"));
-                if (!param_val->IsArray()) {
+            if (options.Has("fields"))
+            {
+                Napi::Value param_val = options.Get("fields");
+                if (!param_val.IsArray())
+                {
                     Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
                 Napi::Array a = param_val.As<Napi::Array>();
                 unsigned int i = 0;
-                unsigned int num_fields = a->Length();
-                while (i < num_fields) {
-                    Napi::Value name = (a).Get(i);
-                    if (name.IsString()){
-                        g->get()->add_field(TOSTR(name));
+                unsigned int num_fields = a.Length();
+                while (i < num_fields)
+                {
+                    Napi::Value name = a.Get(i);
+                    if (name.IsString())
+                    {
+                        grid->add_field(name.As<Napi::String>());
                     }
                     i++;
                 }
             }
 
-            grid_baton_t *closure = new grid_baton_t();
+            //grid_baton_t *closure = new grid_baton_t();
 
-            if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
+            if (options.Has("variables"))
             {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+                Napi::Value bind_opt = options.Get("variables");
                 if (!bind_opt.IsObject())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
+                //object_to_container(variables, bind_opt.As<Napi::Object>());
             }
 
-            closure->request.data = closure;
-            closure->m = m;
-            closure->g = g;
-            closure->layer_idx = layer_idx;
-            closure->buffer_size = buffer_size;
-            closure->scale_factor = scale_factor;
-            closure->scale_denominator = scale_denominator;
-            closure->offset_x = offset_x;
-            closure->offset_y = offset_y;
-            closure->error = false;
-            if (!m->acquire())
+            //closure->request.data = closure;
+            //closure->m = m;
+            //closure->g = g;
+            //closure->layer_idx = layer_idx;
+            //closure->buffer_size = buffer_size;
+            //closure->scale_factor = scale_factor;
+            //closure->scale_denominator = scale_denominator;
+            //closure->offset_x = offset_x;
+            //closure->offset_y = offset_y;
+            //closure->error = false;
+            if (!acquire())
             {
-                delete closure;
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
-            closure->cb.Reset(info[info.Length() - 1].As<Napi::Function>());
-            uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderGrid, (uv_after_work_cb)EIO_AfterRenderGrid);
-            closure->g->Ref();
+            Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
+            auto* worker = new detail::AsyncRenderGrid(map_,
+                                                       grid,
+                                                       scale_factor,
+                                                       scale_denominator,
+                                                       offset_x,
+                                                       offset_y,
+                                                       buffer_size,
+                                                       layer_idx,
+                                                       callback);
+            worker->Queue();
+            return env.Undefined();
         }
 #endif
-*/
+
 /*
         // VT
         else if (Napi::New(env, VectorTile::constructor)->HasInstance(obj))

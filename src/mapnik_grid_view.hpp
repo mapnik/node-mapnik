@@ -1,55 +1,40 @@
-#ifndef __NODE_MAPNIK_GRID_VIEW_H__
-#define __NODE_MAPNIK_GRID_VIEW_H__
+#pragma once
 
 #if defined(GRID_RENDERER)
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <napi.h>
-#include <uv.h>
-#pragma GCC diagnostic pop
-
+// mapnik
 #include <mapnik/grid/grid_view.hpp>
+// stl
 #include <memory>
+#include "mapnik_grid.hpp"
 
 class Grid;
 
-
 typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 
-class GridView : public Napi::ObjectWrap<GridView> {
+class GridView : public Napi::ObjectWrap<GridView>
+{
+    friend class Grid;
 public:
-    static Napi::FunctionReference constructor;
-    static void Initialize(Napi::Object target);
-    static Napi::Value New(Napi::CallbackInfo const& info);
-    static Napi::Value NewInstance(Grid * JSGrid,
-                             unsigned x,unsigned y, unsigned w, unsigned h);
-
-    static Napi::Value encodeSync(Napi::CallbackInfo const& info);
-    static Napi::Value encode(Napi::CallbackInfo const& info);
-    static Napi::Value fields(Napi::CallbackInfo const& info);
-    static void EIO_Encode(uv_work_t* req);
-    static void EIO_AfterEncode(uv_work_t* req);
-
-    static Napi::Value width(Napi::CallbackInfo const& info);
-    static Napi::Value height(Napi::CallbackInfo const& info);
-    static Napi::Value isSolid(Napi::CallbackInfo const& info);
-    static void EIO_IsSolid(uv_work_t* req);
-    static void EIO_AfterIsSolid(uv_work_t* req);
-    static Napi::Value _isSolidSync(Napi::CallbackInfo const& info);
-    static Napi::Value isSolidSync(Napi::CallbackInfo const& info);
-    static Napi::Value getPixel(Napi::CallbackInfo const& info);
-
-    GridView(Grid * JSGrid);
-    inline grid_view_ptr get() { return this_; }
-
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit GridView(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value encodeSync(Napi::CallbackInfo const& info);
+    Napi::Value encode(Napi::CallbackInfo const& info);
+    Napi::Value fields(Napi::CallbackInfo const& info);
+    Napi::Value width(Napi::CallbackInfo const& info);
+    Napi::Value height(Napi::CallbackInfo const& info);
+    Napi::Value isSolid(Napi::CallbackInfo const& info);
+    Napi::Value isSolidSync(Napi::CallbackInfo const& info);
+    Napi::Value getPixel(Napi::CallbackInfo const& info);
+    inline grid_view_ptr impl() const { return grid_view_; }
 private:
-    ~GridView();
-    grid_view_ptr this_;
-    Grid * JSGrid_;
+    static Napi::FunctionReference constructor;
+    grid_view_ptr grid_view_;
+    grid_ptr grid_;
 };
-
-#endif
 
 #endif

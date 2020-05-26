@@ -2,9 +2,6 @@
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
 //#include "mapnik_featureset.hpp"        // for Featureset
-#if defined(GRID_RENDERER)
-//#include "mapnik_grid.hpp"              // for Grid, Grid::constructor
-#endif
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
@@ -15,10 +12,6 @@
 
 // mapnik
 #include <mapnik/featureset.hpp>        // for featureset_ptr
-#if defined(GRID_RENDERER)
-#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
-#include <mapnik/grid/grid_renderer.hpp>// for grid_renderer
-#endif
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/save_map.hpp>          // for save_map, etc
 #include <mapnik/image_scaling.hpp>

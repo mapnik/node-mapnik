@@ -1790,14 +1790,12 @@ std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double l
             }
         }
     }
-    std::sort(arr.begin(), arr.end(), _querySort);
+    std::sort(arr.begin(), arr.end(),[](query_result a, query_result b) {
+                                         return a > b;
+                                     });
     return arr;
 }
 
-bool VectorTile::_querySort(query_result const& a, query_result const& b)
-{
-    return a.distance < b.distance;
-}
 
 Napi::Array VectorTile::_queryResultToV8(std::vector<query_result> const& result)
 {

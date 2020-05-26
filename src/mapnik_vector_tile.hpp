@@ -71,7 +71,7 @@ public:
     static void EIO_Query(uv_work_t* req);
     static void EIO_AfterQuery(uv_work_t* req);
     static std::vector<query_result> _query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name);
-    static bool _querySort(query_result const& a, query_result const& b);
+    //static bool _querySort(query_result const& a, query_result const& b);
     static Napi::Array _queryResultToV8(std::vector<query_result> const& result);
     static Napi::Value queryMany(Napi::CallbackInfo const& info);
     static void _queryMany(queryMany_result & result, VectorTile* d, std::vector<query_lonlat> const& query, double tolerance, std::string const& layer_name, std::vector<std::string> const& fields);

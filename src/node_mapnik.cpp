@@ -20,8 +20,8 @@
 #include "mapnik_image_view.hpp"
 #include "mapnik_cairo_surface.hpp"
 #if defined(GRID_RENDERER)
-//#include "mapnik_grid.hpp"
-//#include "mapnik_grid_view.hpp"
+#include "mapnik_grid.hpp"
+#include "mapnik_grid_view.hpp"
 #endif
 #include "mapnik_expression.hpp"
 //#include "utils.hpp"
@@ -322,6 +322,10 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Expression::Initialize(env, exports);
     Logger::Initialize(env, exports);
     CairoSurface::Initialize(env, exports);
+#if defined(GRID_RENDERER)
+    Grid::Initialize(env, exports);
+    GridView::Initialize(env, exports);
+#endif
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);
